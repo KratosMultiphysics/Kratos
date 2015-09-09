@@ -89,7 +89,8 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile);
+//            WriteGaussPoints(ResultFile);
+
             if(rVariable == SATURATION)
             {
                 GiD_fBeginRangeTable(ResultFile, "saturation");
@@ -148,12 +149,12 @@ public:
     {
         if( mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile);
+//            WriteGaussPoints(ResultFile);
+
             GiD_fBeginResult( ResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                              SolutionTag, GiD_Vector,
                              GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize);
-
 
             for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); it++ )
@@ -178,7 +179,7 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints( ResultFile );
+//            WriteGaussPoints( ResultFile );
 
             if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES || rVariable == PLASTIC_STRAIN_VECTOR )
                 GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
@@ -314,7 +315,8 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile);
+//            WriteGaussPoints(ResultFile);
+
             GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                              GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
