@@ -146,10 +146,10 @@ namespace Kratos
 	  ExplicitStrategy(
 	                ModelPart& model_part, 
 			const int        dimension,
-			const bool       MoveMeshFlag
+			const bool       move_mesh_flag
 			)
 			
-	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, move_mesh_flag)
 	      {
 			std::cout<< "*************************************"<< std::endl;
 	        std::cout <<"*   EXPLICIT CALCULATIONS STRATEGY  *"<< std::endl;
@@ -177,7 +177,7 @@ void AssembleLoop(ProcessInfo& CurrentProcessInfo)
 	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
-		Element::GeometryType& geom = it->GetGeometry();
+	  //	Element::GeometryType& geom = it->GetGeometry();
 
 	   //for (unsigned int i = 0; i < geom.size(); i++)
 	   //			 geom(i)->SetLock();
