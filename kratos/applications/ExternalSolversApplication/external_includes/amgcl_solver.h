@@ -428,7 +428,10 @@ public:
         else
             mndof = ndof;
 
-        KRATOS_WATCH(mndof);
+        if(mverbosity > 0)
+		{
+			KRATOS_WATCH(mndof);
+		}
 
         if(mprovide_coordinates == true)
         {
