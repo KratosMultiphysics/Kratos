@@ -383,7 +383,7 @@ namespace Kratos
 			{
 				std::cout << "Replacing particle information using the Topographic domain" << std::endl;		  
 				const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
-				KRATOS_WATCH(offset)											//(flag managed only by MoveParticles
+				//KRATOS_WATCH(offset)											//(flag managed only by MoveParticles
 				ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 				vector<unsigned int> element_partition;
 				#ifdef _OPENMP
@@ -460,7 +460,7 @@ namespace Kratos
 	        IteratorType it_begin_topo              =  rElements_topo.begin();                        
 
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
-			KRATOS_WATCH(offset)											//(flag managed only by MoveParticles
+			//KRATOS_WATCH(offset)											//(flag managed only by MoveParticles
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			vector<unsigned int> element_partition;
 			#ifdef _OPENMP
@@ -694,6 +694,32 @@ namespace Kratos
 
 			KRATOS_CATCH("")
 		}
+		
+		void CopyVectorVarToPreviousTimeStep(const Variable< array_1d<double, 3 > >& OriginVariable,	
+                       ModelPart::NodesContainerType& rNodes)
+        {
+			KRATOS_TRY
+			#pragma omp parallel for
+			for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
+			{
+				ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+				noalias(i->GetSolutionStepValue(OriginVariable,1)) = i->FastGetSolutionStepValue(OriginVariable);
+			}
+			KRATOS_CATCH("")
+        }
+        
+        void CopyScalarVarToPreviousTimeStep(const Variable<double>& OriginVariable,	
+                       ModelPart::NodesContainerType& rNodes)
+        {
+			KRATOS_TRY
+			#pragma omp parallel for
+			for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
+			{
+				ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+				i->GetSolutionStepValue(OriginVariable,1) = i->FastGetSolutionStepValue(OriginVariable);
+			}
+			KRATOS_CATCH("")
+        }
 
 
 		//to move all the particles across the streamlines. heavy task!
@@ -707,14 +733,14 @@ namespace Kratos
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 																				//moveparticlesdiff reads from the pointers of one part (ie odd) and saves into the other part (ie even part)
 																				//since it is the only function in the whole procedure that does this, it must use alternatively one part and the other.
-			KRATOS_WATCH(offset)																		
+			//KRATOS_WATCH(offset)																		
 																				
 			bool even_timestep;
 			if (offset!=0) even_timestep=false;
 			else even_timestep=true;		
 										
 			const int post_offset = mmaximum_number_of_particles*int(even_timestep);	//and we also save the offset to know the location in which we will save the pointers after we've moved the particles																		
-			KRATOS_WATCH(post_offset)	
+			//KRATOS_WATCH(post_offset)	
 			
 			
 			double delta_t = CurrentProcessInfo[DELTA_TIME];	
@@ -756,7 +782,7 @@ namespace Kratos
 					//we reset the local vectors for a faster access;
 				}
 			}
-			std::cout << "about to start convecting particles" << std::endl;
+			std::cout << "convecting particles" << std::endl;
             //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)			
 
 			#pragma omp barrier
@@ -864,10 +890,11 @@ namespace Kratos
 			const double threshold= 0.0/(double(TDim)+1.0);
 
 				
-			KRATOS_WATCH("About to Lagrangian->eulerian")
+			std::cout << "projecting info to mesh" << std::endl;
+
 			
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
-			KRATOS_WATCH(offset)																	//(flag managed only by MoveParticles
+			//KRATOS_WATCH(offset)																	//(flag managed only by MoveParticles
 			
 			//we must project data from the particles (lagrangian)  into the eulerian mesh
 			//ValuesVectorType eulerian_nodes_old_temperature;
@@ -888,8 +915,7 @@ namespace Kratos
 	
 			}
 			
-			//KRATOS_WATCH("ln 304")
-			KRATOS_WATCH("About to Lagrangian->eulerian part 2")
+			//KRATOS_WATCH("About to Lagrangian->eulerian part 2")
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
@@ -1021,12 +1047,12 @@ namespace Kratos
 		void AccelerateParticlesWithoutMovingUsingDeltaVelocity() 
 		{
 			KRATOS_TRY
-			KRATOS_WATCH("accelerating particles using deltavelocity")
+			//std::cout << "updating particles" << std::endl;
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 																				//(flag managed only by MoveParticles
-			KRATOS_WATCH(offset)
+			//KRATOS_WATCH(offset)
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			
 			
@@ -1115,7 +1141,7 @@ namespace Kratos
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
 			elem_partition[number_of_threads] = number_of_rows;
-			KRATOS_WATCH(elem_partition_size);
+			//KRATOS_WATCH(elem_partition_size);
 			for (unsigned int i = 1; i < number_of_threads; i++)
 			elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
 
@@ -1244,7 +1270,7 @@ namespace Kratos
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
 			elem_partition[number_of_threads] = number_of_rows;
-			KRATOS_WATCH(elem_partition_size);
+			//KRATOS_WATCH(elem_partition_size);
 			for (unsigned int i = 1; i < number_of_threads; i++)
 			elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
 			//typedef Node < 3 > PointType;
@@ -1560,7 +1586,7 @@ namespace Kratos
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 																				//(flag managed only by MoveParticles
-			KRATOS_WATCH(offset)
+			//KRATOS_WATCH(offset)
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			
 			int counter=0;
