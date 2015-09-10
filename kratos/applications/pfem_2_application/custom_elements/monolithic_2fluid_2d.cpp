@@ -90,18 +90,25 @@ namespace Kratos
 
 		array_1d<double,TDim*(TDim+1)>  previous_vel;
 		array_1d<double,(TDim+1)*(TDim+1)>  previous_vel_and_press;
+		array_1d<double,(TDim+1)*(TDim+1)>  current_vel_and_press;
+
 		array_1d<double,(TDim+1)> distances;
 			
         for(unsigned int iii = 0; iii<(TDim+1); iii++)
         {
 			distances[iii] = this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE);
-			array_1d<double,3>& vel = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY);
+			array_1d<double,3>& vel = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,1);
+			array_1d<double,3>& current_vel = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY);
 			for(unsigned int j = 0; j<TDim; j++)
 			{
 				previous_vel(iii*TDim+j) = vel[j];
 				previous_vel_and_press(iii*(TDim+1)+j) = vel[j];
+				current_vel_and_press(iii*(TDim+1)+j) = current_vel[j];
+				
 			}
 			previous_vel_and_press(iii*(TDim+1)+TDim) = this->GetGeometry()[iii].FastGetSolutionStepValue(PRESSURE);
+			current_vel_and_press(iii*(TDim+1)+TDim) = this->GetGeometry()[iii].FastGetSolutionStepValue(PRESSURE);
+
 
 		}
 		
@@ -143,6 +150,18 @@ namespace Kratos
 			     split_element=true;
 		}
 		
+		//in case one node is too close to zero
+		for(unsigned int iii = 0; iii<(TDim+1); iii++)
+		{
+			if(fabs(distances(iii)<0.01))
+			{
+				if(distances(iii)<0.0)
+				     distances(iii)=-0.01;
+				else
+				     distances(iii)=0.01;
+			}
+		}
+		
 		if (split_element==false)
 		//if(true==true)
 		{
@@ -167,25 +186,25 @@ namespace Kratos
 			//const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
 			//double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
 			double density=density_air;
-			double viscosity=viscosity_air;
+			//double viscosity=viscosity_air;
 			
 			double viscosity_for_tau=0.0;;
 			if (distances(0)<0.0)
 			{
 				density=density_water;
-				viscosity=viscosity_water;
+				//viscosity=viscosity_water;
 				viscosity_for_tau=viscosity_water;
 				
 			}
 			else
 			{
 				density = density_air;//this->CalculateAirDensity(element_temperature);
-				viscosity = viscosity_air;//this->CalculateAirViscosity(element_temperature);
+				//viscosity = viscosity_air;//this->CalculateAirViscosity(element_temperature);
 				viscosity_for_tau=viscosity_air;
 				
 				volume_correction=0.0; //we must only increase the mass of the water phase, so we turn this coeff off for the air phase
 			}
-			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (viscosity*Area) );
+			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (viscosity_for_tau), Area ); 
 			
 			
 			
@@ -262,7 +281,7 @@ namespace Kratos
 					rhs_stab[j] += node_press_proj(j)*factor;
 			}
 			
-			const bool use_press_proj=true;
+			const bool use_press_proj=false;
 			
 			for (unsigned int i = 0; i < (TDim+1); i++)
 			{
@@ -273,10 +292,10 @@ namespace Kratos
 			
 				if (use_press_proj)
 					for (unsigned int j = 0; j < TDim; j++)
-						rRightHandSideVector(i*(TDim+1)+TDim) -= (1.0+volume_correction)*TauOne*Area*(DN_DX(i,j)*rhs_stab(j));
+						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*rhs_stab(j) + fabs(DN_DX(i,j)) * volume_correction *10.0) ;
 				else
 					for (unsigned int j = 0; j < TDim; j++)
-						rRightHandSideVector(i*(TDim+1)+TDim) -= (1.0+volume_correction)*TauOne*Area*(DN_DX(i,j)*body_force(j));
+						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*body_force(j) + fabs(DN_DX(i,j)) * volume_correction *10.0) ;
 
 			}
 			
@@ -337,6 +356,7 @@ namespace Kratos
 			double Weight=0.0;
 			double Weight_for_tau=0.0;
 			double mass=0.0;
+			double negative_area=0.0;
 			for (unsigned int i=0;i<ndivisions;i++) //we go over the three partitions;
 			{
 				//double partition_temperature=0.0;
@@ -364,9 +384,14 @@ namespace Kratos
 					densities(i)=density_water;
 					viscosities(i) = viscosity_water;//CalculateAirDensity(partition_temperature);
 					mass += volumes(i)*density_water;
+					negative_area += volumes(i);
+					
 				}
 			}
 			
+			const double element_viscosity_for_tau=Weight_for_tau/Area;
+			const double element_density= mass/Area;
+						
 			for (unsigned int i = 0; i < TDim+1; i++)
 			{
 				for (unsigned int j = 0; j < TDim+1; j++)
@@ -387,12 +412,10 @@ namespace Kratos
 								volumes,
 								ndivisions);
 			*/
-			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (Weight) );
+			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (element_viscosity_for_tau), negative_area );
 
 			
-			//const double element_viscosity=Weight/Area;
-			const double element_viscosity_for_tau=Weight_for_tau/Area;
-			const double element_density= mass/Area;
+
 			/*
 			double fourier= element_viscosity/element_density *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
 			theta = 0.2*fourier - 0.1;
@@ -425,7 +448,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  0.01 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density) + 2.0 * AdvVelNorm / mElemSize) );
+				TauOne =  0.1 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density) + 2.0 * AdvVelNorm / mElemSize) );
 			}
 		
 			
@@ -684,7 +707,7 @@ namespace Kratos
         //finally we add to the righthandside BOTH the mass matrix and the rigidity matrix:
 
 		
-		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,previous_vel_and_press);
+		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,current_vel_and_press);
 		
 		//KRATOS_WATCH("ART")
 		//KRATOS_WATCH(rRightHandSideVector)
@@ -788,7 +811,7 @@ namespace Kratos
 					bool has_negative_node=false;
 					bool has_positive_node=false;
 					double element_mean_distance=0.0;
-					for(unsigned int iii = 0; iii<TDim+1; iii++)
+					for(unsigned int iii = 0; iii<(TDim+1); iii++)
 					{
 						//saving everything
 						pressures(iii) = GetGeometry()[iii].FastGetSolutionStepValue(PRESSURE);
@@ -830,7 +853,7 @@ namespace Kratos
 							{
 								for (unsigned int k = 0; k < (TDim) ; k++) //x,y,(z)
 								{
-									G_matrix(i, (j*3)+k ) = DN_DX(i,k)*Area*factor; //mass_factor=(1/3 in 2d, 1/4 in 3d)
+									G_matrix(i, (j*2)+k ) = DN_DX(i,k)*Area*factor; //mass_factor=(1/3 in 2d, 1/4 in 3d)
 								}
 							}
 						}
@@ -957,7 +980,7 @@ namespace Kratos
 	//with matrixtype, constant coefficient
 	void MonolithicPFEM22D::AddViscousTerm(MatrixType& rDampMatrix,
                          const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv,
-                         const double Weight)
+                         double Viscosity,const double Area)
 	{
 
 		
@@ -987,7 +1010,7 @@ namespace Kratos
 			counter++;
 		}
 		
-		C_matrix*= Weight;
+		C_matrix*= Viscosity*Area;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3 , 6  > temp_matrix = prod(C_matrix,trans(B_matrix));
 		boost::numeric::ublas::bounded_matrix<double, 6 , 6  > viscosity_matrix = prod(B_matrix, temp_matrix );
