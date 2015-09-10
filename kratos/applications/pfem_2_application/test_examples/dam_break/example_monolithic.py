@@ -35,7 +35,7 @@ model_part_io.ReadModelPart(model_part)         # we load the info from the .mdp
 model_part.ProcessInfo.SetValue(DENSITY_WATER, 1000.0);
 model_part.ProcessInfo.SetValue(DENSITY_AIR, 1.0);
 model_part.ProcessInfo.SetValue(VISCOSITY, 0.0001);
-model_part.ProcessInfo.SetValue(VISCOSITY_AIR, 0.0000001);
+model_part.ProcessInfo.SetValue(VISCOSITY_AIR, 0.000001);
 model_part.ProcessInfo.SetValue(VISCOSITY_WATER, 0.001);
 model_part.ProcessInfo.SetValue(GRAVITY_X, 0.0);
 model_part.ProcessInfo.SetValue(GRAVITY_Y, -9.8);
@@ -88,7 +88,8 @@ pfem_2_solver.AddDofs(model_part)
 
    
 #creating a solver object
-solver = pfem_2_solver.PFEM2Solver(model_part,domain_size)
+maximum_nonlin_iterations=1 #nonlinear problem
+solver = pfem_2_solver.PFEM2Solver(model_part,domain_size,maximum_nonlin_iterations)
 solver.time_order = 1
 solver.echo_level = 3
 solver.Initialize()        
@@ -106,7 +107,7 @@ gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
 nsteps=200
 Dt=0.005
 out=0
-out_step=1
+out_step=2
 
 
 gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,0,0)
@@ -118,7 +119,8 @@ import time as timer
 t1 = timer.time()
 for step in range(1,nsteps):
     out=out+1
-    print("new step")
+    print("---------------")
+    print("   new step")
     time = Dt*step
     
     model_part.CloneTimeStep(time)
@@ -144,6 +146,7 @@ for step in range(1,nsteps):
           gid_io.WriteNodalResults(PRESS_PROJ,model_part.Nodes,time,0)
           gid_io.WriteNodalResults(PROJECTED_VELOCITY,model_part.Nodes,time,0)
           gid_io.Flush()
+    print("Time in simulation: ",time," s")
 
     
 t2=timer.time()
