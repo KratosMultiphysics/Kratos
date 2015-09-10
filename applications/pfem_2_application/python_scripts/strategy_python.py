@@ -20,7 +20,7 @@ class SolvingStrategyPython:
         self.echo_level = 1        
         
         self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-         #self.builder_and_solver.SetEchoLevel(1)
+        self.builder_and_solver.SetEchoLevel(0)
 
         #local matrices and vectors
         self.pA = self.space_utils.CreateEmptyMatrixPointer()
@@ -39,6 +39,9 @@ class SolvingStrategyPython:
         #provide settings to the builder and solver
         (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag);
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep);
+
+        #by default is linear. so only one iteration will be performed.
+        self.max_iter = 1
         
     #######################################################################
     def Initialize(self):
@@ -74,14 +77,43 @@ class SolvingStrategyPython:
         #perform prediction 
         self.Predict()
 
-        #execute iteration - only one iteration is done since it is a linear system.
+        #execute iteration - first iteration is ALWAYS executed
         calculate_norm = False
+        print ("about to perform first iteration")
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        it = 1
+        
+        #print ("fist iteration is done")
+        
+        #non linear loop
+        converged = False
+        
+        while(it < self.max_iter and converged == False): #by default self.max_iter=1, so we would not enter in the non linear loop
+            #verify convergence
+            converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+           
+            #calculate iteration
+            # - system is built and solved
+            # - database is updated depending on the solution
+            # - nodal coordinates are updated if required
+            normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+
+            #verify convergence
+            converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+
+           
+            #update iteration count
+            it = it + 1
+
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-
         self.SolutionStepIsInitialized = False
         
+        if(self.max_iter>1):
+             if(it < self.max_iter):
+                 print ("converged in ", it, " iterations")       
+             else:
+                 print ("not converged after ",it," iterations")
         #clear if needed - deallocates memory 
         if(self.ReformDofSetAtEachStep == True):
             self.Clear();
@@ -199,3 +231,6 @@ class SolvingStrategyPython:
     def SetEchoLevel(self,level):
         self.echo_level = level
         self.builder_and_solver.SetEchoLevel(level)
+
+    def SetMaximumIterations(self,max_iter):
+        self.max_iter=max_iter
