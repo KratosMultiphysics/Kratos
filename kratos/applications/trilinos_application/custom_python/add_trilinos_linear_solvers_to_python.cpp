@@ -128,6 +128,7 @@ void  AddLinearSolvers()
             .value("ILU0", TrilinosAmgclSettings::ILU0)
             .value("DAMPED_JACOBI",TrilinosAmgclSettings::DAMPED_JACOBI)
             .value("GAUSS_SEIDEL",TrilinosAmgclSettings::GAUSS_SEIDEL)
+            .value("MULTICOLOR_GAUSS_SEIDEL",TrilinosAmgclSettings::MULTICOLOR_GAUSS_SEIDEL)         
             ;
         
         enum_<TrilinosAmgclSettings::AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
