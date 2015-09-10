@@ -673,63 +673,13 @@ public:
     {
         KRATOS_TRY
 
-        //Getting the Elements
-        ElementsArrayType& pElements = r_model_part.Elements();
-
-        //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-        {
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (*it)->IsDefined(ACTIVE) )
-                    element_is_active = (*it)->Is(ACTIVE);
-                
-                if(element_is_active)
-                {
-                    //calculate elemental Right Hand Side Contribution
-                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
-                }
-        }
-
-        LHS_Contribution.resize(0, 0, false);
-        RHS_Contribution.resize(0, false);
-
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        {
-            //detect if the element is active or not. If the user did not make any choice the element
-            //is active by default
-            bool condition_is_active = true;
-            if( (*it)->IsDefined(ACTIVE) )
-                condition_is_active = (*it)->Is(ACTIVE);
-            
-            if(condition_is_active)
-            {
-                        
-                //calculate elemental contribution
-                pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationId);
-            }
-        }
+        BuildRHSNoDirichlet(pScheme,r_model_part,b);
+        
+        //set to zero the positions of the RHS which correspond to Dirichlet conditions
+        int i=0;
+        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)           
+            if(dof_iterator->IsFixed()) b[i++] = 0;
+            else b[i++] = 1;
 
         KRATOS_CATCH("")
 
@@ -920,8 +870,10 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
+        TSparseSpace::SetToZero(b);
+        
         //refresh RHS to have the correct reactions
-        BuildRHS(pScheme, r_model_part, b);
+        BuildRHSNoDirichlet(pScheme, r_model_part, b);
 
         int i;
 
@@ -1322,6 +1274,75 @@ private:
         {
             v.push_back(candidate);
         }
+
+    }
+    
+    void BuildRHSNoDirichlet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& r_model_part,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        //Getting the Elements
+        ElementsArrayType& pElements = r_model_part.Elements();
+
+        //getting the array of the conditions
+        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
+
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different
+        //terms
+        Element::EquationIdVectorType EquationId;
+
+        // assemble all elements
+        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
+        {
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (*it)->IsDefined(ACTIVE) )
+                    element_is_active = (*it)->Is(ACTIVE);
+                
+                if(element_is_active)
+                {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
+        }
+
+        LHS_Contribution.resize(0, 0, false);
+        RHS_Contribution.resize(0, false);
+
+        // assemble all conditions
+        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
+        {
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool condition_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                condition_is_active = (*it)->Is(ACTIVE);
+            
+            if(condition_is_active)
+            {
+                        
+                //calculate elemental contribution
+                pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                //assemble the elemental contribution
+                AssembleRHS(b, RHS_Contribution, EquationId);
+            }
+        }
+
+        KRATOS_CATCH("")
 
     }
 
