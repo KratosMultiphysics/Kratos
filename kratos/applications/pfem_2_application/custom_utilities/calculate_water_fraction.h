@@ -70,7 +70,7 @@ namespace Kratos
 			KRATOS_TRY
 			
 			
-			double sum_areas=0.0;
+			double sum_areas=1.0e-100;
 			//double sum_temperatures=0.0;
 			//double nodal_weight=1.0/(1.0+double(TDim));
 
@@ -131,7 +131,7 @@ namespace Kratos
 				
 			}
 			//const double mean_temperature = sum_temperatures / sum_areas;
-			std::cout << "Finished, the water volume is" << sum_areas << std::endl;
+			std::cout << "Finished, the water volume is " << sum_areas << std::endl;
 			return sum_areas; 
 			
 			KRATOS_CATCH("")
