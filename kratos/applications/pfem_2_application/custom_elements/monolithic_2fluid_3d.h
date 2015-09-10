@@ -59,6 +59,14 @@ namespace Kratos
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 	
+	/// Default constructor.
+    MonolithicPFEM23D(IndexType NewId = 0) :
+        Element(NewId)
+    {}
+    MonolithicPFEM23D(IndexType NewId, const NodesArrayType& ThisNodes) :
+        Element(NewId, ThisNodes)
+    {}
+    
     /// Default constructor.
      MonolithicPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry);
      MonolithicPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
@@ -84,11 +92,11 @@ namespace Kratos
    protected:
    
        
-       	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);               
+       void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);               
                                 
-        void AddViscousTerm(MatrixType& rDampMatrix,
+       virtual void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
-                                       const double Weight); 
+                                       double Viscosity,const double Area); 
                          
        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 21, 21 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (4), 3 >& rShapeDeriv,
@@ -103,11 +111,22 @@ namespace Kratos
 	   bool InvertMatrix(const T& input, T& inverse)  ;     
    
    private:
-	friend class Serializer;
+    friend class Serializer;
 
-       MonolithicPFEM23D() : Element()
-       {
-       }
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    }
+
+    MonolithicPFEM23D & operator=(MonolithicPFEM23D const& rOther);
+
+    /// Copy constructor.
+    MonolithicPFEM23D(MonolithicPFEM23D const& rOther);
 
 
        
