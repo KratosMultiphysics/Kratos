@@ -66,7 +66,7 @@ public:
 
     enum AMGCLSmoother
     {
-        SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
+        SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV,MULTICOLOR_GAUSS_SEIDEL
     };
 
     enum AMGCLIterativeSolverType
@@ -249,6 +249,10 @@ public:
         case TrilinosAmgclSettings::CHEBYSHEV:
             mrelaxation = amgcl::runtime::relaxation::chebyshev;
             break;
+        case TrilinosAmgclSettings::MULTICOLOR_GAUSS_SEIDEL:
+            mrelaxation = amgcl::runtime::relaxation::multicolor_gauss_seidel;
+            break;
+            
         default:
             KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi smoother, while it should be prescribed explicitly" , "");
         };
@@ -336,6 +340,8 @@ public:
         KRATOS_TRY
 
         using amgcl::prof;
+        prof.reset();
+        
           
         amgcl::mpi::communicator world(MPI_COMM_WORLD);
         if (world.rank == 0) std::cout << "World size: " << world.size << std::endl;
@@ -370,8 +376,8 @@ public:
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
                         << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << tm_setup   << std::endl
-                        << "amgcl setup time: " << resid   << std::endl
+                        << "Error           : " << resid   << std::endl
+                        << "amgcl setup time: " << tm_setup   << std::endl
                         << "amgcl solve time: " << solve_tm   << std::endl//;
                         << prof                      << std::endl;
             }
@@ -403,8 +409,8 @@ public:
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
                         << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << tm_setup   << std::endl
-                        << "amgcl setup time: " << resid   << std::endl
+                        << "Error           : " << resid   << std::endl
+                        << "amgcl setup time: " << tm_setup   << std::endl
                         << "amgcl solve time: " << solve_tm   << std::endl//;
                         << prof                      << std::endl;
             }
