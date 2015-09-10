@@ -1193,6 +1193,8 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 {
     KRATOS_TRY
+            
+    mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case that someone is overwriting the Radius from Python
     
     if (r_process_info[STRESS_STRAIN_OPTION]) {
         this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
