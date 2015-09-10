@@ -34,20 +34,24 @@ def AddDofs(model_part):
 class PFEM2Solver:
     #######################################################################
     #def __init__(self,model_part,linea_model_part,domain_size):
-    def __init__(self,model_part,domain_size):
+    def __init__(self,model_part,domain_size,maximum_nonlin_iterations):
         self.model_part = model_part
         
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
+        self.maximum_nonlin_iterations = maximum_nonlin_iterations
         #definition of the solvers
         gmres_size = 50
         tol = 1e-5
-        verbosity = 1
+        verbosity = 0
+        if (maximum_nonlin_iterations==1):
+              verbosity = 1 #if it is a linear problem, we can print more information of the single iteration without filling the screen with too much info.
         pDiagPrecond = DiagonalPreconditioner()
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver() 
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.NoPreconditioner) #
         self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
-        self.conv_criteria = DisplacementCriteria(1e-9,1e-15)  #tolerance for the solver 
+        self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver 
+        self.conv_criteria.SetEchoLevel(0)
         
         self.domain_size = domain_size
         number_of_avg_elems = 10
@@ -115,6 +119,8 @@ class PFEM2Solver:
 
         import strategy_python #implicit solver
         self.monolithic_solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.monolithic_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
+        self.monolithic_solver.SetMaximumIterations(self.maximum_nonlin_iterations)
+
         self.streamlineintegration=0.0
         self.accelerateparticles=0.0
         self.implicitsystem=0.0
@@ -125,6 +131,8 @@ class PFEM2Solver:
         self.total=0.0
 
         self.model_part.ProcessInfo.SetValue(VOLUME_CORRECTION, 0.0)
+
+        self.print_times=False
 
       
                  
@@ -155,10 +163,10 @@ class PFEM2Solver:
         self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
         (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
-
         full_reset=True;
         (self.moveparticles).ResetBoundaryConditions(full_reset) 
-        
+        (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
+
         t6 = timer.time()
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 20)
         (self.monolithic_solver).Solve() #implicit resolution of the system.
@@ -184,8 +192,8 @@ class PFEM2Solver:
         self.water_volume = (self.calculatewatervolume).Calculate()
         if (self.water_initial_volume==0.0): 
                 self.water_initial_volume=self.water_volume
-        water_fraction= self.water_volume/(self.water_initial_volume+1e-9)
-        self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1 
+        water_fraction= self.water_volume/(self.water_initial_volume)
+        self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1
         print("current mass loss is : " , (1.0 - water_fraction) * 100.0 , " % ")
         #print("water fraction ", water_fraction)
         #print("water volume ", self.water_volume)
@@ -199,7 +207,7 @@ class PFEM2Solver:
         #print ". erasing  = ", t14-t13
         self.total = self.total + t13-t1 
         
-        if True:
+        if self.print_times==True:
                 print( "----------TIMES----------" )
                 print( "self.streamlineintegration " ,  self.streamlineintegration , "in % = ", 100.0*(self.streamlineintegration)/(self.total) )
                 print( "self.accelerateparticles " ,  self.accelerateparticles , "in % = ", 100.0*(self.accelerateparticles)/(self.total) )
@@ -223,3 +231,8 @@ class PFEM2Solver:
 
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
+
+    def PrintInfo(self,print_times):
+        self.print_times=print_times
+
+    
