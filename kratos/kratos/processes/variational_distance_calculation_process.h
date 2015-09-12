@@ -124,7 +124,33 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**This process recomputed the distance function mantaining the zero of the existing distance distribution
+     * for this reason the DISTANCE should be initialized to values distinct from zero in at least some portions of the domain
+     * alternatively, the DISTANCE shall be fixed to zero at least on some nodes, and the process will compute a positive distance
+     * respecting that zero
+     * @param base_model_parr - is the model part on the top of which the calculation will be performed
+     * @param plinear_solver  - linear solver to be used internally
+     * @max_iterations        - maximum number of iteration to be employed in the nonlinear optimization process. 
+     *                        - can also be set to 0 if a (very) rough approximation is enough 
+     *
+     * EXAMPLE OF USAGE FROM PYTHON:
+     * 
+     class distance_linear_solver_settings:
+         solver_type = "AMGCL"
+         tolerance = 1E-3
+         max_iteration = 200
+         scaling = False
+         krylov_type = "CG"
+         smoother_type = "SPAI0"
+         verbosity = 0
+      
+     import linear_solver_factory
+     distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
+      
+     max_iterations=1
+     distance_calculator = VariationalDistanceCalculationProcess2D(fluid_model_part, distance_linear_solver, max_iterations)
+     distance_calculator.Execute() 
+     */
     VariationalDistanceCalculationProcess(ModelPart& base_model_part,
                                           typename LinearSolverType::Pointer plinear_solver,
                                           unsigned int max_iterations = 10
