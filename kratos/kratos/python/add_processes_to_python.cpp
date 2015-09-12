@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
 #include "processes/find_nodal_h_process.h"
@@ -70,8 +71,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/rotation_operation.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/compute_bdfcoefficients_process.h"
+#include "processes/variational_distance_calculation_process.h"
+
 #include "includes/node.h"
 
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -157,6 +162,15 @@ void  AddProcessesToPython()
             init<ModelPart&, const unsigned int>())
     ;
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    class_<VariationalDistanceCalculationProcess<2> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess2D",
+            init<ModelPart&, typename LinearSolverType::Pointer, unsigned int>())
+    ;
+    class_<VariationalDistanceCalculationProcess<3> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess3D",
+            init<ModelPart&, typename LinearSolverType::Pointer, unsigned int>())
+    ;    
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 
