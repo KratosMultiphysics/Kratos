@@ -43,7 +43,10 @@ namespace Kratos
      * computation of the pressure. This follows the ideas in [.....] and allows avoiding added-mass effects.
      * The estimate of the structural mass can be given as:
      *
-     *
+     * another feature of the element is the capability of adding a mass-like matrix epsilon*1/nu*Mass to the pressure equation
+     * this is useful for cases in which there may be domains without any Neumann condition, where the pressure would be otherwise undefined.
+     * the value of the coefficient epsilon (which should be a very small number in the range 1e-6-1e-15) is controlled by
+     * epsilon = rCurrentProcessInfo[PRESSURE_MASSMATRIX_COEFFICIENT]
      *
      *
      */
@@ -242,7 +245,9 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         }
         
         //adding a penalization term to ask for the pressure to be zero in average
-        const double epsilon = 1.0e-6/Viscosity;
+        double epsilon = 1.0e-15/Viscosity;
+        if (rCurrentProcessInfo.Has(PRESSURE_MASSMATRIX_COEFFICIENT)) 
+            epsilon = rCurrentProcessInfo[PRESSURE_MASSMATRIX_COEFFICIENT];
         for (SizeType i = 0; i < NumNodes; ++i)
         {
             for (SizeType j = 0; j < NumNodes; ++j)
