@@ -321,9 +321,9 @@ public:
         }
         else
         {
-            extract<key_type> i(i_);
-            if (i.check())
-                return i();
+            extract<key_type> i1(i_);
+            if (i1.check())
+                return i1();
         }
 
         PyErr_SetString(PyExc_TypeError, "Invalid index type");
