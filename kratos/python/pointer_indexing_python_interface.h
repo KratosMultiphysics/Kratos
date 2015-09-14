@@ -273,13 +273,13 @@ private:
             else
             {
                 //  try to convert elem to Data
-                extract<Data> elem(v);
-                if (elem.check())
+                extract<Data> elem1(v);
+                if (elem1.check())
                 {
                     DerivedPolicies::
                     set_item(container,
                              DerivedPolicies::
-                             convert_index(container, i), elem());
+                             convert_index(container, i), elem1());
                 }
                 else
                 {
@@ -323,9 +323,9 @@ private:
         else
         {
             //  try to convert key to Key type
-            extract<Key> x(key);
-            if (x.check())
-                return DerivedPolicies::contains(container, x());
+            extract<Key> x1(key);
+            if (x1.check())
+                return DerivedPolicies::contains(container, x1());
             else
                 return false;
         }
