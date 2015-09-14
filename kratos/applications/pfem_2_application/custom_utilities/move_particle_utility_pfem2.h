@@ -1247,8 +1247,8 @@ namespace Kratos
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
 			
-			if (mass_correction_factor>1.0) mass_correction_factor=1.0;
-			if (mass_correction_factor<-1.0) mass_correction_factor=-1.0;
+			if (mass_correction_factor>0.5) mass_correction_factor=0.5;
+			if (mass_correction_factor<-0.5) mass_correction_factor=-0.5;
 			//mass_correction_factor=0.0;
 			
 			//ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -1301,8 +1301,6 @@ namespace Kratos
 				array_1d<int, (3+2*TDim) > positions;
 				array_1d<bool, (3+2*TDim) > is_water_particle; //for both
 				
-				//bool has_water_node;
-				//bool has_air_node;
 				
 				unsigned int number_of_reseeded_particles;
 				//unsigned int number_of_water_reseeded_particles;
@@ -1332,7 +1330,21 @@ namespace Kratos
 						
 						distances = ZeroVector(3+2*TDim);
 						
-
+						bool has_water_node=false;
+						bool has_air_node=false;
+						double mean_element_distance = 0.0;
+						
+						
+						for (unsigned int j = 0; j < (TDim+1); j++)
+						{
+							mean_element_distance += (1.0/double(TDim+1))*(geom[j].FastGetSolutionStepValue(DISTANCE));
+							if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0)
+								has_water_node=true;
+							else
+								has_air_node=true;
+						}
+						
+						//first we check the particle distance according to the nodal values
 						for (unsigned int j = 0; j < number_of_reseeded_particles; j++) //first we order particles
 						{
 							positions[j]=j+1; //just creating a vector from 1 to 7 or whathever our lenght is (7 for 2d, 9 for 3d)
@@ -1342,7 +1354,9 @@ namespace Kratos
 							}
 						}
 						
-
+						/*
+						if ( (has_air_node && has_water_node) ) //for slit elements we use the distance function
+						{ 
 							for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
 							{
 								if (distances[j]>threshold)
@@ -1350,6 +1364,29 @@ namespace Kratos
 								else
 									is_water_particle[j]=true;
 							}
+						}
+						*/ 
+						//else //it has diluted particles. we attemp to conserve the concentration
+						{
+							double water_fraction = 0.5 - 0.5*(mean_element_distance);
+							unsigned int number_of_water_reseeded_particles = double(number_of_reseeded_particles)*(1.0+mass_correction_factor*2.0)*water_fraction; 
+							
+							BubbleSort(distances, positions, number_of_reseeded_particles); //ok. now we have the particles ordered from the "watermost" to "airmost". therefore we will fill the water particles and later the air ones using that order
+							
+							for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
+							{
+								int array_position = positions[j]-1;
+								if (array_position>3 && number_of_reseeded_particles==4)
+								{
+									KRATOS_WATCH("error in reseeding")
+								}
+								
+								if ( (j+1) <= number_of_water_reseeded_particles ) //means it is a water particle
+									is_water_particle[array_position]=true;
+								else
+									is_water_particle[array_position]=false;
+							}
+						}
 
 						bool fix_distance = false;
 						unsigned int node_with_fixed_distance = 0;
