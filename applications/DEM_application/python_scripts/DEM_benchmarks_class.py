@@ -26,49 +26,49 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==3:
         
         final_time                      = 0.00031
-        dt                              = 5.0e-8  #1.1e-9 # Complies Rayleigh's condition
+        dt                              = 1.0e-7  #1.1e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 6
         
     elif benchmark_number==4:
         
         final_time                      = 0.0002  #0.00003
-        dt                              = 1.9e-8  #1.9e-9 # Complies Rayleigh's condition
+        dt                              = 1.0e-7  #1.9e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 17
                 
     elif benchmark_number==5:
                 
         final_time                      = 0.0000005
-        dt                              = 3.5e-12  #3.6e-12 # Complies Rayleigh's condition
+        dt                              = 1.5e-10  #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00000005
         number_of_points_in_the_graphic = 17
                 
     elif benchmark_number==6:
                 
         final_time                      = 0.01
-        dt                              = 5.0e-7  #1.0e-7 # Complies Rayleigh's condition ????????????????
+        dt                              = 5.0e-6  #1.0e-7 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.00025
         number_of_points_in_the_graphic = 17
         
     elif benchmark_number==7:
                 
         final_time                      = 0.0005
-        dt                              = 2e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
+        dt                              = 2e-6 #4.4614e-8 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 17
                 
     elif benchmark_number==8:
         
         final_time                      = 0.02
-        dt                              = 1.0e-6 #5.0e-7 # Complies Rayleigh's condition
+        dt                              = 5.0e-6 #5.0e-7 # Complies Rayleigh's condition
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
                 
     elif benchmark_number==9:
                 
         final_time                      = 0.001 #0.0005
-        dt                              = 1e-7 #6.4e-8 # Complies Rayleigh's condition
+        dt                              = 5e-6 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 6
             
@@ -181,7 +181,7 @@ class Benchmark3:
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 3:")
+        error_file.write("DEM Benchmark 3:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 3 SUCCESSFUL\n")
@@ -303,7 +303,7 @@ class Benchmark4:
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 4:")
+        error_file.write("DEM Benchmark 4:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 4 SUCCESSFUL\n")
@@ -341,9 +341,9 @@ class Benchmark4:
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
         self.gnuplot_outfile.close()
         
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        '''print_gnuplot_files_on_screen(gnuplot_script_name_1)
         print_gnuplot_files_on_screen(gnuplot_script_name_2)
-        print_gnuplot_files_on_screen(gnuplot_script_name_3)
+        print_gnuplot_files_on_screen(gnuplot_script_name_3)'''
         
     def compute_errors(self, tangential_restitution_coefficient_list_outfile_name, final_angular_vel_list_outfile_name, rebound_angle_list_outfile_name):
         
@@ -480,13 +480,13 @@ class Benchmark5:
         self.Vst_prima_div_mu_per_Vcn_prima_list_outfile.close()
         self.r_w1_prima_div_mu_per_Vcn_list_outfile.close()
         
-        self.create_gnuplot_scripts(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name, dt)
+        #self.create_gnuplot_scripts(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name, dt)
         
         error1, error2, error3 = self.compute_errors(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name)
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 5:")
+        error_file.write("DEM Benchmark 5:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 5 SUCCESSFUL\n")
@@ -514,8 +514,8 @@ class Benchmark5:
         self.gnuplot_outfile.write("'paper_data/benchmark5_graph2.dat' index 2 w p pt 7 ps 2 lt -1 t 'FEM'\n")
         self.gnuplot_outfile.close()
                           
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        '''print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
         
     def compute_errors(self, Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, r_w1_prima_div_mu_per_Vcn_list_outfile_name):
         
@@ -642,7 +642,7 @@ class Benchmark6:
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 6:")
+        error_file.write("DEM Benchmark 6:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 6 SUCCESSFUL\n")
@@ -668,8 +668,8 @@ class Benchmark6:
         self.gnuplot_outfile.write("'paper_data/benchmark6_graph2.dat' index 1 w lp ls 2 t 'Nylon'\n")
         self.gnuplot_outfile.close()
                           
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        '''print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
         
     def compute_errors(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name):
         
@@ -802,7 +802,7 @@ class Benchmark7:
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 7:")
+        error_file.write("DEM Benchmark 7:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 7 SUCCESSFUL\n")
@@ -952,7 +952,7 @@ class Benchmark8:
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 8:")
+        error_file.write("DEM Benchmark 8:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 8 SUCCESSFUL\n")
@@ -978,8 +978,8 @@ class Benchmark8:
         self.gnuplot_outfile.write("'paper_data/benchmark8_graph2.dat' index 1 w lp ls 2 t 'Nylon'\n")
         self.gnuplot_outfile.close()
                           
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        '''print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
                 
     def compute_errors(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name):
         
@@ -1106,7 +1106,7 @@ class Benchmark9:
         
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
-        error_file.write("Test 9:")
+        error_file.write("DEM Benchmark 9:")
         
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 9 SUCCESSFUL\n")
@@ -1124,7 +1124,7 @@ class Benchmark9:
         self.gnuplot_outfile.write("'paper_data/benchmark9_graph1.dat' w lp ls 2 t 'Cast iron'\n")
         self.gnuplot_outfile.close()
                 
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        #print_gnuplot_files_on_screen(gnuplot_script_name_1)
                 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):
         
