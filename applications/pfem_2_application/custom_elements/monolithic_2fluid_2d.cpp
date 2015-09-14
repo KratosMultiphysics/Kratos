@@ -213,7 +213,7 @@ namespace Kratos
 			double sqElemSize=0.0;
 			{
 				//double Viscosity = rCurrentProcessInfo[VISCOSITY];;
-				double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),0)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),0)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z),0));
+				//double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z),2));
 				//const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
 				double mElemSize;
 				array_1d<double,3> Edge(3,0.0);
@@ -233,7 +233,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  1.0 / ( ( 1.0/ delta_t + 4.0 * viscosity_for_tau / (mElemSize * mElemSize * density) + 2.0 * AdvVelNorm / mElemSize) );
+				TauOne =  1.0 / ( ( 1.0/ delta_t + 4.0 * viscosity_for_tau / (mElemSize * mElemSize * density)));// + 2.0 * AdvVelNorm / mElemSize) );
 			}
 		
 			/*	
@@ -281,7 +281,7 @@ namespace Kratos
 					rhs_stab[j] += node_press_proj(j)*factor;
 			}
 			
-			const bool use_press_proj=false;
+			const bool use_press_proj=true;
 			
 			for (unsigned int i = 0; i < (TDim+1); i++)
 			{
@@ -292,10 +292,10 @@ namespace Kratos
 			
 				if (use_press_proj)
 					for (unsigned int j = 0; j < TDim; j++)
-						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*rhs_stab(j) + fabs(DN_DX(i,j)) * volume_correction *10.0) ;
+						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*rhs_stab(j) + fabs(DN_DX(i,j)) * volume_correction *0.25) ;
 				else
 					for (unsigned int j = 0; j < TDim; j++)
-						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*body_force(j) + fabs(DN_DX(i,j)) * volume_correction *10.0) ;
+						rRightHandSideVector(i*(TDim+1)+TDim) -= TauOne*Area*(DN_DX(i,j)*body_force(j) + fabs(DN_DX(i,j)) * volume_correction *0.25) ;
 
 			}
 			
@@ -428,7 +428,7 @@ namespace Kratos
 			
 			{
 				//double Viscosity = rCurrentProcessInfo[VISCOSITY];;
-				double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),0)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),0)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z),0));
+				//double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z),2));
 				//const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
 				double mElemSize;
 				array_1d<double,3> Edge(3,0.0);
@@ -448,7 +448,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  0.1 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density) + 2.0 * AdvVelNorm / mElemSize) );
+				TauOne =  0.1 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));// + 2.0 * AdvVelNorm / mElemSize) );
 			}
 		
 			
