@@ -488,23 +488,23 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        size_type size = mData.size();
+        size_type local_size = mData.size();
 
-        rSerializer.save("size", size);
+        rSerializer.save("size", local_size);
 
-        for(size_type i = 0 ; i < size ; i++)
+        for(size_type i = 0 ; i < local_size ; i++)
             rSerializer.save("E", mData[i]);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        size_type size;
+        size_type local_size;
 
-        rSerializer.load("size", size);
+        rSerializer.load("size", local_size);
 
-        mData.resize(size);
+        mData.resize(local_size);
 
-        for(size_type i = 0 ; i < size ; i++)
+        for(size_type i = 0 ; i < local_size ; i++)
             rSerializer.load("E", mData[i]);
     }
 
