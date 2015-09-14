@@ -380,10 +380,10 @@ private:
         else
         {
             //  try to convert elem to data_type
-            extract<data_type> elem(v);
-            if (elem.check())
+            extract<data_type> elem1(v);
+            if (elem1.check())
             {
-                append(container, elem());
+                append(container, elem1());
             }
             else
             {
