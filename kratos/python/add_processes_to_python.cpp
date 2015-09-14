@@ -166,10 +166,10 @@ void  AddProcessesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     class_<VariationalDistanceCalculationProcess<2> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess2D",
-            init<ModelPart&, typename LinearSolverType::Pointer, unsigned int>())
+            init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;
     class_<VariationalDistanceCalculationProcess<3> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess3D",
-            init<ModelPart&, typename LinearSolverType::Pointer, unsigned int>())
+            init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;    
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
