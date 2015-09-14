@@ -71,14 +71,11 @@ DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
 
-#EXTRA ModelPart Operations
-#
-#
+# EXTRA ModelPart Operations
 #
 
 # Constructing a creator/destructor object
 creator_destructor = ParticleCreatorDestructor()
-#
 #
 
 # Creating a solver object and set the search strategy
@@ -134,7 +131,6 @@ solver.AddDofs(DEM_inlet_model_part)
 #
 
 #Utilities
-
 
 # Creating necessary directories
 main_path = os.getcwd()
@@ -288,18 +284,17 @@ while ( time < DEM_parameters.FinalTime):
     cluster_model_part.ProcessInfo[TIME]            = time
     cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
     cluster_model_part.ProcessInfo[TIME_STEPS]      = step
-
-
+    
     # Perform a partition to balance the problem
     #if(not(step%(a-1))):
         #parallelutils.Repart(spheres_model_part)
         #parallelutils.CalculateModelNewIds(spheres_model_part)
     
      
-    #### MATERIAL TEST LOAD&UNLOAD  ######################
+    #### MATERIAL TEST LOAD & UNLOAD  ######################
     #materialTest.ApplyMovementbySteps(time)
     
-    #### GENERAL TEST LOAD&UNLOAD  ######################
+    #### GENERAL TEST LOAD & UNLOAD  ######################
     #DEMFEMProcedures.ApplyMovementbySteps(time)
     
     #walls movement:
@@ -338,7 +333,7 @@ while ( time < DEM_parameters.FinalTime):
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if ( DEM_parameters.OutputTimeStep - time_to_print < 1e-2*dt  ):            
+    if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
 
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
