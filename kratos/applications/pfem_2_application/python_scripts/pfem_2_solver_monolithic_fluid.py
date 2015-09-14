@@ -182,11 +182,7 @@ class PFEM2Solver:
         t12 = timer.time()
         self.accelerateparticles = self.accelerateparticles + t12-t11
 
-        #reseeding in elements that have few particles to avoid having problems in next iterations:
-        post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);        
-        t13 = timer.time()
-        self.reseed=self.reseed+ t13-t12
+
 
         #calculating water volume to correct mass
         self.water_volume = (self.calculatewatervolume).Calculate()
@@ -200,7 +196,11 @@ class PFEM2Solver:
         print("mass correction factor: ", self.mass_correction_factor)
         self.model_part.ProcessInfo.SetValue(VOLUME_CORRECTION, self.mass_correction_factor)
 
-
+        #reseeding in elements that have few particles to avoid having problems in next iterations:
+        post_minimum_number_of_particles=self.domain_size*2;
+        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);        
+        t13 = timer.time()
+        self.reseed=self.reseed+ t13-t12
 
         #self.nodaltasks = self.nodaltasks + t11-t9
 
