@@ -33,7 +33,7 @@ def Run():
     Text=""
     f=open("BenchTemp.txt", "w")
     
-    for benchmark in range(3, 10):
+    for benchmark in range(1, 10):
       
         print(Benchmark_text[benchmark - 1])
                 
