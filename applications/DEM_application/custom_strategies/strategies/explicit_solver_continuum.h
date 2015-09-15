@@ -240,7 +240,7 @@ namespace Kratos
         ComputeNewNeighboursHistoricalData();                    
         
         if(fem_model_part.Nodes().size()>0) {        
-          BaseType::SearchRigidFaceNeighbours();
+          BaseType::SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
           this->SetInitialFemContacts();
           BaseType::ComputeNewRigidFaceNeighboursHistoricalData();        
         }
@@ -315,7 +315,7 @@ namespace Kratos
                     ComputeNewNeighboursHistoricalData();
 
                     BaseType::SetOriginalRadius(r_model_part);
-                    BaseType::SearchRigidFaceNeighbours();
+                    BaseType::SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
                     rCurrentProcessInfo[SEARCH_CONTROL] = 2;
                     if (this->GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
