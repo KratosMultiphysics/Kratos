@@ -296,6 +296,8 @@ class Procedures(object):
     def AddMappingVariables(self, model_part, DEM_parameters): 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(SOLUTION)
+        model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_1)
         model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_2)
         model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3)
@@ -1071,11 +1073,12 @@ class DEMIo(object):
          self.PushPrintVar( 1, DISTANCE, self.global_variables)
          self.PushPrintVar( 1, BORDER, self.global_variables)
          self.PushPrintVar( 1, SOLUTION, self.global_variables)
-         self.PushPrintVar( 1, DUMMY_1, self.global_variables)
-         self.PushPrintVar( 1, DUMMY_2, self.global_variables)
-         self.PushPrintVar( 1, DUMMY_3, self.global_variables)
+         self.PushPrintVar( 1, ARLEQUIN_DUMMY_1, self.global_variables)
+         self.PushPrintVar( 1, ARLEQUIN_DUMMY_2, self.global_variables)
+         self.PushPrintVar( 1, ARLEQUIN_DUMMY_3, self.global_variables)
          self.PushPrintVar( 1, ALPHA_ARLEQUIN, self.global_variables)
-         self.PushPrintVar( 1, LUMPED_PROJECTION_NODAL_MASS, self.global_variables)
+         self.PushPrintVar( 1, NODAL_MASS, self.global_variables)
+         self.PushPrintVar( 1, TOTAL_FORCES, self.global_variables)
      
     def AddFEMBoundaryVariables(self):
         
@@ -1091,6 +1094,10 @@ class DEMIo(object):
         
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_1, self.mapping_variables)
+        self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_2, self.mapping_variables)
+        self.PushPrintVar( 1,                                               NODAL_MASS, self.mapping_variables)
+        #self.PushPrintVar( 1,                                               TOTAL_FORCES, self.mapping_variables)
+        
 
     def AddClusterVariables(self):
         pass
