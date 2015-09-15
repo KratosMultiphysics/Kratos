@@ -4,7 +4,7 @@ from KratosMultiphysics.DEMApplication import *
 CheckForPreviousImport()                                          # check that KratosMultiphysics was imported in the main script
 import shutil
 from glob import glob
-from math import log, pi, sin, cos, tan, atan, fabs
+from math import pi, sin, cos, tan, atan, fabs
 from os import system
 
 def initialize_time_parameters(benchmark_number):
@@ -114,13 +114,11 @@ class Benchmark1:
     
     def compute_errors(self, normal_contact_force_outfile_name):
         
-        lines_Chung = 0; lines_DEM = 0
-        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0 
-        i = 0
+        Chung_data = []; DEM_data = []
+        
         with open('paper_data/benchmark1_graph1.dat') as inf:
             for line in inf:
                 Chung_data.append(float(line))
-                i+=1
         
         with open(normal_contact_force_outfile_name) as inf:
             for line in inf:
@@ -177,14 +175,12 @@ class Benchmark2:
     
     def compute_errors(self, normal_contact_force_outfile_name):
         
-        lines_Chung = 0; lines_DEM = 0
-        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0 
-        i = 0
+        Chung_data = []; DEM_data = []
+        
         with open('paper_data/benchmark2_graph1.dat') as inf:
             for line in inf:
                 Chung_data.append(float(line))
-                i+=1
-        
+                
         with open(normal_contact_force_outfile_name) as inf:
             for line in inf:
                 parts = line.split()
@@ -837,8 +833,6 @@ class Benchmark7:
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, -self.initial_angular_vel)
 
     def get_final_data(self, modelpart):
-        
-        mu = 0.4
         
         for node in modelpart.Nodes:
             if node.Id == 1:
