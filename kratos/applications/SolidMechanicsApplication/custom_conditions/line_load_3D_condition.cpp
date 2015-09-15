@@ -138,7 +138,7 @@ void LineLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0); // x_1,e
     rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0); // x_2,e
-    rVariables.Tangent1[3] = rVariables.J[rPointNumber](2, 0); // x_3,e
+    rVariables.Tangent1[2] = rVariables.J[rPointNumber](2, 0); // x_3,e
 
     //Jacobian to the last known configuration
     rVariables.Jacobian = norm_2(rVariables.Tangent1);
