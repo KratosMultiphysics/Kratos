@@ -39,20 +39,24 @@ def Run():
                 
         try:
             if platform.system()=="Windows":
+                os.system("setenv OMP_NUM_THREADS 1") # Is that the correct way to run on Windows?
                 subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
-                            
+                os.system("setenv OMP_NUM_THREADS 16") # Try to set a 'default' value
+                
             else:
+                os.system("export OMP_NUM_THREADS=1")
                 if sys.version_info >= (3, 0):
                     subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
                     
                 else:
                     subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
+                os.system("export OMP_NUM_THREADS=16") # Try to set a 'default' value
         except:
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.txt", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
-    
+            
     print('\n')
     f.close()
     os.remove("BenchTemp.txt")        
