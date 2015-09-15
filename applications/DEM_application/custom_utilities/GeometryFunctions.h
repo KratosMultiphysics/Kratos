@@ -384,14 +384,17 @@ namespace Kratos
          }
      }
 
-    static inline void Compute3DimElementFaceLocalSystem(double FaceCoord1[3], double FaceCoord2[3], double FaceCoord3[3], double ParticleCoord[3], double LocalCoordSystem[3][3]){
+    static inline void Compute3DimElementFaceLocalSystem(double FaceCoord1[3], double FaceCoord2[3], double FaceCoord3[3], double ParticleCoord[3], 
+                                                         double LocalCoordSystem[3][3], double& normal_flag){
          
-       //NOTE: this function is designed in a way that the normal always points the side where the centre of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
+        //NOTE: this function is designed in a way that the normal always points the side where the centre of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
+                //the fucntion returns a flag with the same value as the dotproduct of the normal of the triangle and the normal pointing to the particle.
+         
          double Vector1[3] = {0.0};
          double Vector2[3] = {0.0};
          double Vector3[3] = {0.0};
-         double Normal [3] = {0.0};
-
+         double Normal[3]  = {0.0};
+         
          Vector1[0] = FaceCoord2[0] - FaceCoord1[0];
          Vector1[1] = FaceCoord2[1] - FaceCoord1[1];
          Vector1[2] = FaceCoord2[2] - FaceCoord1[2];
@@ -414,10 +417,11 @@ namespace Kratos
 
 
 
-         if (DotProduct(Vector3, Normal) > 0.0)
+         if (DotProduct(Vector3, Normal) > 0.0) 
          {
              for (int ia = 0; ia < 3; ia++)
              {
+                    normal_flag             = 1.0;
                     LocalCoordSystem[0][ia] = Vector1[ia];
                     LocalCoordSystem[1][ia] = Vector2[ia];
                     LocalCoordSystem[2][ia] = Normal [ia];
@@ -427,6 +431,7 @@ namespace Kratos
          {
              for (int ia = 0; ia < 3; ia++)
              {
+                    normal_flag             = -1.0;
                     LocalCoordSystem[0][ia] = -Vector1[ia];
                     LocalCoordSystem[1][ia] = -Vector2[ia];
                     LocalCoordSystem[2][ia] = -Normal [ia];
@@ -805,7 +810,7 @@ namespace Kratos
    
     static inline void TauSqCalculation(double& tau_sq, double d0, double d1, double d2)
     {
-      
+        // Basically is Heron´s formula squared for two times the Area http://www.mathopenref.com/heronsformula.html
         tau_sq = 0.25*( d0 + d1 - d2)*( d0 - d1 + d2)*( -d0 + d1 + d2)*( d0 + d1 + d2);
         
     }
@@ -900,20 +905,20 @@ namespace Kratos
  
       bool If_Contact = false;
       
-      Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem);
- 
+      double dummy_normal_flag = 0.0;
+      Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem, dummy_normal_flag);
+
       DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
- 
+
       if(DistPToB < rad )
       {
- 
+   
            double IntersectionCoord[3];
            CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
-          
-          
+         
               double TriWeight[3] = {0.0};
               TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
- 
+
               if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
               {
                   Weight[0] = TriWeight[0];
@@ -970,27 +975,15 @@ namespace Kratos
     {
  
         bool If_Contact = false;
- 
-        Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem);
- 
-        ///Cfeng,131007,normal vector should point to particle
-//         LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-//         LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-//         LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-// 
-//         LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-//         LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-//         LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-// 
-//         LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-//         LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-//         LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
- 
+
+        double dummy_normal_flag = 0.0;
+        Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem, dummy_normal_flag);
+
         DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
  
         if(DistPToB < rad )
         {
- 
+
             double IntersectionCoord[3];
             CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
             
@@ -1238,6 +1231,152 @@ namespace Kratos
             return;
       }
      
+    
+     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ///////////////****************************TRIANGLE - SPHERE INTERSECTION AREA CALCULATION**************************///////////
+     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+     static inline void AreaAndCentroidCircularSector(double C[3], double Radius, double P1[3], double P2[3], double Normal[3], double& Area, double CoMSC[3])
+    {
+        
+        double a[3]           = {0.0};
+        double c[3]           = {0.0};
+        double bisection[3]   = {0.0};
+        double norm_a         = 0.0;
+        
+        for (unsigned int index = 0;index<3;index++){        
+        
+            a[index] = P1[index]-C[index];
+            c[index] = P2[index]-P1[index];
+            
+        }
+        
+        CrossProduct(Normal,c,bisection);
+        normalize(bisection);       
+        double dot_product = DotProduct(bisection,a);
+        
+        if(dot_product<0.0){
+        
+            for (unsigned int index = 0;index<3;index++){        
+        
+                bisection[index] = -bisection[index];
+            }
+            dot_product = -dot_product;
+            
+        }
+        
+        module(a,norm_a);
+        
+        double cos_alpha = dot_product/norm_a;
+        double alpha = acos(cos_alpha);
+        double sin_alpha = sin(alpha);
+        
+        Area = Radius*Radius*alpha;
+        double dist = 0.666666666*(Radius*sin_alpha/alpha);
+        for (unsigned int index = 0;index<3;index++){        
+            CoMSC[index] = C[index]+dist*bisection[index];
+        }
+            
+    }//AreaCircularSector
+
+    static inline void AlternativeAreaCircularSegment(double Radius, double tol_Radius, double V0V1[3], double V0CC[3], double Normal[3], double& AreaSC, bool& flag)
+    {
+    
+        double normal_outwards[3] = {0.0};
+        flag = false;
+        AreaSC = 0.0;
+        
+        CrossProduct(V0V1,Normal,normal_outwards);    
+        normalize(normal_outwards);
+
+        double dist   = DotProduct(normal_outwards,V0CC);
+        double delta_circle  = Radius + dist; //dist can be positive or negative, depending on the side where the circle is
+        
+        if ( (delta_circle > tol_Radius) && ( delta_circle - 2*Radius < -tol_Radius ) ){//check for intersection
+        
+            
+            flag = true;
+            double b        = sqrt(delta_circle*(2*Radius-delta_circle));
+            AreaSC   = 2*Radius*Radius*atan(delta_circle/b)-b*(Radius-delta_circle);
+            
+        }   
+     
+    }//AreaAndCentroidCircularSector1
+    
+    static inline void AreaAndCentroidCircularSegment(double Centre[3], double Radius, double tol_Radius, double V0[3], double V1[3], double Normal[3], double& AreaSegC, double CoMSegC[3], bool& flag)
+    {
+        double V0V1[3]            = {0.0};  double V0CC[3]      = {0.0}; 
+        double a[3]               = {0.0};
+        double normal_outwards[3] = {0.0};
+        double Radius_SQ = 0.0;
+        double distance_V0V1      = 0.0;
+        double dist_CoM           = 0.0;
+        flag = false;
+        
+        AreaSegC = 0.0;
+        
+        for (unsigned int index = 0; index<3; index++){        
+
+            V0V1[index]     = V1[index] - V0[index];
+            V0CC[index]     = Centre[index] - V0[index];
+            
+        }
+       
+        GeometryFunctions::CrossProduct(V0V1,Normal,normal_outwards); 
+        GeometryFunctions::normalize(V0V1,distance_V0V1);
+        
+        double distV0 =  GeometryFunctions::DotProduct(V0CC,V0V1);
+                   
+        if( (distV0 > 0.0) && (distV0 < distance_V0V1)){
+            
+            GeometryFunctions::normalize(normal_outwards);
+            double dist_normal   = GeometryFunctions::DotProduct(normal_outwards,V0CC);
+            double delta_circle  = Radius + dist_normal; //dist can be positive or negative, depending on the side where the circle is
+            
+            if ( (delta_circle > tol_Radius) && ( delta_circle - 2*Radius < -tol_Radius ) ){//check for intersection
+               
+                Radius_SQ = Radius*Radius;
+                double semi_dist = sqrt(Radius_SQ - dist_normal*dist_normal);
+                flag = true;
+                
+                for (unsigned int index = 0;index<3;index++){        
+
+                    a[index] = V0[index] + (distV0 - semi_dist)*V0V1[index] - Centre[index]; //Vector from Centre to first intersection point 
+                    
+                }
+                
+                double cos_alpha = GeometryFunctions::DotProduct(a,normal_outwards)/(GeometryFunctions::module(a)*GeometryFunctions::module(normal_outwards));
+                double alpha = acos(cos_alpha);
+                double sin_alpha = sin(alpha);
+                
+                AreaSegC = Radius_SQ*(alpha-sin_alpha*cos_alpha);
+
+                if(abs(sin_alpha)<tol_Radius){dist_CoM=0.0;}
+                else{ dist_CoM = 0.666666666*(Radius*sin_alpha*sin_alpha*sin_alpha/(alpha-sin_alpha*cos_alpha));}
+                
+                for (unsigned int index = 0;index<3;index++){        
+                        CoMSegC[index] = Centre[index] + dist_CoM*normal_outwards[index];
+                }
+            } //if normal dist is okay
+           
+        } // if longitudinal dist is okay
+                       
+    }//AreaAndCentroidCircularSegment
+    
+    static inline void  AreaAndCentroidTriangle(double Coord1[3],double Coord2[3],double Coord3[3],double &area,double CoMTri[3])
+    {
+      
+       TriAngleArea(Coord1,Coord2,Coord3,area);
+       
+       for (unsigned int index =0; index<3; index++)
+       {
+           CoMTri[index] = 0.3333333333*(Coord1[index]+Coord2[index]+Coord3[index]);
+           
+       }
+       
+    }//AreaAndCentroidTriangle
+       
+    
     
     } //namespace GeometryFunctions
     
