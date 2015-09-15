@@ -246,7 +246,7 @@ public:
             
             if(nboundary == TDim)
             {
-                array_1d<double,TDim> DN_out;
+	      array_1d<double,TDim> DN_out(TDim, 0.0);
                 for(unsigned int i=0; i<TDim+1; i++)
                     if(GetGeometry()[i].IsNot(BOUNDARY))
                     {
