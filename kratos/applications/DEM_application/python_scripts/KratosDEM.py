@@ -123,6 +123,7 @@ spheres_model_part.SetBufferSize(1)
 cluster_model_part.SetBufferSize(1)
 DEM_inlet_model_part.SetBufferSize(1)
 rigid_face_model_part.SetBufferSize(1)
+#
 
 # Adding dofs
 solver.AddDofs(spheres_model_part)
@@ -303,7 +304,7 @@ while ( time < DEM_parameters.FinalTime):
     
     #### SOLVE #########################################
     solver.Solve()
-    
+ 
     #### TIME CONTROL ##################################
     
     # adding DEM elements by the inlet:
