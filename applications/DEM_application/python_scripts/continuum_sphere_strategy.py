@@ -54,6 +54,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
+        if (hasattr(Param, "LocalResolutionMethod")):
+          if(Param.LocalResolutionMethod == "hierarchical"):
+            self.local_resolution_method = 1
+          elif(Param.LocalResolutionMethod == "area_distribution"):
+            self.local_resolution_method = 2
+          else:
+            self.local_resolution_method = 1
+        else:
+          self.local_resolution_method = 1
+          
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
 
         if (Param.DeltaOption == "None"):
