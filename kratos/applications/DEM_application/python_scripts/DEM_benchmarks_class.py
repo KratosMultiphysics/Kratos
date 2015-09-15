@@ -19,7 +19,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==2:
 
         final_time                      = 0.007
-        dt                              = 3e-6 #3e-7 # Complies Rayleigh's condition????????????????
+        dt                              = 7e-7 #3e-7 # Complies Rayleigh's condition????????????????
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 6
             
@@ -71,14 +71,7 @@ def initialize_time_parameters(benchmark_number):
         dt                              = 5e-6 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 6
-            
-    '''else: #benchmark_number=10
-                
-        final_time                      = 0.001 #0.0005
-        dt                              = 6.4e-8 # Complies Rayleigh's condition
-        output_time_step                = 0.000005
-        number_of_points_in_the_graphic = 10'''
-                
+                    
     return final_time, dt, output_time_step, number_of_points_in_the_graphic
 
 
@@ -105,8 +98,48 @@ class Benchmark1:
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 20 u 1:8 w lp lt -1 lw 1.5 ps 1 pt 4")
         self.gnuplot_outfile.close()
-        print_gnuplot_files_on_screen(gnuplot_script_name)
-            
+        #print_gnuplot_files_on_screen(gnuplot_script_name)
+                
+        error1, error2, error3 = self.compute_errors(normal_contact_force_outfile_name)
+        
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 1:")
+        
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 1 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 1 FAILED\n")
+        error_file.close()
+    
+    def compute_errors(self, normal_contact_force_outfile_name):
+        
+        lines_Chung = 0; lines_DEM = 0
+        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0 
+        i = 0
+        with open('paper_data/benchmark1_graph1.dat') as inf:
+            for line in inf:
+                Chung_data.append(float(line))
+                i+=1
+        
+        with open(normal_contact_force_outfile_name) as inf:
+            for line in inf:
+                parts = line.split()
+                if parts[0] == '#Time':
+                    break
+            for line in inf:
+                parts = line.split()
+                DEM_data.append(float(parts[7]))
+                     
+        error = fabs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
+        
+        print("Error in restitution numbers =", 100*error,"%")
+        
+        error1 = 100*error
+        
+        error2 = error3 = 0
+        
+        return error1, error2, error3    
 
 class Benchmark2:
     
@@ -128,8 +161,48 @@ class Benchmark2:
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 10 u 1:10 w lp lt 3 lw 1.5 ps 1 pt 6")
         self.gnuplot_outfile.close()
-        print_gnuplot_files_on_screen(gnuplot_script_name)
+        #print_gnuplot_files_on_screen(gnuplot_script_name)
         
+        error1, error2, error3 = self.compute_errors(normal_contact_force_outfile_name)
+        
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 2:")
+        
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 2 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 2 FAILED\n")
+        error_file.close()
+    
+    def compute_errors(self, normal_contact_force_outfile_name):
+        
+        lines_Chung = 0; lines_DEM = 0
+        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0 
+        i = 0
+        with open('paper_data/benchmark2_graph1.dat') as inf:
+            for line in inf:
+                Chung_data.append(float(line))
+                i+=1
+        
+        with open(normal_contact_force_outfile_name) as inf:
+            for line in inf:
+                parts = line.split()
+                if parts[0] == '#Time':
+                    break
+            for line in inf:
+                parts = line.split()
+                DEM_data.append(float(parts[9]))
+               
+        error = fabs(max(DEM_data) - float(Chung_data[0]))/float(Chung_data[0])
+                        
+        print("Error in restitution numbers =", 100*error,"%")
+        
+        error1 = 100*error
+        
+        error2 = error3 = 0
+        
+        return error1, error2, error3    
 
 class Benchmark3:
     
@@ -203,7 +276,7 @@ class Benchmark3:
                 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):
         
-        lines_Chung = lines_DEM = list(range(0, 6));
+        lines_Chung = lines_DEM = list(range(0, 6))
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0 
         i = 0
         with open('paper_data/benchmark3_graph1.dat') as inf:
@@ -213,6 +286,7 @@ class Benchmark3:
                     Chung_data.append(float(parts[1]))
                 i+=1
         i = 0
+        
         with open(restitution_numbers_vector_list_outfile_name) as inf:
             for line in inf:
                 if i in lines_DEM:
@@ -1161,53 +1235,7 @@ class Benchmark9:
         
         return error1, error2, error3                    
 
-'''class Benchmark10:
-    
-    def __init__(self):
-        self.initial_normal_vel = 10.0
-        self.restitution_numbers_list = []
-        self.restitution_numbers_vector_list_outfile = None
-        
-    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):
-                   
-        if number_of_points_in_the_graphic == 1:
-            coefficient_of_restitution = 0
-        else:
-            coefficient_of_restitution = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
-                        
-        for node in modelpart.Nodes:
-            
-            if node.Id == 1:
-                node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
-                node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
-                modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = coefficient_of_restitution
-            else:
-                node.SetSolutionStepValue(VELOCITY_X, -1.2 * self.initial_normal_vel)
-                node.SetSolutionStepValue(VELOCITY_Z,  1.6 * self.initial_normal_vel)
-                modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = coefficient_of_restitution
-
-    def get_final_data(self, modelpart):
-        
-        for node in modelpart.Nodes:
-            if node.Id == 1:
-                final_vel = node.GetSolutionStepValue(VELOCITY_X)
-                           
-        restitution_coefficient = -final_vel / self.initial_normal_vel
-        self.restitution_numbers_list.append(restitution_coefficient)
-    
-    def print_results(self, number_of_points_in_the_graphic, dt):
-        
-        self.restitution_numbers_vector_list_outfile = open("benchmark10_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat', 'w')
-        
-        for i in range(0, number_of_points_in_the_graphic):
-            if number_of_points_in_the_graphic == 1:
-                first_col = 0
-            else:
-                first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %6.4f %11.8f" % (first_col, first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()'''        
-        
-
+   
 def delete_archives(nodeplotter):
     
     #.......................Removing extra files
