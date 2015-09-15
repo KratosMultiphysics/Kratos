@@ -65,19 +65,19 @@ def initialize_time_parameters(benchmark_number):
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
                 
-    elif benchmark_number==9:
+    else: #benchmark_number==9
                 
         final_time                      = 0.001 #0.0005
         dt                              = 5e-6 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 6
             
-    else: #benchmark_number=10
+    '''else: #benchmark_number=10
                 
         final_time                      = 0.001 #0.0005
         dt                              = 6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
-        number_of_points_in_the_graphic = 10
+        number_of_points_in_the_graphic = 10'''
                 
     return final_time, dt, output_time_step, number_of_points_in_the_graphic
 
@@ -1161,7 +1161,7 @@ class Benchmark9:
         
         return error1, error2, error3                    
 
-class Benchmark10:
+'''class Benchmark10:
     
     def __init__(self):
         self.initial_normal_vel = 10.0
@@ -1205,7 +1205,7 @@ class Benchmark10:
             else:
                 first_col = 1/(number_of_points_in_the_graphic-1) * i
             self.restitution_numbers_vector_list_outfile.write("%6.4f %6.4f %11.8f" % (first_col, first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()        
+        self.restitution_numbers_vector_list_outfile.close()'''        
         
 
 def delete_archives(nodeplotter):
