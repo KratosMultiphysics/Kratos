@@ -48,7 +48,7 @@ def Run():
                 else:
                     subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
         except:
-            print("\nA problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
+            print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.txt", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
