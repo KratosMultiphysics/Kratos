@@ -49,7 +49,17 @@ class ExplicitStrategy:
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
-
+        
+        if (hasattr(Param, "LocalResolutionMethod")):
+          if(Param.LocalResolutionMethod == "hierarchical"):
+            self.local_resolution_method = 1
+          elif(Param.LocalResolutionMethod == "area_distribution"):
+            self.local_resolution_method = 2
+          else:
+            self.local_resolution_method = 1
+        else:
+          self.local_resolution_method = 1
+        
         if (Param.DeltaOption == "None"):
             self.delta_option = 0
 
@@ -174,7 +184,8 @@ class ExplicitStrategy:
 
         # SEARCH-RELATED
         self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)  # needed in ProcessInfo for MPISearch
-
+        self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)  
+        
         # PRINTING VARIABLES
 
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
