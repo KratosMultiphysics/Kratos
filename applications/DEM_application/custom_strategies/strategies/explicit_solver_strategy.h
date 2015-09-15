@@ -408,7 +408,7 @@ namespace Kratos
           
           ComputeNewNeighboursHistoricalData();  
           
-          SearchRigidFaceNeighbours();
+          SearchRigidFaceNeighbours(1); //initial search is performed with hierarchical method in any case MSI
           ComputeNewRigidFaceNeighboursHistoricalData();
           
           //set flag to 2 (search performed this timestep)
@@ -531,7 +531,7 @@ namespace Kratos
               ComputeNewNeighboursHistoricalData();  
               
               SetOriginalRadius(r_model_part);              
-              SearchRigidFaceNeighbours();
+              SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
               ComputeNewRigidFaceNeighboursHistoricalData();
               mSearchControl = 2; // Search is active and search has been performed during this timestep
 
@@ -802,8 +802,6 @@ namespace Kratos
         KRATOS_CATCH("")      
     }
     
-    void CalculateEnergies(){}
-
     void InitializeElements()
     {
         KRATOS_TRY
@@ -1306,7 +1304,7 @@ namespace Kratos
     
    
     
-    virtual void SearchRigidFaceNeighbours()
+    virtual void SearchRigidFaceNeighbours(int local_resolution_method)
     {
         KRATOS_TRY
         
@@ -1330,7 +1328,7 @@ namespace Kratos
                 for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){                                                  
                     Condition* p_neighbour_condition = (*neighbour_it).get();
                     DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
-                    bool ContactExists = RigidFaceGeometricalConfigureType::RigidContact(mListOfSphericParticles[i], p_wall);
+                    bool ContactExists = RigidFaceGeometricalConfigureType::RigidContact(local_resolution_method, mListOfSphericParticles[i], p_wall);
                     if (ContactExists) { neighbour_rigid_faces.push_back(p_wall); }
                 }
                 this->GetRigidFaceResults()[i].clear();
