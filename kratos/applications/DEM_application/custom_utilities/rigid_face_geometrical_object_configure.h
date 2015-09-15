@@ -17,10 +17,13 @@
 #include "includes/variables.h"
 #include "spatial_containers/spatial_search.h"
 #include "GeometryFunctions.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
 
+    
+    typedef Geometry<Node < 3 > > GeometryType;
   ///@name Kratos Globals
   ///@{
 
@@ -174,9 +177,404 @@ public:
         
     }
        
+    static inline bool RigidContact(int method, SphericParticle* rObj_1, DEMWall* rObj_2){ 
+    
+      bool result = false;
+      
+      switch (method)
+      {
+        case 1:
+          result = HierarchicalMethod(rObj_1, rObj_2);
+          break;
+          
+        case 2:
+          result = AreaDistribution(rObj_1, rObj_2);
+          break;
+        
+        default:
+          KRATOS_THROW_ERROR( std::invalid_argument," error in rigid_face_geometrical_object_configure: Local search resolution method not defined ", "" )
+         
+      }
+      
+      return result;
+      
+    }
+    
+    static inline bool AreaDistribution(SphericParticle* rObj_1, DEMWall* rObj_2){ //miquel
+       
+        //ASSUMPTIONS
+        //- Fine for small indentations (at least indentation < R)
+        //- Triangle elements numbered in anticlockwise fashion. (normals pointing outwards)
+        
+        //0.INITIALIZATIONS
+        int                 casus                   = -1;
+        double              Area                    = 0.0;
+        double              CoM[3]                  = {0.0}; //centroid of the region
+        double              AddCoM[3]               = {0.0}; //cumulative centroid of the region
+        double              normal_flag             = 0.0;
+        double              Coord[3][3]             = {{0.0},{0.0},{0.0}};
+        double              Normal[3]               = {0.0};
+        double              LocalCoordSystem[3][3]  = {{0.0},{0.0},{0.0}};
+        double              Particle_Coord[3]       = {0.0};
+        double              Particle_Radius         = rObj_1->GetRadius();
+        double              delta                   = 0.0; //its artificial for the cases where the normal and the Centre Particle are in oposite direction;
+        double              distance_cp_to_plane    = 0.0;
+        double              CP_V0[3]                = {0.0}; //Vector going from Vertex 0 of the triangle to the Centre of Particle (Particle_Coord)
+        double              CC[3]                   = {0.0}; //Centre of the Circle projected on the triangle plane
+        double              RC                      = 0.0; //Radius of the projected Circle
+        double              RC_squared              = 0.0; //Radius Squared of the projected Circle
+        std::vector<int>    vertex_in_vector;
+        int                 num_vertex_in           = 0;
+        double              tol                     = 1e-8;
+        double              tol_RC                  = tol*RC;
+        
+        //contact local axes
+        double              Outwards[3]             = {0.0};
+        double              Auxiliar1[3]            = {0.0};
+        double              Auxiliar2[3]            = {0.0};
+        
+        const array_1d<double,3>& acces_to_particle_coordinates = rObj_1->GetGeometry()[0].Coordinates();
+        const GeometryType& rElementGeometry                    = rObj_2->GetGeometry();
+        
+        for (unsigned int index1 = 0; index1<3; index1++){
+            
+            Particle_Coord[index1] = acces_to_particle_coordinates[index1];   
+            
+            for (unsigned int index2 = 0; index2<3; index2++){
+                Coord[index1][index2] =  rElementGeometry[index1].Coordinates()[index2];
+            }
+        }
+       
+        //1.PROJECTION CIRCLE (SPHERE ON TRIANGLE):  Local Axes, Normal, Centre and Radius of the Circle, and Delta indentation
+        
+        GeometryFunctions::Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem, normal_flag);
+        //NOTE: LocalCoordSystem[2] points the sphere while normal is stricly outwards with a counterclockwise sortig of the element nodes
+        for (unsigned int index = 0;index<3;index++){
+                
+            Normal[index] = normal_flag*LocalCoordSystem[2][index];
+            CP_V0[index]  = Particle_Coord[index] - Coord[0][index];
+            
+        }
+        
+        distance_cp_to_plane  = GeometryFunctions::DotProduct(CP_V0,LocalCoordSystem[2]); //this ignores the fact that a particle can be with an indentation greater than radius (not becouse of great prenetration but becouse of new neighbour with a strong change of normal like in a stair.                  
+        delta                 = Particle_Radius - distance_cp_to_plane; 
+        RC_squared            = delta*(2*Particle_Radius-delta);
+        RC                    = sqrt(RC_squared); 
+        
+        if(distance_cp_to_plane>Particle_Radius){KRATOS_WATCH("ERROR_NUMERO 22234528383 EN RIGID_FACE_GEO")}//NO HI HA CONTACTE??;
+        
+        for (unsigned int index = 0;index<3;index++){
+                
+            CC[index]  = Particle_Coord[index] - LocalCoordSystem[2][index]*distance_cp_to_plane;
+        }
+                
+        //MSICHECK
+        if(GeometryFunctions::DotProduct(CP_V0,LocalCoordSystem[2])<0.0)KRATOS_WATCH("ERROR_NUMERO 292928383 EN RIGID_FACE_GEO")
+        if(GeometryFunctions::DotProduct(CP_V0,Normal)<0.0)std::cout<<"LA bola amb id "<<rObj_1->Id()<<" esta darrera del triangle amb nodes"<<rObj_2->GetGeometry()[0].Id()<<" "<< rObj_2->GetGeometry()[1].Id() <<" "<<rObj_2->GetGeometry()[2].Id()<<std::endl;
+        
+        
+        //2. VERTICES INSIDE TEST
+        
+        for (unsigned int index = 0;index<3;index++){        
+            double dist_sq = GeometryFunctions::DistanceOfTwoPointSquared(Coord[index],CC);
+            if( (dist_sq - RC_squared) < -tol_RC){
+                vertex_in_vector.push_back(index);
+            }
+        }
+        
+        num_vertex_in = vertex_in_vector.size();
+                
+        //3. CASE SELECTION
+        
+        double V0[3]    = {0.0}; double V1[3]  = {0.0}; double V2[3]  = {0.0}; double V0V1[3] = {0.0}; double V0CC[3] = {0.0}; //double proj[3] = {0.0};
+        double V0V2[3] = {0.0}; double V2V0[3] = {0.0}; 
+        double intersection1[3]     = {0.0};  double intersection2[3]       = {0.0};  
+        double normal_outwards1[3]  = {0.0};  double normal_outwards2[3]    = {0.0};
+        double direction_edge1[3]   = {0.0};  double direction_edge2[3]     = {0.0};
+        double dist_inline1         =  0.0;   double dist_inline2           =  0.0;
+        double dist_normal1         =  0.0;   double dist_normal2           =  0.0;
+        double pseudo_dist_inline1  =  0.0;   double pseudo_dist_inline2    =  0.0;
+        double AreaCS               =  0.0;   double AreaTV                 =  0.0;   double AreaTC = 0.0;  double AreaTriTotal = 0.0;
+        double AreaSegC             =  0.0;
+        double CoMSC[3]             = {0.0};  double CoMSegC[3]             = {0.0};
+        bool   flag                 = false;
+        double inv_Area             = 0.0;
+        
+        if(num_vertex_in == 0){ //All the cases are solved cutting the circular areas out of the edges off.
+        
+            Area            = M_PI*RC_squared; 
+            for (unsigned int index = 0;index<3;index++){        
+                AddCoM[index]  = Area*CC[index];
+            }
+            casus           = 1;
+            
+            //loop over edges
+            for (unsigned int index = 0;index<3;index++){           
+                
+                for (unsigned int i = 0;i<3;i++){  
+                    
+                    V0[i] = Coord[index][i];
+                    V1[i] = Coord[(index+1)%3][i];
+                    V0V1[i] = V1[i]-V0[i];
+                    V0CC[i] = CC[i]-V0[i];
+                    
+                }
+                                    
+                GeometryFunctions::AreaAndCentroidCircularSegment(CC,RC,tol_RC,V0,V1,Normal,AreaSegC,CoMSegC,flag);
+                    
+                if(flag){
+                    
+                    Area = Area - AreaSegC;
+                    for (unsigned int index = 0;index<3;index++){  
+                        AddCoM[index] = AddCoM[index] - AreaSegC*CoMSegC[index];
+                    }
+                    casus++;
+                }
+                    
+            } //loop over the edges
+            
+            inv_Area = 1/Area;
+        
+            for (unsigned int index = 0; index<3; index++){        
+
+                CoM[index]     = AddCoM[index]*inv_Area;
+           
+            }   
+            
+        }//num_vertex_in 0
+        
+        else if( (num_vertex_in == 1) || (num_vertex_in == 2)){ //this two cases are grouped in one
+            
+            int index_vertex=-1;
+            double CoMTC[3] = {0.0}; double CoMTV[3] = {0.0}; double CoMTT[3] = {0.0};
+            
+            if(num_vertex_in==2){
+                int suma_index = vertex_in_vector[0]+vertex_in_vector[1];
+                switch (suma_index){ case 1: index_vertex = 2; break; case 2: index_vertex = 1; break; case 3: index_vertex = 0; break; }
+            }
+            else{
+                index_vertex = vertex_in_vector[0];
+            }
+            
+            for (unsigned int i = 0;i<3;i++){  
+                
+                V0[i] = Coord[index_vertex][i];
+                V1[i] = Coord[(index_vertex+1)%3][i];
+                V2[i] = Coord[(index_vertex+2)%3][i];
+            
+                V0V1[i] = V1[i]-V0[i];
+                V0CC[i] = CC[i]-V0[i];
+                V0V2[i] = V2[i]-V0[i];
+                V2V0[i] = V0[i]-V2[i];
+
+            }
+                
+            GeometryFunctions::CrossProduct(V0V1,Normal,normal_outwards1); 
+            GeometryFunctions::CrossProduct(V2V0,Normal,normal_outwards2);  
+                            
+            GeometryFunctions::normalize(normal_outwards1);
+            GeometryFunctions::normalize(normal_outwards2);
+            //MSICHECK borra aixo, pero vov2 es fa servir tambe 
+            if(GeometryFunctions::DotProduct(normal_outwards1,V0V2)>0.0) {KRATOS_WATCH("ERROR_NUMERO 292435383 EN RIGID_FACE_GE0 no estic segur que sigui errorO")} //han de ser contraris pk la normal outwards se suposa que es outwards
+            
+            dist_normal1   = GeometryFunctions::DotProduct(normal_outwards1,V0CC);  
+            dist_normal2   = GeometryFunctions::DotProduct(normal_outwards2,V0CC);    
+
+            dist_inline1 = sqrt(RC_squared-dist_normal1*dist_normal1);
+            dist_inline2 = sqrt(RC_squared-dist_normal2*dist_normal2);
+
+            if(num_vertex_in==2){ //its diferent if the reference edge is inside or outside
+                
+                dist_inline1 = -1*dist_inline1;
+                dist_inline2 = -1*dist_inline2;
+                
+            }
+
+            for (unsigned int index = 0;index<3;index++){   
+                
+                direction_edge1[index] = V0V1[index];
+                direction_edge2[index] = V0V2[index];
+            }
+            
+            GeometryFunctions::normalize(direction_edge1);
+            GeometryFunctions::normalize(direction_edge2);
+            
+            pseudo_dist_inline1 = GeometryFunctions::DotProduct(direction_edge1,V0CC); //can be negative if the centre of circle lies out of triangle
+            pseudo_dist_inline2 = GeometryFunctions::DotProduct(direction_edge2,V0CC); //can be negative if the centre of circle lies out of triangle
+            
+            for (unsigned int index = 0;index<3;index++){        
+                intersection1[index] = V0[index]+(dist_inline1+pseudo_dist_inline1)*direction_edge1[index];
+                intersection2[index] = V0[index]+(dist_inline2+pseudo_dist_inline2)*direction_edge2[index];
+
+            }
+            
+            GeometryFunctions::AreaAndCentroidCircularSector(CC, RC, intersection1, intersection2, Normal, AreaCS, CoMSC);
+            GeometryFunctions::AreaAndCentroidTriangle(CC, intersection1, intersection2, AreaTC, CoMTC);
+            GeometryFunctions::AreaAndCentroidTriangle(V0, intersection1, intersection2, AreaTV, CoMTV);
+            
+            
+            if(num_vertex_in==2){
+                
+                casus = 7;
+                
+                GeometryFunctions::AreaAndCentroidTriangle(Coord[0],Coord[1],Coord[2],AreaTriTotal,CoMTT);
+                
+                Area = AreaTriTotal - AreaTV + AreaCS -AreaTC;
+                inv_Area = 1/Area;
+                
+                for (unsigned int index = 0; index<3; index++){        
+                    CoM[index]     = inv_Area*(AreaTriTotal*CoMTT[index] - AreaTV*CoMTV[index] + AreaCS*CoMSC[index] - AreaTC*CoMTC[index]);
+                }
+            
+            }//num_vertex_in 2
+            else{ //for the case of 1 vertex, we check now if we cross the oposite edge.
+                
+                GeometryFunctions::AreaAndCentroidCircularSegment(CC,RC,tol_RC,V1,V2,Normal,AreaSegC,CoMSegC,flag);
+                    
+                if(flag){
+                    
+                    casus = 6;
+                    
+                    Area = AreaTV + AreaCS - AreaTC - AreaSegC;
+                    inv_Area = 1/Area;
+                    for (unsigned int index = 0;index<3;index++){  
+                        
+                        CoM[index] = inv_Area*(AreaTV*CoMTV[index] + AreaCS*CoMSC[index] - AreaTC*CoMTC[index] - AreaSegC*CoMSegC[index]);   
+                    
+                    } 
+                }//opposite edge crossed
+                else{
+                
+                    casus = 5;
+                    Area = AreaTV + AreaCS - AreaTC;
+                    inv_Area = 1/Area;
+                    for (unsigned int index = 0;index<3;index++){  
+                        
+                        CoM[index] = inv_Area*(AreaTV*CoMTV[index] + AreaCS*CoMSC[index] - AreaTC*CoMTC[index]);   
+                    
+                    } 
+                }
+                
+            }//1 vertex
+            
+        }//1 or 2 vertices in
+        else if(num_vertex_in == 3){
+            
+            GeometryFunctions::AreaAndCentroidTriangle(Coord[0],Coord[1],Coord[2],Area,CoM);
+            casus = 8;
+            
+        }
+        
+//         KRATOS_WATCH("  ")   
+//         KRATOS_WATCH(rObj_1->Id())
+//         KRATOS_WATCH(rObj_2->Id())
+//         KRATOS_WATCH(Area)   
+//         KRATOS_WATCH(casus)   
+//         KRATOS_WATCH(CoM[0])
+//         KRATOS_WATCH(CoM[1])
+//         KRATOS_WATCH(CoM[2]) 
+              
+        double Weight[3] = {0.0};
+        GeometryFunctions::TriAngleWeight(Coord[0], Coord[1], Coord[2], CoM, Weight);
+//         std::cout<< std::setprecision(12) << (rObj_1->GetGeometry()[0].Coordinates()[1])<<std::endl;
+//         KRATOS_WATCH(rObj_2->Id())
+//         KRATOS_WATCH(Weight[0] + Weight[1] + Weight[2])
+//         KRATOS_WATCH(distance_cp_to_plane)
+//         KRATOS_WATCH(Weight[1])
+//         KRATOS_WATCH(Weight[2])
+//         KRATOS_WATCH(Weight[2])
+        
+        
+        if(Area<0.0)
+        {
+            KRATOS_WATCH("ERROR_NUMERO 88942132432484 EN RIGID_FACE_GE0")
+            KRATOS_WATCH(Area)
+            return false;
+        }
+        
+        if( fabs(Weight[0] + Weight[1] + Weight[2] - 1.0) >= 1.0e-5 )
+        {
+            KRATOS_WATCH("ERROR_NUMERO 8894845484 EN RIGID_FACE_GE0")
+            KRATOS_WATCH(Weight[0])
+            KRATOS_WATCH(Weight[1])
+            KRATOS_WATCH(Weight[2])
+            KRATOS_WATCH(Area)  
+            KRATOS_WATCH(rObj_2->Id()) 
+        KRATOS_WATCH(casus)  
+        return false;
+        }
+        
+        std::vector<double>& RF_Pram = rObj_1->mNeighbourRigidFacesPram;
+        std::size_t ino = RF_Pram.size();
+        
+        RF_Pram.resize(ino + 16);
+        /*
+        RF_Pram[ino + 0]  = LocalCoordSystem[0][0];//Room for improvement: ¿could we just store LocalCoordSystem[2]? Could we regenerate 0 and 1 randomly when we need the coordinate system? --> may be a problem for the tangential force?
+        RF_Pram[ino + 1]  = LocalCoordSystem[0][1];
+        RF_Pram[ino + 2]  = LocalCoordSystem[0][2];
+        RF_Pram[ino + 3]  = LocalCoordSystem[1][0];
+        RF_Pram[ino + 4]  = LocalCoordSystem[1][1];
+        RF_Pram[ino + 5]  = LocalCoordSystem[1][2];
+        RF_Pram[ino + 6]  = normal_flag*LocalCoordSystem[2][0]; //the result points outwards with a counterclockwise sorting of nodes criteria
+        RF_Pram[ino + 7]  = normal_flag*LocalCoordSystem[2][1];
+        RF_Pram[ino + 8]  = normal_flag*LocalCoordSystem[2][2];
+        
+        RF_Pram[ino + 9]  = distance_cp_to_plane; //this one is also wrong im trying to put the indentation in the direction particle - COM, but the strategy is to use the area not the indentation
+        
+        */ //THose are normal coordinate system, while we want the ball to go in another direction, the problem will be maybe in the definition of tangential 
+        
+        
+        
+        Outwards[0]   = Particle_Coord[0]-CoM[0];
+        Outwards[1]   = Particle_Coord[1]-CoM[1];
+        Outwards[2]   = Particle_Coord[2]-CoM[2];
+        
+        Auxiliar2[0]  = Outwards[0]+0.1;
+        Auxiliar2[1]  = Outwards[1]+0.2;
+        Auxiliar2[2]  = Outwards[2]+0.3;
+        
+        GeometryFunctions::CrossProduct(Outwards,Auxiliar2,Auxiliar1);
+        GeometryFunctions::CrossProduct(Outwards,Auxiliar1,Auxiliar2); 
+                
+        GeometryFunctions::normalize(Auxiliar1);
+        GeometryFunctions::normalize(Auxiliar2);
+        GeometryFunctions::normalize(Outwards);
+        
+        
+        RF_Pram[ino + 0]  = Auxiliar1[0];
+        RF_Pram[ino + 1]  = Auxiliar1[1];
+        RF_Pram[ino + 2]  = Auxiliar1[2];
+        RF_Pram[ino + 3]  = Auxiliar2[0];
+        RF_Pram[ino + 4]  = Auxiliar2[1];
+        RF_Pram[ino + 5]  = Auxiliar2[2];
+        RF_Pram[ino + 6]  = Outwards[0]; //the result points outwards with a counterclockwise sorting of nodes criteria
+        RF_Pram[ino + 7]  = Outwards[1];
+        RF_Pram[ino + 8]  = Outwards[2];
+        
+        double dist = GeometryFunctions::DistanceOfTwoPoint(CoM,Particle_Coord);
+   /*     
+        if( (rObj_1->Id() == 8) || (rObj_1->Id() == 6)|| (rObj_1->Id() == 5))
+        {dist = 0.5*dist;}
+        if( (rObj_1->Id() == 15) || (rObj_1->Id() == 10)|| (rObj_1->Id() == 9) || (rObj_1->Id() == 1) )
+        {dist = 2*dist;}
+       */ 
+        RF_Pram[ino + 9]  = dist;
+        RF_Pram[ino + 10] = Weight[0];
+        RF_Pram[ino + 11] = Weight[1];
+        RF_Pram[ino + 12] = Weight[2];
+        RF_Pram[ino + 13] = 0.0;  //Weight[3]... no 4 nodes
+        RF_Pram[ino + 14] = rObj_2->Id();
+        RF_Pram[ino + 15] = 1; //ContactType always plane  
+
+        return true;
+        
+    } //AreaDistribution (Elastic Contact)
     
     
-    static inline bool RigidContact(SphericParticle* rObj_1, DEMWall* rObj_2)
+    
+   
+    
+    static inline bool HierarchicalMethod(SphericParticle* rObj_1, DEMWall* rObj_2) //joaquin
     {
       //Cfeng: rObj_1 is particle,  and rObj_2 is condition
 
@@ -389,7 +787,9 @@ public:
        if(ContactExists == true)
        {
             // In geometrical level to search the neighbour, need pointer convert
-            std::vector<double>& RF_Pram = rObj_1->mNeighbourRigidFacesPram;
+            std::vector<double>& RF_Pram = rObj_1->mNeighbourRigidFacesPram;     
+            
+            //NOTE: THIS member has to be cleared every timestep. It is done in: the SphericParticle Function: ComputeNewRigidFaceNeighboursHistoricalData 
 
             std::size_t ino = RF_Pram.size();
             std::size_t TotalSize = ino / 16;        
@@ -585,13 +985,94 @@ public:
         if( (ContactExists == false) && (distance_point_to_plane <= Radius ) )
         {
          
-            ContactExists = GeometryFunctions::QuickClosestEdgeVertexDetermination(/*ContactType ,*/Coord, Particle_Coord, facet_size, Radius);
-            
+            ContactExists = QuickClosestEdgeVertexDetermination(/*ContactType ,*/Coord, Particle_Coord, facet_size, Radius);
+
         }//no plane contact found
 
         return ContactExists;
         
     }//EasyIntersection
+    
+    
+     static inline bool QuickClosestEdgeVertexDetermination(/*int& ContactType,*/ double Coord[4][3], double Particle_Coord[3], int size, double particle_radius) 
+    {                  
+        
+        std::vector<double> dist_sq(size*2, 0.0); //vertices and edges of the face       
+        std::vector<double> dist(size*2, 0.0);
+        double base[4][3];
+        double base_sq    = 0.0; 
+        double tau_sq     = 0.0;
+        double base_leng  = 0.0;
+        double diag_back  = 0.0;
+        double diag_front = 0.0;
+        double particle_radius_sq = particle_radius*particle_radius;
+        
+        double NodeToP[4][3] = { {0.0},{0.0},{0.0},{0.0} };
+        
+        //VERTICES
+        for (int n=0;n<size;n++){ //vertices
+        
+            
+            for (int k= 0; k<3; k++){ //components
+            
+                NodeToP[n][k] =  Particle_Coord[k] - Coord[n][k];
+                dist_sq[n]    += NodeToP[n][k]*NodeToP[n][k];
+                
+            }
+            
+            if ( dist_sq[n] <= particle_radius_sq )
+            {
+                //ContactType = 3;
+                return true; 
+            }
+            
+            dist[n] = sqrt(dist_sq[n]);
+            
+        }
+       
+        //EDGES
+        for (int i=0;i<size;i++)
+        {
+           
+            int j=(i+1)%size;
+            base_sq = 0.0;
+            tau_sq  = 0.0;
+            for (int k=0;k<3;k++)
+            {
+                base[i][k] = (Coord[j][k] - Coord[i][k]); 
+                base_sq += base[i][k]*base[i][k];
+            
+            }
+                    
+            base_leng = sqrt(base_sq);
+            diag_back  = dist[i];
+            diag_front = dist[j];
+            
+            double a2  =  dist_sq[i];
+            double b2  =  base_sq;
+            double c2  =  dist_sq[j];
+           
+            
+            if ( (a2 <= b2 + c2) && (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
+                
+                GeometryFunctions::TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
+                
+                dist_sq[i+size] = tau_sq/base_sq; 
+                
+                if ( dist_sq[i+size] <= particle_radius_sq )
+                {         
+                    //ContactType=2;
+                    return true;
+                    
+                }
+            
+            }
+            
+        }//for each edge starting at node i going to j
+
+        return false;
+     
+    } //QuickClosestEdgeVertexDetermination
     
     ///@}
     ///@name Access
