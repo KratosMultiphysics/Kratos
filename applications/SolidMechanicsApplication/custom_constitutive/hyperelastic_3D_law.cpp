@@ -35,6 +35,8 @@ HyperElastic3DLaw::HyperElastic3DLaw()
 
 HyperElastic3DLaw::HyperElastic3DLaw(const HyperElastic3DLaw& rOther)
     : ConstitutiveLaw(rOther)
+    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
+    ,mDeterminantF0(rOther.mDeterminantF0)
 {
 }
 
@@ -104,6 +106,10 @@ void HyperElastic3DLaw::SetValue( const Variable<double>& rThisVariable, const d
                                   const ProcessInfo& rCurrentProcessInfo )
 {
 
+  if (rThisVariable == DETERMINANT_F)
+    {
+      mDeterminantF0 = rValue;
+    }
 }
 
 void HyperElastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
@@ -129,6 +135,8 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues )
 {
+  mDeterminantF0                = 1;
+  mInverseDeformationGradientF0 = identity_matrix<double> (3);
 
 }
 
@@ -386,15 +394,7 @@ void HyperElastic3DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
     this->CalculateMaterialResponsePK2 (rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
-    // this->CalculateMaterialResponsePK2 (rValues);
-
-    // Vector& StressVector                   =rValues.GetStressVector();
-    // const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    // const double& DeterminantF             =rValues.GetDeterminantF();
-
-    // //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    // TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_PK2,StressMeasure_Cauchy);  //Cauchy Stress
-
+    UpdateInternalVariables( rValues );
 }
 
 //************************************************************************************
@@ -408,13 +408,7 @@ void HyperElastic3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
     this->CalculateMaterialResponsePK1 (rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
-    // Vector& StressVector                   =rValues.GetStressVector();
-    // const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    // const double& DeterminantF             =rValues.GetDeterminantF();
-
-    // //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    // TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_PK1,StressMeasure_Cauchy);  //increment of Cauchy Stress
-
+    UpdateInternalVariables( rValues );
 }
 
 //************************************************************************************
@@ -428,13 +422,7 @@ void HyperElastic3DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
     this->CalculateMaterialResponseKirchhoff (rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
-    // Vector& StressVector                   =rValues.GetStressVector();
-    // const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    // const double& DeterminantF             =rValues.GetDeterminantF();
-
-    // //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    // TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_Kirchhoff,StressMeasure_Cauchy);  //increment of Cauchy Stress
-
+    UpdateInternalVariables( rValues );
 }
 
 
@@ -446,8 +434,24 @@ void HyperElastic3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponseCauchy (rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+
+    UpdateInternalVariables( rValues );
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void HyperElastic3DLaw::UpdateInternalVariables(Parameters& rValues)
+{
+    const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+    const double& DeterminantF            = rValues.GetDeterminantF();
+
+    Matrix DeformationGradientF0          = DeformationGradientF;
+    DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
+    MathUtils<double>::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
+    mDeterminantF0 = DeterminantF; //special treatment of the determinant 
+}
 
 
 //***********************COMPUTE TOTAL STRAIN VECTOR**********************************

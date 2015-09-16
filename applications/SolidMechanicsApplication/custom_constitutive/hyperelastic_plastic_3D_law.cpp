@@ -46,8 +46,6 @@ HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(FlowRulePointer pFlowRule, Yi
 
 HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(const HyperElasticPlastic3DLaw& rOther)
     : HyperElastic3DLaw(rOther)
-    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
-    ,mDeterminantF0(rOther.mDeterminantF0)
     ,mElasticLeftCauchyGreen(rOther.mElasticLeftCauchyGreen)
     ,mpYieldCriterion(rOther.mpYieldCriterion)
     ,mpHardeningLaw(rOther.mpHardeningLaw)
@@ -170,8 +168,8 @@ void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& rMaterialPr
 						   const Vector& rShapeFunctionsValues )
 {
 
-  mDeterminantF0                = 1;
-  mInverseDeformationGradientF0 = identity_matrix<double> (3);
+  HyperElastic3DLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+
   mElasticLeftCauchyGreen       = identity_matrix<double> (3);
 
   mpFlowRule->InitializeMaterial( mpYieldCriterion, mpHardeningLaw, rMaterialProperties );
@@ -333,9 +331,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
     ElasticVariables.DeformationGradientF = DeformationGradientF;
 
-    ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
+    ElasticVariables.DeformationGradientF = this->Transform2DTo3D(ElasticVariables.DeformationGradientF);
 
-    ElasticVariables.DeformationGradientF = prod(ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0); 
+    ElasticVariables.DeformationGradientF = prod(ElasticVariables.DeformationGradientF, this->mInverseDeformationGradientF0); 
 
     ElasticVariables.DeformationGradientF /= ElasticVariables.J_pow13; //now ElasticVariables.DeformationGradientF is DeformationGradientFbar
 
@@ -446,11 +444,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
       mElasticLeftCauchyGreen  = ( IsochoricStressMatrix * ( 1.0 / ElasticVariables.LameMu ) );
       mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.IdentityMatrix;
-
-      ElasticVariables.DeformationGradientF = DeformationGradientF;
-      ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
-      MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
-      mDeterminantF0 = DeterminantF; //special treatment of the determinant     
+    
     }
 
 }

@@ -140,6 +140,11 @@ void LineLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
     rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0); // x_2,e
     rVariables.Tangent1[2] = rVariables.J[rPointNumber](2, 0); // x_3,e
 
+    //normal in the x-y plane (must be generalized)
+    rVariables.Normal[0] = -rVariables.j[rPointNumber](1, 0); //-x_2,e
+    rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
+    rVariables.Normal[2] =  rVariables.J[rPointNumber](2, 0); // x_3,e
+
     //Jacobian to the last known configuration
     rVariables.Jacobian = norm_2(rVariables.Tangent1);
 
@@ -165,6 +170,17 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 
     //PRESSURE CONDITION:
     rVectorForce = ZeroVector(dimension);
+    rVectorForce = rVariables.Normal;
+    rVariables.Pressure = 0;
+
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+      if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) && GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) //temporary, will be checked once at the beginning only
+	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
+      
+    }
+    
+    rVectorForce *= rVariables.Pressure;
    
     //FORCE CONDITION:
     for (unsigned int i = 0; i < number_of_nodes; i++)
