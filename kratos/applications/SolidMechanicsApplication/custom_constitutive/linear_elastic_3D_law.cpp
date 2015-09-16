@@ -62,6 +62,42 @@ LinearElastic3DLaw::~LinearElastic3DLaw()
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
 
+//compute response from kirchhoff law
+// void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
+// {
+
+//   this->CalculateMaterialResponseKirchhoff (rValues);
+
+//   //1.- Obtain parameters
+//   Flags & Options                    = rValues.GetOptions();    
+
+//   Vector& StressVector               = rValues.GetStressVector();
+//   Vector& StrainVector               = rValues.GetStrainVector();
+
+//   const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
+//   const double& DeterminantF         = rValues.GetDeterminantF();
+
+//   Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
+
+//   //2.-Green-Lagrange Strain:
+//   if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+//     {
+//       TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_Almansi, StrainMeasure_GreenLagrange);
+//     }
+
+//   //3.-Calculate Total PK2 stress
+//   if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+//     {
+//       TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_PK2);
+//     }
+
+//   //4.-Calculate PK2 constitutive tensor
+//   if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+//     {
+//       PullBackConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
+//     }
+
+// }
 
 void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
@@ -95,16 +131,16 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
 
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
       {
 
-	//only needed 
+	//1.-Compute total deformation gradient
 	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
 		
-        //4.-Right Cauchy Green
+        //2.-Right Cauchy-Green tensor C
         Matrix RightCauchyGreen = prod(trans(DeformationGradientF),DeformationGradientF);
 
-        //5.-Green-Lagrange Strain:
+        //3.-Green-Lagrange Strain:
 
         //E= 0.5*(FT*F-1)
         this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
@@ -138,16 +174,53 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     }
 
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Strain "<<StrainVector<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
 
+    //std::cout<<" Strain "<<StrainVector<<std::endl;
+    //std::cout<<" Stress "<<StressVector<<std::endl;
+    //Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+    //std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
+//compute response from PK2 law
+// void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+// {
+
+//   this->CalculateMaterialResponsePK2 (rValues);
+
+//   //1.- Obtain parameters
+//   Flags & Options                    = rValues.GetOptions();    
+
+//   Vector& StressVector               = rValues.GetStressVector();
+//   Vector& StrainVector               = rValues.GetStrainVector();
+
+//   const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
+//   const double& DeterminantF         = rValues.GetDeterminantF();
+
+//   Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
+
+//   //2.-Almansi Strain:
+//   if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+//     {
+//       TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_GreenLagrange, StrainMeasure_Almansi);
+//     }
+
+//   //3.-Calculate Total Kirchhoff stress
+//   if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+//     {
+//       TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_PK2, StressMeasure_Kirchhoff);
+//     }
+
+//   //4.-Calculate Cauchy constitutive tensor
+//   if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+//     {
+//       PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
+//     }
+
+// }
 
 void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
@@ -155,7 +228,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
     //-----------------------------//
 
     //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
+    //CheckParameters(rValues);
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
@@ -181,55 +254,88 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
     //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
 
 
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
       {
 	//1.-Compute total deformation gradient
         const Matrix& DeformationGradientF      = rValues.GetDeformationGradientF();
 
-        //2.-Push-Forward Left Cauchy-Green tensor b to the new configuration
+        //2.-Left Cauchy-Green tensor b
         Matrix LeftCauchyGreenMatrix = prod(DeformationGradientF,trans(DeformationGradientF));
 
         //3.-Almansi Strain:
 
-        // e= 0.5*(1-invFT*invF)
+        //e= 0.5*(1-invFT*invF)
         this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
 
-      }
-
-    //7.-Calculate total Kirchhoff stress
-
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-      
-      if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 	
-	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+	//LARGE STRAINS OBJECTIVE MESURE KIRCHHOFF MATERIAL:
 
-	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	// Kirchhoff model is set with S = CE
+	this->CalculateMaterialResponsePK2 (rValues);
+
+	//1.- Obtain parameters
+	const double& DeterminantF         = rValues.GetDeterminantF();
+
+	//2.-Almansi Strain:
+	// if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+	//   {
+	//     TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_GreenLagrange, StrainMeasure_Almansi);
+	//   }
+
+	//3.-Calculate Total Kirchhoff stress
+	if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+	  {
+	    TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_PK2, StressMeasure_Kirchhoff);
+	  }
+
+	// COMMENTED BECAUSE THE CONVERGENCE IS NOT IMPROVED AND IS TIME CONSUMING:
+	//4.-Calculate Cauchy constitutive tensor
+	// if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+	//   {
+	//     Matrix& ConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
+	//     PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
+	//   }
       
-	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-
       }
-      else {
-	
-	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
-	
-	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+    else{ //small strains
+
+      //7.-Calculate total Kirchhoff stress
+
+      if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
       
-	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+	if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+	
+	  Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+
+	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+
+	  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+
+	}
+	else {
+	
+	  Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+	
+	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+      
+	  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+      
+	}
       
       }
-      
-    }
-    else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-    {
+      else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+	{
 
-      Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
-      this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	  Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+
+	}
 
     }
 
     //std::cout<<" Strain "<<StrainVector<<std::endl;
     //std::cout<<" Stress "<<StressVector<<std::endl;
+    //Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
     //std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
 
 }
@@ -241,8 +347,8 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
 
 void LinearElastic3DLaw::CalculateStress( const Vector & rStrainVector,
-        const Matrix & rConstitutiveMatrix,
-        Vector& rStressVector )
+					  const Matrix & rConstitutiveMatrix,
+					  Vector& rStressVector )
 {
 
     //1.-2nd Piola Kirchhoff StressVector or Cauchy StressVector
