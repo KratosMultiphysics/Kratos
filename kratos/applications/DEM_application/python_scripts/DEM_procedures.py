@@ -782,34 +782,24 @@ class DEMFEMProcedures(object):
             
             
             
+
     def ApplyNodalRotation(self,time):
 
             #if (time < 0.5e-2 ) :
-            if (time < 0.5e-1 ) :    
-                
+            if (time < 3.8e-5 ) :
+
                 #while ( time < self.DEM_parameters.FinalTime):
                 #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            
-                vz = 10
 
-                for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                    if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
-
-                        for node in self.mesh_nodes:
-
-                              node.SetSolutionStepValue(VELOCITY_Z, vz)
-                              node.Fix(VELOCITY_Z)
-
-            else: 
                 d0 = 1.694
                 avance = 0.50100
                 distance = (d0 - avance)
-                rpm = 628
+                w = 62.8
+                distance = 2
 
-                vx = distance * rpm * math.cos(rpm * time)
+                vx = -distance * w * math.sin(w * time)
                 #vx = distance * rpm * math.cos(1.0)
-                vz = distance * rpm * math.sin(rpm * time)
+                vy = distance * w * math.cos(w * time)
                 #vz = - distance * rpm * math.sin(1.0)
 
                 for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
@@ -819,9 +809,42 @@ class DEMFEMProcedures(object):
                         for node in self.mesh_nodes:
 
                             node.SetSolutionStepValue(VELOCITY_X, vx)
-                            node.SetSolutionStepValue(VELOCITY_Z, vz)
+                            node.SetSolutionStepValue(VELOCITY_Y, vy)
                             node.Fix(VELOCITY_X)
-                            node.Fix(VELOCITY_Z)
+                            node.Fix(VELOCITY_Y)
+
+            else:
+
+                 d0 = 1.694
+                 avance = 0.50100
+                 distance = (d0 - avance)
+                 w = 62.8
+                 distance = 2
+
+                 vx = -distance * w * math.sin(w * time)
+                 #vx = distance * rpm * math.cos(1.0)
+                 vy = distance * w * math.cos(w * time)
+                 #vz = - distance * rpm * math.sin(1.0)
+                 radius = 1.0001
+
+                 for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
+                     if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+
+                            node.SetSolutionStepValue(RADIUS, radius)
+
+                 for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
+                     if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                         self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
+
+                         for node in self.mesh_nodes:
+
+                             node.SetSolutionStepValue(VELOCITY_X, vx)
+                             node.SetSolutionStepValue(VELOCITY_Y, vy)
+                             node.Fix(VELOCITY_X)
+                             node.Fix(VELOCITY_Y)
 
            
     def ApplyMovementbySteps(self,time):
