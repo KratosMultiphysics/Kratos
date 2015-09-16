@@ -150,7 +150,7 @@ class cg {
             value_type res_norm = norm(*r);
 
             size_t iter = 0;
-            for(; iter < prm.maxiter && rho1 > eps2; ++iter) {
+            for(; iter < prm.maxiter && fabs(rho1) > eps2; ++iter) {
                 P.apply(*r, *s);
 
                 rho2 = rho1;
