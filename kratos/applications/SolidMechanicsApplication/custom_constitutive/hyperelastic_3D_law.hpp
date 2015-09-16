@@ -281,6 +281,11 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    Matrix mInverseDeformationGradientF0;
+
+    double mDeterminantF0;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -444,6 +449,15 @@ protected:
     Matrix& Transform2DTo3D (Matrix& rMatrix);
 
 
+
+    /**
+      * Updates the material response:
+      * Internal Variables
+      * @param rValues
+      * @see   Parameters
+      */
+    virtual void UpdateInternalVariables (Parameters & rValues);
+
     /**
      * This function is designed to be called when before the material response
      * to check if all needed parameters for the constitutive are initialized
@@ -488,11 +502,17 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+	rSerializer.save("mDeterminantF0",mDeterminantF0);
+
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+	rSerializer.load("mDeterminantF0",mDeterminantF0);
+
     }
 
 

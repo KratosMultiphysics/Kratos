@@ -225,10 +225,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    Matrix mInverseDeformationGradientF0;
-
-    double mDeterminantF0;
   
     Matrix mElasticLeftCauchyGreen;
     
@@ -316,10 +312,8 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
 	
-	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-	rSerializer.save("mDeterminantF0",mDeterminantF0);
 	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
 	rSerializer.save("mpFlowRule",mpFlowRule);
 	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
@@ -328,10 +322,8 @@ private:
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
 	  
-	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-	rSerializer.load("mDeterminantF0",mDeterminantF0);
 	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
 	rSerializer.load("mpFlowRule",mpFlowRule);
 	rSerializer.load("mpYieldCriterion",mpYieldCriterion);
