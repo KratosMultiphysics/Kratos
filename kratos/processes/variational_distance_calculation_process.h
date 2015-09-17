@@ -130,11 +130,11 @@ public:
      * respecting that zero
      * @param base_model_parr - is the model part on the top of which the calculation will be performed
      * @param plinear_solver  - linear solver to be used internally
-     * @max_iterations        - maximum number of iteration to be employed in the nonlinear optimization process. 
-     *                        - can also be set to 0 if a (very) rough approximation is enough 
+     * @max_iterations        - maximum number of iteration to be employed in the nonlinear optimization process.
+     *                        - can also be set to 0 if a (very) rough approximation is enough
      *
      * EXAMPLE OF USAGE FROM PYTHON:
-     * 
+     *
      class distance_linear_solver_settings:
          solver_type = "AMGCL"
          tolerance = 1E-3
@@ -143,20 +143,22 @@ public:
          krylov_type = "CG"
          smoother_type = "SPAI0"
          verbosity = 0
-      
+
      import linear_solver_factory
      distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
-      
+
      max_iterations=1
      distance_calculator = VariationalDistanceCalculationProcess2D(fluid_model_part, distance_linear_solver, max_iterations)
-     distance_calculator.Execute() 
+     distance_calculator.Execute()
      */
     VariationalDistanceCalculationProcess(ModelPart& base_model_part,
                                           typename LinearSolverType::Pointer plinear_solver,
                                           unsigned int max_iterations = 10
                                          )
+        :mr_base_model_part(base_model_part)
     {
         KRATOS_TRY
+
 
         mmax_iterations = max_iterations;
 
@@ -191,9 +193,9 @@ public:
         bool CalculateNormDxFlag = false;
 
         BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType>(plinear_solver) );
-        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType >(*mp_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType >(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
 
-
+        //TODO: check flag DO_EXPENSIVE_CHECKS
         mp_solving_strategy->Check();
 
         KRATOS_CATCH("")
@@ -224,17 +226,18 @@ public:
         KRATOS_TRY;
 
         if(mdistance_part_is_initialized == false)
-            KRATOS_THROW_ERROR(std::logic_error,"need to recompute the mp_model_part. Probably a clear has been performed","")
+            ReGenerateDistanceModelPart(mr_base_model_part);
 
-            //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
-            mp_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
+        //TODO: check flag    PERFORM_STEP1
+        //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
+        mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
         mp_solving_strategy->Solve();
 
         //compute the average gradient and scale the distance so that the gradient is approximately 1
         ScaleDistance();
 
         //step2 - minimize the target residual
-        mp_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+        mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
         for(unsigned int it = 0; it<mmax_iterations; it++)
         {
             mp_solving_strategy->Solve();
@@ -245,10 +248,10 @@ public:
 
     virtual void Clear()
     {
-        mp_model_part->Nodes().clear();
-        mp_model_part->Conditions().clear();
-        mp_model_part->Elements().clear();
-//        mp_model_part->GetProcessInfo().clear();
+        mp_distance_model_part->Nodes().clear();
+        mp_distance_model_part->Conditions().clear();
+        mp_distance_model_part->Elements().clear();
+//        mp_distance_model_part->GetProcessInfo().clear();
         mdistance_part_is_initialized = false;
 
         mp_solving_strategy->Clear();
@@ -303,7 +306,9 @@ protected:
     ///@{
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
-    ModelPart::Pointer mp_model_part;
+    ModelPart::Pointer mp_distance_model_part;
+    ModelPart& mr_base_model_part;
+
     SolvingStrategyType::Pointer mp_solving_strategy;
 
 
@@ -316,19 +321,19 @@ protected:
 
         //generate
         ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
-        mp_model_part.swap(pAuxModelPart);
+        mp_distance_model_part.swap(pAuxModelPart);
 
-        mp_model_part->Nodes().clear();
-        mp_model_part->Conditions().clear();
-        mp_model_part->Elements().clear();
+        mp_distance_model_part->Nodes().clear();
+        mp_distance_model_part->Conditions().clear();
+        mp_distance_model_part->Elements().clear();
 
-        mp_model_part->SetProcessInfo(  base_model_part.pGetProcessInfo() );
-        mp_model_part->SetBufferSize(base_model_part.GetBufferSize());
-        mp_model_part->SetProperties(base_model_part.pProperties());
-        mp_model_part->Tables() = base_model_part.Tables();
+        mp_distance_model_part->SetProcessInfo(  base_model_part.pGetProcessInfo() );
+        mp_distance_model_part->SetBufferSize(base_model_part.GetBufferSize());
+        mp_distance_model_part->SetProperties(base_model_part.pProperties());
+        mp_distance_model_part->Tables() = base_model_part.Tables();
 
         //assigning the nodes to the new model part
-        mp_model_part->Nodes() = base_model_part.Nodes();
+        mp_distance_model_part->Nodes() = base_model_part.Nodes();
 
         //ensure that the nodes have distance as a DOF
         for (ModelPart::NodesContainerType::iterator iii = base_model_part.NodesBegin(); iii != base_model_part.NodesEnd(); iii++)
@@ -337,7 +342,7 @@ protected:
         }
 
         //generating the elements
-        mp_model_part->Elements().reserve(base_model_part.Elements().size());
+        mp_distance_model_part->Elements().reserve(base_model_part.Elements().size());
         for (ModelPart::ElementsContainerType::iterator iii = base_model_part.ElementsBegin(); iii != base_model_part.ElementsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
@@ -346,13 +351,13 @@ protected:
                                              iii->pGetGeometry(),
                                              iii->pGetProperties() ) );
 
-            mp_model_part->Elements().push_back(p_element);
+            mp_distance_model_part->Elements().push_back(p_element);
         }
 
 
         //using the conditions to mark the boundary with the flag boundary
         //note that we DO NOT add the conditions to the model part
-        for (ModelPart::NodesContainerType::iterator iii = mp_model_part->NodesBegin(); iii != mp_model_part->NodesEnd(); iii++)
+        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
         {
             iii->Set(BOUNDARY,false);
         }
@@ -364,7 +369,7 @@ protected:
 
         //next is for mpi (but mpi would also imply calling an mpi strategy)
         Communicator::Pointer pComm = base_model_part.GetCommunicator().Create();
-        mp_model_part->SetCommunicator(pComm);
+        mp_distance_model_part->SetCommunicator(pComm);
 
         mdistance_part_is_initialized = true;
 
@@ -373,15 +378,15 @@ protected:
 
     void ScaleDistance()
     {
-        double min_grad = 0.0;
-        double max_grad = 0.0;
+//         double min_grad = 0.0;
+//         double max_grad = 0.0;
         double avg_grad = 0.0;
         double tot_vol = 0.0;
-        Vector grad_norms(mp_model_part->Elements().size());
-        Vector vols(mp_model_part->Elements().size());
+        Vector grad_norms(mp_distance_model_part->Elements().size());
+        Vector vols(mp_distance_model_part->Elements().size());
 
-        for (ModelPart::ElementsContainerType::iterator iii = mp_model_part->ElementsBegin();
-                iii != mp_model_part->ElementsEnd(); iii++)
+        for (ModelPart::ElementsContainerType::iterator iii = mp_distance_model_part->ElementsBegin();
+                iii != mp_distance_model_part->ElementsEnd(); iii++)
         {
             Geometry< Node<3> >& geom = iii->GetGeometry();
 
@@ -403,8 +408,8 @@ protected:
             tot_vol += vol;
             avg_grad += vol*grad_norm;
 
-            min_grad = std::min(min_grad, grad_norm);
-            max_grad = std::max(max_grad, grad_norm);
+//             min_grad = std::min(min_grad, grad_norm);
+//             max_grad = std::max(max_grad, grad_norm);
         }
         avg_grad /= tot_vol;
 
@@ -415,12 +420,12 @@ protected:
 
         const double ratio = 1.0/avg_grad;
 
-        KRATOS_WATCH(avg_grad);
-        KRATOS_WATCH(max_grad);
-        KRATOS_WATCH(min_grad);
-        KRATOS_WATCH(ratio);
+//         KRATOS_WATCH(avg_grad);
+//         KRATOS_WATCH(max_grad);
+//         KRATOS_WATCH(min_grad);
+//         KRATOS_WATCH(ratio);
 
-        for (ModelPart::NodesContainerType::iterator iii = mp_model_part->NodesBegin(); iii != mp_model_part->NodesEnd(); iii++)
+        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
         {
             iii->FastGetSolutionStepValue(DISTANCE) *= ratio;
         }

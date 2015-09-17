@@ -145,18 +145,35 @@ public:
     {
         KRATOS_TRY;
 
-        ModelPart::NodesContainerType temp_nodes_container;
-        temp_nodes_container.reserve(mr_model_part.Nodes().size());
+//         ModelPart::NodesContainerType temp_nodes_container;
+//         temp_nodes_container.reserve(mr_model_part.Nodes().size());
+//
+//         temp_nodes_container.swap(mr_model_part.Nodes());
+//
+//
+//
+//         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
+//         {
+//             if( static_cast<bool>(i_node->Is(TO_ERASE)) == false)
+//                 (mr_model_part.Nodes()).push_back(*(i_node.base()));
+//         }
 
-        temp_nodes_container.swap(mr_model_part.Nodes());
-
-
-
-        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
+        //loop over all the meshes
+        ModelPart::MeshesContainerType& meshes = mr_model_part.GetMeshes();
+        for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
         {
-            if( static_cast<bool>(i_node->Is(TO_ERASE)) == false)
-                (mr_model_part.Nodes()).push_back(*(i_node.base()));
+            ModelPart::NodesContainerType temp_nodes_container;
+            temp_nodes_container.reserve(i_mesh->Nodes().size());
+
+            temp_nodes_container.swap(i_mesh->Nodes());
+
+            for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
+            {
+                if( i_node->IsNot(TO_ERASE) )
+                    (i_mesh->Nodes()).push_back(*(i_node.base()));
+            }
         }
+
 
         KRATOS_CATCH("")
     }

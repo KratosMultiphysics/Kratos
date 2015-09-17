@@ -4,13 +4,58 @@
 
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 #include "utilities/math_utils.h"
 
+#include <boost/functional/hash.hpp> //TODO: remove this dependence when Kratos has en internal one
+#include <boost/unordered_map.hpp> //TODO: remove this dependence when Kratos has en internal one
+#include <utility>
+
 namespace Kratos
 {
+
+
+struct KeyComparor
+{
+    bool operator()(const vector<int>& lhs, const vector<int>& rhs) const
+    {
+        if(lhs.size() != rhs.size())
+            return false;
+
+        for(unsigned int i=0; i<lhs.size(); i++)
+        {
+            if(lhs[i] != rhs[i]) return false;
+        }
+
+        return true;
+    }
+};
+
+struct KeyHasher
+{
+    std::size_t operator()(const vector<int>& k) const
+    {
+        return boost::hash_range(k.begin(), k.end());
+    }
+};
+
+
+//DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+class TetrahedralMeshOrientationFlags
+{
+public:
+    KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
+    KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
+    KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
+};
+
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationFlags,ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS, 0);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationFlags,COMPUTE_NODAL_NORMALS, 1);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationFlags,COMPUTE_CONDITION_NORMALS, 2);
+
 
 
 /// Check a triangular or tetrahedral mesh to ensure that local connectivities follow the expected convention.
@@ -73,22 +118,8 @@ public:
     {
         KRATOS_TRY;
 
-        // Check that required nodal variables are available
-        if(NORMAL.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. There is some issue with the registering of variables.","");
-
-        if ( (mrModelPart.NodesBegin() )->SolutionStepsDataHas(NORMAL) == false )
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",mrModelPart.NodesBegin()->Id());
-
-
-        // Initialize normals as zero
-        array_1d<double,3> Zero(3,0.0);
-        for(ModelPart::NodeIterator itNode =  mrModelPart.NodesBegin(); itNode != mrModelPart.NodesEnd(); itNode++)
-        {
-            noalias(itNode->FastGetSolutionStepValue(NORMAL)) = Zero;
-        }
-
-        // Main loop for elements
+        //********************************************************
+        //begin by orienting all of the elements in the volume
         unsigned int ElemSwitchCount = 0;
 
         for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
@@ -101,8 +132,6 @@ public:
                 bool Switched = this->Orient(rGeom);
                 if (Switched)
                     ElemSwitchCount++;
-
-                this->NormalContribution(rGeom);
             }
         }
 
@@ -118,40 +147,128 @@ public:
         }
 
 
-        mrModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+        //********************************************************
+        //reset the flag BOUNDARY on all of the nodes
+        for(ModelPart::NodesContainerType::iterator itNode = mrModelPart.NodesBegin(); itNode != mrModelPart.NodesEnd(); itNode++)
+        {
+            itNode->Set(BOUNDARY, false);
+        }
 
-        // Main loop for faces
-        unsigned int CondSwitchCount = 0;
+
+
+        //********************************************************
+        //next check that the conditions are oriented accordingly
+
+        //to do so begin by putting all of the conditions in a map
+
+        typedef boost::unordered_map<vector<int>, Condition::Pointer, KeyHasher, KeyComparor > hashmap;
+        hashmap faces_map;
 
         for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
         {
-            ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-            GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
-            array_1d<double,3> FaceNormal(3,0.0);
+            itCond->Set(VISITED,false); //mark
 
-            if ( GeoType == GeometryData::Kratos_Triangle3D3 )
-                FaceNormal3D(FaceNormal,rGeom);
-            else if ( GeoType == GeometryData::Kratos_Line2D2 )
-                FaceNormal2D(FaceNormal,rGeom);
+            Geometry< Node<3> >& geom = itCond->GetGeometry();
+            vector<int> ids(geom.size());
 
-            const unsigned int NumNodes = rGeom.PointsNumber();
-            unsigned int MismatchCount = 0;
-            for (unsigned int i = 0; i < NumNodes; i++)
+            for(unsigned int i=0; i<ids.size(); i++)
             {
-                const array_1d<double,3>& rNormal = rGeom[i].FastGetSolutionStepValue(NORMAL);
-                double Dot = FaceNormal[0]*rNormal[0] + FaceNormal[1]*rNormal[1] + FaceNormal[2]*rNormal[2];
-
-                if (Dot < 0.0)
-                    MismatchCount++;
+                geom[i].Set(BOUNDARY,true);
+                ids[i] = geom[i].Id();
             }
 
-            // Re-orient if the face normal is not aligned with node normals
-            if (MismatchCount == NumNodes)
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
+
+            //insert a pointer to the condition identified by the hash value ids
+            faces_map.insert( std::make_pair<vector<int>, Condition::Pointer >(ids, *itCond.base()) );
+        }
+
+        //now loop for all the elements and for each face of the element check if it is in the "faces_map"
+        //if it happens to be there check the orientation
+        unsigned int CondSwitchCount = 0;
+        for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
+        {
+            ElementType::GeometryType& rGeom = itElem->GetGeometry();
+            GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
+
+            if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
             {
-                rGeom(0).swap(rGeom(1));
-                CondSwitchCount++;
+                //allocate a work array long enough to contain the Ids of a face
+                vector<int> aux( rGeom.size() - 1);
+
+                //loop over the faces
+                for(unsigned int outer_node_index=0; outer_node_index< rGeom.size(); outer_node_index++)
+                {
+                    unsigned int localindex_node_on_face = -1;
+                    //we put in "aux" the indices of all of the nodes which do not
+                    //coincide with the face_index we are currently considering
+                    //telling in other words:
+                    //face_index will contain the local_index of the node which is NOT on the face
+                    //localindex_node_on_face the local_index of one of the nodes on the face
+                    unsigned int counter = 0;
+                    for(unsigned int i=0; i<rGeom.size(); i++)
+                    {
+                        if(i != outer_node_index)
+                        {
+                            aux[counter++] = rGeom[i].Id();
+                            localindex_node_on_face = i;
+                        }
+                    }
+
+                    //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                    std::sort(aux.begin(), aux.end());
+
+                    hashmap::iterator it_face = faces_map.find(aux);
+                    if(it_face != faces_map.end() ) //it was actually found!!
+                    {
+                        //mark the condition as visited. This will be useful for a check at the endif
+                        (it_face->second)->Set(VISITED,true);
+
+                        //TODO: check for ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+
+                        //compute the normal of the face
+                        array_1d<double,3> FaceNormal(3,0.0);
+                        Geometry<Node<3> >& rFaceGeom = (it_face->second)->GetGeometry();
+
+                        if ( rFaceGeom.GetGeometryType() == GeometryData::Kratos_Triangle3D3 )
+                            FaceNormal3D(FaceNormal,rFaceGeom);
+                        else if ( rFaceGeom.GetGeometryType()  == GeometryData::Kratos_Line2D2 )
+                            FaceNormal2D(FaceNormal,rFaceGeom);
+
+                        //do a dotproduct with the vector that goes from
+                        //"outer_node_index" to any of the nodes in aux;
+                        array_1d<double,3> lvec = rGeom[outer_node_index]-rGeom[localindex_node_on_face];
+
+                        double dotprod = inner_prod(lvec, FaceNormal);
+
+                        //if dotprod > 0 then the normal to the face goes in the same half space as
+                        //an edge that goes from the space to the node not on the face
+                        //hence the face need to be swapped
+                        if(dotprod > 0)
+                        {
+                            rFaceGeom(0).swap(rFaceGeom(1));
+                            CondSwitchCount++;
+                        }
+
+                        //TODO: check COMPUTE_NODAL_NORMALS
+                        //TODO: check COMPUTE_CONDITION_NORMALS
+                    }
+
+                }
             }
         }
+
+        //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
+        for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
+        {
+            if(itCond->IsNot(VISITED) )
+            {
+                KRATOS_THROW_ERROR(std::runtime_error,
+                                   "Found a condition without any corresponding element. ID of condition = ", itCond->Id());
+            }
+        }
+
 
         if (CondSwitchCount > 0)
         {
@@ -262,27 +379,6 @@ private:
         }
         else
             return false;
-    }
-
-    void NormalContribution(Geometry< Node<3> >&rGeom)
-    {
-        const unsigned int NumNodes = rGeom.PointsNumber();
-        const unsigned int Dim = rGeom.WorkingSpaceDimension();
-
-        const unsigned int PointIndex = 0;
-        const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
-        double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
-
-        Geometry< Node<3> >::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,Method);
-        Matrix& rDN_DX = DN_DX[0];
-
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            array_1d<double,3>& rNormal = rGeom[i].FastGetSolutionStepValue(NORMAL);
-            for (unsigned int d = 0; d < Dim; d++)
-                rNormal[d] += DetJ*rDN_DX(i,d);
-        }
     }
 
 
