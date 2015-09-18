@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -76,7 +76,7 @@ namespace Kratos
   be passed at construction time. The reason is that each constructor can take different set of
   argument without any dependency to other processes or the base Process class.
 */
-class Process
+class Process : public Flags
 {
 public:
     ///@name Type Definitions
@@ -90,7 +90,8 @@ public:
     ///@{
 
     /// Default constructor.
-    Process() {}
+    Process() : Flags() {}
+    Process(Flags options) : Flags( options ) {}
 
     /// Destructor.
     virtual ~Process() {}
