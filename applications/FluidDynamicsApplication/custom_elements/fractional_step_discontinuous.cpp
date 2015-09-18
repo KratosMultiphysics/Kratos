@@ -247,7 +247,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         //adding a penalization term to ask for the pressure to be zero in average
         double epsilon = 1.0e-15/Viscosity;
         if (rCurrentProcessInfo.Has(PRESSURE_MASSMATRIX_COEFFICIENT)) 
-            epsilon = rCurrentProcessInfo[PRESSURE_MASSMATRIX_COEFFICIENT];
+            epsilon = rCurrentProcessInfo[PRESSURE_MASSMATRIX_COEFFICIENT]/Viscosity;
         for (SizeType i = 0; i < NumNodes; ++i)
         {
             for (SizeType j = 0; j < NumNodes; ++j)
