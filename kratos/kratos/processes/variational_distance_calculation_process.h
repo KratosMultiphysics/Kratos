@@ -81,15 +81,9 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class VariationalDistanceFlags
-{
-public:
-    KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
-    KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-};
 
-KRATOS_CREATE_LOCAL_FLAG(VariationalDistanceFlags,PERFORM_STEP1, 0);
-KRATOS_CREATE_LOCAL_FLAG(VariationalDistanceFlags,DO_EXPENSIVE_CHECKS, 1);
+
+
 
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
@@ -104,6 +98,10 @@ class VariationalDistanceCalculationProcess
     : public Process
 {
 public:
+    
+    KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
+    KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
+    
     ///@name Type Definitions
     ///@{
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -496,6 +494,12 @@ private:
     ///@}
 
 }; // Class VariationalDistanceCalculationProcess
+
+//avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
+template< unsigned int TDim > const Kratos::Flags VariationalDistanceCalculationProcess<TDim>::PERFORM_STEP1(Kratos::Flags::Create(0));
+template< unsigned int TDim > const Kratos::Flags VariationalDistanceCalculationProcess<TDim>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
+
+
 
 ///@}
 
