@@ -33,8 +33,16 @@ def Run():
     Text=""
     f=open("BenchTemp.txt", "w")
     
-    for benchmark in range(1, 10):
-      
+    #Discontinuum Tests
+    D_DEM_Benchmarks_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        
+    #Continuum Tests
+    C_DEM_Benchmarks_list = []
+    
+    Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list
+    
+    for benchmark in Total_DEM_Benchmarks_list:
+          
         print(Benchmark_text[benchmark - 1])
                 
         try:
