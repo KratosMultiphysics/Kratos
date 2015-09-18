@@ -43,18 +43,9 @@ struct KeyHasher
 };
 
 
-//DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
-class TetrahedralMeshOrientationFlags
-{
-public:
-    KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
-    KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
-    KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
-};
 
-KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationFlags,ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS, 0);
-KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationFlags,COMPUTE_NODAL_NORMALS, 1);
-KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationFlags,COMPUTE_CONDITION_NORMALS, 2);
+
+
 
 
 
@@ -70,7 +61,12 @@ class TetrahedralMeshOrientationCheck: public Process
 public:
     ///@name Type Definitions
     ///@{
-
+    
+    //DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
+    KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
+    KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
+    KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
+    
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedralMeshOrientationCheck);
 
@@ -87,9 +83,24 @@ public:
      * @param ThrowErrors If true, an error will be thrown if the input model part contains malformed elements or conditions.
      */
     TetrahedralMeshOrientationCheck(ModelPart& rModelPart,
-                                    bool ThrowErrors):
+                                    bool throw_errors,
+                                    Flags options = NOT_COMPUTE_NODAL_NORMALS & NOT_COMPUTE_CONDITION_NORMALS & NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+                                    ):
+        Process(),
         mrModelPart(rModelPart),
-        mThrowErrors(ThrowErrors)
+        mThrowErrors(throw_errors), //to be changed to a flag
+        mrOptions(options)
+
+    {
+    }
+    
+    TetrahedralMeshOrientationCheck(ModelPart& rModelPart,
+                                    Flags options = NOT_COMPUTE_NODAL_NORMALS & NOT_COMPUTE_CONDITION_NORMALS & NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+                                    ):
+        Process(),
+        mrModelPart(rModelPart),
+        mThrowErrors(false),
+        mrOptions(options)
     {
     }
 
@@ -117,6 +128,17 @@ public:
     virtual void Execute()
     {
         KRATOS_TRY;
+        
+        if(mrOptions.Is(COMPUTE_NODAL_NORMALS))
+        {
+            if(mrModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL) == false) 
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data","");
+            for(ModelPart::NodesContainerType::iterator itNode = mrModelPart.NodesBegin(); itNode != mrModelPart.NodesEnd(); itNode++)
+            {
+                noalias(itNode->FastGetSolutionStepValue(NORMAL)) = ZeroVector(3);
+            }
+            
+        }
 
         //********************************************************
         //begin by orienting all of the elements in the volume
@@ -181,7 +203,9 @@ public:
             std::sort(ids.begin(), ids.end());
 
             //insert a pointer to the condition identified by the hash value ids
-            faces_map.insert( std::make_pair<vector<int>, Condition::Pointer >(ids, *itCond.base()) );
+            //faces_map.insert( std::make_pair<vector<int>, Condition::Pointer >(ids, *itCond.base()) );
+            faces_map.insert( typename hashmap::value_type(ids, *itCond.base()) );
+            //faces_map[ids] = *itCond.base();
         }
 
         //now loop for all the elements and for each face of the element check if it is in the "faces_map"
@@ -225,7 +249,10 @@ public:
                         //mark the condition as visited. This will be useful for a check at the endif
                         (it_face->second)->Set(VISITED,true);
 
-                        //TODO: check for ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+//                         if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS))
+//                         {
+//                             (it_face->second)->SetValue(NEIGHBOUR_ELEMENT, Element::WeakPointer( *itElem.base() );
+//                         }
 
                         //compute the normal of the face
                         array_1d<double,3> FaceNormal(3,0.0);
@@ -235,6 +262,8 @@ public:
                             FaceNormal3D(FaceNormal,rFaceGeom);
                         else if ( rFaceGeom.GetGeometryType()  == GeometryData::Kratos_Line2D2 )
                             FaceNormal2D(FaceNormal,rFaceGeom);
+                        
+                        
 
                         //do a dotproduct with the vector that goes from
                         //"outer_node_index" to any of the nodes in aux;
@@ -248,11 +277,22 @@ public:
                         if(dotprod > 0)
                         {
                             rFaceGeom(0).swap(rFaceGeom(1));
+                            FaceNormal = -FaceNormal;
+      
                             CondSwitchCount++;
                         }
+                        
+                        if(mrOptions.Is(COMPUTE_NODAL_NORMALS))
+                        {
+                            double factor = 1.0/static_cast<double>(rFaceGeom.size());
+                            for(unsigned int i=0; i<rFaceGeom.size(); i++)
+                                rFaceGeom[i].FastGetSolutionStepValue(NORMAL) += factor*FaceNormal;
+                        }
+                        if(mrOptions.Is(COMPUTE_CONDITION_NORMALS))
+                        {
+                            (it_face->second)->SetValue(NORMAL, FaceNormal );
+                        }
 
-                        //TODO: check COMPUTE_NODAL_NORMALS
-                        //TODO: check COMPUTE_CONDITION_NORMALS
                     }
 
                 }
@@ -357,7 +397,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-
+    Flags mrOptions;
     const bool mThrowErrors;
 
     ///@}
@@ -427,6 +467,9 @@ private:
 
 ///@name Type Definitions
 ///@{
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS, 0);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,COMPUTE_NODAL_NORMALS, 1);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,COMPUTE_CONDITION_NORMALS, 2);
 
 
 ///@}
