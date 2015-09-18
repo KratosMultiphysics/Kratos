@@ -33,9 +33,9 @@ def Run():
     Text=""
     f=open("BenchTemp.txt", "w")
     
-    #Discontinuum Tests
-    D_DEM_Benchmarks_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-        
+    #Discontinuum Tests. From 1 to 9
+    D_DEM_Benchmarks_list = list(range(1,10))
+    
     #Continuum Tests
     C_DEM_Benchmarks_list = []
     
