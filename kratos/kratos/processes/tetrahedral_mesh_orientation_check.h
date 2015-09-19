@@ -204,7 +204,7 @@ public:
 
             //insert a pointer to the condition identified by the hash value ids
             //faces_map.insert( std::make_pair<vector<int>, Condition::Pointer >(ids, *itCond.base()) );
-            faces_map.insert( typename hashmap::value_type(ids, *itCond.base()) );
+            faces_map.insert( hashmap::value_type(ids, *itCond.base()) );
             //faces_map[ids] = *itCond.base();
         }
 
