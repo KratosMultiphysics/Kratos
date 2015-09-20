@@ -396,9 +396,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    Flags mrOptions;
+    ModelPart& mrModelPart;    
     const bool mThrowErrors;
+    Flags mrOptions;
 
     ///@}
     ///@name Private Operations
