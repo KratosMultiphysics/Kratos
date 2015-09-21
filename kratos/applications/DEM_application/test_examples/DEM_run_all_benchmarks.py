@@ -21,7 +21,14 @@ Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two ident
                   "Running DEM Benchmark 6... Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n",
                   "Running DEM Benchmark 7... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 8... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
-                  "Running DEM Benchmark 9... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n"]
+                  "Running DEM Benchmark 9... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
+                  "","","","","","","","","","",
+                  "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
+                  "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
+                  "Running DEM Benchmark 22... Tensile\n",\
+                  "Running DEM Benchmark 23... Indented tensile\n",\
+                  "Running DEM Benchmark 24... Shear\n",\
+                  "Running DEM Benchmark 25... Shear + radius expansion\n"]
 
 def Run():
     
@@ -43,7 +50,7 @@ def Run():
     
     for benchmark in Total_DEM_Benchmarks_list:
           
-        #print(Benchmark_text[benchmark - 1])
+        print(Benchmark_text[benchmark - 1])
                 
         try:
             if platform.system()=="Windows":
