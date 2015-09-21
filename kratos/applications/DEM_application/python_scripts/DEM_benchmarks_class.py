@@ -1389,6 +1389,7 @@ class Benchmark20:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 20 SUCCESSFUL\n")
+            shutil.rmtree('benchmark20_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 20 FAILED\n")
         error_file.close()
@@ -1507,6 +1508,7 @@ class Benchmark21:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 21 SUCCESSFUL\n")
+            shutil.rmtree('benchmark21_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 21 FAILED\n")
         error_file.close()
@@ -1624,6 +1626,7 @@ class Benchmark22:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 22 SUCCESSFUL\n")
+            shutil.rmtree('benchmark22_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 22 FAILED\n")
         error_file.close()
@@ -1741,6 +1744,7 @@ class Benchmark23:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 23 SUCCESSFUL\n")
+            shutil.rmtree('benchmark23_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 23 FAILED\n")
         error_file.close()
@@ -1904,6 +1908,7 @@ class Benchmark24:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 24 SUCCESSFUL\n")
+            shutil.rmtree('benchmark24_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 24 FAILED\n")
         error_file.close()
@@ -2074,6 +2079,7 @@ class Benchmark25:
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
             error_file.write(" OK!........ Test 25 SUCCESSFUL\n")
+            shutil.rmtree('benchmark25_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 25 FAILED\n")
         error_file.close()
