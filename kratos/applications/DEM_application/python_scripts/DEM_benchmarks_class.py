@@ -76,28 +76,28 @@ def initialize_time_parameters(benchmark_number):
 
         final_time                      = 0.01
         dt                              = 1e-5
-        output_time_step                = 1e-4   # utilitzo com a output freq del grafic de punts
+        output_time_step                = 1e-5   # utilitzo com a output freq del grafic de punts
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==21:            # Normal compression with indentation
 
         final_time                      = 0.01
         dt                              = 1e-5
-        output_time_step                = 1e-4
+        output_time_step                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==22:            # Tensile
 
         final_time                      = 0.05
         dt                              = 1e-5
-        output_time_step                = 1e-4
+        output_time_step                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==23:            # Tensile with indentation
 
         final_time                      = 0.05
         dt                              = 1e-5
-        output_time_step                = 1e-4
+        output_time_step                = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==24:            # Shear
@@ -1332,24 +1332,19 @@ class Benchmark9:
 class Benchmark20:
 
     def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
-        '''self.balls_graph_counter = 0
-        self.graph_frequency        =  4 #int(output_time_step/dt)
-        self.particle_graph_forces = {}
-        '''
+        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
-    def get_final_data(self, modelpart):        #FINALIZATION STEP
-        pass
-        self.restitution_numbers_vector_list_outfile.close()
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        self.simulation_graph.close()
 
-    def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
+    def ApplyNodalRotation(self, time, modelpart):       #MAIN LOOP STEP
         pass
 
     def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
@@ -1358,7 +1353,7 @@ class Benchmark20:
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
@@ -1370,23 +1365,13 @@ class Benchmark20:
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
 
-            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
-            self.balls_graph_counter += 1
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+        self.balls_graph_counter += 1
 
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
 
         '''
-        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
@@ -1398,6 +1383,8 @@ class Benchmark20:
 
         error_filename = 'errors.txt'
         error_file = open(error_filename, 'a')
+        error_file.write("\n\n")
+        error_file.write("== BASIC CONTINUUM TESTS ==\n\n")
         error_file.write("DEM Benchmark 20:")
 
         if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
@@ -1413,7 +1400,7 @@ class Benchmark20:
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark20_graph1.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:  #with open('paper_data/reference_graph_benchmark20.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -1465,22 +1452,17 @@ class Benchmark20:
 class Benchmark21:
 
     def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
-        '''self.balls_graph_counter = 0
-        self.graph_frequency        =  4 #int(output_time_step/dt)
-        self.particle_graph_forces = {}
-        '''
+        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark21_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
     def get_final_data(self, modelpart):        #FINALIZATION STEP
-        pass
-        self.restitution_numbers_vector_list_outfile.close()
+        self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
         pass
@@ -1491,7 +1473,7 @@ class Benchmark21:
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
@@ -1503,23 +1485,13 @@ class Benchmark21:
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
 
-            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
-            self.balls_graph_counter += 1
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+        self.balls_graph_counter += 1
 
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
 
         '''
-        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
@@ -1546,7 +1518,7 @@ class Benchmark21:
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark21_graph1.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -1597,22 +1569,17 @@ class Benchmark21:
 class Benchmark22:
 
     def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
-        '''self.balls_graph_counter = 0
-        self.graph_frequency        =  4 #int(output_time_step/dt)
-        self.particle_graph_forces = {}
-        '''
+        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark22_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
     def get_final_data(self, modelpart):        #FINALIZATION STEP
-        pass
-        self.restitution_numbers_vector_list_outfile.close()
+        self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
         pass
@@ -1623,7 +1590,7 @@ class Benchmark22:
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
@@ -1635,23 +1602,13 @@ class Benchmark22:
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
 
-            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
-            self.balls_graph_counter += 1
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+        self.balls_graph_counter += 1
 
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
 
         '''
-        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
@@ -1678,7 +1635,7 @@ class Benchmark22:
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark22_graph1.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -1729,22 +1686,17 @@ class Benchmark22:
 class Benchmark23:
 
     def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
-        '''self.balls_graph_counter = 0
-        self.graph_frequency        =  4 #int(output_time_step/dt)
-        self.particle_graph_forces = {}
-        '''
+        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark23_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
     def get_final_data(self, modelpart):        #FINALIZATION STEP
-        pass
-        self.restitution_numbers_vector_list_outfile.close()
+        self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
         pass
@@ -1755,7 +1707,7 @@ class Benchmark23:
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
@@ -1767,23 +1719,13 @@ class Benchmark23:
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
 
-            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
-            self.balls_graph_counter += 1
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+        self.balls_graph_counter += 1
 
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
 
         '''
-        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
@@ -1810,7 +1752,7 @@ class Benchmark23:
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark23_graph1.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -1861,22 +1803,17 @@ class Benchmark23:
 class Benchmark24:
 
     def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
-        '''self.balls_graph_counter = 0
-        self.graph_frequency        =  4 #int(output_time_step/dt)
-        self.particle_graph_forces = {}
-        '''
+        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark24_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
     def get_final_data(self, modelpart):        #FINALIZATION STEP
-        pass
-        self.restitution_numbers_vector_list_outfile.close()
+        self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, modelpart):
 
@@ -1933,7 +1870,7 @@ class Benchmark24:
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
@@ -1945,23 +1882,13 @@ class Benchmark24:
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
 
-            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
-            self.balls_graph_counter += 1
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+        self.balls_graph_counter += 1
 
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
 
         '''
-        self.restitution_numbers_vector_list_outfile_name = "benchmark24_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
@@ -1988,7 +1915,7 @@ class Benchmark24:
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark24_graph1.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -2039,22 +1966,17 @@ class Benchmark24:
 class Benchmark25:
 
     def __init__(self):
-        self.restitution_numbers_list = []
-        self.initial_normal_vel = 0
         self.restitution_numbers_vector_list_outfile = None
-        '''self.balls_graph_counter = 0
-        self.graph_frequency        =  4 #int(output_time_step/dt)
-        self.particle_graph_forces = {}
-        '''
+        #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
 
-        self.restitution_numbers_vector_list_outfile_name = "benchmark25_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
 
     def get_final_data(self, modelpart):        #FINALIZATION STEP
-        pass
-        self.restitution_numbers_vector_list_outfile.close()
+        self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, modelpart):
 
@@ -2118,7 +2040,7 @@ class Benchmark25:
         if self.graph_frequency < 1:
            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
-        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
             self.balls_graph_counter = 0
             self.total_force_x = 0.0
             self.total_force_y = 0.0
@@ -2130,23 +2052,13 @@ class Benchmark25:
                    self.total_force_x += force_node_x
                    self.total_force_y += force_node_y
 
-            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
-            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
-            self.balls_graph_counter += 1
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+        self.balls_graph_counter += 1
 
 
     def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
 
         '''
-        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
-        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
-        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
-
-        for i in range(0, number_of_points_in_the_graphic):
-            first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
-        self.restitution_numbers_vector_list_outfile.close()
-
         gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
@@ -2173,7 +2085,7 @@ class Benchmark25:
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/benchmark25_graph1.dat') as inf:
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
