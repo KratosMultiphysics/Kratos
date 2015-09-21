@@ -25,10 +25,10 @@ Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two ident
                   "","","","","","","","","","",
                   "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
                   "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
-                  "Running DEM Benchmark 22... Tensile\n",\
-                  "Running DEM Benchmark 23... Indented tensile\n",\
-                  "Running DEM Benchmark 24... Shear\n",\
-                  "Running DEM Benchmark 25... Shear + radius expansion\n"]
+                  "Running DEM Benchmark 22... Tensile test of two identical spheres\n",\
+                  "Running DEM Benchmark 23... Tensile test of two identical indented spheres\n",\
+                  "Running DEM Benchmark 24... Shear test of two identical spheres by applying rotation\n",\
+                  "Running DEM Benchmark 25... Shear test of two identical spheres by applying rotation and radius expansion\n"]
 
 def Run():
     
@@ -83,59 +83,6 @@ def Run():
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
-
-    '''
-    print("\nStarting DEM Benchmarking..............\n")
-    g2 = open("errors2.txt", "w")
-    g2.write("\n========== DEM BENCHMARKING RESULTS ==========\n\n")
-    g2.write("== BASIC CONTINUUM TESTS ==\n\n")
-    g2.close()
-    Text2=""
-    f2=open("BenchTemp2.txt", "w")
-
-
-
-
-    Benchmark_text2 = ["Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
-                      "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
-                      "Running DEM Benchmark 22... Tensile\n",\
-                      "Running DEM Benchmark 23... Indented tensile\n",\
-                      "Running DEM Benchmark 24... Shear\n",\
-                      "Running DEM Benchmark 25... Shear + radius expansion\n"]
-
-    for benchmark in range(20, 25):
-
-        print(Benchmark_text2[benchmark - 20])
-
-        try:
-            if platform.system()=="Windows":
-                subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp2.txt"], stdout=f, stderr=f)
-
-            else:
-                if sys.version_info >= (3, 0):
-                    subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp2.txt"], stdout=f, stderr=f)
-
-                else:
-                    subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp2.txt"], stdout=f, stderr=f)
-        except:
-            print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
-            g2 = open("errors2.txt", "a")
-            g2.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
-            g2.close()
-
-
-    print('\n')
-    f2.close()
-    os.remove("BenchTemp2.txt")
-
-    g2 = open("errors2.txt")
-    file_contents2 = g2.read()
-    g2.close()
-    os.remove("errors2.txt")
-
-    Text2 += file_contents2.rstrip("\n")
-    Text2 += "\n\n\n"
-    '''
     return Text
 
 
