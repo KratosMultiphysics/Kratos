@@ -1864,45 +1864,87 @@ proc ::wkcf::GetnDimnNode {GiDElemType nDim} {
 
 proc ::wkcf::GetSurfaceTypeList {surfacelist} {
     
-    # set vollist [GiD_Geometry list volume 1:end]
-    # if {[llength $vollist]} {
-    # 	# Get the element type
-    # 	foreach volid $vollist {
-    # 	    set cvprop [GiD_Info list_entities volumes $volid]
-    # 	    # wa "volid:$volid cvprop:$cvprop"
-    # 	    regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
-    # 	    # wa "voltype:$voltype"
-    # 	}
+	###################### Old Implementation ###########################
+    # # set vollist [GiD_Geometry list volume 1:end]
+    # # if {[llength $vollist]} {
+    # # 	# Get the element type
+    # # 	foreach volid $vollist {
+    # # 	    set cvprop [GiD_Info list_entities volumes $volid]
+    # # 	    # wa "volid:$volid cvprop:$cvprop"
+    # # 	    regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
+    # # 	    # wa "voltype:$voltype"
+    # # 	}
+    # # }
+    # set tetrasurf [list]
+    # set hexasurf [list]
+    # foreach surfid $surfacelist {
+	# # Check for higher entity
+	# set cprop [GiD_Info list_entities -More surfaces $surfid]
+	# # wa "surfid:$surfid cprop:$cprop"
+	# set isve 0
+	# regexp -nocase {higherentity: ([0-9]+)} $cprop none ivhe
+	# # wa "ivhe:$ivhe"
+	# if {$ivhe} {
+	    # set he [regexp -nocase {Higher entities volumes: (.)*} $cprop vol]
+	    # # wa "he:$he vol:$vol vlist:[lrange $vol 3 end-2]"
+	    # if {$he && $vol !=""} {
+		# set voltype ""
+		# set vlist [lindex [lrange $vol 3 end-2] 0]
+		# # wa "vlist:$vlist"
+		# set cvprop [GiD_Info list_entities volumes $vlist]
+		# # wa "cvprop:$cvprop"
+		# regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
+		# # wa "voltype:$voltype"
+		# if {($voltype == 4) || ($voltype == 0) || ($voltype=="")} {
+		    # lappend tetrasurf $surfid
+		# } elseif {$voltype == 5} {
+		    # lappend hexasurf $surfid
+		# }
+	    # }
+	# }
     # }
-    set tetrasurf [list]
-    set hexasurf [list]
-    foreach surfid $surfacelist {
-	# Check for higher entity
-	set cprop [GiD_Info list_entities -More surfaces $surfid]
-	# wa "surfid:$surfid cprop:$cprop"
-	set isve 0
-	regexp -nocase {higherentity: ([0-9]+)} $cprop none ivhe
-	# wa "ivhe:$ivhe"
-	if {$ivhe} {
-	    set he [regexp -nocase {Higher entities volumes: (.)*} $cprop vol]
-	    # wa "he:$he vol:$vol vlist:[lrange $vol 3 end-2]"
-	    if {$he && $vol !=""} {
-		set voltype ""
-		set vlist [lindex [lrange $vol 3 end-2] 0]
-		# wa "vlist:$vlist"
-		set cvprop [GiD_Info list_entities volumes $vlist]
-		# wa "cvprop:$cvprop"
-		regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
-		# wa "voltype:$voltype"
-		if {($voltype == 4) || ($voltype == 0) || ($voltype=="")} {
-		    lappend tetrasurf $surfid
-		} elseif {$voltype == 5} {
-		    lappend hexasurf $surfid
-		}
-	    }
-	}
+    # return [list $tetrasurf $hexasurf]
+	####################################################################
+	
+	set surfaces_4 [list] ;#4==tetrahedra
+
+    set surfaces_5 [list] ;#5==hexahedra
+
+    set surfacelist [lsort -integer $surfacelist] ;#ensure that is sorted for a faster lsearch
+
+    foreach volid [GiD_Geometry list volume 1:end] {
+
+        set cvprop [GiD_Info list_entities volumes $volid]
+
+        set voltype ""
+
+        regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
+
+        if { $voltype=="" || $voltype == 4 || $voltype == 0 } {
+
+            set voltype 4
+
+        }
+
+        if { $voltype == 4 ||  $voltype == 5 } {
+
+            foreach item [lrange [GiD_Geometry get volume $volid] 2 end] {
+
+                set surfid [lindex $item 0]
+
+                if { [lsearch -sorted -integer $surfacelist $surfid] != -1 } {
+
+                    lappend surfaces_$voltype $surfid
+
+                }
+
+            }
+
+        }
+
     }
-    return [list $tetrasurf $hexasurf]
+
+    return [list $surfaces_4 $surfaces_5]
 }
 
 proc ::wkcf::FindBoundaries {entity} {
