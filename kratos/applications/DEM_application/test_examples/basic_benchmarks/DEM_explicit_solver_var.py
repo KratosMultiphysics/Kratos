@@ -83,9 +83,9 @@ ElementType                      = "SphericPartDEMElement3D"
 
 # PostProcess Results
 
-GraphExportFreq                  = 1e-3
+GraphExportFreq                  = 1e-5
 VelTrapGraphExportFreq           = 1e-3
-OutputTimeStep                   = 0.0000005
+OutputTimeStep                   = 1e-3
 PostDisplacement                 = "1"
 PostVelocity                     = "1"
 PostElasticForces                = "1"
