@@ -137,7 +137,7 @@ DEPENDENCIES: (True,RESTORE,Plot_Frequency,#CURRENT#)
 QUESTION: Plot_Frequency
 VALUE: 10
 QUESTION: Print_List_Files#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES: (False,HIDE,List_Files,#CURRENT#)
 DEPENDENCIES: (True,RESTORE,List_Files,#CURRENT#)
 QUESTION: List_Files:(File_Intervals)
