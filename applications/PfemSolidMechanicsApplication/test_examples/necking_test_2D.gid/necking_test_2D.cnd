@@ -471,15 +471,43 @@ QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-BOOK:Mixed U-P Elements
-NUMBER: 23 CONDITION: surface_UpdatedLagrangianUPElement2D3N
+NUMBER: 23 CONDITION: surface_UpdatedLagrangianUwPStabElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-NUMBER: 24 CONDITION: surface_AxisymUpdatedLagrangianUPElement2D3N
+NUMBER: 24 CONDITION: surface_AxisymUpdatedLagrangianUwPStabElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+BOOK:Mixed U-P Elements
+NUMBER: 25 CONDITION: surface_UpdatedLagrangianUPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+NUMBER: 26 CONDITION: surface_AxisymUpdatedLagrangianUPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+NUMBER: 27 CONDITION: surface_UpdatedLagrangianUPStabElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+NUMBER: 28 CONDITION: surface_AxisymUpdatedLagrangianUPStabElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 QUESTION: Automatic
@@ -487,7 +515,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 BOOK:Conditions
-NUMBER: 25 CONDITION: point_PointLoad2DCondition
+NUMBER: 29 CONDITION: point_PointLoad2DCondition
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
@@ -497,7 +525,7 @@ QUESTION: ID#FUNC#(NumEntity)
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-NUMBER: 26 CONDITION: point_PointLoadAxisym2DCondition
+NUMBER: 30 CONDITION: point_PointLoadAxisym2DCondition
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
@@ -507,14 +535,14 @@ QUESTION: ID#FUNC#(NumEntity)
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-NUMBER: 27 CONDITION: line_LineLoadCondition2D2N
+NUMBER: 31 CONDITION: line_LineLoadCondition2D2N
 CONDTYPE: over lines
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-NUMBER: 28 CONDITION: line_LineLoadAxisymCondition2D2N
+NUMBER: 32 CONDITION: line_LineLoadAxisymCondition2D2N
 CONDTYPE: over lines
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -522,7 +550,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 BOOK:Model Domains
-NUMBER: 29 CONDITION: group_DeformableBodies
+NUMBER: 33 CONDITION: group_DeformableBodies
 CONDTYPE: over group
 GROUPALLOW: surfaces volumes elements
 QUESTION: Automatic
@@ -538,7 +566,7 @@ QUESTION: Remesh#CB#(False,True)
 VALUE: False
 DEPENDENCIES: (True,RESTORE,MeshingElement,#CURRENT#,RESTORE,Constrained,#CURRENT#,RESTORE,MeshSmoothing,#CURRENT#,RESTORE,JacobiSmoothing,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#,RESTORE,Refine,#CURRENT#)
 DEPENDENCIES: (False,HIDE,MeshingElement,#CURRENT#,HIDE,Constrained,#CURRENT#,HIDE,MeshSmoothing,#CURRENT#,HIDE,JacobiSmoothing,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#,HIDE,Refine,False)
-QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N)
+QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUPStabElement2D3N,AxisymUpdatedLagrangianUPStabElement2D3N)
 VALUE: UpdatedLagrangianUPElement2D3N
 QUESTION: Constrained#CB#(False,True)
 VALUE: True
@@ -550,8 +578,8 @@ QUESTION: Meshing_Frequency
 VALUE: 0.01
 QUESTION: Refine#CB#(False,True)
 VALUE: False
-DEPENDENCIES: (True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Dissipation_Variable,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Error_Variable,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Dissipation_Variable,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Error_Variable,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False)
+DEPENDENCIES: (True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Dissipation_Variable,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Error_Variable,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#,RESTORE,LSInterpolation,#CURRENT#)
+DEPENDENCIES: (False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Dissipation_Variable,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Error_Variable,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False,HIDE,LSInterpolation,0)
 QUESTION: Critical_Mesh_Size
 VALUE: 0.025
 QUESTION: Dissipation_Variable#CB#(PLASTIC_DISSIPATION,PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS)
@@ -580,8 +608,10 @@ VALUE: 0 0 0
 TKWIDGET: GidUtils::TkwidgetGetVector3D
 QUESTION: Radius_box
 VALUE: 0
+QUESTION: LSInterpolation
+VALUE: 0
 END CONDITION
-NUMBER: 30 CONDITION: group_RigidWalls
+NUMBER: 34 CONDITION: group_RigidWalls
 CONDTYPE: over group
 GROUPALLOW: lines surfaces elements
 QUESTION: Automatic

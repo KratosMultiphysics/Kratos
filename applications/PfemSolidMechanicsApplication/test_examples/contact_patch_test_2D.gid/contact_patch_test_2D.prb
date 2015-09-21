@@ -17,8 +17,6 @@ QUESTION: Number_of_steps
 VALUE: 100
 QUESTION: LineSearch#CB#(True,False)
 VALUE: True
-QUESTION: WaterPressureDofs#CB#(True,False)
-VALUE: False
 QUESTION: Implex#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
@@ -34,9 +32,15 @@ QUESTION: Axisymmetric#CB#(True,False)
 VALUE: False
 QUESTION: Set_Element_Thecnology#CB#(1,0)
 VALUE: 0
-DEPENDENCIES: (0,HIDE,DOFS,#CURRENT#)(1,RESTORE,DOFS,#CURRENT#)
-QUESTION: DOFS#CB#(DISPLACEMENTS,U-P,ROTATIONS)
+DEPENDENCIES: (0,HIDE,DOFS,#CURRENT#,HIDE,Stabilization_Factor,#CURRENT#)(1,RESTORE,DOFS,#CURRENT#,RESTORE,Stabilization_Factor,#CURRENT#)
+QUESTION: DOFS#CB#(DISPLACEMENTS,U-P,ROTATIONS,U-wP)
 VALUE: DISPLACEMENTS
+DEPENDENCIES: (DISPLACEMENTS,HIDE,Stabilization_Factor,#CURRENT#)
+DEPENDENCIES: (ROTATIONS,HIDE,Stabilization_Factor,#CURRENT#)
+DEPENDENCIES: (U-P,RESTORE,Stabilization_Factor,#CURRENT#)
+DEPENDENCIES: (U-wP,RESTORE,Stabilization_Factor,#CURRENT#)
+QUESTION: Stabilization_Factor
+VALUE: 1
 QUESTION: Set_Contact_Technology#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (0,HIDE,Contact_Method,#CURRENT#)(1,RESTORE,Contact_Method,#CURRENT#)
@@ -50,6 +54,16 @@ DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_fi
 QUESTION: Python_file
 VALUE: script.py
 TKWIDGET: TkwidgetFilePath
+QUESTION: Set_initial_state#CB#(False,True)
+VALUE: False
+DEPENDENCIES: (False,HIDE,Constant_weight,#CURRENT#,HIDE,SY,#CURRENT#,HIDE,SX,#CURRENT#)(True,RESTORE,Constant_weight,#CURRENT#)
+QUESTION: Constant_weight#CB#(True,False)
+VALUE: True
+DEPENDENCIES: (True,RESTORE,SY,#CURRENT#,RESTORE,SX,#CURRENT#)(False,HIDE,SY,#CURRENT#,HIDE,SX,#CURRENT#)
+QUESTION: SY
+VALUE: -57.7
+QUESTION: SX
+VALUE: -28.9
 TITLE: Solver
 QUESTION: Linear_Solver#CB#(Skyline_LU_factorization,Conjugate_gradient,Deflated_Conjugate_gradient,Super_LU,SuperLUIterativeSolver,PastixDirect,PastixIterative,AMGCL,GMRES,BiConjugate_gradient_stabilized)
 VALUE: Skyline_LU_factorization
@@ -140,6 +154,8 @@ DEPENDENCIES: (False,HIDE,Load_Step,#CURRENT#)
 DEPENDENCIES: (True,RESTORE,Load_Step,#CURRENT#)
 QUESTION: Load_Step:
 VALUE: 0
+QUESTION: CPT_PostProcess#CB#(False,True)
+VALUE: False
 END PROBLEM DATA
 INTERVAL DATA
 END INTERVAL DATA
