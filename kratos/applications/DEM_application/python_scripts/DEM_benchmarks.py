@@ -16,7 +16,15 @@ from glob import glob
 sys.path.insert(0,'')
 # DEM Application
 
-import DEM_explicit_solver_var as DEM_parameters
+benchmark_number = int(sys.argv[1])
+
+list = [1,2,3,4,5,6,7,8,9]
+
+if benchmark_number in list:
+    import DEM_explicit_solver_var as DEM_parameters
+else:
+   import DEM_explicit_solver_var2 as DEM_parameters
+
 
 # Strategy object
 if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
@@ -47,7 +55,7 @@ else:
 ########################################################## CHUNG, OOI BENCHMARKS
 ### BENCHMARK NUMBER
 
-benchmark_number = int(sys.argv[1])
+#benchmark_number = int(sys.argv[1])
 
 if benchmark_number==1 or benchmark_number==2:
     nodeplotter = 1
@@ -305,6 +313,10 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
         cluster_model_part.ProcessInfo[TIME_STEPS]      = step
 
+
+        #### GENERAL TEST LOAD&UNLOAD  ######################
+        benchmark.ApplyNodalRotation(time, spheres_model_part)
+
         #walls movement:
         mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         #########mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
@@ -336,7 +348,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         #### GENERAL FORCE GRAPHS ############################
         #DEMFEMProcedures.MeasureForces()
         DEMFEMProcedures.PrintGraph(time)
-        DEMFEMProcedures.PrintBallsGraph(time)  
+        benchmark.generate_graph_points(spheres_model_part, time, output_time_step, dt)
 
         #### GiD IO ##########################################
         time_to_print = time - time_old_print

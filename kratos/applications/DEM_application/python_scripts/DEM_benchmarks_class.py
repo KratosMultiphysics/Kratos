@@ -65,12 +65,55 @@ def initialize_time_parameters(benchmark_number):
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
                 
-    else: #benchmark_number==9
+    elif benchmark_number==9:
                 
         final_time                      = 0.001 #0.0005
         dt                              = 5e-6 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 6
+
+    elif benchmark_number==20:            # Normal compression
+
+        final_time                      = 0.01
+        dt                              = 1e-5
+        output_time_step                = 1e-4   # utilitzo com a output freq del grafic de punts
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==21:            # Normal compression with indentation
+
+        final_time                      = 0.01
+        dt                              = 1e-5
+        output_time_step                = 1e-4
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==22:            # Tensile
+
+        final_time                      = 0.05
+        dt                              = 1e-5
+        output_time_step                = 1e-4
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==23:            # Tensile with indentation
+
+        final_time                      = 0.05
+        dt                              = 1e-5
+        output_time_step                = 1e-4
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==24:            # Shear
+
+        final_time                      = 8e-5
+        dt                              = 1e-7
+        output_time_step                = 1e-7
+        number_of_points_in_the_graphic = 1
+
+    else: #benchmark_number==25:          # Shear + radius expansion
+
+        final_time                      = 8e-5
+        dt                              = 1e-7
+        output_time_step                = 1e-7
+        number_of_points_in_the_graphic = 1
+
                     
     return final_time, dt, output_time_step, number_of_points_in_the_graphic
 
@@ -81,16 +124,22 @@ class Benchmark1:
         self.initial_normal_vel = 10.0
         
     def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):
-                   
+
         for node in modelpart.Nodes:
             if node.Id == 1:
                 node.SetSolutionStepValue(VELOCITY_X, -self.initial_normal_vel)
             else:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
 
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+
     def get_final_data(self, modelpart):
         pass
     
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
+
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         
         normal_contact_force_outfile_name = 'variables_for_node_1.txt'
@@ -149,9 +198,16 @@ class Benchmark2:
         for node in modelpart.Nodes:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+
     def get_final_data(self, modelpart):
         pass
-    
+
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
+
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         
         normal_contact_force_outfile_name = 'variables_for_node_1.txt'
@@ -219,6 +275,12 @@ class Benchmark3:
         for node in modelpart.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(VELOCITY_Z)
             modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
 
     def get_final_data(self, modelpart):
      
@@ -331,7 +393,13 @@ class Benchmark4:
         for node in modelpart.Nodes:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, initial_normal_vel)
+           
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
             
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
+
     def get_final_data(self, modelpart):
      
         for node in modelpart.Nodes:
@@ -521,6 +589,12 @@ class Benchmark5:
             node.SetSolutionStepValue(VELOCITY_Y, self.initial_tangential_vel)
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+            
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
+
     def get_final_data(self, modelpart):
      
         mu = 0.3
@@ -674,6 +748,9 @@ class Benchmark6:
             node.SetSolutionStepValue(VELOCITY_Z, self.initial_normal_vel)
             node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)        
             
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+
     def get_final_data(self, modelpart):
      
         mu = 0.4
@@ -692,6 +769,9 @@ class Benchmark6:
         self.beta_list.append(beta)
         self.Vst_div_Vcn_list.append(Vst_div_Vcn)
         self.Vst_prima_div_Vcn_prima_list.append(Vst_prima_div_Vcn_prima)
+
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
     
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         
@@ -831,6 +911,12 @@ class Benchmark7:
             else:
                 node.SetSolutionStepValue(VELOCITY_X, -initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, -self.initial_angular_vel)
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
 
     def get_final_data(self, modelpart):
         
@@ -980,6 +1066,9 @@ class Benchmark8:
                 node.SetSolutionStepValue(VELOCITY_X, self.initial_normal_vel)
                 node.SetSolutionStepValue(ANGULAR_VELOCITY_Y, initial_angular_vel)        
                     
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):   
+        pass
+
     def get_final_data(self, modelpart):
      
         mu = 0.4
@@ -999,6 +1088,9 @@ class Benchmark8:
         self.beta_list.append(beta)
         self.Vst_div_Vcn_list.append(Vst_div_Vcn)
         self.Vst_prima_div_Vcn_prima_list.append(Vst_prima_div_Vcn_prima)
+
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
     
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         
@@ -1140,6 +1232,9 @@ class Benchmark9:
                 node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
                 modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):
+        pass
+
     def get_final_data(self, modelpart):
         
         for node in modelpart.Nodes:
@@ -1148,6 +1243,9 @@ class Benchmark9:
                            
         restitution_coefficient = -final_vel / self.initial_normal_vel
         self.restitution_numbers_list.append(restitution_coefficient)
+
+    def ApplyNodalRotation(self, time, modelpart):  
+        pass
     
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         
@@ -1230,6 +1328,900 @@ class Benchmark9:
         return error1, error2, error3                    
 
    
+
+class Benchmark20:
+
+    def __init__(self):
+        self.restitution_numbers_list = []
+        self.initial_normal_vel = 0
+        self.restitution_numbers_vector_list_outfile = None
+        '''self.balls_graph_counter = 0
+        self.graph_frequency        =  4 #int(output_time_step/dt)
+        self.particle_graph_forces = {}
+        '''
+
+    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):        #FINALIZATION STEP
+        pass
+        self.restitution_numbers_vector_list_outfile.close()
+
+    def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 141:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
+            self.balls_graph_counter += 1
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        '''
+        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+
+        for i in range(0, number_of_points_in_the_graphic):
+            first_col = 1/(number_of_points_in_the_graphic-1) * i
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.restitution_numbers_vector_list_outfile.close()
+
+        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 20:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 20 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 20 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/benchmark20_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    '''
+        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+    '''
+
+
+
+class Benchmark21:
+
+    def __init__(self):
+        self.restitution_numbers_list = []
+        self.initial_normal_vel = 0
+        self.restitution_numbers_vector_list_outfile = None
+        '''self.balls_graph_counter = 0
+        self.graph_frequency        =  4 #int(output_time_step/dt)
+        self.particle_graph_forces = {}
+        '''
+
+    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark21_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):        #FINALIZATION STEP
+        pass
+        self.restitution_numbers_vector_list_outfile.close()
+
+    def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 141:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
+            self.balls_graph_counter += 1
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        '''
+        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+
+        for i in range(0, number_of_points_in_the_graphic):
+            first_col = 1/(number_of_points_in_the_graphic-1) * i
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.restitution_numbers_vector_list_outfile.close()
+
+        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 21:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 21 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 21 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/benchmark21_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    '''
+        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+    '''
+
+
+class Benchmark22:
+
+    def __init__(self):
+        self.restitution_numbers_list = []
+        self.initial_normal_vel = 0
+        self.restitution_numbers_vector_list_outfile = None
+        '''self.balls_graph_counter = 0
+        self.graph_frequency        =  4 #int(output_time_step/dt)
+        self.particle_graph_forces = {}
+        '''
+
+    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark22_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):        #FINALIZATION STEP
+        pass
+        self.restitution_numbers_vector_list_outfile.close()
+
+    def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 141:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
+            self.balls_graph_counter += 1
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        '''
+        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+
+        for i in range(0, number_of_points_in_the_graphic):
+            first_col = 1/(number_of_points_in_the_graphic-1) * i
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.restitution_numbers_vector_list_outfile.close()
+
+        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 22:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 22 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 22 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/benchmark22_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    '''
+        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+    '''
+
+
+class Benchmark23:
+
+    def __init__(self):
+        self.restitution_numbers_list = []
+        self.initial_normal_vel = 0
+        self.restitution_numbers_vector_list_outfile = None
+        '''self.balls_graph_counter = 0
+        self.graph_frequency        =  4 #int(output_time_step/dt)
+        self.particle_graph_forces = {}
+        '''
+
+    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark23_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):        #FINALIZATION STEP
+        pass
+        self.restitution_numbers_vector_list_outfile.close()
+
+    def ApplyNodalRotation(self, time, modelpart):     #MAIN LOOP STEP
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 141:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
+            self.balls_graph_counter += 1
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        '''
+        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+
+        for i in range(0, number_of_points_in_the_graphic):
+            first_col = 1/(number_of_points_in_the_graphic-1) * i
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.restitution_numbers_vector_list_outfile.close()
+
+        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 23:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 23 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 23 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/benchmark23_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    '''
+        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+    '''
+
+
+class Benchmark24:
+
+    def __init__(self):
+        self.restitution_numbers_list = []
+        self.initial_normal_vel = 0
+        self.restitution_numbers_vector_list_outfile = None
+        '''self.balls_graph_counter = 0
+        self.graph_frequency        =  4 #int(output_time_step/dt)
+        self.particle_graph_forces = {}
+        '''
+
+    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark24_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):        #FINALIZATION STEP
+        pass
+        self.restitution_numbers_vector_list_outfile.close()
+
+    def ApplyNodalRotation(self, time, modelpart):
+
+            if (time < 3.8e-5 ) :
+
+                #while ( time < self.DEM_parameters.FinalTime):
+                #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+                d0 = 1.694
+                avance = 0.50100
+                distance = (d0 - avance)
+                w = 62.8
+                distance = 2
+
+                vx = -distance * w * sin(w * time)
+                vy = distance * w * cos(w * time)
+
+                for mesh_number in range(1, modelpart.NumberOfMeshes()):
+                    if(modelpart.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = modelpart.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+
+                            node.SetSolutionStepValue(VELOCITY_X, vx)
+                            node.SetSolutionStepValue(VELOCITY_Y, vy)
+                            node.Fix(VELOCITY_X)
+                            node.Fix(VELOCITY_Y)
+
+            else:
+
+                 d0 = 1.694
+                 avance = 0.50100
+                 distance = (d0 - avance)
+                 w = 62.8
+                 distance = 2
+
+                 vx = -distance * w * sin(w * time)
+                 vy = distance * w * cos(w * time)
+
+                 for mesh_number in range(1, modelpart.NumberOfMeshes()):
+                     if(modelpart.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                         self.mesh_nodes = modelpart.GetMesh(mesh_number).Nodes
+
+                         for node in self.mesh_nodes:
+
+                             node.SetSolutionStepValue(VELOCITY_X, vx)
+                             node.SetSolutionStepValue(VELOCITY_Y, vy)
+                             node.Fix(VELOCITY_X)
+                             node.Fix(VELOCITY_Y)
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 141:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
+            self.balls_graph_counter += 1
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        '''
+        self.restitution_numbers_vector_list_outfile_name = "benchmark24_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+
+        for i in range(0, number_of_points_in_the_graphic):
+            first_col = 1/(number_of_points_in_the_graphic-1) * i
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.restitution_numbers_vector_list_outfile.close()
+
+        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 24:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 24 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 24 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/benchmark24_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    '''
+        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+    '''
+
+
+class Benchmark25:
+
+    def __init__(self):
+        self.restitution_numbers_list = []
+        self.initial_normal_vel = 0
+        self.restitution_numbers_vector_list_outfile = None
+        '''self.balls_graph_counter = 0
+        self.graph_frequency        =  4 #int(output_time_step/dt)
+        self.particle_graph_forces = {}
+        '''
+
+    def get_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+
+        self.restitution_numbers_vector_list_outfile_name = "benchmark25_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):        #FINALIZATION STEP
+        pass
+        self.restitution_numbers_vector_list_outfile.close()
+
+    def ApplyNodalRotation(self, time, modelpart):
+
+            if (time < 3.8e-5 ) :
+
+                #while ( time < self.DEM_parameters.FinalTime):
+                #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+                d0 = 1.694
+                avance = 0.50100
+                distance = (d0 - avance)
+                w = 62.8
+                distance = 2
+
+                vx = -distance * w * sin(w * time)
+                vy = distance * w * cos(w * time)
+
+                for mesh_number in range(1, modelpart.NumberOfMeshes()):
+                    if(modelpart.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = modelpart.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+
+                            node.SetSolutionStepValue(VELOCITY_X, vx)
+                            node.SetSolutionStepValue(VELOCITY_Y, vy)
+                            node.Fix(VELOCITY_X)
+                            node.Fix(VELOCITY_Y)
+
+            else:
+                 d0 = 1.694
+                 avance = 0.50100
+                 distance = (d0 - avance)
+                 w = 62.8
+                 distance = 2
+
+                 vx = -distance * w * sin(w * time)
+                 vy = distance * w * cos(w * time)
+                 radius = 1.0001
+
+                 for mesh_number in range(1, modelpart.NumberOfMeshes()):
+                     if(modelpart.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = modelpart.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+                            node.SetSolutionStepValue(RADIUS, radius)
+
+                 for mesh_number in range(1, modelpart.NumberOfMeshes()):
+                     if(modelpart.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                         self.mesh_nodes = modelpart.GetMesh(mesh_number).Nodes
+
+                         for node in self.mesh_nodes:
+
+                             node.SetSolutionStepValue(VELOCITY_X, vx)
+                             node.SetSolutionStepValue(VELOCITY_Y, vy)
+                             node.Fix(VELOCITY_X)
+                             node.Fix(VELOCITY_Y)
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(output_time_step == output_time_step):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            self.total_force_x = 0.0
+            self.total_force_y = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 141:
+                   force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                   force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                   self.total_force_x += force_node_x
+                   self.total_force_y += force_node_y
+
+            self.restitution_numbers_vector_list_outfile.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+"\n")
+            #self.restitution_numbers_vector_list_outfile.write.flush()   comprovar el flush al demprocedures
+            self.balls_graph_counter += 1
+
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        '''
+        self.restitution_numbers_vector_list_outfile_name = "benchmark20_2_particle_force" + '_graph.grf'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
+        #self.restitution_numbers_vector_list_outfile_name = "benchmark20_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+
+        for i in range(0, number_of_points_in_the_graphic):
+            first_col = 1/(number_of_points_in_the_graphic-1) * i
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %11.8f" % (first_col, self.restitution_numbers_list[i]) + '\n')
+        self.restitution_numbers_vector_list_outfile.close()
+
+        gnuplot_script_name = 'benchmark3_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)'''
+
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 25:")
+
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 25 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 25 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/benchmark25_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    '''
+        gnuplot_script_name_1 = 'benchmark20_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark20_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+    '''
+
+
+
 def delete_archives(nodeplotter):
     
     #.......................Removing extra files
