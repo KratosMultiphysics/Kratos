@@ -37,6 +37,7 @@ HyperElastic3DLaw::HyperElastic3DLaw(const HyperElastic3DLaw& rOther)
     : ConstitutiveLaw(rOther)
     ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
+    ,mStrainEnergy(rOther.mStrainEnergy)
 {
 }
 
@@ -137,6 +138,7 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
 {
   mDeterminantF0                = 1;
   mInverseDeformationGradientF0 = identity_matrix<double> (3);
+  mStrainEnergy                 = 0;
 
 }
 

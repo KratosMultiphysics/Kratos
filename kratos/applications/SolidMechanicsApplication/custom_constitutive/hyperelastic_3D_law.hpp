@@ -286,6 +286,8 @@ protected:
 
     double mDeterminantF0;
 
+    double mStrainEnergy;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -504,7 +506,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
 	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
 	rSerializer.save("mDeterminantF0",mDeterminantF0);
-
+	rSerializer.save("mStrainEnergy",mStrainEnergy);
     }
 
     virtual void load(Serializer& rSerializer)
@@ -512,7 +514,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
 	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
 	rSerializer.load("mDeterminantF0",mDeterminantF0);
-
+	rSerializer.load("mStrainEnergy",mStrainEnergy);
     }
 
 
