@@ -21,29 +21,30 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN,              0 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,              1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR, 2 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,       3 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,       3 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,      4 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,       4 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,      5 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                5 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                6 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  6 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  7 );
   
 
     /**
      * Flags related to the Features of the Contitutive Law
      */
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              7 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       8 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              8 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       9 );
 
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,       9 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           10 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,           11 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,           12 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,      10 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           11 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,           12 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,           13 );
 
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                    13 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                  14 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                15 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                    14 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                  15 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                16 );
 
 
     /**
