@@ -339,7 +339,7 @@ public:
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
-        rObject = array_1d<TDataType, TDimension>();
+	//rObject = array_1d<TDataType, TDimension>(); //it generates a warnning --> commented 23/09/2015 <--
         for(SizeType i = 0 ; i < TDimension ; i++)
             load("E", rObject[i]);
 //    read(rObject);
