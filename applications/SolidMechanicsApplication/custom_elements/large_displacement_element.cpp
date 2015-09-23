@@ -2261,6 +2261,7 @@ void LargeDisplacementElement::save( Serializer& rSerializer ) const
     int IntMethod = int(mThisIntegrationMethod);
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.save("FinalizedStep",mFinalizedStep);
 }
 
 void LargeDisplacementElement::load( Serializer& rSerializer )
@@ -2270,6 +2271,7 @@ void LargeDisplacementElement::load( Serializer& rSerializer )
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.load("FinalizedStep",mFinalizedStep);
 }
 
 
