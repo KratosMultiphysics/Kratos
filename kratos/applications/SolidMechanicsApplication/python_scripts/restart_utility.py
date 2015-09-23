@@ -27,8 +27,9 @@ class RestartUtility:
         print(" problem path ", self.problem_path)
 
         # set serializer flag
-        self.serializer_flag = "SERIALIZER_NO_TRACE"
-        # self.serializer_flag = "SERIALIZER_TRACE_ERROR"
+        self.serializer_flag = "SERIALIZER_NO_TRACE"      # binary
+        # self.serializer_flag = "SERIALIZER_TRACE_ERROR" # ascii
+        # self.serializer_flag = "SERIALIZER_TRACE_ALL"   # ascii
 
     #
     def Load(self, restart_step):
