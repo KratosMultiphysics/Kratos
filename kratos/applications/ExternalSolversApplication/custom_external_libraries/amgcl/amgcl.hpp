@@ -231,9 +231,13 @@ class amg {
 #endif
                 ) const
         {
-            backend::clear(x);
-            for(unsigned i = 0; i < prm.pre_cycles; ++i)
-                cycle(levels.begin(), rhs, x);
+            if (prm.pre_cycles) {
+                backend::clear(x);
+                for(unsigned i = 0; i < prm.pre_cycles; ++i)
+                    cycle(levels.begin(), rhs, x);
+            } else {
+                backend::copy(rhs, x);
+            }
         }
 
         /// Returns the system matrix from the finest level.
@@ -399,6 +403,13 @@ class make_solver {
         struct params {
             typename AMG::params amg;
             typename Solver::params solver;
+
+            params() {}
+
+            params(const boost::property_tree::ptree &p)
+                : AMGCL_PARAMS_IMPORT_CHILD(p, amg),
+                  AMGCL_PARAMS_IMPORT_CHILD(p, solver)
+            {}
         };
 
         /// Constructs the AMG hierarchy and creates iterative solver.

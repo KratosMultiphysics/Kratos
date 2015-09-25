@@ -66,7 +66,7 @@ struct spai0 {
 
         const size_t n = rows(A);
 
-        std::vector<value_type> m(n);
+        boost::shared_ptr< std::vector<value_type> > m = boost::make_shared< std::vector<value_type> >(n);
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -79,7 +79,7 @@ struct spai0 {
                 if (a.col() == i) num += v;
             }
 
-            m[i] = num / den;
+            (*m)[i] = num / den;
         }
 
         M = Backend::copy_vector(m, backend_prm);

@@ -122,8 +122,6 @@ struct aggregation {
         >
     transfer_operators(const Matrix &A, params &prm)
     {
-        typedef typename backend::value_type<Matrix>::type V;
-
         const size_t n = rows(A);
 
         TIC("aggregates");
