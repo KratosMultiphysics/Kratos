@@ -36,6 +36,7 @@
 
 #ifndef EXCLUDE_AMGCL
   #include "external_includes/amgcl_solver.h"
+  #include "external_includes/amgcl_ns_solver.h"
 #endif
   
 
@@ -124,6 +125,12 @@ void  AddLinearSolversToPython()
     ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
     .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
     ;
+    
+    typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
+    class_<AMGCL_NS_SolverType, bases<LinearSolverType>, boost::noncopyable >
+    ( "AMGCL_NS_Solver", init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int>())
+    ;
+    
 #endif
     
     class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
