@@ -75,7 +75,7 @@ class PaStiX {
 
         /// The number of processes optimal for the given problem size.
         static int comm_size(int n_global_rows) {
-            const int dofs_per_process = 5000;
+            const int dofs_per_process = 50000;
             return (n_global_rows + dofs_per_process - 1) / dofs_per_process;
         }
 

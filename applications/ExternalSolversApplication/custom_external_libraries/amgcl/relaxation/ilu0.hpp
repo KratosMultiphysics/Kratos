@@ -8,7 +8,7 @@
  */
 
 #include <boost/shared_ptr.hpp>
-#include <amgcl/backend/interface.hpp>
+#include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -118,6 +118,21 @@ struct ilu0 {
         apply(A, rhs, x, tmp, prm);
     }
 
+    template <class Matrix, class VectorX>
+    void solve(const Matrix &A, VectorX &x) const {
+        const size_t n = backend::rows(A);
+
+        for(size_t i = 0; i < n; i++) {
+            for(ptrdiff_t j = A.ptr[i], e = dia[i]; j < e; ++j)
+                x[i] -= luval[j] * x[A.col[j]];
+        }
+
+        for(size_t i = n; i-- > 0;) {
+            for(ptrdiff_t j = dia[i] + 1, e = A.ptr[i + 1]; j < e; ++j)
+                x[i] -= luval[j] * x[A.col[j]];
+            x[i] *= luval[dia[i]];
+        }
+    }
     private:
         std::vector<value_type> luval;
         std::vector<ptrdiff_t>  dia;
@@ -138,16 +153,7 @@ struct ilu0 {
                 tmp[i] = buf;
             }
 
-            for(size_t i = 0; i < n; i++) {
-                for(ptrdiff_t j = A.ptr[i], e = dia[i]; j < e; ++j)
-                    tmp[i] -= luval[j] * tmp[A.col[j]];
-            }
-
-            for(size_t i = n; i-- > 0;) {
-                for(ptrdiff_t j = dia[i] + 1, e = A.ptr[i + 1]; j < e; ++j)
-                    tmp[i] -= luval[j] * tmp[A.col[j]];
-                tmp[i] *= luval[dia[i]];
-            }
+            solve(A, tmp);
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
