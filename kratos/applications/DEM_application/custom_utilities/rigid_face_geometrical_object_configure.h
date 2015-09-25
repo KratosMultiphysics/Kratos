@@ -302,7 +302,7 @@ public:
         
         if(num_vertex_in == 0){ //All the cases are solved cutting the circular areas out of the edges off.
         
-            Area            = M_PI*RC_squared; 
+            Area            = KRATOS_M_PI*RC_squared; 
             for (unsigned int index = 0;index<3;index++){        
                 AddCoM[index]  = Area*CC[index];
             }
