@@ -1,48 +1,23 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2009-01-13 15:39:56 $
-*   Revision:            $Revision: 1.5 $
-*
-* ***********************************************************/
+// Kratos Multi-Physics
+// 
+// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+// 
+// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
+// 		in the documentation and/or other materials provided with the distribution.
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
+// 			This product includes Kratos Multi-Physics technology.
+// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+// 	
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #if !defined(KRATOS_TRILINOS_BLOCK_BUILDER_AND_SOLVER )
@@ -70,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_IntSerialDenseVector.h"
+#include "Epetra_IntVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_RowMatrixOut.h"
@@ -380,7 +356,7 @@ public:
 
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, r_model_part);
-            
+
             if (this->GetEchoLevel()>3)
             {
                 EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", A, "matrixA", "lhs_matrix", true);
@@ -951,102 +927,241 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
-
+        KRATOS_TRY
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-        int NumEntries;    // number of nonzero entries extracted
+        //loop over all dofs to find the fixed ones
+        std::vector<int> global_ids(BaseType::mDofSet.size());
+        std::vector<int> is_dirichlet(BaseType::mDofSet.size());
 
-        std::vector<unsigned int> fixed_ids;
-        fixed_ids.reserve(1000);
-        
+        unsigned int i=0;
         for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); ++dof_it)
         {
-            if (dof_it->IsFixed()) fixed_ids.push_back(dof_it->EquationId());
-            
-            
-            if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
-            {
-                if (dof_it->IsFixed())
+            const int global_id = dof_it->EquationId();
+            global_ids[i] = global_id;
+
+            if( dof_it->IsFixed() ) is_dirichlet[i] = 1;
+            else is_dirichlet[i] = 0;
+
+            i++;
+        }
+
+        //here we construct and fill a vector "fixed local" which cont
+        Epetra_Map localmap( -1, global_ids.size(), global_ids.data(), 0, A.Comm() );
+        Epetra_IntVector fixed_local( Copy, localmap, is_dirichlet.data() );
+
+        Epetra_Import dirichlet_importer(A.ColMap(), fixed_local.Map());
+
+
+
+        //defining a temporary vector to gather all of the values needed
+        Epetra_IntVector fixed( A.ColMap() );
+
+        //importing in the new temp vector the values
+        int ierr = fixed.Import(fixed_local,dirichlet_importer,Insert);
+        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+
+
+        /*        //now fill the local bitarray employed to store the dirichlet rows and cols in local numeration
+                //dirichlet_rows will be numbered according to A.RowMap()
+                //dirichlet_cols will be numbered according to A.ColMap()
+                std::vector< int > mdirichlet_rows( A.NumMyRows());
+                std::vector< int > mdirichlet_cols( fixed.MyLength() );
+
+                KRATOS_WATCH(mdirichlet_rows.size())
+
+                unsigned int counter = 0;
+                for(unsigned int i=0; i<mdirichlet_rows.size(); i++)
                 {
-                    
-                    
-                    int GlobalRow = dof_it->EquationId();  // row to extract
-                    int Length = A.NumGlobalEntries(dof_it->EquationId());  // length of Values and Indices
-
-                    double* Values = new double[Length];     // extracted values for this row
-                    int* Indices = new int[Length];          // extracted global column indices for the corresponding values
-
-                    A.ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
-
-                    // put 0.0 in each row A[ii] and 1.0 on the diagonal
-                    for (int ii=0; ii<Length; ii++)
+                    int lid = localmap.LID( A.RowMap().GID(i) );
+                    if(lid < 0) KRATOS_THROW_ERROR(std::runtime_error," a negative lid was found","");
+                    if( fixed_local[lid] == 0) mdirichlet_rows[i] = false;
+                    else
                     {
-                        if (Indices[ii] == GlobalRow)
-                            Values[ii]=1.0;
-                        else
-                            Values[ii]=0.0;
+                        mdirichlet_rows[i] = true;
+                        counter++;
                     }
 
-                    A.ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
-
-                    // redo better !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    int* gb= new int[1];
-                    gb[0]=GlobalRow;
-                    A.ReplaceGlobalValues(Length, Indices, 1, gb, Values);
-
-                    double* bb=new double[1];
-                    bb[0]=0.0;
-
-                    // put 0.0 in vector b[GlobalRow] if GlobalRow is a fixed dof
-                    b.ReplaceGlobalValues(1,gb,bb);
-
-                    delete [] Values;
-                    delete [] Indices;
-                    delete [] gb;
-                    delete [] bb;
-
                 }
-            }
+                KRATOS_WATCH(counter);
 
-        }
-        
-        
-        //now set the columns to zero
-        for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); ++dof_it)
+                for(unsigned int i=0; i< mdirichlet_cols.size(); i++)
+                {
+                    if(fixed[i] == 0) mdirichlet_cols[i] = false;
+                    else mdirichlet_cols[i] = true;
+                }     */
+
+        for (int i=0; i < A.NumMyRows(); i++)
         {
-            if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
+            int numEntries;
+            double *vals;
+            int *cols;
+            A.ExtractMyRowView(i,numEntries,vals,cols);
+
+            int lid = localmap.LID( A.RowMap().GID(i) );
+            if( fixed_local[lid] == 0) //not a dirichlet row
             {
-                if ( ! dof_it->IsFixed())  //NOT FIXED!!
-                {                   
-                    int GlobalRow = dof_it->EquationId();  // row to extract
-                    int Length = A.NumGlobalEntries(dof_it->EquationId());  // length of Values and Indices
-
-                    double* Values = new double[Length];     // extracted values for this row
-                    int* Indices = new int[Length];          // extracted global column indices for the corresponding values
-
-                    A.ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
-
-                    // put 0.0 in each row A[ii] and 1.0 on the diagonal
-                    for (int ii=0; ii<Length; ii++)
-                    {
-                        
-                        if ( std::find(fixed_ids.begin(), fixed_ids.end(), Indices[ii])  != fixed_ids.end()   )//if the node is in the fixed list
-                            Values[ii]=0.0;
-                    }
-
-                    A.ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
-
-                    delete [] Values;
-                    delete [] Indices;
-
-
+                for (int j=0; j < numEntries; j++)
+                {
+                    if(fixed[ cols[j] ] == true) vals[j] = 0.0;
                 }
             }
+            else //this IS a dirichlet row
+            {
+                //set to zero the rhs
+                b[0][i] = 0.0; //note that the index of i is expected to be coherent with the rows of A
 
+                //set to zero the whole row
+                for (int j=0; j < numEntries; j++)
+                {
+                    vals[j] *= static_cast<double>( fixed[ cols[j] ] ); //here we use the fact that "fixed" is constructed with A.ColMap();
+
+                }
+
+
+            }
         }
 
 
+
+        //
+//        for (int i=0; i < A.NumMyRows(); i++) {
+//            int numEntries;
+//            double *vals;
+//            int *cols;
+//            A.ExtractMyRowView(i,numEntries,vals,cols);
+//
+//            int row_gid = A.RowMap().GID(i);
+//            int row_lid = dofmap.LID( row_gid );
+//
+//            if(row_lid < 0)
+//                KRATOS_WATCH("not working :-(");
+//
+//            if(fixed[row_lid] == 0) //not a dirichlet Row
+//            {
+//                for (int j=0; j < numEntries; j++)
+//                {
+//                    const int col_gid = A.ColMap().GID( cols[j] );
+//                    const int col_lid = dofmap.LID( col_gid );
+//                    if(col_lid < 0)
+//                        std::cout << " pid="<<A.Comm().MyPID() << " cols[j] = " << cols[j] << " gid= " << col_gid <<  " lid=" << col_lid << std::endl;
+//
+//                    if(fixed[ col_lid ] > 0) vals[j] = 0.0;
+//                }
+//            }
+//            else //this IS a dirichlet row
+//            {
+//                //set to zero the rhs
+//                b[0][i] = 0.0; //note that the index of i is expected to be coherent with the rows of A
+//
+//                //set to zero the whole row except the diag
+//                for (int j=0; j < numEntries; j++)
+//                {
+//                    const int col_gid = A.ColMap().GID( cols[j] );
+//                    const int col_lid = dofmap.LID( col_gid );
+//                    if(col_gid == row_gid)
+//                        vals[j] = 1;
+//                    else
+//                        vals[j] = 0;
+//                }
+//            }
+//        }
+
+        std::cout << "finished modifying A for dirichlet" << std::endl;
+
+        /*
+                int NumEntries;    // number of nonzero entries extracted
+                std::vector<unsigned int> fixed_ids;
+                fixed_ids.reserve(1000);
+
+                for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); ++dof_it)
+                {
+                    if (dof_it->IsFixed()) fixed_ids.push_back(dof_it->EquationId());
+
+
+                    if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
+                    {
+                        if (dof_it->IsFixed())
+                        {
+
+
+                            int GlobalRow = dof_it->EquationId();  // row to extract
+                            int Length = A.NumGlobalEntries(dof_it->EquationId());  // length of Values and Indices
+
+                            double* Values = new double[Length];     // extracted values for this row
+                            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
+
+                            A.ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
+
+                            // put 0.0 in each row A[ii] and 1.0 on the diagonal
+                            for (int ii=0; ii<Length; ii++)
+                            {
+                                if (Indices[ii] == GlobalRow)
+                                    Values[ii]=1.0;
+                                else
+                                    Values[ii]=0.0;
+                            }
+
+                            A.ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
+
+                            // redo better !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                            int* gb= new int[1];
+                            gb[0]=GlobalRow;
+                            A.ReplaceGlobalValues(Length, Indices, 1, gb, Values);
+
+                            double* bb=new double[1];
+                            bb[0]=0.0;
+
+                            // put 0.0 in vector b[GlobalRow] if GlobalRow is a fixed dof
+                            b.ReplaceGlobalValues(1,gb,bb);
+
+                            delete [] Values;
+                            delete [] Indices;
+                            delete [] gb;
+                            delete [] bb;
+
+                        }
+                    }
+
+                }
+
+
+                //now set the columns to zero
+                for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); ++dof_it)
+                {
+                    if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
+                    {
+                        if ( ! dof_it->IsFixed())  //NOT FIXED!!
+                        {
+                            int GlobalRow = dof_it->EquationId();  // row to extract
+                            int Length = A.NumGlobalEntries(dof_it->EquationId());  // length of Values and Indices
+
+                            double* Values = new double[Length];     // extracted values for this row
+                            int* Indices = new int[Length];          // extracted global column indices for the corresponding values
+
+                            A.ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
+
+                            // put 0.0 in each row A[ii] and 1.0 on the diagonal
+                            for (int ii=0; ii<Length; ii++)
+                            {
+
+                                if ( std::find(fixed_ids.begin(), fixed_ids.end(), Indices[ii])  != fixed_ids.end()   )//if the node is in the fixed list
+                                    Values[ii]=0.0;
+                            }
+
+                            A.ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
+
+                            delete [] Values;
+                            delete [] Indices;
+
+
+                        }
+                    }
+
+                }*/
+
+        KRATOS_CATCH("");
     }
 
     //**************************************************************************
