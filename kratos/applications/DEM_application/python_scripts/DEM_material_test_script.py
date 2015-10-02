@@ -418,7 +418,7 @@ class MaterialTest(object):
              
       else:
       
-        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%self.total_stress_mean).rjust(13) +"  "+str("%.8g"%time).rjust(12) + str(coordinateY).rjust(12)+'\n')
+        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%self.total_stress_mean).rjust(13) +"  "+str("%.8g"%time).rjust(12)+'\n') # + str(coordinateY).rjust(12)+'\n')
         self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_top).rjust(13)+'\n')
         self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_bot).rjust(13)+'\n')     
         self.graph_export.flush()
