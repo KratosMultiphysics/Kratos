@@ -1,7 +1,6 @@
 #if !defined(KRATOS_AMGCL_SOLVER )
 #define  KRATOS_AMGCL_SOLVER
 
-//#define BOOST_NO_CXX11_RVALUE_REFERENCES
 // External includes
 #include "boost/smart_ptr.hpp"
 #include <iostream>
@@ -508,6 +507,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#undef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #endif // KRATOS_AMGCL_SOLVER  defined
