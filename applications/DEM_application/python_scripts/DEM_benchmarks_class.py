@@ -1826,9 +1826,6 @@ class Benchmark24:
                 #while ( time < self.DEM_parameters.FinalTime):
                 #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-                d0 = 1.694
-                avance = 0.50100
-                distance = (d0 - avance)
                 w = 62.8
                 distance = 2
 
@@ -1848,9 +1845,6 @@ class Benchmark24:
 
             else:
 
-                 d0 = 1.694
-                 avance = 0.50100
-                 distance = (d0 - avance)
                  w = 62.8
                  distance = 2
 
@@ -1968,7 +1962,7 @@ class Benchmark24:
     '''
 
 
-class Benchmark25:
+class Benchmark25:   # es perd energia al rotar
 
     def __init__(self):
         self.restitution_numbers_vector_list_outfile = None
@@ -1990,12 +1984,8 @@ class Benchmark25:
                 #while ( time < self.DEM_parameters.FinalTime):
                 #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
-                d0 = 1.694
-                avance = 0.50100
-                distance = (d0 - avance)
                 w = 62.8
                 distance = 2
-
                 vx = -distance * w * sin(w * time)
                 vy = distance * w * cos(w * time)
 
@@ -2011,9 +2001,7 @@ class Benchmark25:
                             node.Fix(VELOCITY_Y)
 
             else:
-                 d0 = 1.694
-                 avance = 0.50100
-                 distance = (d0 - avance)
+
                  w = 62.8
                  distance = 2
 
