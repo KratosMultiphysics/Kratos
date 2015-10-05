@@ -258,7 +258,7 @@ public:
                 for(unsigned int i=0; i<TDim+1; i++)
                     if(GetGeometry()[i].Is(BOUNDARY))
                     {
-                        rRightHandSideVector[i] += normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
+                        rRightHandSideVector[i] += source*normDn*Area*(TDim-1); //TODO: check this! it should be TDim*(TDim-1)*N[i] with N[i] on the face and then equal to 1/TDim
                         
                     }
                 
