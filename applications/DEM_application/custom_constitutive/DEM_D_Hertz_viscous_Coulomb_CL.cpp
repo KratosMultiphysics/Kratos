@@ -230,7 +230,7 @@ namespace Kratos {
         }
                         
         const double my_tg_of_friction_angle    = element->GetTgOfFrictionAngle();
-        const double wall_tg_of_friction_angle = wall->mTgOfFrictionAngle;
+        const double wall_tg_of_friction_angle  = wall->mTgOfFrictionAngle;
         const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);    
         
         const double MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
