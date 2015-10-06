@@ -221,7 +221,7 @@ public:
         //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
             pScheme->Initialize(BaseType::GetModelPart());
-
+        
         //Initialize The Elements - OPERATIONS TO BE DONE ONCE
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
@@ -231,6 +231,8 @@ public:
             pScheme->InitializeConditions(BaseType::GetModelPart());
 
         pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+        TSystemVectorType mb  = TSystemVectorType();
+        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //calculate Residual for scheme initialization
         
         mInitializeWasPerformed = true;
 
