@@ -181,10 +181,11 @@ protected:
       * @return
       */
     bool CheckParameters(Parameters& rValues);
+    
+    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
 
 private:
-
 
     ///@name Static Member Variables
     ///@{

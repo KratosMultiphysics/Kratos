@@ -58,6 +58,15 @@ LinearElastic3DLaw::~LinearElastic3DLaw()
 //************************************************************************************
 //************************************************************************************
 
+double& LinearElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+    if (rThisVariable == STRAIN_ENERGY)
+    {
+      rValue = mStrainEnergy; 
+    }
+            
+  return( rValue );
+}
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
@@ -109,7 +118,8 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
-
+    mStrainEnergy = 0.0; //When it is not calculated, a zero will be returned
+    
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
 
     Vector& StrainVector                  = rValues.GetStrainVector();
@@ -173,7 +183,24 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
     }
-
+    
+   if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+   {
+     
+        if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) ){
+          
+         Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+         this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+          
+        }
+        
+        //msimsi dubtes: com es que es pot calcular stress si no sha calculat strain, o.. sempre que es crida stress, se suposa que strain sha demanat.
+        //otra duda... la diferencia entre calcular el constitutiu i no calcularlo quina es?? una inicialitza de 0, i laltra fa una referencia i lactualitza? pk no lactualitza sempre... 
+        //ja de pas que la de calcular cada vegada.
+        
+        mStrainEnergy = 0.5*inner_prod(StrainVector,StressVector); //Belytschko Nonlinear Finite Elements pag 226 (5.4.3) : w = 0.5*E:C:E
+   }
 
     //std::cout<<" Strain "<<StrainVector<<std::endl;
     //std::cout<<" Stress "<<StressVector<<std::endl;
@@ -332,6 +359,25 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	}
 
     }
+    
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+   {
+     
+
+          if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+    {
+      const Matrix& DeformationGradientF      = rValues.GetDeformationGradientF();
+      const double& DeterminantF         = rValues.GetDeterminantF();
+      TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_Cauchy );
+    }
+        //msimsi dubtes: com es que es pot calcular stress si no sha calculat strain, o.. sempre que es crida stress, se suposa que strain sha demanat.
+        //otra duda... la diferencia entre calcular el constitutiu i no calcularlo quina es?? una inicialitza de 0, i laltra fa una referencia i lactualitza? pk no lactualitza sempre... 
+        //ja de pas que la de calcular cada vegada.
+        
+        mStrainEnergy = 0.5*inner_prod(StrainVector,StressVector); //Belytschko Nonlinear Finite Elements pag 226 (5.4.3) : w = 0.5*E:C:E
+   }
+    
+    
 
     //std::cout<<" Strain "<<StrainVector<<std::endl;
     //std::cout<<" Stress "<<StressVector<<std::endl;
