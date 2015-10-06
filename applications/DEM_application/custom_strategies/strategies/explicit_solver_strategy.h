@@ -423,7 +423,10 @@ namespace Kratos
           if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]) {
               InitialTimeStepCalculation();
           }
-
+          
+          double& total_friccional_work       = rCurrentProcessInfo[PARTICLE_INELASTIC_FRICTIONAL_WORK];
+          total_friccional_work = 0.0;
+          
            // 5. Finalize Solution Step.
           //FinalizeSolutionStep();
           //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
@@ -545,6 +548,7 @@ namespace Kratos
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
           
           // 3. Get and Calculate the forces
+          CleanEnergies();
           
           GetForce(); // Basically only calls CalculateRightHandSide( )
           
@@ -555,6 +559,8 @@ namespace Kratos
           Calculate_Conditions_RHS_and_Add();
           
           Calculate_Nodal_Pressures_and_Stresses();
+          
+          CalculateEnergies();
           
           // 4. Synchronize (should be just FORCE and TORQUE)
           SynchronizeSolidMesh(r_model_part);
@@ -1569,10 +1575,66 @@ namespace Kratos
         }
     
     
+    //*******************************************************************************************************
+        
+    void CleanEnergies()
+     {
+          KRATOS_TRY
+
+          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
+                  
+          double& total_elastic_energy        = rCurrentProcessInfo[PARTICLE_ELASTIC_ENERGY];
+          double& total_damping_energy        = rCurrentProcessInfo[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
+          //double& total_friccional_work       = rCurrentProcessInfo[PARTICLE_INELASTIC_FRICTIONAL_WORK] //cumulative
+          double& total_kinematic_energy      = rCurrentProcessInfo[PARTICLE_KINEMATIC_ENERGY];
+          double& total_gravitational_energy  = rCurrentProcessInfo[PARTICLE_GRAVITATIONAL_ENERGY];
+          
+          total_elastic_energy        = 0.0;
+          total_damping_energy        = 0.0;
+          //total_friccional_work       = 0.0;
+          total_kinematic_energy      = 0.0;
+          total_gravitational_energy  = 0.0;
+
+          KRATOS_CATCH("")
+     }            
     
     
+     void CalculateEnergies()
+     {
+          KRATOS_TRY
+
+          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
+          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];             
+          //double& total_normal_elastic_energy = rCurrentProcessInfo[PARTICLE_ELASTIC_ENERGY];
+          double& total_kinematic_energy = rCurrentProcessInfo[PARTICLE_KINEMATIC_ENERGY];
+          double& total_gravitational_energy = rCurrentProcessInfo[PARTICLE_GRAVITATIONAL_ENERGY];
+         
+          const int number_of_particles = (int)mListOfSphericParticles.size();
+          
+          #pragma omp parallel
+          {
+            Vector rhs_elem;
+            rhs_elem.resize(6);
+            #pragma omp for schedule(guided)
+            
+            for (int i = 0; i < number_of_particles; i++){
+                //double total_normal_elastic_energy_on_particle = 0.0;
+                double kinematic_energy_on_particle = 0.0;
+                double gravitational_energy_on_particle = 0.0;   
+
+                mListOfSphericParticles[i]->CalculateKinematicEnergy(kinematic_energy_on_particle);
+                mListOfSphericParticles[i]->CalculateGravitationalEnergy(gravity, gravitational_energy_on_particle);
+
+                total_kinematic_energy += kinematic_energy_on_particle;
+                total_gravitational_energy += gravitational_energy_on_particle;
+            }
+            
+          }
+
+          KRATOS_CATCH("")
+     }            
     
-    
+    //*******************************************************************************************************
     
     
     // Getting member variables
