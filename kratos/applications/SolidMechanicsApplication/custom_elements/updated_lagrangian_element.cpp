@@ -450,6 +450,78 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
+void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+{
+
+    KRATOS_TRY
+
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != integration_points_number )
+        rOutput.resize( integration_points_number );
+
+    if ( rVariable == STRAIN_ENERGY){
+
+        double Thickness = 1.0;
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+        if( dimension == 2){
+            Thickness = GetProperties()[THICKNESS];
+        }
+
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+        
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
+   
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+             
+            //compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematics(Variables,PointNumber);
+            //to take in account previous step writing
+            if( mFinalizedStep ){
+                this->GetHistoricalVariables(Variables,PointNumber);
+            }   
+            //set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(Variables,Values,PointNumber);
+                  
+            double StrainEnergy = 0.0;
+            
+            //compute stresses and constitutive parameters
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseKirchhoff(Values);
+            mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,StrainEnergy);
+            
+            rOutput[PointNumber] = Variables.detJ*integration_points[PointNumber].Weight() * Thickness * StrainEnergy;  // 1/2 * sigma * epsilon
+           
+        } // for each gauss_point
+      
+
+    }
+
+    else
+    {
+
+        LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo );
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+
 void UpdatedLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);

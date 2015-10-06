@@ -246,6 +246,11 @@ protected:
 				 const double& rPointNumber );
 
     /**
+     * Calculate on Integration Points (Calculation of internal energy)
+     */
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo );
+    
+    /**
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);

@@ -199,9 +199,15 @@ protected:
     double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * Calculate on Integration Points (Calculation of internal energy)
+     */
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo );
+
+    /**
      * Calculation of the Volume Change of the Element
      */
     double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+
 
     ///@}
     ///@name Protected  Access
