@@ -1916,7 +1916,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-      //MSIMSI if( rVariable == KratosComponents< Variable<Vector> >::Get("CAUCHY_STRESS_VECTOR"))
             if( rVariable == CAUCHY_STRESS_VECTOR)
               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
             else
@@ -1933,8 +1932,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 
     }
     else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
-    
-    //else if( rVariable == KratosComponents< Variable<Vector> >::Get("GREEN_LAGRANGE_STRAIN_VECTOR")  || KratosComponents< Variable<Vector> >::Get("ALMANSI_STRAIN_VECTOR") )
     {
         //create and initialize element variables:
         GeneralVariables Variables;
@@ -1953,20 +1950,19 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 	    }	
 
             //Compute Green-Lagrange Strain
-      //if( rVariable == KratosComponents< Variable<Vector> >::Get("GREEN_LAGRANGE_STRAIN_VECTOR") )
-      
-      if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
-          this->CalculateGreenLagrangeStrain( Variables.FT, Variables.StrainVector );
+	    
+	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
+	      this->CalculateGreenLagrangeStrain( Variables.FT, Variables.StrainVector );
             else
-                this->CalculateAlmansiStrain( Variables.FT, Variables.StrainVector );
-
+	      this->CalculateAlmansiStrain( Variables.FT, Variables.StrainVector );
+	    
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
-                rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
-
+	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
+	    
             rOutput[PointNumber] = Variables.StrainVector;
-
+	    
         }
-
+	
     }
     else
     {
