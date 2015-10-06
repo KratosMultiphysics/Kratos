@@ -318,8 +318,38 @@ void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_in
                 
     } //for every rigidface neighbor
 }
+/*
+void SphericParticle::CalculateBalltoBallElasticEnergy(double& total_normal_elastic_energy){
+  
+  KRATOS_TRY
+   
+  for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        SphericParticle* ineighbour = mNeighbourElements[i];
 
-void SphericParticle::CalculateKineticEnergy(double& r_kinetic_energy)
+        if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;        
+        //if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
+        
+        array_1d<double, 3> other_to_me_vect;
+        noalias(other_to_me_vect)    = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+        const double& other_radius   = ineighbour->GetRadius();
+        double distance              = DEM_MODULUS_3(other_to_me_vect);
+        double radius_sum            = GetRadius() + other_radius;
+        double indentation           = radius_sum - distance;
+        double cohesive_force        =  0.0;
+        double normal_elastic_energy =  0.0;
+        
+        if (indentation > 0.0) {
+            mDiscontinuumConstitutiveLaw->CalculateElasticEnergy(normal_elastic_energy, indentation, cohesive_force, this, ineighbour);
+        }
+        total_normal_elastic_energy += normal_elastic_energy;
+        
+  }//for every neighbor
+  
+  KRATOS_CATCH("")
+}
+*/
+
+void SphericParticle::CalculateKinematicEnergy(double& r_kinematic_energy)
 {
     const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -327,79 +357,26 @@ void SphericParticle::CalculateKineticEnergy(double& r_kinetic_energy)
     double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
     double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
 
-    r_kinetic_energy = 0.5 * (mRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
+    r_kinematic_energy = 0.5 * (mRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
 }
 
-void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy) // Calculates the elastic energy stored in the sum of all the contacts shared by the particle and all its neighbours
+void SphericParticle::CalculateGravitationalEnergy(const array_1d<double,3>& gravity, double& r_gravitational_energy)
 {
-    double added_potential_energy_of_contacts   = 0.0;
-    size_t i_neighbour_count                    = 0;
-    double myYoung = GetYoung();
-    double myPoisson = GetPoisson();
+    
+    double mass = this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+    double gh = 0.0;
+    array_1d<double, 3> coord = this->GetGeometry()[0].Coordinates();
 
-    std::vector<int> mTempNeighboursIds;
-    std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
-    std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
-    ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces, mTempNeighbourTotalContactForces);
-
-    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-        SphericParticle* ineighbour = mNeighbourElements[i];
-
-        const double &other_radius          = ineighbour->GetRadius();
-        double radius_sum                   = GetRadius() + other_radius;
-        double radius_sum_i                 = 1.0 / radius_sum;
-        double equiv_radius                 = 2.0 * GetRadius() * other_radius * radius_sum_i;
-        double equiv_area                   = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-        double equiv_young;
-        double equiv_poisson;
-        double kn;
-        double kt;
-
-        const double other_young            = ineighbour->GetYoung();
-        const double other_poisson          = ineighbour->GetPoisson();
-
-        equiv_young                         = 2.0 * myYoung * other_young / (myYoung + other_young);
-        
-        if((myPoisson + other_poisson)!= 0.0) {
-            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
-        } else {
-            equiv_poisson = 0.0;
-        }
-
-        kn                                  = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-        kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
-
-        // Normal contribution
-
-        double aux_power_of_contact_i_normal_force;
-
-        switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-            case 0:
-                aux_power_of_contact_i_normal_force = mNeighbourElasticContactForces[i_neighbour_count][2] * mNeighbourElasticContactForces[i_neighbour_count][2];
-                added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
-                break;
-
-            case 1:
-                aux_power_of_contact_i_normal_force = pow(fabs(mNeighbourElasticContactForces[i_neighbour_count][2]), 5 / 3); //error: substitute divisions by known result!!!
-                added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3); //error: substitute divisions by known result!!!
-                break;
-
-            default:
-                aux_power_of_contact_i_normal_force = mNeighbourElasticContactForces[i_neighbour_count][2] * mNeighbourElasticContactForces[i_neighbour_count][2];
-                added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
-                break;
-        }
-
-        // Tangential Contribution
-
-        double aux_power_of_contact_i_tang_force = mNeighbourElasticContactForces[i_neighbour_count][0] * mNeighbourElasticContactForces[i_neighbour_count][0] + mNeighbourElasticContactForces[i_neighbour_count][1] * mNeighbourElasticContactForces[i_neighbour_count][1];
-        added_potential_energy_of_contacts       += 0.5 * aux_power_of_contact_i_tang_force / kt;
-
-        i_neighbour_count ++;
+    for (unsigned int i=0;i<3;i++){
+      
+      gh += coord(i)*-gravity(i); //negative makes gravity introduce positive potential energy
+    
     }
 
-    r_elastic_energy = added_potential_energy_of_contacts;
-}
+    r_gravitational_energy = mass*gh;
+
+}//CalculateGravitationalEnergy
+
 
 void SphericParticle::CalculateMomentum(array_1d<double, 3>& r_momentum)
 {
@@ -809,7 +786,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         if (indentation > 0.0) {
             double LocalRelVel[3]            = {0.0};
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);            
-            mDiscontinuumConstitutiveLaw->CalculateForces(OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour);                      
+            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour);                      
         }
 
         // Transforming to global forces and adding up
@@ -941,7 +918,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         double Weight[4] = {0.0};                
         
         ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
-        
+
+        //Renew neighbour parameters for stepes between searches
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
             if (search_control == 1) { //Search active but not performed in this timestep
                 UpdateDistanceToWall(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, ContactType);                                
@@ -994,8 +972,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
                 
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
                                                                      previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);         
+			
             }
 
             double LocalContactForce[3]  = {0.0};
@@ -1082,6 +1061,7 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
     if (contact_exists == false) {ContactType = -1;}
 
     UpdateRF_Pram(wall, neighbour_index, LocalCoordSystem, DistPToB, Weight, ContactType);
+
 }
 
 void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
@@ -1398,7 +1378,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     }
 
     mDampType                                    = r_process_info[DAMP_TYPE];
-    mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];        
         
     if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION, true);
     else                                         this->Set(DEMFlags::HAS_ROTATION, false);
@@ -1461,18 +1440,6 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
                 Output *= 0.5; //factor for critical time step when rotation is allowed.
             }
         }
-
-        return;
-    }
-
-    if (rVariable == KINETIC_ENERGY){
-        CalculateKineticEnergy(Output);
-
-        return;
-    }
-
-    if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
-        CalculateElasticEnergyOfContacts(Output);
 
         return;
     }
