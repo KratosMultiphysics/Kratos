@@ -26,6 +26,8 @@
 #include "custom_utilities/line_search_calculation_utilities.hpp"
 #include "custom_utilities/comparison_utilities.hpp"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
+
+#include "custom_utilities/energy_utilities.h"
 #include "custom_utilities/isotropic_damage_utilities.hpp"
 
 namespace Kratos
@@ -60,9 +62,13 @@ void  AddCustomUtilitiesToPython()
 
     typedef Process                                         ProcessBaseType;
 
-
-
-
+    class_<EnergyUtilities>("EnergyUtilities",init<>())
+    .def("GetTotalKineticEnergy",&EnergyUtilities::GetTotalKineticEnergy)
+    .def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
+    .def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
+    .def("GetGravitationalEnergy",&EnergyUtilities::GetGravitationalEnergy)
+    .def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
+    ;
 
 
 }
