@@ -409,7 +409,9 @@ namespace Kratos {
             if (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0))//*  //#3
             {
                 if (mapping_new_cont != -1) {//Normal Forces
-                    mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateForces(LocalElasticContactForce,
+                    mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateForces(
+                            rCurrentProcessInfo,
+                            LocalElasticContactForce,
                             LocalDeltDisp,
                             kn_el,
                             kt_el,
@@ -429,7 +431,9 @@ namespace Kratos {
                             search_control_vector,
                             mapping_new_cont);
                 } else {
-                    mDiscontinuumConstitutiveLaw -> CalculateForces(LocalElasticContactForce,
+                    mDiscontinuumConstitutiveLaw -> CalculateForces(
+                            rCurrentProcessInfo,
+                            LocalElasticContactForce,
                             LocalDeltDisp,
                             kn_el,
                             kt_el,
