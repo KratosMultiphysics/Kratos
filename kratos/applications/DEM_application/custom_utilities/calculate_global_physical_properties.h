@@ -302,31 +302,7 @@ class SphericElementGlobalPhysicsCalculator
 
           return kinetic_energy;
       }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      double CalculateElasticEnergy(ModelPart& r_model_part)
-      {
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
-
-          double potential_energy = 0.0;
-
-          #pragma omp parallel for reduction(+ : potential_energy)
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-
-              for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_contacts_potential_energy;
-                  (it)->Calculate(ELASTIC_ENERGY_OF_CONTACTS, particle_contacts_potential_energy, r_model_part.GetProcessInfo());
-                  potential_energy += 0.5 * particle_contacts_potential_energy;
-
-                }
-
-            }
-
-          return potential_energy;
-      }
-
+      
       //***************************************************************************************************************
       //***************************************************************************************************************
 
