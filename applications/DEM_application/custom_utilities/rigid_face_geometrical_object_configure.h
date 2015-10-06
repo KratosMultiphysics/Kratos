@@ -695,7 +695,7 @@ public:
            {
                Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
             
-               bool Contact[8] = {false};
+               bool Exist_Contact[8] = {false};
                double Dist[8] = {0.0};
             
                for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
@@ -712,34 +712,34 @@ public:
                    Coord2[0] = rObj_2->GetGeometry()[inode2].Coordinates()[0];
                    Coord2[1] = rObj_2->GetGeometry()[inode2].Coordinates()[1];
                    Coord2[2] = rObj_2->GetGeometry()[inode2].Coordinates()[2];
-                
-                   Contact[inode1]   = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Particle_Coord, rad,  Dist[inode1]);
-                   Contact[inode1+4] = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, Dist[inode1+4]);
+                   
+                   Exist_Contact[inode1]   = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Particle_Coord, rad,  Dist[inode1]); //simplified judgement
+                   Exist_Contact[inode1+4] = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, Dist[inode1+4]); //simplified judgement
                }
             
-               int contact = -1;
+               int contact_index = -1;
                double dist = 0.0;
             
                for(int i = 0; i < 8; i++)
                {
-                   if(Contact[i] == true)
+                   if(Exist_Contact[i] == true)
                    {
-                       if (contact == -1 || Dist[i] < dist)
+                       if (contact_index == -1 || Dist[i] < dist)
                        {
                            dist = Dist[i];
-                           contact = i;
+                           contact_index = i;
                        }
                    }
                }
             
-               if (contact == 0 || contact == 1 || contact == 2 || contact == 3)
+               if (contact_index == 0 || contact_index == 1 || contact_index == 2 || contact_index == 3) //hierarchy on edges
                {
                    ContactType = 2;
                    double Coord1[3]     = {0.0};
                    double Coord2[3]     = {0.0};
                    double tempWeight[2] = {0.0};
                 
-                   int inode1 = contact;
+                   int inode1 = contact_index;
                    int inode2 = (inode1 + 1) % FaceNodeTotal;
                    int inode3 = (inode1 + 2) % FaceNodeTotal;
                 
@@ -751,7 +751,7 @@ public:
                    Coord2[1] = rObj_2->GetGeometry()[inode2].Coordinates()[1];
                    Coord2[2] = rObj_2->GetGeometry()[inode2].Coordinates()[2];
                 
-                   ContactExists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Particle_Coord, rad, LocalCoordSystem, tempWeight, DistPToB);
+                   ContactExists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Particle_Coord, rad, LocalCoordSystem, tempWeight, DistPToB); //complete judgement
                 
                    Weight[inode1] = tempWeight[0];
                    Weight[inode2] = tempWeight[1];
@@ -764,18 +764,18 @@ public:
                    }
                }
             
-               if (contact == 4 || contact == 5 || contact == 6 || contact == 7)
+               if (contact_index == 4 || contact_index == 5 || contact_index == 6 || contact_index == 7) //hierarchy on nodes
                {
                    ContactType = 3;
                 
-                   int inode1 = contact-4;
+                   int inode1 = contact_index-4;
                  
                    double Coord1[3] = {0.0};
                    Coord1[0] = rObj_2->GetGeometry()[inode1].Coordinates()[0];
                    Coord1[1] = rObj_2->GetGeometry()[inode1].Coordinates()[1];
                    Coord1[2] = rObj_2->GetGeometry()[inode1].Coordinates()[2];
               
-                   ContactExists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
+                   ContactExists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB); //complete judgement
 
                    Weight[inode1] = 1.0;
                 
