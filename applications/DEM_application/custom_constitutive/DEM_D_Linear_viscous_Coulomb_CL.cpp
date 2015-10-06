@@ -51,17 +51,18 @@ namespace Kratos {
     
     
     
-    void DEM_D_Linear_viscous_Coulomb::CalculateForces(double LocalElasticContactForce[3],
-            double LocalDeltDisp[3],
-            double kn_el,
-            double kt_el,
-            double indentation,
-            double& failure_criterion_state,
-            bool& sliding,
-            SphericParticle* element1,
-            SphericParticle* element2,
-            int &mNeighbourFailureId_count,
-            double mapping_new_cont) {
+    void DEM_D_Linear_viscous_Coulomb::CalculateForces( ProcessInfo& rCurrentProcessInfo,
+                                                        double LocalElasticContactForce[3],
+                                                        double LocalDeltDisp[3],
+                                                        double kn_el,
+                                                        double kt_el,
+                                                        double indentation,
+                                                        double& failure_criterion_state,
+                                                        bool& sliding,
+                                                        SphericParticle* element1,
+                                                        SphericParticle* element2,
+                                                        int &mNeighbourFailureId_count,
+                                                        double mapping_new_cont) {
 
         KRATOS_TRY      
         CalculateNormalForceLinear(LocalElasticContactForce, kn_el, indentation);
@@ -196,7 +197,8 @@ namespace Kratos {
         
     }
     
-    void DEM_D_Linear_viscous_Coulomb::CalculateForces(const double OldLocalContactForce[3],
+    void DEM_D_Linear_viscous_Coulomb::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                                                       const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
                                                              double LocalRelVel[3],            
@@ -243,7 +245,8 @@ namespace Kratos {
         mKt = mKn / (2.0 * (1.0 + my_poisson));                                
     }    
     
-    void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(const double OldLocalContactForce[3],
+    void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+                                                              const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
                                                              double LocalRelVel[3],            
