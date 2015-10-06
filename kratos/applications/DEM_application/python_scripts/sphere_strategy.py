@@ -104,18 +104,6 @@ class ExplicitStrategy:
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
            self.virtual_mass_option            = 1
-           
-        if (Param.MaterialModel == "Linear"):
-            self.force_calculation_type_id = 0
-        elif (Param.MaterialModel == "Hertz"):
-            self.force_calculation_type_id = 1
-        elif (Param.MaterialModel == "1DPlasticity"):
-            self.force_calculation_type_id = 2
-        elif (Param.MaterialModel == "ExpHard"):
-            self.force_calculation_type_id = 3
-        else:
-            
-            raise Exception('Specified NormalForceCalculationType is not defined')
 
         if (Param.LocalContactDamping == "Both"):         
             self.damp_id = 11
@@ -163,7 +151,6 @@ class ExplicitStrategy:
         # Setting ProcessInfo variables
 
         # SIMULATION FLAGS
-       
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
@@ -188,7 +175,6 @@ class ExplicitStrategy:
         
         # PRINTING VARIABLES
 
-        self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
