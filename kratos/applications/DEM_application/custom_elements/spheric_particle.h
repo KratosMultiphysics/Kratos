@@ -151,6 +151,9 @@ virtual void ComputeNewNeighboursHistoricalData( std::vector<int>& mTempNeighbou
 
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 
+virtual void CalculateKinematicEnergy(double& rKinematicEnergy);
+virtual void CalculateGravitationalEnergy(const array_1d<double,3>& gravity, double& r_gravitational_energy);
+
 std::vector<SphericParticle*> mNeighbourElements;
 std::vector<DEMWall*>         mNeighbourRigidFaces;
 std::vector<double>           mNeighbourRigidFacesPram;
@@ -205,8 +208,7 @@ virtual void UpdateRF_Pram(DEMWall* rObj_2,
                             const int ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
-virtual void CalculateKineticEnergy(double& rKineticEnergy);
-virtual void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
+
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
@@ -308,7 +310,7 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 //const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
 int mDimension;
 int mDampType;
-int mElasticityType;
+
 //const double* mSearchControl;
 
 //array_1d<double, 3> mContactForce; //SLS
