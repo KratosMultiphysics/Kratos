@@ -915,18 +915,78 @@ namespace Kratos
    
            double IntersectionCoord[3];
            CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
-         
-              double TriWeight[3] = {0.0};
-              TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
+           
+           double TriWeight[3] = {0.0};
+           TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
+           
+           int triangle_number = 0; // to know how many triangles of the quadrilateral surface does the contact point touches
+
+           if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
+           {
+              Weight[0] = TriWeight[0];
+              Weight[1] = TriWeight[1];
+              Weight[2] = TriWeight[2];
+ 
+              If_Contact = true;
+              
+              triangle_number++;
+            }
+            
+            if( (FaceNodeTotal == 4) ) //maybe not found inside first triangle, then check second triangular half of the quadrilateral
+            {
+              Weight[3] = 0.0;
+              TriAngleWeight(Coord[0], Coord[1], Coord[3], IntersectionCoord, TriWeight);
 
               if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
               {
-                  Weight[0] = TriWeight[0];
-                  Weight[1] = TriWeight[1];
-                  Weight[2] = TriWeight[2];
+                Weight[0] += TriWeight[0];
+                Weight[1] += TriWeight[1];
+                Weight[3] += TriWeight[2];
  
-                  If_Contact = true;
+                If_Contact = true;
+              
+                triangle_number++;
               }
+              
+              TriAngleWeight(Coord[0], Coord[2], Coord[3], IntersectionCoord, TriWeight);
+
+              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
+              {
+                Weight[0] += TriWeight[0];
+                Weight[2] += TriWeight[1];
+                Weight[3] += TriWeight[2];
+ 
+                If_Contact = true;
+                
+                triangle_number++;
+              }
+              
+              TriAngleWeight(Coord[1], Coord[2], Coord[3], IntersectionCoord, TriWeight);
+
+              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
+              {
+                Weight[1] += TriWeight[0];
+                Weight[2] += TriWeight[1];
+                Weight[3] += TriWeight[2];
+ 
+                If_Contact = true;
+                
+                triangle_number++;
+              }
+              
+              if (If_Contact)
+              {
+                double factor = 1.0/triangle_number;
+            
+                Weight[0] = factor * Weight[0];
+                Weight[1] = factor * Weight[1];
+                Weight[2] = factor * Weight[2];
+                Weight[3] = factor * Weight[3];
+              }
+              
+
+            }
+              
         }
  
         return If_Contact;
@@ -992,11 +1052,11 @@ namespace Kratos
             if( (FaceNodeTotal == 4) && (If_Contact==false)) //maybe not found inside first triangle, then check second triangular half of the quadrilateral
             {
             
-                bool If_Contact2 = Fast_PointInsideTriangle(Coord[0], Coord[2], Coord[3], IntersectionCoord);                  
+                bool If_Contact2 = Fast_PointInsideTriangle(Coord[0], Coord[1], Coord[3], IntersectionCoord);
+                bool If_Contact3 = Fast_PointInsideTriangle(Coord[0], Coord[2], Coord[3], IntersectionCoord);
                 
-                if( (If_Contact == true) || (If_Contact2 == true)) { If_Contact = true; }
-                    
-                    
+                if( (If_Contact == true) || (If_Contact2 == true) || (If_Contact3 == true)) { If_Contact = true; }
+
             }
             
                         
