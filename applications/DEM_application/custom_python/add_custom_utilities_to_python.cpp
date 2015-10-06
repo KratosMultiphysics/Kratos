@@ -147,7 +147,6 @@ void  AddCustomUtilitiesToPython() {
         .def("CalculateCenterOfMass", &SphericElementGlobalPhysicsCalculator::CalculateCenterOfMass)
         .def("GetInitialCenterOfMass", &SphericElementGlobalPhysicsCalculator::GetInitialCenterOfMass)
         .def("CalculateKineticEnergy", &SphericElementGlobalPhysicsCalculator::CalculateKineticEnergy)
-        .def("CalculateElasticEnergy", &SphericElementGlobalPhysicsCalculator::CalculateElasticEnergy)
         .def("CalculateGravitationalPotentialEnergy", &SphericElementGlobalPhysicsCalculator::CalculateGravitationalPotentialEnergy)
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
@@ -190,7 +189,7 @@ void  AddCustomUtilitiesToPython() {
         ("BenchmarkUtils", init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
-
+     
     }
 
 }  // namespace Python.
