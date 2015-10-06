@@ -54,7 +54,8 @@ namespace Kratos {
                 double calculation_area);
 
 
-        virtual void CalculateForces(double LocalElasticContactForce[3],
+        virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                                     double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 double kn_el,
                 double kt_el,
@@ -65,6 +66,12 @@ namespace Kratos {
                 SphericParticle* element2,
                 int &mNeighbourFailureId_count,
                 double mapping_new_cont);
+        
+        virtual void CalculateElasticEnergy(double& normal_elastic_energy,
+                                                                double indentation,
+                                                                double& cohesive_force,
+                                                                SphericParticle* element1,
+                                                                SphericParticle* element2);
 
 
         virtual void CalculateNormalForceLinear(double LocalElasticContactForce[3], const double kn_el, const double indentation);
@@ -96,19 +103,21 @@ namespace Kratos {
 
         virtual void InitializeContact(SphericParticle * const element1, SphericParticle * const element2);
         virtual void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
-
-        virtual void CalculateForces(const double OldLocalContactForce[3],
-                            double LocalElasticContactForce[3],
-                            double LocalDeltDisp[3],
-                            double LocalRelVel[3],            
-                            double indentation,
-                            double previous_indentation,
-                            double ViscoDampingLocalContactForce[3],
-                            double& cohesive_force,
-                            SphericParticle* element1,
-                            SphericParticle* element2); 
         
-        virtual void CalculateForcesWithFEM(const double OldLocalContactForce[3],
+        virtual void CalculateForces( ProcessInfo& rCurrentProcessInfo,
+                                                        const double OldLocalContactForce[3],
+                                                        double LocalElasticContactForce[3],
+                                                        double LocalDeltDisp[3],
+                                                        double LocalRelVel[3],            
+                                                        double indentation,
+                                                        double previous_indentation,
+                                                        double ViscoDampingLocalContactForce[3],
+                                                        double& cohesive_force,
+                                                        SphericParticle* element1,
+                                                        SphericParticle* element2);
+        
+        virtual void CalculateForcesWithFEM( ProcessInfo& rCurrentProcessInfo,
+                                            const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
                                             double LocalDeltDisp[3],
                                             double LocalRelVel[3],            
@@ -121,6 +130,8 @@ namespace Kratos {
                                             bool& sliding);
         
         virtual double CalculateNormalForce(double indentation, SphericParticle * const element1, SphericParticle * const element2);
+        virtual double CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2, const double mass_penalty_factor); 
+    
         virtual double CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall);
         
         virtual void CalculateTangentialForce(const double normal_force,
