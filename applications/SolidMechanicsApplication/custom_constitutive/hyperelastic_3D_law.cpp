@@ -85,6 +85,12 @@ bool HyperElastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 
 double& HyperElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+  if (rThisVariable == STRAIN_ENERGY)
+  {
+      
+    rValue = mStrainEnergy;
+  }
+    
     return( rValue );
 }
 
@@ -182,9 +188,9 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
 
     //-----------------------------//
-
     //a.-Check if the constitutive parameters are passed correctly to the law calculation
     CheckParameters(rValues);
+    mStrainEnergy = 0.0; //When it is not calculated, a zero will be returned
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
@@ -255,8 +261,24 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
       {
 	this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
       }
+       
+   if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+   {
+     
+      double ln_J = std::log(ElasticVariables.DeterminantF);
+      //double ln_J = std::log(mDeterminantF0); //no funciona tampoc per updated... pero per total els dos son esquivalents.
+      double trace_C = 0.0;
+
+      for (unsigned int i = 0; i<RightCauchyGreen.size1();i++)
+      {
+          trace_C += RightCauchyGreen(i,i);
+      }
+
+      mStrainEnergy =  0.5*ElasticVariables.LameLambda*ln_J*ln_J - ElasticVariables.LameMu*ln_J + 0.5*ElasticVariables.LameMu*(trace_C-3); //see Belytschko page 239
+      
+     
+  }  
     
- 
     // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
     // std::cout<<" Stress "<<StressVector<<std::endl;
 
@@ -663,9 +685,9 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
     //double Factor = (std::log(rElasticVariables.DeterminantF)); 
 
 
-    if(rStressMeasure == StressMeasure_PK2)
+    if(rStressMeasure == StressMeasure_PK2)  // the description corresponds to the neohookean material in Belytschko nonlinear finite elements, pag 239
     {
-        //rElasticVariables.CauchyGreenMatrix is InverseRightCauchyGreen
+        //rElasticVariables.CauchyGreenMatrix is InverseRightCauchyGreen C^-1
 
         //2.-2nd Piola Kirchhoff Stress Matrix
         StressMatrix  = rElasticVariables.LameLambda * Factor * rElasticVariables.CauchyGreenMatrix;
@@ -673,9 +695,9 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
 
     }
 
-    if(rStressMeasure == StressMeasure_Kirchhoff)
+    if(rStressMeasure == StressMeasure_Kirchhoff) // the description corresponds to the neohookean material in Belytschko nonlinear finite elements, pag 239
     {
-        //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen
+        //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen B
 
         //2.-Kirchhoff Stress Matrix
         StressMatrix  = rElasticVariables.LameLambda * Factor * rElasticVariables.IdentityMatrix;

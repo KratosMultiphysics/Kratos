@@ -51,7 +51,6 @@ protected:
         Matrix DeformationGradientF;  //Deformation Gradient Tensor in 3D
         Matrix IdentityMatrix;
 
-
         //element properties
         const Vector*        mpShapeFunctionsValues;
         const GeometryType*  mpElementGeometry;
