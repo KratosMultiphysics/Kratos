@@ -35,7 +35,8 @@ namespace Kratos {
                 double equiv_poisson,
                 double calculation_area);
 
-        void CalculateForces(double LocalElasticContactForce[3],
+        void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                             double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 double kn_el,
                 double kt_el,
@@ -68,7 +69,8 @@ namespace Kratos {
                 bool sliding,
                 int mDampType);
 
-        void CalculateForces(const double OldLocalContactForce[3],
+        void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                             const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],
                             double LocalRelVel[3],            
@@ -79,7 +81,8 @@ namespace Kratos {
                             SphericParticle* element1,
                             SphericParticle* element2);
         
-        void CalculateForcesWithFEM(const double OldLocalContactForce[3],
+        void CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+                                    const double OldLocalContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],
                                     double LocalRelVel[3],            
