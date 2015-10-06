@@ -118,7 +118,7 @@ namespace Kratos
       mVector.v.resize(NumThreads);
       //mVector.a.resize(NumThreads);
       //mVector.ap.resize(NumThreads);
-
+      mSchemeIsInitialized = false;
 
     }
 
@@ -155,17 +155,28 @@ namespace Kratos
 
       mModelPart = r_model_part;
 
-      if(mDeltaTime.PredictionLevel>0)
+      if( (mDeltaTime.PredictionLevel>0) && (mSchemeIsInitialized==false) )
       {
         CalculateDeltaTime(r_model_part);
       }
 
-      InitializeExplicitScheme(r_model_part);
+      ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
-      //ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+      //Preparing the time values for the first step (where time = initial_time + dt)
+      mTime.Current         = rCurrentProcessInfo[TIME]+rCurrentProcessInfo[DELTA_TIME];
+      mTime.Delta           = rCurrentProcessInfo[DELTA_TIME];
+      mTime.Middle          = mTime.Current -  0.5*mTime.Delta;
+      mTime.Previous        = mTime.Current -  mTime.Delta;
+      mTime.PreviousMiddle  = mTime.Current - 1.5*mTime.Delta;
 
-      mTime.Previous       = 0.0;
-      mTime.PreviousMiddle = 0.0;
+      if(mSchemeIsInitialized==false)
+      {
+        InitializeExplicitScheme(r_model_part);
+      }
+      else
+      {
+        SchemeCustomInitialization(r_model_part);
+      }
 
       mSchemeIsInitialized = true;
 
@@ -248,7 +259,7 @@ namespace Kratos
       vector<unsigned int> element_partition;
       OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-      double safety_factor = 0.65;  //most autors recommend a value near 0.80 (Belytschko - Nonlinear FE.. 2000. chap 6. pag. 315)
+      double safety_factor = 0.5;  //most autors recommend a value near 0.80 (Belytschko - Nonlinear FE.. 2000. chap 6. pag. 315)
 
       Vector delta_times(number_of_threads);
 
@@ -280,7 +291,6 @@ namespace Kratos
           double w          = 2.0*wavespeed/length;   //frequency
 
           double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
-
           stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
 
           if(stable_delta_time > 0.00)
@@ -295,15 +305,16 @@ namespace Kratos
       }
 
       stable_delta_time  = *std::min_element(delta_times.begin(), delta_times.end());
-
-      stable_delta_time *= safety_factor * 0.5; //extra factor added to get an stable delta time
+      stable_delta_time *= safety_factor;// * 0.5; //extra factor added to get an stable delta time
         
       if(stable_delta_time < mDeltaTime.Maximum)
       {
           
         rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;
-        std::cout<< "  [EXPLICIT PREDICTION LEVEL 1]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
+        
       }
+      std::cout<< "  [EXPLICIT PREDICTION LEVEL 1]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
+      std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
         
       KRATOS_CATCH("")
     }
@@ -342,8 +353,8 @@ namespace Kratos
 
           for (unsigned int j =0; j<3; j++)
           {
-            middle_velocity[j]      = 0.0;
-            current_velocity[j]     = 0.0;
+            
+            middle_velocity[j]      = current_velocity[j] ;
             current_residual[j]     = 0.0;
             current_displacement[j] = 0.0;
           }
@@ -357,77 +368,80 @@ namespace Kratos
       Performing the update of the solution.
   */
   //***************************************************************************
-  virtual void Update(ModelPart& r_model_part,
-    DofsArrayType& rDofSet,
-    TSystemMatrixType& A,
-    TSystemVectorType& Dx,
-    TSystemVectorType& b
-    )
-  {
-    KRATOS_TRY
-
-    ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-    NodesArrayType& pNodes            = r_model_part.Nodes();
-
-
-    //Step Update
-    mTime.Current   = rCurrentProcessInfo[TIME];
-    mTime.Delta     = rCurrentProcessInfo[DELTA_TIME];
-
-    mTime.Middle    = 0.5*(mTime.Previous + mTime.Current);
-
-
-#ifdef _OPENMP
-    int number_of_threads = omp_get_max_threads();
-#else
-    int number_of_threads = 1;
-#endif
-
-    vector<unsigned int> node_partition;
-    OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
-#pragma omp parallel for
-    for(int k=0; k<number_of_threads; k++)
+virtual void Update(ModelPart& r_model_part,
+      DofsArrayType& rDofSet,
+      TSystemMatrixType& A,
+      TSystemVectorType& Dx,
+      TSystemVectorType& b
+      )
     {
-      typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-      typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+      KRATOS_TRY
 
-      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+      NodesArrayType& pNodes            = r_model_part.Nodes();
+
+      //Step Update
+      mTime.Current   = rCurrentProcessInfo[TIME];  //the first step is time = initial_time ( 0.0) + delta time
+      mTime.Delta     = rCurrentProcessInfo[DELTA_TIME];
+
+      mTime.Middle    = 0.5*(mTime.Previous + mTime.Current);
+
+
+  #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+  #else
+      int number_of_threads = 1;
+  #endif
+
+      vector<unsigned int> node_partition;
+      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+  #pragma omp parallel for
+      for(int k=0; k<number_of_threads; k++)
       {
+        typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+        typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-        //Current step information "N+1" (before step update).
-
-        const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
-        array_1d<double,3>& current_residual        = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-        array_1d<double,3>& current_velocity        = i->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double,3>& current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double,3>& middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-
-        array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
-        
-
-        //Solution of the explicit equation:
-        current_acceleration = current_residual/nodal_mass;
-                
-        if( (i->pGetDof(DISPLACEMENT_X))->IsFree() )
+        for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
-                      
+
+          //Current step information "N+1" (before step update).
+
+          const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
+          array_1d<double,3>& current_residual        = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+          array_1d<double,3>& current_velocity        = i->FastGetSolutionStepValue(VELOCITY);
+          array_1d<double,3>& current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
+          array_1d<double,3>& middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+
+          array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
+
+
+          //Solution of the explicit equation:
+          current_acceleration = current_residual/nodal_mass;
+
+          if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() )
+          {
+            
+            current_acceleration[0]  = 0.0;
+            middle_velocity[0]       = 0.0;
+            
+          }
+
           current_velocity[0]      = middle_velocity[0] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[0]; //+ actual_velocity;
 
           middle_velocity[0]       = current_velocity[0] + (mTime.Middle - mTime.Previous) * current_acceleration[0] ;
 
-          current_displacement[0]  = current_displacement[0] + mTime.Delta * middle_velocity[0];
+          current_displacement[0]  = current_displacement[0] + mTime.Delta * middle_velocity[0];      
+         
 
-        }
-        
-        else
-        {
-          current_acceleration[0]  = 0;
-        }
-
-        if( (i->pGetDof(DISPLACEMENT_Y))->IsFree() )
-        {
+          if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() )
+          {
+            
+            current_acceleration[1]  = 0.0;
+            middle_velocity[1]       = 0.0;
+            
+          }
 
           current_velocity[1]      = middle_velocity[1] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[1]; //+ actual_velocity;
 
@@ -435,43 +449,137 @@ namespace Kratos
 
           current_displacement[1]  = current_displacement[1] + mTime.Delta * middle_velocity[1];
 
-        }
-        
-        else
-        {
-          current_acceleration[1]  = 0;
-        }
-
-        if( i->HasDofFor(DISPLACEMENT_Z) )
-        {
-    
-          if( (i->pGetDof(DISPLACEMENT_Z))->IsFree() )
+          
+          if( i->HasDofFor(DISPLACEMENT_Z) )
           {
+            
+              if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() )
+              {
+                
+                current_acceleration[2]  = 0.0;
+                middle_velocity[2]       = 0.0;
+                
+              }
+
+              current_velocity[2]      = middle_velocity[2] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[2]; //+ actual_velocity;
+
+              middle_velocity[2]       = current_velocity[2] + (mTime.Middle - mTime.Previous) * current_acceleration[2] ;
+
+              current_displacement[2]  = current_displacement[2] + mTime.Delta * middle_velocity[2];
+
+            }
+
+          }
+
+      }
+
+      mTime.Previous = mTime.Current;
+      mTime.PreviousMiddle = mTime.Middle;
+
+
+      KRATOS_CATCH("")
+    }
+
+    virtual void SchemeCustomInitialization(ModelPart& r_model_part)
+    {
+      KRATOS_TRY
+
+      NodesArrayType& pNodes            = r_model_part.Nodes();
+
+
+  #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+  #else
+      int number_of_threads = 1;
+  #endif
+
+      vector<unsigned int> node_partition;
+      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+  #pragma omp parallel for
+      for(int k=0; k<number_of_threads; k++)
+      {
+        typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+        typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+        for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+        {
+
+          //Current step information "N+1" (before step update).
+
+          const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
+          array_1d<double,3>& current_residual        = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+          array_1d<double,3>& current_velocity        = i->FastGetSolutionStepValue(VELOCITY);
+          array_1d<double,3>& current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
+          array_1d<double,3>& middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+
+          array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
+
+
+          //Solution of the explicit equation:
+          current_acceleration = current_residual/nodal_mass;
+
+          if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() )
+          {
+            
+            current_acceleration[0]  = 0.0;
+            middle_velocity[0]       = 0.0;
+            
+          }
+
+            middle_velocity[0]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[0] ;
+
+            current_velocity[0]      = middle_velocity[0] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[0]; //+ actual_velocity;
+
+            current_displacement[0]  = 0.0;
+
+          
+          if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() )
+          {
+            
+            current_acceleration[1]  = 0.0;
+            middle_velocity[1]       = 0.0;
+            
+          }
+ 
+          middle_velocity[1]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[1] ;
+
+          current_velocity[1]      = middle_velocity[1] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[1]; //+ actual_velocity;
+
+          current_displacement[1]  = 0.0;
+
+          if( i->HasDofFor(DISPLACEMENT_Z) )
+          {
+
+            if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() )
+            {
+            
+              current_acceleration[2]  = 0.0;
+              middle_velocity[2]       = 0.0;
+            
+            }
+
+            middle_velocity[2]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[2] ;
 
             current_velocity[2]      = middle_velocity[2] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[2]; //+ actual_velocity;
 
-            middle_velocity[2]       = current_velocity[2] + (mTime.Middle - mTime.Previous) * current_acceleration[2] ;
+            current_displacement[2]  = 0.0;
 
-            current_displacement[2]  = current_displacement[2] + mTime.Delta * middle_velocity[2];
 
           }
-          else
-          {
-            current_acceleration[2]  = 0;
+
+
           }
 
-        }
+      }
 
-	    }
+      mTime.Previous = mTime.Current;
+      mTime.PreviousMiddle = mTime.Middle;
 
+
+      KRATOS_CATCH("")
     }
-
-    mTime.Previous = mTime.Current;
-    mTime.PreviousMiddle = mTime.Middle;
-
-
-    KRATOS_CATCH("")
-  }
 
 
   //***************************************************************************
