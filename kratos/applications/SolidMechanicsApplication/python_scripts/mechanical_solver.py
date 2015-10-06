@@ -7,6 +7,7 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part, config=None):  
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS) #MSI, i included the variable becouse i calculate energy
     # add displacements
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     # add dynamic variables
@@ -47,7 +48,7 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(NODAL_MASS)
                 model_part.AddNodalSolutionStepVariable(FORCE_RESIDUAL)
                 model_part.AddNodalSolutionStepVariable(MIDDLE_VELOCITY)
-                        
+                
     print("::[Mechanical Solver]:: Variables ADDED")
 
 
@@ -57,7 +58,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(DISPLACEMENT_X, REACTION_X);
         node.AddDof(DISPLACEMENT_Y, REACTION_Y);
         node.AddDof(DISPLACEMENT_Z, REACTION_Z);
-
+        
     if config is not None:
         if hasattr(config, "RotationDofs"):
             if config.RotationDofs:
