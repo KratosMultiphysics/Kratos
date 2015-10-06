@@ -44,7 +44,8 @@ namespace Kratos {
         mKt = 8.0 * equiv_shear * sqrt_equiv_radius_and_indentation;
     }
     
-    void DEM_D_Hertz_viscous_Coulomb::CalculateForces(const double OldLocalContactForce[3],
+    void DEM_D_Hertz_viscous_Coulomb::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                                                      const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
                                                              double LocalRelVel[3],            
@@ -176,7 +177,8 @@ namespace Kratos {
         mKt = 8.0 * effective_shear * sqrt_equiv_radius_and_indentation;
     }
     
-    void DEM_D_Hertz_viscous_Coulomb::CalculateForcesWithFEM(const double OldLocalContactForce[3],
+    void DEM_D_Hertz_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+                                                             const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
                                                              double LocalRelVel[3],            
