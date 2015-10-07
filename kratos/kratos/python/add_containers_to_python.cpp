@@ -488,7 +488,8 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHT_FATHER_NODES )
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_ENERGY ) 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_ENERGY )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( STRAIN_ENERGY ) 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( EXTERNAL_ENERGY ) 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( KINETIC_ENERGY )
 
@@ -901,7 +902,6 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DEM_DELTA_TIME)
-
                     
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
     .def("SetDensityVariable",&ConvectionDiffusionSettings::SetDensityVariable)
