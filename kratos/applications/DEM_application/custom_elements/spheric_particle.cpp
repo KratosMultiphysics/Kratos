@@ -895,8 +895,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 {
     KRATOS_TRY
 
-    std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;        
-    array_1d<double, 3> vel            = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);            
+    std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;        
+    array_1d<double, 3> vel              = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);            
+    const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         
@@ -943,7 +944,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             const double actual_distance_to_contact_point = GetRadius() - indentation;
             
             if (this->Is(DEMFlags::HAS_ROTATION)) {            
-                const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
                                 
                 array_1d<double, 3> actual_arm_vector;
@@ -990,7 +990,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForce_array,GlobalContactForce)
                     
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+              if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+                const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / mTimeStep;
+                noalias(rInitialRotaMoment) = coeff_acc * AngularVel; // the moment needed to stop the spin in one time step
+              }
+              
+              ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
         
             //WEAR        
