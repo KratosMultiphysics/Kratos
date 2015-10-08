@@ -184,7 +184,7 @@ public:
       switch (method)
       {
         case 1:
-          result = HierarchicalMethod(rObj_1, rObj_2);
+          result = HierarchicalMethod(rObj_1, rObj_2); 
           break;
           
         case 2:
@@ -464,27 +464,10 @@ public:
             casus = 8;
             
         }
-        
-//         KRATOS_WATCH("  ")   
-//         KRATOS_WATCH(rObj_1->Id())
-//         KRATOS_WATCH(rObj_2->Id())
-//         KRATOS_WATCH(Area)   
-//         KRATOS_WATCH(casus)   
-//         KRATOS_WATCH(CoM[0])
-//         KRATOS_WATCH(CoM[1])
-//         KRATOS_WATCH(CoM[2]) 
-              
+   
         double Weight[3] = {0.0};
         GeometryFunctions::TriAngleWeight(Coord[0], Coord[1], Coord[2], CoM, Weight);
-//         std::cout<< std::setprecision(12) << (rObj_1->GetGeometry()[0].Coordinates()[1])<<std::endl;
-//         KRATOS_WATCH(rObj_2->Id())
-//         KRATOS_WATCH(Weight[0] + Weight[1] + Weight[2])
-//         KRATOS_WATCH(distance_cp_to_plane)
-//         KRATOS_WATCH(Weight[1])
-//         KRATOS_WATCH(Weight[2])
-//         KRATOS_WATCH(Weight[2])
-        
-        
+
         if(Area<0.0)
         {
             KRATOS_WATCH("ERROR_NUMERO 88942132432484 EN RIGID_FACE_GE0")
@@ -508,23 +491,7 @@ public:
         std::size_t ino = RF_Pram.size();
         
         RF_Pram.resize(ino + 16);
-        /*
-        RF_Pram[ino + 0]  = LocalCoordSystem[0][0];//Room for improvement: ¿could we just store LocalCoordSystem[2]? Could we regenerate 0 and 1 randomly when we need the coordinate system? --> may be a problem for the tangential force?
-        RF_Pram[ino + 1]  = LocalCoordSystem[0][1];
-        RF_Pram[ino + 2]  = LocalCoordSystem[0][2];
-        RF_Pram[ino + 3]  = LocalCoordSystem[1][0];
-        RF_Pram[ino + 4]  = LocalCoordSystem[1][1];
-        RF_Pram[ino + 5]  = LocalCoordSystem[1][2];
-        RF_Pram[ino + 6]  = normal_flag*LocalCoordSystem[2][0]; //the result points outwards with a counterclockwise sorting of nodes criteria
-        RF_Pram[ino + 7]  = normal_flag*LocalCoordSystem[2][1];
-        RF_Pram[ino + 8]  = normal_flag*LocalCoordSystem[2][2];
-        
-        RF_Pram[ino + 9]  = distance_cp_to_plane; //this one is also wrong im trying to put the indentation in the direction particle - COM, but the strategy is to use the area not the indentation
-        
-        */ //THose are normal coordinate system, while we want the ball to go in another direction, the problem will be maybe in the definition of tangential 
-        
-        
-        
+
         Outwards[0]   = Particle_Coord[0]-CoM[0];
         Outwards[1]   = Particle_Coord[1]-CoM[1];
         Outwards[2]   = Particle_Coord[2]-CoM[2];
@@ -539,8 +506,7 @@ public:
         GeometryFunctions::normalize(Auxiliar1);
         GeometryFunctions::normalize(Auxiliar2);
         GeometryFunctions::normalize(Outwards);
-        
-        
+ 
         RF_Pram[ino + 0]  = Auxiliar1[0];
         RF_Pram[ino + 1]  = Auxiliar1[1];
         RF_Pram[ino + 2]  = Auxiliar1[2];
@@ -552,12 +518,7 @@ public:
         RF_Pram[ino + 8]  = Outwards[2];
         
         double dist = GeometryFunctions::DistanceOfTwoPoint(CoM,Particle_Coord);
-   /*     
-        if( (rObj_1->Id() == 8) || (rObj_1->Id() == 6)|| (rObj_1->Id() == 5))
-        {dist = 0.5*dist;}
-        if( (rObj_1->Id() == 15) || (rObj_1->Id() == 10)|| (rObj_1->Id() == 9) || (rObj_1->Id() == 1) )
-        {dist = 2*dist;}
-       */ 
+
         RF_Pram[ino + 9]  = dist;
         RF_Pram[ino + 10] = Weight[0];
         RF_Pram[ino + 11] = Weight[1];
@@ -958,18 +919,15 @@ public:
         int FaceNodeTotal = 3;
         int facet_size = rObj_2->GetGeometry().size();
         
-        if( facet_size==4 )
+        if( facet_size==4 ) //for other convex polygons, see: Meyer, Lee, Barr, Desbrun
         {
             Coord[3][0] = rObj_2->GetGeometry()[3].Coordinates()[0];
             Coord[3][1] = rObj_2->GetGeometry()[3].Coordinates()[1];
             Coord[3][2] = rObj_2->GetGeometry()[3].Coordinates()[2];
 
-            //Cfeng: Quadrilateral
             FaceNodeTotal = 4;
         }
-
-        
-                
+  
         //Particle-Face contact
         
         double distance_point_to_plane        = 0.0;
@@ -982,9 +940,8 @@ public:
         //In this case it might have contact with edges or vertices, otherwise no contact is possible. 
                 
         ///Particle-edge contact and Particle-point
-        if( (ContactExists == false) && (distance_point_to_plane <= Radius ) )
-        {
-         
+        if( (ContactExists == false) && (distance_point_to_plane < Radius ) )
+        {         
             ContactExists = QuickClosestEdgeVertexDetermination(/*ContactType ,*/Coord, Particle_Coord, facet_size, Radius);
 
         }//no plane contact found
