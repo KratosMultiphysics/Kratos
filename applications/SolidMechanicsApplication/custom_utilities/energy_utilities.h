@@ -108,8 +108,8 @@ namespace Kratos
         #pragma omp parallel private (KineticEnergy, vel, mass, vel_arg)
         {
             int k = OpenMPUtils::ThisThread();
-            typename ModelPart::NodesContainerType::iterator NodeBegin = pNodes.begin() + node_partition[k];
-            typename ModelPart::NodesContainerType::iterator NodeEnd = pNodes.begin() + node_partition[k + 1];
+            ModelPart::NodesContainerType::iterator NodeBegin = pNodes.begin() + node_partition[k];
+            ModelPart::NodesContainerType::iterator NodeEnd = pNodes.begin() + node_partition[k + 1];
 
 
             for (ModelPart::NodesContainerType::const_iterator in = NodeBegin; in != NodeEnd; in++){
@@ -167,8 +167,8 @@ namespace Kratos
         #pragma omp parallel private (gh, VolumeAcceleration, mass, coord)
         {
             int k = OpenMPUtils::ThisThread();
-            typename ModelPart::NodesContainerType::iterator NodeBegin = pNodes.begin() + node_partition[k];
-            typename ModelPart::NodesContainerType::iterator NodeEnd = pNodes.begin() + node_partition[k + 1];
+            ModelPart::NodesContainerType::iterator NodeBegin = pNodes.begin() + node_partition[k];
+            ModelPart::NodesContainerType::iterator NodeEnd = pNodes.begin() + node_partition[k + 1];
 
 
             for (ModelPart::NodesContainerType::const_iterator in = NodeBegin; in != NodeEnd; in++)
@@ -230,8 +230,8 @@ namespace Kratos
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
-            typename ModelPart::ElementsContainerType::iterator ElemBegin = pElements.begin() + element_partition[k];
-            typename ModelPart::ElementsContainerType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
+            ModelPart::ElementsContainerType::iterator ElemBegin = pElements.begin() + element_partition[k];
+            ModelPart::ElementsContainerType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
             for(ModelPart::ElementsContainerType::const_iterator ie = ElemBegin; ie != ElemEnd; ie++)
             {
@@ -304,8 +304,8 @@ namespace Kratos
 
           for(int k=0; k<number_of_threads; k++)
           {
-              typename ModelPart::NodesContainerType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-              typename ModelPart::NodesContainerType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+              ModelPart::NodesContainerType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+              ModelPart::NodesContainerType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
               for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
               {
@@ -323,10 +323,10 @@ namespace Kratos
       #pragma omp parallel
       {
           int k = OpenMPUtils::ThisThread();
-          typename ModelPart::ElementsContainerType::iterator ElemBegin = pElements.begin() + element_partition[k];
-          typename ModelPart::ElementsContainerType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
+          ModelPart::ElementsContainerType::iterator ElemBegin = pElements.begin() + element_partition[k];
+          ModelPart::ElementsContainerType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-          for (typename ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
+          for (ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
           {
               Matrix MassMatrix;
 
