@@ -319,12 +319,12 @@ namespace Kratos
          TriAngleArea(Coord3, Coord4, JudgeCoord, area[2]);
          TriAngleArea(Coord4, Coord1, JudgeCoord, area[3]);
          
-         TriAngleArea(Coord1, Coord2, Coord3, s1);
-         TriAngleArea(Coord1, Coord3, Coord4, s2);
+         TriAngleArea(Coord1, Coord2, Coord3, s1);//msimsi
+         TriAngleArea(Coord1, Coord3, Coord4, s2);//msimsi
          
          s = s1 + s2;
 
-         if( fabs(area[0] + area[1] + area[2] + area[3] - s) < 1.0e-15 )
+         if( fabs(area[0] + area[1] + area[2] + area[3] - s) < 1.0e-15 ) //msimsi
          {
              double QuadNormArea = 1 / ((area[0] + area[2]) * (area[1] + area[3]));
 
@@ -1036,7 +1036,7 @@ namespace Kratos
             if( (FaceNodeTotal == 4) && (If_Contact==false)) //maybe not found inside first triangle, then check second triangular half of the quadrilateral
             {
             
-                bool If_Contact2 = Fast_PointInsideTriangle(Coord[0], Coord[1], Coord[3], IntersectionCoord);
+                bool If_Contact2 = Fast_PointInsideTriangle(Coord[0], Coord[2], Coord[3], IntersectionCoord);
                 
                 if( (If_Contact == true) || (If_Contact2 == true) ) { If_Contact = true; }
 
