@@ -294,20 +294,45 @@ namespace Kratos
       area= sqrt(Vector0[0] * Vector0[0] + Vector0[1] * Vector0[1] + Vector0[2] * Vector0[2]) / 2.0;
     }
 
-     //TriAngle Wight, coord1,coord2,coord3,testcoord,weight
+     //TriAngle Weight, coord1,coord2,coord3,testcoord,weight
      static inline void TriAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double JudgeCoord[3], double Weight[3])
      {
-        double area[3], s;
-        TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
-        TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
-        TriAngleArea(Coord3, Coord1, JudgeCoord, area[2]);
+         double area[3], s;
+         TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
+         TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
+         TriAngleArea(Coord3, Coord1, JudgeCoord, area[2]);
 
-        TriAngleArea(Coord1, Coord2, Coord3, s);
-        /////s = area[0] + area[1] + area[2];
+         TriAngleArea(Coord1, Coord2, Coord3, s);
+         /////s = area[0] + area[1] + area[2];
 
-        Weight[0] = area[1] / s;
-        Weight[1] = area[2] / s;
-        Weight[2] = area[0] / s;
+         Weight[0] = area[1] / s;
+         Weight[1] = area[2] / s;
+         Weight[2] = area[0] / s;
+     }
+     
+     //Quadrilatera Weight, coord1,coord2,coord3,testcoord,weight (Paper Zhang)
+     static inline void QuadAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double Coord4[3], double JudgeCoord[3], double Weight[4])
+     {
+         double area[4], s1, s2, s;
+         TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
+         TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
+         TriAngleArea(Coord3, Coord4, JudgeCoord, area[2]);
+         TriAngleArea(Coord4, Coord1, JudgeCoord, area[3]);
+         
+         TriAngleArea(Coord1, Coord2, Coord3, s1);
+         TriAngleArea(Coord1, Coord3, Coord4, s2);
+         
+         s = s1 + s2;
+
+         if( fabs(area[0] + area[1] + area[2] + area[3] - s) < 1.0e-15 )
+         {
+             double QuadNormArea = 1 / ((area[0] + area[2]) * (area[1] + area[3]));
+
+             Weight[0] = (area[1] * area[2]) * QuadNormArea;
+             Weight[1] = (area[2] * area[3]) * QuadNormArea;
+             Weight[2] = (area[3] * area[0]) * QuadNormArea;
+             Weight[3] = (area[0] * area[1]) * QuadNormArea;
+         }
      }
 
      static inline double DistancePointToPlane(double CoordInPlane[3], double PlaneUnitNormalVector[3], double TestCoord[3])
@@ -916,82 +941,41 @@ namespace Kratos
            double IntersectionCoord[3];
            CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
            
-           double TriWeight[3] = {0.0};
-           TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
-           
-           int triangle_number = 0; // to know how many triangles of the quadrilateral surface does the contact point touches
-
-           if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
+           if( (FaceNodeTotal == 3) )
            {
-              Weight[0] = TriWeight[0];
-              Weight[1] = TriWeight[1];
-              Weight[2] = TriWeight[2];
+               double TriWeight[3] = {0.0};
+               TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
+                      
+               if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
+               {
+                   Weight[0] = TriWeight[0];
+                   Weight[1] = TriWeight[1];
+                   Weight[2] = TriWeight[2];
  
-              If_Contact = true;
-              
-              triangle_number++;
-            }
+                   If_Contact = true;
+               }
+           }
             
-            if( (FaceNodeTotal == 4) ) //maybe not found inside first triangle, then check second triangular half of the quadrilateral
-            {
-              Weight[3] = 0.0;
-              TriAngleWeight(Coord[0], Coord[1], Coord[3], IntersectionCoord, TriWeight);
-
-              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
-              {
-                Weight[0] += TriWeight[0];
-                Weight[1] += TriWeight[1];
-                Weight[3] += TriWeight[2];
+           if( (FaceNodeTotal == 4) )
+           {
+               double QuadWeight[4] = {0.0};
+               QuadAngleWeight(Coord[0], Coord[1], Coord[2],  Coord[3], IntersectionCoord, QuadWeight);
+                      
+               if( fabs(QuadWeight[0] + QuadWeight[1] + QuadWeight[2] + QuadWeight[3] - 1.0) < 1.0e-15 )
+               {
+                   Weight[0] = QuadWeight[0];
+                   Weight[1] = QuadWeight[1];
+                   Weight[2] = QuadWeight[2];
+                   Weight[3] = QuadWeight[3];
+               
+                   If_Contact = true;
+               }
+           }
+       }
  
-                If_Contact = true;
-              
-                triangle_number++;
-              }
-              
-              TriAngleWeight(Coord[0], Coord[2], Coord[3], IntersectionCoord, TriWeight);
-
-              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
-              {
-                Weight[0] += TriWeight[0];
-                Weight[2] += TriWeight[1];
-                Weight[3] += TriWeight[2];
- 
-                If_Contact = true;
-                
-                triangle_number++;
-              }
-              
-              TriAngleWeight(Coord[1], Coord[2], Coord[3], IntersectionCoord, TriWeight);
-
-              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
-              {
-                Weight[1] += TriWeight[0];
-                Weight[2] += TriWeight[1];
-                Weight[3] += TriWeight[2];
- 
-                If_Contact = true;
-                
-                triangle_number++;
-              }
-              
-              if (If_Contact)
-              {
-                double factor = 1.0/triangle_number;
-            
-                Weight[0] = factor * Weight[0];
-                Weight[1] = factor * Weight[1];
-                Weight[2] = factor * Weight[2];
-                Weight[3] = factor * Weight[3];
-              }
-              
-
-            }
-              
-        }
- 
-        return If_Contact;
+       return If_Contact;
           
-     } //JudgeIfThisFaceIsContactWithParticle;
+   } //JudgeIfThisFaceIsContactWithParticle;
      
     //M.Santasusana Februar 2015   
      
@@ -1053,9 +1037,8 @@ namespace Kratos
             {
             
                 bool If_Contact2 = Fast_PointInsideTriangle(Coord[0], Coord[1], Coord[3], IntersectionCoord);
-                bool If_Contact3 = Fast_PointInsideTriangle(Coord[0], Coord[2], Coord[3], IntersectionCoord);
                 
-                if( (If_Contact == true) || (If_Contact2 == true) || (If_Contact3 == true)) { If_Contact = true; }
+                if( (If_Contact == true) || (If_Contact2 == true) ) { If_Contact = true; }
 
             }
             
