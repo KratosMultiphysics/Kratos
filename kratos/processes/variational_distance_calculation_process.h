@@ -349,6 +349,9 @@ protected:
                                              iii->pGetGeometry(),
                                              iii->pGetProperties() ) );
 
+            //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
+            p_element->pGetGeometry() = iii->pGetGeometry();
+            
             mp_distance_model_part->Elements().push_back(p_element);
         }
 

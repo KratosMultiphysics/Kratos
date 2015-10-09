@@ -129,6 +129,10 @@ public:
         {
             Properties::Pointer properties = iii->pGetProperties();
             Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
+            
+            //actually use the geometry of the old element, so that memory is saved!!
+            p_element->pGetGeometry() = iii->pGetGeometry();
+            
             DestinationModelPart.Elements().push_back(p_element);
         }
 
@@ -138,6 +142,10 @@ public:
             Properties::Pointer properties = iii->pGetProperties();
 
             Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);
+            
+            //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
+            p_condition->pGetGeometry() = iii->pGetGeometry();
+            
             DestinationModelPart.Conditions().push_back(p_condition);
         }
         
