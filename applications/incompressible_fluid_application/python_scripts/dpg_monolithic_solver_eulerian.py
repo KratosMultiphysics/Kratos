@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+﻿from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -11,6 +11,7 @@ from KratosMultiphysics.Click2CastApplication import *
 CheckForPreviousImport()
 
 import levelset_solver
+import linear_solver_factory
 
 # settings for the convection solver
 distance_settings = ConvectionDiffusionSettings()
@@ -78,9 +79,12 @@ def AddDofs(model_part):
 
 
 class MonolithicSolver:
-    #
 
-    def __init__(self, model_part, domain_size,linear_solver_iterations=300, linear_solver_tolerance=1e-5,dynamic_tau_levelset=0.01):
+    def __init__(self, model_part, domain_size,fluid_linear_solver_settings,redistance_settings):
+    #def __init__(self, model_part, domain_size,linear_solver_iterations=300, linear_solver_tolerance=1e-5,dynamic_tau_levelset=0.01):
+        self.fluid_linear_solver_settings=fluid_linear_solver_settings
+        self.redistance_settings=redistance_settings
+        self.redistance_type=redistance_settings.redistance_type
         self.model_part = model_part
         self.domain_size = domain_size
         self.alpha = -0.0
@@ -105,23 +109,22 @@ class MonolithicSolver:
         # self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)
         # self.linear_solver = PastixSolver(verbosity,False)
         # new solvers
-        self.gmres_size = 200
-        self.iterations = linear_solver_iterations #400 # Ojo, antes 200
-        self.tol = linear_solver_tolerance #1e-5 #Before 1e-5
-        self.verbosity = 1
+        self.gmres_size = fluid_linear_solver_settings.gmres_size
+        self.iterations = fluid_linear_solver_settings.linear_solver_iterations #400 # Ojo, antes 200
+        self.tol = fluid_linear_solver_settings.linear_solver_tolerance #1e-5 #Before 1e-5
+        self.verbosity = fluid_linear_solver_settings.verbosity
         self.linear_solver = ScalingSolver(AMGCLSolver(
             AMGCLSmoother.ILU0,
             AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK, #AMGCLIterativeSolverType.GMRES, #BICGSTAB_WITH_GMRES_FALLBACK,
-            self.tol,
-            self.iterations,
-            self.verbosity,
-            self.gmres_size),True)
+            fluid_linear_solver_settings.linear_solver_tolerance,
+            fluid_linear_solver_settings.linear_solver_iterations,
+            fluid_linear_solver_settings.verbosity,
+            fluid_linear_solver_settings.gmres_size),True)
         print("#####################################")
         print("#### LINEAR SOLVER               ####")
         print("#####################################")
         print(self.linear_solver)
         print("#####################################")
-        print("A VER ")
 #### PRUEBA a ver 
 
         # definition of the convergence criteria
@@ -130,8 +133,8 @@ class MonolithicSolver:
         self.rel_pres_tol = 1e-5
         self.abs_pres_tol = 1e-7
 
-        self.dynamic_tau_levelset = dynamic_tau_levelset
-        self.dynamic_tau_fluid = 0.01
+        self.dynamic_tau_levelset =  fluid_linear_solver_settings.dynamic_tau_levelset
+        self.dynamic_tau_fluid = fluid_linear_solver_settings.dynamic_tau_fluid #0.01
         self.oss_switch = 0
 
         # non newtonian setting
@@ -178,25 +181,59 @@ class MonolithicSolver:
 
         self.mu = 3.0e-3
         self.divergence_clearance_performed = False
-        #
+        
+
+
+
+
+        ##########################################
+        ##### Compute Max Edge Size       ########
+        ##########################################
+
+        if(self.domain_size == 2):
+            self.max_edge_size = ParallelDistanceCalculator2D().FindMaximumEdgeSize(self.level_set_model_part)
+        else:
+            self.max_edge_size = ParallelDistanceCalculator3D().FindMaximumEdgeSize(self.level_set_model_part) 
+        # self.max_distance = self.max_edge_size * self.redistance_settings.max_distance_factor #Ojo antes 5.0
+
+
+
+        ##########################################
+        ##### Compute Max Edge Size       ########
+        ##########################################
+        self.internal_step_counter = 1
+        self.redistance_frequency = self.redistance_settings.redistance_frequency
+
+        ##########################################
+        ##### OLD REDISTANCE              ########
+        ##########################################
+
 
         # Distance utilities
+        if(self.redistance_type=="Old"):
+            print("performing Old Redistance")
+            if(self.domain_size == 2):
+                self.distance_calculator = ParallelDistanceCalculator2D()
+            else:
+                self.distance_calculator = ParallelDistanceCalculator3D()
 
-         #
-        if(self.domain_size == 2):
-            self.redistance_utils = ParallelDistanceCalculator2D()
+
+            self.max_edge_size = self.distance_calculator.FindMaximumEdgeSize(self.level_set_model_part)
+            self.max_distance = self.max_edge_size * self.redistance_settings.max_distance_factor #Ojo antes 5.0
+            self.max_levels = self.redistance_settings.max_levels #Ojo antes 25
+
+            self.max_ns_iterations =self.redistance_settings.max_ns_iterations #Ojo antes 8
         else:
-            self.redistance_utils = ParallelDistanceCalculator3D()
+            print("performing New Redistance")
+            for cond in self.model_part.Conditions:
+                for node in cond.GetNodes():
+                    node.Set(BOUNDARY,True)
 
-        self.redistance_frequency = 1
-        self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(
-            self.level_set_model_part)
-        self.max_distance = self.max_edge_size * 5.0 #Ojo antes 5.0
-        self.max_levels = 25
-
-        self.max_ns_iterations = 8
-        self.internal_step_counter = 1
-
+            distance_calculator_aux = ParallelDistanceCalculator3D()
+            self.max_edge_size = distance_calculator_aux.FindMaximumEdgeSize(self.level_set_model_part)
+            distance_linear_solver=linear_solver_factory.ConstructSolver(self.redistance_settings)
+            self.distance_calculator=VariationalDistanceCalculationProcess3D(self.model_part,distance_linear_solver,self.redistance_settings.redistance_iterations)
+            self.max_distance = self.max_edge_size * self.redistance_settings.max_distance_factor
         # Slip condition
         self.use_slip_conditions = False
 
@@ -249,7 +286,12 @@ class MonolithicSolver:
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau = self.dynamic_tau_levelset
-        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE, NODAL_AREA,self.max_levels,self.max_distance)
+
+        #Calculate Distances
+
+        #self.redistance_utils.CalculateDistances(self.model_part,DISTANCE, NODAL_AREA,self.max_levels,self.max_distance)
+        self.DoRedistance()
+
         self.level_set_solver.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
             AMGCLIterativeSolverType.GMRES,
@@ -295,9 +337,13 @@ class MonolithicSolver:
     #
     def DoRedistance(self):
         # redistance if required
-        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA, self.max_levels, self.max_distance)
+        if(self.redistance_type=="Old"):
+            print("performing Old Redistance")
+            self.distance_calculator.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA, self.max_levels, self.max_distance)
+        else:
+            print("performing New Redistance")
+            self.distance_calculator.Execute()
 
-     #
     def ConvectDistance(self):
         #self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, distance_settings)
@@ -316,21 +362,19 @@ class MonolithicSolver:
         self.OldNetInletVolume=self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
         self.OldWetVolume=self.model_part.ProcessInfo[WET_VOLUME]
 
-
+        WetVolumeBeforeConvecting=BiphasicFillingUtilities().ComputeWetVolume(self.model_part)
         if(step > 3):
             (self.solver).Predict()
 
         Timer.Start("ConvectDistance")
         # convect distance function
-
+        
         self.ConvectDistance()
-
-
         # recompute distance function as needed
         Timer.Start("DoRedistance")
         # Time to compute the Element Distance Gradient
-        self.distance_utilities.ComputeElementalGradient(self.model_part)
-
+        #self.distance_utilities.ComputeElementalGradient(self.model_part)
+        WetVolumeBeforeRedistance = BiphasicFillingUtilities().ComputeWetVolume(self.model_part)
         # Checking the Conditions for the Redistance:CDL
         redistance_now=False
         if(self.internal_step_counter >= self.next_redistance):
@@ -353,8 +397,10 @@ class MonolithicSolver:
             
             #ensure that inlet nodes are still wet
             for node in self.inlet_nodes:
+                node.Free(DISTANCE)
                 if( node.GetSolutionStepValue(DISTANCE) > 0.0):
                     node.SetSolutionStepValue(DISTANCE,0,  -0.01*self.max_edge_size)
+                    #pass
             self.DoRedistance()
             self.next_redistance = self.internal_step_counter + self.redistance_frequency
         
@@ -362,8 +408,15 @@ class MonolithicSolver:
 
         # Now we compute the volume before the correction
         WetVolumeBeforeCorrection = BiphasicFillingUtilities().ComputeWetVolume(self.model_part)
+        
         # Here The Net InleVolume is computed and saved into ProcessInfo[NET_INPUT_MATERIAL]
         BiphasicFillingUtilities().ComputeNetInletVolume(self.model_part)
+        log_file = open("volume_loss.log", 'a')
+        volumen_inyectado=self.model_part.ProcessInfo[NET_INPUT_MATERIAL]-self.OldNetInletVolume
+        VolTeor=WetVolumeBeforeConvecting+volumen_inyectado
+        print("B. Convec: ", WetVolumeBeforeConvecting, " A. Conv: " , WetVolumeBeforeRedistance," Teor: ",VolTeor,"  A. Redist: ", WetVolumeBeforeCorrection)
+        log_file.write("t: "+str(self.model_part.ProcessInfo[TIME]) +" B. Convec: "+ str(WetVolumeBeforeConvecting) + " A. Conv: " + str(WetVolumeBeforeRedistance) +" Teor: "+str(VolTeor)+"  A. Redist: "+ str(WetVolumeBeforeCorrection)+"\n")
+        # Here The Net InleVolume is computed and saved into ProcessInfo[NET_INPUT_MATERIAL]
         # Now we compute the efficiency
         Efficiency=(WetVolumeBeforeCorrection-self.OldWetVolume)/(self.model_part.ProcessInfo[NET_INPUT_MATERIAL]-self.OldNetInletVolume)
         Efficiency=max(0,min(Efficiency,1.0))
