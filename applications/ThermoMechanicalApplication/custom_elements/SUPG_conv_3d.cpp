@@ -264,6 +264,26 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     /*	old_res += heat_source;*/
     noalias(rRightHandSideVector) += tau * a_dot_grad * old_res;
 
+	//add mass conservation term
+	//double div_v=0.0;
+	//for(unsigned int i=0; i<nodes_number; i++)
+	//{
+	//	const array_1d<double,3> vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+	//	for(unsigned int k=0; k<3; k++)
+	//		div_v += DN_DX(i,k)* vel[k];
+	//}
+	//bounded_matrix<double,4,4> Mconsistent;
+	//for(unsigned int i=0; i<nodes_number; i++)
+	//{
+	//	Mconsistent(i,i) = 0.1;
+	//	for(unsigned int j=i+1; j<nodes_number; j++)
+	//	{
+	//		Mconsistent(i,j) = 0.05;
+	//		Mconsistent(j,i) = 0.05;
+	//	}
+	//}
+
+	//noalias(rLeftHandSideMatrix) -= div_v*Mconsistent;
 
     //subtracting the dirichlet term
     // RHS -= LHS*temperatures
