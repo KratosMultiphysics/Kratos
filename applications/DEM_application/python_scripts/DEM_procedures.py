@@ -660,7 +660,7 @@ class DEMFEMProcedures(object):
         self.print_export_id        = Var_Translator(self.DEM_parameters.PostExportId)
         self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)
 
-        if ((self.DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(self.DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
+        if ((self.DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D")):
             self.print_export_skin_sphere = Var_Translator(self.DEM_parameters.PostExportSkinSphere)
             self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
             if (self.contact_mesh_OPTION):
@@ -770,10 +770,10 @@ class DEMFEMProcedures(object):
                                 self.total_force_z += force_node_z                    
 
                             self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+" "+str("%.6g"%self.total_force_z).rjust(13)+"\n")
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()                    
+                            #self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()
 
 
-            self.balls_graph_counter += 1        
+            self.balls_graph_counter += 1
             
     def FinalizeBallsGraphs(self,spheres_model_part):
 
