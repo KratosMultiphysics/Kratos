@@ -191,6 +191,9 @@ namespace Kratos
 	  }
 	  
          /* Compute solidificatio nand cooling DT */
+	  //*******************************************************************
+	  //************  COMPUTE SOLIDIFICATION DT         *******************
+	  //*******************************************************************
 	  double ComputeSolidificationCoolingDt(ModelPart& ThisModelPart, 
 		  const double solidification_percent, 
 		  const double max_cooling_delta_temp, 
@@ -207,12 +210,23 @@ namespace Kratos
 		  int global_is_solidified = is_solidified;
 		  // 	   ThisModelPart.GetCommunicator().MinAll(global_is_solidified);	   
 
+		  //**********************************
+		  //**** NOT ALL NODES ARE LIQUID ****
+		  //**********************************
 		  if(global_is_solidified == 0)
 		  {
+				//**********************************************************************
+				//**** CHECK  IF ALL NODES ARE OVER LIQUIDUS TEMPERATURE            ****
+				//**********************************************************************
+			  
 			  //pre solidification Dt
 			  int is_hot = CheckMaxTemperature(ThisModelPart);
 			  if( is_hot == 1 )
 			  {
+				  	//**************************************
+					//**** WHEN EVERYTHING IS LIQUID    ****
+					//**************************************
+				  // if so, then use a maximum cooling objective of 10.0 
 				  double max_presolodification_delta_tem = std::min(10.0,max_cooling_delta_temp);
 				  int node_size = ThisModelPart.Nodes().size();
 				  double max_delta_temp = 0.0;
@@ -222,19 +236,16 @@ namespace Kratos
 
 					  double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 					  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
-					  //current_temp -= old_temp;
+					  // Get the Maximum on each thread
 					  max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
-					  //if( current_temp > max_delta_temp)
-						 // max_delta_temp = current_temp;
 				  }
-
 				  ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
 
 				  if( max_delta_temp > 0.0 )
 				  {
-					  double new_delta_time = max_presolodification_delta_tem / max_delta_temp;
-					  //new_delta_time *= current_dt; 
-					  new_delta_time = 1.5*current_dt;
+					  double new_delta_time = std::min(1.5, max_presolodification_delta_tem / max_delta_temp); // 
+					  new_delta_time *= current_dt; 
+					  // new_delta_time = 1.5*current_dt; // Previous transformationn
 
 					  if( new_delta_time > dt_max)
 						  new_delta_time = dt_max;
@@ -252,12 +263,13 @@ namespace Kratos
 			  }
 			  else//solidification Dt
 			  {
-
+				//**************************************
+				//**** WHEN EVERYTHING IS LIQUID    ****
+				//**************************************
 				  double current_solidified_volume = 0.0;
 				  double old_solidified_volume = 0.0;
 				  double tot_vol = 0.0;
 				  //double max_delta_temp=0.0;
-
 				  int node_size = ThisModelPart.Nodes().size();	    
 				  for (int ii = 0; ii < node_size; ii++)
 				  {
@@ -311,7 +323,7 @@ namespace Kratos
 							delta_solid /= tot_vol;
 							//double K=std::min(solidification_percent/delta_solid, max_cooling_delta_temp / max_delta_temp);
 							//KRATOS_WATCH(delta_solid);
-							double new_dt = solidification_percent/delta_solid * current_dt;
+							double new_dt = std::min(1.5, solidification_percent/delta_solid) * current_dt;
 							if( new_dt > dt_max) new_dt = dt_max; //1.5 * current_dt;//dt_max;
 							else if( new_dt < dt_min) new_dt = dt_min;
 							return new_dt;	      
