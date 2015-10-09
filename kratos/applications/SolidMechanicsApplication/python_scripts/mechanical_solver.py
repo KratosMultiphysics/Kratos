@@ -234,7 +234,7 @@ class MechanicalSolver:
         else:
             if(self.block_builder):
                 # to keep matrix blocks in builder
-                self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
+                self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             else:
                 self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
 

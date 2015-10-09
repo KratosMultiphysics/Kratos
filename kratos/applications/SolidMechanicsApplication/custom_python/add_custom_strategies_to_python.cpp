@@ -32,7 +32,6 @@
 //builders and solvers
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 #include "custom_strategies/custom_builders_and_solvers/component_wise_builder_and_solver.hpp"
-#include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
 
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -88,7 +87,6 @@ void  AddCustomStrategiesToPython()
     //custom builder_and_solver types
     typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
     typedef ComponentWiseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseBuilderAndSolverType;
-    typedef BlockResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BlockResidualBasedBuilderAndSolverType;
 
     //custom scheme types
     typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType;
@@ -125,11 +123,6 @@ void  AddCustomStrategiesToPython()
               "ComponentWiseBuilderAndSolver", init< LinearSolverType::Pointer > ()
             );
 
-    // Block Residual Based Builder and Solver   
-    class_< BlockResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
-            (
-              "BlockResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ()
-            );
 
 
     //********************************************************************

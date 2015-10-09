@@ -1,4 +1,3 @@
-
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Last modified by:    $Author:            MSantasusana$
