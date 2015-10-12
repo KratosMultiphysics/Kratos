@@ -70,29 +70,23 @@ class ApplyConstantVectorValue(python_process.PythonProcess):
     
     
 def Factory(settings, Model):
-    #get the mesh and model part of interest
-    model_part = globals()[ Model.get( "model_part_name", "not found!!" ) ] 
+    params = settings["parameters"]
+    model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
     mesh_id = settings["mesh_id"]
     
     if(settings["process_name"] == "ApplyConstantScalarValue"):
-        #query for the list of actual parameters to be employed in construction
-        params = settings["parameters"]
-        
         variable = globals()[ params["variable_name"] ] 
         value = params["value"]
-        is_fixed = settings["is_fixed"]
+        is_fixed = params["is_fixed"]
         
         return ApplyConstantScalarValue(variable, value,is_fixed)
     elif(settings["process_name"] == "ApplyConstantVectorValue"):
-        #query for the list of actual parameters to be employed in construction
-        params = settings["parameters"]
-        
         variable = globals()[ params["variable_name"] ] 
         value = params["value"]
         if(len(value) != 3):
             raise Exception("value should be a vector of size 3. Instead we got ", value)
-        is_fixed_x = settings["is_fixed_x"]
-        is_fixed_y = settings["is_fixed_y"]
-        is_fixed_z = settings["is_fixed_z"]
+        is_fixed_x = params["is_fixed_x"]
+        is_fixed_y = params["is_fixed_y"]
+        is_fixed_z = params["is_fixed_z"]
         
         return ApplyConstantVectorValue(variable, value,is_fixed_x, is_fixed_y, is_fixed_z)
