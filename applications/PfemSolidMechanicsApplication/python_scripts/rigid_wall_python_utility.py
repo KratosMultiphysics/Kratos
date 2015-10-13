@@ -8,7 +8,7 @@ CheckForPreviousImport()
 class RigidWallUtility:
     #
 
-    def __init__(self, model_part, domain_size, wall_configuration):
+    def __init__(self, model_part, domain_size, wall_configuration, waterCondition = False ):
 
         self.model_part  = model_part
         self.domain_size = domain_size
@@ -83,7 +83,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
+                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level, waterCondition))
 
                 elif(conditions["WallType"] == "PLANE"):
                     
@@ -112,7 +112,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
+                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, 8, waterCondition))
 
                         
                 elif(conditions["WallType"] == "CIRCLE"):
@@ -141,7 +141,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
+                    self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level, waterCondition))
 
                 sizei += 1
 
