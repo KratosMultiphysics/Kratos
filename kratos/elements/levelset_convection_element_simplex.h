@@ -93,7 +93,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of Fluid2DASGS
+    /// Counted pointer of 
     KRATOS_CLASS_POINTER_DEFINITION(LevelSetConvectionElementSimplex);
 
     ///@}
@@ -165,7 +165,7 @@ public:
         double h = ComputeH(DN_DX, Volume);
         
         //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
-        double beta = 1.0;
+        double beta = 0.0; //1.0;
 
         //here we get all the variables we will need
         array_1d<double,TNumNodes> phi, phi_old;
@@ -208,7 +208,7 @@ public:
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
-            const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + beta*div_v,  1e-6);
+            const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + beta*div_v,  1e-2);
             const double tau = 1.0 / (tau_denom);
 
             //terms multiplying dphi/dt (aux1)
@@ -227,7 +227,7 @@ public:
         
         //terms in aux2
         noalias(rLeftHandSideMatrix) += 0.5*aux2; //the 0.5 comes from the use of Crank Nichlson
-        noalias(rRightHandSideVector) -= .5*prod(aux2,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        noalias(rRightHandSideVector) -= 0.5*prod(aux2,phi_old); //the 0.5 comes from the use of Crank Nichlson
         
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
