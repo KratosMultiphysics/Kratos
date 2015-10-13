@@ -75,6 +75,8 @@ namespace Kratos
 
          virtual void ExecuteInitialize();
 
+         virtual void ExecuteFinalizeSolutionStep();
+
 
       protected:
 
