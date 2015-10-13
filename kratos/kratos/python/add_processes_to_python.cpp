@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
+#include "processes/levelset_convection_process.h"
 
 #include "includes/node.h"
 
@@ -171,6 +172,14 @@ void  AddProcessesToPython()
     class_<VariationalDistanceCalculationProcess<3> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess3D",
             init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;    
+    
+    class_<LevelSetConvectionProcess<2> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess2D",
+            init<Variable<double>& , ModelPart& , typename LinearSolverType::Pointer ,double >())
+    ;
+    class_<LevelSetConvectionProcess<3> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess3D",
+            init<Variable<double>& , ModelPart& , typename LinearSolverType::Pointer ,double>())
+    ;   
+    
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 
