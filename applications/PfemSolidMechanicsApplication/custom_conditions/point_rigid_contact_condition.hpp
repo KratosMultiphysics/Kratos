@@ -25,6 +25,8 @@
 
 #include "custom_modelers/spatial_bounding_box.hpp"
 
+#include "custom_conditions/custom_friction_laws/friction_law.hpp"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -107,6 +109,9 @@ protected:
 
       //Geometric variables
       SurfaceVector   Surface;               //normal and tangent vector to the surface
+
+      // Elasto-plastic constitutive matrix (axisym and PS) (Normal and Tangent stiffness)
+      SurfaceScalar   TangentMatrix; 
       
 
        //for axisymmetric use only
@@ -424,6 +429,7 @@ protected:
      */
     SpatialBoundingBox::Pointer mpRigidWall;
 
+    ContactFrictionLaw::Pointer mpFrictionLaw;
 
     ///@}
     ///@name Protected Operators
