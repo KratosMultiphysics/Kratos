@@ -1,6 +1,6 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Last modified by:    $Author:              LMonforte $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
-
+//#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 
 namespace Kratos
 {
@@ -45,7 +45,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class BorjaCamClayExplicitFlowRule : public CamClayExplicitFlowRule
+  class BorjaCamClayExplicitFlowRule 
+	  :public NonAssociativeExplicitPlasticFlowRule
   {
   
 
@@ -89,11 +90,9 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-      virtual void CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress);
+      virtual void EvaluateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress);
 
-//      void CalculateMeanStress(const Vector& rHenckyStrainVector, double& rMeanStress);
-
-      virtual void CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
+      virtual void EvaluateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
 
       virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix);
 
@@ -147,17 +146,20 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-//      virtual void CalculateKirchhoffStressVector(const Vector& rHencyStrainVector, Vector& rKirchhoffStressVector);
+      virtual void CalculateKirchhoffStressVector(const Vector& rHencyStrainVector, Vector& rKirchhoffStressVector);
 
 
-//      virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+      void EvaluateMeanStress(const Vector& rHenckyStrainVector, double& rMeanStress);
+
+
+      virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
 
 //    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
 
 
     //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
     
-//    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
+    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
            
 //    void CalculateInvariantsAndDerivatives(const Vector& rStressVector, InvariantsStructure& rInv);
     

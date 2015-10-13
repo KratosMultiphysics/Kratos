@@ -31,7 +31,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/modeler_utilities.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_data_transfer_utilities.cpp
 	
         
