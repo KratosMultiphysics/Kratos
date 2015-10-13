@@ -163,7 +163,7 @@ namespace Kratos
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      double StabilizationAlpha, Caux; 
+      double StabilizationAlpha, Caux, StabilizationFactor; 
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
@@ -171,17 +171,19 @@ namespace Kratos
       Caux = 1.0/Mmodulus[0];
 
       double he;
-      he = sqrt( 4.0* rIntegrationWeight / sqrt(3.0) );
-      he = sqrt( rIntegrationWeight / 6.14 / rVariables.CurrentRadius);
-      StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
+      he = GetElementSize( rVariables.DN_DX);
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
 
-      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-      StabilizationAlpha *= StabilizationFactor;
+
+      StabilizationAlpha = pow(he, 2.0) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
 
       if (StabilizationAlpha < 0.0)
       {
          return;
       }
+   
+      StabilizationAlpha *= 1.0/2.0  + 1.0 / 2.0 * tanh( pow(he, 2.0) * Caux / (Permeability* DeltaTime)  );
+      StabilizationAlpha *= StabilizationFactor;
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -258,7 +260,7 @@ namespace Kratos
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      double StabilizationAlpha, Caux; 
+      double StabilizationAlpha, Caux, StabilizationFactor; 
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
@@ -266,17 +268,23 @@ namespace Kratos
       Caux = 1.0/Mmodulus[0];
 
       double he;
-      he = sqrt( 4.0* rIntegrationWeight / sqrt(3.0) );
-      he = sqrt( rIntegrationWeight);
-      he = sqrt( rIntegrationWeight / 6.14 / rVariables.CurrentRadius);
+      he = GetElementSize( rVariables.DN_DX);
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
 
-      StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
 
-      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      // nova Manera
+      StabilizationAlpha = pow(he, 2.0) * Caux / (6.0) - DeltaTime * Permeability / 2.0;
+
+      if ( StabilizationAlpha < 0.0)
+         return;
+   
+      StabilizationAlpha *= 1.0/2.0  + 1.0 / 2.0 * tanh( pow(he, 2.0) * Caux / (Permeability* DeltaTime)  );
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
+      {
          return;
+      }
 
       Matrix K = ZeroMatrix(dimension);
       for (unsigned int i = 0; i < dimension; ++i)

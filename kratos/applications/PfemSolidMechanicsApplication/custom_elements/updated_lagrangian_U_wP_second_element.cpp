@@ -1,6 +1,6 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Last modified by:    $Author:              LMonforte $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -16,6 +16,13 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application.h"
+
+
+// THIS ELEMENT IS THE SAME THAN THE UwP but, instead of using the term div(u) i putted dot(J) / J
+// then the tangent matrix is a little different, 
+// but results look similar
+// NOT COMPILED
+
 
 namespace Kratos
 {

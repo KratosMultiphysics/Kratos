@@ -17,6 +17,8 @@
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application.h"
 
+// TO BE REMOVED. The differences (ie: constant lagrangian permeability) are now commented in the base element
+
 namespace Kratos
 {
 
