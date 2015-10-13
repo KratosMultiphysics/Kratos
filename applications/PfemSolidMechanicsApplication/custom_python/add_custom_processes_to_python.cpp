@@ -78,7 +78,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RigidNoseWallContactSearch", init<RigidNoseWallBoundingBox::Pointer, ModelPart&, int>()
+      	 "RigidNoseWallContactSearch", init<RigidNoseWallBoundingBox::Pointer, ModelPart&, int, bool>()
       	 )
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
@@ -86,7 +86,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RigidCircleWallContactSearch", init<RigidCircleWallBoundingBox::Pointer, ModelPart&, int>()
+      	 "RigidCircleWallContactSearch", init<RigidCircleWallBoundingBox::Pointer, ModelPart&, int, bool>()
       	 )
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
@@ -94,7 +94,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RigidPlaneWallContactSearch", init<RigidPlaneWallBoundingBox::Pointer, ModelPart&, int>()	 
+      	 "RigidPlaneWallContactSearch", init<RigidPlaneWallBoundingBox::Pointer, ModelPart&, int, bool>()	 
       	 )
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
@@ -105,7 +105,8 @@ namespace Kratos
          (
           "SetMechanicalInitialStateProcess", init<ModelPart&, bool, double, double>()
          )
-         .def("ExecuteInitialize", &SetMechanicalInitialStateProcess::ExecuteInitialize)
+         .def("ExecuteInitialize",           &SetMechanicalInitialStateProcess::ExecuteInitialize)
+         .def("ExecuteFinalizeSolutionStep", &SetMechanicalInitialStateProcess::ExecuteFinalizeSolutionStep)
          ;
 
 
