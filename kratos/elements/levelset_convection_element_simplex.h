@@ -84,6 +84,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+///formulation described in https://docs.google.com/document/d/13a_zGLj6xORDuLgoOG5LwHI6BwShvfO166opZ815zLY/edit?usp=sharing
 template< unsigned int TDim, unsigned int TNumNodes>
 class LevelSetConvectionElementSimplex
     : public Element
@@ -134,8 +135,6 @@ public:
     {
         KRATOS_TRY
 
-        const double lumping_factor = 1.00 / static_cast<double>(TNumNodes);
-
         if (rLeftHandSideMatrix.size1() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false); //false says not to preserve existing storage!!
 
@@ -143,14 +142,19 @@ public:
             rRightHandSideVector.resize(TNumNodes, false); //false says not to preserve existing storage!!
 
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
-        noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
+//         noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
+//         noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-        //Crank-Nicholson factor
-        const double cr_nk = 0.5;
+//         //Crank-Nicholson factor
+//         const double cr_nk = 0.5;
 
         const double delta_t = rCurrentProcessInfo[DELTA_TIME];
         const double dt_inv = 1.0 / delta_t;
+        
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+        const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 
 
         //getting data for the given geometry
@@ -159,71 +163,77 @@ public:
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
         double h = ComputeH(DN_DX, Volume);
+        
+        //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
+        double beta = 1.0;
 
-        //INERTIA CONTRIBUTION - does not depend on gauss point
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes,TNumNodes > msMassFactors = lumping_factor* IdentityMatrix(TNumNodes,TNumNodes);
-        noalias(rLeftHandSideMatrix) = dt_inv * msMassFactors;
-
-
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-        const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
-
+        //here we get all the variables we will need
         array_1d<double,TNumNodes> phi, phi_old;
-        array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
+        array_1d< array_1d<double,3 >, TNumNodes> v, vold;
+        
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
+//             dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
 
-            const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
-            const array_1d<double,3>& vold = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
-            for(unsigned int k=0; k<TDim; k++)
-                vel_gauss[k] += 0.5*N[i]*(v[k]+vold[k]);
+            v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
+            vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
         }
-        const double norm_vel = norm_2(vel_gauss);
+        array_1d<double,TDim> grad_phi = prod(DN_DX, phi);
 
-        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
-        const double tau = 1.0 / (dyn_st_beta *dt_inv + 2.0 * norm_vel / h);
-
-        //Advective term
-        array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes,TNumNodes > Advective_Matrix = outer_prod(N, a_dot_grad);
-        noalias(rLeftHandSideMatrix) += (1.0 - cr_nk) * Advective_Matrix;
-
-        //stabilization terms
-        array_1d<double, TNumNodes > a_dot_grad_and_mass;
-        a_dot_grad_and_mass = dt_inv * N + (1.0 - cr_nk) * a_dot_grad;
-        noalias(rLeftHandSideMatrix) += tau * outer_prod(a_dot_grad, a_dot_grad_and_mass);
-
-        //compute shock capturing term
-        array_1d<double,TDim> grad_g = prod(trans(DN_DX),phi);
-
-        double res = inner_prod(vel_gauss,grad_g);
-
-        double dphi_dt = 0.0;
+        //compute the divergence of v
+        double div_v = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
-            dphi_dt += N[i]*(phi[i] - phi_old[i]);
-        res += dt_inv * dphi_dt;
+            for(unsigned int k=0; k<TDim; k++)
+                div_v += 0.5*DN_DX(i,k)*(v[i][k] + vold[i][k]);
 
-        //Add all n_step terms
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes > old_step_matrix = dt_inv*msMassFactors;
-        old_step_matrix -= (cr_nk * Advective_Matrix);
-        noalias(rRightHandSideVector) = prod(old_step_matrix, phi_old);
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
 
-        //Add n_Stabilization terms
-        a_dot_grad_and_mass = dt_inv * N - cr_nk * a_dot_grad;
-        double old_res = inner_prod(a_dot_grad_and_mass, phi_old);
-        /*	old_res += heat_source;*/
-        noalias(rRightHandSideVector) += tau * a_dot_grad * old_res;
+            
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        GetShapeFunctionsOnGauss(Ncontainer);
+        for(unsigned int igauss=0; igauss<TDim+1; igauss++)
+        {
+            noalias(N) = row(Ncontainer,igauss);
 
-        //subtracting the dirichlet term
-        // RHS -= LHS*temperatures
+            //obtain the velocity in the middle of the tiem step
+            array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                 for(unsigned int k=0; k<TDim; k++)
+                    vel_gauss[k] += 0.5*N[i]*(v[i][k]+vold[i][k]);
+            }
+            const double norm_vel = norm_2(vel_gauss);
+            array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
+
+            const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + beta*div_v,  1e-6);
+            const double tau = 1.0 / (tau_denom);
+
+            //terms multiplying dphi/dt (aux1)
+            noalias(aux1) += (1.0+tau*beta*div_v)*outer_prod(N, N);
+            noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
+            
+            //terms which multiply the gradient of phi
+            noalias(aux2) += (1.0+tau*beta*div_v)*outer_prod(N, a_dot_grad);
+            noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
+            
+        }
+        
+        //adding the second and third term in the formulation
+        noalias(rLeftHandSideMatrix)  = (dt_inv + 0.5*beta*div_v)*aux1; //the 0.5 comes from the use of Crank Nichlson
+        noalias(rRightHandSideVector) = (dt_inv - 0.5*beta*div_v)*prod(aux1,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        
+        //terms in aux2
+        noalias(rLeftHandSideMatrix) += 0.5*aux2; //the 0.5 comes from the use of Crank Nichlson
+        noalias(rRightHandSideVector) -= .5*prod(aux2,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        
+        //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
-
-        rRightHandSideVector *= Volume;
-        rLeftHandSideMatrix *= Volume;
+        rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
+        rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
 
         KRATOS_CATCH("Error in Levelset Element")
     }
@@ -356,7 +366,25 @@ protected:
         h = sqrt(h)/static_cast<double>(TNumNodes);
         return h;
     }
+    
+    //gauss points for the 3D case
+    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    {
+        Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
+        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;	
+        Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
+        Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
+    }
 
+    //gauss points for the 2D case
+    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    {
+        const double one_sixt = 1.0/6.0;
+        const double two_third = 2.0/3.0;
+        Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third; 
+        Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt; 
+        Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt; 
+    }
 
 
 
