@@ -58,6 +58,10 @@ protected:
         double FrictionCoefficient;
         double DynamicFrictionCoefficient;
         double StaticFrictionCoefficient;
+        double IntegrationWeight;
+
+        double Cohesion;
+        double Neighb_distance; 
 
      } TangentialContactVariables;
 
@@ -205,6 +209,8 @@ protected:
     double& CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables );
 
     double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
+
+    double CalculateEffectiveNormalForceModulus(const double&  rNormalForceModulus);
 
     double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
 
