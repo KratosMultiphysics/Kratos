@@ -31,7 +31,8 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
     #add additional problem variables
-    # model_part.AddNodalSolutionStepVariable(DISPLACEMENT_DT)
+    #model_part.AddNodalSolutionStepVariable(DISPLACEMENT_DT)
+    model_part.AddNodalSolutionStepVariable(CONTACT_PLASTIC_SLIP )
 
 
     if config is not None:
@@ -55,7 +56,6 @@ def AddVariables(model_part, config=None):
         if hasattr(config, "WaterPressureDofs"):
             if config.WaterPressureDofs:
                 # add specific variables for the problem (pressure dofs)
-                print( " WE ARE HERE IN THE WATER " )
                 model_part.AddNodalSolutionStepVariable(WATER_PRESSURE)
                 model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
                 model_part.AddNodalSolutionStepVariable(IMPOSED_WATER_PRESSURE);                
@@ -173,7 +173,9 @@ class PfemMechanicalSolver:
               self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
           
           else:
-              if(self.line_search):
+              if ( self.implex):
+                  self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchImplexStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+              elif(self.line_search):
                   self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
               else:
                   self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
