@@ -35,7 +35,7 @@ from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
 #import the python utilities:
 import restart_utility              as restart_utils
-import gid_output_utility           as gid_utils
+import pfem_gid_output_utility           as gid_utils
 
 import pfem_conditions_python_utility    as condition_utils
 import list_files_python_utility    as files_utils
@@ -218,54 +218,55 @@ model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
 #--- READ MODEL ------#
 if(load_restart == False):
   
-    print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
-    
-    #remove results, restart, graph and list previous files
-    problem_restart.CleanPreviousFiles()
-    list_files.RemoveListFiles()
-    
-    #reading the model
-    model_part_io = ModelPartIO(problem_name)
-    model_part_io.ReadModelPart(model_part)
-    
-    #set the buffer size
-    model_part.SetBufferSize(buffer_size)
-    #Note: the buffer size should be set once the mesh is read for the first time
-    
-    print("::[KPFEM Simulation]:: Reading -END- ")
+  print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
 
-    model_part.ProcessInfo[LOAD_RESTART] = 0
-    
-    #set the degrees of freedom
-    solver_constructor.AddDofs(model_part, SolverSettings)
-    
-    #set the constitutive law
-    import constitutive_law_python_utility as constitutive_law_utils
+  #remove results, restart, graph and list previous files
+  problem_restart.CleanPreviousFiles()
+  list_files.RemoveListFiles()
 
-    constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size)
-    constitutive_law.Initialize()
+  #reading the model
+  model_part_io = ModelPartIO(problem_name)
+  model_part_io.ReadModelPart(model_part)
+ 
+  #set the buffer size
+  model_part.SetBufferSize(buffer_size)
+  #Note: the buffer size should be set once the mesh is read for the first time
+
+  print("::[KPFEM Simulation]:: Reading -END- ")
+
+  model_part.ProcessInfo[LOAD_RESTART] = 0
     
+  #set the degrees of freedom
+  solver_constructor.AddDofs(model_part, SolverSettings)
+
+  #set the constitutive law
+  import constitutive_law_python_utility as constitutive_law_utils
+
+  constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size)
+  constitutive_law.Initialize()
+
 else:
-    
-    print("::[KPFEM Simulation]:: Reading -RESTART- [FILE",restart_step,"]")
-    
-    #reading the model from the restart file
-    problem_restart.Load(restart_step);
-    
-    print("::[KPFEM Simulation]:: Reading -END- ")
 
-    model_part.ProcessInfo[LOAD_RESTART] = 1
-    
-    #remove results, restart, graph and list posterior files
-    problem_restart.CleanPosteriorFiles(restart_step)
-    list_files.ReBuildListFiles()
-    
+  print("::[KPFEM Simulation]:: Reading -RESTART- [FILE",restart_step,"]")
+
+  #reading the model from the restart file
+  problem_restart.Load(restart_step);
+
+  print("::[KPFEM Simulation]:: Reading -END- ")
+
+  model_part.ProcessInfo[LOAD_RESTART] = 1
+
+  #remove results, restart, graph and list posterior files
+  problem_restart.CleanPosteriorFiles(restart_step)
+  list_files.ReBuildListFiles()
+
 
 # --RIGID WALL OPTIONS START--################
 # set rigid wall contact if it is active:
 # activated instead of classical contact
 # set rigid wall configuration
-rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
+## Different to introduce the waterPressure in the RigidPoint condition
+rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config, False)
 
 # --RIGID WALL OPTIONS END--##################
 
@@ -488,7 +489,7 @@ while(current_time < ending_time):
       list_files.PrintListFiles(current_id);
       solving_info.set_print_info(execute_write, current_id)
       StopTimeMeasuring(clock_time,"Writing Results", False);
- 
+
 
   # plot graphs
   if(plot_active):

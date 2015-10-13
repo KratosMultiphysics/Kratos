@@ -102,7 +102,7 @@ END MATERIAL
 MATERIAL: CriticalStatePlasticity
 QUESTION: Type#CB#(CriticalStatePlasticity)
 VALUE: CriticalStatePlasticity
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(BorjaHenckyCamClayPlasticPlaneStrain2DLaw,BorjaHenckyCamClayPlasticAxisym2DLaw,NonLinearHenckyCamClayPlasticPlaneStrain2DLaw,NonLinearHenckyCamClayPlasticAxisym2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(BorjaHenckyCamClayPlasticPlaneStrain2DLaw,BorjaHenckyCamClayPlasticAxisym2DLaw)
 VALUE: BorjaHenckyCamClayPlasticPlaneStrain2DLaw
 QUESTION: DENSITY
 VALUE: 2.0
