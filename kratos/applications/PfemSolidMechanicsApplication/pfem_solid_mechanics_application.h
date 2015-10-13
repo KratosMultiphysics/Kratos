@@ -33,6 +33,7 @@
 #include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
 #include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 
 //elements
 #include "custom_elements/total_updated_lagrangian_element.hpp"
@@ -40,8 +41,6 @@
 #include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
 #include "custom_elements/updated_lagrangian_U_wP_FIC_element.hpp"
-#include "custom_elements/updated_lagrangian_U_wP_Stab_Lag_element.hpp"
-#include "custom_elements/updated_lagrangian_U_wP_second_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
 
@@ -58,9 +57,9 @@
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+//#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+//#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
@@ -69,10 +68,10 @@
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 //constitutive laws
-#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
-#include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
-#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
+//#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
+//#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
+//#include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
@@ -172,6 +171,9 @@ namespace Kratos
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
   KRATOS_DEFINE_VARIABLE(double, CONTACT_ADHESION )
   KRATOS_DEFINE_VARIABLE(double, CONTACT_FRICTION_ANGLE)
+  KRATOS_DEFINE_VARIABLE(double, TANGENTIAL_PENALTY_RATIO )
+  KRATOS_DEFINE_VARIABLE(double, CONTACT_PLASTIC_SLIP )
+
 
   // some post process variables + stress invariants
   KRATOS_DEFINE_VARIABLE(double, PRECONSOLIDATION )
@@ -361,9 +363,6 @@ namespace Kratos
     const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement2D3N;
     const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
     const UpdatedLagrangianUwPFICElement                mUpdatedLagrangianUwPFICElement2D3N;
-    const UpdatedLagrangianUwPStabLagElement        mUpdatedLagrangianUwPStabLagElement2D3N;
-    const UpdatedLagrangianUwPSecondElement          mUpdatedLagrangianUwPSecondElement2D3N;
-    //const UpdatedLagrangianUwPSecondElement          mUpdatedLagrangianUwPSecondElement2D3N;
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
 
@@ -383,10 +382,10 @@ namespace Kratos
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainLM2DCondition;
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
 
-    const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;
-    const LinearHenckyCamClayPlasticPlaneStrain2DLaw            mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    const LinearHenckyCamClayPlasticAxisym2DLaw                      mLinearHenckyCamClayPlasticAxisym2DLaw;
+    //const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    //const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;
+    //const LinearHenckyCamClayPlasticPlaneStrain2DLaw            mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    //const LinearHenckyCamClayPlasticAxisym2DLaw                      mLinearHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
@@ -405,8 +404,8 @@ namespace Kratos
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
     const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
-    const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
-    const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
+    //const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
+    //const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
     const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
