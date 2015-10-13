@@ -136,6 +136,8 @@ public:
 
     virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
 
+    virtual void Initialize();
+
     ///@}
     ///@name Access
     ///@{

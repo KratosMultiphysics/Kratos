@@ -1,9 +1,11 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
+//   Last modified by:    $Author:              LMonforte $
+//   Date:                $Date:                July 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
+//   Implementation of the Fluid Saturated porous media in a U-Pw Formulation
+//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -298,7 +300,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         int correct = 0;
+      int correct = 0;
 
       correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
 
@@ -358,9 +360,9 @@ namespace Kratos
          const ProcessInfo& rCurrentProcessInfo )
    {
 
+      const unsigned int& integration_points_number = mConstitutiveLawVector.size();
       if (rVariable == DETERMINANT_F){
 
-         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
          if ( rValues.size() != integration_points_number )
             rValues.resize( integration_points_number );
@@ -375,6 +377,37 @@ namespace Kratos
       {
          CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
       }
+      /*else if ( rVariable == DENSITY_NOW )
+      {
+         if ( mConstitutiveLawVector.size() != 1)
+            return;
+
+         if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize( mConstitutiveLawVector.size() );
+
+         std::vector<double> detF;
+         GetValueOnIntegrationPoints( DETERMINANT_F, detF, rCurrentProcessInfo);
+         for (unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
+         {
+            rValues[PointNumber] = GetProperties()[DENSITY] / detF[PointNumber]; 
+         }
+
+      }
+      else if ( rVariable == STRESS_INV_MEAN )
+      {
+         double WaterPressure = 0.0;
+
+         for (unsigned int i = 0; i < 3 ; ++i)
+            WaterPressure -= GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE);
+
+         WaterPressure /= 3.0;
+         for ( unsigned int ii = 0; ii < integration_points_number; ii++)
+         {
+            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii]);
+            rValues[ii] += WaterPressure;
+         }
+
+      }*/
       else{
 
          LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
@@ -383,7 +416,17 @@ namespace Kratos
 
    }
 
-
+   void UpdatedLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if ( rVariable == TOTAL_CAUCHY_STRESS)
+      {
+         GetValueOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }
+      else
+      {
+         LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }
+   }
 
    void UpdatedLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
    {
@@ -418,6 +461,10 @@ namespace Kratos
          //std::cout << " ELEMENT: " <<  this->Id() << " POROSITY " << rOutput[0] << std::endl;
          //std::cout << " INITIAL PO " << InitialPorosity << " and " << 1.0 - (1.0-InitialPorosity)/DetF0[0] << std::endl;
       }
+      /*else if ( rVariable == DENSITY_NOW )
+      {
+         GetValueOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
+      }*/
       else {
          LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
       }
@@ -430,55 +477,73 @@ namespace Kratos
    {
       if ( rVariable == DARCY_FLOW ) {
 
+         // CONSTITUTIVE PARAMETERS
          double ScalingConstant;
          double Permeability; double WaterBulk; double DeltaTime;
-
          GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-
-         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
-
-
-         const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-         Vector b = ZeroVector(dimension);
          double WaterDensity = GetProperties()[DENSITY_WATER];
-         b(dimension-1) = -10.0*WaterDensity;
 
-         if ( rValues.size() != integration_points_number )
+         // GEOMETRY PARAMETERS
+         const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+         const unsigned int& dimension       = GetGeometry().WorkingSpaceDimension();
+         const unsigned int& number_of_nodes = GetGeometry().size(); 
+
+
+         // Weight vector
+         Vector b = ZeroVector(dimension);
+         b(dimension-1) = -10.0*WaterDensity;  //10 is the gravity :'P
+
+         if ( rValues.size() != integration_points_number ) {
             rValues.resize( integration_points_number );
+         }
 
          const GeometryType& rGeom = this->GetGeometry();
-         //const unsigned int NumberOfNodes = rGeom.PointsNumber(); 
 
          GeometryType::ShapeFunctionsGradientsType DN_DX;
          Vector GaussWeights;
          Vector DetJ;
          rGeom.ShapeFunctionsIntegrationPointsGradients( DN_DX, DetJ, GeometryData::GI_GAUSS_1);
-         //    for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
-         //    {
+
          unsigned int PointNumber = 0;
          const Matrix& ThisPointDN_DX = DN_DX[PointNumber];
-         //        std::cout << " I AM HERE " << DN_DX << std::endl;
-         //        std::cout << std::endl;
-         Vector Pressures(3);
-         for (unsigned int i = 0; i < 3 ; ++i)
-            Pressures(i) = GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE);
-         Vector Darcy = prod ( trans(ThisPointDN_DX), Pressures);
-         Vector D1 = ZeroVector(3);
 
-         for (unsigned int i  = 0; i < 2; ++i)
-            D1(i) = (Darcy(i) + b(i));
-         rValues[PointNumber] = D1;
+         Vector Pressures(number_of_nodes);
+         for (unsigned int i = 0; i < number_of_nodes ; ++i)
+            Pressures(i) = GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE);
+
+         Vector PressureGradient = prod ( trans(ThisPointDN_DX), Pressures);
+
+         for (unsigned int i  = 0; i < dimension; ++i)
+            PressureGradient(i) = (PressureGradient(i) + b(i));
+
+         rValues[PointNumber] = PressureGradient;
+
+         Matrix K;
+         Matrix DefGradient;
+
+         { 
+            // try to compute the deformationGradient F sup n+1 sub 0
+            GeneralVariables Variables;
+            this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+
+            for (unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+            {
+               this->CalculateKinematics(Variables, PointNumber);
+
+               DefGradient = prod( Variables.F, Variables.F0 );
+
+            }
+         }
+
+
+         this->GetPermeabilityTensor( Permeability , DefGradient, K);
 
          for (unsigned int i = 0; i < integration_points_number; i++) {
-            rValues[i] = D1 * Permeability;
+            rValues[i] = prod( K, PressureGradient );
          }
-         //       std::cout << " PRESSURES " << Pressures << std::endl;
-         //       std::cout << std::endl;
-         //       std::cout << prod( ThisPointDN_DX, Pressures) << std::endl;
-         //       std::cout << prod( trans(Pressures), trans(ThisPointDN_DX)) <<std::endl;
-         //       std::cout << prod( trans(ThisPointDN_DX), Pressures) << std::endl;
-         //       std::cout << std::endl;
-         //    }
+         if ( this->Id() == 2)
+            std::cout << " DEF MATRIX " << DefGradient << std::endl;
+         // This is not correct for the material permeability case ( in that case, K = F K Ft, but I don't have F here so,...)
       }
       else{
 
@@ -535,7 +600,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         LargeDisplacementElement::Initialize();
+      LargeDisplacementElement::Initialize();
 
       SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -586,8 +651,8 @@ namespace Kratos
    void UpdatedLagrangianUwPElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
    { 
       //update internal (historical) variables
-      mDeterminantF0[rPointNumber]         = rVariables.detF0 ;
-      mDeformationGradientF0[rPointNumber] = rVariables.F0;
+      mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0 ;
+      mDeformationGradientF0[rPointNumber] = prod( rVariables.F, rVariables.F0 ) ;
    }
 
 
@@ -635,7 +700,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
       rB.clear(); //set all components to zero
@@ -698,7 +763,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
       rF = identity_matrix<double> ( dimension );
@@ -756,8 +821,8 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         //Get the parent coodinates derivative [dN/d£]
-         const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+      //Get the parent coodinates derivative [dN/d£]
+      const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
       //Get the shape functions for the order of the integration method [N]
       const Matrix& Ncontainer = rVariables.GetShapeFunctions();
@@ -899,10 +964,11 @@ namespace Kratos
 
    {
       KRATOS_TRY
-         unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+      unsigned int number_of_nodes = GetGeometry().PointsNumber();
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      // VectorType Fh=rRightHandSideVector;
+      //VectorType Fh=rRightHandSideVector;
 
       double DomainChange = (1.0/rVariables.detF0); //density_n+1 = density_0 * ( 1.0 / detF0 )
 
@@ -933,10 +999,10 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      // VectorType Fh=rRightHandSideVector;
+      VectorType Fh=rRightHandSideVector;
 
       Vector TotalStressVector = rVariables.StressVector;
 
@@ -978,7 +1044,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         double ScalingConstant;
+      double ScalingConstant;
       double Permeability; double WaterBulk; double DeltaTime;
 
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
@@ -1037,13 +1103,14 @@ namespace Kratos
 
          }
 
+
          indexp += (dimension + 1);
 
       }
 
-    // std::cout<<std::endl;
-    // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
-    // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
+      // std::cout<<std::endl;
+      // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
+      // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
       KRATOS_CATCH( "" )
 
    }
@@ -1069,8 +1136,8 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         //assemble into rk the material uu contribution:
-         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      //assemble into rk the material uu contribution:
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       // FIRST: Ctotal = Cmaterial + pJ(1*1 - 2I4)
@@ -1141,7 +1208,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       int size = number_of_nodes * dimension;
@@ -1201,7 +1268,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       //MatrixType Kh=rLeftHandSideMatrix;
@@ -1233,7 +1300,8 @@ namespace Kratos
 
    {
       KRATOS_TRY
-         double ScalingConstant;
+
+      double ScalingConstant;
       double Permeability; double WaterBulk; double DeltaTime;
 
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
@@ -1280,7 +1348,6 @@ namespace Kratos
       }
 
 
-      Matrix FTotal = prod( rVariables.F, rVariables.F0);
       double LDTerm;
 
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -1331,7 +1398,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       double ScalingConstant;
@@ -1382,25 +1449,10 @@ namespace Kratos
    }
 
 
-   //************************************************************************************
-   // **** TO BE DESTROYED BECAUSE IT DOES NOT MAKE ANY SENSE ******
-   //************************************************************************************
-   void UpdatedLagrangianUwPElement::GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability)
-   {
-      //double ScalingConstant = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
-      rScalingConstant = 0.10;
-      //rScalingConstant = 10.0;
-      //rWaterBulk = 1.0e+8*ScalingConstant;
-      rDeltaTime  = mTimeStep;
-
-      rPermeability = GetProperties()[PERMEABILITY];
-      rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
-
-   }
-
-
-   // function to get the Eulerian permeability assuming a constant eulerian permeability
+   // FUNCTIONS TO GET THE CONSTANT EULERIAN PERMEABILITY TENSOR.
+   // TO GET THE CONSTANT LAGRANGIAN PERMEABILITY TENSOR IS THE PART AFTER THE RETURN
+   // (no new element is written to avoid ...)
    void UpdatedLagrangianUwPElement::GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor)
    {
 
@@ -1418,6 +1470,7 @@ namespace Kratos
 
    }
 
+   // THE SAME.
    double UpdatedLagrangianUwPElement::GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l)
    {
       return 0.0;
@@ -1434,30 +1487,74 @@ namespace Kratos
 
    }
 
-  //************************************************************************************
-  //************************************************************************************
 
-  void UpdatedLagrangianUwPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
-  {
-    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
-    
-    //Deformation Gradient F0
-    rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
-  }
+   // GET THE (GEOMETRICAL) SIZE FOR THE STABILIZATION TERM
+   // this size is recomended from Sun, Ostien and Salinger (IJNAMG, 2013)
 
-  //************************************CALCULATE VOLUME CHANGE*************************
-  //************************************************************************************
+   double UpdatedLagrangianUwPElement::GetElementSize( const Matrix& rDN_DX)
+   {
+      double he = 0.0;
 
-  double& UpdatedLagrangianUwPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
-  {
-    KRATOS_TRY
-      
+      unsigned int number_of_nodes = rDN_DX.size1();
+      unsigned int dimension = rDN_DX.size2();
+
+      double aux;
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+      {
+         aux = 0;
+         for (unsigned int p = 0; p < dimension ; p++)
+         {
+            aux += rDN_DX(i,p);
+         }
+         he += fabs(aux);
+      }
+      he *= sqrt( double(dimension) );
+      he = 4.0/he;
+
+      return he;
+
+   }
+
+   //************************************************************************************
+   // **** TO BE DESTROYED BECAUSE IT DOES NOT MAKE ANY SENSE ******
+   //************************************************************************************
+   void UpdatedLagrangianUwPElement::GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability)
+   {
+      //double ScalingConstant = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+      rScalingConstant = 50.0;
+      if ( rScalingConstant < 0.01)
+         rScalingConstant = 1.0;
+      rDeltaTime  = mTimeStep;
+
+      rPermeability = GetProperties()[PERMEABILITY];
+      rWaterBulk = GetProperties()[WATER_BULK_MODULUS];
+
+   }
+
+   //************************************************************************************
+   //************************************************************************************
+
+   void UpdatedLagrangianUwPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+   {
+      LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+
+      //Deformation Gradient F0
+      rVariables.detF0 = mDeterminantF0[rPointNumber];
+      rVariables.F0    = mDeformationGradientF0[rPointNumber];
+   }
+
+   //************************************CALCULATE VOLUME CHANGE*************************
+   //************************************************************************************
+
+   double& UpdatedLagrangianUwPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+   {
+      KRATOS_TRY
+
       rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
-    
-    return rVolumeChange;
-    
-    KRATOS_CATCH( "" )
+
+      return rVolumeChange;
+
+      KRATOS_CATCH( "" )
    }
 
    //************************************************************************************

@@ -163,11 +163,11 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         double ScalingConstant ;
+      double ScalingConstant ;
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      double StabilizationAlpha, Caux; 
+      double StabilizationAlpha, Caux, StabilizationFactor; 
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
@@ -175,11 +175,10 @@ namespace Kratos
       Caux = 1.0/Mmodulus[0];
 
       double he;
-      he = sqrt( 4.0* rIntegrationWeight / sqrt(3.0) );
-      he = sqrt( rIntegrationWeight);
-      StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
+      he = GetElementSize( rVariables.DN_DX);
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
 
-      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
       StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
@@ -231,7 +230,7 @@ namespace Kratos
 
       // std::cout<<std::endl;
       // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
-      // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
+      // std::cout<<" Fpres STABILI "<<rRightHandSideVector-Fh<<std::endl;
 
       KRATOS_CATCH( "" )
 
@@ -247,14 +246,14 @@ namespace Kratos
    {
       KRATOS_TRY
 
-         const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       double ScalingConstant;
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      double StabilizationAlpha, Caux; 
+      double StabilizationAlpha, Caux, StabilizationFactor; 
 
       ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
@@ -262,23 +261,16 @@ namespace Kratos
       Caux = 1.0/Mmodulus[0];
 
       double he;
-      he = sqrt( 4.0* rIntegrationWeight / sqrt(3.0) );
-      he = sqrt( rIntegrationWeight);
+      he = GetElementSize( rVariables.DN_DX);
+    	StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
 
-      StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
-
-      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      StabilizationAlpha = pow(he, 2.0) * Caux / ( 6.0) - DeltaTime*Permeability; 
       StabilizationAlpha *= StabilizationFactor;
 
-      /*double StabilizationAlpha; 
-        double Poisson = GetProperties()[POISSON_RATIO];
-        double Caux = GetProperties()[YOUNG_MODULUS] * (1.0 - Poisson)  / (1.0 + Poisson) / (1.0 - 2.0*Poisson);
-
-        StabilizationAlpha = Caux * ( rIntegrationWeight) / 4.0 / Permeability  - DeltaTime;
-        StabilizationAlpha =  1.1*( rIntegrationWeight) / (4.0 * Permeability * Caux)  - DeltaTime; */
-
       if (StabilizationAlpha < 0.0)
+      {
          return;
+      }
 
       Matrix K = ZeroMatrix(dimension);
       for (unsigned int i = 0; i < dimension; ++i)
@@ -308,7 +300,7 @@ namespace Kratos
       }
 
       // std::cout<<std::endl;
-      //std::cout<<" Kpp "<< (rLeftHandSideMatrix-Kh) <<std::endl;
+      // std::cout<<" Kpp STABILI "<< (rLeftHandSideMatrix-Kh) <<std::endl;
       //std::cout<<" Kpp "<< (rLeftHandSideMatrix-Kh) / ScalingConstant / rIntegrationWeight* rVariables.detF0  * WaterBulk <<std::endl;
 
 

@@ -207,12 +207,12 @@ namespace Kratos
 
             const double& CurrentPressure   = GetGeometry()[j].FastGetSolutionStepValue( WATER_PRESSURE );
             const double& PreviousPressure = GetGeometry()[j].FastGetSolutionStepValue( WATER_PRESSURE , 1);
-            double DeltaPressure = CurrentPressure - PreviousPressure;
+            double DeltaPressure = (CurrentPressure - PreviousPressure) ;  // / DeltaTime; // not because all the equation is already multiplied
 
             for ( unsigned int k = 0; k < dimension; ++k )
             {
 
-               rRightHandSideVector[indexp] += rVariables.N[i]* Caux*(1.0/2.0) * he(k) *  rVariables.DN_DX(j,k) * DeltaPressure * rIntegrationWeight * ScalingConstant / rVariables.detF0;
+               rRightHandSideVector[indexp] -= rVariables.N[i]* Caux*(1.0/2.0) * he(k) *  rVariables.DN_DX(j,k) * DeltaPressure * rIntegrationWeight * ScalingConstant / rVariables.detF0;
 
             }
 
@@ -226,6 +226,9 @@ namespace Kratos
    }
 
 
+   // **********************************************************************************
+   // ************* TANGENT TO THE STABILIZATION MATRIX ********************************
+   // **********************************************************************************
 
    void UpdatedLagrangianUwPFICElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
          GeneralVariables & rVariables,
@@ -233,6 +236,8 @@ namespace Kratos
    {
       KRATOS_TRY
 
+      MatrixType KStab = rLeftHandSideMatrix;
+      
       double ScalingConstant ; //= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
@@ -265,7 +270,7 @@ namespace Kratos
          {
 
             for ( unsigned int k = 0; k < dimension; ++k ) {
-               rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.N[i] * Caux*(1.0/2.0)*he(k) * rVariables.DN_DX(j,k) * rIntegrationWeight * ScalingConstant / rVariables.detF0;
+               rLeftHandSideMatrix(indexpi, indexpj) += rVariables.N[i] * Caux*(1.0/2.0)*he(k) * rVariables.DN_DX(j,k) * rIntegrationWeight * ScalingConstant / (rVariables.detF0 );
             }
 
             indexpj += (dimension + 1);
@@ -273,6 +278,7 @@ namespace Kratos
 
          indexpi += (dimension + 1);
       }
+
 
       KRATOS_CATCH( "" )
    }
@@ -297,11 +303,6 @@ namespace Kratos
    }
 
 
-   //****************************************************************************************
-   //****************************************************************************************
-   //   RESTOS DEL NAUFRAGIO RESTOS DEL NAUFRAGIO RESTOS DEL NAUFRAGIO RESTOS DEL NAUFRAGIO
-   //****************************************************************************************
-   //****************************************************************************************
 
 
 }
