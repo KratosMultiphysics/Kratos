@@ -22,6 +22,7 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -54,6 +55,7 @@ namespace Kratos
 
       //custom types
       typedef ResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedUwPStaticSchemeType;
+      typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
 
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
@@ -85,6 +87,29 @@ namespace Kratos
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
       //********************************************************************
+
+
+    //********************************************************************
+    //*************************STRATEGY CLASSES***************************
+    //********************************************************************
+
+    // Residual Based Newton-Raphson Line Search Strategy
+    class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
+      bases< BaseSolvingStrategyType >, boost::noncopyable >
+      (
+       "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool>())
+      
+      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+      .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
+      .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
+      .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
+      .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
+      .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
+      .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
+      ;
+     
+
 
 
  
