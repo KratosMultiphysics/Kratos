@@ -72,23 +72,6 @@ namespace Kratos
 				 
 			rRightHandSideVector[0] = added_RHS_boundary_term;
 			
-			GetGeometry()[0].FastGetSolutionStepValue(G_VALUE)+=1.0;
-		}
-		else if (rCurrentProcessInfo[FRACTIONAL_STEP]==20)
-		{
-
-			if(rLeftHandSideMatrix.size1() != 1)
-				rLeftHandSideMatrix.resize(1,1,false);
-			noalias(rLeftHandSideMatrix) = ZeroMatrix(1,1);
-			if(rRightHandSideVector.size() != 1)
-				rRightHandSideVector.resize(1,false);
-				
-			array_1d<double,3> & normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
-
-			rLeftHandSideMatrix =ZeroMatrix(1,1);
-			rRightHandSideVector[0] = 1.0*normal(0);
-			//GetGeometry()[0].FastGetSolutionStepValue(G_VALUE) = rRightHandSideVector[0] ;
-			
 		}
 		KRATOS_CATCH("")
 	}
@@ -110,18 +93,6 @@ namespace Kratos
 				rResult[index] = (GetGeometry()[i].GetDof(PRESSURE).EquationId());			
 			}
 		}
-		else if (rCurrentProcessInfo[FRACTIONAL_STEP]==20)
-		{
-			int number_of_nodes = GetGeometry().PointsNumber();
-			unsigned int index;
-			unsigned int dim = 1;
-			rResult.resize(number_of_nodes*dim);
-			for (int i=0;i<number_of_nodes;i++)
-			{
-				index = i*dim;
-				rResult[index] = (GetGeometry()[i].GetDof(VELOCITY_Y).EquationId());			
-			}
-		}
 	}
 
 	//************************************************************************************
@@ -138,18 +109,6 @@ namespace Kratos
 				
 				index = i*dim;
 				ConditionalDofList[index] = (GetGeometry()[i].pGetDof(PRESSURE));
-			}
-		}
-		else if (rCurrentProcessInfo[FRACTIONAL_STEP]==20)
-		{
-			unsigned int dim = 1;
-			ConditionalDofList.resize(GetGeometry().size()*dim);
-			unsigned int index;
-			for (unsigned int i=0;i<GetGeometry().size();i++)
-			{
-				
-				index = i*dim;
-				ConditionalDofList[index] = (GetGeometry()[i].pGetDof(VELOCITY_Y));
 			}
 		}
 	}
