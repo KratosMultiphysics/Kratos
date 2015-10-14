@@ -2,6 +2,7 @@ from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.ExternalSolversApplication import *
+#from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
 from math import sqrt
 import time as timer
 
@@ -48,8 +49,9 @@ class PFEM2Solver:
               verbosity = 1 #if it is a linear problem, we can print more information of the single iteration without filling the screen with too much info.
         pDiagPrecond = DiagonalPreconditioner()
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver() 
-        #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.NoPreconditioner) #
-        self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
+        #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
+        self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.CG,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
+
         self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver 
         self.conv_criteria.SetEchoLevel(0)
         
@@ -103,11 +105,10 @@ class PFEM2Solver:
         self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);  
         condition_number=1
         
-        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 20) #explicit contribution by viscosity is defined as fract step = 0
         if self.domain_size==2:
-              self.addBC = AddMonolithicFixedVelocityCondition2D(self.model_part)
+              self.addBC = AddFixedPressureCondition2D(self.model_part)
         else:
-              self.addBC = AddMonolithicFixedVelocityCondition3D(self.model_part)
+              self.addBC = AddFixedPressureCondition3D(self.model_part)
 
         (self.addBC).AddThem()
         
@@ -182,7 +183,11 @@ class PFEM2Solver:
         t12 = timer.time()
         self.accelerateparticles = self.accelerateparticles + t12-t11
 
-
+        #reseeding in elements that have few particles to avoid having problems in next iterations:
+        post_minimum_number_of_particles=self.domain_size*2;
+        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);        
+        t13 = timer.time()
+        self.reseed=self.reseed+ t13-t12
 
         #calculating water volume to correct mass
         self.water_volume = (self.calculatewatervolume).Calculate()
@@ -196,11 +201,7 @@ class PFEM2Solver:
         print("mass correction factor: ", self.mass_correction_factor)
         self.model_part.ProcessInfo.SetValue(VOLUME_CORRECTION, self.mass_correction_factor)
 
-        #reseeding in elements that have few particles to avoid having problems in next iterations:
-        post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);        
-        t13 = timer.time()
-        self.reseed=self.reseed+ t13-t12
+
 
         #self.nodaltasks = self.nodaltasks + t11-t9
 
