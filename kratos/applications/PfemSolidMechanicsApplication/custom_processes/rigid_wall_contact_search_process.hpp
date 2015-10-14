@@ -69,12 +69,11 @@ namespace Kratos
          RigidWallContactSearchProcess(ModelPart& rModelPart): mrModelPart(rModelPart) {}
 
 
-         RigidWallContactSearchProcess(SpatialBoundingBox::Pointer pRigidWall, ModelPart& rModelPart, int EchoLevel, bool waterCondition) 
+         RigidWallContactSearchProcess(SpatialBoundingBox::Pointer pRigidWall, ModelPart& rModelPart, int EchoLevel) 
             : mrModelPart(rModelPart)
          {
             mpRigidWall = pRigidWall;
             mEchoLevel = EchoLevel;
-            mWaterCondition = waterCondition;
          } 
 
          /// Destructor.
@@ -114,7 +113,6 @@ namespace Kratos
 
             KRATOS_TRY
 
-            std::cout << " FINALLY I GOT IT " << mWaterCondition <<  std::endl;
             ProcessInfo& CurrentProcessInfo= mrModelPart.GetProcessInfo();	  
             double Time      = CurrentProcessInfo[TIME];   
 
@@ -326,7 +324,7 @@ namespace Kratos
 
                               GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
                               if( mpRigidWall->Axisymmetric() == true ){
-                                 if ( mWaterCondition)  {
+				if ( (*nd)->HasDofFor(WATER_PRESSURE) )  {
                                     p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenaltyWater2DCondition(id, p_geometry, p_properties, mpRigidWall) );
                                  }
                                  else {
@@ -564,7 +562,6 @@ namespace Kratos
 
                int mEchoLevel;
 
-               bool mWaterCondition;
                ///@}
                ///@name Un accessible methods
                ///@{

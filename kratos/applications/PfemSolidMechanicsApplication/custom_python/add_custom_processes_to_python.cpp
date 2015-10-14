@@ -78,7 +78,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RigidNoseWallContactSearch", init<RigidNoseWallBoundingBox::Pointer, ModelPart&, int, bool>()
+      	 "RigidNoseWallContactSearch", init<RigidNoseWallBoundingBox::Pointer, ModelPart&, int>()
       	 )
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
@@ -86,7 +86,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RigidCircleWallContactSearch", init<RigidCircleWallBoundingBox::Pointer, ModelPart&, int, bool>()
+      	 "RigidCircleWallContactSearch", init<RigidCircleWallBoundingBox::Pointer, ModelPart&, int>()
       	 )
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
@@ -94,7 +94,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "RigidPlaneWallContactSearch", init<RigidPlaneWallBoundingBox::Pointer, ModelPart&, int, bool>()	 
+      	 "RigidPlaneWallContactSearch", init<RigidPlaneWallBoundingBox::Pointer, ModelPart&, int>()	 
       	 )
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)

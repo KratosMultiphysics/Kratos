@@ -8,7 +8,7 @@ CheckForPreviousImport()
 class RigidWallUtility:
     #
 
-    def __init__(self, model_part, domain_size, wall_configuration, waterCondition = False ):
+    def __init__(self, model_part, domain_size, wall_configuration):
 
         self.model_part  = model_part
         self.domain_size = domain_size
@@ -19,7 +19,7 @@ class RigidWallUtility:
 
         # wall parameters
         self.rigid_wall_active = wall_configuration.rigid_wall
-        self.number_of_walls = wall_configuration.number_of_walls
+        self.number_of_walls   = wall_configuration.number_of_walls
 
          # geometry parameters
         size_scale = wall_configuration.size_scale
@@ -83,7 +83,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level, waterCondition))
+                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level)
 
                 elif(conditions["WallType"] == "PLANE"):
                     
@@ -112,7 +112,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, 8, waterCondition))
+                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, 8))
 
                         
                 elif(conditions["WallType"] == "CIRCLE"):
@@ -141,7 +141,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level, waterCondition))
+                                                       self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
                 sizei += 1
 
@@ -159,7 +159,7 @@ class RigidWallUtility:
         if(self.rigid_wall_active):
             # set properties for rigid wall conditions
             penalty_parameter = self.GetPenaltyParameter()
-            size = self.model_part.NumberOfProperties(0)-1
+            size = self.model_part.NumberOfProperties(0)-1 #take in account that penalty will be set to this property:: other option size=0
             self.model_part.Properties[size].SetValue(PENALTY_PARAMETER, penalty_parameter)
             for size in range(0, self.number_of_walls):
                 self.contact_search_process[size].ExecuteInitializeSolutionStep()

@@ -50,6 +50,24 @@ namespace Kratos
          //virtual void EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, const double& rFrictionCoefficient) {} ;
          virtual void EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables&  rTangentVariables ) {} ;
 
+
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save( Serializer& rSerializer ) const
+    {
+    }
+
+    virtual void load( Serializer& rSerializer )
+    {
+    }
+
+
    }; // end class
 
 } // end Namespace Kratos

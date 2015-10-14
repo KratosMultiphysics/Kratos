@@ -560,13 +560,18 @@ private:
     virtual void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+	  //rSerializer.save("mpRigidWall",mpRigidWall); //rebuild in contact search and in restart
+	rSerializer.save("mpFrictionLaw",mpFrictionLaw);
     }
 
     virtual void load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+	  //rSerializer.load("mpRigidWall",mpRigidWall);
+	rSerializer.load("mpFrictionLaw",mpFrictionLaw);
     }
 
+    ///@}
 
 }; // class PointRigidContactCondition.
 
