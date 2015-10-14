@@ -37,13 +37,6 @@ namespace Kratos
 		if(rCurrentProcessInfo[FRACTIONAL_STEP]==2)
 		{
 			KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
-			/*
-			if(rRightHandSideVector.size() != 1)
-				rRightHandSideVector.resize(1,false);
-
-			double load = GetGeometry()[0].GetSolutionStepValue(POINT_HEAT_SOURCE);
-			rRightHandSideVector[0] = load;
-			*/
 		}
 		KRATOS_CATCH("")
 	}
@@ -72,24 +65,6 @@ namespace Kratos
 				 
 			rRightHandSideVector[0] = added_RHS_boundary_term;
 			
-			GetGeometry()[0].FastGetSolutionStepValue(G_VALUE)+=1.0;
-		}
-		else if (rCurrentProcessInfo[FRACTIONAL_STEP]==20)
-		{
-
-			if(rLeftHandSideMatrix.size1() != 1)
-				rLeftHandSideMatrix.resize(1,1,false);
-			noalias(rLeftHandSideMatrix) = ZeroMatrix(1,1);
-			if(rRightHandSideVector.size() != 1)
-				rRightHandSideVector.resize(1,false);
-				
-			array_1d<double,3> & normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
-			double pressure = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-
-			rLeftHandSideMatrix =ZeroMatrix(1,1);
-			rRightHandSideVector[0] = - pressure*normal(0);
-			GetGeometry()[0].FastGetSolutionStepValue(G_VALUE) = rRightHandSideVector[0] ;
-			
 		}
 		KRATOS_CATCH("")
 	}
@@ -111,18 +86,6 @@ namespace Kratos
 				rResult[index] = (GetGeometry()[i].GetDof(PRESSURE).EquationId());			
 			}
 		}
-		else if (rCurrentProcessInfo[FRACTIONAL_STEP]==20)
-		{
-			int number_of_nodes = GetGeometry().PointsNumber();
-			unsigned int index;
-			unsigned int dim = 1;
-			rResult.resize(number_of_nodes*dim);
-			for (int i=0;i<number_of_nodes;i++)
-			{
-				index = i*dim;
-				rResult[index] = (GetGeometry()[i].GetDof(VELOCITY_X).EquationId());			
-			}
-		}
 	}
 
 	//************************************************************************************
@@ -139,18 +102,6 @@ namespace Kratos
 				
 				index = i*dim;
 				ConditionalDofList[index] = (GetGeometry()[i].pGetDof(PRESSURE));
-			}
-		}
-		else if (rCurrentProcessInfo[FRACTIONAL_STEP]==20)
-		{
-			unsigned int dim = 1;
-			ConditionalDofList.resize(GetGeometry().size()*dim);
-			unsigned int index;
-			for (unsigned int i=0;i<GetGeometry().size();i++)
-			{
-				
-				index = i*dim;
-				ConditionalDofList[index] = (GetGeometry()[i].pGetDof(VELOCITY_X));
 			}
 		}
 	}
