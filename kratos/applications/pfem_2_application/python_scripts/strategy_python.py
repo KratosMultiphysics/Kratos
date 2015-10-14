@@ -167,12 +167,12 @@ class SolvingStrategyPython:
         #    print "solution obtained = ", self.Dx 
         #    print "RHS = ", self.b
         #elif(echo_level == 4):
-        #    filename = str("A_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
-        #    WriteMatrixMarket(filename, self.A, False);
+        #     filename = str("A_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
+        #     WriteMatrixMarketMatrix(filename, self.A, False);
 ##            bname = str("b_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
 ##            print "solution obtained = ", self.Dx 
 ##            print "RHS = ", self.b
-            
+        WriteMatrixMarketMatrix     
         #perform update
         self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
 
