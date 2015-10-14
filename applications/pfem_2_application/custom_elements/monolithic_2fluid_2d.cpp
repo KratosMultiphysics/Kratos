@@ -195,6 +195,11 @@ namespace Kratos
 				//viscosity=viscosity_water;
 				viscosity_for_tau=viscosity_water;
 				
+				if (volume_correction>0.1)
+				  volume_correction=0.1;
+				if (volume_correction<-0.1)
+				  volume_correction=-0.1;
+				
 			}
 			else
 			{
@@ -281,7 +286,7 @@ namespace Kratos
 					rhs_stab[j] += node_press_proj(j)*factor;
 			}
 			
-			const bool use_press_proj=true;
+			const bool use_press_proj=false;
 			
 			for (unsigned int i = 0; i < (TDim+1); i++)
 			{
@@ -448,7 +453,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  0.1 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));// + 2.0 * AdvVelNorm / mElemSize) );
+				TauOne =  0.01 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));// + 2.0 * AdvVelNorm / mElemSize) );
 			}
 		
 			
