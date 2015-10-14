@@ -182,12 +182,12 @@ namespace Python
                     .def("AddThem", &AddFixedVelocityCondition3D::AddThem)
                     ;
                     
-        class_<AddMonolithicFixedVelocityCondition2D > ("AddMonolithicFixedVelocityCondition2D", init<ModelPart& >())
-                    .def("AddThem", &AddMonolithicFixedVelocityCondition2D::AddThem)
+        class_<AddFixedPressureCondition2D > ("AddFixedPressureCondition2D", init<ModelPart& >())
+                    .def("AddThem", &AddFixedPressureCondition2D::AddThem)
                     ;
                     
-        class_<AddMonolithicFixedVelocityCondition3D > ("AddMonolithicFixedVelocityCondition3D", init<ModelPart& >())
-                    .def("AddThem", &AddMonolithicFixedVelocityCondition3D::AddThem)
+        class_<AddFixedPressureCondition3D > ("AddFixedPressureCondition3D", init<ModelPart& >())
+                    .def("AddThem", &AddFixedPressureCondition3D::AddThem)
                     ;            
                     
 		class_<VisualizationUtilities > ("VisualizationUtilities", init<>())
@@ -199,6 +199,7 @@ namespace Python
 					.def("CalculateWaterHeight",&CalculateWaterFraction<2>::CalculateWaterHeight)
 					.def("CalculateMeanCourant",&CalculateWaterFraction<2>::CalculateMeanCourant)
 					.def("CalculateMaxCourant",&CalculateWaterFraction<2>::CalculateMaxCourant)
+					.def("CalculateMaxCourantInNegativeElements",&CalculateWaterFraction<2>::CalculateMaxCourantInNegativeElements)
 					.def("CalculateForce",&CalculateWaterFraction<2>::CalculateForce)
                     ;
        
@@ -207,6 +208,7 @@ namespace Python
 					.def("CalculateWaterHeight",&CalculateWaterFraction<3>::CalculateWaterHeight)
 					.def("CalculateMeanCourant",&CalculateWaterFraction<3>::CalculateMeanCourant)
 					.def("CalculateMaxCourant",&CalculateWaterFraction<3>::CalculateMaxCourant)
+					.def("CalculateMaxCourantInNegativeElements",&CalculateWaterFraction<3>::CalculateMaxCourantInNegativeElements)
 					.def("CalculateForce",&CalculateWaterFraction<3>::CalculateForce)
                     ;
                     
