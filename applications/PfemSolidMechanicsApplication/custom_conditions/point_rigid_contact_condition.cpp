@@ -72,7 +72,8 @@ namespace Kratos
    //************************************************************************************
    PointRigidContactCondition::PointRigidContactCondition( PointRigidContactCondition const& rOther )
       : Condition(rOther)
-        ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+      ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+      ,mpRigidWall(rOther.mpRigidWall)
 
    {
       mpFrictionLaw = ContactFrictionLaw::Pointer( new CoulombAdhesionFrictionLaw() );

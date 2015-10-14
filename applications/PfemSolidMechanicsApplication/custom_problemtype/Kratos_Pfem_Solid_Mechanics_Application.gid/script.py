@@ -265,8 +265,7 @@ else:
 # set rigid wall contact if it is active:
 # activated instead of classical contact
 # set rigid wall configuration
-## Different to introduce the waterPressure in the RigidPoint condition
-rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config, False)
+rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
 
 # --RIGID WALL OPTIONS END--##################
 
