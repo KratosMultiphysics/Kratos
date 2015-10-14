@@ -133,7 +133,7 @@ namespace Kratos
 		MoveParticleUtilityPFEM2(ModelPart& model_part, int maximum_number_of_particles)
 			: mr_model_part(model_part) , mmaximum_number_of_particles(maximum_number_of_particles)  
 		{
-			KRATOS_WATCH("initializing moveparticle utility")
+			std::cout << "initializing moveparticle utility" << std::endl;
 			
 			//tools to move the domain, in case we are using a moving domain approach.
 			mintialized_transfer_tool=false; 
@@ -160,66 +160,86 @@ namespace Kratos
             int node_id=0;	
             // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+			
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
-				array_1d<double,3> position_node;
-				double distance=0.0;
-				position_node = pnode->Coordinates();
-				WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
-				//we loop all the nodes to check all the edges
-				for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
-					array_1d<double,3> position_difference;
-					position_difference = inode->Coordinates() - position_node;
-					double current_distance= sqrt(pow(position_difference[0],2)+pow(position_difference[1],2)+pow(position_difference[2],2));
-					if (current_distance>distance)
-						distance=current_distance;
+					ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
+					array_1d<double,3> position_node;
+					double distance=0.0;
+					position_node = pnode->Coordinates();
+					WeakPointerVector< Node<3> >& rneigh = pnode->GetValue(NEIGHBOUR_NODES);
+					//we loop all the nodes to check all the edges
+					const double number_of_neighbours = double(rneigh.size());
+					for( WeakPointerVector<Node<3> >::iterator inode = rneigh.begin(); inode!=rneigh.end(); inode++)
+					{
+						array_1d<double,3> position_difference;
+						position_difference = inode->Coordinates() - position_node;
+						double current_distance= sqrt(pow(position_difference[0],2)+pow(position_difference[1],2)+pow(position_difference[2],2));
+						//if (current_distance>distance)
+						//	distance=current_distance;
+						distance += current_distance / number_of_neighbours;
+					}
+					//and we save the largest edge.
+					pnode->FastGetSolutionStepValue(MEAN_SIZE)=distance;
+					
+					node_id=pnode->GetId();
 				}
-				//and we save the largest edge.
-				pnode->FastGetSolutionStepValue(MEAN_SIZE)=distance;
-				
-				node_id=pnode->GetId();
 			}
 			mlast_node_id=node_id;
 			
 			//we also calculate the element mean size in the same way, for the courant number
 			//also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
+			vector<unsigned int> element_partition;
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+			
+			//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				
-				double mElemSize;
-				array_1d<double,3> Edge(3,0.0);
-				Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
-				mElemSize = Edge[0]*Edge[0];
-				for (unsigned int d = 1; d < TDim; d++)
-					mElemSize += Edge[d]*Edge[d];
-
-				for (unsigned int i = 2; i < (TDim+1); i++)
-					for(unsigned int j = 0; j < i; j++)
-					{
-						Edge = ielem->GetGeometry()[i].Coordinates() - ielem->GetGeometry()[j].Coordinates();
-						double Length = Edge[0]*Edge[0];
-						for (unsigned int d = 1; d < TDim; d++)
-							Length += Edge[d]*Edge[d];
-						if (Length < mElemSize) mElemSize = Length;
-					}
-				mElemSize = sqrt(mElemSize);
-				ielem->GetValue(MEAN_SIZE) = mElemSize;
-				
-				//and the matrix column for the enrichments in the pressure.
-				if (TDim==3)
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
 				{
-					Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
-					lhs_enrich.resize(4);
-					lhs_enrich=ZeroVector(4);
+					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+					
+					double mElemSize;
+					array_1d<double,3> Edge(3,0.0);
+					Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
+					mElemSize = Edge[0]*Edge[0];
+					for (unsigned int d = 1; d < TDim; d++)
+						mElemSize += Edge[d]*Edge[d];
+
+					for (unsigned int i = 2; i < (TDim+1); i++)
+						for(unsigned int j = 0; j < i; j++)
+						{
+							Edge = ielem->GetGeometry()[i].Coordinates() - ielem->GetGeometry()[j].Coordinates();
+							double Length = Edge[0]*Edge[0];
+							for (unsigned int d = 1; d < TDim; d++)
+								Length += Edge[d]*Edge[d];
+							if (Length < mElemSize) mElemSize = Length;
+						}
+					mElemSize = sqrt(mElemSize);
+					ielem->GetValue(MEAN_SIZE) = mElemSize;
+					
+					//and the matrix column for the enrichments in the pressure.
+					if (TDim==3)
+					{
+						Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
+						lhs_enrich.resize(4);
+						lhs_enrich=ZeroVector(4);
+					}
+					else
+					ielem->GetValue(ENRICH_LHS_ROW)=ZeroVector(3);
+					//KRATOS_WATCH(mElemSize)
 				}
-				else
-				ielem->GetValue(ENRICH_LHS_ROW)=ZeroVector(3);
-				//KRATOS_WATCH(mElemSize)
 			}
 			
 
@@ -230,7 +250,7 @@ namespace Kratos
             int particle_id=0;
 			mnelems = mr_model_part.Elements().size();
 
-			KRATOS_WATCH("about to resize vectors")
+			std::cout << "about to resize vectors" << std::endl;
 			
 			
 			//setting the right size to the vector containing the particles assigned to each element			
@@ -250,7 +270,7 @@ namespace Kratos
             //int artz;
             //std::cin >> artz;
 			int i_int=0; //careful! it's not the id, but the position inside the array!	
-			KRATOS_WATCH("about to create particles")
+			std::cout << "about to create particles" << std::endl;
 			//now we seed: LOOP IN ELEMENTS
 			//using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
 			
@@ -258,7 +278,6 @@ namespace Kratos
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				//before doing anything we must reset the vector of nodes contained by each element
 				(ielem->GetValue(FLUID_PARTICLE_POINTERS)) = ParticlePointerVector( mmaximum_number_of_particles*2, &firstparticle );
 				ParticlePointerVector&  particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 				//now we link the mpointers_to_particle_pointers_vectors to the corresponding element
@@ -322,7 +341,7 @@ namespace Kratos
 			
 			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
 			KRATOS_WATCH(m_nparticles);
-			KRATOS_WATCH(mlast_elem_id);
+			//KRATOS_WATCH(mlast_elem_id);
 			mparticle_printing_tool_initialized=false;
 			//std::cin >> artz;
 		}
@@ -346,7 +365,7 @@ namespace Kratos
 			paux.swap(mpBinsObjectDynamic);
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end ); 
 				
-			KRATOS_WATCH("inside MountBin")
+			std::cout << "finished mounting Bins" << std::endl;
 
 			KRATOS_CATCH("")
 		}
@@ -393,7 +412,6 @@ namespace Kratos
 				#endif
 				OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
 				
-				//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
 				#pragma omp parallel for
 				for(int kkk=0; kkk<number_of_threads; kkk++)
 				{
@@ -470,7 +488,6 @@ namespace Kratos
 			#endif
 			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
 			
-			//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
 			#pragma omp parallel for
 			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
@@ -578,24 +595,33 @@ namespace Kratos
 			//ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			
 			const double nodal_weight = 1.0/ (1.0 + double (TDim) );
-
-			array_1d<double, 3 > vector_mean_velocity;
 			
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
-			#pragma omp parallel for firstprivate(vector_mean_velocity)
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			vector<unsigned int> element_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+			
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				Geometry<Node<3> >& geom = ielem->GetGeometry();
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+				{
+					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+					Geometry<Node<3> >& geom = ielem->GetGeometry();
 
-				vector_mean_velocity=ZeroVector(3);
+					array_1d<double, 3 >vector_mean_velocity=ZeroVector(3);
 
-				for (unsigned int i=0; i != (TDim+1) ; i++)
-					vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
-				vector_mean_velocity *= nodal_weight;
-				
-				const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-				ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+					for (unsigned int i=0; i != (TDim+1) ; i++)
+						vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
+					vector_mean_velocity *= nodal_weight;
+					
+					const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
+					ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+				}
 			}
 			KRATOS_CATCH("")
 		}
@@ -607,38 +633,60 @@ namespace Kratos
 		{
 			KRATOS_TRY
 			
-			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			if (fully_reset_nodes)
 			{
+				ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+				vector<unsigned int> node_partition;
+				#ifdef _OPENMP
+					int number_of_threads = omp_get_max_threads();
+				#else
+					int number_of_threads = 1;
+				#endif
+				OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+				
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int kkk=0; kkk<number_of_threads; kkk++)
 				{
-						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+					{
+							ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
-						if (inode->IsFixed(VELOCITY_X))
-						{
-							inode->FastGetSolutionStepValue(VELOCITY_X)=inode->GetSolutionStepValue(VELOCITY_X,1);
-						}
-						if (inode->IsFixed(VELOCITY_Y))
-						{
-							inode->FastGetSolutionStepValue(VELOCITY_Y)=inode->GetSolutionStepValue(VELOCITY_Y,1);
-						}
-						if (TDim==3)
-							if (inode->IsFixed(VELOCITY_Z))
+							if (inode->IsFixed(VELOCITY_X))
 							{
-								inode->FastGetSolutionStepValue(VELOCITY_Z)=inode->GetSolutionStepValue(VELOCITY_Z,1);
+								inode->FastGetSolutionStepValue(VELOCITY_X)=inode->GetSolutionStepValue(VELOCITY_X,1);
 							}
-						
-						if (inode->IsFixed(PRESSURE))
-							inode->FastGetSolutionStepValue(PRESSURE)=inode->GetSolutionStepValue(PRESSURE,1);
-						inode->GetSolutionStepValue(PRESSURE,1)=inode->FastGetSolutionStepValue(PRESSURE);		
+							if (inode->IsFixed(VELOCITY_Y))
+							{
+								inode->FastGetSolutionStepValue(VELOCITY_Y)=inode->GetSolutionStepValue(VELOCITY_Y,1);
+							}
+							if (TDim==3)
+								if (inode->IsFixed(VELOCITY_Z))
+								{
+									inode->FastGetSolutionStepValue(VELOCITY_Z)=inode->GetSolutionStepValue(VELOCITY_Z,1);
+								}
+							
+							if (inode->IsFixed(PRESSURE))
+								inode->FastGetSolutionStepValue(PRESSURE)=inode->GetSolutionStepValue(PRESSURE,1);
+							inode->GetSolutionStepValue(PRESSURE,1)=inode->FastGetSolutionStepValue(PRESSURE);		
+					}
 				}
 			}
 			else  //for fractional step only!
 			{
+				ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+				vector<unsigned int> node_partition;
+				#ifdef _OPENMP
+					int number_of_threads = omp_get_max_threads();
+				#else
+					int number_of_threads = 1;
+				#endif
+				OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+				
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int kkk=0; kkk<number_of_threads; kkk++)
 				{
+					for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+					{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
 						const array_1d<double, 3 > original_velocity = inode->FastGetSolutionStepValue(VELOCITY);
@@ -672,7 +720,8 @@ namespace Kratos
 						}
 						
 						if (inode->IsFixed(PRESSURE))
-							inode->FastGetSolutionStepValue(PRESSURE)=inode->GetSolutionStepValue(PRESSURE,1);						
+							inode->FastGetSolutionStepValue(PRESSURE)=inode->GetSolutionStepValue(PRESSURE,1);				
+					}		
 				}
 			}
 			KRATOS_CATCH("")
@@ -682,15 +731,23 @@ namespace Kratos
 		{
 			KRATOS_TRY
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
 			
-			
-				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 						inode->FastGetSolutionStepValue(DELTA_VELOCITY) = inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) ;
-
 				}
+			}
 
 			KRATOS_CATCH("")
 		}
@@ -699,11 +756,23 @@ namespace Kratos
                        ModelPart::NodesContainerType& rNodes)
         {
 			KRATOS_TRY
+			ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+			
 			#pragma omp parallel for
-			for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-				noalias(i->GetSolutionStepValue(OriginVariable,1)) = i->FastGetSolutionStepValue(OriginVariable);
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					noalias(inode->GetSolutionStepValue(OriginVariable,1)) = inode->FastGetSolutionStepValue(OriginVariable);
+				}
 			}
 			KRATOS_CATCH("")
         }
@@ -712,11 +781,23 @@ namespace Kratos
                        ModelPart::NodesContainerType& rNodes)
         {
 			KRATOS_TRY
+			ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+			
 			#pragma omp parallel for
-			for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
-				i->GetSolutionStepValue(OriginVariable,1) = i->FastGetSolutionStepValue(OriginVariable);
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+				    inode->GetSolutionStepValue(OriginVariable,1) = inode->FastGetSolutionStepValue(OriginVariable);
+				}
 			}
 			KRATOS_CATCH("")
         }
@@ -865,12 +946,15 @@ namespace Kratos
 			
 			//now we pass info from the local vector to the elements:
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+				{
+					ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 				
-				old_element->GetValue(NUMBER_OF_FLUID_PARTICLES) = mnumber_of_particles_in_elems(ii);
-				//old_element->GetValue(NUMBER_OF_WATER_PARTICLES) = mnumber_of_water_particles_in_elems(ii);
+					old_element->GetValue(NUMBER_OF_FLUID_PARTICLES) = mnumber_of_particles_in_elems(ii);
+					//old_element->GetValue(NUMBER_OF_WATER_PARTICLES) = mnumber_of_water_particles_in_elems(ii);
+				}
 
 			}
 			
@@ -905,139 +989,158 @@ namespace Kratos
 			//though we could've use a bigger buffer, to be changed later!
 			//after having saved data, we reset them to zero, this way it's easier to add the contribution of the surrounding particles.
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+			
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-				inode->FastGetSolutionStepValue(DISTANCE)=0.0;
-				inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=ZeroVector(3); 
-				inode->FastGetSolutionStepValue(YP)=0.0;
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					inode->FastGetSolutionStepValue(DISTANCE)=0.0;
+					inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=ZeroVector(3); 
+					inode->FastGetSolutionStepValue(YP)=0.0;
+				}
 	
 			}
 			
-			//KRATOS_WATCH("About to Lagrangian->eulerian part 2")
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
+			vector<unsigned int> element_partition;
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-	
-				array_1d<double,3*(TDim+1)> nodes_positions;
-				array_1d<double,3*(TDim+1)> nodes_addedvel = ZeroVector(3*(TDim+1));
-				
-				array_1d<double,(TDim+1)> nodes_added_distance = ZeroVector((TDim+1));
-				array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
-				array_1d<double,(TDim+1)> weighting_inverse_divisor;
-
-				Geometry<Node<3> >& geom = ielem->GetGeometry();
-				 
-				for (int i=0 ; i!=(TDim+1) ; ++i) 
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
 				{
-					nodes_positions[i*3+0]=geom[i].X();
-					nodes_positions[i*3+1]=geom[i].Y();
-					nodes_positions[i*3+2]=geom[i].Z();
-					weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01); 
-				}
-				///KRATOS_WATCH(ielem->Id())
-				///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
-
-				int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
-				ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-				
-				for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
-				{
-					if (iii==mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
-						break; 
-
-					PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
+					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+		
+					array_1d<double,3*(TDim+1)> nodes_positions;
+					array_1d<double,3*(TDim+1)> nodes_addedvel = ZeroVector(3*(TDim+1));
 					
-					if (pparticle.GetEraseFlag()==false) 
+					array_1d<double,(TDim+1)> nodes_added_distance = ZeroVector((TDim+1));
+					array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
+					array_1d<double,(TDim+1)> weighting_inverse_divisor;
+
+					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					 
+					for (int i=0 ; i!=(TDim+1) ; ++i) 
 					{
-						
-						array_1d<double,3> & position = pparticle.Coordinates();
+						nodes_positions[i*3+0]=geom[i].X();
+						nodes_positions[i*3+1]=geom[i].Y();
+						nodes_positions[i*3+2]=geom[i].Z();
+						weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01); 
+					}
+					///KRATOS_WATCH(ielem->Id())
+					///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
 
-						const array_1d<float,3>& velocity = pparticle.GetVelocity();
-
-						const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
+					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 					
-						array_1d<double,TDim+1> N;
-						bool is_found = CalculatePosition(geom,position[0],position[1],position[2],N);
-						if (is_found==false) //something went wrong. if it was close enough to the edge we simply send it inside the element.
-						{
-							KRATOS_WATCH(N);
-							for (int j=0 ; j!=(TDim+1); j++)
-								if (N[j]<0.0 && N[j]> -1e-5)
-									N[j]=1e-10;
-						
-						}
-						
-						for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
-						{
-							double sq_dist = 0;
-							//these lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
-							for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
-							//double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
-							
-							double weight=N(j);
-							//weight=N(j)*N(j)*N(j);
-							if (weight<threshold) weight=1e-10;
-							if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
-							else 
-							{
-								nodes_addedweights[j]+= weight;
-								//nodes_addedtemp[j] += weight * particle_temp; 
-								
-								nodes_added_distance[j] += weight*particle_distance;
-								
-								//nodes_added_oxygen[j] += weight*particle_oxygen;
+					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					{
+						if (iii==mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
+							break; 
 
-								for (int k=0 ; k!=(TDim); k++) //x,y,(z)
-								{
-									nodes_addedvel[j*3+k] += weight * velocity[k];
-								}
+						PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
+						
+						if (pparticle.GetEraseFlag()==false) 
+						{
+							
+							array_1d<double,3> & position = pparticle.Coordinates();
+
+							const array_1d<float,3>& velocity = pparticle.GetVelocity();
+
+							const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
+						
+							array_1d<double,TDim+1> N;
+							bool is_found = CalculatePosition(geom,position[0],position[1],position[2],N);
+							if (is_found==false) //something went wrong. if it was close enough to the edge we simply send it inside the element.
+							{
+								KRATOS_WATCH(N);
+								for (int j=0 ; j!=(TDim+1); j++)
+									if (N[j]<0.0 && N[j]> -1e-5)
+										N[j]=1e-10;
+							
+							}
+							
+							for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
+							{
+								double sq_dist = 0;
+								//these lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
+								for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
+								//double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
 								
-							}//
+								double weight=N(j);
+								//weight=N(j)*N(j)*N(j);
+								if (weight<threshold) weight=1e-10;
+								if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
+								else 
+								{
+									nodes_addedweights[j]+= weight;
+									//nodes_addedtemp[j] += weight * particle_temp; 
+									
+									nodes_added_distance[j] += weight*particle_distance;
+									
+									//nodes_added_oxygen[j] += weight*particle_oxygen;
+
+									for (int k=0 ; k!=(TDim); k++) //x,y,(z)
+									{
+										nodes_addedvel[j*3+k] += weight * velocity[k];
+									}
+									
+								}//
+							}
 						}
 					}
-				}
-				
-				for (int i=0 ; i!=(TDim+1) ; ++i) {
-					geom[i].SetLock();
-					geom[i].FastGetSolutionStepValue(DISTANCE) +=nodes_added_distance[i];
-					geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_addedvel[3*i+0];
-					geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_addedvel[3*i+1];
-					geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_addedvel[3*i+2];  //we are updating info to the previous time step!!
+					
+					for (int i=0 ; i!=(TDim+1) ; ++i) {
+						geom[i].SetLock();
+						geom[i].FastGetSolutionStepValue(DISTANCE) +=nodes_added_distance[i];
+						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_addedvel[3*i+0];
+						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_addedvel[3*i+1];
+						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_addedvel[3*i+2];  //we are updating info to the previous time step!!
 
-					geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
-					geom[i].UnSetLock();
+						geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
+						geom[i].UnSetLock();
+					}
 				}
 			}
 						
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
-				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-				double sum_weights = inode->FastGetSolutionStepValue(YP);
-				if (sum_weights>0.00001) 
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
-					//inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=(inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT))/sum_weights; //resetting the temperature
-					double & dist = inode->FastGetSolutionStepValue(DISTANCE);
-					 dist /=sum_weights; //resetting the density
-					inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY))/sum_weights; //resetting the velocity
- 					
-				}
-					
-				else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
-				{
-					inode->FastGetSolutionStepValue(DISTANCE)=3.0; //resetting the temperature
-					//inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1); //resetting the temperature
-					inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=inode->GetSolutionStepValue(VELOCITY,1);
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					double sum_weights = inode->FastGetSolutionStepValue(YP);
+					if (sum_weights>0.00001) 
+					{
+						//inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=(inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT))/sum_weights; //resetting the temperature
+						double & dist = inode->FastGetSolutionStepValue(DISTANCE);
+						 dist /=sum_weights; //resetting the density
+						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY))/sum_weights; //resetting the velocity
+						
+					}
+						
+					else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
+					{
+						inode->FastGetSolutionStepValue(DISTANCE)=3.0; //resetting the temperature
+						//inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1); //resetting the temperature
+						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=inode->GetSolutionStepValue(VELOCITY,1);
 
+					}
+					///finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
+					if (inode->IsFixed(DISTANCE))
+						inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1);
 				}
-				///finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
-				if (inode->IsFixed(DISTANCE))
-					inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1);
 			}
 			
 
@@ -1064,7 +1167,6 @@ namespace Kratos
 			#endif
 			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
 			
-			//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
 			#pragma omp parallel for
 			for(int kkk=0; kkk<number_of_threads; kkk++)
 			{
@@ -1354,7 +1456,7 @@ namespace Kratos
 							}
 						}
 						
-						/*
+						
 						if ( (has_air_node && has_water_node) ) //for slit elements we use the distance function
 						{ 
 							for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
@@ -1365,11 +1467,12 @@ namespace Kratos
 									is_water_particle[j]=true;
 							}
 						}
-						*/ 
-						//else //it has diluted particles. we attemp to conserve the concentration
+						else //it has diluted particles. we attemp to conserve the concentration
 						{
 							double water_fraction = 0.5 - 0.5*(mean_element_distance);
-							unsigned int number_of_water_reseeded_particles = double(number_of_reseeded_particles)*(1.0+mass_correction_factor*2.0)*water_fraction; 
+							if (water_fraction>0.9 && mass_correction_factor<0.0) //to avoid seeding air particles when we are in a pure water element
+							        mass_correction_factor = 0.0;
+							unsigned int number_of_water_reseeded_particles = double(number_of_reseeded_particles)*(1.01+mass_correction_factor*1.0)*water_fraction; 
 							
 							BubbleSort(distances, positions, number_of_reseeded_particles); //ok. now we have the particles ordered from the "watermost" to "airmost". therefore we will fill the water particles and later the air ones using that order
 							
@@ -2153,7 +2256,7 @@ namespace Kratos
 			
 			if(is_found == true)
 			{
-				pelement=Element::Pointer((*(result_begin+i).base()));
+				pelement=Element::Pointer((*(result_begin+i)));
 				return true;
 			}
 		}
@@ -2260,7 +2363,7 @@ namespace Kratos
 				
 				if(is_found == true)
 				{
-					pelement=Element::Pointer((*(result_begin+i).base()));
+					pelement=Element::Pointer((*(result_begin+i)));
 					if (number_of_elements_in_trajectory<20)
 					{
 					elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
