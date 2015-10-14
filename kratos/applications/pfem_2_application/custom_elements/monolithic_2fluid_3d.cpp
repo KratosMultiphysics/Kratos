@@ -86,7 +86,7 @@ namespace Kratos
 
 	    double delta_t = rCurrentProcessInfo[DELTA_TIME];	
 	    
-	    const double volume_correction = rCurrentProcessInfo[VOLUME_CORRECTION];
+	    double volume_correction = rCurrentProcessInfo[VOLUME_CORRECTION];
 
 		array_1d<double,TDim*(TDim+1)>  previous_vel;
 		array_1d<double,(TDim+1)*(TDim+1)>  previous_vel_and_press;
@@ -182,12 +182,18 @@ namespace Kratos
 				//viscosity=viscosity_water;
 				viscosity_for_tau=viscosity_water;
 				
+				if (volume_correction>0.1)
+				  volume_correction=0.1;
+				if (volume_correction<-0.1)
+				  volume_correction=-0.1;
+				
 			}
 			else
 			{
 				density = density_air;//this->CalculateAirDensity(element_temperature);
 				//viscosity = viscosity_air;//this->CalculateAirViscosity(element_temperature);
 				viscosity_for_tau=viscosity_air;
+				volume_correction=0.0;
 			}
 			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, viscosity_for_tau, Area );
 			
