@@ -233,7 +233,7 @@ public:
             double Nnew = 1.0-Nold;
             
             double Nold_before = 1.0-static_cast<double>(step-1)/static_cast<double>(nsubstep);
-            double Nnew_before = 1.0-Nold;            
+            double Nnew_before = 1.0-Nold_before;            
             
             //emulate clone time step by copying the new distance onto the old one
             i=0;
