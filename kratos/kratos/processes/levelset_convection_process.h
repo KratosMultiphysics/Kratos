@@ -218,6 +218,7 @@ public:
         {
             mold_dist[i] = iii->FastGetSolutionStepValue(mrLevelSetVar,1);
             mv[i] = iii->FastGetSolutionStepValue(VELOCITY);
+            mvold[i] = iii->FastGetSolutionStepValue(VELOCITY,1);
             i++;
         }
 
@@ -231,12 +232,19 @@ public:
             double Nold = 1.0-static_cast<double>(step)/static_cast<double>(nsubstep);
             double Nnew = 1.0-Nold;
             
+            double Nold_before = 1.0-static_cast<double>(step-1)/static_cast<double>(nsubstep);
+            double Nnew_before = 1.0-Nold;            
+            
             //emulate clone time step by copying the new distance onto the old one
             i=0;
             for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
             {
                 iii->FastGetSolutionStepValue(mrLevelSetVar,1) = iii->FastGetSolutionStepValue(mrLevelSetVar);
-                iii->FastGetSolutionStepValue(VELOCITY) = Nold*iii->FastGetSolutionStepValue(VELOCITY,1) + Nnew*mv[i];
+
+                const array_1d<double,3>& vold = mvold[i];
+                const array_1d<double,3>& v = mv[i];
+                iii->FastGetSolutionStepValue(VELOCITY,1) = Nold_before*vold + Nnew_before*v;
+                iii->FastGetSolutionStepValue(VELOCITY) = Nold*vold + Nnew*v;
                 i++;
             }
             
@@ -254,6 +262,12 @@ public:
         for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
         {
             iii->FastGetSolutionStepValue(mrLevelSetVar,1) = mold_dist[i];
+            
+            const array_1d<double,3>& vold = mvold[i];
+            const array_1d<double,3>& v = mv[i];
+            iii->FastGetSolutionStepValue(VELOCITY,1) = vold;
+            iii->FastGetSolutionStepValue(VELOCITY) = v;
+            
             i++;
         }
         
@@ -272,6 +286,7 @@ public:
         
         mold_dist.clear();
         mv.clear();
+        mvold.clear();
 
     }
     ///@}
@@ -331,7 +346,7 @@ protected:
     ModelPart::Pointer mp_distance_model_part;
 
     std::vector< double > mold_dist;
-    std::vector< array_1d<double,3> > mv;
+    std::vector< array_1d<double,3> > mv, mvold;
 
 
     SolvingStrategyType::Pointer mp_solving_strategy;
@@ -390,6 +405,7 @@ protected:
         //resize the arrays 
         mold_dist.resize(mp_distance_model_part->Nodes().size());
         mv.resize(mp_distance_model_part->Nodes().size());
+        mvold.resize(mp_distance_model_part->Nodes().size());
 
         mdistance_part_is_initialized = true;
 
