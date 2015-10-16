@@ -164,8 +164,6 @@ public:
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
         double h = ComputeH(DN_DX, Volume);
         
-        //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
-        double beta = 0.0; //1.0;
 
         //here we get all the variables we will need
         array_1d<double,TNumNodes> phi, phi_old;
@@ -180,16 +178,27 @@ public:
             v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
         }
-        array_1d<double,TDim> grad_phi = prod(DN_DX, phi);
+        array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
+        const double norm_grad = norm_2(grad_phi_halfstep);
+
+        //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
+
 
         //compute the divergence of v
         double div_v = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
             for(unsigned int k=0; k<TDim; k++)
                 div_v += 0.5*DN_DX(i,k)*(v[i][k] + vold[i][k]);
+            
+        double beta = 0.0; //1.0;
+        
+//         unsigned int nneg=0;
+//         for(unsigned int i=0; i<TNumNodes; i++) if(phi[i] < 0.0) nneg++;
+//         if(nneg > 0) beta = 1.0; //beta = 0.1;
 
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
+        bounded_matrix<double,TNumNodes, TDim> tmp;
 
             
         boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
@@ -219,6 +228,21 @@ public:
             noalias(aux2) += (1.0+tau*beta*div_v)*outer_prod(N, a_dot_grad);
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
             
+            //cross-wind term  
+            if(norm_grad > 1e-3 && norm_vel > 1e-9)
+            {
+                const double C = 0.7;
+                const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
+                const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
+                
+                const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
+                bounded_matrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
+                const double norm_vel_squared = norm_vel*norm_vel;
+                D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
+
+                noalias(tmp) = prod(DN_DX,D);
+                noalias(aux2) += prod(tmp,trans(DN_DX));
+            }
         }
         
         //adding the second and third term in the formulation
