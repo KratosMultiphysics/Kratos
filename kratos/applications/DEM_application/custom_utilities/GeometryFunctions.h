@@ -928,54 +928,53 @@ namespace Kratos
                                                             double LocalCoordSystem[3][3], double Weight[4], double &DistPToB)
     {
  
-      bool If_Contact = false;
+        bool If_Contact = false;
       
-      double dummy_normal_flag = 0.0;
-      Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem, dummy_normal_flag);
+        double dummy_normal_flag = 0.0;
+        Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem, dummy_normal_flag);
 
-      DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
+        DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
 
-      if(DistPToB < rad )
-      {
-   
-           double IntersectionCoord[3];
-           CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
+        if (DistPToB < rad)
+        {
+            double IntersectionCoord[3];
+            CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
            
-           if( (FaceNodeTotal == 3) )
-           {
-               double TriWeight[3] = {0.0};
-               TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
+            if (FaceNodeTotal == 3)
+            {
+                double TriWeight[3] = {0.0};
+                TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
                       
-               if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
-               {
-                   Weight[0] = TriWeight[0];
-                   Weight[1] = TriWeight[1];
-                   Weight[2] = TriWeight[2];
+                if (fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15)
+                {
+                    Weight[0] = TriWeight[0];
+                    Weight[1] = TriWeight[1];
+                    Weight[2] = TriWeight[2];
  
-                   If_Contact = true;
-               }
-           }
+                    If_Contact = true;
+                }
+            }
             
-           if( (FaceNodeTotal == 4) )
-           {
-               double QuadWeight[4] = {0.0};
-               QuadAngleWeight(Coord[0], Coord[1], Coord[2],  Coord[3], IntersectionCoord, QuadWeight);
+            if (FaceNodeTotal == 4)
+            {
+                double QuadWeight[4] = {0.0};
+                QuadAngleWeight(Coord[0], Coord[1], Coord[2],  Coord[3], IntersectionCoord, QuadWeight);
                       
-               if( fabs(QuadWeight[0] + QuadWeight[1] + QuadWeight[2] + QuadWeight[3] - 1.0) < 1.0e-15 )
-               {
-                   Weight[0] = QuadWeight[0];
-                   Weight[1] = QuadWeight[1];
-                   Weight[2] = QuadWeight[2];
-                   Weight[3] = QuadWeight[3];
+                if (fabs(QuadWeight[0] + QuadWeight[1] + QuadWeight[2] + QuadWeight[3] - 1.0) < 1.0e-15)
+                {
+                    Weight[0] = QuadWeight[0];
+                    Weight[1] = QuadWeight[1];
+                    Weight[2] = QuadWeight[2];
+                    Weight[3] = QuadWeight[3];
                
-                   If_Contact = true;
-               }
-           }
-       }
+                    If_Contact = true;
+                }
+            }
+        }
  
-       return If_Contact;
+        return If_Contact;
           
-   } //JudgeIfThisFaceIsContactWithParticle;
+    } //JudgeIfThisFaceIsContactWithParticle;
      
     //M.Santasusana Februar 2015   
      
