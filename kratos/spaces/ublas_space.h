@@ -276,9 +276,8 @@ public:
 
         vector< TDataType > partial_results(number_of_threads);
 
-        int i;
-        #pragma omp parallel for private(i)
-        for (i = 0; i < number_of_threads; i++)
+        #pragma omp parallel for 
+        for (int i = 0; i < number_of_threads; i++)
         {
             partial_results[i] = std::inner_product(rX.data().begin() + partition[i],
                                                     rX.data().begin() + partition[i + 1],
