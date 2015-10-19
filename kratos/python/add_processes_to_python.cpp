@@ -174,10 +174,10 @@ void  AddProcessesToPython()
     ;    
     
     class_<LevelSetConvectionProcess<2> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess2D",
-            init<Variable<double>& , ModelPart& , typename LinearSolverType::Pointer ,double >())
+            init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double >())
     ;
     class_<LevelSetConvectionProcess<3> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess3D",
-            init<Variable<double>& , ModelPart& , typename LinearSolverType::Pointer ,double>())
+            init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
     ;   
     
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
