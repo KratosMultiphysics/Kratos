@@ -149,8 +149,8 @@ namespace Kratos {
                                                     double indentation,
                                                     double previous_indentation);
         
-        virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2);
-        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall);
+        virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
+        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
 
         virtual void CalculateViscoDampingForce(double LocalRelVel[3],
                                                 double ViscoDampingLocalContactForce[3],
