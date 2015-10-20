@@ -1,3 +1,6 @@
+// Last modified by: S. Latorre (CIMNE)
+// Date: October 2015
+
 #include "DEM_application.h"
 #include "DEM_discontinuum_constitutive_law.h"
 
@@ -20,7 +23,7 @@ namespace Kratos {
     }
 
     void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        //std::cout << " Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
+        //std::cout << "Assigning DEMDiscontinuumConstitutiveLaw to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -63,7 +66,7 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta){
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
     }
-    void DEMDiscontinuumConstitutiveLaw::CalculateForces( ProcessInfo& rCurrentProcessInfo,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                                         const double OldLocalContactForce[3],
                                                         double LocalElasticContactForce[3],
                                                         double LocalDeltDisp[3],
@@ -80,7 +83,7 @@ namespace Kratos {
         InitializeContact(element1, element2);   
             
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);   
-        cohesive_force               = CalculateCohesiveNormalForce(element1, element2);
+        cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
 
         CalculateTangentialForce(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element1, element2);        
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);   
@@ -111,18 +114,18 @@ namespace Kratos {
         InitializeContactWithFEM(element, wall);
                 
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
-        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
+        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
 
         CalculateTangentialForceWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2) {        
+    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation, SphericParticle* element1, SphericParticle* element2) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
         return 0.0;
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2, const double mass_penalty_factor) {        
+    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation, SphericParticle* element1, SphericParticle* element2, const double mass_penalty_factor) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
         return 0.0;
     }
@@ -152,12 +155,12 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM) should not be called.","")
     }
 
-    double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2) {        
+    double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called.","")
         return 0.0;        
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall){
+    double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called.","")
         return 0.0;
     }
@@ -184,6 +187,7 @@ namespace Kratos {
     /////// LIBRARY OF CALCULATION FUNCTIONS ///////
     ////////////////////////////////////////////////
     
+    
     double DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForce(SphericParticle* const element1,
                                                                                 SphericParticle* const element2,
                                                                                 const double indentation) {
@@ -206,7 +210,7 @@ namespace Kratos {
         
         return cohesive_force;
     }
-    
+        
     double DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) {
                 
         const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
@@ -222,6 +226,7 @@ namespace Kratos {
         
         return cohesive_force;
     }
+    
     
     void DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForce(const double normal_force,
                                                     double LocalElasticContactForce[3],
@@ -251,7 +256,7 @@ namespace Kratos {
             sliding = true;
         }        
     }
-    
+        
     void DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
@@ -259,7 +264,7 @@ namespace Kratos {
                                                     SphericParticle* const element,
                                                     DEMWall* const wall) {        
         
-        const double WallBallFriction = wall->mTgOfFrictionAngle;         //TODO: CHECK THIS (SHOULD IT BE AN AVERAGE?)      
+        const double WallBallFriction = wall->GetTgOfFrictionAngle();         //TODO: CHECK THIS (SHOULD IT BE AN AVERAGE?)      
         
         LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
@@ -453,7 +458,6 @@ namespace Kratos {
         }
     KRATOS_CATCH("")      
     }
-    
     
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
             double &equiv_visco_damp_coeff_tangential,
