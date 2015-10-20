@@ -24,7 +24,7 @@ class variable_plotter:
                     file_writer.write("VELOCITY_X  VELOCITY_Y  VELOCITY_Z  ")
                     file_writer.write("ANGULAR_VELOCITY_X  ANGULAR_VELOCITY_Y  ANGULAR_VELOCITY_Z\n")
                     self.files.append(file_writer)
-                    print("The Id "+str(id)+" was found in the model part")
+                    print("The Id " + str(id) + " was found in the model part")
                     break
                     
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
@@ -63,3 +63,46 @@ class variable_plotter:
         
         for file_writer in self.files:
             file_writer.close()
+            
+class tangential_force_plotter:
+    
+    def __init__(self, model_part, list_of_nodes_ids, iteration):
+        
+        self.list_of_nodes = []
+        self.files = []
+        self.model_part = model_part
+        
+        for node in model_part.Nodes:
+            for id in list_of_nodes_ids:
+                if node.Id == id:
+                    self.list_of_nodes.append(node)
+                    colti_file_writer = open("variables_for_node_" + str(id) + "_iter_" + str(iteration) + ".txt", 'w');
+                    colti_file_writer.write("#Time  TOTAL_FORCES_Y  TOTAL_FORCES_Z  ANGULAR_VELOCITY_X\n")
+                    self.files.append(colti_file_writer)
+                    print("The Id " + str(id) + " was found in the model part")
+                    break
+                    
+        if len(self.list_of_nodes) != len(list_of_nodes_ids):
+            print("Some nodal ids could not be found in the model part! Stopping")
+            stop                         
+               
+        self.plot_tangential_force(0.0)
+         
+    def plot_tangential_force(self, time): 
+        
+        i = 0
+        
+        for colti_file_writer in self.files:
+            node = self.list_of_nodes[i]
+            string = str(time) \
+            + "  " + str(node.GetSolutionStepValue(TOTAL_FORCES_Y)) \
+            + "  " + str(node.GetSolutionStepValue(TOTAL_FORCES_Z)) \
+            + "  " + str(node.GetSolutionStepValue(ANGULAR_VELOCITY_X)) \
+            + '\n'
+            colti_file_writer.write(string)
+            i = i + 1 
+               
+    def close_files(self):
+        
+        for colti_file_writer in self.files:
+            colti_file_writer.close()            
