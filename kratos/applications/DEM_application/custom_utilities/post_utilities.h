@@ -132,12 +132,13 @@ public:
     }//VelocityTrap
     
     
-    void IntegrationOfForces(ModelPart::NodesContainerType& mesh_nodes , array_1d<double, 3>& total_forces, array_1d<double, 3>& rotation_center, array_1d<double, 3>& total_moment) {
+    void IntegrationOfForces(ModelPart::NodesContainerType& mesh_nodes , array_1d<double, 3>& total_forces, array_1d<double, 3>& rotation_center,
+                             array_1d<double, 3>& total_moment) {
                 
         for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = mesh_nodes.ptr_begin();
             node_pointer_it != mesh_nodes.ptr_end(); ++node_pointer_it) {
                 
-            const array_1d<double, 3 >& contact_forces_summed_at_structure_point = (*node_pointer_it)->FastGetSolutionStepValue(CONTACT_FORCES);
+            const array_1d<double, 3>& contact_forces_summed_at_structure_point = (*node_pointer_it)->FastGetSolutionStepValue(CONTACT_FORCES);
             noalias(total_forces) += contact_forces_summed_at_structure_point;
             
             array_1d<double, 3> vector_from_structure_center_to_structure_point;
