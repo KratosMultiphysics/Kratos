@@ -232,7 +232,7 @@ class Benchmark2:
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
         self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 10 u 1:10 w lp lt 3 lw 1.5 ps 1 pt 6")
         self.gnuplot_outfile.close()
-        print_gnuplot_files_on_screen(gnuplot_script_name)
+        #print_gnuplot_files_on_screen(gnuplot_script_name)
         
         error1, error2, error3 = self.compute_errors(normal_contact_force_outfile_name)
         
@@ -347,7 +347,7 @@ class Benchmark3:
         self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 2 t 'Cast iron'\n")
         self.gnuplot_outfile.close()
                 
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        #print_gnuplot_files_on_screen(gnuplot_script_name_1)
                 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):
         
@@ -495,10 +495,10 @@ class Benchmark4:
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
         self.gnuplot_outfile.close()
-        
+        '''
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
         print_gnuplot_files_on_screen(gnuplot_script_name_2)
-        print_gnuplot_files_on_screen(gnuplot_script_name_3)
+        print_gnuplot_files_on_screen(gnuplot_script_name_3)'''
         
     def compute_errors(self, tangential_restitution_coefficient_list_outfile_name, final_angular_vel_list_outfile_name, rebound_angle_list_outfile_name):
         
@@ -674,9 +674,9 @@ class Benchmark5:
         self.gnuplot_outfile.write("'paper_data/benchmark5_graph2.dat' index 1 w lp ls 2 t 'Polyethylene',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark5_graph2.dat' index 2 w p pt 7 ps 2 lt -1 t 'FEM'\n")
         self.gnuplot_outfile.close()
-                          
+        '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
         
     def compute_errors(self, Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, r_w1_prima_div_mu_per_Vcn_list_outfile_name):
         
@@ -834,9 +834,9 @@ class Benchmark6:
         self.gnuplot_outfile.write("'paper_data/benchmark6_graph2.dat' index 0 w lp ls 1 t 'Al. alloy',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark6_graph2.dat' index 1 w lp ls 2 t 'Nylon'\n")
         self.gnuplot_outfile.close()
-                          
+        '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
         
     def compute_errors(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name):
         
@@ -998,9 +998,9 @@ class Benchmark7:
         self.gnuplot_outfile.write("'paper_data/benchmark7_graph2.dat' w lp ls 1 t 'Al. alloy',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark7_graph2.dat' w lp ls 2 t 'Copper'\n")
         self.gnuplot_outfile.close()
-                          
+        '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
         
     def compute_errors(self, final_tangential_center_vel_list_outfile_name, final_angular_vel_list_outfile_name):
         
@@ -1154,9 +1154,9 @@ class Benchmark8:
         self.gnuplot_outfile.write("'paper_data/benchmark8_graph2.dat' index 0 w lp ls 1 t 'Al. alloy',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark8_graph2.dat' index 1 w lp ls 2 t 'Nylon'\n")
         self.gnuplot_outfile.close()
-                          
+        '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
-        print_gnuplot_files_on_screen(gnuplot_script_name_2)
+        print_gnuplot_files_on_screen(gnuplot_script_name_2)'''
                 
     def compute_errors(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name):
         
@@ -1307,7 +1307,7 @@ class Benchmark9:
         self.gnuplot_outfile.write("'paper_data/benchmark9_graph1.dat' w lp ls 2 t 'Cast iron'\n")
         self.gnuplot_outfile.close()
                 
-        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+        #print_gnuplot_files_on_screen(gnuplot_script_name_1)
                 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):
         
@@ -1492,10 +1492,10 @@ class Benchmark10: ########## LINEAR THORNTON
         self.gnuplot_outfile.write("plot [0:10][0.5:1.0] '" + tangential_coefficient_of_restitution_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/bench_10_tang_coeff_rest_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'e = 0.25'\n")
         self.gnuplot_outfile.close()
-                          
+        '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
         print_gnuplot_files_on_screen(gnuplot_script_name_2)
-        print_gnuplot_files_on_screen(gnuplot_script_name_3)
+        print_gnuplot_files_on_screen(gnuplot_script_name_3)'''
 
         
     def compute_errors(self, normalized_rebound_tangential_surface_vel_list_outfile_name,
@@ -1748,10 +1748,10 @@ class Benchmark11: ########## HERTZIAN THORNTON
         self.gnuplot_outfile.write("plot [0:10][0.5:1.0] '" + tangential_coefficient_of_restitution_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/bench_10_tang_coeff_rest_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'e = 0.25'\n")
         self.gnuplot_outfile.close()
-                          
+        '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
         print_gnuplot_files_on_screen(gnuplot_script_name_2)
-        print_gnuplot_files_on_screen(gnuplot_script_name_3)
+        print_gnuplot_files_on_screen(gnuplot_script_name_3)'''
 
         
     def compute_errors(self, normalized_rebound_tangential_surface_vel_list_outfile_name,
