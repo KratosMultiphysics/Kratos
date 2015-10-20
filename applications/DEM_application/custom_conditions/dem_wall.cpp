@@ -116,7 +116,11 @@ DEMWall::~DEMWall()
 
 void DEMWall::Initialize()
 {
+  /*
   mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+  mYoungModulus = GetProperties()[YOUNG_MODULUS];
+  mPoissonRatio = GetProperties()[POISSON_RATIO];
+  */
   
   this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
   this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
@@ -172,10 +176,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-   if( rDestinationVariable == EXTERNAL_FORCE )
+   if (rDestinationVariable == EXTERNAL_FORCE )
       {
 
-    for(unsigned int i=0; i< number_of_nodes; i++)
+    for (unsigned int i=0; i< number_of_nodes; i++)
       {
         int index = dimension * i;
 
@@ -190,10 +194,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
       }
       }
 
-    if( rDestinationVariable == FORCE_RESIDUAL )
+    if (rDestinationVariable == FORCE_RESIDUAL )
       {
 
-    for(unsigned int i=0; i< number_of_nodes; i++)
+    for (unsigned int i=0; i< number_of_nodes; i++)
       {
         int index = dimension * i;
 
@@ -213,7 +217,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 }
 
  
- 
+double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
+double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[WALL_FRICTION]; }
+double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
+
 
 void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 {
