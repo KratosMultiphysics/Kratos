@@ -122,8 +122,8 @@ public:
     
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& rCurrentProcessInfo);
 
-   void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-   void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -168,6 +168,6 @@ private:
     }
 
 }; // Class ContactLink3DExplicit
-}  // namespace Kratos.
+}  // namespace Kratos
 
 #endif // KRATOS_RIGIDEDGE_H_INCLUDED  defined 
