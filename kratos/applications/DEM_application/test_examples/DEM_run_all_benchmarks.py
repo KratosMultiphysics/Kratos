@@ -22,7 +22,9 @@ Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two ident
                   "Running DEM Benchmark 7... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 8... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
                   "Running DEM Benchmark 9... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
-                  "","","","","","","","","","",
+                  "Running DEM Benchmark 10... Linear: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
+                  "Running DEM Benchmark 11... Hertzian: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
+                  "","","","","","","","",
                   "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
                   "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
                   "Running DEM Benchmark 22... Tensile test of two identical spheres\n",\
@@ -35,18 +37,19 @@ def Run():
     print("\nStarting DEM Benchmarking..............\n")
     g = open("errors.txt", "w")
     g.write("\n========== DEM BENCHMARKING RESULTS ==========\n\n")
-    g.write("== BASIC DISCONTINUUM TESTS, SLIDING REGIME ==\n\n")
+    g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n\n")
+    g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
     g.close()
     Text=""
     f=open("BenchTemp.txt", "w")
     
-    #Discontinuum Tests. From 1 to 9
-    D_DEM_Benchmarks_list = list(range(1,10))
+    #Discontinuum Tests. From 1 to 11
+    D_DEM_Benchmarks_list = list(range(1,12))
 
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
     
-    Total_DEM_Benchmarks_list =  D_DEM_Benchmarks_list + C_DEM_Benchmarks_list
+    Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list
     
     for benchmark in Total_DEM_Benchmarks_list:
           
