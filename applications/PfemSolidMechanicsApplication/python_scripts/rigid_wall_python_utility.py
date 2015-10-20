@@ -83,7 +83,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level)
+                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
                 elif(conditions["WallType"] == "PLANE"):
                     
@@ -141,7 +141,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                                                       self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
+                    self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
                 sizei += 1
 
