@@ -1,3 +1,16 @@
+//--------------------------------------------------------------------
+/*    |  /           |
+      ' /   __| _` | __|  _ \   __|
+      . \  |   (   | |   (   |\__ \ 
+     _|\_\_|  \__,_|\__|\___/ ____/  
+                   KRATOS  __|   _ \  |   |  _ \    
+                         \__ \  (   | |   | | , )          
+                         ____/ \___/ ___|_| ___/ MECHANICS 
+			   
+     License:		      SolidMechanicsApplication/license.txt
+     Main authors:        Josep Maria Carbonell i Puigbo
+                          ..                                        */
+//--------------------------------------------------------------------
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Last modified by:    $Author:            JMCarbonell $
@@ -424,6 +437,7 @@ private:
     const SmallDisplacementElement mSmallDisplacementElement2D4N;
     const SmallDisplacementElement mSmallDisplacementElement2D6N;
     const SmallDisplacementElement mSmallDisplacementElement2D8N;
+    const SmallDisplacementElement mSmallDisplacementElement2D9N;
 
     const SmallDisplacementElement mSmallDisplacementElement3D4N;
     const SmallDisplacementElement mSmallDisplacementElement3D6N;
@@ -437,6 +451,7 @@ private:
     const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
     const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
     const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D8N;
+    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D9N;
 
     //large displacement
     const LargeDisplacementElement     mLargeDisplacementElement;
@@ -447,6 +462,7 @@ private:
     const TotalLagrangianElement mTotalLagrangianElement2D4N;
     const TotalLagrangianElement mTotalLagrangianElement2D6N;
     const TotalLagrangianElement mTotalLagrangianElement2D8N;
+    const TotalLagrangianElement mTotalLagrangianElement2D9N;
 
     const TotalLagrangianElement mTotalLagrangianElement3D4N;
     const TotalLagrangianElement mTotalLagrangianElement3D6N;
@@ -462,6 +478,7 @@ private:
     const UpdatedLagrangianElement mUpdatedLagrangianElement2D4N;
     const UpdatedLagrangianElement mUpdatedLagrangianElement2D6N;
     const UpdatedLagrangianElement mUpdatedLagrangianElement2D8N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement2D9N;
 
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D4N;
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D6N;
@@ -475,6 +492,7 @@ private:
     const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D4N;
     const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D6N;
     const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
+    const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D9N;
 
     const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement2D3N;
     const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;

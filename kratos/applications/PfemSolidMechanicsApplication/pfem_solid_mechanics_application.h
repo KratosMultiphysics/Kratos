@@ -1,3 +1,16 @@
+//--------------------------------------------------------------------
+/*    |  /           |
+      ' /   __| _` | __|  _ \   __|
+      . \  |   (   | |   (   |\__ \ 
+     _|\_\_|  \__,_|\__|\___/ ____/  
+        KRATOS' _ |  __|  __| \   |   __|   _ \  |   |  _ \    
+               '__| |_   |_   |\ /| \__ \  (   | |   | | , )                  
+              _|   _|    |__ _|  _| ____/ \___/ ___|_| ___/ MECHANICS 
+ 
+     License:		      PfemSolidMechanicsApplication/license.txt
+     Main authors:        Josep Maria Carbonell i Puigbo
+                          ..                                        */  
+//--------------------------------------------------------------------
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Last modified by:    $Author:                JMCarbonell $
