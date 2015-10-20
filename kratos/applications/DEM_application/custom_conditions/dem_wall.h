@@ -122,8 +122,16 @@ public:
                                  const Variable<VectorType>& rRHSVariable,
                                  Variable<array_1d<double,3> >& rDestinationVariable,
                                  const ProcessInfo& rCurrentProcessInfo);
-
+    /*
     double mTgOfFrictionAngle;
+    double mYoungModulus;
+    double mPoissonRatio;
+    */
+    
+    double GetYoung();
+    double GetPoisson();
+    double GetTgOfFrictionAngle();
+    
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     
     
