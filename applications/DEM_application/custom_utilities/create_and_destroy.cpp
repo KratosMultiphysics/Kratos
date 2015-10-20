@@ -142,6 +142,21 @@ namespace Kratos {
         mMaxNodeId = FindMaxNodeIdInModelPart(r_modelpart);
     }
 
+    int ParticleCreatorDestructor::FindMaxElementIdInModelPart(ModelPart& r_modelpart) {
+
+        int max_Id = 1;
+        
+        for (ModelPart::ElementsContainerType::iterator element_it = r_modelpart.GetCommunicator().LocalMesh().ElementsBegin();
+            element_it != r_modelpart.GetCommunicator().LocalMesh().ElementsEnd();
+            element_it++) {
+
+            if ((int) (element_it->Id()) > max_Id) max_Id = element_it->Id();
+        }
+
+        r_modelpart.GetCommunicator().MaxAll(max_Id);
+        return max_Id;
+    }
+    
     void ParticleCreatorDestructor::NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                     Node < 3 > ::Pointer& pnew_node,
                                                                     int aId,
