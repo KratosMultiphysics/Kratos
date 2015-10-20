@@ -6,12 +6,8 @@
 //
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
-#if !defined(KRATOS_CREATE_AND_DESTROY )
-#define  KRATOS_CREATE_AND_DESTROY
-
-// External includes
-
-// System includes
+#ifndef CREATE_AND_DESTROY_H
+#define CREATE_AND_DESTROY_H
 
 // Project includes
 #include "includes/model_part.h"
@@ -28,7 +24,6 @@
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/spheric_particle.h"
 #include "../custom_elements/spheric_continuum_particle.h"
-#include "includes/define.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "../DEM_application_variables.h"
@@ -225,8 +220,8 @@ private:
 ///@}
 
 
-} // namespace Kratos.
+} // namespace Kratos
 
-#endif // KRATOS_CREATE_AND_DESTROY  defined
+#endif // CREATE_AND_DESTROY_H defined
 
 
