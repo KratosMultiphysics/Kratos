@@ -16,7 +16,6 @@ nagel@sd.rub.de
 Gran Capita' s/n, 08034 Barcelona, Spain
 - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
 
-
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
 "Software"), to  deal in  the Software without  restriction, including
@@ -43,18 +42,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /* *********************************************************
 *
-*   Last Modified by:    $Author: Feng Chun $
-*   Date:                $Date: 2013-10-10 
+*   Last Modified by:    $Author: Salva Latorre $
+*   Date:                $Date: 2015-10-06
 *   Revision:            $Revision: 1.0
 *
 * ***********************************************************/
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -63,34 +59,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_utilities/GeometryFunctions.h"
 
-namespace Kratos
-{
-	using namespace GeometryFunctions;
+namespace Kratos {
+    
+    using namespace GeometryFunctions;
 
 //***********************************************************************************
 //***********************************************************************************
 
+// Constructor
+
+RigidFace3D::RigidFace3D() {}
 
 // Constructor
 
-RigidFace3D::RigidFace3D()
-{
-}
-
-// Constructor
-
-RigidFace3D::RigidFace3D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : DEMWall(NewId, pGeometry)
-{
-}
+RigidFace3D::RigidFace3D(IndexType NewId, GeometryType::Pointer pGeometry) : DEMWall(NewId, pGeometry) {}
 
 // Constructor
 
 RigidFace3D::RigidFace3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : DEMWall(NewId, pGeometry, pProperties)
-{
+           : DEMWall(NewId, pGeometry, pProperties) {
     //setting up the nodal degrees of freedom
-}
+    }
 
 //***********************************************************************************
 //***********************************************************************************
@@ -107,22 +96,19 @@ Condition::Pointer RigidFace3D::Create(
 //***********************************************************************************
 // Destructor
 
-RigidFace3D::~RigidFace3D()
-{
-}
+RigidFace3D::~RigidFace3D() {}
 
 
 //***********************************************************************************
 //***********************************************************************************
 
 void RigidFace3D::Initialize() {
-
+    /*
     mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
-
+    mYoungModulus      = GetProperties()[YOUNG_MODULUS];
+    mPoissonRatio      = GetProperties()[POISSON_RATIO];
+    */
 }
-
-
-
 
 //***********************************************************************************
 //***********************************************************************************
