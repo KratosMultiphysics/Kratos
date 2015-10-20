@@ -60,8 +60,11 @@ public:
     virtual ~ParticleCreatorDestructor();
 
     int FindMaxNodeIdInModelPart(ModelPart& r_modelpart);
+    
     void FindAndSaveMaxNodeIdInModelPart(ModelPart& r_modelpart);
     
+    int FindMaxElementIdInModelPart(ModelPart& r_modelpart);
+        
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node < 3 > ::Pointer& pnew_node,
                                            int aId,
