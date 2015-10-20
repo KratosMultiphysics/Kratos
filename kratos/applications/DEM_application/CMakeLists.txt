@@ -46,6 +46,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_ExponentialHC_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_JKR_cohesive_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_DMT_cohesive_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
@@ -85,5 +87,5 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("KratosDEMApplication subdir inc_dirs = ${inc_dirs}")
 
-# Add to the KratosMultiphisics Python module
+# Add to the KratosMultiphysics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION KratosMultiphysics )
