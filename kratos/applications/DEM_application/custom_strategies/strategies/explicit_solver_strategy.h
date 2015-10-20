@@ -258,7 +258,7 @@ namespace Kratos
               
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
           
-          rCustomListOfParticles.resize( pElements.size() );          
+          rCustomListOfParticles.resize(pElements.size());          
           
           #pragma omp parallel for
           for (int k = 0; k < mNumberOfThreads; k++){
@@ -268,7 +268,7 @@ namespace Kratos
             int elem_number = this->GetElementPartition()[k];
 
             for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++elem_number){
-                T* spheric_particle = dynamic_cast<T*>( &(*particle_pointer_it) );
+                T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
                 rCustomListOfParticles[elem_number] = spheric_particle;
             }                                
           }              
@@ -536,12 +536,12 @@ namespace Kratos
               SetOriginalRadius(r_model_part);              
               SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
               ComputeNewRigidFaceNeighboursHistoricalData();
-              mSearchControl = 2; // Search is active and search has been performed during this timestep
+              mSearchControl = 2; // Search is active and has been performed during this time step
 
           }
 
           else {
-              mSearchControl = 1; // Search is active but no search has been done this timestep;
+              mSearchControl = 1; // Search is active but no search has been done this time step;
           }
            
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
