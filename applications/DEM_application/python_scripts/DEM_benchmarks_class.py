@@ -2655,10 +2655,13 @@ class Benchmark25:   # es perd energia al rotar
 
 
 
-def delete_archives(nodeplotter):
+def delete_archives():
     
     #.......................Removing extra files
     files_to_delete_list = glob('*.time')
+    files_to_delete_list.extend(glob('*.dat'))
+    files_to_delete_list.extend(glob('*.gp'))
+        
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
     
