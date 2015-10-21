@@ -413,5 +413,5 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
     
     benchmark.print_results(number_of_points_in_the_graphic, dt)
 
-DBC.delete_archives(nodeplotter) #.......Removing some unuseful files 
+DBC.delete_archives() #.......Removing some unuseful files 
 
