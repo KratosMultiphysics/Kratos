@@ -36,7 +36,7 @@ def Run():
     
     print("\nStarting DEM Benchmarking..............\n")
     g = open("errors.txt", "w")
-    g.write("\n========== DEM BENCHMARKING RESULTS ==========\n\n")
+    g.write("\n\n========== DEM BENCHMARKING RESULTS ==========\n\n")
     g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n\n")
     g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
     g.close()
