@@ -77,7 +77,7 @@ namespace Kratos {
                 Fix_vel[1] = i->Is(DEMFlags::FIXED_VEL_Y);
                 Fix_vel[2] = i->Is(DEMFlags::FIXED_VEL_Z);
                 
-                 for (int k = 0; k < 3; k++) {
+                for (int k = 0; k < 3; k++) {
                     if (Fix_vel[k] == false) {
                         delta_displ[k] = delta_t * vel[k];
                         displ[k] += delta_displ[k];
