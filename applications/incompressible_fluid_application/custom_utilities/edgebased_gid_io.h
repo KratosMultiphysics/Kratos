@@ -119,7 +119,7 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile);
+//             WriteGaussPoints(ResultFile);
             GiD_fBeginResult(ResultFile, (char *)(rVariable.Name()).c_str(), (const char *)("Kratos"), SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<double> ValuesOnIntPoint(mSize);
@@ -167,7 +167,7 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile);
+//             WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (const char*)("Kratos"), SolutionTag,
                              GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<Vector> ValuesOnIntPoint(mSize);
@@ -212,7 +212,7 @@ public:
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints(ResultFile);
+            //WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (const char*)("Kratos"), SolutionTag,
                              GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
