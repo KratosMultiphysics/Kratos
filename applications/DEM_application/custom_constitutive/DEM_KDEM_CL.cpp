@@ -30,7 +30,7 @@ namespace Kratos {
     }
 
     void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << " Assigning DEM_KDEM to properties " << pProp->Id() << std::endl;
+        std::cout << "Assigning DEM_KDEM to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
