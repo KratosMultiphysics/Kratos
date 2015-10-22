@@ -26,7 +26,6 @@
 
 namespace Kratos
 {
-
     //DEMFEMUtilities::DEMFEMUtilities() {}
 
     /// Destructor
@@ -122,8 +121,7 @@ namespace Kratos
                     noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
                     angular_velocity_changed = angular_velocity;
                     }
-                }
-                  else { //if ((time - angular_velocity_stop_time) > 0.0) {
+                } else { //if ((time - angular_velocity_stop_time) > 0.0) {
                     angular_velocity_changed = ZeroVector(3);
 
                     if (angular_period > 0.0) {
