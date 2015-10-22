@@ -935,8 +935,7 @@ public:
         
         ContactExists = GeometryFunctions::Fast_JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord,  Particle_Coord, Radius, dummy_local_coord_system, distance_point_to_plane);
             
-        //if(ContactExists) { ContactType = 1; }
-        //The key here is to see that we only need to check for further contact if not having contact with plane, the distance_point_to_plane is lower than the radius. 
+        //The key here is to see that we only need to check for further contact if, when not having contact with plane, the distance_point_to_plane is lower than the radius. 
         //In this case it might have contact with edges or vertices, otherwise no contact is possible. 
                 
         ///Particle-edge contact and Particle-point
