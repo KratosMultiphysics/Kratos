@@ -3,12 +3,12 @@ import os
 import subprocess
 import sys
 import platform
+import smtplib
 
 kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 path = '../test_examples'
 sys.path.append(path)
-import benchmarking
 path = os.getcwd()
 path += '/basic_benchmarks'
 os.chdir(path)
@@ -37,15 +37,15 @@ def Run():
     print("\nStarting DEM Benchmarking..............\n")
     g = open("errors.txt", "w")
     g.write("\n\n========== DEM BENCHMARKING RESULTS ==========\n\n")
-    g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n\n")
+    g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
     g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
     g.close()
-    Text=""
-    f=open("BenchTemp.txt", "w")
+    Text = ""
+    f = open("BenchTemp.txt", "w")
     
     #Discontinuum Tests. From 1 to 11
     D_DEM_Benchmarks_list = list(range(1,12))
-
+    
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
     
@@ -78,7 +78,7 @@ def Run():
     print('\n')
     f.close()
     os.remove("BenchTemp.txt")        
-
+    
     g = open("errors.txt")
     file_contents = g.read()
     g.close()
@@ -86,6 +86,15 @@ def Run():
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
+    
+    # To send an email summary to the DEM Team
+    recipients = ["latorre@cimne.upc.edu", "maceli@cimne.upc.edu"]
+    # recipients += ["msantasusana@cimne.upc.edu", "gcasas@cimne.upc.edu", "farrufat@cimne.upc.edu", "jirazabal@cimne.upc.edu"]
+    subject = "DEM Benchmarks Results"   
+    message = "From: Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + subject + "\n" + Text
+    
+    smtplib.SMTP("smtps.cimne.upc.es").sendmail("Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>", recipients, message)
+    
     return Text
 
 
