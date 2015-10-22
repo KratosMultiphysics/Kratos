@@ -1393,7 +1393,7 @@ namespace Kratos
                 
                 AreaSegC = Radius_SQ*(alpha-sin_alpha*cos_alpha);
 
-                if(abs(sin_alpha)<tol_Radius){dist_CoM=0.0;}
+                if(fabs(sin_alpha)<tol_Radius){dist_CoM=0.0;}
                 else{ dist_CoM = 0.666666666*(Radius*sin_alpha*sin_alpha*sin_alpha/(alpha-sin_alpha*cos_alpha));}
                 
                 for (unsigned int index = 0;index<3;index++){        
