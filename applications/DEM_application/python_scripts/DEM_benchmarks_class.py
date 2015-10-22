@@ -1451,8 +1451,7 @@ class Benchmark10: ########## LINEAR THORNTON
         error_file = open(error_filename, 'a')
              
         if (coeff_of_rest=='0.25'):
-            error_file.write("\n\n")
-            error_file.write("== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW ==\n\n")
+            error_file.write("\n===== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW =====\n\n")
                 
         error_file.write("DEM Benchmark 10:")
                 
@@ -1707,8 +1706,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
         error_file = open(error_filename, 'a')
                
         if (coeff_of_rest=='0.25'):
-            error_file.write("\n\n")
-            error_file.write("== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ==\n\n")
+            error_file.write("\n==== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ====\n\n")
         
         error_file.write("DEM Benchmark 11:")
                 
