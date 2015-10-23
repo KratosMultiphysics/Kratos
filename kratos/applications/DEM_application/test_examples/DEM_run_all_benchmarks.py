@@ -42,13 +42,14 @@ def Run():
     g.close()
     Text = ""
     f = open("BenchTemp.txt", "w")
+    failure = False
     
     #Discontinuum Tests. From 1 to 11
     D_DEM_Benchmarks_list = list(range(1,12))
-    
+        
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
-    
+        
     Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list
     
     for benchmark in Total_DEM_Benchmarks_list:
@@ -70,6 +71,7 @@ def Run():
                     subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
                 os.system("export OMP_NUM_THREADS=16") # Trying to set a 'default' value
         except:
+            failure = True
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.txt", "a")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
@@ -88,13 +90,14 @@ def Run():
     Text += "\n\n\n"
     
     # To send an email summary to the DEM Team
-    recipients = ["latorre@cimne.upc.edu", "maceli@cimne.upc.edu"]
-    # recipients += ["msantasusana@cimne.upc.edu", "gcasas@cimne.upc.edu", "farrufat@cimne.upc.edu", "jirazabal@cimne.upc.edu"]
-    subject = "DEM Benchmarks Results"   
+    recipients = ["latorre@cimne.upc.edu"]
+    recipients += ["maceli@cimne.upc.edu", "msantasusana@cimne.upc.edu", "gcasas@cimne.upc.edu", "farrufat@cimne.upc.edu", "jirazabal@cimne.upc.edu"]
+    subject = "Problems found in DEM Benchmarks"   
     message = "From: Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + subject + "\n" + Text
     
-    if __name__ != '__main__':
+    if (__name__ != '__main__' and failure):
         smtplib.SMTP("smtps.cimne.upc.es").sendmail("Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>", recipients, message)
+    
     return Text
 
 
