@@ -368,7 +368,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
-                demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time)
+                demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, time)
 
                 os.chdir(main_path)
 
