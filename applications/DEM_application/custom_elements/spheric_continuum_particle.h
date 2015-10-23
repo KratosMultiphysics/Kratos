@@ -64,7 +64,7 @@ namespace Kratos
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);      
-      void ComputeNewNeighboursHistoricalData(std::vector<int>&                  mTempNeighboursIds, 
+      void ComputeNewNeighboursHistoricalData(std::vector<unsigned int>&                  mTempNeighboursIds, 
                                               std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                               std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
                                               std::vector<SphericParticle*>&     mTempNeighbourElements,
@@ -133,7 +133,8 @@ namespace Kratos
         //double mFinalPressureTime;
         //double mFinalSimulationTime;
      
-        int*  mSkinSphere;                           
+        int*  mSkinSphere; 
+        int mDimension;
 
         //sphere neighbour information
         
