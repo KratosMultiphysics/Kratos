@@ -18,10 +18,10 @@ namespace Kratos
 
     static inline int sign(double a)
     {
-        double output;
-        if(a < 0.0) output = -1.0;
-        else if (a > 0.0) output = 1.0;
-        else output = 0.0;
+        int output;
+        if(a < 0.0) output = -1;
+        else if (a > 0.0) output = 1;
+        else output = 0;
         return output;
     }
       
