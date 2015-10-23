@@ -67,7 +67,7 @@ class SphericElementGlobalPhysicsCalculator
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   const double& particle_radius = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-                  added_volume += 4.0 / 3 * pi * particle_radius * particle_radius * particle_radius;
+                  added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
               }
 
           }
