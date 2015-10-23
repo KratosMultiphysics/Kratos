@@ -368,7 +368,7 @@ namespace Kratos
 
         #pragma omp parallel
         {
-            std::vector<int>                  mTempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
+            std::vector<unsigned int>                  mTempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
             std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
             std::vector<SphericParticle*>     mTempNeighbourElements;

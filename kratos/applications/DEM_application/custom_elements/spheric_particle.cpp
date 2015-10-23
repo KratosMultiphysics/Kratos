@@ -80,7 +80,6 @@ void SphericParticle::Initialize()
 {
     KRATOS_TRY
 
-    mDimension                = 3;
     mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
     double density            = GetDensity();
     double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
@@ -391,7 +390,7 @@ void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angul
     noalias(r_angular_momentum) = moment_of_inertia * ang_vel;
 }
 
-void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<unsigned int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                          std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces)
 {
     unsigned int new_size = mNeighbourElements.size();
@@ -402,12 +401,12 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
 
     for (unsigned int i = 0; i < new_size; i++){
         SphericParticle* i_neighbour = mNeighbourElements[i];
-        mTempNeighboursIds[i] = static_cast<int>(i_neighbour->Id());
+        mTempNeighboursIds[i] = i_neighbour->Id();
         noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
         noalias(mTempNeighbourTotalContactForces[i]) = vector_of_zeros;
 
         for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++){
-            if (static_cast<int>(i_neighbour->Id()) == mOldNeighbourIds[j]){
+            if (i_neighbour->Id() == mOldNeighbourIds[j]){
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
                 noalias(mTempNeighbourTotalContactForces[i])   = mNeighbourTotalContactForces[j];
                 break;

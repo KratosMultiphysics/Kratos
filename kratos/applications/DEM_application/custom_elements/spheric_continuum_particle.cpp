@@ -67,7 +67,7 @@ namespace Kratos {
     //**************************************************************************************************************************************************
 
     void SphericContinuumParticle::FullInitialize(const ProcessInfo& r_process_info) {
-        KRATOS_TRY
+        KRATOS_TRY        
         MemberDeclarationFirstStep(r_process_info);
         ContinuumSphereMemberDeclarationFirstStep(r_process_info);
         Initialize();
@@ -593,7 +593,7 @@ namespace Kratos {
 
     //VELL:
 
-    void SphericContinuumParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
+    void SphericContinuumParticle::ComputeNewNeighboursHistoricalData(std::vector<unsigned int>& mTempNeighboursIds, //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
             std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
             std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
             std::vector<SphericParticle*>& mTempNeighbourElements,
@@ -630,8 +630,8 @@ namespace Kratos {
             int failure_id = 1;
             array_1d<double, 3> neigh_elastic_forces = vector_of_zeros;
             array_1d<double, 3> neigh_total_forces = vector_of_zeros;
-            double mapping_new_ini = -1;
-            double mapping_new_cont = -1;
+            int mapping_new_ini = -1;
+            int mapping_new_cont = -1;
 
             //Loop Over Initial Neighbors        
 
@@ -647,7 +647,7 @@ namespace Kratos {
 
             //Loop Over Last time-step Neighbors
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++) {
-                if (static_cast<int> ((i_neighbour)->Id()) == mOldNeighbourIds[j]) {
+                if ((i_neighbour)->Id() == mOldNeighbourIds[j]) {
                     neigh_elastic_forces = mNeighbourElasticContactForces[j];
                     neigh_total_forces = mNeighbourTotalContactForces[j];
                     break;
@@ -665,7 +665,7 @@ namespace Kratos {
             {
                 mNeighbourElements.push_back(i_neighbour); ///////////////////////////////*/
 
-                mTempNeighboursIds[neighbour_counter] = static_cast<int> ((i_neighbour)->Id());
+                mTempNeighboursIds[neighbour_counter] = (i_neighbour)->Id();
                 mTempNeighboursMapping[neighbour_counter] = mapping_new_ini;
                 mTempContNeighboursMapping[neighbour_counter] = mapping_new_cont;
                 mTempNeighboursDelta[neighbour_counter] = ini_delta;
@@ -1211,6 +1211,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
+        mDimension = 3;
         mSkinSphere                     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup                 = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
         

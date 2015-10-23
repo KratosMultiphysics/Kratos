@@ -166,7 +166,7 @@ namespace Kratos
       
       ExplicitSolverStrategy(ExplicitSolverSettings& settings,
                              const double max_delta_time,
-                             const double n_step_search,
+                             const int n_step_search,
                              const double safety_factor,
                              const bool move_mesh_flag,
                              const int delta_option,
@@ -217,7 +217,7 @@ namespace Kratos
                              ModelPart& fem_model_part,
                              ModelPart& cluster_model_part,
                              const double max_delta_time,
-                             const double n_step_search,
+                             const int n_step_search,
                              const double safety_factor,
                              const bool move_mesh_flag,
                              const int delta_option,
@@ -1281,7 +1281,7 @@ namespace Kratos
 
         #pragma omp parallel
         {
-            std::vector<int> mTempNeighboursIds;
+            std::vector<unsigned int> mTempNeighboursIds;
             std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
         
@@ -1454,129 +1454,7 @@ namespace Kratos
         r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
 //         r_model_part.GetCommunicator().SynchronizeDofs();
     }
-    
-    
-    void DoAllOperations(                
-                            ModelPart& DEM_inlet_model_part,
-                            ParticleCreatorDestructor& creator_destructor,
-                            DEMFEMUtilities& mesh_motion,
-                            DEM_Inlet& DEM_inlet,
-                            const std::string& dem_inlet_element_type,
-                            double final_time,
-                            double OutputTimeStep,
-                            int total_steps_expected,
-                            double ControlTime,
-                            const std::string& main_path) {
-        
-            KRATOS_TRY;
-            double time = 0.0;
-            int step = 0;
-            double time_old_print = 0.0;
-            double time_to_print = 0.0;
-            double& dt = mpDem_model_part->GetProcessInfo()[DELTA_TIME];
-            double incremental_time = 0.0;
-            double initial_real_time = std::time(0);
-            double prev_time=0.0;
-            //bool first_print = true;
-
-            while (time < final_time) {
-
-                time = time + dt;
-                mpDem_model_part->GetProcessInfo()[TIME] = time;
-                mpDem_model_part->GetProcessInfo()[TIME_STEPS] = step;
-
-                //walls movement:
-                mesh_motion.MoveAllMeshes(*mpFem_model_part, time, dt);
-
-                //# _SOLVE_###########################################
-                //os.chdir(main_path);
-                this->Solve();
-                //# TIME CONTROL######################################
-
-                //# adding DEM elements by the inlet:
-                //if (inlet_option):
-                DEM_inlet.CreateElementsFromInletMesh(*mpDem_model_part, *mpCluster_model_part, creator_destructor); //#After solving, to make sure that neighbours are already set.        
-
-                incremental_time = (std::time(0) - initial_real_time) - prev_time;
-
-                if (incremental_time > ControlTime){
-                    double percentage = 100.0 * (float(step) / total_steps_expected);
-        
-                    std::cout<<"Real time calculation: "<<std::time(0)-initial_real_time<<" s"<<std::endl;
-                    std::cout<<"Simulation time: "<<time<<" s"<<std::endl;
-                    std::cout<<"Percentage Completed: "<<percentage<<" %"<<std::endl;   
-                    std::cout<<"Time Step: "<<step<<std::endl<<std::endl<<std::flush;
-
-                    prev_time = (std::time(0) - initial_real_time);
-                }    
-
-                time_to_print = time - time_old_print;
-
-                if (time_to_print >= OutputTimeStep) {
-
-                    /*print("")
-                    print("*******************  PRINTING RESULTS FOR GID  ***************************")
-                    print("                        (", balls_model_part.NumberOfElements(0), " elements)")
-                    sys.stdout.flush()
-        
-                    # BENCHMARK ###
-                    os.chdir(data_and_results)
-
-                    # properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
-
-                    if (index_5 == 5):
-                        multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-                        index_5 = 0
-
-                    if (index_10 == 10):
-                        multifile_10.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-                        index_10 = 0
-
-                    if (index_50 == 50):
-                        multifile_50.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-                        index_50 = 0
-
-                    index_5 += 1
-                    index_10 += 1
-                    index_50 += 1
-
-                    if (DEM_parameters.Multifile == "multiple_files"):
-                        gid_io.FinalizeResults()
-
-                    os.chdir(post_path)
-
-                    if (DEM_parameters.Multifile == "multiple_files"):
-                        mixed_model_part.Elements.clear()
-                        mixed_model_part.Nodes.clear()
-
-                        post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-                        post_utility.AddModelPartToModelPart(mixed_model_part, mpFem_model_part)
-
-                        gid_io.InitializeMesh(time)
-                        gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-                        gid_io.WriteMesh(mpFem_model_part.GetMesh())
-                        gid_io.FinalizeMesh()
-
-                        gid_io.InitializeResults(time, mixed_model_part.GetMesh())
-
-                    proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
-                    proc.PrintingBallsVariables(gid_io, balls_model_part, time)
-
-                    if (DEM_parameters.Multifile == "multiple_files"):
-                        gid_io.FinalizeResults()
-
-                    time_old_print = time;*/
-                }
-
-                step += 1;
-            }//while
-
-            KRATOS_CATCH("");
-        }
-    
-    
-    //*******************************************************************************************************
-        
+            
     void CleanEnergies()
      {
           KRATOS_TRY

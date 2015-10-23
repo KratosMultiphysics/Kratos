@@ -146,7 +146,7 @@ virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericPartic
 /// Print object's data.
 virtual void PrintData(std::ostream& rOStream) const {}
 
-virtual void ComputeNewNeighboursHistoricalData( std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+virtual void ComputeNewNeighboursHistoricalData( std::vector<unsigned int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                            std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
 
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
@@ -308,7 +308,6 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
 
 //const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
-int mDimension;
 int mDampType;
 
 //const double* mSearchControl;
@@ -320,7 +319,7 @@ double mRealMass;
 
 PropertiesProxy* mFastProperties;
 
-std::vector<int> mOldNeighbourIds;
+std::vector<unsigned int> mOldNeighbourIds;
 std::vector< array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector< array_1d<double, 3> > mNeighbourTotalContactForces;
 
