@@ -512,7 +512,6 @@ namespace Kratos {
 
                 ref_radius = (*(Elements.begin().base()))->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                 array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()[0].Coordinates();
-
                 mStrictLowPoint = coor;
                 mStrictHighPoint = coor;
 
@@ -527,7 +526,8 @@ namespace Kratos {
                     }
                 }
             }
-
+                        
+                    
             if (r_rigid_faces_model_part.NumberOfConditions(0)) { // loop over rigid faces
                 ModelPart::ConditionsContainerType Conditions = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
 
@@ -558,7 +558,7 @@ namespace Kratos {
                     }
                 }
             }
-
+                        
             r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
             r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
             r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
@@ -566,16 +566,19 @@ namespace Kratos {
             r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
             r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
             r_balls_model_part.GetCommunicator().MaxAll(ref_radius);
-
+            
+             
             array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
             mHighPoint = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
             mLowPoint = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
-
+            
+                    
             for (std::size_t i = 0; i < 3; i++) {
                 mLowPoint[i] -= 2 * ref_radius;
                 mHighPoint[i] += 2 * ref_radius;
             }
-
+            
+            
             mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
             mDiameter = norm_2(mHighPoint - mLowPoint);
         }// if (automatic)
@@ -846,11 +849,11 @@ namespace Kratos {
     }
 
     array_1d<double, 3 > ParticleCreatorDestructor::GetStrictHighNode() {
-        return (mHighPoint);
+        return (mStrictHighPoint);
     }
 
     array_1d<double, 3 > ParticleCreatorDestructor::GetStrictLowNode() {
-        return (mLowPoint);
+        return (mStrictLowPoint);
     }
 
     double ParticleCreatorDestructor::GetDiameter() {
