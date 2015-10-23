@@ -181,12 +181,12 @@ namespace Kratos {
 
                     if (test > 0.49999999) { // singularity at north pole                     
                         EulerAngles[0] = 2 * atan2(Orientation_imag[0], Orientation_real);
-                        EulerAngles[1] = pi;
+                        EulerAngles[1] = KRATOS_M_PI;
                         EulerAngles[2] = 0.0;
                     }
                     else if (test < -0.49999999) { // singularity at south pole                                       
                         EulerAngles[0] = -2 * atan2(Orientation_imag[0], Orientation_real);
-                        EulerAngles[1] = -pi;
+                        EulerAngles[1] = -KRATOS_M_PI;
                         EulerAngles[2] = 0.0;
                     }
                     else {
