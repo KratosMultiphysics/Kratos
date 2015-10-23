@@ -269,6 +269,22 @@ public:
     }
 
     /**
+     * creates a new element pointer
+     * @param NewId: the ID of the new element
+     * @param pGeom: the geometry to be employed
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    virtual Pointer Create(IndexType NewId,
+                           GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Element::Pointer(new Element(NewId, pGeom, pProperties));
+        KRATOS_CATCH("");
+    }
+
+    /**
      * creates a new element pointer and clones the previous element data
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element

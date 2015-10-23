@@ -272,6 +272,19 @@ public:
         return Condition::Pointer(new Condition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param pGeom: the geometry to be employed
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    virtual Pointer Create(IndexType NewId,
+                           GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const
+    {
+        return Condition::Pointer(new Condition(NewId, pGeom, pProperties));
+    }
 
     /**
      * creates a new condition pointer and clones the previous condition data
