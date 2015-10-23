@@ -47,6 +47,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define	KRATOS_OPENMP_UTILS_H
 
 #include <stdio.h>
+#include <vector>
+#include <iostream>
 #ifdef _OPENMP
 #include <omp.h>
 #else
@@ -266,8 +268,8 @@ public:
 #endif
     }
 
-
-    static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    template<class T>
+    static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, T& partitions)
     {
         partitions.resize(number_of_threads+1);
         int partition_size = number_of_rows / number_of_threads;
