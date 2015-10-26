@@ -86,7 +86,7 @@ namespace Kratos {
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
 
         CalculateTangentialForce(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element1, element2);        
-        CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);   
+        CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateElasticEnergy(double& normal_elastic_energy,
@@ -167,7 +167,6 @@ namespace Kratos {
     
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                     double ViscoDampingLocalContactForce[3],
-                                                                    bool sliding,
                                                                     SphericParticle* element1,
                                                                     SphericParticle* element2) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForce) should not be called.","")
