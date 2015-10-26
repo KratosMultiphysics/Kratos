@@ -54,8 +54,10 @@ else:
 
 ########################################################## CHUNG, OOI BENCHMARKS
     
-nodeplotter = 1    
+nodeplotter = 0  
   
+if benchmark_number in list:
+    nodeplotter = 1  
 ####################
 final_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 benchmark_class_name = 'Benchmark' + str(benchmark_number)
