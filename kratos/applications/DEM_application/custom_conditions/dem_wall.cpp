@@ -116,19 +116,7 @@ DEMWall::~DEMWall()
 
 void DEMWall::Initialize()
 {
-  /*
-  mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
-  mYoungModulus = GetProperties()[YOUNG_MODULUS];
-  mPoissonRatio = GetProperties()[POISSON_RATIO];
-  */
-  
-  this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-  this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-  this->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-  
-  this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-  this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-  this->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+    KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead", 0);
 }
 
 //***********************************************************************************
@@ -150,19 +138,7 @@ void DEMWall::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
 
 void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     
-    array_1d<double, 3> v1, v2;
-        
-    v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
-    v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
-    v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
-
-    v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
-    v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
-    v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
-
-    MathUtils<double>::CrossProduct(rnormal, v1, v2);
-
-    rnormal /= MathUtils<double>::Norm3(rnormal);
+   KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead", "");
 }
   
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,
@@ -176,10 +152,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-   if (rDestinationVariable == EXTERNAL_FORCE )
+   if( rDestinationVariable == EXTERNAL_FORCE )
       {
 
-    for (unsigned int i=0; i< number_of_nodes; i++)
+    for(unsigned int i=0; i< number_of_nodes; i++)
       {
         int index = dimension * i;
 
@@ -194,10 +170,10 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
       }
       }
 
-    if (rDestinationVariable == FORCE_RESIDUAL )
+    if( rDestinationVariable == FORCE_RESIDUAL )
       {
 
-    for (unsigned int i=0; i< number_of_nodes; i++)
+    for(unsigned int i=0; i< number_of_nodes; i++)
       {
         int index = dimension * i;
 
@@ -220,7 +196,7 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
 double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[WALL_FRICTION]; }
 double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
-
+ 
 
 void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 {

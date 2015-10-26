@@ -117,7 +117,7 @@ public:
     ProcessInfo& rCurrentProcessInfo );
 		
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& rCurrentProcessInfo);
-
+    void CalculateNormal(array_1d<double, 3>& rnormal);
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
