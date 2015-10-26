@@ -122,7 +122,6 @@ namespace Kratos {
                                             double previous_indentation);
         void CalculateViscoDampingForce(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
-                bool sliding,
                 SphericParticle * const element1,
                 SphericParticle * const element2);
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
