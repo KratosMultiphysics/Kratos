@@ -7,12 +7,12 @@
 
 // Project includes
 #include "DEM_application.h"
-#include "DEM_Dempack1_CL.h"
+#include "DEM_Dempack_CL.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
-    void DEM_Dempack1::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEM_Dempack::Initialize(const ProcessInfo& rCurrentProcessInfo) {
         
         KRATOS_TRY  
     mHistoryMaxInd              = 0.0; //maximum indentation achieved
@@ -24,17 +24,17 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    DEMContinuumConstitutiveLaw::Pointer DEM_Dempack1::Clone() const {
-        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_Dempack1(*this));
+    DEMContinuumConstitutiveLaw::Pointer DEM_Dempack::Clone() const {
+        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_Dempack(*this));
         return p_clone;
     }
 
-    void DEM_Dempack1::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_Dempack1 to properties " << pProp->Id() << std::endl;
+    void DEM_Dempack::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+        std::cout << " Assigning DEM_Dempack to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_Dempack1::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
+    void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
         
         KRATOS_TRY
         double rmin = radius;
@@ -43,7 +43,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateElasticConstants(double &kn_el,
+    void DEM_Dempack::CalculateElasticConstants(double &kn_el,
             double &kt_el,
             double initial_dist,
             double equiv_young,
@@ -57,7 +57,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+    void DEM_Dempack::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
             double &equiv_visco_damp_coeff_tangential,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
@@ -75,8 +75,8 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateForces(ProcessInfo& rCurrentProcessInfo,
-                                       double LocalElasticContactForce[3],
+    void DEM_Dempack::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                                      double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             const double kn_el,
             double kt_el,
@@ -127,7 +127,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateNormalForces(double LocalElasticContactForce[3],
+    void DEM_Dempack::CalculateNormalForces(double LocalElasticContactForce[3],
             const double kn_el,
             double equiv_young,
             double indentation,
@@ -251,7 +251,7 @@ namespace Kratos {
     KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateTangentialForces(double LocalElasticContactForce[3],
+    void DEM_Dempack::CalculateTangentialForces(double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             double kt_el,
             double indentation,
