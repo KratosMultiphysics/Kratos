@@ -1861,7 +1861,7 @@ class Benchmark20:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
@@ -1982,7 +1982,7 @@ class Benchmark21:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
@@ -2100,7 +2100,7 @@ class Benchmark22:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
@@ -2218,7 +2218,7 @@ class Benchmark23:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
@@ -2336,7 +2336,7 @@ class Benchmark24:
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
@@ -2494,7 +2494,7 @@ class Benchmark25:   # es perd energia al rotar
         #self.graph_frequency = int(output_time_step/dt)  # def __init__(self, output_time_step, dt):
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
-    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic):  #INITIALIZATION STEP
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):  #INITIALIZATION STEP
 
         self.restitution_numbers_vector_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.restitution_numbers_vector_list_outfile_name, 'w')
