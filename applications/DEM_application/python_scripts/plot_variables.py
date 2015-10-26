@@ -29,7 +29,7 @@ class variable_plotter:
                     
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
             print("Some nodal ids could not be found in the model part! Stopping")
-            stop                         
+                                     
                
         self.plot_variables(0.0)
          
@@ -84,7 +84,7 @@ class tangential_force_plotter:
                     
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
             print("Some nodal ids could not be found in the model part! Stopping")
-            stop                         
+                                     
                
         self.plot_tangential_force(0.0)
          
