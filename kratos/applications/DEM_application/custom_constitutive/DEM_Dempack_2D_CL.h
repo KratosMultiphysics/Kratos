@@ -1,21 +1,21 @@
 
-#if !defined(DEM_DEMPACK1_CL_H_INCLUDED)
-#define  DEM_DEMPACK1_CL_H_INCLUDED
+#if !defined(DEM_DEMPACK_2D_CL_H_INCLUDED)
+#define  DEM_DEMPACK_2D_CL_H_INCLUDED
 
 /* Project includes */
-#include "DEM_continuum_constitutive_law.h"
+#include "DEM_Dempack_CL.h"
 //#include "DEM_discontinuum_constitutive_law.h"
 
 
 
 namespace Kratos {
 
-    class DEM_Dempack1 : public DEMContinuumConstitutiveLaw {
+    class DEM_Dempack2D : public DEM_Dempack {
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack1);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack2D);
 
-        DEM_Dempack1() {
+        DEM_Dempack2D() {
         }
 
         //DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
@@ -32,7 +32,7 @@ namespace Kratos {
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
-        ~DEM_Dempack1() {
+        ~DEM_Dempack2D() {
         }
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const;
@@ -115,4 +115,4 @@ namespace Kratos {
     };
 
 } /* namespace Kratos.*/
-#endif /* DEM_DEMPACK1_H_INCLUDED  defined */
+#endif /* DEM_DEMPACK_2D_H_INCLUDED  defined */
