@@ -338,8 +338,8 @@ namespace Kratos {
             double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
             bool sliding = false;
 
-            int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
-            int mapping_new_cont = mMapping_New_Cont[i_neighbour_count];
+            const int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
+            const int mapping_new_cont = mMapping_New_Cont[i_neighbour_count];
 
             double contact_tau = 0.0;
             double contact_sigma = 0.0;
@@ -358,6 +358,9 @@ namespace Kratos {
 
             double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
             double calculation_area = 0.0;
+
+
+            //KRATOS_WATCH(mapping_new_cont)
 
             if (mapping_new_cont != -1) {
                 mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);

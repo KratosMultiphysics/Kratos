@@ -57,7 +57,7 @@ namespace Kratos
           double density            = GetDensity();
 
           double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-          mass                      = KRATOS_M_PI_3 * density * GetRadius() * GetRadius() * 1.0;
+          mass                      = KRATOS_M_PI * density * GetRadius() * GetRadius() * 1.0;
           mRealMass                 = mass;
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
@@ -79,8 +79,7 @@ namespace Kratos
       { 
 
         double alpha = 1.0;
-        double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();  
-        
+        double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
         double total_equiv_perimeter = 0.0;
 
         ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
@@ -101,8 +100,7 @@ namespace Kratos
             total_equiv_perimeter  += equiv_radius;
         
             mcont_ini_neigh_area[index] = equiv_radius; //*  //this is consistent since in 2D, we work with cylinders of depth unit 1.0.
-            index++; //*
-            
+            index++; //*            
             
         } //for every neighbour
       
@@ -110,8 +108,7 @@ namespace Kratos
         {
             if(!*mSkinSphere)
             {
-            
-              
+                          
               AuxiliaryFunctions::CalculateAlphaFactor2D(cont_ini_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
               
               size_t not_skin_index = 0;
