@@ -212,7 +212,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # PRINTING VARIABLES
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
         self.model_part.ProcessInfo.SetValue(PRINT_SKIN_SPHERE, self.print_export_skin_sphere)
-        self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
