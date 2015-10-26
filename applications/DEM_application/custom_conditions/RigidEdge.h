@@ -116,12 +116,12 @@ public:
                                PropertiesType::Pointer pProperties) const;
 
 
-
+    void Initialize();
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
                                  ProcessInfo& rCurrentProcessInfo);
     
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& rCurrentProcessInfo);
-
+    void CalculateNormal(array_1d<double, 3>& rnormal);
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
@@ -168,6 +168,6 @@ private:
     }
 
 }; // Class ContactLink3DExplicit
-}  // namespace Kratos
+}  // namespace Kratos.
 
 #endif // KRATOS_RIGIDEDGE_H_INCLUDED  defined 

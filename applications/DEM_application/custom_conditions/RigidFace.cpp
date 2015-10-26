@@ -104,10 +104,18 @@ RigidFace3D::~RigidFace3D() {}
 
 void RigidFace3D::Initialize() {
     /*
-    mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+  mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
     mYoungModulus      = GetProperties()[YOUNG_MODULUS];
     mPoissonRatio      = GetProperties()[POISSON_RATIO];
     */
+  this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+  this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+  this->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+
+  this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+  this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+  this->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+
 }
 
 //***********************************************************************************
@@ -214,6 +222,25 @@ void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
         }
     }
 }
+
+
+void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
+
+    array_1d<double, 3> v1, v2;
+
+    v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
+    v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
+    v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
+
+    v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
+    v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
+    v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
+
+    MathUtils<double>::CrossProduct(rnormal, v1, v2);
+
+    rnormal /= MathUtils<double>::Norm3(rnormal);
+}
+
 
 void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 {
