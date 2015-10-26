@@ -810,7 +810,8 @@ namespace Kratos
     // SERIALIZER
     Serializer::Register( "VariablesList", mVariablesList );
     Serializer::Register( "PropertiesProxy", PropertiesProxy() );
-    Serializer::Register( "DEM_Dempack1", DEM_Dempack1() );
+    Serializer::Register( "DEM_Dempack", DEM_Dempack() );
+    Serializer::Register( "DEM_Dempack2D", DEM_Dempack2D() );
 
   }
 
