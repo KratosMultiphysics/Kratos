@@ -115,8 +115,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (Param.MaterialModel == "Linear"):
             self.force_calculation_type_id = 0
         elif (Param.MaterialModel == "Hertz"):
-            self.force_calculation_type_id = 
-        elif (Param.MaterialModel == "1DPlasticity"):1
+            self.force_calculation_type_id = 1
+        elif (Param.MaterialModel == "1DPlasticity"):
             self.force_calculation_type_id = 2
         elif (Param.MaterialModel == "ExpHard"):
             self.force_calculation_type_id = 3
