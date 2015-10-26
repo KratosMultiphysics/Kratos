@@ -60,7 +60,8 @@
 
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "custom_constitutive/DEM_Dempack1_CL.h"
+#include "custom_constitutive/DEM_Dempack_CL.h"
+#include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 
 
