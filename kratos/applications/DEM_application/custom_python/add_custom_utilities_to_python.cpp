@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/benchmark_utilities.h"
 #include "custom_utilities/inlet.h"
+#include "custom_utilities/particle_projection_utility.hpp"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -166,6 +167,12 @@ void  AddCustomUtilitiesToPython() {
          .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
          ;
 
+     class_<DEM_FEM_Search, boost::noncopyable >
+        ("DEM_FEM_Search", init<>())
+        .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)
+        .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)  
+        ;
+        
       class_<PreUtilities, boost::noncopyable >
         ("PreUtilities", init<ModelPart&>())
         .def("MeasureTopHeigh", Aux_MeasureTopHeight)        
