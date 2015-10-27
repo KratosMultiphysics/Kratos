@@ -47,28 +47,7 @@ namespace Kratos
 
       /// Default constructor.
       ContinuumExplicitSolverStrategy(){}
-
-      ContinuumExplicitSolverStrategy(
-                             ModelPart& model_part,
-                             ModelPart& fem_model_part,
-                             ModelPart& cluster_model_part,
-                             ModelPart& contacts_model_part,
-                             const double max_delta_time,
-                             const double n_step_search,
-                             const double safety_factor,
-                             const bool move_mesh_flag, //TODO: is this variable used??
-                             const int    delta_option,
-                             const double search_tolerance,
-                             const double coordination_number,
-                             typename ParticleCreatorDestructor::Pointer p_creator_destructor,
-                             typename IntegrationScheme::Pointer pScheme,
-                             typename SpatialSearch::Pointer pSpSearch
-      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, cluster_model_part, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch)
-      {
-
-          BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
-      }
-      
+     
       ContinuumExplicitSolverStrategy(
                              ExplicitSolverSettings& settings,
                              const double max_delta_time,
@@ -79,9 +58,10 @@ namespace Kratos
                              const double search_tolerance,
                              const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
+                             typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
-      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch)
+      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {                    
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;                            
       }
