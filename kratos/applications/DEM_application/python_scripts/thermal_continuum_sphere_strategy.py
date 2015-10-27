@@ -11,9 +11,9 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
    
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, Param)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param)
 
         # SIMULATION FLAGS  
 
