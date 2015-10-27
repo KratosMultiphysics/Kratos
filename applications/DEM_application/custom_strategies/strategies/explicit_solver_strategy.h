@@ -173,6 +173,7 @@ namespace Kratos
                              const double search_tolerance,
                              const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
+                             typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
       :
@@ -183,6 +184,7 @@ namespace Kratos
           mSearchTolerance               = search_tolerance;
           mCoordinationNumber            = coordination_number;
           mpParticleCreatorDestructor    = p_creator_destructor;
+          mpDemFemSearch                 = p_dem_fem_search;
           mpScheme                       = pScheme;
           mpSpSearch                     = pSpSearch;
           mMaxTimeStep                   = max_delta_time;
@@ -211,37 +213,6 @@ namespace Kratos
            if ( mpInlet_model_part == NULL )
             KRATOS_THROW_ERROR(std::runtime_error,"Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor","")
                    
-      }
-
-      ExplicitSolverStrategy(ModelPart& r_model_part,
-                             ModelPart& fem_model_part,
-                             ModelPart& cluster_model_part,
-                             const double max_delta_time,
-                             const int n_step_search,
-                             const double safety_factor,
-                             const bool move_mesh_flag,
-                             const int delta_option,
-                             const double search_tolerance,
-                             const double coordination_number,
-                             typename ParticleCreatorDestructor::Pointer p_creator_destructor,
-                             typename IntegrationScheme::Pointer pScheme,
-                             typename SpatialSearch::Pointer pSpSearch
-      ): BaseType(r_model_part, move_mesh_flag)
-      {
-          mDeltaOption                   = delta_option;
-          mSearchTolerance               = search_tolerance;
-          mCoordinationNumber            = coordination_number;
-          mpParticleCreatorDestructor    = p_creator_destructor;
-          mpScheme                       = pScheme;
-          mpSpSearch                     = pSpSearch;
-          mMaxTimeStep                   = max_delta_time;
-          mNStepSearch                   = n_step_search;
-          mSafetyFactor                  = safety_factor;
-          mNumberOfElementsOldRadiusList = 0;
-          
-          mpDem_model_part               = &r_model_part;
-          mpFem_model_part               = &fem_model_part;         
-          mpCluster_model_part           = &cluster_model_part;         
       }
 
       /// Destructor.
@@ -1325,9 +1296,9 @@ namespace Kratos
             for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
             }
+
+            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
            
-            moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
-            
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
                 std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
@@ -1582,6 +1553,7 @@ namespace Kratos
           
     vector<unsigned int>                         mElementPartition;
     typename ParticleCreatorDestructor::Pointer  mpParticleCreatorDestructor;
+    typename DEM_FEM_Search::Pointer             mpDemFemSearch;
     typename IntegrationScheme::Pointer          mpScheme;
     typename SpatialSearch::Pointer              mpSpSearch;
     
@@ -1589,7 +1561,6 @@ namespace Kratos
     ////Cfeng
     VectorResultConditionsContainerType  mRigidFaceResults;
     VectorDistanceType                   mRigidFaceResultsDistances;
-    DEM_FEM_Search                       moDemFemSearch;
     vector<unsigned int>                 mConditionPartition;
     ModelPart                            *mpFem_model_part;
     ModelPart                            *mpDem_model_part;
