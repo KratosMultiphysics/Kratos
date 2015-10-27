@@ -65,7 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/benchmark_utilities.h"
 #include "custom_utilities/inlet.h"
-#include "custom_utilities/particle_projection_utility.hpp"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -198,6 +197,19 @@ void  AddCustomUtilitiesToPython() {
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
      
+    //Projection Utilities
+    class_<DEMBinBasedProjection < 2 >, boost::noncopyable >("DEMBinBasedProjection2D", init< >())
+    .def("LocalParticleToMeshProjection", &DEMBinBasedProjection < 2 > ::LocalParticleToMeshProjection< array_1d < double, 3 > >)
+    .def("LocalParticleToMeshProjection", &DEMBinBasedProjection < 2 > ::LocalParticleToMeshProjection< double>)
+    ;
+
+    class_<DEMBinBasedProjection < 3 >, boost::noncopyable >("DEMBinBasedProjection3D", init< >())
+    .def("LocalParticleToMeshProjection", &DEMBinBasedProjection < 3 > ::LocalParticleToMeshProjection< array_1d < double, 3 > >)
+    .def("LocalParticleToMeshProjection", &DEMBinBasedProjection < 3 > ::LocalParticleToMeshProjection<double>)
+    ;
+        
+     
+
     }
 
 }  // namespace Python.
