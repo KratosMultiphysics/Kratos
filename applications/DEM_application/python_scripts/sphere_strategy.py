@@ -29,7 +29,7 @@ def AddDofs(model_part):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param):
 
         # Initialization of member variables
 
@@ -132,7 +132,10 @@ class ExplicitStrategy:
         self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
 
         # CREATOR-DESTRUCTOR
-        self.creator_destructor = creator_destructor        
+        self.creator_destructor = creator_destructor
+        
+        #DEMFEM SEARCH
+        self.dem_fem_search = dem_fem_search
 
         # STRATEGIES
 
@@ -200,7 +203,7 @@ class ExplicitStrategy:
         self.settings.cluster_model_part = self.cluster_model_part   
                 
         self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
-                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
+                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
        
         #self.cplusplus_strategy = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
         #                                     self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
@@ -213,11 +216,6 @@ class ExplicitStrategy:
     def Solve(self):
         (self.cplusplus_strategy).Solve()
 
-    
-    def DoAllOperations(self,DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path):
-        (self.cplusplus_strategy).DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path)
-
-    
     def Compute_RigidFace_Movement(self):
         (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
@@ -312,13 +310,13 @@ class ExplicitStrategy:
                     
         write_gamma = False
         
-        if DiscontinuumConstitutiveLawString == 'DEM_D_Linear_viscous_Coulomb' :                        
+        if  ( DiscontinuumConstitutiveLawString == 'DEM_D_Linear_viscous_Coulomb' ) :                        
             gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
             write_gamma = True
             
-        elif DiscontinuumConstitutiveLawString == 'DEM_D_Hertz_viscous_Coulomb' :
-            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-            write_gamma = True
+        elif ( DiscontinuumConstitutiveLawString == 'DEM_D_Hertz_viscous_Coulomb' ) :
+             gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+             write_gamma = True
             
         else:
             pass
