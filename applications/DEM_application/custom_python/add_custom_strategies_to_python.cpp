@@ -88,6 +88,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //Search
 #include "custom_utilities/omp_dem_search.h"
+#include "custom_utilities/dem_fem_search.h"
 
 // Create and Destroy
 #include "custom_utilities/create_and_destroy.h"
@@ -156,8 +157,7 @@ namespace Kratos
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                  .def(init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>() )
+          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareElementsForPrinting)
@@ -165,8 +165,7 @@ namespace Kratos
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                  .def(init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>() )                                                       
+          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  
