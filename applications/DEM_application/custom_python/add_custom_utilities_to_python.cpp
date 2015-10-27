@@ -186,12 +186,6 @@ void  AddCustomUtilitiesToPython() {
         .def("IntegrationOfForces", &PostUtilities::IntegrationOfForces)
         ;
 
-     class_<DEMFEMUtilities, boost::noncopyable >
-        ("DEMFEMUtilities", init<>())
-        .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
-        .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)     
-        ;
-
      class_<BenchmarkUtils, boost::noncopyable >
         ("BenchmarkUtils", init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
