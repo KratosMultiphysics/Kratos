@@ -1,4 +1,4 @@
-from KratosMultiphysics import *
+﻿from KratosMultiphysics import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 def DetectSolidusLiquidusTemperature(model_part):
     """ 
@@ -22,8 +22,7 @@ def DetectSolidusLiquidusTemperature(model_part):
             solidustemp=temp
         temp+=dtemp
     print("solidustemp",solidustemp)
-    print("liquidustemp",liquidustemp)
-    
+    print("liquidustemp",liquidustemp)    
     
     model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE, liquidustemp)#ProjectParameters.FLUID_TEMPERATURE)
     model_part.ProcessInfo.SetValue(SOLID_TEMPERATURE, solidustemp)#ProjectParameters.SOLID_TEMPERATURE)

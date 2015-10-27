@@ -264,7 +264,7 @@ namespace Kratos
 			  else//solidification Dt
 			  {
 				//**************************************
-				//**** WHEN EVERYTHING IS LIQUID    ****
+				//**** WHEN NOT EVERYTHING IS LIQUID    ****
 				//**************************************
 				  double current_solidified_volume = 0.0;
 				  double old_solidified_volume = 0.0;
@@ -732,7 +732,7 @@ namespace Kratos
 		 /////////////////////////////////////////////////////////////////////////////
 	 int CheckMaxTemperature(ModelPart& ThisModelPart)
 	 {
-	    double last_temp = ThisModelPart.GetTable(3).Data().back().first;
+		double last_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE]; //GetTable(3).Data().back().first;
 		double is_hot_point = 1.0;
 		int node_size = ThisModelPart.Nodes().size();
 
