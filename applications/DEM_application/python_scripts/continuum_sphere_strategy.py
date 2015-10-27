@@ -18,7 +18,7 @@ def Var_Translator(variable):
 
 class ExplicitStrategy(BaseExplicitStrategy):   
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param):
 
         # Initialization of member variables
 
@@ -169,7 +169,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
 
         # CREATOR-DESTRUCTOR
-        self.creator_destructor = creator_destructor       
+        self.creator_destructor = creator_destructor
+        self.dem_fem_search = dem_fem_search       
 
         # STRATEGIES
 
@@ -259,7 +260,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.cluster_model_part = self.cluster_model_part
                 
         self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                      self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
+                                                      self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
                                                     
                                                       
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)
