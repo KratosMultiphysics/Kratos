@@ -62,7 +62,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/post_utilities.h"
 #include "custom_utilities/search_utilities.h"
 #include "custom_utilities/omp_dem_search.h"
-#include "custom_utilities/benchmark_utilities.h"
+#include "custom_utilities/dem_fem_search.h"
+#include "custom_utilities/dem_fem_utilities.h"
+#include "custom_utilities/benchmark_utilities.h" 
 #include "custom_utilities/inlet.h"
 
 #include "boost/python/list.hpp"
@@ -184,13 +186,22 @@ void  AddCustomUtilitiesToPython() {
         .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)
         .def("IntegrationOfForces", &PostUtilities::IntegrationOfForces)
         ;
+     
+     class_<DEMFEMUtilities, boost::noncopyable >
+        ("DEMFEMUtilities", init<>())
+        .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
+        .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)     
+        ;
+
 
      class_<BenchmarkUtils, boost::noncopyable >
         ("BenchmarkUtils", init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
+  
      
-     }
+
+    }
 
 }  // namespace Python.
 
