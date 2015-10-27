@@ -1196,7 +1196,7 @@ class DEMIo(object):
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
 
-    def InitializeResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, time): #MIQUEL MAPPING
+    def InitializeResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time): #MIQUEL MAPPING
         
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
@@ -1317,7 +1317,7 @@ class DEMIo(object):
     #def PrintingArlequinVariables(self, export_model_part, time):
     #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
 
-    def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, time):
+    def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(mixed_model_part,
                                    spheres_model_part,
@@ -1326,6 +1326,7 @@ class DEMIo(object):
                                    contact_model_part,
                                    mapping_model_part,
                                    creator_destructor,
+                                   dem_fem_search,
                                    time)
 
         self.PrintingGlobalVariables(mixed_model_part, time)
