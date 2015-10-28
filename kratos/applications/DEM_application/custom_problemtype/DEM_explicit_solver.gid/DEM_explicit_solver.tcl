@@ -69,12 +69,12 @@ proc DEM::GetElementCenter { element_id } {
     return [MathUtils::ScalarByVectorProd [expr {1.0/$num_nodes}] $sum]
 }
 
-proc  DEM::Elements_Substitution { } {    
+proc DEM::Elements_Substitution { } {    
     set fail 0
     if { [GiD_AccessValue get gendata Autodetermine_2D-3D_problem] == 1 } {
 	set dimensions [DEM::GetDimensions]
     } else {
-	set dimensions  [GiD_AccessValue get gendata Domain_Dimension]
+	set dimensions [GiD_AccessValue get gendata Domain_Dimension]
     }    
     
     set materials [GiD_Info materials]
@@ -102,7 +102,7 @@ proc  DEM::Elements_Substitution { } {
 	if { $condition_it != "point_RADIUS" } {
 	    set data [GiD_Info conditions $condition_it mesh]             
 	    foreach item $data {
-		if { [lindex $item 0]  == "N" } {
+		if { [lindex $item 0] == "N" } {
 		    set point_id [lindex $item 1] 
 		    set condition_values [lrange $item 3 end]
 		    lappend applied_conditions_by_point($point_id) [list $condition_it $condition_values]
@@ -111,7 +111,7 @@ proc  DEM::Elements_Substitution { } {
 	}
     }
 	
-    #FOR DEFINED ELEMENTS WITH RADIUS CONDITION APPLYIED
+    #FOR DEFINED ELEMENTS WITH RADIUS CONDITION APPLIED
     foreach condition_it {line_RADIUS surface_RADIUS volume_RADIUS} {
 	set data [GiD_Info conditions $condition_it mesh]        
 	foreach item $data {
@@ -149,7 +149,7 @@ proc  DEM::Elements_Substitution { } {
 		} else  {
 		    set new_element_id [GiD_Mesh create element append circle 1 $node_id $element_radius 0 0 1]
 		}
-		if {  [info exists applied_conditions_by_element($element_id)] } {
+		if { [info exists applied_conditions_by_element($element_id)] } {
 		    foreach element_data $applied_conditions_by_element($element_id) {
 		        set values [lindex $element_data 1]
 		        GiD_AssignData condition surface_CONDITIONS body_elements $values $new_element_id
@@ -161,7 +161,7 @@ proc  DEM::Elements_Substitution { } {
 	}
     }
     
-    #FOR SINGLE POINTS WITH RADIUS CONDITION APPLYIED   
+    #FOR SINGLE POINTS WITH RADIUS CONDITION APPLIED   
     
     set data_point [GiD_Info conditions point_RADIUS mesh] 
     foreach item $data_point {
@@ -212,7 +212,6 @@ proc  DEM::Elements_Substitution { } {
     return $fail
 }  
 
-
 proc DEM::Elements_Elimination {} {
     foreach condition {line_RADIUS surface_RADIUS volume_RADIUS} {
 	set data [GiD_Info conditions $condition mesh]        
@@ -222,7 +221,6 @@ proc DEM::Elements_Elimination {} {
 	}
     }
 }
-
 
 proc DEM::Get_Mean_Radius {} {
     set num_spheres [GiD_Info Mesh NumElements Sphere] 
@@ -262,12 +260,10 @@ proc DEM::Get_Mean_Radius {} {
 	
 #*********************
 
-
 namespace eval ::kaux:: {
     variable kratos_path ""
     variable pt_path ""
 }
-
 
 proc InitGIDProject {dir} {
 	# Initialize global variables
@@ -451,7 +447,6 @@ proc BeforeWriteCalcFileGIDProject { file } {
 # # Please Note: This is run AFTER writing the problem files (??)
 #         }
 # }
-
 
 # Makes all of boundary lines' normals point inwards or outwards
 proc alignlinenormals {Direction} {
@@ -1004,7 +999,6 @@ if {$have_geometry>0} then {
     pack $w.bottom -side top -padx 6 -ipady 2
 }
 
-
 #to be used by TKWIDGET to easily add a select file button
 #e.g.
 #QUESTION: your_question
@@ -1103,8 +1097,3 @@ proc DemElems_Getoflist { iterator } {
     global DemElems_list
     return $DemElems_list($iterator)
 }
-
-
-
-
-
