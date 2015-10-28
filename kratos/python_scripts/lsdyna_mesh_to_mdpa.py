@@ -106,17 +106,14 @@ class LsDynaMeshConverter:
                     #print (words)
                     el_id, prop_id, connectivity = int(words[0]), int(words[1]), [int(x) for  x in words[2:]]
                     
-                    connectivity_lenght = 0
-                    for i in range(0,len(connectivity)):
+                    connectivity_lenght = 1
+                    for i in range(1,len(connectivity)):
                         if connectivity[i] != connectivity[i-1]:
                             connectivity_lenght+=1
+                        else:
+                            break
                     
-                    active_connectivity = [int(x) for  x in connectivity[0:connectivity_lenght]]
-                    
-                    #invert element
-                    tmp = active_connectivity[1]
-                    active_connectivity[1] = active_connectivity[0]
-                    active_connectivity[0] = tmp
+                    active_connectivity = [int(x) for  x in connectivity[0:(connectivity_lenght-2)]]
                     
                     #print(active_connectivity)
                     if(connectivity_lenght == 4): #tetrahedra
@@ -130,6 +127,11 @@ class LsDynaMeshConverter:
                         self.TriangleIds.append( el_id )
                         self.TriangleConnectivity.append(active_connectivity)
                         self.TriProp.append(prop_id)
+                    else:
+                        print("last line was ",words)
+                        print(active_connectivity)
+                        print(connectivity)
+                        raise Exception("sorry the connectivity lenght was unexpected : ",connectivity_lenght)
             else:
                 break
         print("read ",tetra_counter, " Tetras in total")
@@ -195,13 +197,13 @@ class LsDynaMeshConverter:
 
     def WriteSet(self,myset):
         self.out_file.write("Begin Mesh "+str(myset.sid)+"\n")
-        self.out_file.write("Begin Nodes\n")
+        self.out_file.write("Begin MeshNodes\n")
         
         for i in range(0,len(myset.node_ids) ):
             coords = self.coordinates[i]
             self.out_file.write( str(myset.node_ids[i]) + "\n" )
         
-        self.out_file.write("End Nodes\n")
+        self.out_file.write("End MeshNodes\n")
         self.out_file.write("End Mesh\n")
  
     def WriteMeshes(self):
