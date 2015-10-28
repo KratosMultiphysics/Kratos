@@ -66,6 +66,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
+    KRATOS_DEFINE_LOCAL_FLAG(MAKE_VOLUMES_POSITIVE);
     
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedralMeshOrientationCheck);
@@ -139,6 +140,8 @@ public:
             }
             
         }
+        
+        
 
         //********************************************************
         //begin by orienting all of the elements in the volume
@@ -342,6 +345,17 @@ public:
 
             if ( GeoType == GeometryData::Kratos_Triangle3D3 )
                 rGeom(0).swap(rGeom(1));
+        }
+    }
+    
+    void SwapNegativeElements()
+    {
+        for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
+        {
+            if(itElem->GetGeometry().Volume() < 0.0)
+            {
+                itElem->GetGeometry()(0).swap(itElem->GetGeometry()(1));
+            }
         }
     }
 
