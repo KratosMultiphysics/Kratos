@@ -17,7 +17,7 @@ Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two ident
                   "Running DEM Benchmark 2... Elastic normal impact of a sphere against a rigid plane\n",
                   "Running DEM Benchmark 3... Impact of a sphere against a rigid plane with different coefficients of restitution\n",
                   "Running DEM Benchmark 4... Oblique impact of a sphere with a rigid plane with constant velocity module and variable incident angles\n",
-                  "Running DEM Benchmark 5... Oblique impact of a sphere with a rigid plane with constant normal velocity and different angular velocities\n",
+                  "Running DEM Benchmark 5... Oblique impact of a sphere with a rigid plane with constant normal velocity and different tangential velocities\n",
                   "Running DEM Benchmark 6... Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n",
                   "Running DEM Benchmark 7... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 8... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
