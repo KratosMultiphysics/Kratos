@@ -675,7 +675,12 @@ public:
                    Coord2[2] = rObj_2->GetGeometry()[inode2].Coordinates()[2];
                    
                    Exist_Contact[inode1]   = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Particle_Coord, rad,  Dist[inode1]); //simplified judgement
-                   Exist_Contact[inode1+4] = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, Dist[inode1+4]); //simplified judgement
+                   if (Exist_Contact[inode1] == true) {
+                       Exist_Contact[inode1+4] = false;
+                   }
+                   else {
+                       Exist_Contact[inode1+4] = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, Dist[inode1+4]); //simplified judgement
+                   }
                }
             
                int contact_index = -1;
