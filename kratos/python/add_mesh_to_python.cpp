@@ -227,6 +227,24 @@ boost::python::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
     return( values_list );
 }
 
+template< class TObject >
+void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, boost::python::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+{
+    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
+                dummy.GetIntegrationMethod() );
+    std::vector< array_1d<double,3> > values( integration_points.size() );
+    for( unsigned int i=0; i<integration_points.size(); i++ )
+    {
+        boost::python::extract< array_1d<double,3> > x( values_list[i] );
+        if( x.check() )
+        {
+            values[i] = x();
+        }
+        else
+            break;
+    }
+    dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+}
 
 template< class TObject >
 boost::python::list GetValuesOnIntegrationPointsVector( TObject& dummy,
@@ -382,6 +400,7 @@ void  AddMeshToPython()
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
 
     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
@@ -452,6 +471,8 @@ void  AddMeshToPython()
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
+
 
 //				.def(VariableIndexingPython<Condition, Variable<int> >())
 //				.def(VariableIndexingPython<Condition, Variable<double> >())
