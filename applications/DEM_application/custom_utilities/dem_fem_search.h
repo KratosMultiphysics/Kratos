@@ -252,14 +252,9 @@ class DEM_FEM_Search : public SpatialSearch
             for(unsigned int i = 0; i < 3; i++ ) {
               Vector_GLOBAL_BB_LowPoint[k][i]   = (Vector_GLOBAL_BB_LowPoint[k][i] > rLowPoint[i]) ? rLowPoint[i] : Vector_GLOBAL_BB_LowPoint[k][i];
               Vector_GLOBAL_BB_HighPoint[k][i]  = (Vector_GLOBAL_BB_HighPoint[k][i] < rHighPoint[i]) ? rHighPoint[i] : Vector_GLOBAL_BB_HighPoint[k][i];
-              pGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_Z) = 1.0f;
             }
             Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].push_back(*it);
-          } else {
-            for(unsigned int i = 0; i < 3; i++ ) {
-              pGeometry[i].FastGetSolutionStepValue(DISPLACEMENT_Z) = 0.0f;
-            }
-          }
+          } 
         }//Loop on Conditions
       }//Loop on threads
 
