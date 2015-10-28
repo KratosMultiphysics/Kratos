@@ -157,6 +157,7 @@ void  AddProcessesToPython()
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
             init<ModelPart&, bool>())
             .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
+            .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
     ;
     
     class_<ComputeBDFCoefficientsProcess, bases<Process>, boost::noncopyable >("ComputeBDFCoefficientsProcess",
