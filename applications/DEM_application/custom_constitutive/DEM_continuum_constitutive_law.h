@@ -41,6 +41,8 @@ namespace Kratos {
         virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        
+        virtual std::string GetTypeOfLaw();
 
         virtual ~DEMContinuumConstitutiveLaw();
 

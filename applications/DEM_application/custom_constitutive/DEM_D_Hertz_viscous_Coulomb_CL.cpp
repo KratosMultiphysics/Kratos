@@ -15,7 +15,13 @@ namespace Kratos {
     void DEM_D_Hertz_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
         std::cout << " Assigning DEM_D_Hertz_viscous_Coulomb to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }                    
+    }   
+    
+    std::string DEM_D_Hertz_viscous_Coulomb::GetTypeOfLaw() {
+        std::string type_of_law = "Hertz";
+        return type_of_law;
+    }
+    
     ///////////////////////// 
     // DEM-DEM INTERACTION //
     /////////////////////////
