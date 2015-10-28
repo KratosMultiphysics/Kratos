@@ -26,6 +26,10 @@ namespace Kratos {
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
+    std::string DEM_D_Linear_viscous_Coulomb::GetTypeOfLaw() {
+        std::string type_of_law = "Linear";
+        return type_of_law;
+    }
     ///////////////////////// 
     // DEM-DEM INTERACTION //
     /////////////////////////

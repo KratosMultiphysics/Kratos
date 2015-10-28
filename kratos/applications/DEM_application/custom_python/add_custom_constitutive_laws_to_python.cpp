@@ -45,6 +45,7 @@ namespace Kratos {
                     init<>())
                     .def("Clone", &DEMDiscontinuumConstitutiveLaw::Clone)
                     .def("SetConstitutiveLawInProperties", &DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties)
+                    .def("GetTypeOfLaw", &DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw)
                     ;
 
             class_<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>, boost::noncopyable >("DEMDiscontinuumConstitutiveLawPointerVariable", no_init)
@@ -82,6 +83,7 @@ namespace Kratos {
                     init<>())
                     .def("Clone", &DEMContinuumConstitutiveLaw::Clone)
                     .def("SetConstitutiveLawInProperties", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties)
+                    .def("GetTypeOfLaw", &DEMContinuumConstitutiveLaw::GetTypeOfLaw)
                     ;
 
             class_<Variable<DEMContinuumConstitutiveLaw::Pointer>, boost::noncopyable >("DEMContinuumConstitutiveLawPointerVariable", no_init)

@@ -24,6 +24,8 @@ namespace Kratos {
         void Initialize(const ProcessInfo& rCurrentProcessInfo);         
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        
+        std::string GetTypeOfLaw();
 
         ~DEM_D_Hertz_viscous_Coulomb() {
         }

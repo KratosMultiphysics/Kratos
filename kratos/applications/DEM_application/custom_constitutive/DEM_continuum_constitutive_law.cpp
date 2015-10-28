@@ -11,6 +11,12 @@ namespace Kratos {
     DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw) {
         //std::cout << " DEMContinuumConstitutiveLaw copy constructor.." << std::endl;
     }
+    
+    std::string DEMContinuumConstitutiveLaw::GetTypeOfLaw() {
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
+        std::string type_of_law = "";
+        return type_of_law;
+    }
 
     void DEMContinuumConstitutiveLaw::Initialize(const ProcessInfo& rCurrentProcessInfo) {
     }
