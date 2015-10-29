@@ -93,7 +93,7 @@ def Run():
     g.write("Benchmark 02. Elastic normal impact of a sphere against a rigid plane\n")
     g.write("Benchmark 03. Impact of a sphere against a rigid plane with different coefficients of restitution\n")
     g.write("Benchmark 04. Oblique impact of a sphere with a rigid plane with constant velocity module and variable incident angles\n")
-    g.write("Benchmark 05. Oblique impact of a sphere with a rigid plane with constant normal velocity and different angular velocities\n")
+    g.write("Benchmark 05. Oblique impact of a sphere with a rigid plane with constant normal velocity and different tangential velocities\n")
     g.write("Benchmark 06. Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n")
     g.write("Benchmark 07. Impact of two identical spheres with a constant normal velocity and different angular velocities\n")
     g.write("Benchmark 08. Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n")
