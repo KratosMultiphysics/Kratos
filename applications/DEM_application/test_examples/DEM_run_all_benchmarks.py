@@ -85,7 +85,6 @@ def Run():
     os.remove("BenchTemp.txt")
     
     g = open("errors.txt", 'a')
-    #g.write("\n______________________________________________\n")
     g.write("\n----------------------------------------------\n")
     g.write("\nList of Benchmarks:\n")
     g.write("\nDISCONTINUUM TESTS:\n")
