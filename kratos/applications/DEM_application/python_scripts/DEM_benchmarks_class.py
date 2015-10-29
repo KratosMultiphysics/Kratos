@@ -56,7 +56,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==7:
                 
         final_time                      = 0.0005
-        dt                              = 2e-6 #4.4614e-8 # Complies Rayleigh's condition ????????????????
+        dt                              = 4e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 17
                     
@@ -975,7 +975,7 @@ class Benchmark7:
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 7:")
         
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
             error_file.write(" OK!........ Test 7 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 7 FAILED\n")
