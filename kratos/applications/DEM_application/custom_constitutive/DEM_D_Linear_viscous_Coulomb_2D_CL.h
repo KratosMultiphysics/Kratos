@@ -1,9 +1,9 @@
+//Authors: M.A. Celigueta and S. Latorre (CIMNE)
+//   Date: July 2015
 
 #if !defined(DEM_D_LINEAR_VISCOUS_COULOMB_2D_CL_H_INCLUDED)
 #define  DEM_D_LINEAR_VISCOUS_COULOMB_2D_CL_H_INCLUDED
 
-/* Project includes */
-//#include "../custom_elements/spheric_continuum_particle.h"
 #include "DEM_D_Linear_viscous_Coulomb_CL.h"
 
 namespace Kratos {
@@ -25,50 +25,12 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
 
-        void CalculateContactArea(double radius, double other_radius, double &calculation_area);
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
 
-        void CalculateElasticConstants(double &kn_el,
-                double &kt_el,
-                double initial_dist,
-                double equiv_young,
-                double equiv_poisson,
-                double calculation_area);
-
-        void CalculateForces(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                double kn_el,
-                double kt_el,
-                double indentation,
-                double& failure_criterion_state,
-                bool& sliding,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                int &mNeighbourFailureId_count,
-                double mapping_new_cont);
-
-        void CalculateNormalForceLinear(double LocalElasticContactForce[3], const double kn_el, const double indentation);
-
-        void CalculateTangentialForceLinear(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                const double kt_el,
-                const double indentation,
-                double& failure_criterion_state,
-                bool& sliding,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                int &mNeighbourFailureId_count,
-                double mapping_new_cont);
-
-        void CalculateViscoDamping(double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3],
-                double indentation,
-                double equiv_visco_damp_coeff_normal,
-                double equiv_visco_damp_coeff_tangential,
-                bool sliding,
-                int mDampType);
-
-        void CalculateForces(const double OldLocalContactForce[3],
+        void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+                             const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],
                             double LocalRelVel[3],            
@@ -79,7 +41,8 @@ namespace Kratos {
                             SphericParticle* element1,
                             SphericParticle* element2);
         
-        void CalculateForcesWithFEM(const double OldLocalContactForce[3],
+        void CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+                                    const double OldLocalContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],
                                     double LocalRelVel[3],            
@@ -91,12 +54,9 @@ namespace Kratos {
                                     DEMWall* const wall,
                                     bool& sliding);
 
-        void InitializeContact(SphericParticle * const element1, SphericParticle * const element2);
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
 
-        double CalculateNormalForce(const double indentation, SphericParticle * const element1, SphericParticle * const element2);
-        double CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall);
-
+        double CalculateNormalForce(const double indentation);
+        
         double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
 
@@ -110,6 +70,7 @@ namespace Kratos {
                                     SphericParticle* const element2,
                                     double indentation,
                                     double previous_indentation);
+
         void CalculateTangentialForceWithFEM(const double normal_contact_force,
                                             const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
@@ -120,10 +81,12 @@ namespace Kratos {
                                             DEMWall* const wall,
                                             double indentation,
                                             double previous_indentation);
+
         void CalculateViscoDampingForce(double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3],
-                SphericParticle * const element1,
-                SphericParticle * const element2);
+                                        double ViscoDampingLocalContactForce[3],
+                                        SphericParticle * const element1,
+                                        SphericParticle* const element2);
+
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         bool sliding,
