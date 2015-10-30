@@ -266,8 +266,8 @@ namespace Kratos {
             std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
             double min_radius = 0.5 * radius;
             
-            if(distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
-            else if(distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+            if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+            else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
             else KRATOS_THROW_ERROR(std::runtime_error,"Unknown probability distribution.","")
         }
 
