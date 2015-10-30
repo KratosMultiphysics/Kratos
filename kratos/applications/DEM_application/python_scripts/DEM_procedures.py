@@ -1196,7 +1196,7 @@ class DEMIo(object):
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
 
-    def InitializeResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time): #MIQUEL MAPPING
+    def InitializeResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
  
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
@@ -1214,9 +1214,9 @@ class DEMIo(object):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MIQUEL MAPPING
-            
-            if (getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON"):      # BOUNDING BOX
-                self.ComputeAndWriteBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
+            #Compute and print the graphical bounding box if active in time
+            if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
+                self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
                                
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
@@ -1259,7 +1259,7 @@ class DEMIo(object):
     #def PrintingArlequinVariables(self, export_model_part, time):
     #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
 
-    def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time):
+    def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(mixed_model_part,
                                    spheres_model_part,
@@ -1268,7 +1268,8 @@ class DEMIo(object):
                                    mapping_model_part,
                                    creator_destructor,
                                    dem_fem_search,
-                                   time)
+                                   time,
+                                   bounding_box_time_limits)
 
         self.PrintingGlobalVariables(mixed_model_part, time)
         self.PrintingSpheresVariables(spheres_model_part, time)
@@ -1281,7 +1282,7 @@ class DEMIo(object):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
 
-    def ComputeAndWriteBoundingBox(self, spheres_model_part, rigid_face_model_part, creator_destructor):
+    def ComputeAndPrintBoundingBox(self, spheres_model_part, rigid_face_model_part, creator_destructor):
         
         bounding_box_model_part = ModelPart("BoundingBoxPart") # Creation of bounding box's model part
                             
