@@ -36,13 +36,13 @@ class ExplicitStrategy:
         # SIMULATION FLAGS
         self.self_strain_option   = Var_Translator(Param.StressStrainOption)
         self.critical_time_option = Var_Translator(Param.AutoReductionOfTimeStepOption)
-        self.trihedron_option = Var_Translator(Param.PostEulerAngles)
-        self.rotation_option = Var_Translator(Param.RotationOption)
-        self.bounding_box_option = Var_Translator(Param.BoundingBoxOption)
-        self.fix_velocities_flag = 0
+        self.trihedron_option     = Var_Translator(Param.PostEulerAngles)
+        self.rotation_option      = Var_Translator(Param.RotationOption)
+        self.bounding_box_option  = Var_Translator(Param.BoundingBoxOption)
+        self.fix_velocities_flag  = 0
         
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
-        self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
+        self.contact_mesh_option           = Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option = Var_Translator(Param.AutomaticBoundingBoxOption)
       
         self.delta_option = Var_Translator(Param.DeltaOption)
@@ -92,7 +92,9 @@ class ExplicitStrategy:
         self.bottom_corner[0] = Param.BoundingBoxMinX
         self.bottom_corner[0] = Param.BoundingBoxMinY
         self.bottom_corner[0] = Param.BoundingBoxMinZ
-
+        self.bounding_box_start_time  = Param.BoundingBoxStartTime
+        self.bounding_box_stop_time  = Param.BoundingBoxStopTime
+        
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
         self.gravity[0] = Param.GravityX
@@ -165,7 +167,9 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, 1)
         self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
-
+        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
+        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
+        
         # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
