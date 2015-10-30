@@ -29,12 +29,9 @@ else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
-
     print("Running under OpenMP........")
 
-#EXTRA IMPORTS
-
-# TO_DO: Ungly fix. Change it. I don't like this to be in the main...
+# TO_DO: Ugly fix. Change it. I don't like this to be in the main...
 # Strategy object
 if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
@@ -71,13 +68,9 @@ DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
 
-#EXTRA ModelPart Operations
-#
-
 # Constructing a utilities objects
 creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
-#
 
 # Creating a solver object and set the search strategy
 
@@ -119,21 +112,16 @@ DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
-
 # Setting up the buffer size
 spheres_model_part.SetBufferSize(1)
 cluster_model_part.SetBufferSize(1)
 DEM_inlet_model_part.SetBufferSize(1)
 rigid_face_model_part.SetBufferSize(1)
-#
 
 # Adding dofs
 solver.AddDofs(spheres_model_part)
 solver.AddDofs(cluster_model_part)
 solver.AddDofs(DEM_inlet_model_part)
-#
-
-#Utilities
 
 # Creating necessary directories
 main_path = os.getcwd()
@@ -190,8 +178,10 @@ parallelutils.CalculateModelNewIds(spheres_model_part)
 os.chdir(post_path)
 
 #Setting up the BoundingBox
-if(DEM_parameters.BoundingBoxOption == "ON"):
+bounding_box_time_limits = []
+if (DEM_parameters.BoundingBoxOption == "ON"):
     procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
+    bounding_box_time_limits = [DEM_parameters.BoundingBoxStartTime, DEM_parameters.BoundingBoxStopTime]
 
 # Creating a solver object and set the search strategy
 #solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
@@ -199,9 +189,8 @@ solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_p
 
 dt = DEM_parameters.MaxTimeStep
 solver.Initialize()    # Possible modifications of DELTA_TIME
-##
 
-if ( DEM_parameters.ContactMeshOption =="ON" ) :
+if (DEM_parameters.ContactMeshOption =="ON"):
     contact_model_part = solver.contact_model_part
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
@@ -211,7 +200,7 @@ if (DEM_parameters.dem_inlet_option):
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 
-    if ( max_FEM_node_Id > max_node_Id):
+    if (max_FEM_node_Id > max_node_Id):
         max_node_Id = max_FEM_node_Id
     
     creator_destructor.SetMaxNodeId(max_node_Id)                            
@@ -236,22 +225,22 @@ step           = 0
 time           = 0.0
 time_old_print = 0.0
 
-report.Prepare(timer,DEM_parameters.ControlTime)
+report.Prepare(timer, DEM_parameters.ControlTime)
 
-first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
+first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
     
 ## MODEL DATA #~CHARLIE~#:????
 
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
-      (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-      KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
-      os.chdir(main_path)
+        (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
+        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+        os.chdir(main_path)
     else:
-      KRATOSprint("Activate Contact Mesh for ModelData information")
+        KRATOSprint("Activate Contact Mesh for ModelData information")
 
-if(DEM_parameters.Dempack):
+if (DEM_parameters.Dempack):
 #    if(mpi.rank == 0):
     materialTest.PrintChart()
     materialTest.PrepareDataForGraph()
@@ -273,38 +262,38 @@ post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
 
-while ( time < DEM_parameters.FinalTime):
+while (time < DEM_parameters.FinalTime):
     
-    dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
-    time = time + dt
+    dt    = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
+    time  = time + dt
     step += 1
 
-    spheres_model_part.ProcessInfo[TIME]            = time
-    spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
-    spheres_model_part.ProcessInfo[TIME_STEPS]      = step
+    spheres_model_part.ProcessInfo[TIME]          = time
+    spheres_model_part.ProcessInfo[DELTA_TIME]    = dt
+    spheres_model_part.ProcessInfo[TIME_STEPS]    = step
     
     rigid_face_model_part.ProcessInfo[TIME]       = time
     rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
     rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
 
-    cluster_model_part.ProcessInfo[TIME]            = time
-    cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
-    cluster_model_part.ProcessInfo[TIME_STEPS]      = step
+    cluster_model_part.ProcessInfo[TIME]          = time
+    cluster_model_part.ProcessInfo[DELTA_TIME]    = dt
+    cluster_model_part.ProcessInfo[TIME_STEPS]    = step
 
     # Perform a partition to balance the problem
     #if(not(step%(a-1))):
         #parallelutils.Repart(spheres_model_part)
         #parallelutils.CalculateModelNewIds(spheres_model_part)
     
-    #### MATERIAL TEST LOAD&UNLOAD  ######################
+    #### MATERIAL TEST LOAD&UNLOAD  ####################
     #materialTest.ApplyMovementbySteps(time)
     
-    #### GENERAL TEST LOAD&UNLOAD  ######################
+    #### GENERAL TEST LOAD&UNLOAD  #####################
     #DEMFEMProcedures.ApplyMovementbySteps(time)
     
-    #walls movement:
+    # Walls movement:
     mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
-    #########mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
+    #mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
     
     #### SOLVE #########################################
     solver.Solve()
@@ -338,7 +327,7 @@ while ( time < DEM_parameters.FinalTime):
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if ( DEM_parameters.OutputTimeStep - time_to_print < 1e-2*dt  ):            
+    if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
 
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
@@ -351,7 +340,7 @@ while ( time < DEM_parameters.FinalTime):
         #properties_list = ProceduresMonitorPhysicalProperties(spheres_model_part, physics_calculator, properties_list)
 
         demio.PrintMultifileLists(time, post_path)
-        os.chdir(main_path)
+        #os.chdir(main_path)
 
         os.chdir(post_path)
 
@@ -359,7 +348,7 @@ while ( time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time)
+        demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
         os.chdir(main_path)
 
         time_old_print = time
