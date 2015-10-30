@@ -356,8 +356,10 @@ namespace Kratos
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
                    
-          GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
-          GetSearchControl()     = rCurrentProcessInfo[SEARCH_CONTROL];
+          GetBoundingBoxOption()    = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+          GetSearchControl()        = rCurrentProcessInfo[SEARCH_CONTROL];
+          GetBoundingBoxStartTime() = rCurrentProcessInfo[BOUNDING_BOX_START_TIME];
+          GetBoundingBoxStopTime()  = rCurrentProcessInfo[BOUNDING_BOX_STOP_TIME];
           
           InitializeDEMElements();           
           InitializeFEMElements();
@@ -483,10 +485,12 @@ namespace Kratos
           InitializeSolutionStep();
           
           // 2. Neighboring search. Every N times. + destruction of particles outside the bounding box                   
-
-          if ((time_step + 1) % mNStepSearch == 0 && time_step > 0) {
+          
+          double time = rCurrentProcessInfo[TIME];
+                    
+          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) {
               
-              if (this->GetBoundingBoxOption()){
+              if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
                   BoundingBoxUtility();
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
@@ -546,6 +550,7 @@ namespace Kratos
           KRATOS_CATCH("")
       }//Solve()
 
+      
       void InitialTimeStepCalculation()
       {
           KRATOS_TRY
@@ -1503,7 +1508,9 @@ namespace Kratos
     int&                                         GetSearchControl(){return mSearchControl;}
     int&                                         GetBoundingBoxOption(){return (mBoundingBoxOption);}
     int&                                         GetNumberOfThreads(){return (mNumberOfThreads);}
-
+    double&                                      GetBoundingBoxStartTime(){return (mBoundingBoxStartTime);}
+    double&                                      GetBoundingBoxStopTime(){return (mBoundingBoxStopTime);}
+    
     double&                                      GetMaxTimeStep(){return (mMaxTimeStep);}
     double&                                      GetSafetyFactor(){return (mSafetyFactor);}
     
@@ -1540,6 +1547,8 @@ namespace Kratos
     int                                          mNStepSearch;
     int                                          mSearchControl;
     int                                          mBoundingBoxOption;
+    double                                       mBoundingBoxStartTime;
+    double                                       mBoundingBoxStopTime;
     int                                          mNumberOfThreads;
     int                                          mNumberOfElementsOldRadiusList;
 
