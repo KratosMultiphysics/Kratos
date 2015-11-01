@@ -255,40 +255,46 @@ private:
 
 }; // Class QuadrilateralGaussianIntegrationPoints4
 
-//class QuadrilateralGaussianIntegrationPoints5
-//{
-//public:
-//    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints5);
-//    typedef std::size_t SizeType;
+class KRATOS_EXPORT_DLL QuadrilateralGaussianIntegrationPoints5 {
+public:
+	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints5);
+	typedef std::size_t SizeType;
 
-//    static const unsigned int Dimension = 2;
+	static const unsigned int Dimension = 2;
 
-//    typedef IntegrationPoint<2> IntegrationPointType;
+	typedef IntegrationPoint<2> IntegrationPointType;
 
-//    typedef boost::array<IntegrationPointType, 25> IntegrationPointsArrayType;
+	typedef boost::array<IntegrationPointType, 25> IntegrationPointsArrayType;
 
-//    typedef IntegrationPointType::PointType PointType;
+	typedef IntegrationPointType::PointType PointType;
 
-//    static SizeType IntegrationPointsNumber()    {  return 25; }
+	static SizeType IntegrationPointsNumber() {return 25;}
 
-//    static IntegrationPointsArrayType& IntegrationPoints()
-//    {
-//        return msIntegrationPoints;
-//    }
+	static IntegrationPointsArrayType& IntegrationPoints()
+	{
+        double a[] = {-0.906179845938664, -0.538469310105683, 0.000000000000000, 0.538469310105683, 0.906179845938664};
+        double w[] = {0.236926885056189, 0.478628670499366, 0.568888888888889, 0.478628670499366, 0.236926885056189};
 
-//    std::string Info() const
-//    {
-//        std::stringstream buffer;
-//        buffer << "Quadrilateral gaussian quadrature 5 ";
-//        return buffer.str();
-//    }
-//protected:
+        for(int i = 0; i < 5; ++i)
+            for(int j = 0; j < 5; ++j)
+                msIntegrationPoints[5*i + j] = IntegrationPointType( a[i], a[j], w[i] * w[j]);
+            
+		return msIntegrationPoints;
+	}
 
-//private:
+	std::string Info() const
+	{
+		std::stringstream buffer;
+		buffer << "Quadrilateral gaussian quadrature 5 ";
+		return buffer.str();
+	}
+protected:
 
-//    static IntegrationPointsArrayType msIntegrationPoints;
+private:
 
-//}; // Class QuadrilateralGaussianIntegrationPoints5
+	static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints5
 
 
 ///@name Type Definitions
