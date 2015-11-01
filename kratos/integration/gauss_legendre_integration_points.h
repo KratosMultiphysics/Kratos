@@ -286,6 +286,248 @@ private:
 
 
 
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints6
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints6);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 6> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 6;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.9324695142031521, 0.1713244923791704);
+        msIntegrationPoints[1] = IntegrationPointType(-0.6612093864662645, 0.3607615730481386);
+        msIntegrationPoints[2] = IntegrationPointType(-0.2386191860831969, 0.4679139345726910);
+        msIntegrationPoints[3] = IntegrationPointType( 0.2386191860831969, 0.4679139345726910);
+        msIntegrationPoints[4] = IntegrationPointType( 0.6612093864662645, 0.3607615730481386);
+        msIntegrationPoints[5] = IntegrationPointType( 0.9324695142031521, 0.1713244923791704);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 6 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints6
+
+
+
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints7
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints7);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 7> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 7;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.9491079123427585, 0.1294849661688697);
+        msIntegrationPoints[1] = IntegrationPointType(-0.7415311855993945, 0.2797053914892766);
+        msIntegrationPoints[2] = IntegrationPointType(-0.4058451513773972, 0.3818300505051189);
+        msIntegrationPoints[3] = IntegrationPointType( 0.0000000000000000, 0.4179591836734694);
+        msIntegrationPoints[4] = IntegrationPointType( 0.4058451513773972, 0.3818300505051189);
+        msIntegrationPoints[5] = IntegrationPointType( 0.7415311855993945, 0.2797053914892766);
+        msIntegrationPoints[6] = IntegrationPointType( 0.9491079123427585, 0.1294849661688697);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 7 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints7
+
+
+
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints8
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints8);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 8;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.9602898564975363, 0.1012285362903763);
+        msIntegrationPoints[1] = IntegrationPointType(-0.7966664774136267, 0.2223810344533745);
+        msIntegrationPoints[2] = IntegrationPointType(-0.5255324099163290, 0.3137066458778873);
+        msIntegrationPoints[3] = IntegrationPointType(-0.1834346424956498, 0.3626837833783620);
+        msIntegrationPoints[4] = IntegrationPointType( 0.1834346424956498, 0.3626837833783620);
+        msIntegrationPoints[5] = IntegrationPointType( 0.5255324099163290, 0.3137066458778873);
+        msIntegrationPoints[6] = IntegrationPointType( 0.7966664774136267, 0.2223810344533745);
+        msIntegrationPoints[7] = IntegrationPointType( 0.9602898564975363, 0.1012285362903763);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 8 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints8
+
+
+
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints9
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints9);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 9;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.9681602395076261, 0.0812743883615744);
+        msIntegrationPoints[1] = IntegrationPointType(-0.8360311073266358, 0.1806481606948574);
+        msIntegrationPoints[2] = IntegrationPointType(-0.6133714327005904, 0.2606106964029354);
+        msIntegrationPoints[3] = IntegrationPointType(-0.3242534234038089, 0.3123470770400029);
+        msIntegrationPoints[4] = IntegrationPointType( 0.0000000000000000, 0.3302393550012598);
+        msIntegrationPoints[5] = IntegrationPointType( 0.3242534234038089, 0.3123470770400029);
+        msIntegrationPoints[6] = IntegrationPointType( 0.6133714327005904, 0.2606106964029354);
+        msIntegrationPoints[7] = IntegrationPointType( 0.8360311073266358, 0.1806481606948574);
+        msIntegrationPoints[8] = IntegrationPointType( 0.9681602395076261, 0.0812743883615744);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 9 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints9
+
+
+
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints10
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints10);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 10> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 10;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.9739065285171717, 0.0666713443086881);
+        msIntegrationPoints[1] = IntegrationPointType(-0.8650633666889845, 0.1494513491505806);
+        msIntegrationPoints[2] = IntegrationPointType(-0.6794095682990244, 0.2190863625159820);
+        msIntegrationPoints[3] = IntegrationPointType(-0.4333953941292472, 0.2692667193099963);
+        msIntegrationPoints[4] = IntegrationPointType(-0.1488743389816312, 0.2955242247147529);
+        msIntegrationPoints[5] = IntegrationPointType( 0.1488743389816312, 0.2955242247147529);
+        msIntegrationPoints[6] = IntegrationPointType( 0.4333953941292472, 0.2692667193099963);
+        msIntegrationPoints[7] = IntegrationPointType( 0.6794095682990244, 0.2190863625159820);
+        msIntegrationPoints[8] = IntegrationPointType( 0.8650633666889845, 0.1494513491505806);
+        msIntegrationPoints[9] = IntegrationPointType( 0.9739065285171717, 0.0666713443086881);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 10 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints10
 
 
 

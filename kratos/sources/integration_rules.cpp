@@ -104,6 +104,76 @@ GaussLegendreIntegrationPoints5::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
+GaussLegendreIntegrationPoints6::IntegrationPointsArrayType GaussLegendreIntegrationPoints6::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-0.9324695142031521, 0.1713244923791704),
+        IntegrationPointType(-0.6612093864662645, 0.3607615730481386),
+        IntegrationPointType(-0.2386191860831969, 0.4679139345726910),
+        IntegrationPointType( 0.2386191860831969, 0.4679139345726910),
+        IntegrationPointType( 0.6612093864662645, 0.3607615730481386),
+        IntegrationPointType( 0.9324695142031521, 0.1713244923791704)
+    }
+};
+
+GaussLegendreIntegrationPoints7::IntegrationPointsArrayType GaussLegendreIntegrationPoints7::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-0.9491079123427585, 0.1294849661688697),
+        IntegrationPointType(-0.7415311855993945, 0.2797053914892766),
+        IntegrationPointType(-0.4058451513773972, 0.3818300505051189),
+        IntegrationPointType( 0.0000000000000000, 0.4179591836734694),
+        IntegrationPointType( 0.4058451513773972, 0.3818300505051189),
+        IntegrationPointType( 0.7415311855993945, 0.2797053914892766),
+        IntegrationPointType( 0.9491079123427585, 0.1294849661688697)
+    }
+};
+
+GaussLegendreIntegrationPoints8::IntegrationPointsArrayType GaussLegendreIntegrationPoints8::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-0.9602898564975363, 0.1012285362903763),
+        IntegrationPointType(-0.7966664774136267, 0.2223810344533745),
+        IntegrationPointType(-0.5255324099163290, 0.3137066458778873),
+        IntegrationPointType(-0.1834346424956498, 0.3626837833783620),
+        IntegrationPointType( 0.1834346424956498, 0.3626837833783620),
+        IntegrationPointType( 0.5255324099163290, 0.3137066458778873),
+        IntegrationPointType( 0.7966664774136267, 0.2223810344533745),
+        IntegrationPointType( 0.9602898564975363, 0.1012285362903763)
+    }
+};
+
+GaussLegendreIntegrationPoints9::IntegrationPointsArrayType GaussLegendreIntegrationPoints9::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-0.9681602395076261, 0.0812743883615744),
+        IntegrationPointType(-0.8360311073266358, 0.1806481606948574),
+        IntegrationPointType(-0.6133714327005904, 0.2606106964029354),
+        IntegrationPointType(-0.3242534234038089, 0.3123470770400029),
+        IntegrationPointType( 0.0000000000000000, 0.3302393550012598),
+        IntegrationPointType( 0.3242534234038089, 0.3123470770400029),
+        IntegrationPointType( 0.6133714327005904, 0.2606106964029354),
+        IntegrationPointType( 0.8360311073266358, 0.1806481606948574),
+        IntegrationPointType( 0.9681602395076261, 0.0812743883615744)
+    }
+};
+
+GaussLegendreIntegrationPoints10::IntegrationPointsArrayType GaussLegendreIntegrationPoints10::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-0.9739065285171717, 0.0666713443086881),
+        IntegrationPointType(-0.8650633666889845, 0.1494513491505806),
+        IntegrationPointType(-0.6794095682990244, 0.2190863625159820),
+        IntegrationPointType(-0.4333953941292472, 0.2692667193099963),
+        IntegrationPointType(-0.1488743389816312, 0.2955242247147529),
+        IntegrationPointType( 0.1488743389816312, 0.2955242247147529),
+        IntegrationPointType( 0.4333953941292472, 0.2692667193099963),
+        IntegrationPointType( 0.6794095682990244, 0.2190863625159820),
+        IntegrationPointType( 0.8650633666889845, 0.1494513491505806),
+        IntegrationPointType( 0.9739065285171717, 0.0666713443086881)
+    }
+};
+
 TriangleGaussianIntegrationPoints1::IntegrationPointsArrayType TriangleGaussianIntegrationPoints1::msIntegrationPoints =
 {
     {
@@ -345,6 +415,43 @@ QuadrilateralGaussianIntegrationPoints4::msIntegrationPoints =
         IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0)),
         IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0)),
         IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0)),
+    }
+};
+
+
+QuadrilateralGaussianIntegrationPoints5::IntegrationPointsArrayType
+QuadrilateralGaussianIntegrationPoints5::msIntegrationPoints =
+{
+    {
+        IntegrationPointType( -0.906179845938664, -0.906179845938664, 0.236926885056189 * 0.236926885056189),
+        IntegrationPointType( -0.906179845938664, -0.538469310105683, 0.236926885056189 * 0.478628670499366),
+        IntegrationPointType( -0.906179845938664, 0.000000000000000, 0.236926885056189 * 0.568888888888889),
+        IntegrationPointType( -0.906179845938664, 0.538469310105683, 0.236926885056189 * 0.478628670499366),
+        IntegrationPointType( -0.906179845938664, 0.906179845938664, 0.236926885056189 * 0.236926885056189),
+
+        IntegrationPointType( -0.538469310105683, -0.906179845938664, 0.478628670499366 * 0.236926885056189),
+        IntegrationPointType( -0.538469310105683, -0.538469310105683, 0.478628670499366 * 0.478628670499366),
+        IntegrationPointType( -0.538469310105683, 0.000000000000000, 0.478628670499366 * 0.568888888888889),
+        IntegrationPointType( -0.538469310105683, 0.538469310105683, 0.478628670499366 * 0.478628670499366),
+        IntegrationPointType( -0.538469310105683, 0.906179845938664, 0.478628670499366 * 0.236926885056189),
+
+        IntegrationPointType( 0.000000000000000, -0.906179845938664, 0.568888888888889 * 0.236926885056189),
+        IntegrationPointType( 0.000000000000000, -0.538469310105683, 0.568888888888889 * 0.478628670499366),
+        IntegrationPointType( 0.000000000000000, 0.000000000000000, 0.568888888888889 * 0.568888888888889),
+        IntegrationPointType( 0.000000000000000, 0.538469310105683, 0.568888888888889 * 0.478628670499366),
+        IntegrationPointType( 0.000000000000000, 0.906179845938664, 0.568888888888889 * 0.236926885056189),
+
+        IntegrationPointType( 0.538469310105683, -0.906179845938664, 0.478628670499366 * 0.236926885056189),
+        IntegrationPointType( 0.538469310105683, -0.538469310105683, 0.478628670499366 * 0.478628670499366),
+        IntegrationPointType( 0.538469310105683, 0.000000000000000, 0.478628670499366 * 0.568888888888889),
+        IntegrationPointType( 0.538469310105683, 0.538469310105683, 0.478628670499366 * 0.478628670499366),
+        IntegrationPointType( 0.538469310105683, 0.906179845938664, 0.478628670499366 * 0.236926885056189),
+
+        IntegrationPointType( 0.906179845938664, -0.906179845938664, 0.236926885056189 * 0.236926885056189),
+        IntegrationPointType( 0.906179845938664, -0.538469310105683, 0.236926885056189 * 0.478628670499366),
+        IntegrationPointType( 0.906179845938664, 0.000000000000000, 0.236926885056189 * 0.568888888888889),
+        IntegrationPointType( 0.906179845938664, 0.538469310105683, 0.236926885056189 * 0.478628670499366),
+        IntegrationPointType( 0.906179845938664, 0.906179845938664, 0.236926885056189 * 0.236926885056189),
     }
 };
 
