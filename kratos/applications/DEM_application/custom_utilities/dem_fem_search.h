@@ -184,7 +184,7 @@ class DEM_FEM_Search : public SpatialSearch
         double radius = 0.0;
 
         for(Elem_iter it = it_begin; it != it_end; it++) {
-          GeometryType &pGeometry = (*(it.base()))->GetGeometry();
+          GeometryType &pGeometry = (*it)->GetGeometry();
           aux_coor                = pGeometry[0].Coordinates();
           radius                  = pGeometry[0].FastGetSolutionStepValue(RADIUS);
           Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
@@ -228,7 +228,7 @@ class DEM_FEM_Search : public SpatialSearch
         array_1d<double, 3> rLowPoint;
 
         for(ConditionsContainerType::ContainerType::iterator it = it_begin; it != it_end; it++){
-          GeometryType pGeometry = (*(it.base()))->GetGeometry();
+          GeometryType pGeometry = (*it)->GetGeometry();
           rLowPoint  = pGeometry.GetPoint(0);
           rHighPoint = pGeometry.GetPoint(0);
 
