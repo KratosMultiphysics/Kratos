@@ -97,7 +97,8 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         dem_fem_search = DEM_FEM_Search()
         
         # Creating a solver object and set the search strategy
-        solver             = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+        solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+        
         # Add variables
         procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
         procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
@@ -208,9 +209,11 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         os.chdir(post_path)
 
         # Setting up the BoundingBox
+        bounding_box_time_limits = []
         if (DEM_parameters.BoundingBoxOption == "ON"):
             procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
-
+            bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
+        
         # Creating a solver object and set the search strategy
         # solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
         solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
@@ -372,7 +375,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
-                demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time)
+                demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
 
                 os.chdir(main_path)
 
