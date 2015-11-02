@@ -51,14 +51,14 @@ class ExplicitStrategy:
         self.coordination_number = 10.0
         
         if (hasattr(Param, "LocalResolutionMethod")):
-          if(Param.LocalResolutionMethod == "hierarchical"):
-            self.local_resolution_method = 1
-          elif(Param.LocalResolutionMethod == "area_distribution"):
-            self.local_resolution_method = 2
-          else:
-            self.local_resolution_method = 1
+            if(Param.LocalResolutionMethod == "hierarchical"):
+              self.local_resolution_method = 1
+            elif(Param.LocalResolutionMethod == "area_distribution"):
+              self.local_resolution_method = 2
+            else:
+              self.local_resolution_method = 1
         else:
-          self.local_resolution_method = 1
+            self.local_resolution_method = 1
         
         if (Param.DeltaOption == "None"):
             self.delta_option = 0
@@ -82,6 +82,11 @@ class ExplicitStrategy:
         self.cluster_model_part = cluster_model_part
         self.inlet_model_part = inlet_model_part
 
+        # TIME RELATED PARAMETERS
+        self.delta_time = Param.MaxTimeStep
+        self.max_delta_time = Param.MaxTimeStep
+        self.final_time = Param.FinalTime
+        
         # BOUNDING_BOX
         self.enlargement_factor = Param.BoundingBoxEnlargementFactor
         self.top_corner = Array3()
@@ -92,8 +97,16 @@ class ExplicitStrategy:
         self.bottom_corner[0] = Param.BoundingBoxMinX
         self.bottom_corner[0] = Param.BoundingBoxMinY
         self.bottom_corner[0] = Param.BoundingBoxMinZ
-        self.bounding_box_start_time  = Param.BoundingBoxStartTime
-        self.bounding_box_stop_time  = Param.BoundingBoxStopTime
+        
+        if not (hasattr(Param, "BoundingBoxStartTime")):
+            self.bounding_box_start_time  = 0.0
+        else:
+            self.bounding_box_start_time  = Param.BoundingBoxStartTime
+            
+        if not (hasattr(Param, "BoundingBoxStopTime")):
+            self.bounding_box_stop_time  = self.final_time
+        else:
+            self.bounding_box_stop_time  = Param.BoundingBoxStopTime
         
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
@@ -123,11 +136,6 @@ class ExplicitStrategy:
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = 0
-
-        # TIME RELATED PARAMETERS
-        self.delta_time = Param.MaxTimeStep
-        self.max_delta_time = Param.MaxTimeStep
-        self.final_time = Param.FinalTime
 
         # RESOLUTION METHODS AND PARAMETERS
         self.n_step_search = int(Param.NeighbourSearchFrequency)                
