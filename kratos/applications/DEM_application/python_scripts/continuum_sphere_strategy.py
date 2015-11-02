@@ -86,6 +86,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.fixed_vel_top = Param.LoadingVelocityTop
         self.fixed_vel_bot = Param.LoadingVelocityBot
 
+        # TIME RELATED PARAMETERS
+        self.delta_time = Param.MaxTimeStep
+        self.max_delta_time = Param.MaxTimeStep
+        self.final_time = Param.FinalTime
+
         # BOUNDING_BOX
         self.enlargement_factor = Param.BoundingBoxEnlargementFactor
         self.top_corner = Array3()
@@ -96,6 +101,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.bottom_corner[0] = Param.BoundingBoxMinX
         self.bottom_corner[0] = Param.BoundingBoxMinY
         self.bottom_corner[0] = Param.BoundingBoxMinZ
+        
+        if not (hasattr(Param, "BoundingBoxStartTime")):
+            self.bounding_box_start_time  = 0.0
+        else:
+            self.bounding_box_start_time  = Param.BoundingBoxStartTime
+            
+        if not (hasattr(Param, "BoundingBoxStopTime")):
+            self.bounding_box_stop_time  = self.final_time
+        else:
+            self.bounding_box_stop_time  = Param.BoundingBoxStopTime
 
         # MODEL
         self.model_part = model_part
@@ -157,12 +172,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.print_export_skin_sphere = Var_Translator(Param.PostExportSkinSphere)
 
         self.dummy_switch = 0
-
-        # TIME RELATED PARAMETERS
-
-        self.delta_time = Param.MaxTimeStep
-        self.max_delta_time = Param.MaxTimeStep
-        self.final_time = Param.FinalTime
 
         # RESOLUTION METHODS AND PARAMETERS
         self.n_step_search = int(Param.NeighbourSearchFrequency)
