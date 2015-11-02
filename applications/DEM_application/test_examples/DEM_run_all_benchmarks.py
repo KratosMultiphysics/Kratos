@@ -128,6 +128,7 @@ def Run():
     subject = "Problems found in DEM Benchmarks"   
     message = "From: Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + subject + "\n" + Text
     
+    #if failure:
     if (__name__ != '__main__' and failure):
         smtplib.SMTP("smtps.cimne.upc.es").sendmail("Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>", recipients, message)
     
