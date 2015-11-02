@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-import math
+#mport math
 
 # Kratos
 from KratosMultiphysics import *
@@ -181,7 +181,7 @@ os.chdir(post_path)
 bounding_box_time_limits = []
 if (DEM_parameters.BoundingBoxOption == "ON"):
     procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
-    bounding_box_time_limits = [DEM_parameters.BoundingBoxStartTime, DEM_parameters.BoundingBoxStopTime]
+    bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
 
 # Creating a solver object and set the search strategy
 #solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
