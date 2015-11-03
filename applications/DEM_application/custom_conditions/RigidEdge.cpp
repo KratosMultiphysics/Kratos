@@ -245,15 +245,12 @@ void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo
 
 void RigidEdge3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
-    array_1d<double, 3> v1, v2;
+    double delta_x = GetGeometry()[1].X() - GetGeometry()[0].X();
+    double delta_y = GetGeometry()[1].Y() - GetGeometry()[0].Y();
 
-    v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
-    v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
-
-    v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
-    v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
-
-    MathUtils<double>::CrossProduct(rnormal, v1, v2);
+    rnormal[0] = - delta_y;
+    rnormal[1] = delta_x;
+    rnormal[2] = 0.0;
 
     rnormal /= MathUtils<double>::Norm3(rnormal);
 }
