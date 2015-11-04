@@ -236,7 +236,7 @@ namespace Kratos
 
       if ( !rModelPart.NumberOfElements(MeshId)) {
          if( EchoLevel > 0 )
-            std::cout << "    end; no elements." << std::cout;
+            std::cout << "    end; no elements." << std::endl;
          return;
       }
 
