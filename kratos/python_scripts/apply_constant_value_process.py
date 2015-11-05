@@ -3,11 +3,19 @@ import python_process
 
 ##all the processes python processes should be derived from "python_process"
 class ApplyConstantScalarValue(python_process.PythonProcess):
-    def __init__(self, variable, value, is_fixed):
+    def __init__(self, model_part, variable_name, value, is_fixed, mesh_id=0 ):
         python_process.PythonProcess.__init__(self) 
-        self.is_fixed = is_fixed
-        self.value = value
-        self.variable = variable
+        
+        variable = globals().get(variable_name)
+
+        for node in model_part.GetMesh(mesh_id).Nodes:
+            if is_fixed:
+                node.Fix(variable)
+            
+            node.SetSolutionStepValue(variable,0,value)
+            
+            
+        print("finished construction of ApplyConstantScalarValue Process")
         
     def ExecuteInitialize(self):
         pass
@@ -25,7 +33,7 @@ class ApplyConstantScalarValue(python_process.PythonProcess):
         pass
     
     def ExecuteAfterOutputStep(self):
-        print("inside apply_constant_scalar_value_process")
+        pass
         
     def ExecuteFinalize(self):
         pass
@@ -36,13 +44,28 @@ class ApplyConstantScalarValue(python_process.PythonProcess):
 
 
 class ApplyConstantVectorValue(python_process.PythonProcess):
-    def __init__(self, variable, value, is_fixed_x, is_fixed_y, is_fixed_z):
+    def __init__(self, model_part, variable_name, value, is_fixed_x, is_fixed_y, is_fixed_z, mesh_id=0):
         python_process.PythonProcess.__init__(self) 
-        self.is_fixed_x = is_fixed_x
-        self.is_fixed_y = is_fixed_y
-        self.is_fixed_z = is_fixed_z
-        self.value = value
-        self.variable = variable
+
+        #print("value = ", value, len(value))
+        variable = globals().get(variable_name)
+        varx = globals().get(variable_name+"_X")
+        vary = globals().get(variable_name+"_Y")
+        varz = globals().get(variable_name+"_Z")
+        
+        if(len(value) != 3):
+            raise Exception("sorry the value to be applied should be a vector of size 3. Instead we got", value)
+        
+        for node in model_part.GetMesh(mesh_id).Nodes:
+            if is_fixed_x:
+                node.Fix(varx)
+            if is_fixed_y:
+                node.Fix(vary)
+            if is_fixed_z:
+                node.Fix(varz)
+                
+            node.SetSolutionStepValue(variable,0,value)
+        print("finished construction of ApplyConstantVectorValue Process")
         
     def ExecuteInitialize(self):
         pass
@@ -60,7 +83,7 @@ class ApplyConstantVectorValue(python_process.PythonProcess):
         pass
     
     def ExecuteAfterOutputStep(self):
-        print("inside apply_constant_scalar_value_process")
+        pass
         
     def ExecuteFinalize(self):
         pass
@@ -75,18 +98,18 @@ def Factory(settings, Model):
     mesh_id = settings["mesh_id"]
     
     if(settings["process_name"] == "ApplyConstantScalarValue"):
-        variable = globals()[ params["variable_name"] ] 
+        variable_name = params["variable_name"] 
         value = params["value"]
         is_fixed = params["is_fixed"]
         
-        return ApplyConstantScalarValue(variable, value,is_fixed)
+        return ApplyConstantScalarValue(model_part, variable_name, value,is_fixed)
     elif(settings["process_name"] == "ApplyConstantVectorValue"):
-        variable = globals()[ params["variable_name"] ] 
+        variable_name = params["variable_name"]  
         value = params["value"]
-        if(len(value) != 3):
-            raise Exception("value should be a vector of size 3. Instead we got ", value)
+        #print("value is ", value,len(value))
+        
         is_fixed_x = params["is_fixed_x"]
         is_fixed_y = params["is_fixed_y"]
         is_fixed_z = params["is_fixed_z"]
         
-        return ApplyConstantVectorValue(variable, value,is_fixed_x, is_fixed_y, is_fixed_z)
+        return ApplyConstantVectorValue(model_part, variable_name, value,is_fixed_x, is_fixed_y, is_fixed_z)
