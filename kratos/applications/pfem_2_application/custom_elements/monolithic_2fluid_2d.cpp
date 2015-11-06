@@ -289,7 +289,7 @@ namespace Kratos
 					rhs_stab[j] += node_press_proj(j)*factor;
 			}
 			
-			const bool use_press_proj=false;
+			const bool use_press_proj=true;
 			
 			for (unsigned int i = 0; i < (TDim+1); i++)
 			{
