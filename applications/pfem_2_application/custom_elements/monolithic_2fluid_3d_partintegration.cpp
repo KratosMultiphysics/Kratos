@@ -434,7 +434,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  1.01 / ( 1.0 / delta_t +  (4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));//+ 2.0 * AdvVelNorm / mElemSize );
+				TauOne =  0.01 / ( 1.0 / delta_t +  (4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));//+ 2.0 * AdvVelNorm / mElemSize );
 			}
 		
 			
@@ -593,11 +593,11 @@ namespace Kratos
 					
 					//enriched
 					for (unsigned int l = 0; l < TDim; l++)
-						condensed_rows(enrich_velocity_dofs+k,i*(TDim+1)+l)= - G_matrix_mixed(k,i*TDim+l);//+mass_stabilization_terms(i*2+1);
+						condensed_rows(enrich_velocity_dofs+k,i*(TDim+1)+l)= - D_matrix_mixed(k,i*TDim+l);//+mass_stabilization_terms(i*2+1);
 					condensed_rows(enrich_velocity_dofs+k,i*(TDim+1)+TDim)= mixed_Laplacian(k,i);
 					
 					for (unsigned int l = 0; l < TDim; l++)
-						condensed_columns(enrich_velocity_dofs+k,i*(TDim+1)+l)= - G_matrix_mixed(k,i*TDim+l);
+						condensed_columns(enrich_velocity_dofs+k,i*(TDim+1)+l)= - D_matrix_mixed(k,i*TDim+l);
 					condensed_columns(enrich_velocity_dofs+k,i*(TDim+1)+TDim)= mixed_Laplacian(k,i);
 				}
 				
