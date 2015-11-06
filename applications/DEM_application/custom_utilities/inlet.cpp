@@ -272,7 +272,7 @@ namespace Kratos {
             
             if (number_of_particles_to_insert) {
                 //randomizing mesh
-                srand( time(NULL)*r_modelpart.GetProcessInfo()[TIME_STEPS] );
+                srand( /*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS] );
                 
                 ModelPart::ElementsContainerType::ContainerType inserting_elements(number_of_particles_to_insert);               
                 ModelPart::ElementsContainerType::ContainerType valid_elements = mesh_it->ElementsArray();
