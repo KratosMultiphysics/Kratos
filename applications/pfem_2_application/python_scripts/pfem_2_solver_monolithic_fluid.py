@@ -194,7 +194,7 @@ class PFEM2Solver:
         if (self.water_initial_volume==0.0): 
                 self.water_initial_volume=self.water_volume
         water_fraction= self.water_volume/(self.water_initial_volume)
-        self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1
+        self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.0
         print("current mass loss is : " , (1.0 - water_fraction) * 100.0 , " % ")
         #print("water fraction ", water_fraction)
         #print("water volume ", self.water_volume)
