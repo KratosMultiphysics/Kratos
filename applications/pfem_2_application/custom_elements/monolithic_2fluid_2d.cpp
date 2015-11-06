@@ -82,6 +82,9 @@ namespace Kratos
 	{
 		KRATOS_TRY
 		
+		if(rCurrentProcessInfo[FRACTIONAL_STEP]<100)
+		{
+		
 		const unsigned int TDim=2;
 
 	    double delta_t = rCurrentProcessInfo[DELTA_TIME];	
@@ -238,7 +241,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  1.0 / ( ( 1.0/ delta_t + 4.0 * viscosity_for_tau / (mElemSize * mElemSize * density)));// + 2.0 * AdvVelNorm / mElemSize) );
+				TauOne =  1.0 / ( ( 0.1/ delta_t + 4.0 * viscosity_for_tau / (mElemSize * mElemSize * density)));// + 2.0 * AdvVelNorm / mElemSize) );
 			}
 		
 			/*	
@@ -453,7 +456,7 @@ namespace Kratos
 					}
 				mElemSize=sqrt(sqElemSize);
 				//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-				TauOne =  0.01 / ( ( 1.0/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));// + 2.0 * AdvVelNorm / mElemSize) );
+				TauOne =  0.01 / ( ( 0.1/ delta_t + 4.0 * element_viscosity_for_tau / (mElemSize * mElemSize * element_density)));// + 2.0 * AdvVelNorm / mElemSize) );
 			}
 		
 			
@@ -713,10 +716,114 @@ namespace Kratos
 
 		
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,current_vel_and_press);
-		
-		//KRATOS_WATCH("ART")
-		//KRATOS_WATCH(rRightHandSideVector)
-		//KRATOS_WATCH(rLeftHandSideMatrix)
+		}
+		else
+		{
+					unsigned int TNumNodes = GetGeometry().size();
+                    const int TDim=2;
+					array_1d<double, TDim+1> N;
+					// Check sizes and initialize
+					if (rRightHandSideVector.size() != TNumNodes)
+						rRightHandSideVector.resize(TNumNodes, false);
+					noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
+					if(rLeftHandSideMatrix.size1() != TNumNodes)
+						rLeftHandSideMatrix.resize(TNumNodes,TNumNodes,false);
+					noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes,TNumNodes);
+			
+					array_1d<double,(TDim+1)> rhs_x,rhs_y,rhs_z,rhs_d;
+					rhs_x = ZeroVector((TDim+1));         //resetting vectors     
+					rhs_y = ZeroVector((TDim+1));         //resetting vectors     
+					rhs_z = ZeroVector((TDim+1));         //resetting vectors     
+					rhs_d = ZeroVector((TDim+1));         //resetting vectors   	
+			
+					const int offset = rCurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
+			
+					int & number_of_particles_in_elem= this->GetValue(NUMBER_OF_FLUID_PARTICLES);
+					ParticlePointerVector&  element_particle_pointers =  (this->GetValue(FLUID_PARTICLE_POINTERS));
+					Geometry<Node<3> >& geom = this->GetGeometry();
+					
+					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					{
+
+						PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
+						
+						if (pparticle.GetEraseFlag()==false) 
+						{
+							
+							array_1d<double,3> & position = pparticle.Coordinates();
+
+							const array_1d<float,3>& velocity = pparticle.GetVelocity();
+
+							const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
+						
+							array_1d<double,TDim+1> N;
+
+							double x0 = geom[0].X();
+							double y0 = geom[0].Y();
+							double x1 = geom[1].X();
+							double y1 = geom[1].Y();
+							double x2 = geom[2].X();
+							double y2 = geom[2].Y();
+
+							double area = 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
+							double inv_area = 1.0 / area;
+
+
+							N[0] = 0.5 * ((x1 - position[0])*(y2 - position[1])- (y1 - position[1])*(x2 - position[0])) * inv_area;
+							N[1] = 0.5 * ((position[0] - x0)*(y2 - y0)- (position[1] - y0)*(x2 - x0))* inv_area;
+							N[2] = 0.5 * ((x1 - x0)*(position[1] - y0)- (y1 - y0)*(position[0] - x0))* inv_area;
+							
+							for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
+							{	
+								double weight=N(j);
+								for (int k=0 ; k!=(TDim+1); k++) //building the mass matrix
+									rLeftHandSideMatrix(j,k) += weight*N(k);
+								
+								rhs_x[j] += weight * double(velocity[0]);
+								rhs_y[j] += weight * double(velocity[1]);
+								rhs_z[j] += weight * double(velocity[2]);
+								rhs_d[j] += weight * double(particle_distance);
+								
+								if(rCurrentProcessInfo[FRACTIONAL_STEP]==100)
+									rRightHandSideVector[j] += weight * double(particle_distance);
+								if(rCurrentProcessInfo[FRACTIONAL_STEP]==101)
+								    rRightHandSideVector[j] += weight * double(velocity[0]);
+								if(rCurrentProcessInfo[FRACTIONAL_STEP]==102)
+								    rRightHandSideVector[j] += weight * double(velocity[1]);
+								
+								//adding also a part with the lumped mass matrix to reduce overshoots and undershoots
+								/*
+								if(true)
+								{	
+									double this_particle_weight = weight*elem_volume/(double(number_of_particles_in_elem))*0.1; //can be increased or reduced to change the lumped mass contrubtion
+									nodes_addedweights[j]+= this_particle_weight;
+									nodes_added_distance[j] += this_particle_weight*particle_distance;
+									for (int k=0 ; k!=(TDim); k++) //x,y,(z)
+									{
+										nodes_addedvel[j*3+k] += this_particle_weight * double(velocity[k]);
+									}
+								}
+								*/
+							}
+						}
+					}
+					
+					array_1d<double,(TDim+1)> previous_solution = ZeroVector(TDim+1);
+					for (int j=0 ; j!=(TDim+1); j++)
+					{
+						if(rCurrentProcessInfo[FRACTIONAL_STEP]==100)
+							previous_solution[j] = this->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+						if(rCurrentProcessInfo[FRACTIONAL_STEP]==101)
+						    previous_solution[j] = this->GetGeometry()[j].FastGetSolutionStepValue(PROJECTED_VELOCITY_X);
+						if(rCurrentProcessInfo[FRACTIONAL_STEP]==102)
+						    previous_solution[j] = this->GetGeometry()[j].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y);
+					}
+					noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,previous_solution);
+			
+			
+		}
+
+
 		
 		KRATOS_CATCH("");
 	}
@@ -739,6 +846,8 @@ namespace Kratos
 
 	void MonolithicPFEM22D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
+		if(CurrentProcessInfo[FRACTIONAL_STEP]<100 )
+		{
 		const int TDim = 2;
 		
 		const SizeType NumNodes = TDim+1;
@@ -757,6 +866,30 @@ namespace Kratos
 			//rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
 			rResult[LocalIndex++] = rGeom[i].GetDof(PRESSURE).EquationId();
 		}
+		}
+		else
+		{
+			const int TDim = 2;
+			
+			const SizeType NumNodes = TDim+1;
+			const SizeType LocalSize = (TDim+1);
+			GeometryType& rGeom = this->GetGeometry();
+
+			SizeType LocalIndex = 0;
+
+			if (rResult.size() != LocalSize)
+				rResult.resize(LocalSize, false);
+
+			for (SizeType i = 0; i < NumNodes; ++i)
+			{
+				if(CurrentProcessInfo[FRACTIONAL_STEP]==100)
+					rResult[LocalIndex++] = rGeom[i].GetDof(DISTANCE).EquationId();
+				if(CurrentProcessInfo[FRACTIONAL_STEP]==101)
+					rResult[LocalIndex++] = rGeom[i].GetDof(PROJECTED_VELOCITY_X).EquationId();
+				if(CurrentProcessInfo[FRACTIONAL_STEP]==102)
+					rResult[LocalIndex++] = rGeom[i].GetDof(PROJECTED_VELOCITY_Y).EquationId();
+			}
+		}
 	}
 
 	//************************************************************************************
@@ -764,6 +897,8 @@ namespace Kratos
 	
 	void MonolithicPFEM22D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 	{
+		if(CurrentProcessInfo[FRACTIONAL_STEP]<100 )
+		{
 		const int TDim = 2;
 		
 		const SizeType NumNodes = TDim+1;
@@ -782,6 +917,31 @@ namespace Kratos
 			//ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(VELOCITY_Z);
 			ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
 		}
+		}
+		else
+		{
+			const int TDim = 2;
+			
+			const SizeType NumNodes = TDim+1;
+			const SizeType LocalSize = (TDim+1);
+			GeometryType& rGeom = this->GetGeometry();
+
+			if (ElementalDofList.size() != LocalSize)
+				ElementalDofList.resize(LocalSize);
+
+			SizeType LocalIndex = 0;
+
+			for (SizeType i = 0; i < NumNodes; ++i)
+			{
+				if(CurrentProcessInfo[FRACTIONAL_STEP]==100)
+					ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(DISTANCE);
+				if(CurrentProcessInfo[FRACTIONAL_STEP]==101)
+					ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PROJECTED_VELOCITY_X);
+				if(CurrentProcessInfo[FRACTIONAL_STEP]==102)
+					ElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PROJECTED_VELOCITY_Y);
+			}
+		}
+
 		
 	}
 	
