@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_strategies/explicit_strategy.h"
+#include "custom_strategies/pfem_2_monolithic_slip_scheme.h"
 
 #include "spaces/ublas_space.h"
 
@@ -109,6 +110,12 @@ namespace Kratos
 				.def("InitializeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
  				.def("FinalizeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)	
  				;			 
+
+		         class_< PFEM2MonolithicSlipScheme< SparseSpaceType, LocalSpaceType >,
+		 	       bases< BaseSchemeType >,  boost::noncopyable >
+			       ("PFEM2MonolithicSlipScheme",init<unsigned int>() )
+			       .def(init<unsigned int >())// constructor without a turbulence model
+			       ;
 		}
 
 	}  // namespace Python.
