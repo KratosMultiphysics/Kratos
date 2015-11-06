@@ -189,18 +189,7 @@ public:
                     {
                         for ( unsigned int i=0; i< (it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry() [i].Id();
-                        //workaround: reordering node ids for Hexahedra20 elements
-                        if ( mGeometryType == GeometryData::Kratos_Hexahedra3D20 )
-                        {
-                            nodes_id[12] = (it)->GetGeometry() [16].Id();
-                            nodes_id[13] = (it)->GetGeometry() [17].Id();
-                            nodes_id[14] = (it)->GetGeometry() [18].Id();
-                            nodes_id[15] = (it)->GetGeometry() [19].Id();
-                            nodes_id[16] = (it)->GetGeometry() [12].Id();
-                            nodes_id[17] = (it)->GetGeometry() [13].Id();
-                            nodes_id[18] = (it)->GetGeometry() [14].Id();
-                            nodes_id[19] = (it)->GetGeometry() [15].Id();
-                        }
+
                         if ( mGeometryType == GeometryData::Kratos_Line2D3
                                 || mGeometryType == GeometryData::Kratos_Line3D3 )
                         {

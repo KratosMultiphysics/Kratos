@@ -399,8 +399,6 @@ public:
     }
 
     /**
-     * :TODO: TO BE CHANGED!!!!!!!!!!!
-     * These are definately wrong!
      */
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
@@ -408,9 +406,9 @@ public:
 	if(rResult.size() != 20)
            rResult.resize( 20, false );
 
-        for ( int i = 0; i < 8; i++ ) rResult[i] = 1.00 / 216.00;
+        for ( int i = 0; i < 8; i++ ) rResult[i] = -1.00 / 8.00;
 
-        for ( int i = 8; i < 20; i++ ) rResult[i] = 1.00 / 54.00;
+        for ( int i = 8; i < 20; i++ ) rResult[i] = 1.00 / 6.00;
 
         return rResult;
     }
@@ -992,37 +990,37 @@ public:
         //4
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 4 ),
-                                              this->pGetPoint( 12 ),
+                                              this->pGetPoint( 16 ),
                                               this->pGetPoint( 5 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 5 ),
-                                              this->pGetPoint( 13 ),
+                                              this->pGetPoint( 17 ),
                                               this->pGetPoint( 6 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 6 ),
-                                              this->pGetPoint( 14 ),
+                                              this->pGetPoint( 18 ),
                                               this->pGetPoint( 7 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 7 ),
-                                              this->pGetPoint( 15 ),
+                                              this->pGetPoint( 19 ),
                                               this->pGetPoint( 4 ) ) ) );
 
         //8
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 16 ),
+                                              this->pGetPoint( 12 ),
                                               this->pGetPoint( 4 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 17 ),
+                                              this->pGetPoint( 13 ),
                                               this->pGetPoint( 5 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 18 ),
+                                              this->pGetPoint( 14 ),
                                               this->pGetPoint( 6 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 19 ),
+                                              this->pGetPoint( 15 ),
                                               this->pGetPoint( 7 ) ) ) );
         return edges;
     }
@@ -1047,17 +1045,17 @@ public:
                                               this->pGetPoint( 5 ),
                                               this->pGetPoint( 4 ),
                                               this->pGetPoint( 8 ),
-                                              this->pGetPoint( 17 ),
-                                              this->pGetPoint( 12 ),
-                                              this->pGetPoint( 16 ) ) ) );
+                                              this->pGetPoint( 13 ),
+                                              this->pGetPoint( 16 ),
+                                              this->pGetPoint( 12 ) ) ) );
         faces.push_back( FacePointerType( new FaceType(
                                               this->pGetPoint( 2 ),
                                               this->pGetPoint( 6 ),
                                               this->pGetPoint( 5 ),
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 18 ),
-                                              this->pGetPoint( 13 ),
+                                              this->pGetPoint( 14 ),
                                               this->pGetPoint( 17 ),
+                                              this->pGetPoint( 13 ),
                                               this->pGetPoint( 9 ) ) ) );
         faces.push_back( FacePointerType( new FaceType(
                                               this->pGetPoint( 7 ),
@@ -1067,25 +1065,25 @@ public:
                                               this->pGetPoint( 14 ),
                                               this->pGetPoint( 18 ),
                                               this->pGetPoint( 10 ),
-                                              this->pGetPoint( 19 ) ) ) );
+                                              this->pGetPoint( 15 ) ) ) );
         faces.push_back( FacePointerType( new FaceType(
                                               this->pGetPoint( 7 ),
                                               this->pGetPoint( 3 ),
                                               this->pGetPoint( 0 ),
                                               this->pGetPoint( 4 ),
-                                              this->pGetPoint( 19 ),
+                                              this->pGetPoint( 15 ),
                                               this->pGetPoint( 11 ),
-                                              this->pGetPoint( 16 ),
-                                              this->pGetPoint( 15 ) ) ) );
+                                              this->pGetPoint( 12 ),
+                                              this->pGetPoint( 19 ) ) ) );
         faces.push_back( FacePointerType( new FaceType(
                                               this->pGetPoint( 4 ),
                                               this->pGetPoint( 5 ),
                                               this->pGetPoint( 6 ),
                                               this->pGetPoint( 7 ),
-                                              this->pGetPoint( 12 ),
-                                              this->pGetPoint( 13 ),
-                                              this->pGetPoint( 14 ),
-                                              this->pGetPoint( 15 ) ) ) );
+                                              this->pGetPoint( 16 ),
+                                              this->pGetPoint( 17 ),
+                                              this->pGetPoint( 18 ),
+                                              this->pGetPoint( 19 ) ) ) );
         return faces;
     }
 
@@ -1108,74 +1106,75 @@ public:
     {
         switch ( ShapeFunctionIndex )
         {
-        case 0:
-            return -(( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] )
-                     *( 1.0 - rPoint[2] )*( 2.0 + rPoint[0]
-                                            + rPoint[1] + rPoint[2] ) ) / 8.0;
-        case 1:
+        case 0 :
             return -(( 1.0 + rPoint[0] )
-                     *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
-                             - rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
+                     *( 1.0 - rPoint[1] )*( 2.0
+                                            - rPoint[0] + rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
+        case 1 :
+            return -(( 1.0 + rPoint[0] )
+                     *( 1.0 + rPoint[1] )*( 2.0
+                                            - rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;	
         case 2 :
             return -(( 1.0 + rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
                              - rPoint[0] - rPoint[1] + rPoint[2] ) ) / 8.0;
-        case 3 :
-            return -(( 1.0 - rPoint[0] )*( 1.0
-                                           + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
-                                                   + rPoint[0] - rPoint[1] + rPoint[2] ) ) / 8.0;
+        case 3:
+            return -(( 1.0 + rPoint[0] )
+                     *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
+                             - rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;    
         case 4 :
             return -(( 1.0 - rPoint[0] )
                      *( 1.0 - rPoint[1] )*( 2.0
                                             + rPoint[0] + rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
         case 5 :
-            return -(( 1.0 + rPoint[0] )
-                     *( 1.0 - rPoint[1] )*( 2.0
-                                            - rPoint[0] + rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
-        case 6 :
-            return -(( 1.0 + rPoint[0] )
-                     *( 1.0 + rPoint[1] )*( 2.0
-                                            - rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
-        case 7 :
             return -(( 1.0 - rPoint[0] )
                      *( 1.0 + rPoint[1] )*( 2.0
-                                            + rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;
+                                            + rPoint[0] - rPoint[1] - rPoint[2] )*( 1.0 + rPoint[2] ) ) / 8.0;    
+        case 6 :
+            return -(( 1.0 - rPoint[0] )*( 1.0
+                                           + rPoint[1] )*( 1.0 - rPoint[2] )*( 2.0
+                                                   + rPoint[0] - rPoint[1] + rPoint[2] ) ) / 8.0;
+        case 7 :
+            return -(( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] )
+                     *( 1.0 - rPoint[2] )*( 2.0 + rPoint[0]
+                                            + rPoint[1] + rPoint[2] ) ) / 8.0;
         case 8 :
-            return (( 1.0 -rPoint[0]*rPoint[0] )
-                    *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0;
+            return (( 1.0 + rPoint[0] )
+                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
         case 9 :
+            return (( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] )
+                    *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
+        case 10 :
             return (( 1.0 + rPoint[0] )
                     *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
-        case 10 :
-            return (( 1.0 -rPoint[0]
-                      *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
         case 11 :
-            return (( 1.0 -rPoint[0] )
-                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;
+            return (( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] )
+                    *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
         case 12 :
             return (( 1.0 -rPoint[0]
                       *rPoint[0] )*( 1.0 - rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
         case 13 :
-            return (( 1.0 + rPoint[0] )
-                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
-        case 14 :
             return (( 1.0 -rPoint[0]
                       *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
+        case 14 :
+            return (( 1.0 -rPoint[0]
+                      *rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;    
         case 15 :
-            return (( 1.0 -rPoint[0] )
-                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
+            return (( 1.0 -rPoint[0]*rPoint[0] )
+                    *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0;
         case 16 :
             return (( 1.0 -rPoint[0] )
-                    *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
+                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 + rPoint[2] ) ) / 4.0 ;
         case 17 :
-            return (( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] )
-                    *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
-        case 18 :
-            return (( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] )
-                    *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
-        case 19 :
             return (( 1.0 -rPoint[0] )*( 1.0 + rPoint[1] )
                     *( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
+        case 18 :
+            return (( 1.0 -rPoint[0] )
+                    *( 1.0 - rPoint[1]*rPoint[1] )*( 1.0 - rPoint[2] ) ) / 4.0 ;      
+        case 19 :
+            return (( 1.0 -rPoint[0] )
+                    *( 1.0 - rPoint[1] )*( 1.0 - rPoint[2]*rPoint[2] ) ) / 4.0 ;
+         
         default:
             KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" , *this );
@@ -1312,22 +1311,22 @@ public:
         if ( result.size1() != 20 || result.size2() != 3 )
             result.resize( 20, 3 );
 
-        result( 0, 0 ) = (( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) * ( 1.0 + 2.0
-                          * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 0, 1 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] ) * ( 1.0 + rPoint[0] + 2.0
-                          * rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 0, 2 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] + rPoint[1] + 2.0
-                          * rPoint[2] ) ) / 8.0;
-
-        result( 1, 0 ) = -(( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) * ( 1.0 - 2.0
-                           * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 1, 1 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[0] - 2.0 * rPoint[1] - rPoint[2] ) * ( -1.0
+        result( 0, 0 ) = (( -1.0 + rPoint[1] ) * ( 1.0 - 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( 1.0
                           + rPoint[2] ) ) / 8.0;
 
-        result( 1, 2 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] - rPoint[1] - 2.0
+        result( 0, 1 ) = -(( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] ) * ( -1.0 + rPoint[0] - 2.0
+                           * rPoint[1] + rPoint[2] ) ) / 8.0;
+
+        result( 0, 2 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] - rPoint[1] + 2.0
+                           * rPoint[2] ) ) / 8.0;
+
+        result( 1, 0 ) = (( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) * ( -1.0 + 2.0
+                          * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
+
+        result( 1, 1 ) = (( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] ) * ( -1.0 + rPoint[0] + 2.0
+                          * rPoint[1] + rPoint[2] ) ) / 8.0;
+
+        result( 1, 2 ) = (( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] + rPoint[1] + 2.0
                           * rPoint[2] ) ) / 8.0;
 
         result( 2, 0 ) = -(( 1.0 + rPoint[1] ) * ( -1.0 + 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( -1.0
@@ -1339,14 +1338,14 @@ public:
         result( 2, 2 ) = -(( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] + rPoint[1] - 2.0
                            * rPoint[2] ) ) / 8.0;
 
-        result( 3, 0 ) = (( 1.0 + rPoint[1] ) * ( -1.0 - 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( -1.0
+        result( 3, 0 ) = -(( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) * ( 1.0 - 2.0
+                           * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
+
+        result( 3, 1 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[0] - 2.0 * rPoint[1] - rPoint[2] ) * ( -1.0
                           + rPoint[2] ) ) / 8.0;
 
-        result( 3, 1 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] ) * ( 1.0 + rPoint[0] - 2.0
-                           * rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 3, 2 ) = -(( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] - rPoint[1] + 2.0
-                           * rPoint[2] ) ) / 8.0;
+        result( 3, 2 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] - rPoint[1] - 2.0
+                          * rPoint[2] ) ) / 8.0;
 
         result( 4, 0 ) = -(( -1.0 + rPoint[1] ) * ( 1.0 + 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( 1.0
                            + rPoint[2] ) ) / 8.0;
@@ -1357,44 +1356,56 @@ public:
         result( 4, 2 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] + rPoint[1] - 2.0
                            * rPoint[2] ) ) / 8.0;
 
-        result( 5, 0 ) = (( -1.0 + rPoint[1] ) * ( 1.0 - 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( 1.0
-                          + rPoint[2] ) ) / 8.0;
-
-        result( 5, 1 ) = -(( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] ) * ( -1.0 + rPoint[0] - 2.0
-                           * rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 5, 2 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] - rPoint[1] + 2.0
-                           * rPoint[2] ) ) / 8.0;
-
-        result( 6, 0 ) = (( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) * ( -1.0 + 2.0
-                          * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 6, 1 ) = (( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] ) * ( -1.0 + rPoint[0] + 2.0
-                          * rPoint[1] + rPoint[2] ) ) / 8.0;
-
-        result( 6, 2 ) = (( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[0] + rPoint[1] + 2.0
-                          * rPoint[2] ) ) / 8.0;
-
-        result( 7, 0 ) = -(( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) * ( -1.0 - 2.0
+        result( 5, 0 ) = -(( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) * ( -1.0 - 2.0
                            * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
 
-        result( 7, 1 ) = (( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[0] - 2.0 * rPoint[1] - rPoint[2] ) * ( 1.0
+        result( 5, 1 ) = (( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[0] - 2.0 * rPoint[1] - rPoint[2] ) * ( 1.0
                           + rPoint[2] ) ) / 8.0;
 
-        result( 7, 2 ) = (( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] - rPoint[1] - 2.0
+        result( 5, 2 ) = (( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] - rPoint[1] - 2.0
                           * rPoint[2] ) ) / 8.0;
 
-        result( 8, 0 ) = -( rPoint[0] * ( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 2.0;
+        result( 6, 0 ) = (( 1.0 + rPoint[1] ) * ( -1.0 - 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( -1.0
+                          + rPoint[2] ) ) / 8.0;
 
-        result( 8, 1 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
+        result( 6, 1 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] ) * ( 1.0 + rPoint[0] - 2.0
+                           * rPoint[1] + rPoint[2] ) ) / 8.0;
 
-        result( 8, 2 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[1] ) ) / 4.0;
+        result( 6, 2 ) = -(( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] - rPoint[1] + 2.0
+                           * rPoint[2] ) ) / 8.0;
 
-        result( 10, 0 ) = ( rPoint[0] * ( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 2.0;
+        result( 7, 0 ) = (( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) * ( 1.0 + 2.0
+                          * rPoint[0] + rPoint[1] + rPoint[2] ) ) / 8.0;
 
-        result( 10, 1 ) = (( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
+        result( 7, 1 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] ) * ( 1.0 + rPoint[0] + 2.0
+                          * rPoint[1] + rPoint[2] ) ) / 8.0;
 
-        result( 10, 2 ) = (( -1.0 + rPoint[0] * rPoint[0] ) * ( 1.0 + rPoint[1] ) ) / 4.0;
+        result( 7, 2 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * ( 1.0 + rPoint[0] + rPoint[1] + 2.0
+                          * rPoint[2] ) ) / 8.0;
+
+        result( 8, 0 ) = -(( -1.0 + rPoint[1] * rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 4.0;
+
+        result( 8, 1 ) = -(( 1.0 + rPoint[0] ) * rPoint[1] * ( 1.0 + rPoint[2] ) ) / 2.0;
+
+        result( 8, 2 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
+
+        result( 9, 0 ) = -(( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+
+        result( 9, 1 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+
+        result( 9, 2 ) = -(( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
+
+        result( 10, 0 ) = (( -1.0 + rPoint[1] * rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
+
+        result( 10, 1 ) = (( 1.0 + rPoint[0] ) * rPoint[1] * ( -1.0 + rPoint[2] ) ) / 2.0;
+
+        result( 10, 2 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
+
+        result( 11, 0 ) = (( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+
+        result( 11, 1 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+
+        result( 11, 2 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
 
         result( 12, 0 ) = ( rPoint[0] * ( -1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 2.0;
 
@@ -1402,59 +1413,47 @@ public:
 
         result( 12, 2 ) = (( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[1] ) ) / 4.0;
 
-        result( 14, 0 ) = -( rPoint[0] * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 2.0;
+        result( 13, 0 ) = -( rPoint[0] * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 2.0;
 
-        result( 14, 1 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( 1.0 + rPoint[2] ) ) / 4.0;
+        result( 13, 1 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( 1.0 + rPoint[2] ) ) / 4.0;
 
-        result( 14, 2 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( 1.0 + rPoint[1] ) ) / 4.0;
+        result( 13, 2 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( 1.0 + rPoint[1] ) ) / 4.0;
 
-        result( 9, 0 ) = (( -1.0 + rPoint[1] * rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
+        result( 14, 0 ) = ( rPoint[0] * ( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 2.0;
 
-        result( 9, 1 ) = (( 1.0 + rPoint[0] ) * rPoint[1] * ( -1.0 + rPoint[2] ) ) / 2.0;
+        result( 14, 1 ) = (( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
 
-        result( 9, 2 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
+        result( 14, 2 ) = (( -1.0 + rPoint[0] * rPoint[0] ) * ( 1.0 + rPoint[1] ) ) / 4.0;
 
-        result( 11, 0 ) = -(( -1.0 + rPoint[1] * rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
+        result( 15, 0 ) = -( rPoint[0] * ( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 2.0;
 
-        result( 11, 1 ) = -(( -1.0 + rPoint[0] ) * rPoint[1] * ( -1.0 + rPoint[2] ) ) / 2.0;
+        result( 15, 1 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
 
-        result( 11, 2 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
+        result( 15, 2 ) = -(( -1.0 + rPoint[0] * rPoint[0] ) * ( -1.0 + rPoint[1] ) ) / 4.0;
 
-        result( 13, 0 ) = -(( -1.0 + rPoint[1] * rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 4.0;
+        result( 16, 0 ) = (( -1.0 + rPoint[1] * rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 4.0;
 
-        result( 13, 1 ) = -(( 1.0 + rPoint[0] ) * rPoint[1] * ( 1.0 + rPoint[2] ) ) / 2.0;
+        result( 16, 1 ) = (( -1.0 + rPoint[0] ) * rPoint[1] * ( 1.0 + rPoint[2] ) ) / 2.0;
 
-        result( 13, 2 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
+        result( 16, 2 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
 
-        result( 15, 0 ) = (( -1.0 + rPoint[1] * rPoint[1] ) * ( 1.0 + rPoint[2] ) ) / 4.0;
+        result( 17, 0 ) = (( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
 
-        result( 15, 1 ) = (( -1.0 + rPoint[0] ) * rPoint[1] * ( 1.0 + rPoint[2] ) ) / 2.0;
+        result( 17, 1 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
 
-        result( 15, 2 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
+        result( 17, 2 ) = (( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
 
-        result( 16, 0 ) = -(( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+        result( 18, 0 ) = -(( -1.0 + rPoint[1] * rPoint[1] ) * ( -1.0 + rPoint[2] ) ) / 4.0;
 
-        result( 16, 1 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+        result( 18, 1 ) = -(( -1.0 + rPoint[0] ) * rPoint[1] * ( -1.0 + rPoint[2] ) ) / 2.0;
 
-        result( 16, 2 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
+        result( 18, 2 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] * rPoint[1] ) ) / 4.0;
 
-        result( 17, 0 ) = (( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+        result( 19, 0 ) = -(( -1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
 
-        result( 17, 1 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
+        result( 19, 1 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
 
-        result( 17, 2 ) = (( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
-
-        result( 18, 0 ) = -(( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
-
-        result( 18, 1 ) = -(( 1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
-
-        result( 18, 2 ) = -(( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
-
-        result( 19, 0 ) = (( 1.0 + rPoint[1] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
-
-        result( 19, 1 ) = (( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[2] * rPoint[2] ) ) / 4.0;
-
-        result( 19, 2 ) = (( -1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
+        result( 19, 2 ) = -(( -1.0 + rPoint[0] ) * ( -1.0 + rPoint[1] ) * rPoint[2] ) / 2.0;
 
         return( result );
     }
@@ -1532,88 +1531,88 @@ private:
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             row( shape_function_values, pnt )( 0 ) =
-                -(( 1.0 - integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
-                  * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0 + integration_points[pnt].X()
-                          + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
+                -(( 1.0 + integration_points[pnt].X() )
+                  * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
+                          - integration_points[pnt].X() + integration_points[pnt].Y()
+                          - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
             row( shape_function_values, pnt )( 1 ) =
                 -(( 1.0 + integration_points[pnt].X() )
-                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() )
-                  * ( 2.0 - integration_points[pnt].X()
-                      + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
+                  * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
+                          - integration_points[pnt].X() - integration_points[pnt].Y()
+                          - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
             row( shape_function_values, pnt )( 2 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           + integration_points[pnt].Z() ) ) / 8.0;
             row( shape_function_values, pnt )( 3 ) =
-                -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
-                        + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
-                                + integration_points[pnt].X() - integration_points[pnt].Y()
-                                + integration_points[pnt].Z() ) ) / 8.0;
+                -(( 1.0 + integration_points[pnt].X() )
+                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() )
+                  * ( 2.0 - integration_points[pnt].X()
+                      + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
             row( shape_function_values, pnt )( 4 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
             row( shape_function_values, pnt )( 5 ) =
-                -(( 1.0 + integration_points[pnt].X() )
-                  * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
-                          - integration_points[pnt].X() + integration_points[pnt].Y()
-                          - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 6 ) =
-                -(( 1.0 + integration_points[pnt].X() )
-                  * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
-                          - integration_points[pnt].X() - integration_points[pnt].Y()
-                          - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            row( shape_function_values, pnt )( 7 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
+            row( shape_function_values, pnt )( 6 ) =
+                -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
+                        + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
+                                + integration_points[pnt].X() - integration_points[pnt].Y()
+                                + integration_points[pnt].Z() ) ) / 8.0;
+            row( shape_function_values, pnt )( 7 ) =
+                -(( 1.0 - integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
+                  * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0 + integration_points[pnt].X()
+                          + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
             row( shape_function_values, pnt )( 8 ) =
-                (( 1.0 - integration_points[pnt].X() * integration_points[pnt].X() )
-                 * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0;
+                (( 1.0 + integration_points[pnt].X() )
+                 * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
+                 * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
             row( shape_function_values, pnt )( 9 ) =
+                (( 1.0 + integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
+                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
+            row( shape_function_values, pnt )( 10 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 10 ) =
-                (( 1.0 - integration_points[pnt].X()
-                   * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
             row( shape_function_values, pnt )( 11 ) =
-                (( 1.0 - integration_points[pnt].X() )
-                 * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
+                (( 1.0 + integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
+                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
             row( shape_function_values, pnt )( 12 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
             row( shape_function_values, pnt )( 13 ) =
-                (( 1.0 + integration_points[pnt].X() )
-                 * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
+                (( 1.0 - integration_points[pnt].X()
+                   * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
             row( shape_function_values, pnt )( 14 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
-                 * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
+                 * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
             row( shape_function_values, pnt )( 15 ) =
+                (( 1.0 - integration_points[pnt].X() * integration_points[pnt].X() )
+                 * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0;
+            row( shape_function_values, pnt )( 16 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 16 ) =
+            row( shape_function_values, pnt )( 17 ) =
+                (( 1.0 - integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
+                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
+            row( shape_function_values, pnt )( 18 ) =
+                (( 1.0 - integration_points[pnt].X() )
+                 * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
+                 * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
+            row( shape_function_values, pnt )( 19 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
-                         - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 17 ) =
-                (( 1.0 + integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 18 ) =
-                (( 1.0 + integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            row( shape_function_values, pnt )( 19 ) =
-                (( 1.0 - integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
-                 * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
+                         - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
         }
 
         return shape_function_values;
@@ -1652,32 +1651,36 @@ private:
             Matrix result = ZeroMatrix( 20, 3 );
 
             result( 0, 0 ) = (( -1.0 + integration_points[pnt].Y() )
-                              * ( -1.0 + integration_points[pnt].Z() ) * ( 1.0 + 2.0
-                                      * integration_points[pnt].X() + integration_points[pnt].Y()
-                                      + integration_points[pnt].Z() ) ) / 8.0;
-            result( 0, 1 ) = (( -1.0 + integration_points[pnt].X() )
-                              * ( -1.0 + integration_points[pnt].Z() )
-                              * ( 1.0 + integration_points[pnt].X() + 2.0 * integration_points[pnt].Y()
+                              * ( 1.0 - 2.0 * integration_points[pnt].X()
+                                  + integration_points[pnt].Y()
+                                  - integration_points[pnt].Z() ) * ( 1.0
+                                          + integration_points[pnt].Z() ) ) / 8.0;
+            result( 0, 1 ) = -(( 1.0 + integration_points[pnt].X() )
+                               * ( 1.0 + integration_points[pnt].Z() ) * ( -1.0
+                                       + integration_points[pnt].X() - 2.0
+                                       * integration_points[pnt].Y()
+                                       + integration_points[pnt].Z() ) ) / 8.0;
+            result( 0, 2 ) = -(( 1.0 + integration_points[pnt].X() )
+                               * ( -1.0 + integration_points[pnt].Y() ) * ( -1.0
+                                       + integration_points[pnt].X()
+                                       - integration_points[pnt].Y() + 2.0
+                                       * integration_points[pnt].Z() ) ) / 8.0;
+
+            result( 1, 0 ) = (( 1.0 + integration_points[pnt].Y() )
+                              * ( 1.0 + integration_points[pnt].Z() )
+                              * ( -1.0 + 2.0 * integration_points[pnt].X()
+                                  + integration_points[pnt].Y()
                                   + integration_points[pnt].Z() ) ) / 8.0;
-            result( 0, 2 ) = (( -1.0 + integration_points[pnt].X() )
-                              * ( -1.0 + integration_points[pnt].Y() ) * ( 1.0 + integration_points[pnt].X()
+            result( 1, 1 ) = (( 1.0 + integration_points[pnt].X() )
+                              * ( 1.0 + integration_points[pnt].Z() ) * ( -1.0
+                                      + integration_points[pnt].X() + 2.0
+                                      * integration_points[pnt].Y()
+                                      + integration_points[pnt].Z() ) ) / 8.0;
+            result( 1, 2 ) = (( 1.0 + integration_points[pnt].X() )
+                              * ( 1.0 + integration_points[pnt].Y() ) * ( -1.0
+                                      + integration_points[pnt].X()
                                       + integration_points[pnt].Y() + 2.0
                                       * integration_points[pnt].Z() ) ) / 8.0;
-
-            result( 1, 0 ) = -(( -1.0 + integration_points[pnt].Y() )
-                               * ( -1.0 + integration_points[pnt].Z() ) * ( 1.0 - 2.0 * integration_points[pnt].X()
-                                       + integration_points[pnt].Y()
-                                       + integration_points[pnt].Z() ) ) / 8.0;
-            result( 1, 1 ) = (( 1.0 + integration_points[pnt].X() )
-                              * ( -1.0 + integration_points[pnt].X() - 2.0
-                                  * integration_points[pnt].Y()
-                                  - integration_points[pnt].Z() ) * ( -1.0
-                                          + integration_points[pnt].Z() ) ) / 8.0;
-            result( 1, 2 ) = (( 1.0 + integration_points[pnt].X() )
-                              * ( -1.0 + integration_points[pnt].Y() )
-                              * ( -1.0 + integration_points[pnt].X()
-                                  - integration_points[pnt].Y() - 2.0
-                                  * integration_points[pnt].Z() ) ) / 8.0;
 
             result( 2, 0 ) = -(( 1.0 + integration_points[pnt].Y() )
                                * ( -1.0 + 2.0 * integration_points[pnt].X()
@@ -1694,21 +1697,20 @@ private:
                                    + integration_points[pnt].Y() - 2.0
                                    * integration_points[pnt].Z() ) ) / 8.0;
 
-            result( 3, 0 ) = (( 1.0 + integration_points[pnt].Y() )
-                              * ( -1.0 - 2.0 * integration_points[pnt].X()
-                                  + integration_points[pnt].Y()
+            result( 3, 0 ) = -(( -1.0 + integration_points[pnt].Y() )
+                               * ( -1.0 + integration_points[pnt].Z() ) * ( 1.0 - 2.0 * integration_points[pnt].X()
+                                       + integration_points[pnt].Y()
+                                       + integration_points[pnt].Z() ) ) / 8.0;
+            result( 3, 1 ) = (( 1.0 + integration_points[pnt].X() )
+                              * ( -1.0 + integration_points[pnt].X() - 2.0
+                                  * integration_points[pnt].Y()
                                   - integration_points[pnt].Z() ) * ( -1.0
                                           + integration_points[pnt].Z() ) ) / 8.0;
-            result( 3, 1 ) = -(( -1.0 + integration_points[pnt].X() )
-                               * ( -1.0 + integration_points[pnt].Z() )
-                               * ( 1.0 + integration_points[pnt].X()
-                                   - 2.0 * integration_points[pnt].Y()
-                                   + integration_points[pnt].Z() ) ) / 8.0;
-            result( 3, 2 ) = -(( -1.0 + integration_points[pnt].X() )
-                               * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0
-                                       + integration_points[pnt].X()
-                                       - integration_points[pnt].Y() + 2.0
-                                       * integration_points[pnt].Z() ) ) / 8.0;
+            result( 3, 2 ) = (( 1.0 + integration_points[pnt].X() )
+                              * ( -1.0 + integration_points[pnt].Y() )
+                              * ( -1.0 + integration_points[pnt].X()
+                                  - integration_points[pnt].Y() - 2.0
+                                  * integration_points[pnt].Z() ) ) / 8.0;
 
             result( 4, 0 ) = -(( -1.0 + integration_points[pnt].Y() )
                                * ( 1.0 + 2.0 * integration_points[pnt].X()
@@ -1725,73 +1727,90 @@ private:
                                        + integration_points[pnt].Y() - 2.0
                                        * integration_points[pnt].Z() ) ) / 8.0;
 
-            result( 5, 0 ) = (( -1.0 + integration_points[pnt].Y() )
-                              * ( 1.0 - 2.0 * integration_points[pnt].X()
-                                  + integration_points[pnt].Y()
-                                  - integration_points[pnt].Z() ) * ( 1.0
-                                          + integration_points[pnt].Z() ) ) / 8.0;
-            result( 5, 1 ) = -(( 1.0 + integration_points[pnt].X() )
-                               * ( 1.0 + integration_points[pnt].Z() ) * ( -1.0
-                                       + integration_points[pnt].X() - 2.0
-                                       * integration_points[pnt].Y()
-                                       + integration_points[pnt].Z() ) ) / 8.0;
-            result( 5, 2 ) = -(( 1.0 + integration_points[pnt].X() )
-                               * ( -1.0 + integration_points[pnt].Y() ) * ( -1.0
-                                       + integration_points[pnt].X()
-                                       - integration_points[pnt].Y() + 2.0
-                                       * integration_points[pnt].Z() ) ) / 8.0;
-
-            result( 6, 0 ) = (( 1.0 + integration_points[pnt].Y() )
-                              * ( 1.0 + integration_points[pnt].Z() )
-                              * ( -1.0 + 2.0 * integration_points[pnt].X()
-                                  + integration_points[pnt].Y()
-                                  + integration_points[pnt].Z() ) ) / 8.0;
-            result( 6, 1 ) = (( 1.0 + integration_points[pnt].X() )
-                              * ( 1.0 + integration_points[pnt].Z() ) * ( -1.0
-                                      + integration_points[pnt].X() + 2.0
-                                      * integration_points[pnt].Y()
-                                      + integration_points[pnt].Z() ) ) / 8.0;
-            result( 6, 2 ) = (( 1.0 + integration_points[pnt].X() )
-                              * ( 1.0 + integration_points[pnt].Y() ) * ( -1.0
-                                      + integration_points[pnt].X()
-                                      + integration_points[pnt].Y() + 2.0
-                                      * integration_points[pnt].Z() ) ) / 8.0;
-
-            result( 7, 0 ) = -(( 1.0 + integration_points[pnt].Y() )
+            result( 5, 0 ) = -(( 1.0 + integration_points[pnt].Y() )
                                * ( 1.0 + integration_points[pnt].Z() ) * ( -1.0 - 2.0
                                        * integration_points[pnt].X()
                                        + integration_points[pnt].Y()
                                        + integration_points[pnt].Z() ) ) / 8.0;
-            result( 7, 1 ) = (( -1.0 + integration_points[pnt].X() )
+            result( 5, 1 ) = (( -1.0 + integration_points[pnt].X() )
                               * ( 1.0 + integration_points[pnt].X() - 2.0
                                   * integration_points[pnt].Y()
                                   - integration_points[pnt].Z() ) * ( 1.0
                                           + integration_points[pnt].Z() ) ) / 8.0;
-            result( 7, 2 ) = (( -1.0 + integration_points[pnt].X() )
+            result( 5, 2 ) = (( -1.0 + integration_points[pnt].X() )
                               * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0
                                       + integration_points[pnt].X()
                                       - integration_points[pnt].Y() - 2.0
                                       * integration_points[pnt].Z() ) ) / 8.0;
 
-            result( 8, 0 ) = -( integration_points[pnt].X() * ( -1.0
-                                + integration_points[pnt].Y() ) * ( -1.0
-                                        + integration_points[pnt].Z() ) ) / 2.0;
-            result( 8, 1 ) = -(( -1.0 + integration_points[pnt].X()
-                                 * integration_points[pnt].X() ) * ( -1.0
-                                         + integration_points[pnt].Z() ) ) / 4.0;
-            result( 8, 2 ) = -(( -1.0 + integration_points[pnt].X()
-                                 * integration_points[pnt].X() )
-                               * ( -1.0 + integration_points[pnt].Y() ) ) / 4.0;
+            result( 6, 0 ) = (( 1.0 + integration_points[pnt].Y() )
+                              * ( -1.0 - 2.0 * integration_points[pnt].X()
+                                  + integration_points[pnt].Y()
+                                  - integration_points[pnt].Z() ) * ( -1.0
+                                          + integration_points[pnt].Z() ) ) / 8.0;
+            result( 6, 1 ) = -(( -1.0 + integration_points[pnt].X() )
+                               * ( -1.0 + integration_points[pnt].Z() )
+                               * ( 1.0 + integration_points[pnt].X()
+                                   - 2.0 * integration_points[pnt].Y()
+                                   + integration_points[pnt].Z() ) ) / 8.0;
+            result( 6, 2 ) = -(( -1.0 + integration_points[pnt].X() )
+                               * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0
+                                       + integration_points[pnt].X()
+                                       - integration_points[pnt].Y() + 2.0
+                                       * integration_points[pnt].Z() ) ) / 8.0;
 
-            result( 10, 0 ) = ( integration_points[pnt].X()
+            result( 7, 0 ) = (( -1.0 + integration_points[pnt].Y() )
+                              * ( -1.0 + integration_points[pnt].Z() ) * ( 1.0 + 2.0
+                                      * integration_points[pnt].X() + integration_points[pnt].Y()
+                                      + integration_points[pnt].Z() ) ) / 8.0;
+            result( 7, 1 ) = (( -1.0 + integration_points[pnt].X() )
+                              * ( -1.0 + integration_points[pnt].Z() )
+                              * ( 1.0 + integration_points[pnt].X() + 2.0 * integration_points[pnt].Y()
+                                  + integration_points[pnt].Z() ) ) / 8.0;
+            result( 7, 2 ) = (( -1.0 + integration_points[pnt].X() )
+                              * ( -1.0 + integration_points[pnt].Y() ) * ( 1.0 + integration_points[pnt].X()
+                                      + integration_points[pnt].Y() + 2.0
+                                      * integration_points[pnt].Z() ) ) / 8.0;
+
+            result( 8, 0 ) = -(( -1.0 + integration_points[pnt].Y()
+                                  * integration_points[pnt].Y() )
+                                * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0;
+            result( 8, 1 ) = -(( 1.0 + integration_points[pnt].X() )
+                                * integration_points[pnt].Y()
+                                * ( 1.0 + integration_points[pnt].Z() ) ) / 2.0;
+            result( 8, 2 ) = -(( 1.0 + integration_points[pnt].X() )
+                                * ( -1.0 + integration_points[pnt].Y()
+                                    * integration_points[pnt].Y() ) ) / 4.0;
+
+            result( 9, 0 ) = -(( 1.0 + integration_points[pnt].Y() )
+                                * ( -1.0 + integration_points[pnt].Z()
+                                    * integration_points[pnt].Z() ) ) / 4.0;
+            result( 9, 1 ) = -(( 1.0 + integration_points[pnt].X() )
+                                * ( -1.0 + integration_points[pnt].Z()
+                                    * integration_points[pnt].Z() ) ) / 4.0;
+            result( 9, 2 ) = -(( 1.0 + integration_points[pnt].X() )
                                 * ( 1.0 + integration_points[pnt].Y() )
-                                * ( -1.0 + integration_points[pnt].Z() ) ) / 2.0;
-            result( 10, 1 ) = (( -1.0 + integration_points[pnt].X()
-                                 * integration_points[pnt].X() )
-                               * ( -1.0 + integration_points[pnt].Z() ) ) / 4.0;
-            result( 10, 2 ) = (( -1.0 + integration_points[pnt].X()
-                                 * integration_points[pnt].X() )
-                               * ( 1.0 + integration_points[pnt].Y() ) ) / 4.0;
+                                * integration_points[pnt].Z() ) / 2.0;
+
+            result( 10, 0 ) = (( -1.0 + integration_points[pnt].Y()
+                                * integration_points[pnt].Y() )
+                              * ( -1.0 + integration_points[pnt].Z() ) ) / 4.0;
+            result( 10, 1 ) = (( 1.0 + integration_points[pnt].X() )
+                              * integration_points[pnt].Y()
+                              * ( -1.0 + integration_points[pnt].Z() ) ) / 2.0;
+            result( 10, 2 ) = (( 1.0 + integration_points[pnt].X() )
+                              * ( -1.0 + integration_points[pnt].Y()
+                                  * integration_points[pnt].Y() ) ) / 4.0;
+
+            result( 11, 0 ) = (( -1.0 + integration_points[pnt].Y() )
+                               * ( -1.0 + integration_points[pnt].Z()
+                                   * integration_points[pnt].Z() ) ) / 4.0;
+            result( 11, 1 ) = (( 1.0 + integration_points[pnt].X() )
+                               * ( -1.0 + integration_points[pnt].Z()
+                                   * integration_points[pnt].Z() ) ) / 4.0;
+            result( 11, 2 ) = (( 1.0 + integration_points[pnt].X() )
+                               * ( -1.0 + integration_points[pnt].Y() )
+                               * integration_points[pnt].Z() ) / 2.0;
 
             result( 12, 0 ) = ( integration_points[pnt].X()
                                 * ( -1.0 + integration_points[pnt].Y() )
@@ -1803,96 +1822,76 @@ private:
                                  * integration_points[pnt].X() )
                                * ( -1.0 + integration_points[pnt].Y() ) ) / 4.0;
 
-            result( 14, 0 ) = -( integration_points[pnt].X()
+            result( 13, 0 ) = -( integration_points[pnt].X()
                                  * ( 1.0 + integration_points[pnt].Y() )
                                  * ( 1.0 + integration_points[pnt].Z() ) ) / 2.0;
-            result( 14, 1 ) = -(( -1.0 + integration_points[pnt].X()
+            result( 13, 1 ) = -(( -1.0 + integration_points[pnt].X()
                                   * integration_points[pnt].X() )
                                 * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0;
-            result( 14, 2 ) = -(( -1.0 + integration_points[pnt].X()
+            result( 13, 2 ) = -(( -1.0 + integration_points[pnt].X()
                                   * integration_points[pnt].X() )
                                 * ( 1.0 + integration_points[pnt].Y() ) ) / 4.0;
 
-            result( 9, 0 ) = (( -1.0 + integration_points[pnt].Y()
-                                * integration_points[pnt].Y() )
-                              * ( -1.0 + integration_points[pnt].Z() ) ) / 4.0;
-            result( 9, 1 ) = (( 1.0 + integration_points[pnt].X() )
-                              * integration_points[pnt].Y()
-                              * ( -1.0 + integration_points[pnt].Z() ) ) / 2.0;
-            result( 9, 2 ) = (( 1.0 + integration_points[pnt].X() )
-                              * ( -1.0 + integration_points[pnt].Y()
-                                  * integration_points[pnt].Y() ) ) / 4.0;
-
-            result( 11, 0 ) = -(( -1.0 + integration_points[pnt].Y()
-                                  * integration_points[pnt].Y() )
-                                * ( -1.0 + integration_points[pnt].Z() ) ) / 4.0;
-            result( 11, 1 ) = -(( -1.0 + integration_points[pnt].X() )
-                                * integration_points[pnt].Y()
+            result( 14, 0 ) = ( integration_points[pnt].X()
+                                * ( 1.0 + integration_points[pnt].Y() )
                                 * ( -1.0 + integration_points[pnt].Z() ) ) / 2.0;
-            result( 11, 2 ) = -(( -1.0 + integration_points[pnt].X() )
-                                * ( -1.0 + integration_points[pnt].Y()
-                                    * integration_points[pnt].Y() ) ) / 4.0;
+            result( 14, 1 ) = (( -1.0 + integration_points[pnt].X()
+                                 * integration_points[pnt].X() )
+                               * ( -1.0 + integration_points[pnt].Z() ) ) / 4.0;
+            result( 14, 2 ) = (( -1.0 + integration_points[pnt].X()
+                                 * integration_points[pnt].X() )
+                               * ( 1.0 + integration_points[pnt].Y() ) ) / 4.0;
 
-            result( 13, 0 ) = -(( -1.0 + integration_points[pnt].Y()
-                                  * integration_points[pnt].Y() )
-                                * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0;
-            result( 13, 1 ) = -(( 1.0 + integration_points[pnt].X() )
-                                * integration_points[pnt].Y()
-                                * ( 1.0 + integration_points[pnt].Z() ) ) / 2.0;
-            result( 13, 2 ) = -(( 1.0 + integration_points[pnt].X() )
-                                * ( -1.0 + integration_points[pnt].Y()
-                                    * integration_points[pnt].Y() ) ) / 4.0;
+            result( 15, 0 ) = -( integration_points[pnt].X() * ( -1.0
+                                + integration_points[pnt].Y() ) * ( -1.0
+                                        + integration_points[pnt].Z() ) ) / 2.0;
+            result( 15, 1 ) = -(( -1.0 + integration_points[pnt].X()
+                                 * integration_points[pnt].X() ) * ( -1.0
+                                         + integration_points[pnt].Z() ) ) / 4.0;
+            result( 15, 2 ) = -(( -1.0 + integration_points[pnt].X()
+                                 * integration_points[pnt].X() )
+                               * ( -1.0 + integration_points[pnt].Y() ) ) / 4.0;
 
-            result( 15, 0 ) = (( -1.0 + integration_points[pnt].Y()
+            result( 16, 0 ) = (( -1.0 + integration_points[pnt].Y()
                                  * integration_points[pnt].Y() )
                                * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0;
-            result( 15, 1 ) = (( -1.0 + integration_points[pnt].X() )
+            result( 16, 1 ) = (( -1.0 + integration_points[pnt].X() )
                                * integration_points[pnt].Y()
                                * ( 1.0 + integration_points[pnt].Z() ) ) / 2.0;
-            result( 15, 2 ) = (( -1.0 + integration_points[pnt].X() )
+            result( 16, 2 ) = (( -1.0 + integration_points[pnt].X() )
                                * ( -1.0 + integration_points[pnt].Y()
                                    * integration_points[pnt].Y() ) ) / 4.0;
 
-            result( 16, 0 ) = -(( -1.0 + integration_points[pnt].Y() )
-                                * ( -1.0 + integration_points[pnt].Z()
-                                    * integration_points[pnt].Z() ) ) / 4.0;
-            result( 16, 1 ) = -(( -1.0 + integration_points[pnt].X() )
-                                * ( -1.0 + integration_points[pnt].Z()
-                                    * integration_points[pnt].Z() ) ) / 4.0;
-            result( 16, 2 ) = -(( -1.0 + integration_points[pnt].X() )
-                                * ( -1.0 + integration_points[pnt].Y() )
-                                * integration_points[pnt].Z() ) / 2.0;
-
-            result( 17, 0 ) = (( -1.0 + integration_points[pnt].Y() )
+            result( 17, 0 ) = (( 1.0 + integration_points[pnt].Y() )
                                * ( -1.0 + integration_points[pnt].Z()
                                    * integration_points[pnt].Z() ) ) / 4.0;
-            result( 17, 1 ) = (( 1.0 + integration_points[pnt].X() )
+            result( 17, 1 ) = (( -1.0 + integration_points[pnt].X() )
                                * ( -1.0 + integration_points[pnt].Z()
                                    * integration_points[pnt].Z() ) ) / 4.0;
-            result( 17, 2 ) = (( 1.0 + integration_points[pnt].X() )
-                               * ( -1.0 + integration_points[pnt].Y() )
-                               * integration_points[pnt].Z() ) / 2.0;
-
-            result( 18, 0 ) = -(( 1.0 + integration_points[pnt].Y() )
-                                * ( -1.0 + integration_points[pnt].Z()
-                                    * integration_points[pnt].Z() ) ) / 4.0;
-            result( 18, 1 ) = -(( 1.0 + integration_points[pnt].X() )
-                                * ( -1.0 + integration_points[pnt].Z()
-                                    * integration_points[pnt].Z() ) ) / 4.0;
-            result( 18, 2 ) = -(( 1.0 + integration_points[pnt].X() )
-                                * ( 1.0 + integration_points[pnt].Y() )
-                                * integration_points[pnt].Z() ) / 2.0;
-
-            result( 19, 0 ) = (( 1.0 + integration_points[pnt].Y() )
-                               * ( -1.0 + integration_points[pnt].Z()
-                                   * integration_points[pnt].Z() ) ) / 4.0;
-            result( 19, 1 ) = (( -1.0 + integration_points[pnt].X() )
-                               * ( -1.0 + integration_points[pnt].Z()
-                                   * integration_points[pnt].Z() ) ) / 4.0;
-            result( 19, 2 ) = (( -1.0 + integration_points[pnt].X() )
+            result( 17, 2 ) = (( -1.0 + integration_points[pnt].X() )
                                * ( 1.0 + integration_points[pnt].Y() )
                                * integration_points[pnt].Z() ) / 2.0;
 
+            result( 18, 0 ) = -(( -1.0 + integration_points[pnt].Y()
+                                  * integration_points[pnt].Y() )
+                                * ( -1.0 + integration_points[pnt].Z() ) ) / 4.0;
+            result( 18, 1 ) = -(( -1.0 + integration_points[pnt].X() )
+                                * integration_points[pnt].Y()
+                                * ( -1.0 + integration_points[pnt].Z() ) ) / 2.0;
+            result( 18, 2 ) = -(( -1.0 + integration_points[pnt].X() )
+                                * ( -1.0 + integration_points[pnt].Y()
+                                    * integration_points[pnt].Y() ) ) / 4.0;
+
+            result( 19, 0 ) = -(( -1.0 + integration_points[pnt].Y() )
+                                * ( -1.0 + integration_points[pnt].Z()
+                                    * integration_points[pnt].Z() ) ) / 4.0;
+            result( 19, 1 ) = -(( -1.0 + integration_points[pnt].X() )
+                                * ( -1.0 + integration_points[pnt].Z()
+                                    * integration_points[pnt].Z() ) ) / 4.0;
+            result( 19, 2 ) = -(( -1.0 + integration_points[pnt].X() )
+                                * ( -1.0 + integration_points[pnt].Y() )
+                                * integration_points[pnt].Z() ) / 2.0;
+            
             d_shape_f_values[pnt] = result;
         }
 

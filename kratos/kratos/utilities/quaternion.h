@@ -473,20 +473,21 @@ namespace Kratos
 			T yy = m(1, 1);
 			T zz = m(2, 2);
 			T tr = xx + yy + zz;
-			if (tr > 0.0)
+			Quaternion Q;
+			if ((tr > xx) && (tr > yy) && (tr > zz))
 			{
 				T S = std::sqrt(tr + 1.0) * 2.0;
-				return Quaternion(
+				Q = Quaternion(
 					0.25 * S,
 					(m(2, 1) - m(1, 2)) / S,
 					(m(0, 2) - m(2, 0)) / S,
 					(m(1, 0) - m(0, 1)) / S
 					);
 			}
-			else if ((xx > yy) & (xx > zz))
+			else if ((xx > yy) && (xx > zz))
 			{
 				T S = std::sqrt(1.0 + xx - yy - zz) * 2.0;
-				return Quaternion(
+				Q = Quaternion(
 					(m(2, 1) - m(1, 2)) / S,
 					0.25 * S,
 					(m(0, 1) + m(1, 0)) / S,
@@ -496,7 +497,7 @@ namespace Kratos
 			else if (yy > zz)
 			{
 				T S = std::sqrt(1.0 + yy - xx - zz) * 2.0;
-				return Quaternion(
+				Q = Quaternion(
 					(m(0, 2) - m(2, 0)) / S,
 					(m(0, 1) + m(1, 0)) / S,
 					0.25 * S,
@@ -506,13 +507,17 @@ namespace Kratos
 			else
 			{
 				T S = std::sqrt(1.0 + zz - xx - yy) * 2.0;
-				return Quaternion(
+				Q =  Quaternion(
 					(m(1, 0) - m(0, 1)) / S,
 					(m(0, 2) + m(2, 0)) / S,
 					(m(1, 2) + m(2, 1)) / S,
 					0.25 * S
 					);
 			}
+
+
+			Q.normalize();
+			return Q;
 		}
 		
 		///@}
