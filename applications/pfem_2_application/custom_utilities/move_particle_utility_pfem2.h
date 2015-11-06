@@ -727,6 +727,59 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		
+		//setting the normal component of the velocity to zero 
+		void ResetBoundaryConditionsSlip() 
+		{
+			KRATOS_TRY
+			
+			{
+				ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+				vector<unsigned int> node_partition;
+				#ifdef _OPENMP
+					int number_of_threads = omp_get_max_threads();
+				#else
+					int number_of_threads = 1;
+				#endif
+				OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+				
+				#pragma omp parallel for
+				for(int kkk=0; kkk<number_of_threads; kkk++)
+				{
+					for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+					{
+							ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+							
+							if(inode->FastGetSolutionStepValue(IS_STRUCTURE)!=0.0)
+							{
+
+								array_1d<double, 3 >& velocity = inode->FastGetSolutionStepValue(VELOCITY);
+								const array_1d<double, 3 > & normal = inode->FastGetSolutionStepValue(NORMAL);
+								const double normal_scalar_sq = normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2];
+								const array_1d<double, 3 > normal_adimensionalized = normal / sqrt(normal_scalar_sq);							
+								//calculating the normal component of the velocity
+								array_1d<double, 3 > normal_velocity;
+								for (unsigned int j=0; j!=3; j++)
+									normal_velocity[j] = normal_adimensionalized[j]*velocity[j];
+									
+								const double dot_prod = normal_velocity[0]*velocity[0] +  normal_velocity[1]*velocity[1] +  normal_velocity[2]*velocity[2];
+								//if the dot product of velocity *  normal velocity is lower than zero, then they have opposite signs and we must invert the direction:
+								if (dot_prod<0.0)
+									normal_velocity*= -1.0;
+								
+								velocity -= normal_velocity; //substracting the normal component
+							}
+							else if (inode->IsFixed(VELOCITY_X) && inode->IsFixed(VELOCITY_Y) )
+							{
+								inode->FastGetSolutionStepValue(VELOCITY) = inode->GetSolutionStepValue(VELOCITY,1);
+							}
+	
+					}
+				}
+			}
+			KRATOS_CATCH("")
+		}
+		
+		
 		void CalculateDeltaVelocity()
 		{
 			KRATOS_TRY
@@ -965,7 +1018,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		
-		void TransferLagrangianToEulerian()
+		void TransferLagrangianToEulerian() //explicit
 		{
 			KRATOS_TRY
 
@@ -1027,7 +1080,7 @@ namespace Kratos
 					
 					array_1d<double,(TDim+1)> nodes_added_distance = ZeroVector((TDim+1));
 					array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
-					array_1d<double,(TDim+1)> weighting_inverse_divisor;
+					//array_1d<double,(TDim+1)> weighting_inverse_divisor;
 
 					Geometry<Node<3> >& geom = ielem->GetGeometry();
 					 
@@ -1036,7 +1089,7 @@ namespace Kratos
 						nodes_positions[i*3+0]=geom[i].X();
 						nodes_positions[i*3+1]=geom[i].Y();
 						nodes_positions[i*3+2]=geom[i].Z();
-						weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01); 
+						//weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01); 
 					}
 					///KRATOS_WATCH(ielem->Id())
 					///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
@@ -1061,7 +1114,7 @@ namespace Kratos
 							const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
 						
 							array_1d<double,TDim+1> N;
-							bool is_found = CalculatePosition(geom,position[0],position[1],position[2],N);
+							bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
 							if (is_found==false) //something went wrong. if it was close enough to the edge we simply send it inside the element.
 							{
 								KRATOS_WATCH(N);
@@ -1073,12 +1126,12 @@ namespace Kratos
 							
 							for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
 							{
-								double sq_dist = 0;
+								//double sq_dist = 0;
 								//these lines for a weighting function based on the distance (or square distance) from the node insteadof the shape functions
-								for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
+								//for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
 								//double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
 								
-								double weight=N(j);
+								double weight=N(j)*N(j)*N(j)*N(j);
 								//weight=N(j)*N(j)*N(j);
 								if (weight<threshold) weight=1e-10;
 								if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
@@ -1093,13 +1146,233 @@ namespace Kratos
 
 									for (int k=0 ; k!=(TDim); k++) //x,y,(z)
 									{
-										nodes_addedvel[j*3+k] += weight * velocity[k];
+										nodes_addedvel[j*3+k] += weight * double(velocity[k]);
 									}
 									
 								}//
 							}
 						}
 					}
+					
+					for (int i=0 ; i!=(TDim+1) ; ++i) {
+						geom[i].SetLock();
+						geom[i].FastGetSolutionStepValue(DISTANCE) +=nodes_added_distance[i];
+						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_addedvel[3*i+0];
+						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_addedvel[3*i+1];
+						geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_addedvel[3*i+2];  //we are updating info to the previous time step!!
+
+						geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
+						geom[i].UnSetLock();
+					}
+				}
+			}
+						
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					double sum_weights = inode->FastGetSolutionStepValue(YP);
+					if (sum_weights>0.00001) 
+					{
+						//inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=(inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT))/sum_weights; //resetting the temperature
+						double & dist = inode->FastGetSolutionStepValue(DISTANCE);
+						 dist /=sum_weights; //resetting the density
+						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=(inode->FastGetSolutionStepValue(PROJECTED_VELOCITY))/sum_weights; //resetting the velocity
+						
+					}
+						
+					else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
+					{
+						inode->FastGetSolutionStepValue(DISTANCE)=3.0; //resetting the temperature
+						//inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1); //resetting the temperature
+						inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=inode->GetSolutionStepValue(VELOCITY,1);
+
+					}
+					///finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
+					if (inode->IsFixed(DISTANCE))
+						inode->FastGetSolutionStepValue(DISTANCE)=inode->GetSolutionStepValue(DISTANCE,1);
+				}
+			}
+			
+
+			KRATOS_CATCH("")
+		}
+
+
+		
+		void TransferLagrangianToEulerianImp() //semi implicit
+		{
+			KRATOS_TRY
+
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+				
+			std::cout << "projecting info to mesh (semi implicit)" << std::endl;
+
+			
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			//KRATOS_WATCH(offset)																	//(flag managed only by MoveParticles
+			
+			//we must project data from the particles (lagrangian)  into the eulerian mesh
+			//ValuesVectorType eulerian_nodes_old_temperature;
+			//int nnodes = mr_model_part.Nodes().size();
+			//array_1d<double,(n_nodes)> eulerian_nodes_sumweights;
+			
+			//we save data from previous time step of the eulerian mesh in case we must reuse it later cos no particle was found around the nodes
+			//though we could've use a bigger buffer, to be changed later!
+			//after having saved data, we reset them to zero, this way it's easier to add the contribution of the surrounding particles.
+			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			vector<unsigned int> node_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Nodes().size(), node_partition);
+			
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+					inode->FastGetSolutionStepValue(DISTANCE)=0.0;
+					inode->FastGetSolutionStepValue(PROJECTED_VELOCITY)=ZeroVector(3); 
+					inode->FastGetSolutionStepValue(YP)=0.0;
+				}
+	
+			}
+			
+			//adding contribution, loop on elements, since each element has stored the particles found inside of it
+			vector<unsigned int> element_partition;
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				
+				//creating a matrix for each of the problems.
+				boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  > mass_matrix; // WE ONLY NEED ONE! they are the same for all the variables!  //_x,mass_matrix_y,mass_matrix_z,mass_matrix_d; //mass matrices for the projected vel (x,y,z) and the distance
+				array_1d<double,(TDim+1)> rhs_x,rhs_y,rhs_z,rhs_d;
+
+				array_1d<double,3*(TDim+1)> nodes_positions;
+				array_1d<double,3*(TDim+1)> nodes_addedvel = ZeroVector(3*(TDim+1));
+
+				array_1d<double,(TDim+1)> nodes_added_distance = ZeroVector((TDim+1));
+				array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
+				
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+				{
+					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+
+					nodes_addedvel = ZeroVector(3*(TDim+1));       //resetting vectors
+					nodes_added_distance = ZeroVector((TDim+1));   //resetting vectors
+					nodes_addedweights = ZeroVector((TDim+1));     //resetting vectors
+					mass_matrix = ZeroMatrix(TDim+1 , TDim+1 );  //resetting matrices. WE ONLY NEED ONE! they are the same for all the variable. only the rhs changes.
+					//mass_matrix_y = ZeroMatrix(TDim+1 , TDim+1 );  //resetting matrices
+					//mass_matrix_z = ZeroMatrix(TDim+1 , TDim+1 );  //resetting matrices
+					//mass_matrix_d = ZeroMatrix(TDim+1 , TDim+1 );  //resetting matrices
+					rhs_x = ZeroVector((TDim+1));         //resetting vectors     
+					rhs_y = ZeroVector((TDim+1));         //resetting vectors     
+					rhs_z = ZeroVector((TDim+1));         //resetting vectors     
+					rhs_d = ZeroVector((TDim+1));         //resetting vectors     
+
+					Geometry<Node<3> >& geom = ielem->GetGeometry();
+					const double elem_volume = geom.Area();
+					 
+					for (int i=0 ; i!=(TDim+1) ; ++i)  //saving the nodal positions for faster access
+					{
+						nodes_positions[i*3+0]=geom[i].X();
+						nodes_positions[i*3+1]=geom[i].Y();
+						nodes_positions[i*3+2]=geom[i].Z();
+					}
+					///KRATOS_WATCH(ielem->Id())
+					///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
+
+					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
+					
+					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					{
+						if (iii==mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
+							break; 
+
+						PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
+						
+						if (pparticle.GetEraseFlag()==false) 
+						{
+							
+							array_1d<double,3> & position = pparticle.Coordinates();
+
+							const array_1d<float,3>& velocity = pparticle.GetVelocity();
+
+							const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
+						
+							array_1d<double,TDim+1> N;
+							bool is_found = CalculatePosition(nodes_positions,position[0],position[1],position[2],N);
+							if (is_found==false) //something went wrong. if it was close enough to the edge we simply send it inside the element.
+							{
+								KRATOS_WATCH(N);
+								for (int j=0 ; j!=(TDim+1); j++)
+									if (N[j]<0.0 && N[j]> -1e-5)
+										N[j]=1e-10;
+							
+							}
+							
+							for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
+							{	
+								double weight=N(j);
+								for (int k=0 ; k!=(TDim+1); k++) //building the mass matrix
+									mass_matrix(j,k) += weight*N(k);
+								
+								rhs_x[j] += weight * double(velocity[0]);
+								rhs_y[j] += weight * double(velocity[1]);
+								rhs_z[j] += weight * double(velocity[2]);
+								rhs_d[j] += weight * double(particle_distance);
+								
+								//adding also a part with the lumped mass matrix to reduce overshoots and undershoots
+								if(true)
+								{	
+									double this_particle_weight = weight*elem_volume/(double(number_of_particles_in_elem))*0.1; //can be increased or reduced to change the lumped mass contrubtion
+									nodes_addedweights[j]+= this_particle_weight;
+									nodes_added_distance[j] += this_particle_weight*particle_distance;
+									for (int k=0 ; k!=(TDim); k++) //x,y,(z)
+									{
+										nodes_addedvel[j*3+k] += this_particle_weight * double(velocity[k]);
+									}
+								}
+							}
+						}
+					}
+					
+					//now we invert the matrix
+					boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  > inverse_mass_matrix=ZeroMatrix(TDim+1 , TDim+1);
+					if(TDim==3)
+						InvertMatrix( mass_matrix,  inverse_mass_matrix);
+					else
+						InvertMatrix3x3( mass_matrix,  inverse_mass_matrix);
+					//and now compute the elemental contribution to the gobal system:
+					
+					if(number_of_particles_in_elem>(TDim*3)) //otherwise it's impossible to define a correctly the gradients, therefore the results inside the element are useless.
+					{
+						for (int i=0 ; i!=(TDim+1); i++)
+						{
+							for (int j=0 ; j!=(TDim+1); j++)
+							{
+								nodes_addedvel[3*i+0]   += inverse_mass_matrix(i,j)*rhs_x[j]*elem_volume*(1.0/(double(1+TDim)));
+								nodes_addedvel[3*i+1]   += inverse_mass_matrix(i,j)*rhs_y[j]*elem_volume*(1.0/(double(1+TDim)));
+								nodes_addedvel[3*i+2]   += inverse_mass_matrix(i,j)*rhs_z[j]*elem_volume*(1.0/(double(1+TDim)));
+								nodes_added_distance[i] += inverse_mass_matrix(i,j)*rhs_d[j]*elem_volume*(1.0/(double(1+TDim)));
+
+							}
+						}
+						//and also to the mass matrix. LUMPED (but for the contribution of the grandient at elemental level.
+						for (int i=0 ; i!=(TDim+1); i++)
+							nodes_addedweights[i] += elem_volume*(1.0/(double(1+TDim)));
+					}
+						
 					
 					for (int i=0 ; i!=(TDim+1) ; ++i) {
 						geom[i].SetLock();
@@ -2481,8 +2754,44 @@ namespace Kratos
 
             return false;
         }
+        ////////////
+        //using the pre loaded nodal coordinates
+        inline bool CalculatePosition(const array_1d<double,3*(TDim+1)>& nodes_positions,
+                const double xc, const double yc, const double zc,
+                array_1d<double, 3 > & N
+                )
+        {
+            const double& x0 = nodes_positions[0];
+            const double& y0 = nodes_positions[1];
+            const double& x1 = nodes_positions[3];
+            const double& y1 = nodes_positions[4];
+            const double& x2 = nodes_positions[6];
+            const double& y2 = nodes_positions[7];
 
-	        //***************************************
+            double area = CalculateVol(x0, y0, x1, y1, x2, y2);
+            double inv_area = 0.0;
+            if (area == 0.0)
+            {
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
+            } else
+            {
+                inv_area = 1.0 / area;
+            }
+
+
+            N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
+            N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
+            N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
+			//KRATOS_WATCH(N);
+
+            if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
+                return true;
+
+            return false;
+        }
+
+	    
+	    //***************************************
         //***************************************
 
         inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
@@ -2503,6 +2812,51 @@ namespace Kratos
             double x3 = geom[3].X();
             double y3 = geom[3].Y();
             double z3 = geom[3].Z();
+
+            double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+
+            double inv_vol = 0.0;
+            if (vol < 0.000000000000000000000000000001)
+            {
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
+            } else
+            {
+                inv_vol = 1.0 / vol;
+            }
+
+            N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
+            N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
+            N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
+            N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
+
+
+            if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >= 0.0 &&
+                    N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <= 1.0)
+                //if the xc yc zc is inside the tetrahedron return true
+                return true;
+
+            return false;
+        }
+        ///////////////////
+        //using the pre loaded nodal coordinates
+		 inline bool CalculatePosition(const array_1d<double,3*(TDim+1)>& nodes_positions,
+                const double xc, const double yc, const double zc,
+                array_1d<double, 4 > & N
+                )
+        {
+
+            const double& x0 = nodes_positions[0];
+            const double& y0 = nodes_positions[1];
+            const double& z0 = nodes_positions[2];
+            const double& x1 = nodes_positions[3];
+            const double& y1 = nodes_positions[4];
+            const double& z1 = nodes_positions[5];
+            const double& x2 = nodes_positions[6];
+            const double& y2 = nodes_positions[7];
+            const double& z2 = nodes_positions[8];
+            const double& x3 = nodes_positions[9];
+            const double& y3 = nodes_positions[10];
+            const double& z3 = nodes_positions[11];
 
             double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
@@ -2959,6 +3313,50 @@ namespace Kratos
 				  }
 			  }
 			  return;   //arrays are passed to functions by address; nothing is returned
+		}
+		
+		template<class T>
+		bool InvertMatrix(const T& input, T& inverse)
+		{
+			typedef permutation_matrix<std::size_t> pmatrix;
+
+			// create a working copy of the input
+			T A(input);
+
+			// create a permutation matrix for the LU-factorization
+			pmatrix pm(A.size1());
+
+			// perform LU-factorization
+			int res = lu_factorize(A, pm);
+			if (res != 0)
+				return false;
+
+			// create identity matrix of "inverse"
+			inverse.assign(identity_matrix<double> (A.size1()));
+
+			// backsubstitute to get the inverse
+			lu_substitute(A, pm, inverse);
+
+			return true;
+		}
+		
+		bool InvertMatrix3x3(const boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  >& A, boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  >& result)
+		{
+			double determinant =    +A(0,0)*(A(1,1)*A(2,2)-A(2,1)*A(1,2))
+                        -A(0,1)*(A(1,0)*A(2,2)-A(1,2)*A(2,0))
+                        +A(0,2)*(A(1,0)*A(2,1)-A(1,1)*A(2,0));
+			double invdet = 1/determinant;
+			result(0,0) =  (A(1,1)*A(2,2)-A(2,1)*A(1,2))*invdet;
+			result(1,0) = -(A(0,1)*A(2,2)-A(0,2)*A(2,1))*invdet;
+			result(2,0) =  (A(0,1)*A(1,2)-A(0,2)*A(1,1))*invdet;
+			result(0,1) = -(A(1,0)*A(2,2)-A(1,2)*A(2,0))*invdet;
+			result(1,1) =  (A(0,0)*A(2,2)-A(0,2)*A(2,0))*invdet;
+			result(2,1) = -(A(0,0)*A(1,2)-A(1,0)*A(0,2))*invdet;
+			result(0,2) =  (A(1,0)*A(2,1)-A(2,0)*A(1,1))*invdet;
+			result(1,2) = -(A(0,0)*A(2,1)-A(2,0)*A(0,1))*invdet;
+			result(2,2) =  (A(0,0)*A(1,1)-A(1,0)*A(0,1))*invdet;
+
+			return true;
 		}
 		
 	ModelPart& mr_model_part;
