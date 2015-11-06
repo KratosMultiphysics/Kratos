@@ -351,7 +351,9 @@
 #include <float.h>
 #endif /* CPU86 */
 #ifdef LINUX
+#ifndef __APPLE__
 #include <fpu_control.h>
+#endif /* not APPLE */
 #endif /* LINUX */
 #ifdef TRILIBRARY
 #include "triangle.h"
@@ -4889,7 +4891,9 @@ void exactinit()
   REAL check, lastcheck;
   int every_other;
 #ifdef LINUX
+#ifndef __APPLE__
   int cword;
+#endif /* not APPLE */
 #endif /* LINUX */
 
 #ifdef CPU86
@@ -4900,6 +4904,7 @@ void exactinit()
 #endif /* not SINGLE */
 #endif /* CPU86 */
 #ifdef LINUX
+#ifndef __APPLE__
 #ifdef SINGLE
   /*  cword = 4223; */
   cword = 4210;                 /* set FPU control word for single precision */
@@ -4908,6 +4913,7 @@ void exactinit()
   cword = 4722;                 /* set FPU control word for double precision */
 #endif /* not SINGLE */
   _FPU_SETCW(cword);
+#endif /* not APPLE */
 #endif /* LINUX */
 
   every_other = 1;
