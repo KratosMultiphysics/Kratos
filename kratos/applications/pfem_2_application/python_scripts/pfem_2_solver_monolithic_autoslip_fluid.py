@@ -23,6 +23,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -38,7 +39,8 @@ class PFEM2Solver:
     def __init__(self,model_part,domain_size,maximum_nonlin_iterations):
         self.model_part = model_part
         
-        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        #self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        self.time_scheme = PFEM2MonolithicSlipScheme(domain_size)
 
         self.maximum_nonlin_iterations = maximum_nonlin_iterations
         #definition of the solvers
@@ -50,7 +52,7 @@ class PFEM2Solver:
         pDiagPrecond = DiagonalPreconditioner()
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver() 
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
-        self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
+        self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.CG,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
 
         self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver 
         self.conv_criteria.SetEchoLevel(0)
@@ -118,6 +120,26 @@ class PFEM2Solver:
              self.distance_utils = SignedDistanceCalculationUtils3D()
         self.redistance_step = 0
 
+
+        for condition in self.model_part.Conditions:
+            if condition.GetValue(IS_STRUCTURE) == 1.0:
+                for node in condition.GetNodes():
+                  if node.IsFixed(PRESSURE)==False:
+                    node.SetSolutionStepValue(IS_STRUCTURE, 0, 1.0)
+                    node.SetValue(IS_STRUCTURE, 1.0)
+        for condition in self.model_part.Conditions:
+            if condition.GetValue(IS_INLET) == 1.0:
+                for node in condition.GetNodes():
+                    node.SetSolutionStepValue(IS_STRUCTURE, 0, 0.0)
+                    node.SetValue(IS_STRUCTURE, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)
+                    print("inlet node : ", node.Id)
+        for node in self.model_part.Nodes:
+            if node.GetSolutionStepValue(IS_STRUCTURE, 0) != 0.0:
+                  node.Fix(VELOCITY_X)
+ 
         import strategy_python #implicit solver
         self.monolithic_solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.monolithic_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
         self.monolithic_solver.SetMaximumIterations(self.maximum_nonlin_iterations)
@@ -135,7 +157,7 @@ class PFEM2Solver:
 
         self.print_times=False
 
-      
+
                  
     #######################################################################   
     def Solve(self,mass_correction_factor):
@@ -145,7 +167,7 @@ class PFEM2Solver:
         t2= timer.time()
 
         #streamline integration:
-        discriminate_streamlines=True
+        discriminate_streamlines=False
         (self.moveparticles).MoveParticles(discriminate_streamlines);        
         t3 = timer.time()
         self.streamlineintegration = self.streamlineintegration + t3-t2
@@ -165,7 +187,7 @@ class PFEM2Solver:
 
         (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
         full_reset=True;
-        (self.moveparticles).ResetBoundaryConditions(full_reset) 
+        (self.moveparticles).ResetBoundaryConditionsSlip() 
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
 
         t6 = timer.time()
@@ -175,7 +197,9 @@ class PFEM2Solver:
         t7 = timer.time()
         self.implicitsystem = self.implicitsystem + t7-t6
         self.CalculatePressureProjection()
-        
+        #(self.monolithic_solver).Solve() #added a second iteration
+        #self.CalculatePressureProjection() #added a second iteration
+
         #delta_velocity= Velocity(final) - ProjectedVelocity(from the particles), so we add to the particles the correction done in the mesh.
         (self.moveparticles).CalculateDeltaVelocity();        
         t11 = timer.time()
