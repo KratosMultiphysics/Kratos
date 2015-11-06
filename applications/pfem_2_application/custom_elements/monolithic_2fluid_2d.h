@@ -21,6 +21,8 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h" 
+#include "custom_utilities/pfem_particle_fluidonly.h"
+
 
 
 namespace Kratos
@@ -58,7 +60,8 @@ namespace Kratos
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-	
+	typedef PointerVector< PFEM_Particle_Fluid, PFEM_Particle_Fluid*, std::vector<PFEM_Particle_Fluid*> > ParticlePointerVector;
+
     /// Default constructor.
     MonolithicPFEM22D(IndexType NewId = 0) :
         Element(NewId)
