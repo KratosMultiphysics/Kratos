@@ -100,6 +100,45 @@ void RveCornerCondition2D4N::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
 	GeometryType& geom = GetGeometry();
 
+#ifdef RVE_TEST_MOD_CONDITIONS
+
+	Vector strainVector(3);
+	if(!this->GetMacroStrainVector(strainVector)) return;
+
+	double exx = strainVector[0];
+	double eyy = strainVector[1];
+	double exy = strainVector[2] * 0.5;
+
+	double x0 = geom[0].X0();
+	double y0 = geom[0].Y0();
+
+	// get current values and form the system matrix
+
+	Vector currentValues(16);
+	for(size_t i = 0; i < 4; i++)
+	{
+		size_t index = i * 4;
+		NodeType& inode = geom[i];
+
+		currentValues(index    ) = inode.FastGetSolutionStepValue(DISPLACEMENT_X);
+		currentValues(index + 1) = inode.FastGetSolutionStepValue(DISPLACEMENT_Y);
+		currentValues(index + 2) = inode.FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_X);
+		currentValues(index + 3) = inode.FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_Y);
+
+		rLeftHandSideMatrix( index + 2, index     ) = 1.0;
+		rLeftHandSideMatrix( index + 3, index + 1 ) = 1.0;
+		rLeftHandSideMatrix( index    , index + 2 ) = 1.0;
+		rLeftHandSideMatrix( index + 1, index + 3 ) = 1.0;
+
+		double xi = geom[i].X0() - x0;
+		double yi = geom[i].Y0() - y0;
+
+		rRightHandSideVector( index + 2 ) = exx * xi + exy * yi;
+		rRightHandSideVector( index + 3 ) = exy * xi + eyy * yi;
+	}
+
+#else
+
 	// setup RHS vector with prescribed values
 
 	Vector strainVector(3);
@@ -143,6 +182,8 @@ void RveCornerCondition2D4N::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 		rLeftHandSideMatrix( index    , index + 2 ) = 1.0;
 		rLeftHandSideMatrix( index + 1, index + 3 ) = 1.0;
 	}
+
+#endif // RVE_TEST_MOD_CONDITIONS
 
 	// form residual
 
@@ -228,5 +269,3 @@ int RveCornerCondition2D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 }
 
 }
-
-
