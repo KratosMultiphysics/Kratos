@@ -58,6 +58,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "add_linear_solvers_to_python.h"
 
+#ifdef MULTISCALE_APPLICATION_USE_MUMPS
+#include "custom_linear_solvers/mumps_linear_solver.h"  
+#endif // MULTISCALE_APPLICATION_USE_MUMPS
+
+#ifdef MULTISCALE_APPLICATION_USE_EIGEN
+#include "custom_linear_solvers/eigenlib_lu_linear_solver.h"  
+#endif // MULTISCALE_APPLICATION_USE_EIGEN
+
+#include "custom_linear_solvers/skyline_lu_linear_solver_v2.h"
 
 namespace Kratos
 {
@@ -68,6 +77,36 @@ using namespace boost::python;
 
 void AddLinearSolversToPython()
 {
+	typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+	typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;
+    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+	typedef DirectSolver<SpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
+
+
+#ifdef MULTISCALE_APPLICATION_USE_MUMPS
+	typedef MUMPSLinearSolver<SpaceType, LocalSpaceType, ReordererType > MUMPSLinearSolverType;
+	class_<MUMPSLinearSolverType, MUMPSLinearSolverType::Pointer, bases<DirectSolverType> >("MUMPSSolver")
+		.def(init< >())
+		.def(init< int > ())
+		.def(self_ns::str(self))
+		;  
+#endif // MULTISCALE_APPLICATION_USE_MUMPS
+
+#ifdef MULTISCALE_APPLICATION_USE_EIGEN
+	typedef EigenlibLULinearSolver<SpaceType, LocalSpaceType, ReordererType > EigenlibLULinearSolverType;
+	class_<EigenlibLULinearSolverType, EigenlibLULinearSolverType::Pointer, bases<DirectSolverType> >("EigenlibLULinearSolver")
+		.def(init< >())
+		.def(self_ns::str(self))
+		;  
+#endif // MULTISCALE_APPLICATION_USE_EIGEN
+
+	typedef SkylineLUFactorizationLinearSolverV2<SpaceType, LocalSpaceType, ReordererType > SkylineLUFactorizationLinearSolverV2Type;
+	class_<SkylineLUFactorizationLinearSolverV2Type, SkylineLUFactorizationLinearSolverV2Type::Pointer, bases<DirectSolverType> >
+		("SkylineLUFactorizationSolverV2")
+		.def(init< >())
+		.def(self_ns::str(self))
+		;
 
 }
 
