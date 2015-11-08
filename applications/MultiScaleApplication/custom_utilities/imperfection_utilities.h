@@ -44,82 +44,59 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
-//   Date:                $Date: 2013-11-04 12:00:00 $
+//   Date:                $Date: 2015-14-08 12:00:00 $
 //   Revision:            $Revision: 1.00 $
 //
 //
 
-#if !defined(RVE_BOUNDARY_3D_H_INCLUDED)
-#define RVE_BOUNDARY_3D_H_INCLUDED
+#if !defined(IMPERFECTION_UTILITIES_H_INCLUDED)
+#define IMPERFECTION_UTILITIES_H_INCLUDED
 
-#include "rve_boundary.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
 
-	class RveBoundary3D : public RveBoundary
+namespace ImperfectionUtilties
+{
+
+	static double CalculateRandomImperfectionScaleFactor(
+		const Element::GeometryType& rElementGeometry, 
+		const Vector& rShapeFunctionsValues)
 	{
+		double impf = 1.0;
+		bool do_imperf = true;
+		for(unsigned int i=0; i<rElementGeometry.PointsNumber(); i++) {
+			if(!rElementGeometry[i].SolutionStepsDataHas(RANDOM_IMPERFECTION_FACTOR)) {
+				do_imperf = false;
+				break;
+			}
+		}
+		if(do_imperf) {
+			/*double noiseval=0.0;
+			double lumpfactor = 1.0/double(rElementGeometry.PointsNumber());
+			for(unsigned int i=0; i<rElementGeometry.PointsNumber(); i++) {
+				noiseval += lumpfactor*rElementGeometry[i].FastGetSolutionStepValue(RANDOM_IMPERFECTION_FACTOR);
+			}
+			impf = 1.0-noiseval;*/
+			double noiseval=0.0;
+			//KRATOS_WATCH(rShapeFunctionsValues);
+			/*if(rElementGeometry.PointsNumber() != rShapeFunctionsValues.size())
+			{
+				KRATOS_WATCH(rElementGeometry.PointsNumber());
+				KRATOS_WATCH(rShapeFunctionsValues.size());
+				exit(-1);
+			}*/	
+			for(unsigned int i=0; i<rElementGeometry.PointsNumber(); i++) {
+				noiseval += rShapeFunctionsValues[i]*(rElementGeometry[i].FastGetSolutionStepValue(RANDOM_IMPERFECTION_FACTOR));
+			}
+			impf = 1.0-noiseval;
+		}
+		return impf;
+	}
 
-	public:
-
-		KRATOS_CLASS_POINTER_DEFINITION( RveBoundary3D );
-
-	public:
-		
-		RveBoundary3D(const ModelPart& modelPart);
-		
-		RveBoundary3D(const ModelPart& modelPart, RealType tolerance);
-
-		virtual ~RveBoundary3D();
-
-	public:
-
-		virtual std::string GetInfo()const;
-
-		virtual void AddConditions(ModelPart& modelPart, const RveMacroscaleStatus::Pointer& status)const;
-
-	private:
-
-		void DetectBoundaries(const ModelPart& modelPart);
-		
-		void SortBoundaries();
-		
-		void SetupMasterSlavePairs();
-		
-		void SetupMasterSlavePairsX(NodePointerContainerType& master, NodePointerContainerType& slave);
-									
-		void SetupMasterSlavePairsY(NodePointerContainerType& master, NodePointerContainerType& slave);
-
-		void SetupMasterSlavePairsZ(NodePointerContainerType& master, NodePointerContainerType& slave);
-									
-	protected:
-
-		RealType mToleranceX;
-		RealType mToleranceY;
-		RealType mToleranceZ;
-		RealType mToleranceMS;
-
-		NodePointerType mpCorner_0;
-		NodePointerType mpCorner_1;
-		NodePointerType mpCorner_2;
-		NodePointerType mpCorner_3;
-		NodePointerType mpCorner_4;
-		NodePointerType mpCorner_5;
-		NodePointerType mpCorner_6;
-		NodePointerType mpCorner_7;
-
-		NodePointerContainerType mFace_Xmin;
-		NodePointerContainerType mFace_Xmax;
-		NodePointerContainerType mFace_Ymin;
-		NodePointerContainerType mFace_Ymax;
-		NodePointerContainerType mFace_Zmin;
-		NodePointerContainerType mFace_Zmax;
-
-		OneToOneMasterSlaveMapContainerType mMasterSlaveMapX;
-		OneToOneMasterSlaveMapContainerType mMasterSlaveMapY;
-		OneToOneMasterSlaveMapContainerType mMasterSlaveMapZ;
-	};
+}
 
 } // namespace Kratos
 
-#endif // RVE_BOUNDARY_3D_H_INCLUDED
+#endif // IMPERFECTION_UTILITIES_H_INCLUDED
