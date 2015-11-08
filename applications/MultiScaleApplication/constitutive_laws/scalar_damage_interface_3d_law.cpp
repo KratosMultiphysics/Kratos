@@ -58,6 +58,7 @@ namespace Kratos
     ScalarDamageInterface3DLaw::ScalarDamageInterface3DLaw() 
         : ConstitutiveLaw()
 		, mInitialized(false)
+		, m_initial_strain()
     {
     }
  
@@ -91,6 +92,8 @@ namespace Kratos
     {
 		if(rThisVariable == YIELD_SURFACE_DATA_3D_X || rThisVariable == YIELD_SURFACE_DATA_3D_Y || rThisVariable == YIELD_SURFACE_DATA_3D_Z)
 			return true;
+		if (rThisVariable == INITIAL_STRAIN)
+			return true;
         return false;
     }
 
@@ -123,6 +126,12 @@ namespace Kratos
 
     Vector& ScalarDamageInterface3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
+		if (rThisVariable == INITIAL_STRAIN) {
+			if (rValue.size() != m_initial_strain.size())
+				rValue.resize(m_initial_strain.size());
+			noalias(rValue) = m_initial_strain;
+		}
+
 		if(rThisVariable == YIELD_SURFACE_DATA_3D_X || rThisVariable == YIELD_SURFACE_DATA_3D_Y || rThisVariable == YIELD_SURFACE_DATA_3D_Z)
 		{
 			int ijob = rThisVariable == YIELD_SURFACE_DATA_3D_X ? 1 : 2;
@@ -180,6 +189,10 @@ namespace Kratos
     void ScalarDamageInterface3DLaw::SetValue(const Variable<Vector >& rVariable,
                                               const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
+		if (rVariable == INITIAL_STRAIN) {
+			if (rValue.size() == m_initial_strain.size())
+				noalias(m_initial_strain) = rValue;
+		}
     }
 
     void ScalarDamageInterface3DLaw::SetValue(const Variable<Matrix >& rVariable,
@@ -246,6 +259,7 @@ namespace Kratos
 			mD3_bar = 0.0;
 			mD3_bar_converged = 0.0;
 			mYieldValue = 0.0;
+			m_initial_strain = ZeroVector(this->GetStrainSize());
 			mInitialized = true;
 		}
     }
@@ -502,7 +516,7 @@ namespace Kratos
 	{
 		data.ElasticStressVector(0) = data.Kt1 * strainVector(0);
 		data.ElasticStressVector(1) = data.Kt2 * strainVector(1);
-		data.ElasticStressVector(2) = data.Kn * strainVector(2);	
+		data.ElasticStressVector(2) = data.Kn * strainVector(2);
 	}
 
 	void ScalarDamageInterface3DLaw::CalculateEquivalentMeasure(CalculationData& data)
@@ -516,7 +530,7 @@ namespace Kratos
 
 		data.K1 = 0.0;
 		data.K2 = 0.0;
-		lambda2 = 0.0; // only for test!!!
+		//lambda2 = 0.0; // only for test!!!
 
 		if(lambda1 > 0.0)
 		{
@@ -542,8 +556,8 @@ namespace Kratos
 				data.K2 = lambda2;
 			}
 		}
-		data.K2 = 0.0; // test
-		data.K3 = 0.0; // test
+		//data.K2 = 0.0; // test
+		//data.K3 = 0.0; // test
 	}
 
 	void ScalarDamageInterface3DLaw::UpdateDamageIndicator(CalculationData& data)
@@ -653,8 +667,8 @@ namespace Kratos
 		double sigma_n = data.ElasticStressVector(2);
 		double sigma_t1 = data.ElasticStressVector(0);
 		double sigma_t2 = data.ElasticStressVector(1);
-		sigma_t1 = 0.0; // TEST ONLY TENSION
-		sigma_t2 = 0.0; // TEST ONLY TENSION
+		//sigma_t1 = 0.0; // TEST ONLY TENSION
+		//sigma_t2 = 0.0; // TEST ONLY TENSION
 
 		if(sigma_n > 0.0) sigma_n *= (1.0 - data.D1);
 		stressVector(2) = sigma_n;
@@ -669,8 +683,8 @@ namespace Kratos
 																 Matrix& constitutiveMatrix)
 	{
 		// elastic case
-		constitutiveMatrix(0, 0) = 0.0; //data.Kt1;
-		constitutiveMatrix(1, 1) = 0.0; //data.Kt2;
+		constitutiveMatrix(0, 0) = data.Kt1;
+		constitutiveMatrix(1, 1) = data.Kt2;
 		constitutiveMatrix(2, 2) = data.Kn;
 		constitutiveMatrix(0, 1) = constitutiveMatrix(1, 0) = 0.0;
 		constitutiveMatrix(0, 2) = constitutiveMatrix(2, 0) = 0.0;
@@ -692,8 +706,9 @@ namespace Kratos
 			// FORWARD difference
 			noalias( perturbedStrainVector ) = strainVector;
 
-			double delta_strain = perturbedStrainVector(j) < 0.0 ? -perturbation : perturbation;
-			perturbedStrainVector(j) += delta_strain;
+			//double delta_strain = perturbedStrainVector(j) < 0.0 ? -perturbation : perturbation;
+			//perturbedStrainVector(j) += delta_strain;
+			perturbedStrainVector(j) += perturbation;
 
 			CalculateElasticStressVector( data, perturbedStrainVector );
 			CalculateEquivalentMeasure( data );
@@ -702,9 +717,9 @@ namespace Kratos
 
 			// fill the numerical tangent operator
 			noalias( stressPerturbation ) -= stressVector;
-			constitutiveMatrix(0, j) = stressPerturbation(0) / delta_strain;
-			constitutiveMatrix(1, j) = stressPerturbation(1) / delta_strain;
-			constitutiveMatrix(2, j) = stressPerturbation(2) / delta_strain;
+			constitutiveMatrix(0, j) = stressPerturbation(0) / perturbation;
+			constitutiveMatrix(1, j) = stressPerturbation(1) / perturbation;
+			constitutiveMatrix(2, j) = stressPerturbation(2) / perturbation;
 
 			// restore internal variables
 			mK1 = save_k1; 
