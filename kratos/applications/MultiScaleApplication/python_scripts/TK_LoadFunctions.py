@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.MultiScaleApplication import *
 CheckForPreviousImport()
 
 
@@ -15,6 +17,11 @@ class ConstantLoadFunction:
 					  ):
 		return 1.0
 
+class LambdaLoadFunction:
+	def GetMultiplier(self,
+					  Info=None,
+					  ):
+		return Info[LAMBDA]
 
 class RampLoadFunction:
 	def GetMultiplier(self,

@@ -79,7 +79,7 @@ class NonUniformTimeLine:
 					increment = next_increment
 					break
 			next_time = self.CurrentTime + increment
-			if(next_time > self.EndTime):
+			if(next_time >= self.EndTime-1.0e-14):
 				next_time = self.EndTime
 				self.Finished = True
 			self.CurrentTime = next_time

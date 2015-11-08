@@ -2,7 +2,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import datetime
 import time
 import TK_TimeLines
+import TK_LoadFunctions
 from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.MultiScaleApplication import *
 CheckForPreviousImport()
 
@@ -78,11 +81,6 @@ def DofsWithReactions():
 #
 # ======================================================================================
 
-class ALGO_TYPE:
-	FULL_NEWTON=1
-	KRYLOV_NEWTON=2
-	SECANT_NEWTON=3
-
 class SolutionStage:
 
 	# ==================================================================================
@@ -102,10 +100,11 @@ class SolutionStage:
 				MoveMesh = True,
 				ResultsIO = None,
 				LinearSolver = SkylineLUFactorizationSolver(),
-				CalculateTangent = True,
+				ControlNodeID = 0,
+				ControlDofID = 0,
+				TargetDisplacement = 0.0,
 				Parallel = True,
-				CustomOp = None,
-				Algorithm = ALGO_TYPE.FULL_NEWTON):
+				CustomOp = None):
 		
 		# Parallelism
 		self.Parallel = Parallel
@@ -138,46 +137,27 @@ class SolutionStage:
 		self.CalculateReactions = CalculateReactions
 		self.ReformDofSetAtEachStep = ReformDofSetAtEachStep
 		self.MoveMesh = MoveMesh
+		self.ControlNodeID = ControlNodeID
+		self.ControlDofID = ControlDofID
+		self.TargetDisplacement = TargetDisplacement
 		
 		# Results IO
 		self.ResultsIO = ResultsIO
 		
 		# Create and initialize the solver
-		if(Algorithm == ALGO_TYPE.FULL_NEWTON):
-			self.Solver = StaticGeneralStrategy(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
-		elif(Algorithm == ALGO_TYPE.KRYLOV_NEWTON):
-			self.Solver = StaticGeneralStrategyKrylovNewton(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
-		elif(Algorithm == ALGO_TYPE.SECANT_NEWTON):
-			self.Solver = StaticGeneralStrategySecantNewton(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
-		
-		self.Solver.SetKeepSystemConstantDuringIterations(not CalculateTangent)
+		self.Solver = DisplacementControlStrategy(
+			self.ModelPart,
+			self.TimeScheme,
+			self.LinearSolver,
+			self.Convergence,
+			self.MaxIterations,
+			self.CalculateReactions,
+			self.ReformDofSetAtEachStep,
+			self.MoveMesh,
+			self.ControlNodeID,
+			self.ControlDofID,
+			self.TargetDisplacement,
+			)
 		
 		self.Solver.Check();
 		self.Solver.SetEchoLevel(1);
@@ -195,13 +175,11 @@ class SolutionStage:
 	# ==================================================================================
 	
 	def SetInitialTime(self, InitialTime):
-		
 		self.TimeLine.SetInitialTime(InitialTime)
 	
 	# ==================================================================================
 	
 	def GetEndTime(self):
-		
 		return self.TimeLine.EndTime
 	
 	# ==================================================================================
@@ -247,9 +225,27 @@ class SolutionStage:
 		self.ModelPart.ProcessInfo[TIME] = current_time
 		
 		# call custom operations on stage initialization
+		# NOTE: before calling it, set LAMBDA to 1.
+		# the arc length requires a starting value of LAMBDA equal to 1 
+		# to calculate the reference load vector.
+		self.ModelPart.ProcessInfo[LAMBDA] = 1.0 # to calculate reference load vector
+		self.ModelPart.ProcessInfo[LAMBDA_OUTPUT] = 1.0
 		if(self.CustomOp is not None):
 			for cop in self.CustomOp:
-				cop.OnBeforeSolutionStage(self.ModelPart)
+				cop.OnBeforeSolutionStage(self.ModelPart) # here BC are set on nodes with LAMBDA=1
+		
+		# PREPARE FIRST SOVE==============================================================
+		# set some data to the process info
+		self.ModelPart.CloneTimeStep(current_time)
+		self.ModelPart.ProcessInfo[TIME_STEPS] = increment_id
+		self.ModelPart.ProcessInfo[TIME] = current_time
+		self.ModelPart.ProcessInfo[DELTA_TIME] = delta_time
+		self.Solver.PrepareFirstSolve()
+		# PREPARE FIRST SOVE==============================================================
+		
+		# nodal values should be set to 0. arc length strategy 
+		# will use the reference load vector and an internal LAMBDA
+		self.ModelPart.ProcessInfo[LAMBDA] = 0.0 
 		
 		# begin time incrementation loop
 		while True:
@@ -269,22 +265,33 @@ class SolutionStage:
 			self.ModelPart.ProcessInfo[TIME] = current_time
 			self.ModelPart.ProcessInfo[DELTA_TIME] = current_delta_time
 			
+			# save current LAMBDA, and then set it to 0 before calling OnBeforeSolutionStep on custom operations
+			# lambda_saved = self.ModelPart.ProcessInfo[LAMBDA]
+			self.ModelPart.ProcessInfo[LAMBDA] = 0.0
+			
 			# custom operations
 			for cop in self.CustomOp:
 				cop.OnBeforeSolutionStep(self.ModelPart)
 			
-			# solve the current time step
+			# reset the correct LAMBDA
+			# self.ModelPart.ProcessInfo[LAMBDA] = lambda_saved
+			
+			# solve current step
 			self.Solver.Solve()
 			
 			if(self.Solver.IsConverged()):
+				
+				# custom operations
+				for cop in self.CustomOp:
+					cop.OnSolutionStepCompleted(self.ModelPart)
 				
 				# finalize the current step
 				# write results
 				if(self.ResultsIO != None):
 					self.ResultsIO.Write(current_time)
 				# custom operations
-				for cop in self.CustomOp:
-					cop.OnSolutionStepCompleted(self.ModelPart)
+				# for cop in self.CustomOp:
+					# cop.OnSolutionStepCompleted(self.ModelPart)
 				
 				# exit the incrementation loop if the end time has been reached
 				self.IsConverged = True
@@ -295,11 +302,17 @@ class SolutionStage:
 				if(self.AdaptiveIncrementation):
 					target_iter = float(self.DesiredIterations)
 					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
-					if(needed_iter > 0):
-						increment_mult *= target_iter/needed_iter
+					# factor = pow(0.5,0.25*(needed_iter-target_iter))
+					factor = target_iter/needed_iter
+					increment_mult_old = increment_mult
+					increment_mult *= factor
 					new_delta_time = delta_time * increment_mult
 					if(new_delta_time > increment_max):
-						increment_mult = increment_max / delta_time
+						#ndt = increment_mult_old*factor*dt = dtmax
+						# factor = dtmax/(dt*mult_old)
+						factor = increment_max/(delta_time*increment_mult_old)
+						increment_mult = increment_mult_old*factor
+					self.Solver.SetLoadFactors(factor, increment_mult)
 				
 			else:
 				
@@ -310,14 +323,11 @@ class SolutionStage:
 					
 					target_iter = float(self.DesiredIterations)
 					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
-					if(needed_iter > 0):
-						increment_mult *= target_iter/needed_iter
+					# factor = pow(0.5,0.25*(needed_iter-target_iter))
+					factor = target_iter/needed_iter
+					increment_mult *= factor
 					new_delta_time = delta_time * increment_mult
-					
-					# check for suggested time step
-					suggested_time_step = GetSuggestedTimeStep(self.ModelPart,increment_min,increment_max)
-					if(new_delta_time > suggested_time_step):
-						new_delta_time = suggested_time_step
+					self.Solver.SetLoadFactors(factor, increment_mult)
 					
 					if(new_delta_time < increment_min):
 						
@@ -356,70 +366,6 @@ class SolutionStage:
 		if(self.CustomOp is not None):
 			for cop in self.CustomOp:
 				cop.OnSolutionStageCompleted(self.ModelPart)
-		
-	# ==================================================================================
-	
-	def Solve_OLD(self):
-		
-		self.PrintHeader()
-		
-		self.IsConverged = True
-		
-		timer_beg = time.time()
-		
-		last_time_step = self.TimeLine.InitialTime
-		time_step_counter = 0
-		
-		while True:
-			
-			hasNextTimeStep, NextTimeStep = self.TimeLine.NextTimeStep(
-				LastIterationConverged = self.IsConverged
-				)
-			
-			if(hasNextTimeStep == False):
-				self.PrintNonConvergence()
-				self.IsConverged = False
-				break
-			
-			self.ModelPart.CloneTimeStep(NextTimeStep)
-			
-			time_step_counter += 1
-			self.ModelPart.ProcessInfo[TIME_STEPS] = time_step_counter
-			
-			# custom operation : OnBeforeSolutionStep
-			
-			for cop in self.CustomOp:
-				cop.OnBeforeSolutionStep(self.ModelPart)
-			
-			# solve
-			
-			self.Solver.Solve()
-			
-			if(self.Solver.IsConverged() == False):
-				self.PrintNonConvergence()
-				self.IsConverged = False
-				continue
-			
-			last_time_step = NextTimeStep
-			self.IsConverged = True
-			
-			if(self.ResultsIO != None):
-				self.ResultsIO.Write(NextTimeStep)
-			
-			# end solve
-			
-			# custom operation : OnSolutionStepCompleted
-			
-			for cop in self.CustomOp:
-				cop.OnSolutionStepCompleted(self.ModelPart)
-			
-			if(self.TimeLine.Finished):
-				self.IsConverged = True
-				break
-		
-		timer_end = time.time()
-		
-		self.PrintFooter(timer_end - timer_beg)
 	
 	# ==================================================================================
 	
@@ -427,7 +373,7 @@ class SolutionStage:
 		print ("")
 		print ("")
 		print ("========================================================================")
-		print (" Solution Stage: STATIC GENERAL")
+		print (" Solution Stage: DISPLACEMENT CONTROL")
 		print ("")
 		print (" Initial Time:\t", self.TimeLine.InitialTime, "s.")
 		print (" End Time:\t", self.TimeLine.EndTime, "s.")
