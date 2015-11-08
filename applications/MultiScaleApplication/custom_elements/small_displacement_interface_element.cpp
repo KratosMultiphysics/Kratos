@@ -18,14 +18,10 @@
 #endif // !M_PI
 
 #define K_GET_SIGN(X) return X < 0.0 ? -1.0 : 1.0
+#define USE_B0
 
 namespace Kratos
 {
-
-	namespace Utilities
-	{
-		
-	}
 
     // =====================================================================================
     //
@@ -62,8 +58,6 @@ namespace Kratos
     {
         if(mInitialized == false)
 		{
-			InitializeContactData();
-
 			ConstitutiveLaw::Pointer& pLaw = GetProperties()[CONSTITUTIVE_LAW];
 			const GeometryType::IntegrationPointsArrayType& integrationPoints = GetGeometry().IntegrationPoints();
 			SizeType half_ngp = integrationPoints.size() / 2;
@@ -278,9 +272,6 @@ namespace Kratos
 		const Matrix& N = geom.ShapeFunctionsValues();
 		for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			mConstitutiveLawVector[i]->FinalizeSolutionStep( props, geom, row( N, i ), CurrentProcessInfo );
-
-		for(ContactDataCollectionType::iterator it = mContactData.begin(); it != mContactData.end(); ++it)
-			(*it).FinalizeSolutionStep();
     }
 
     void SmallDisplacementInterfaceElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -321,9 +312,30 @@ namespace Kratos
     //
     // =====================================================================================
 
-	void SmallDisplacementInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable, 
-		                                                                 std::vector< Vector >& rOutput, 
-									                                     const ProcessInfo& rCurrentProcessInfo)
+	void SmallDisplacementInterfaceElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+																		 std::vector<double>& rOutput,
+																		 const ProcessInfo& rCurrentProcessInfo)
+	{
+		GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+	}
+
+	void SmallDisplacementInterfaceElement::CalculateOnIntegrationPoints(const Variable< array_1d< double, 3 > >& rVariable,
+																		 std::vector< array_1d<double, 3 > >& rOutput,
+																		 const ProcessInfo& rCurrentProcessInfo)
+	{
+		GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+	}
+
+	void SmallDisplacementInterfaceElement::CalculateOnIntegrationPoints(const Variable< Vector >& rVariable,
+																		 std::vector< Vector >& rOutput,
+																		 const ProcessInfo& rCurrentProcessInfo)
+	{
+		GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+	}
+
+	void SmallDisplacementInterfaceElement::CalculateOnIntegrationPoints(const Variable< Matrix >& rVariable,
+																		 std::vector< Matrix >& rOutput,
+																		 const ProcessInfo& rCurrentProcessInfo)
 	{
 		GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 	}
@@ -333,29 +345,29 @@ namespace Kratos
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
-		if(rValues.size() != num_gp)
-			rValues.resize(num_gp);
+		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
 
+		double res(0.0);
 		if(ndim == 2)
 		{
-			double t1(0.0);
-			mConstitutiveLawVector[0]->GetValue(rVariable, t1);
-			double t2(0.0);
-			mConstitutiveLawVector[1]->GetValue(rVariable, t2);
-			rValues[0] = rValues[3] = t1;
-			rValues[1] = rValues[2] = t2;
+			res = 0.0;
+			mConstitutiveLawVector[0]->GetValue(rVariable, res);
+			rValues[0] = rValues[3] = res;
+			res = 0.0;
+			mConstitutiveLawVector[1]->GetValue(rVariable, res);
+			rValues[1] = rValues[2] = res;
 		}
 		else
 		{
 			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
 			{
 				SizeType j = i+half_num_gp;
-				double temp(0.0);
-				mConstitutiveLawVector[i]->GetValue(rVariable, temp);
-				rValues[i] = temp;
-				rValues[j] = temp;
+				res = 0.0;
+				mConstitutiveLawVector[i]->GetValue(rVariable, res);
+				rValues[i] = res;
+				rValues[j] = res;
 			}
 		}
     }
@@ -365,29 +377,54 @@ namespace Kratos
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
-		if(rValues.size() != num_gp)
-			rValues.resize(num_gp);
+		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
 		
-		if(ndim == 2)
+		if(rVariable == INTERFACE_DISPLACEMENT_JUMP || rVariable == INTERFACE_TRACTION)
 		{
-			Vector t1;
-			mConstitutiveLawVector[0]->GetValue(rVariable, t1);
-			Vector t2;
-			mConstitutiveLawVector[1]->GetValue(rVariable, t2);
-			rValues[0] = rValues[3] = t1;
-			rValues[1] = rValues[2] = t2;
+			std::vector<Vector> res;
+			if(rVariable == INTERFACE_DISPLACEMENT_JUMP)
+				CalculateStrain(res,rCurrentProcessInfo);
+			else
+				CalculateStress(res,rCurrentProcessInfo);
+			if(ndim == 2)
+			{
+				rValues[0] = rValues[3] = res[0];
+				rValues[1] = rValues[2] = res[1];
+			}
+			else
+			{
+				for(SizeType i = 0; i < res.size(); i++) 
+				{
+					SizeType j = i+half_num_gp;
+					rValues[i] = res[i];
+					rValues[j] = res[i];
+				}
+			}
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			Vector res;
+			if(ndim == 2)
 			{
-				SizeType j = i+half_num_gp;
-				Vector temp;
-				mConstitutiveLawVector[i]->GetValue(rVariable, temp);
-				rValues[i] = temp;
-				rValues[j] = temp;
+				res.clear();
+				mConstitutiveLawVector[0]->GetValue(rVariable, res);
+				rValues[0] = rValues[3] = res;
+				res.clear();
+				mConstitutiveLawVector[1]->GetValue(rVariable, res);
+				rValues[1] = rValues[2] = res;
+			}
+			else
+			{
+				for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+				{
+					SizeType j = i+half_num_gp;
+					res.clear();
+					mConstitutiveLawVector[i]->GetValue(rVariable, res);
+					rValues[i] = res;
+					rValues[j] = res;
+				}
 			}
 		}
     }
@@ -396,18 +433,96 @@ namespace Kratos
                                                            std::vector<Matrix>& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
+		SizeType num_gp = GetGeometry().IntegrationPoints().size();
+		if(rValues.size() != num_gp) rValues.resize(num_gp);
+		SizeType half_num_gp = num_gp / 2;
+		SizeType ndim = GetGeometry().WorkingSpaceDimension();
+		
+		Matrix res;
+		if(ndim == 2)
+		{
+			res.clear();
+			mConstitutiveLawVector[0]->GetValue(rVariable, res);
+			rValues[0] = rValues[3] = res;
+			res.clear();
+			mConstitutiveLawVector[1]->GetValue(rVariable, res);
+			rValues[1] = rValues[2] = res;
+		}
+		else
+		{
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			{
+				SizeType j = i+half_num_gp;
+				res.clear();
+				mConstitutiveLawVector[i]->GetValue(rVariable, res);
+				rValues[i] = res;
+				rValues[j] = res;
+			}
+		}
     }
 
     void SmallDisplacementInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, 
                                                            std::vector<array_1d<double,3> >& rValues, 
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
+		SizeType num_gp = GetGeometry().IntegrationPoints().size();
+		if(rValues.size() != num_gp) rValues.resize(num_gp);
+		SizeType half_num_gp = num_gp / 2;
+		SizeType ndim = GetGeometry().WorkingSpaceDimension();
+		
+		array_1d<double,3> res;
+		if(ndim == 2)
+		{
+			res.clear();
+			mConstitutiveLawVector[0]->GetValue(rVariable, res);
+			rValues[0] = rValues[3] = res;
+			res.clear();
+			mConstitutiveLawVector[1]->GetValue(rVariable, res);
+			rValues[1] = rValues[2] = res;
+		}
+		else
+		{
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			{
+				SizeType j = i+half_num_gp;
+				res.clear();
+				mConstitutiveLawVector[i]->GetValue(rVariable, res);
+				rValues[i] = res;
+				rValues[j] = res;
+			}
+		}
     }
 
     void SmallDisplacementInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
                                                            std::vector<array_1d<double,6> >& rValues, 
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
+		SizeType num_gp = GetGeometry().IntegrationPoints().size();
+		if(rValues.size() != num_gp) rValues.resize(num_gp);
+		SizeType half_num_gp = num_gp / 2;
+		SizeType ndim = GetGeometry().WorkingSpaceDimension();
+		
+		array_1d<double,6> res;
+		if(ndim == 2)
+		{
+			res.clear();
+			mConstitutiveLawVector[0]->GetValue(rVariable, res);
+			rValues[0] = rValues[3] = res;
+			res.clear();
+			mConstitutiveLawVector[1]->GetValue(rVariable, res);
+			rValues[1] = rValues[2] = res;
+		}
+		else
+		{
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			{
+				SizeType j = i+half_num_gp;
+				res.clear();
+				mConstitutiveLawVector[i]->GetValue(rVariable, res);
+				rValues[i] = res;
+				rValues[j] = res;
+			}
+		}
     }
 
     // =====================================================================================
@@ -418,17 +533,12 @@ namespace Kratos
 
     void SmallDisplacementInterfaceElement::DecimalCorrection(Vector& a)
     {
-        double norm = norm_2(a);
+        /*double norm = norm_2(a);
         double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
         for(SizeType i = 0; i < a.size(); i++)
             if(std::abs(a(i)) < tolerance)
-                a(i) = 0.0;
+                a(i) = 0.0;*/
     }
-
-	void SmallDisplacementInterfaceElement::InitializeContactData()
-	{
-		mContactData.resize(GetGeometry().size() / 2); // number of master-contact pairs
-	}
 
 	void SmallDisplacementInterfaceElement::CalculatePermutation(InterfaceIndexPermutation& p)
 	{
@@ -477,8 +587,7 @@ namespace Kratos
 												                                     Matrix& delta_position,
 		                                                                             Matrix& jacobian, 
 												                                     double& J, 
-												                                     Matrix& iR, 
-												                                     Matrix& R)
+												                                     Matrix& iR)
 	{
 		GeometryType& geom = GetGeometry();
 		SizeType ndim = geom.WorkingSpaceDimension();
@@ -514,14 +623,6 @@ namespace Kratos
 				iR(1, i) = vy[i];
 				iR(2, i) = vz[i];
 			}
-		}
-
-		for(SizeType kk = 0; kk < geom.size(); kk++) 
-		{
-			SizeType k = kk*ndim;
-			for(SizeType i = 0; i < ndim; i++)
-				for(SizeType j = 0; j < ndim; j++)
-					R(k+i, k+j) = iR(i, j);
 		}
 	}
 
@@ -577,17 +678,17 @@ namespace Kratos
 	}
 
 	void SmallDisplacementInterfaceElement::TransformToGlobalAndAdd(const InterfaceIndexPermutation& P,
-		                                                            const Matrix& R,
-										                            const Matrix& LHS_local,
-										                            const Vector& RHS_local,
-										                            Matrix& LHS_global,
-										                            Vector& RHS_global)
+																	const Matrix& R,
+																	const Matrix& LHS_local,
+																	const Vector& RHS_local,
+																	Matrix& LHS_global,
+																	Vector& RHS_global,
+																	const bool LHSrequired,
+																	const bool RHSrequired)
 	{
 		GeometryType& geom = GetGeometry();
 		SizeType nnodes = geom.size();
 		SizeType ndim = geom.WorkingSpaceDimension();
-
-		Matrix RTK(ndim, ndim);
 
 		if(P.HasPermutation)
 		{
@@ -595,43 +696,50 @@ namespace Kratos
 			{
 				SizeType pos_i = node_i*ndim;
 
-				for(SizeType i = 0; i < ndim; i++)
+				if(RHSrequired)
 				{
-					double temp_RHS = 0.0;
-					for(SizeType j = 0; j < ndim; j++)
+					for(SizeType i = 0; i < ndim; i++)
 					{
-						temp_RHS += R(j, i) * RHS_local( pos_i+j );
+						double temp_RHS = 0.0;
+						for(SizeType j = 0; j < ndim; j++)
+						{
+							temp_RHS += R(j, i) * RHS_local( pos_i+j );
+						}
+						RHS_global( P.Permutation[ pos_i+i ] ) += temp_RHS;
 					}
-					RHS_global( P.Permutation[ pos_i+i ] ) += temp_RHS;
 				}
 
-				for(SizeType node_j = 0; node_j < nnodes; node_j++)
+				if(LHSrequired)
 				{
-					SizeType pos_j = node_j*ndim;
+					Matrix RTK(ndim, ndim);
+					for(SizeType node_j = 0; node_j < nnodes; node_j++)
+					{
+						SizeType pos_j = node_j*ndim;
 
-					RTK.clear();
-					for(SizeType i = 0; i < ndim; i++)
-					{
-						for(SizeType j = 0; j < ndim; j++)
+						RTK.clear();
+						for(SizeType i = 0; i < ndim; i++)
 						{
-							double temp_K = 0.0;
-							for(SizeType k = 0; k < ndim; k++)
+							for(SizeType j = 0; j < ndim; j++)
 							{
-								temp_K += R(k, i) * LHS_local( pos_i+k, pos_j+j );
+								double temp_K = 0.0;
+								for(SizeType k = 0; k < ndim; k++)
+								{
+									temp_K += R(k, i) * LHS_local( pos_i+k, pos_j+j );
+								}
+								RTK(i, j) = temp_K;
 							}
-							RTK(i, j) = temp_K;
 						}
-					}
-					for(SizeType i = 0; i < ndim; i++)
-					{
-						for(SizeType j = 0; j < ndim; j++)
+						for(SizeType i = 0; i < ndim; i++)
 						{
-							double temp_K = 0.0;
-							for(SizeType k = 0; k < ndim; k++)
+							for(SizeType j = 0; j < ndim; j++)
 							{
-								temp_K += RTK(i, k) * R(k, j);
+								double temp_K = 0.0;
+								for(SizeType k = 0; k < ndim; k++)
+								{
+									temp_K += RTK(i, k) * R(k, j);
+								}
+								LHS_global( P.Permutation[ pos_i+i ], P.Permutation[ pos_j+j ] ) += temp_K;
 							}
-							LHS_global( P.Permutation[ pos_i+i ], P.Permutation[ pos_j+j ] ) += temp_K;
 						}
 					}
 				}
@@ -643,47 +751,70 @@ namespace Kratos
 			{
 				SizeType pos_i = node_i*ndim;
 
-				for(SizeType i = 0; i < ndim; i++)
+				if(RHSrequired)
 				{
-					double temp_RHS = 0.0;
-					for(SizeType j = 0; j < ndim; j++)
+					for(SizeType i = 0; i < ndim; i++)
 					{
-						temp_RHS += R(j, i) * RHS_local( pos_i+j );
+						double temp_RHS = 0.0;
+						for(SizeType j = 0; j < ndim; j++)
+						{
+							temp_RHS += R(j, i) * RHS_local( pos_i+j );
+						}
+						RHS_global( pos_i+i ) += temp_RHS;
 					}
-					RHS_global( pos_i+i ) += temp_RHS;
 				}
 
-				for(SizeType node_j = 0; node_j < nnodes; node_j++)
+				if(LHSrequired)
 				{
-					SizeType pos_j = node_j*ndim;
+					Matrix RTK(ndim, ndim);
+					for(SizeType node_j = 0; node_j < nnodes; node_j++)
+					{
+						SizeType pos_j = node_j*ndim;
 
-					RTK.clear();
-					for(SizeType i = 0; i < ndim; i++)
-					{
-						for(SizeType j = 0; j < ndim; j++)
+						RTK.clear();
+						for(SizeType i = 0; i < ndim; i++)
 						{
-							double temp_K = 0.0;
-							for(SizeType k = 0; k < ndim; k++)
+							for(SizeType j = 0; j < ndim; j++)
 							{
-								temp_K += R(k, i) * LHS_local( pos_i+k, pos_j+j );
+								double temp_K = 0.0;
+								for(SizeType k = 0; k < ndim; k++)
+								{
+									temp_K += R(k, i) * LHS_local( pos_i+k, pos_j+j );
+								}
+								RTK(i, j) = temp_K;
 							}
-							RTK(i, j) = temp_K;
 						}
-					}
-					for(SizeType i = 0; i < ndim; i++)
-					{
-						for(SizeType j = 0; j < ndim; j++)
+						for(SizeType i = 0; i < ndim; i++)
 						{
-							double temp_K = 0.0;
-							for(SizeType k = 0; k < ndim; k++)
+							for(SizeType j = 0; j < ndim; j++)
 							{
-								temp_K += RTK(i, k) * R(k, j);
+								double temp_K = 0.0;
+								for(SizeType k = 0; k < ndim; k++)
+								{
+									temp_K += RTK(i, k) * R(k, j);
+								}
+								LHS_global( pos_i+i, pos_j+j ) += temp_K;
 							}
-							LHS_global( pos_i+i, pos_j+j ) += temp_K;
 						}
 					}
 				}
 			}
+		}
+	}
+
+	inline double getshape2d(int p, int k)
+	{
+		if(p==0) {
+			if(k==0)
+				return 0.5*(1.0+1.0/std::sqrt(3.0));
+			else
+				return 0.5*(1.0-1.0/std::sqrt(3.0));
+		}
+		else {
+			if(k==0)
+				return 0.5*(1.0-1.0/std::sqrt(3.0));
+			else
+				return 0.5*(1.0+1.0/std::sqrt(3.0));
 		}
 	}
 
@@ -712,6 +843,7 @@ namespace Kratos
 
 		GeometryType& geom = GetGeometry();
 		const Matrix& shapes = geom.ShapeFunctionsValues();
+		//KRATOS_WATCH(shapes);
 
 		SizeType ndim = geom.WorkingSpaceDimension();
 		SizeType nnodes = geom.size();
@@ -720,6 +852,7 @@ namespace Kratos
 		for(SizeType k = 0; k < half_nnodes; k++)
 		{
 			double Nk = shapes(pointID, k);
+			Nk = getshape2d(pointID,k);
 
 			SizeType pos1 = k * ndim;
 			SizeType pos2 = pos1 + half_nnodes*ndim;
@@ -737,74 +870,6 @@ namespace Kratos
 											                            Vector& generalizedStrains)
 	{
 		noalias( generalizedStrains ) = prod( B, U );
-
-//		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-
-		//double normalGap = generalizedStrains( ndim-1 );
-		//if(normalGap <= 0.0)
-		//{
-		//	ContactData& cdata = mContactData[pointID];
-		//	cdata.GapT1 = generalizedStrains(0);
-		//	generalizedStrains(0) -= cdata.LastGapT1;
-		//	if(ndim == 3)
-		//	{
-		//		cdata.GapT2 = generalizedStrains(1);
-		//		generalizedStrains(1) -= cdata.LastGapT2;
-		//	}
-		//}
-	}
-
-	void SmallDisplacementInterfaceElement::CalcMat(const Vector& dU, 
-		                                            Vector& sigma, 
-													Matrix& D)
-	{
-		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-
-		if(sigma.size() != ndim)
-				sigma.resize(ndim, false);
-
-		if(D.size1() != ndim || D.size2() != ndim)
-			D.resize(ndim, ndim, false);
-		noalias(D) = ZeroMatrix(ndim, ndim);
-
-		double Kn = 1.0E10;
-		double Kt = 2.5e6;
-
-		if(ndim == 2)
-		{
-			D(0,0) = Kt;
-			D(1,1) = Kn;
-		}
-		else
-		{
-			D(0,0) = D(1,1) = Kt;
-			D(2,2) = Kn;
-		}
-
-		noalias( sigma ) = prod( D, dU );
-	}
-
-	void SmallDisplacementInterfaceElement::CalculateCoulombFrictionLaw(const Vector& sigma,
-		                                                                double& phi,
-									                                    double& norm_tau,
-																	    double& Fs)
-	{
-		//TODO: use a variable like FRICTION_ANGLE
-		double friction_angle = 30.0;
-		Fs = std::atan( friction_angle * M_PI / 180.0 );
-		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		if(ndim == 2)
-		{
-			double pressure = sigma(1);
-			norm_tau = std::abs(sigma(0));
-			phi = norm_tau + Fs * pressure;
-		}
-		else // 3d
-		{
-			double pressure = sigma(2);
-			norm_tau = std::sqrt( sigma(0)*sigma(0) + sigma(1)*sigma(1) );
-			phi = norm_tau + Fs * pressure;
-		}
 	}
 
     void SmallDisplacementInterfaceElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -820,15 +885,23 @@ namespace Kratos
 		SizeType nnodes = geom.size();
 		SizeType ndofs = ndim * nnodes;
 
+		bool use_reduced_integration = false;
+		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
+			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
+
 		// resize the LHS matrix
-		if(rLeftHandSideMatrix.size1() != ndofs || rLeftHandSideMatrix.size2() != ndofs)
-			rLeftHandSideMatrix.resize(ndofs, ndofs, false);
-		noalias( rLeftHandSideMatrix ) = ZeroMatrix(ndofs, ndofs);
+		if(LHSrequired) {
+			if(rLeftHandSideMatrix.size1() != ndofs || rLeftHandSideMatrix.size2() != ndofs)
+				rLeftHandSideMatrix.resize(ndofs, ndofs, false);
+			noalias( rLeftHandSideMatrix ) = ZeroMatrix(ndofs, ndofs);
+		}
 
 		// resize the RHS vector
-		if(rRightHandSideVector.size() != ndofs)
-			rRightHandSideVector.resize(ndofs, false);
-		noalias( rRightHandSideVector ) = ZeroVector(ndofs);
+		if(RHSrequired) {
+			if(rRightHandSideVector.size() != ndofs)
+				rRightHandSideVector.resize(ndofs, false);
+			noalias( rRightHandSideVector ) = ZeroVector(ndofs);
+		}
 		
 		// global and local displacement vectors
 		Vector globalDisplacements(ndofs);
@@ -846,18 +919,14 @@ namespace Kratos
 
 		// strain-displacement matrix
 		Matrix B(ndim, ndofs, 0.0);
-		Matrix B_bar(ndim, ndofs, 0.0);
 
 		// material point calculation data
 		Matrix D(ndim, ndim);
 		Vector generalizedStrains(ndim);
 		Vector generalizedStresses(ndim);
-		Matrix D_bar(ndim, ndim);
-		Vector generalizedStresses_bar(ndim);
 
-		// transformation matrices
+		// transformation matrix
 		Matrix iR(ndim, ndim);
-		Matrix R(ndofs, ndofs, 0.0);
 
 		// permutation data
 		InterfaceIndexPermutation permutation;
@@ -869,51 +938,58 @@ namespace Kratos
 
 		// auxiliary data to avoid extra memory allocations
 		Matrix BTD(ndofs, ndim);
-		Matrix RTK(ndofs, ndofs);
 
-		// friction coefficient
-		double Fs = 0.0;
-		if(props.Has(FRICTION_COEFFICIENT))
-			Fs = props[FRICTION_COEFFICIENT];
-		else if(props.Has(INTERNAL_FRICTION_ANGLE))
-			Fs = props[INTERNAL_FRICTION_ANGLE] * M_PI / 180.0;
-
-		// INITIALIZE MATERIAL PARAMETERS *********************************************************************
+		// initialize material parameters
 		ConstitutiveLaw::Parameters Parameters(GetGeometry(), GetProperties(),rCurrentProcessInfo);
-        Flags &ConstitutiveLawOptions = Parameters.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
+		Flags &ConstitutiveLawOptions = Parameters.GetOptions();
+		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+		if(LHSrequired) ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 		Parameters.SetStrainVector(generalizedStrains);
 		Parameters.SetStressVector(generalizedStresses);
 		Parameters.SetConstitutiveMatrix(D);
-
 		Matrix F( IdentityMatrix(ndim, ndim) );
-		Matrix F0( IdentityMatrix(ndim, ndim) );
 		double detF(1.0);
-		double detF0(1.0);
 		Parameters.SetDeformationGradientF( F );
-		Parameters.SetDeformationGradientF0( F0 );
 		Parameters.SetDeterminantF( detF );
-		Parameters.SetDeterminantF0( detF0 );
-
 		Matrix DN_DX(nnodes, ndim, 0.0);
 		Vector N(nnodes);
-		Parameters.SetShapeFunctionsDerivatives(DN_DX); // our c.law doesn't use this!!!!!
-		// END - INITIALIZE MATERIAL PARAMETERS ***************************************************************
+		Parameters.SetShapeFunctionsDerivatives(DN_DX);
+
 
 		// loop over the integration points.
 		// note: loop only the first half of them, then multiply the integration weight by 2
 		const GeometryType::IntegrationPointsArrayType& integrationPoints = geom.IntegrationPoints();
+
+		Matrix B0(ndim, ndofs, 0.0);
+		if(use_reduced_integration)
+		{
+			double V0 = 0.0;
+			for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
+			{
+				// the current integration point
+				const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+				// jacobianobian and local transformation
+				CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
+				// integration weight
+				double dV = CalculateIntegrationWeight(J, ip.Weight());
+				// local displacement vector
+				CalculateLocalDisplacementVector(permutation, iR, globalDisplacements, localDisplacements);
+				// strain-displacement matrix
+				CalculateBMatrix(intp_id, B);
+				// accumulate
+				B0 += B*dV;
+				V0 += dV;
+			}
+			B0 /= V0;
+		}
+
 		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
 		{
 			// the current integration point
 			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
-			ContactData& cdata = mContactData[intp_id];
-			cdata.IsSliding = false;
 
 			// jacobianobian and local transformation
-			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR, R);
+			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
 
 			// integration weight
 			double dV = CalculateIntegrationWeight(J, ip.Weight());
@@ -923,124 +999,283 @@ namespace Kratos
 
 			// strain-displacement matrix
 			CalculateBMatrix(intp_id, B);
+			if(use_reduced_integration) {
+				//noalias(B) = B0;
+				for(unsigned int ii=0; ii < B.size2(); ii++)
+					B(1,ii)=B0(1,ii);
+			}
 
 			// calculate generalized strains
 			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);
+			DecimalCorrection(generalizedStrains);
 
-			// calculate material response ******************************************************************
-			
+			// calculate material response
 			noalias( N ) = row( geom.ShapeFunctionsValues(), intp_id );
 			Parameters.SetShapeFunctionsValues( N );
 			mConstitutiveLawVector[intp_id]->CalculateMaterialResponseCauchy(Parameters);
-			// **********************************************************************************************
 
-			// get the normal gap
-			double normalGap = generalizedStrains( ndim-1 );
-
-			// check contact
-			if(normalGap <= 0.0)
-			{
-				// VA NELMATERIALE
-				// OCCHIO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-				// calculate friction law
-				double iYieldValue(0.0);
-				mConstitutiveLawVector[intp_id]->GetValue(YIELD_FUNCTION_VALUE, iYieldValue);
-				iYieldValue = 0.0; // -> so B'*D*B
-
-				if(iYieldValue <= 0.0)
-				{
-					// Stick case
-					cdata.IsSliding = false;
-
-					// Kloc = B' * D * B * dV
-					// K += R' * Kloc * R
-					noalias( BTD ) = prod( trans( B ), dV*D );
-					noalias( Kloc ) = prod( BTD, B );
-					noalias( Rloc ) = -prod( trans( B ), dV*generalizedStresses );
-					TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc, rLeftHandSideMatrix, rRightHandSideVector);
-				}
-				else
-				{
-					// Slide case
-					cdata.IsSliding = true;
-
-					if(ndim == 2)
-					{
-						// norm of tangential stress
-						double normTau = std::abs(generalizedStresses(0));
-
-						// B bar
-						for(SizeType i = 0; i < B.size2(); i++)
-							B_bar(0, i) = B_bar(1, i) = B(1, i);
-
-						// D bar
-						double kn = D(1, 1);
-						D_bar(0, 0) = -kn * Fs * generalizedStresses(0)/normTau;
-						D_bar(1, 1) = kn;
-
-						// S bar
-						double pressure = generalizedStresses(1);
-						generalizedStresses_bar(0) = -Fs * pressure * generalizedStresses(0)/normTau;
-						generalizedStresses_bar(1) = pressure;
-					}
-					else // 3
-					{
-						// norm of tangential stress
-						double normTau = std::sqrt( generalizedStresses(0)*generalizedStresses(0) + 
-							                        generalizedStresses(1)*generalizedStresses(1) );
-
-						// B bar
-						for(SizeType i = 0; i < B.size2(); i++)
-							B_bar(0, i) = B_bar(1, i) = B_bar(2, i) = B(2, i);
-
-						// D bar
-						double kn = D(2, 2);
-						D_bar(0, 0) = -kn * Fs * generalizedStresses(0)/normTau;
-						D_bar(1, 1) = -kn * Fs * generalizedStresses(1)/normTau;
-						D_bar(2, 2) = kn;
-
-						// S bar
-						double pressure = generalizedStresses(2);
-						generalizedStresses_bar(0) = -Fs * pressure * generalizedStresses(0)/normTau;
-						generalizedStresses_bar(1) = -Fs * pressure * generalizedStresses(1)/normTau;
-						generalizedStresses_bar(2) = pressure;
-					}
-
-					// Kloc = B' * D * B * dV
-					// K += R' * Kloc * R
-					noalias( BTD ) = prod( trans( B ), dV*D_bar );
-					noalias( Kloc ) = prod( BTD, B_bar );
-					noalias( Rloc ) = -prod( trans( B ), dV*generalizedStresses_bar );
-					TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc, rLeftHandSideMatrix, rRightHandSideVector);
-				}
+			// calculate local contributions, transform them to global system and add
+			if(LHSrequired) {
+				noalias( BTD )  =  prod( trans( B ), dV*D );
+				noalias( Kloc ) =  prod( BTD, B );
 			}
-			else
-			{
-				noalias( BTD ) = prod( trans( B ), dV*D );
-				noalias( Kloc ) = prod( BTD, B );
+			if(RHSrequired) {
 				noalias( Rloc ) = -prod( trans( B ), dV*generalizedStresses );
-				TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc, rLeftHandSideMatrix, rRightHandSideVector);
 			}
+			TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc, 
+									rLeftHandSideMatrix, rRightHandSideVector,
+									LHSrequired, RHSrequired);
 		}
-    }
+	}
+	
+	void SmallDisplacementInterfaceElement::CalculateStrain(std::vector<Vector>& strain, const ProcessInfo& rCurrentProcessInfo)
+	{
+		// init the output container. it will contain ngauss/2 output variables
+		strain.clear();
 
-    // =====================================================================================
-    //
-    // Class SmallDisplacementInterfaceElement - Serialization
-    //
-    // =====================================================================================
+		// general data
+		PropertiesType props = GetProperties();
+		const GeometryType& geom = GetGeometry();
+		SizeType ndim = geom.WorkingSpaceDimension();
+		SizeType nnodes = geom.size();
+		SizeType ndofs = ndim * nnodes;
+		
+		bool use_reduced_integration = false;
+		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
+			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
+
+		// global and local displacement vectors
+		Vector globalDisplacements(ndofs);
+		Vector localDisplacements(ndofs);
+		GetValuesVector(globalDisplacements);
+
+		// delta position for the jacobian computation 
+		// with respect to the reference configuration
+		Matrix delta_position;
+		CalculateDeltaPosition(delta_position);
+
+		// jacobian matrix and its determinant
+		Matrix jacobian(ndim, ndim-1);
+		double J;
+
+		// strain-displacement matrix
+		Matrix B(ndim, ndofs, 0.0);
+
+		// material point calculation data
+		Vector generalizedStrains(ndim);
+
+		// transformation matrix
+		Matrix iR(ndim, ndim);
+
+		// permutation data
+		InterfaceIndexPermutation permutation;
+		CalculatePermutation(permutation);
+
+		Vector vec3(3);
+
+		// loop over the integration points.
+		// note: loop only the first half of them, then multiply the integration weight by 2
+		const GeometryType::IntegrationPointsArrayType& integrationPoints = geom.IntegrationPoints();
+
+		Matrix B0(ndim, ndofs, 0.0);
+		if(use_reduced_integration)
+		{
+			double V0 = 0.0;
+			for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
+			{
+				// the current integration point
+				const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+				// jacobianobian and local transformation
+				CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
+				// integration weight
+				double dV = CalculateIntegrationWeight(J, ip.Weight());
+				// local displacement vector
+				CalculateLocalDisplacementVector(permutation, iR, globalDisplacements, localDisplacements);
+				// strain-displacement matrix
+				CalculateBMatrix(intp_id, B);
+				// accumulate
+				B0 += B*dV;
+				V0 += dV;
+			}
+			B0 /= V0;
+		}
+
+		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
+		{
+			// the current integration point
+			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+
+			// jacobianobian and local transformation
+			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
+
+			// local displacement vector
+			CalculateLocalDisplacementVector(permutation, iR, globalDisplacements, localDisplacements);
+
+			// strain-displacement matrix
+			CalculateBMatrix(intp_id, B);
+			if(use_reduced_integration) {
+				//noalias(B) = B0;
+				for(unsigned int ii=0; ii < B.size2(); ii++)
+					B(1,ii)=B0(1,ii);
+			} 
+
+			// calculate generalized strains
+			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);
+			DecimalCorrection(generalizedStrains);
+
+			// store output
+			vec3(0) = generalizedStrains(0);
+			vec3(1) = generalizedStrains(1);
+			if(ndim == 3)
+				vec3(2) = generalizedStrains(2);
+			else
+				vec3(2) = 0.0;
+			strain.push_back(vec3);
+		}
+	}
+	
+	void SmallDisplacementInterfaceElement::CalculateStress(std::vector<Vector>& stress, const ProcessInfo& rCurrentProcessInfo)
+	{
+		// init the output container. it will contain ngauss/2 output variables
+		stress.clear();
+
+		// general data
+		PropertiesType props = GetProperties();
+		const GeometryType& geom = GetGeometry();
+		SizeType ndim = geom.WorkingSpaceDimension();
+		SizeType nnodes = geom.size();
+		SizeType ndofs = ndim * nnodes;
+		
+		bool use_reduced_integration = false;
+		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
+			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
+
+		// global and local displacement vectors
+		Vector globalDisplacements(ndofs);
+		Vector localDisplacements(ndofs);
+		GetValuesVector(globalDisplacements);
+
+		// delta position for the jacobian computation 
+		// with respect to the reference configuration
+		Matrix delta_position;
+		CalculateDeltaPosition(delta_position);
+
+		// jacobian matrix and its determinant
+		Matrix jacobian(ndim, ndim-1);
+		double J;
+
+		// strain-displacement matrix
+		Matrix B(ndim, ndofs, 0.0);
+
+		// material point calculation data
+		Matrix D(ndim, ndim);
+		Vector generalizedStrains(ndim);
+		Vector generalizedStresses(ndim);
+
+		// transformation matrix
+		Matrix iR(ndim, ndim);
+
+		// permutation data
+		InterfaceIndexPermutation permutation;
+		CalculatePermutation(permutation);
+
+		// initialize material parameters
+		ConstitutiveLaw::Parameters Parameters(GetGeometry(), GetProperties(),rCurrentProcessInfo);
+		Flags &ConstitutiveLawOptions = Parameters.GetOptions();
+		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+		Parameters.SetStrainVector(generalizedStrains);
+		Parameters.SetStressVector(generalizedStresses);
+		Parameters.SetConstitutiveMatrix(D);
+		Matrix F( IdentityMatrix(ndim, ndim) );
+		double detF(1.0);
+		Parameters.SetDeformationGradientF( F );
+		Parameters.SetDeterminantF( detF );
+		Matrix DN_DX(nnodes, ndim, 0.0);
+		Vector N(nnodes);
+		Parameters.SetShapeFunctionsDerivatives(DN_DX);
+
+		Vector vec3(3);
+
+		// loop over the integration points.
+		// note: loop only the first half of them, then multiply the integration weight by 2
+		const GeometryType::IntegrationPointsArrayType& integrationPoints = geom.IntegrationPoints();
+
+		Matrix B0(ndim, ndofs, 0.0);
+		if(use_reduced_integration)
+		{
+			double V0 = 0.0;
+			for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
+			{
+				// the current integration point
+				const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+				// jacobianobian and local transformation
+				CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
+				// integration weight
+				double dV = CalculateIntegrationWeight(J, ip.Weight());
+				// local displacement vector
+				CalculateLocalDisplacementVector(permutation, iR, globalDisplacements, localDisplacements);
+				// strain-displacement matrix
+				CalculateBMatrix(intp_id, B);
+				// accumulate
+				B0 += B*dV;
+				V0 += dV;
+			}
+			B0 /= V0;
+		}
+
+		for(SizeType intp_id = 0; intp_id < integrationPoints.size()/2; intp_id++)
+		{
+			// the current integration point
+			const GeometryType::IntegrationPointType& ip = integrationPoints[intp_id];
+
+			// jacobianobian and local transformation
+			CalculateJacobianAndTransformationMatrix(intp_id, delta_position, jacobian, J, iR);
+
+			// local displacement vector
+			CalculateLocalDisplacementVector(permutation, iR, globalDisplacements, localDisplacements);
+
+			// strain-displacement matrix
+			CalculateBMatrix(intp_id, B);
+			if(use_reduced_integration) {
+				//noalias(B) = B0;
+				for(unsigned int ii=0; ii < B.size2(); ii++)
+					B(1,ii)=B0(1,ii);
+			} 
+
+			// calculate generalized strains
+			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);
+			DecimalCorrection(generalizedStrains);
+
+			// calculate material response
+			noalias( N ) = row( geom.ShapeFunctionsValues(), intp_id );
+			Parameters.SetShapeFunctionsValues( N );
+			mConstitutiveLawVector[intp_id]->CalculateMaterialResponseCauchy(Parameters);
+
+			// store output
+			vec3(0) = generalizedStresses(0);
+			vec3(1) = generalizedStresses(1);
+			if(ndim == 3)
+				vec3(2) = generalizedStresses(2);
+			else
+				vec3(2) = 0.0;
+			stress.push_back(vec3);
+		}
+	}
+
+	// =====================================================================================
+	//
+	// Class SmallDisplacementInterfaceElement - Serialization
+	//
+	// =====================================================================================
 
     void SmallDisplacementInterfaceElement::save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-		rSerializer.save("ctd", mContactData);
     }
 
     void SmallDisplacementInterfaceElement::load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-		rSerializer.load("ctd", mContactData);
     }
 
 }
