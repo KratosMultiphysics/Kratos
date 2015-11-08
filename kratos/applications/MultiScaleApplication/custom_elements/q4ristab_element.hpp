@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(SMALL_DISPLACEMENT_INTERFACE_ELEMENT_H_INCLUDED )
-#define  SMALL_DISPLACEMENT_INTERFACE_ELEMENT_H_INCLUDED
+#if !defined(Q4RISTAB_ELEMENT_H_INCLUDED )
+#define  Q4RISTAB_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -40,43 +40,40 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /** \brief SmallDisplacementInterfaceElement
+  /** \brief Q4RIStabElement
    *
-   * Da aggiungere
+   * This element represents a 4-node plane stress element
+   * with reduced integration plus hourglass stabilization.
    */
-  class SmallDisplacementInterfaceElement : public Element
+  class Q4RIStabElement : public Element
   {
   public:
 
     ///@name Type Definitions
     ///@{
     
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementInterfaceElement);
+    KRATOS_CLASS_POINTER_DEFINITION(Q4RIStabElement);
 
     ///@}
 
     ///@name Classes
     ///@{
 
-    struct InterfaceIndexPermutation
-	{
-		bool HasPermutation;
-		std::vector<SizeType> Permutation;
-	};
-
+    // TODO: Add Calulation Data
+	
     ///@}
 
     ///@name Life Cycle
     ///@{
 
-    SmallDisplacementInterfaceElement(IndexType NewId, 
+    Q4RIStabElement(IndexType NewId, 
                          GeometryType::Pointer pGeometry);
     
-    SmallDisplacementInterfaceElement(IndexType NewId, 
+    Q4RIStabElement(IndexType NewId, 
                          GeometryType::Pointer pGeometry, 
                          PropertiesType::Pointer pProperties);
 
-    virtual ~SmallDisplacementInterfaceElement();
+    virtual ~Q4RIStabElement();
 
     ///@}
     
@@ -86,6 +83,8 @@ namespace Kratos
     // Basic
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+    IntegrationMethod GetIntegrationMethod() const;
     
     void Initialize();
 
@@ -115,7 +114,7 @@ namespace Kratos
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateDampingMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -124,7 +123,39 @@ namespace Kratos
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 ProcessInfo& rCurrentProcessInfo);
 
-    // Results calculation on integration points
+    // Get/Set values on/from integration points
+
+	void SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
+									 std::vector<double>& rValues, 
+									 const ProcessInfo& rCurrentProcessInfo);
+
+    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
+									 std::vector<Vector>& rValues, 
+									 const ProcessInfo& rCurrentProcessInfo);
+
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
+									 std::vector<Matrix>& rValues, 
+									 const ProcessInfo& rCurrentProcessInfo);
+
+	void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+									 std::vector<ConstitutiveLaw::Pointer>& rValues,
+									 const ProcessInfo& rCurrentProcessInfo );
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, 
+									 std::vector<double>& rValues, 
+									 const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
+									 std::vector<Vector>& rValues, 
+									 const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
+									 std::vector<Matrix>& rValues, 
+									 const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+									 std::vector<ConstitutiveLaw::Pointer>& rValues,
+									 const ProcessInfo& rCurrentProcessInfo);
 
 	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 									  std::vector<double>& rOutput,
@@ -142,27 +173,7 @@ namespace Kratos
 									  std::vector< Matrix >& rOutput,
 									  const ProcessInfo& rCurrentProcessInfo);
 
-	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-									 std::vector<double>& rValues, 
-									 const ProcessInfo& rCurrentProcessInfo);
-	
-	void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
-									 std::vector<Vector>& rValues, 
-									 const ProcessInfo& rCurrentProcessInfo);
-	
-	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
-									 std::vector<Matrix>& rValues, 
-									 const ProcessInfo& rCurrentProcessInfo);
-	
-	void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, 
-									 std::vector<array_1d<double,3> >& rValues, 
-									 const ProcessInfo& rCurrentProcessInfo);
-	
-	void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
-									 std::vector<array_1d<double,6> >& rValues, 
-									 const ProcessInfo& rCurrentProcessInfo);
-	
-	///@}
+    ///@}
 
   protected:
     
@@ -172,7 +183,7 @@ namespace Kratos
     /**
      * Protected empty constructor
      */
-    SmallDisplacementInterfaceElement() : Element()
+    Q4RIStabElement() : Element()
     {
     }
     
@@ -180,58 +191,23 @@ namespace Kratos
 
   private:
 
-    ///@name Private Operations
+    ///@name Private Classes
     ///@{
 
-    void DecimalCorrection(Vector& a);
+    ///@}
 
-	void InitializeContactData();
+    ///@name Private Operations
+    ///@{
+	
+	void Precompute(ProcessInfo& CurrentProcessInfo);
 
-	virtual void CalculatePermutation(InterfaceIndexPermutation& p);
-
-	virtual void CalculateDeltaPosition(Matrix& rDeltaPosition);
-
-	virtual void CalculateJacobianAndTransformationMatrix(const SizeType pointID,
-												          Matrix& delta_position,
-		                                                  Matrix& jacobian, 
-												          double& J, 
-												          Matrix& iR);
-
-	virtual double CalculateIntegrationWeight(double J, 
-		                                      double iw);
-
-	virtual void CalculateLocalDisplacementVector(const InterfaceIndexPermutation& P, 
-		                                          const Matrix& R,
-		                                          const Vector& UG, 
-												  Vector& UL);
-
-	virtual void TransformToGlobalAndAdd(const InterfaceIndexPermutation& P,
-		                                 const Matrix& R,
-										 const Matrix& LHS_local,
-										 const Vector& RHS_local,
-										 Matrix& LHS_global,
-										 Vector& RHS_global,
-										 const bool LHSrequired,
-										 const bool RHSrequired);
-
-	virtual void CalculateBMatrix(const SizeType pointID, 
-		                          Matrix& B);
-
-	virtual void CalculateGeneralizedStrains(const SizeType pointID,
-		                                     const Matrix& B, 
-		                                     const Vector& U,
-											 Vector& generalizedStrains);
+    void AddBodyForces(double V, VectorType& rRightHandSideVector);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
                       ProcessInfo& rCurrentProcessInfo,
                       const bool LHSrequired,
                       const bool RHSrequired);
-
-	void CalculateStrain(std::vector<Vector>& strain, const ProcessInfo& rCurrentProcessInfo);
-	
-	void CalculateStress(std::vector<Vector>& stress, const ProcessInfo& rCurrentProcessInfo);
-
     ///@}
 
     ///@name Static Member Variables
@@ -241,10 +217,12 @@ namespace Kratos
     ///@name Member Variables
     ///@{
 
-	bool mInitialized;
-	std::vector< ConstitutiveLaw::Pointer > mConstitutiveLawVector;
-
-
+    ConstitutiveLaw::Pointer mConstitutiveLaw;
+	Matrix m_H;
+	double m_dQ0;
+	double m_dQn;
+	double m_dQ_trial;
+	bool   m_H_calculated;
 
     ///@}
     
@@ -274,4 +252,4 @@ namespace Kratos
   };
 
 } 
-#endif // SMALL_DISPLACEMENT_INTERFACE_ELEMENT_H_INCLUDED
+#endif // Q4RISTAB_ELEMENT_H_INCLUDED
