@@ -553,7 +553,7 @@ public:
      * This has to be called for each solution step AFTER all the results
      * have been written
      */
-    void FinalizeResults()
+    virtual void FinalizeResults()
     {
         if ( mUseMultiFile == MultipleFiles || mMode == GiD_PostAscii )
         {
@@ -575,7 +575,7 @@ public:
     /**
      * writes nodal results for variables of type bool
      */
-    void WriteNodalResults( Variable<bool> const& rVariable,
+    virtual void WriteNodalResults( Variable<bool> const& rVariable,
                             NodesContainerType& rNodes, double SolutionTag,
                             std::size_t SolutionStepNumber)
     {
@@ -591,7 +591,6 @@ public:
         GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
-
     }
 
 
@@ -599,7 +598,7 @@ public:
     /**
      * writes nodal results for variables of type double
      */
-    void WriteNodalResults( Variable<double> const& rVariable,
+    virtual void WriteNodalResults( Variable<double> const& rVariable,
                             NodesContainerType& rNodes, double SolutionTag,
                             std::size_t SolutionStepNumber)
     {
@@ -622,7 +621,7 @@ public:
      * writes nodal results for variables of type array_1d<double, 3>
      * (e.g. DISPLACEMENT)
      */
-    void WriteNodalResults( Variable<array_1d<double, 3> > const& rVariable,
+    virtual void WriteNodalResults( Variable<array_1d<double, 3> > const& rVariable,
                             NodesContainerType& rNodes,
                             double SolutionTag, std::size_t SolutionStepNumber)
     {
@@ -650,7 +649,7 @@ public:
      * writes nodal results for variables of type Vector
      * (note that only vectors with 3 components can be printed)
      */
-    void WriteNodalResults( Variable<Vector> const& rVariable,
+    virtual void WriteNodalResults( Variable<Vector> const& rVariable,
                             NodesContainerType& rNodes,
                             double SolutionTag, std::size_t SolutionStepNumber)
     {
@@ -680,7 +679,7 @@ public:
     /**
      * writes nodal results for variables of type Matrix
      */
-    void WriteNodalResults( Variable<Matrix> const& rVariable,
+    virtual void WriteNodalResults( Variable<Matrix> const& rVariable,
                             NodesContainerType& rNodes,
                             double SolutionTag, std::size_t SolutionStepNumber)
     {
@@ -723,7 +722,7 @@ public:
 
     }
 
-   void WriteLocalAxesOnNodes( Variable<array_1d<double, 3> > const& rVariable,
+    virtual void WriteLocalAxesOnNodes( Variable<array_1d<double, 3> > const& rVariable,
                             NodesContainerType& rNodes,
                             double SolutionTag, std::size_t SolutionStepNumber)
     {

@@ -66,9 +66,13 @@ namespace Kratos
 
 	public:
 		
-		RveBoundary2D(const ModelPart& modelPart);
-		
-		RveBoundary2D(const ModelPart& modelPart, RealType tolerance);
+		RveBoundary2D(ModelPart& modelPart);
+
+		RveBoundary2D(ModelPart& modelPart, int n1, int n2, int n3, int n4);
+
+		RveBoundary2D(ModelPart& modelPart, int n1, int n2, int n3, int n4, int nMaster);
+
+		RveBoundary2D(ModelPart& modelPart, int nMaster);
 
 		virtual ~RveBoundary2D();
 
@@ -82,6 +86,8 @@ namespace Kratos
 
 		void DetectBoundaries(const ModelPart& modelPart);
 		
+		void DetectCornerNodes(const ModelPart& modelPart, int& n1, int& n2, int& n3, int& n4);
+
 		void SortBoundaries();
 		
 		void SetupMasterSlavePairs();
@@ -91,7 +97,13 @@ namespace Kratos
 									
 		void SetupMasterSlavePairsY(NodePointerContainerType& master, NodePointerContainerType& slave,
 			                        NodePointerType& first_node, NodePointerType& last_node);
-									
+		
+		void SetupAsCustomQuadPolygon(ModelPart& modelPart, int n1, int n2, int n3, int n4);
+
+	private:
+
+		void AddWeakPeriodicConditions(ModelPart& modelPart, const RveMacroscaleStatus::Pointer& status)const;
+
 	protected:
 
 		RealType mToleranceX;
@@ -108,8 +120,8 @@ namespace Kratos
 		NodePointerContainerType mLeftEdge;
 		NodePointerContainerType mRightEdge;
 
-		OneToOneMasterSlaveMapContainerType mMasterSlaveMapX1;
-		OneToOneMasterSlaveMapContainerType mMasterSlaveMapY1;
+		OneToOneMasterSlaveMapContainerType mMasterSlaveMapX;
+		OneToOneMasterSlaveMapContainerType mMasterSlaveMapY;
 		TwoToOneMasterSlaveMapContainerType mMasterSlaveMapX2;
 		TwoToOneMasterSlaveMapContainerType mMasterSlaveMapY2;
 	};

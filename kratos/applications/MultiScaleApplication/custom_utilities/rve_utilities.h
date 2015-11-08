@@ -56,11 +56,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <ctime>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/define.h"
 #include "includes/serializer.h"
+
 
 namespace Kratos
 {
@@ -68,9 +74,228 @@ namespace Kratos
 namespace RveUtilities
 {
 
+// misc stuff...
+
 inline const double Precision() {
-	return 1.0E-8;
+	return 1.0E-10;
 }
+
+
+class RveTimer
+{
+public:
+	RveTimer():t0(0.0),t1(0.0){}
+	inline double get_time() {
+#ifndef _OPENMP
+	return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+#else
+	return omp_get_wtime();
+#endif
+	}
+	inline void start() { t0 = get_time(); }
+	inline void stop() { t1 = get_time(); }
+	inline double value() { return t1-t0; }
+private:
+	double t0;
+	double t1;
+};
+
+// model part utilties
+
+template<class TModelPart>
+inline size_t CalculateTotalNumberOfDofs(TModelPart& mp)
+{
+	size_t n(0);
+	for (typename TModelPart::NodeIterator node_iter = mp.NodesBegin(); node_iter != mp.NodesEnd(); ++node_iter)
+	{
+		typename TModelPart::NodeType& iNode = *node_iter;
+		n += iNode.GetDofs().size();
+	}
+	return n;
+}
+
+template<class TModelPart>
+inline void SaveSolutionVector(TModelPart& mp, Vector& U)
+{
+	size_t counter = 0;
+	for (typename TModelPart::NodeIterator node_iter = mp.NodesBegin(); 
+		 node_iter != mp.NodesEnd(); 
+		 ++node_iter)
+	{
+		typename TModelPart::NodeType& iNode = *node_iter;
+		for(typename TModelPart::NodeType::DofsContainerType::iterator dof_iter = iNode.GetDofs().begin(); 
+			dof_iter != iNode.GetDofs().end(); 
+			++dof_iter)
+		{
+			typename TModelPart::DofType& iDof = *dof_iter;
+			U(counter++) = iDof.GetSolutionStepValue();
+		}
+	}
+}
+
+template<class TModelPart>
+inline void RestoreSolutionVector(TModelPart& mp, const Vector& U)
+{
+	size_t counter = 0;
+	for (typename TModelPart::NodeIterator node_iter = mp.NodesBegin(); 
+		 node_iter != mp.NodesEnd(); 
+		 ++node_iter)
+	{
+		typename TModelPart::NodeType& iNode = *node_iter;
+		for(typename TModelPart::NodeType::DofsContainerType::iterator dof_iter = iNode.GetDofs().begin(); 
+			dof_iter != iNode.GetDofs().end(); 
+			++dof_iter)
+		{
+			typename TModelPart::DofType& iDof = *dof_iter;
+			iDof.GetSolutionStepValue() = U(counter++);
+		}
+	}
+}
+
+
+// utilities for geometry descriptor object
+
+
+struct RveBoundarySortXFunctor_2DGeneric
+{
+	RveBoundarySortXFunctor_2DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ax = mA(0,0)*a->X0() + mA(0,1)*a->Y0();
+		double bx = mA(0,0)*b->X0() + mA(0,1)*b->Y0();
+        return ax < bx;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortYFunctor_2DGeneric
+{
+	RveBoundarySortYFunctor_2DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ay = mA(1,0)*a->X0() + mA(1,1)*a->Y0();
+		double by = mA(1,0)*b->X0() + mA(1,1)*b->Y0();
+        return ay < by;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortXFunctor_3DGeneric
+{
+	RveBoundarySortXFunctor_3DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ax = mA(0,0)*a->X0() + mA(0,1)*a->Y0() + mA(0,2)*a->Z0();
+		double bx = mA(0,0)*b->X0() + mA(0,1)*b->Y0() + mA(0,2)*b->Z0();
+        return ax < bx;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortYFunctor_3DGeneric
+{
+	RveBoundarySortYFunctor_3DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ay = mA(1,0)*a->X0() + mA(1,1)*a->Y0() + mA(1,2)*a->Z0();
+		double by = mA(1,0)*b->X0() + mA(1,1)*b->Y0() + mA(1,2)*b->Z0();
+        return ay < by;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortZFunctor_3DGeneric
+{
+	RveBoundarySortZFunctor_3DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double az = mA(2,0)*a->X0() + mA(2,1)*a->Y0() + mA(2,2)*a->Z0();
+		double bz = mA(2,0)*b->X0() + mA(2,1)*b->Y0() + mA(2,2)*b->Z0();
+        return az < bz;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortXYFunctor_3DGeneric
+{
+	RveBoundarySortXYFunctor_3DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ax = mA(0,0)*a->X0() + mA(0,1)*a->Y0() + mA(0,2)*a->Z0();
+		double bx = mA(0,0)*b->X0() + mA(0,1)*b->Y0() + mA(0,2)*b->Z0();
+        double ay = mA(1,0)*a->X0() + mA(1,1)*a->Y0() + mA(1,2)*a->Z0();
+		double by = mA(1,0)*b->X0() + mA(1,1)*b->Y0() + mA(1,2)*b->Z0();
+		if(ay < by)
+			return true;
+		else if(ay > by)
+			return false;
+		else
+			return ax < bx;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortXZFunctor_3DGeneric
+{
+	RveBoundarySortXZFunctor_3DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ax = mA(0,0)*a->X0() + mA(0,1)*a->Y0() + mA(0,2)*a->Z0();
+		double bx = mA(0,0)*b->X0() + mA(0,1)*b->Y0() + mA(0,2)*b->Z0();
+        double az = mA(2,0)*a->X0() + mA(2,1)*a->Y0() + mA(2,2)*a->Z0();
+		double bz = mA(2,0)*b->X0() + mA(2,1)*b->Y0() + mA(2,2)*b->Z0();
+		if(az < bz)
+			return true;
+		else if(az > bz)
+			return false;
+		else
+			return ax < bx;
+    }
+
+private:
+	const Matrix& mA;
+};
+
+struct RveBoundarySortYZFunctor_3DGeneric
+{
+	RveBoundarySortYZFunctor_3DGeneric(const Matrix& A)
+		: mA(A) {}
+
+	bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) {
+		double ay = mA(1,0)*a->X0() + mA(1,1)*a->Y0() + mA(1,2)*a->Z0();
+		double by = mA(1,0)*b->X0() + mA(1,1)*b->Y0() + mA(1,2)*b->Z0();
+        double az = mA(2,0)*a->X0() + mA(2,1)*a->Y0() + mA(2,2)*a->Z0();
+		double bz = mA(2,0)*b->X0() + mA(2,1)*b->Y0() + mA(2,2)*b->Z0();
+		if(az < bz)
+			return true;
+		else if(az > bz)
+			return false;
+		else
+			return ay < by;
+    }
+
+private:
+	const Matrix& mA;
+};
 
 struct RveBoundarySortXFunctor
 {

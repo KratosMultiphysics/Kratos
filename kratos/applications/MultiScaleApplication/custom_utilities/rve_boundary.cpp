@@ -55,6 +55,8 @@ namespace Kratos
 {
 
 RveBoundary::RveBoundary()
+	: mLagrangianNodeID(0)
+	, mHasLagrangianNodeID(false)
 {
 }
         
