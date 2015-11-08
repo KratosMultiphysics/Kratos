@@ -70,85 +70,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "multiscale_application.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "rve_macroscale_status.h"
+#include "rve_adapter_settings.h"
 #include "math_helpers.h"
 #include "time_line.h"
+
+// macro used to print useful informations.
+//#define RVE_IS_VERBOSE
+
+// macro used to activate tesing modifications to improve the calculation
+// of the homogenized tangent operator by perturbation methods
+#define RVE_TEST_PERFORMANCE_TANGENT_OPERATOR
+
+// macro used to use central differences rather than forward differences
+// to compute the tangent operator
+//#define RVE_TANGENT_OPERATOR_PERTURBATION_TYPE__CENTRAL_DIFF
+
+//#define RVE_THERMAL_FIRST_TEST
 
 namespace Kratos
 {
 
-
-template<int TStrainSize>
-struct RveAdapterSettings
-{
-	typedef ConstitutiveLaw::SizeType SizeType;
-};
-
-template<>
-struct RveAdapterSettings<3> // PLANE STRESS
-{
-	typedef ConstitutiveLaw::SizeType SizeType;
-
-	static SizeType GetStrainSize() { return 3; }
-	static SizeType WorkingSpaceDimension() { return 2; }
-	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
-	{
-		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRESS_LAW );
-		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
-
-		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
-
-		rFeatures.mStrainSize = GetStrainSize();
-
-		rFeatures.mSpaceDimension = WorkingSpaceDimension();
-	}
-};
-
-template<>
-struct RveAdapterSettings<4> // PLANE STRAIN
-{
-	typedef ConstitutiveLaw::SizeType SizeType;
-
-	static SizeType GetStrainSize() { return 4; }
-	static SizeType WorkingSpaceDimension() { return 2; }
-	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
-	{
-		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRAIN_LAW );
-		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
-
-		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
-
-		rFeatures.mStrainSize = GetStrainSize();
-
-		rFeatures.mSpaceDimension = WorkingSpaceDimension();
-	}
-};
-
-template<>
-struct RveAdapterSettings<6> // 3D
-{
-	typedef ConstitutiveLaw::SizeType SizeType;
-
-	static SizeType GetStrainSize() { return 6; }
-	static SizeType WorkingSpaceDimension() { return 3; }
-	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
-	{
-		rFeatures.mOptions.Set( ConstitutiveLaw::THREE_DIMENSIONAL_LAW );
-		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
-
-		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
-
-		rFeatures.mStrainSize = GetStrainSize();
-
-		rFeatures.mSpaceDimension = WorkingSpaceDimension();
-	}
-};
-
-
-
 template<class TSparseSpace,
          class TDenseSpace,
          class TLinearSolver,
-		 class TRveSettings = RveAdapterSettings<3>
+		 class TRveSettings = RveAdapterSettings_3D
          >
 class RveAdapter
 {
@@ -165,7 +110,6 @@ public:
 
 	typedef ConstitutiveLaw::GeometryType GeometryType;
 
-	
 public:
 
 	/**
@@ -178,9 +122,16 @@ public:
 		, mRveGenerated(false)
 		, mRveGenerationRequested(true)
 		, mInitialized(false)
+		, mSolutionStepFinalized(true)
 		, mIntegrationErrorCode(0.0)
 		, mMacroCharacteristicLength(0.0)
 		, mMicroCharacteristicLength(0.0)
+		, mUpdateConstitutiveTensor(true)
+		, mNDofs(0)
+#ifdef RVE_THERMAL_FIRST_TEST
+		, mTemp(0.0)
+#endif // RVE_THERMAL_FIRST_TEST
+
 	{
 	}
 
@@ -283,6 +234,7 @@ public:
 			InitializeRveModelPart();
 			CalculateMicroCharacteristicLength();
 			AssignCharacteristicLengthMultiplier();
+			mNDofs = CalculateTotalNumberOfDofs();
 		}
 
 		KRATOS_CATCH("")
@@ -319,8 +271,12 @@ public:
     */
     virtual bool Has(const Variable<double>& rThisVariable)
 	{
-		if(rThisVariable == CONSTITUTIVE_INTAGRATION_ERROR_CODE)
+		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			return true;
+#ifdef RVE_THERMAL_FIRST_TEST
+		if(rThisVariable == TEMPERATURE)
+			return true;
+#endif // RVE_THERMAL_FIRST_TEST
 		return false;
 	}
 
@@ -377,8 +333,12 @@ public:
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
 		rValue = 0.0;
-		if(rThisVariable == CONSTITUTIVE_INTAGRATION_ERROR_CODE)
+		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			rValue = mIntegrationErrorCode;
+#ifdef RVE_THERMAL_FIRST_TEST
+		if(rThisVariable == TEMPERATURE)
+			rValue = mTemp;
+#endif // RVE_THERMAL_FIRST_TEST
 		return rValue;
 	}
 
@@ -441,6 +401,10 @@ public:
                           const double& rValue,
                           const ProcessInfo& rCurrentProcessInfo)
 	{
+#ifdef RVE_THERMAL_FIRST_TEST
+		if(rVariable == TEMPERATURE)
+			mTemp = rValue;
+#endif // RVE_THERMAL_FIRST_TEST
 	}
 
     /**
@@ -551,6 +515,7 @@ public:
 		if(!mInitialized)
 		{
 			mStressVector = ZeroVector(GetStrainSize());
+
 			mIntegrationErrorCode = 0.0;
 			mInitialized = true;
 
@@ -563,7 +528,10 @@ public:
 				InitializeRveModelPart();
 				CalculateMicroCharacteristicLength();
 				AssignCharacteristicLengthMultiplier();
+				mNDofs = CalculateTotalNumberOfDofs();
 			}
+
+			mUpdateConstitutiveTensor = true;
 		}
 	}
 
@@ -580,8 +548,23 @@ public:
                                         const Vector& rShapeFunctionsValues,
                                         const ProcessInfo& rCurrentProcessInfo)
 	{
+		const ProcessInfo& macroProcessInfo = rCurrentProcessInfo;
+		ProcessInfo& microProcessInfo = mpModelPart->GetProcessInfo();
+
+		double time   = macroProcessInfo[TIME];
+		double dtime  = macroProcessInfo[DELTA_TIME];
+		int    nsteps = macroProcessInfo[TIME_STEPS];
+
+		mpModelPart->CloneTimeStep(time);
+
+		microProcessInfo[TIME]       = time;
+		microProcessInfo[DELTA_TIME] = dtime;
+		microProcessInfo[TIME_STEPS] = nsteps;
+
 		mIntegrationErrorCode = 0.0;
 		mSolutionStepFinalized = false;
+
+		mUpdateConstitutiveTensor = true;
 	}
 
     /**
@@ -597,9 +580,17 @@ public:
                                       const Vector& rShapeFunctionsValues,
                                       const ProcessInfo& rCurrentProcessInfo)
 	{
-		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 4; // Finalize-Only
+		RestoreSolutionVector(mU);
+
+		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___FINALIZE_ONLY;
 		mpStrategy->Solve();
-		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 3; // 1; // Finalize-Or-Abort
+		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___DO_NOTHING;
+
+#ifdef RVE_IS_VERBOSE
+		std::stringstream ss;
+		ss << " FINALIZE: N_ITER = " << mpModelPart->GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+		std::cout << ss.str();  
+#endif // RVE_IS_VERBOSE
 
 		mSolutionStepFinalized = true;
 	}
@@ -808,17 +799,25 @@ public:
 
 		double tempTime = Timer::GetTime();
 
+		// initialize
+		this->InitializeMaterial(params.GetMaterialProperties(), 
+			                     params.GetElementGeometry(), 
+								 params.GetShapeFunctionsValues());
+
 		// initialize solution step
-		mIntegrationErrorCode = 0.0;
-		mSolutionStepFinalized = false;
+		this->InitializeSolutionStep(params.GetMaterialProperties(), 
+			                         params.GetElementGeometry(),
+			                         params.GetShapeFunctionsValues(), 
+									 params.GetProcessInfo());
 
 		// solve
 		this->CalculateRveResponse( params );
 
 		// finalize solution step
-		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 4; // Never-Finalize
+		RestoreSolutionVector(mU);
+		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___FINALIZE_ONLY;
 		mpStrategy->Solve();
-		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 3; // 1; // Finalize-Or-Abort
+		mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___DO_NOTHING;
 		mSolutionStepFinalized = true;
 
 		double elapsed = Timer::GetTime() - tempTime;
@@ -853,7 +852,6 @@ protected:
 	{
 		Flags& options = rValues.GetOptions();
 		bool compute_constitutive_tensor = options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-		bool compute_stress = compute_constitutive_tensor || options.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
 		mIntegrationErrorCode = 0.0;
 
@@ -861,38 +859,50 @@ protected:
 
 		if(!PredictorCalculation(rValues))
 		{
-			mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 3; // 1; // Finalize-Or-Abort
+			// solve the micro problem
+#ifdef RVE_IS_VERBOSE
+			std::cout << "----------RVE CALCULATION---------------\n";  
+#endif // RVE_IS_VERBOSE
+
+			mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___DO_NOTHING;
 			SolveMicroProblem(rValues);
-			// TEMP - BEGIN
-			if(mIntegrationErrorCode != 0.0) 
-			{
-				std::stringstream ss;
-				ss << "WARNING - RVE SOLUTION NOT CONVERGED - Going on..." << std::endl;
-				std::cout << ss.str();
-				mIntegrationErrorCode = 0.0;
-			}
-			// TEMP - END
+
+			if(mU.size() != mNDofs) 
+				mU.resize(mNDofs,false);
+			SaveSolutionVector(mU);
+
 			if(mIntegrationErrorCode == 0.0)
 			{
-				if(compute_stress) 
-				{
-					ComputeMacroStressVector(rValues);
-					noalias(mStressVector) = rValues.GetStressVector();
-				}
+				ComputeMacroStressVector(rValues);
+				noalias(mStressVector) = rValues.GetStressVector();
 
 				if(compute_constitutive_tensor)
 				{
-					mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 3; // Never-Finalize
+#ifdef RVE_IS_VERBOSE
+					std::cout << "----------RVE TANGENT OPERATOR---------------\n";  
+#endif // RVE_IS_VERBOSE
+					mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___DO_NOTHING;
 					ComputeConstitutiveTensor(rValues);
-					mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = 3; // 1; // Finalize-Or-Abort
+					mpModelPart->GetProcessInfo()[STRATEGY_FINALIZE_SOLUTION_STEP_LEVEL] = RVE_STRATEGY_FINALIZE_STEP_LEVEL___DO_NOTHING;
+					mUpdateConstitutiveTensor = false;
+				}
+				else
+				{
+					SizeType strain_size = GetStrainSize();
+					Matrix& tangent = rValues.GetConstitutiveMatrix();
+					if(tangent.size1() != strain_size || tangent.size2() != strain_size)
+						tangent.resize(strain_size, strain_size, false);
+					noalias(tangent) = mConstitutiveTensor;
 				}
 			}
 			else
 			{
 
+#ifdef RVE_IS_VERBOSE
 				std::stringstream ss;
-				ss << "WARNING - RVE SOLUTION NOT CONVERGED" << std::endl;
-				std::cout << ss.str();
+				ss << "WARNING - RVE SOLUTION DID NOT CONVERGE" << std::endl;
+				std::cout << ss.str();  
+#endif // RVE_IS_VERBOSE
 
 				SizeType strain_size = GetStrainSize();
 				Vector& stress = rValues.GetStressVector();
@@ -902,9 +912,11 @@ protected:
 				if(tangent.size1() != strain_size || tangent.size2() != strain_size)
 					tangent.resize(strain_size, strain_size, false);
 				noalias(stress) = ZeroVector(strain_size);
-				noalias(tangent) = ZeroMatrix(strain_size, strain_size);
+				noalias(tangent) = IdentityMatrix(strain_size, strain_size);
 			}	
 		}
+
+		this->AbortSolutionStep();
 	}
 
 	/**
@@ -926,22 +938,24 @@ protected:
 			bool compute_stress = compute_constitutive_tensor || options.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
 			SizeType strain_size = GetStrainSize();
-			if(compute_stress) 
-			{
-				Vector& macroStressVector = rValues.GetStressVector();
-				if(macroStressVector.size() != strain_size)
-					macroStressVector.resize(strain_size, false);
-				noalias(macroStressVector) = mStressVector;
 
-				if(compute_constitutive_tensor) 
-				{
-					Matrix& macroConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-					if(macroConstitutiveMatrix.size1() != strain_size || macroConstitutiveMatrix.size2() != strain_size)
-						macroConstitutiveMatrix.resize(strain_size, strain_size, false);
-					noalias(macroConstitutiveMatrix) = ZeroMatrix(strain_size, strain_size);
-				}
-			}
+			Vector& macroStressVector = rValues.GetStressVector();
+			if(macroStressVector.size() != strain_size)
+				macroStressVector.resize(strain_size, false);
+			noalias(macroStressVector) = mStressVector;
+
+			Matrix& macroConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+			if(macroConstitutiveMatrix.size1() != strain_size || macroConstitutiveMatrix.size2() != strain_size)
+				macroConstitutiveMatrix.resize(strain_size, strain_size, false);
+			noalias(macroConstitutiveMatrix) = mConstitutiveTensor;
 		}
+
+#ifdef RVE_IS_VERBOSE
+		if(stepSolved)
+			std::cout << "Check for output request: TRUE\n";
+		else
+			std::cout << "Check for output request: FALSE\n";  
+#endif // RVE_IS_VERBOSE
 
 		return stepSolved;
 	}
@@ -992,28 +1006,53 @@ protected:
 	*/
 	virtual void SolveMicroProblem(ConstitutiveLaw::Parameters& rValues)
 	{
-		const ProcessInfo& macroProcessInfo = rValues.GetProcessInfo();
-		ProcessInfo& microProcessInfo = mpModelPart->GetProcessInfo();
+#ifdef RVE_THERMAL_FIRST_TEST
 
-		double time   = macroProcessInfo[TIME];
-		double dtime  = macroProcessInfo[DELTA_TIME];
-		int    nsteps = macroProcessInfo[TIME_STEPS];
+		Vector StrainVector = rValues.GetStrainVector();
 
-		mpModelPart->CloneTimeStep(time);
+		double alpha(0.0);
+		double totalVolume(0.0);
+		for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
+		{
+			Element& ielem = *it;
+			Element::GeometryType& igeom = ielem.GetGeometry();
+			const Properties& props = ielem.GetProperties();
+			double ialpha = props[CONDUCTIVITY];
+			double ivolume = igeom.DomainSize();
+			alpha += ialpha * ivolume;
+			totalVolume += ivolume;
+		}
+		if(totalVolume > 0.0)
+			alpha /= totalVolume;
+		else
+			alpha = 0.0;
+		double T0 = 0.0; // TODO: reference temp!!!!
+		double Delta_Temp = mTemp - T0;
+		double therm_strain = -alpha * Delta_Temp;
+		StrainVector[0] += therm_strain;
+		StrainVector[1] += therm_strain;
+		if(this->GetStrainSize() == 6)
+			StrainVector[2] += therm_strain;
 
-		microProcessInfo[TIME]       = time;
-		microProcessInfo[DELTA_TIME] = dtime;
-		microProcessInfo[TIME_STEPS] = nsteps;
+		mpMacroscaleStatus->SetStrainVector(StrainVector);
+
+#else
 
 		Vector& StrainVector = rValues.GetStrainVector();
 		mpMacroscaleStatus->SetStrainVector(StrainVector);
 
+#endif // RVE_THERMAL_FIRST_TEST
+
 		mpStrategy->Solve();
 
+#ifdef RVE_IS_VERBOSE
+		std::stringstream ss;
+		ss << " Solve Micro problem: N_ITER = " << mpModelPart->GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl;
+		std::cout << ss.str();  
+#endif // RVE_IS_VERBOSE
+
 		if(mpStrategy->IsConverged() == false)
-		{
 			mIntegrationErrorCode = -1.0;
-		}
 	}
 
 	/**
@@ -1107,6 +1146,7 @@ protected:
 			macroStressVector /= totalVolume;
 	}
 
+#ifdef RVE_TANGENT_OPERATOR_PERTURBATION_TYPE__CENTRAL_DIFF
 	/**
 	* Computes the algorithmic constitutive tensor.
 	* This basic implementation computes the constitutive tensor 
@@ -1120,29 +1160,120 @@ protected:
 		SizeType strain_size = GetStrainSize();
 
 		Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-		Vector StrainVector( rValues.GetStrainVector() ); // a Copy!
-		Vector StressVector( rValues.GetStressVector() ); // a Copy!
 
-		// initialize the constitutive tensor tensor
+		// initialize the output constitutive tensor
 		if(ConstitutiveMatrix.size1() != strain_size || ConstitutiveMatrix.size2() != strain_size)
 			ConstitutiveMatrix.resize(strain_size, strain_size, false);
 		noalias(ConstitutiveMatrix) = ZeroMatrix(strain_size, strain_size);
 
-		// compute the perturbation parameters
-		double stress_perturbation_threshold = 1.0E-11;
-		double relative_tolerance = 1.0E-7;
-		double minimum_tolerance = 1.0E-8;
-		Vector perturbationParameters(strain_size);
-        for(size_t i = 0; i < strain_size; i++)
+		// initialize (if not done yet) the stored constitutive tensor
+		if(mConstitutiveTensor.size1() != strain_size || mConstitutiveTensor.size2() != strain_size)
+			mConstitutiveTensor.resize(strain_size, strain_size);
+
+		// if the update of the tangent operator is not required
+		// just copy the stored one an return
+		mUpdateConstitutiveTensor = true; // for the moment let's force it!
+		if(!mUpdateConstitutiveTensor)
 		{
-			double iEps = StrainVector(i);
-			if(iEps > 0.0) 
-				perturbationParameters(i) = std::max( iEps * relative_tolerance,  minimum_tolerance );
-			else if(iEps < 0.0)
-				perturbationParameters(i) = std::min( iEps * relative_tolerance, -minimum_tolerance );
-			else 
-				perturbationParameters(i) = relative_tolerance;
+			noalias(ConstitutiveMatrix) = mConstitutiveTensor;
+			return;
 		}
+
+		Vector StrainVector( rValues.GetStrainVector() ); // a Copy!
+		Vector StressVector( rValues.GetStressVector() ); // a Copy!
+
+		// compute the perturbation parameters
+		double stress_perturbation_threshold = 1.0E-10;
+		double perturbation = 1.0E-10;
+
+		// strain and stress perturbations
+		Vector& strainVectorPerturbation = rValues.GetStrainVector(); // a Reference!
+		Vector& stressVectorPerturbation = rValues.GetStressVector(); // a Reference!
+
+		Vector S0(strain_size);
+		Vector S1(strain_size);
+
+		// compute the stress perturbation for each component of the strain vector
+        for(size_t j = 0; j < strain_size; j++)
+		{
+			// compute the perturbed strain vector
+			noalias(strainVectorPerturbation) = StrainVector;
+			strainVectorPerturbation(j) = StrainVector(j) - perturbation;
+
+			// solve the perturbed micro-problem
+			SolveMicroProblem(rValues);
+			ComputeMacroStressVector(rValues);
+			noalias( S0 ) = rValues.GetStressVector();
+
+			// compute the perturbed strain vector
+			strainVectorPerturbation(j) = StrainVector(j) + perturbation;
+
+			// solve the perturbed micro-problem
+			SolveMicroProblem(rValues);
+			ComputeMacroStressVector(rValues);
+			noalias( S1 ) = rValues.GetStressVector();
+
+			// fill the column of the tangent operator
+			// with sigma/perturbation
+            for(size_t i = 0; i < strain_size; i++)
+			{
+				double stress_perturbation_i = S1(i)-S0(i);
+				if(std::abs(stress_perturbation_i) > stress_perturbation_threshold)
+					ConstitutiveMatrix(i, j) = stress_perturbation_i /( 2.0*perturbation );
+				else
+					ConstitutiveMatrix(i, j) = 0.0;
+			}
+		}
+
+		noalias(mConstitutiveTensor) = ConstitutiveMatrix;
+
+		// reset original values
+		noalias( rValues.GetStrainVector() ) = StrainVector;
+		noalias( rValues.GetStressVector() ) = StressVector;
+
+		// and reset the original (not perturbed) macro scale data
+		// it can be used later on if a finalize solution step is required
+		mpMacroscaleStatus->SetStrainVector(StrainVector);
+	}
+#else
+	/**
+	* Computes the algorithmic constitutive tensor.
+	* This basic implementation computes the constitutive tensor 
+	* numerically by means of perturbation method.
+	* @param rValues material parameters
+	*/
+	virtual void ComputeConstitutiveTensor(ConstitutiveLaw::Parameters& rValues)
+	{
+		// compute the constitutive tensor using perturbation method
+
+		SizeType strain_size = GetStrainSize();
+
+		Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+
+		// initialize the output constitutive tensor
+		if(ConstitutiveMatrix.size1() != strain_size || ConstitutiveMatrix.size2() != strain_size)
+			ConstitutiveMatrix.resize(strain_size, strain_size, false);
+		noalias(ConstitutiveMatrix) = ZeroMatrix(strain_size, strain_size);
+
+		// initialize (if not done yet) the stored constitutive tensor
+		if(mConstitutiveTensor.size1() != strain_size || mConstitutiveTensor.size2() != strain_size)
+			mConstitutiveTensor.resize(strain_size, strain_size);
+
+		// if the update of the tangent operator is not required
+		// just copy the stored one an return
+		mUpdateConstitutiveTensor = true; // for the moment let's force it!
+		if(!mUpdateConstitutiveTensor)
+		{
+			noalias(ConstitutiveMatrix) = mConstitutiveTensor;
+			return;
+		}
+
+		Vector StrainVector( rValues.GetStrainVector() ); // a Copy!
+		Vector StressVector( rValues.GetStressVector() ); // a Copy!
+
+		// compute the perturbation parameters
+		double stress_perturbation_threshold = 1.0E-10;
+		double perturbation = 1.0E-10;
 
 		// strain and stress perturbations
 		Vector& strainVectorPerturbation = rValues.GetStrainVector(); // a Reference!
@@ -1151,13 +1282,8 @@ protected:
 		// compute the stress perturbation for each component of the strain vector
         for(size_t j = 0; j < strain_size; j++)
 		{
-			double perturbation = perturbationParameters(j);
-
 			// compute the perturbed strain vector
 			noalias(strainVectorPerturbation) = StrainVector;
-			//strainVectorPerturbation(j) += perturbation;
-			double eps_j = strainVectorPerturbation(j);
-			perturbation = eps_j >= 0.0 ? 1.0E-11 : -1.0E-11;
 			strainVectorPerturbation(j) += perturbation;
 
 			// solve the perturbed micro-problem
@@ -1166,15 +1292,13 @@ protected:
 			// compute the macro-stress vector
 			ComputeMacroStressVector(rValues);
 
-			AbortSolutionStep();
-
 			// subtract the converged stress vector to
 			// obtain the stress variation
 			noalias( stressVectorPerturbation ) -= StressVector;
 
 			// fill the column of the tangent operator
 			// with sigma/perturbation
-            for(size_t i = 0; i < strain_size; i++)
+			for(size_t i = 0; i < strain_size; i++)
 			{
 				double stress_perturbation_i = stressVectorPerturbation(i);
 				if(std::abs(stress_perturbation_i) > stress_perturbation_threshold)
@@ -1184,18 +1308,28 @@ protected:
 			}
 		}
 
+		noalias(mConstitutiveTensor) = ConstitutiveMatrix;
+
 		// reset original values
 		noalias( rValues.GetStrainVector() ) = StrainVector;
 		noalias( rValues.GetStressVector() ) = StressVector;
+
+		// and reset the original (not perturbed) macro scale data
+		// it can be used later on if a finalize solution step is required
+		mpMacroscaleStatus->SetStrainVector(StrainVector);
+	}
+#endif // RVE_TANGENT_OPERATOR_PERTURBATION_TYPE__CENTRAL_DIFF
+
+	void InitializeRveModelPart()
+	{
+		for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
+		{
+			Element& ielem = *it;
+			ielem.Initialize();
+		}
 	}
 
-	/**
-	* This method is implemented to UNDO the changes in geometry (if move mesh is true)
-	* and in the nodal solution variables. This method is called during the computation
-	* of the macro constitutive tensor by perturbation method. The main aim of this
-	* method is  to undo all changes (even if minimal) made by the small perturbations.
-	*/
-	virtual void AbortSolutionStep()
+	void AbortSolutionStep()
 	{
 		bool move_mesh_back = mpStrategy->MoveMeshFlag();
 
@@ -1217,6 +1351,40 @@ protected:
 			{
 				ModelPart::DofType& iDof = *dof_iter;
 				iDof.GetSolutionStepValue() = iDof.GetSolutionStepValue(1);
+			}
+		}
+	}
+
+	void SaveSolutionVector(Vector& U)
+	{
+		for (ModelPart::NodeIterator node_iter = mpModelPart->NodesBegin(); 
+			 node_iter != mpModelPart->NodesEnd(); 
+			 ++node_iter)
+		{
+			ModelPart::NodeType& iNode = *node_iter;
+			for(ModelPart::NodeType::DofsContainerType::iterator dof_iter = iNode.GetDofs().begin(); 
+				dof_iter != iNode.GetDofs().end(); 
+				++dof_iter)
+			{
+				ModelPart::DofType& iDof = *dof_iter;
+				U(iDof.EquationId()) = iDof.GetSolutionStepValue();
+			}
+		}
+	}
+
+	void RestoreSolutionVector(const Vector& U)
+	{
+		for (ModelPart::NodeIterator node_iter = mpModelPart->NodesBegin(); 
+			 node_iter != mpModelPart->NodesEnd(); 
+			 ++node_iter)
+		{
+			ModelPart::NodeType& iNode = *node_iter;
+			for(ModelPart::NodeType::DofsContainerType::iterator dof_iter = iNode.GetDofs().begin(); 
+				dof_iter != iNode.GetDofs().end(); 
+				++dof_iter)
+			{
+				ModelPart::DofType& iDof = *dof_iter;
+				iDof.GetSolutionStepValue() = U(iDof.EquationId());
 			}
 		}
 	}
@@ -1260,48 +1428,49 @@ protected:
         }
 	}
 
-	void InitializeRveModelPart()
+	size_t CalculateTotalNumberOfDofs()
 	{
-		if(mpModelPart != NULL)
+		size_t n(0);
+		for (ModelPart::NodeIterator node_iter = mpModelPart->NodesBegin(); 
+			 node_iter != mpModelPart->NodesEnd(); 
+			 ++node_iter)
 		{
-			for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
-			{
-				Element& ielem = *it;
-				ielem.Initialize();
-			}
+			ModelPart::NodeType& iNode = *node_iter;
+			n += iNode.GetDofs().size();
 		}
+		return n;
 	}
 
 	void CalculateMicroCharacteristicLength()
 	{
 		mMicroCharacteristicLength = 0.0;
-		if(mpModelPart != NULL)
+		
+		for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
 		{
-			for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
-			{
-				Element& ielem = *it;
-				Element::GeometryType& igeom = ielem.GetGeometry();
-				Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
+			Element& ielem = *it;
+			Element::GeometryType& igeom = ielem.GetGeometry();
+			Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
 
-				const GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
+			const GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
 
-				for(size_t point_id = 0; point_id < ipts.size(); point_id++)
-				{
-					double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
-					mMicroCharacteristicLength += dV;
-				}
-			}
-
-			SizeType ndim = WorkingSpaceDimension();
-			if(ndim == 2)
+			for(size_t point_id = 0; point_id < ipts.size(); point_id++)
 			{
-				mMicroCharacteristicLength = std::sqrt(mMicroCharacteristicLength);
-			}
-			else // if(ndim == 3)
-			{
-				mMicroCharacteristicLength = std::pow(mMicroCharacteristicLength, 1.0/3.0);
+				double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
+				mMicroCharacteristicLength += dV;
 			}
 		}
+
+		SizeType ndim = WorkingSpaceDimension();
+		if(ndim == 2)
+		{
+			mMicroCharacteristicLength = std::sqrt(mMicroCharacteristicLength);
+		}
+		else // if(ndim == 3)
+		{
+			mMicroCharacteristicLength = std::pow(mMicroCharacteristicLength, 1.0/3.0);
+		}
+
+		//mMicroCharacteristicLength = 62.0;
 	}
 
 	void AssignCharacteristicLengthMultiplier()
@@ -1309,24 +1478,21 @@ protected:
 		double chlen_mult = mMacroCharacteristicLength / mMicroCharacteristicLength;
 		std::vector<double> values;
 
-		if(mpModelPart != NULL)
+		const ProcessInfo& pinfo = mpModelPart->GetProcessInfo();
+		for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
 		{
-			const ProcessInfo& pinfo = mpModelPart->GetProcessInfo();
-			for(ModelPart::ElementIterator it = mpModelPart->ElementsBegin(); it != mpModelPart->ElementsEnd(); ++it)
-			{
-				Element& ielem = *it;
-				Element::GeometryType& igeom = ielem.GetGeometry();
-				Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
+			Element& ielem = *it;
+			Element::GeometryType& igeom = ielem.GetGeometry();
+			Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
 
-				const GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
+			const GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
 
-				if(values.size() != ipts.size())
-					values.resize(ipts.size());
+			if(values.size() != ipts.size())
+				values.resize(ipts.size());
 
-				std::fill(values.begin(), values.end(), chlen_mult);
+			std::fill(values.begin(), values.end(), chlen_mult);
 
-				ielem.SetValueOnIntegrationPoints(CHARACTERISTIC_LENGTH_MULTIPLIER, values, pinfo);
-			}
+			ielem.SetValueOnIntegrationPoints(CHARACTERISTIC_LENGTH_MULTIPLIER, values, pinfo);
 		}
 	}
 
@@ -1342,12 +1508,23 @@ protected:
 	bool   mInitialized;
 	bool   mSolutionStepFinalized;
 
-	Vector mStressVector;
-
 	double mIntegrationErrorCode;
 
 	double mMacroCharacteristicLength;
 	double mMicroCharacteristicLength;
+
+	bool   mUpdateConstitutiveTensor;
+
+	Vector mStressVector;
+	Matrix mConstitutiveTensor;
+
+	Vector mU;
+	size_t mNDofs;
+
+#ifdef RVE_THERMAL_FIRST_TEST
+	double mTemp;
+#endif // RVE_THERMAL_FIRST_TEST
+
 
 private:
 

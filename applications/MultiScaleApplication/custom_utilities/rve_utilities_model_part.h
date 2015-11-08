@@ -156,6 +156,155 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 	clone.SetBufferSize(source.GetBufferSize());
 }
 
+void ReorientNarrowQuads(ModelPart& mp, Properties::IndexType id)
+{
+	std::stringstream ss;
+	ss << " RVE Utility - Reorient Narrow Qadrilaterals" << std::endl;
+	unsigned int num_total = 0;
+	unsigned int num_mod = 0;
+	std::vector< Element::Pointer > rem_elem;
+	std::vector< Element::Pointer > add_elem;
+	for(ModelPart::ElementIterator elem_iter = mp.ElementsBegin(); elem_iter != mp.ElementsEnd(); ++elem_iter)
+	{
+		Element::Pointer& elem = *(elem_iter.base());
+		Element::GeometryType& geom = elem->GetGeometry();
+		if(elem->GetProperties().GetId() == id)
+		{
+			num_total++;
+			if(geom.WorkingSpaceDimension() == 2)
+			{
+				size_t num_nodes = geom.size();
+				if(num_nodes == 4)
+				{
+					double LX1 = norm_2(geom[1]-geom[0]);
+					double LX2 = norm_2(geom[2]-geom[3]);
+					double LY1 = norm_2(geom[2]-geom[1]);
+					double LY2 = norm_2(geom[3]-geom[0]);
+					double LX = (LX1+LX2)/2.0;
+					double LY = (LY1+LY2)/2.0;
+					if(LY > LX)
+					{
+						num_mod++;
+						Element::NodesArrayType new_connectivity;
+						new_connectivity.push_back(mp.pGetNode(geom[3].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[0].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[1].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[2].Id()));
+						Element::Pointer new_elem = elem->Create(elem->GetId(), new_connectivity, elem->pGetProperties());
+						rem_elem.push_back(elem);
+						add_elem.push_back(new_elem);
+					}
+				}
+			}
+		}
+	}
+	for(unsigned int i = 0; i < rem_elem.size(); i++) 
+	{
+		mp.RemoveElement(rem_elem[i]);
+		mp.AddElement(add_elem[i]);
+	}
+	ss << "        Total number of analyzed quadrilaterals: " << num_total << std::endl;
+	ss << "        Number of reoriented quadrilaterals: " << num_mod << std::endl;
+	std::cout << ss.str();
+}
+
+void ReorientQuadsX(ModelPart& mp, Properties::IndexType id)
+{
+	std::stringstream ss;
+	ss << " RVE Utility - Reorient Quadrilaterals (X Direction)" << std::endl;
+	unsigned int num_total = 0;
+	unsigned int num_mod = 0;
+	std::vector< Element::Pointer > rem_elem;
+	std::vector< Element::Pointer > add_elem;
+	for(ModelPart::ElementIterator elem_iter = mp.ElementsBegin(); elem_iter != mp.ElementsEnd(); ++elem_iter)
+	{
+		Element::Pointer& elem = *(elem_iter.base());
+		Element::GeometryType& geom = elem->GetGeometry();
+		if(elem->GetProperties().GetId() == id)
+		{
+			num_total++;
+			if(geom.WorkingSpaceDimension() == 2)
+			{
+				size_t num_nodes = geom.size();
+				if(num_nodes == 4)
+				{
+					double DX = geom[1].X0() - geom[0].X0();
+					double DY = geom[1].Y0() - geom[0].Y0();
+					if(DY > DX)
+					{
+						num_mod++;
+						Element::NodesArrayType new_connectivity;
+						new_connectivity.push_back(mp.pGetNode(geom[3].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[0].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[1].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[2].Id()));
+						Element::Pointer new_elem = elem->Create(elem->GetId(), new_connectivity, elem->pGetProperties());
+						rem_elem.push_back(elem);
+						add_elem.push_back(new_elem);
+					}
+				}
+			}
+		}
+	}
+	for(unsigned int i = 0; i < rem_elem.size(); i++) 
+	{
+		mp.RemoveElement(rem_elem[i]);
+		mp.AddElement(add_elem[i]);
+	}
+	ss << "        Total number of analyzed quadrilaterals: " << num_total << std::endl;
+	ss << "        Number of reoriented quadrilaterals: " << num_mod << std::endl;
+	std::cout << ss.str();
+}
+
+void ReorientQuadsY(ModelPart& mp, Properties::IndexType id)
+{
+	std::stringstream ss;
+	ss << " RVE Utility - Reorient Qadrilaterals (Y Direction)" << std::endl;
+	unsigned int num_total = 0;
+	unsigned int num_mod = 0;
+
+	std::vector< Element::Pointer > rem_elem;
+	std::vector< Element::Pointer > add_elem;
+	for(ModelPart::ElementIterator elem_iter = mp.ElementsBegin(); elem_iter != mp.ElementsEnd(); ++elem_iter)
+	{
+		Element::Pointer& elem = *(elem_iter.base());
+		Element::GeometryType& geom = elem->GetGeometry();
+		if(elem->GetProperties().GetId() == id)
+		{
+			num_total++;
+			if(geom.WorkingSpaceDimension() == 2)
+			{
+				size_t num_nodes = geom.size();
+				if(num_nodes == 4)
+				{
+					double DX = geom[1].X0() - geom[0].X0();
+					double DY = geom[1].Y0() - geom[0].Y0();
+					if(DX > DY)
+					{
+						num_mod++;
+						Element::NodesArrayType new_connectivity;
+						new_connectivity.push_back(mp.pGetNode(geom[3].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[0].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[1].Id()));
+						new_connectivity.push_back(mp.pGetNode(geom[2].Id()));
+						Element::Pointer new_elem = elem->Create(elem->GetId(), new_connectivity, elem->pGetProperties());
+						rem_elem.push_back(elem);
+						add_elem.push_back(new_elem);
+					}
+				}
+			}
+		}
+	}
+	for(unsigned int i = 0; i < rem_elem.size(); i++) 
+	{
+		mp.RemoveElement(rem_elem[i]);
+		mp.AddElement(add_elem[i]);
+	}
+	ss << "        Total number of analyzed quadrilaterals: " << num_total << std::endl;
+	ss << "        Number of reoriented quadrilaterals: " << num_mod << std::endl;
+	std::cout << ss.str();
+}
+
 }
 
 } // namespace Kratos

@@ -51,8 +51,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <list>
 
+#include "multiscale_application.h"
 #include "rve_boundary_2D.h"
 #include "custom_conditions/rve_corner_condition_2D4N.h"
+#include "custom_conditions/rve_periodic_condition_2D2N.h"
+#include "custom_conditions/rve_weak_periodic_corner_condition_2D4N.h"
+#include "custom_conditions/rve_weak_periodic_condition_2D2N.h"
+
+
 #include "custom_conditions/rve_periodic_condition_DX_2D2N.h"
 #include "custom_conditions/rve_periodic_condition_DY_2D2N.h"
 #include "custom_conditions/rve_periodic_condition_DX_2D3N.h"
@@ -61,7 +67,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-RveBoundary2D::RveBoundary2D(const ModelPart& modelPart)
+
+#define FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodesArray, prototypeNode) \
+	{ \
+		ModelPart::NodeIterator cloned_node_iter = modelPart.Nodes().find(prototypeNode->GetId()); \
+		if(cloned_node_iter == modelPart.Nodes().end()) \
+			KRATOS_THROW_ERROR(std::logic_error, "The input modelPart is NOT a valid clone of the protptype one", ""); \
+		nodesArray.push_back(*(cloned_node_iter.base())); \
+	}
+
+#define GET_NODE_OR_THROW_ERROR(modelPart, node, id) \
+	{ \
+		ModelPart::NodeIterator cloned_node_iter = modelPart.Nodes().find(id); \
+		if(cloned_node_iter == modelPart.Nodes().end()) \
+			KRATOS_THROW_ERROR(std::logic_error, "The input modelPart is NOT a valid clone of the protptype one", ""); \
+		node = (*(cloned_node_iter.base())); \
+	}
+
+
+
+RveBoundary2D::RveBoundary2D(ModelPart& modelPart)
 	: RveBoundary()
 	, mToleranceX(0.0)
 	, mToleranceY(0.0)
@@ -71,28 +96,60 @@ RveBoundary2D::RveBoundary2D(const ModelPart& modelPart)
     , mpTopRightCorner()
     , mpTopLeftCorner()
 {
-	this->DetectBoundaries(modelPart);
-	this->SortBoundaries();
-	this->SetupMasterSlavePairs();
+	this->SetHasLagrangianNodeID(false);
+	this->SetLagrangianNodeID(0);
+	int n1,n2,n3,n4;
+	this->DetectCornerNodes(modelPart,n1,n2,n3,n4);
+	this->SetupAsCustomQuadPolygon(modelPart,n1,n2,n3,n4);
 }
 
-RveBoundary2D::RveBoundary2D(const ModelPart& modelPart, RealType tolerance)
+RveBoundary2D::RveBoundary2D(ModelPart& modelPart, int n1, int n2, int n3, int n4)
 	: RveBoundary()
 	, mToleranceX(0.0)
 	, mToleranceY(0.0)
-	, mToleranceMS(tolerance)
+	, mToleranceMS(0.9)
     , mpBottomLeftCorner()
     , mpBottomRightCorner()
     , mpTopRightCorner()
     , mpTopLeftCorner()
 {
-	if(mToleranceMS <= 0.0 || mToleranceMS > 1.0)
-		mToleranceMS = 0.9;
-	this->DetectBoundaries(modelPart);
-	this->SortBoundaries();
-	this->SetupMasterSlavePairs();
+	this->SetHasLagrangianNodeID(false);
+	this->SetLagrangianNodeID(0);
+	this->SetupAsCustomQuadPolygon(modelPart,n1,n2,n3,n4);
 }
-		
+
+RveBoundary2D::RveBoundary2D(ModelPart& modelPart, int n1, int n2, int n3, int n4, int nMaster)
+	: RveBoundary()
+	, mToleranceX(0.0)
+	, mToleranceY(0.0)
+	, mToleranceMS(0.9)
+    , mpBottomLeftCorner()
+    , mpBottomRightCorner()
+    , mpTopRightCorner()
+    , mpTopLeftCorner()
+{
+	this->SetHasLagrangianNodeID(true);
+	this->SetLagrangianNodeID(nMaster);
+	this->SetupAsCustomQuadPolygon(modelPart,n1,n2,n3,n4);
+}
+
+RveBoundary2D::RveBoundary2D(ModelPart& modelPart, int nMaster)
+	: RveBoundary()
+	, mToleranceX(0.0)
+	, mToleranceY(0.0)
+	, mToleranceMS(0.9)
+    , mpBottomLeftCorner()
+    , mpBottomRightCorner()
+    , mpTopRightCorner()
+    , mpTopLeftCorner()
+{
+	this->SetHasLagrangianNodeID(true);
+	this->SetLagrangianNodeID(nMaster);
+	int n1,n2,n3,n4;
+	this->DetectCornerNodes(modelPart,n1,n2,n3,n4);
+	this->SetupAsCustomQuadPolygon(modelPart,n1,n2,n3,n4);
+}
+
 RveBoundary2D::~RveBoundary2D()
 {
 }
@@ -147,8 +204,8 @@ std::string RveBoundary2D::GetInfo()const
 	ss << " Master-Slave [X direction]: " << std::endl;
 	ss << std::endl;
 	ss << "M 1" << std::setw(10) << "S" << std::endl << std::endl;
-    for(size_t i = 0; i < this->mMasterSlaveMapX1.size(); i++) {
-		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapX1[i];
+    for(size_t i = 0; i < this->mMasterSlaveMapX.size(); i++) {
+		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapX[i];
 		ss  << imap.Master->GetId() << std::setw(10) << imap.Slave->GetId() << std::endl;
 	}
 	ss << std::endl;
@@ -166,8 +223,8 @@ std::string RveBoundary2D::GetInfo()const
 	ss << " Master-Slave [Y direction]: " << std::endl;
 	ss << std::endl;
 	ss << "M 1" << std::setw(10) << "S" << std::endl << std::endl;
-    for(size_t i = 0; i < this->mMasterSlaveMapY1.size(); i++) {
-		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapY1[i];
+    for(size_t i = 0; i < this->mMasterSlaveMapY.size(); i++) {
+		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapY[i];
 		ss  << imap.Master->GetId() << std::setw(10) << imap.Slave->GetId() << std::endl;
 	}
 	ss << std::endl;
@@ -227,39 +284,49 @@ void RveBoundary2D::AddConditions(ModelPart& modelPart, const RveMacroscaleStatu
 	}
 
 	// Master-Slave [X direction]
-    for(size_t i = 0; i < this->mMasterSlaveMapX1.size(); i++)
+    for(size_t i = 0; i < this->mMasterSlaveMapX.size(); i++)
 	{
-		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapX1[i];
+		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapX[i];
 		Condition::NodesArrayType nodes;
 
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Slave);
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Master);
 
 		Geometry<NodeType>::Pointer geom( new Geometry<NodeType>(nodes) );
-		RvePeriodicConditionDX2D2N::Pointer cond(new RvePeriodicConditionDX2D2N(conditionId++, geom));
+#ifndef RVE_TEST_MOD_CONDITIONS
+		RvePeriodicConditionDX2D2N::Pointer cond(new RvePeriodicConditionDX2D2N(conditionId++, geom)); 
+#else
+		RvePeriodicCondition2D2N::Pointer cond(new RvePeriodicCondition2D2N(conditionId++, geom));
+#endif // !RVE_TEST_MOD_CONDITIONS
 		this->SetMacroscaleStatusOnCondition(cond, status);
 
 		modelPart.AddCondition(cond);
 	}
 
 	// Master-Slave [Y direction]
-    for(size_t i = 0; i < this->mMasterSlaveMapY1.size(); i++)
+    for(size_t i = 0; i < this->mMasterSlaveMapY.size(); i++)
 	{
-		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapY1[i];
+		const RveUtilities::OneToOneMasterSlaveMap& imap = this->mMasterSlaveMapY[i];
 		Condition::NodesArrayType nodes;
 
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Slave);
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Master);
 
 		Geometry<NodeType>::Pointer geom( new Geometry<NodeType>(nodes) );
-		RvePeriodicConditionDY2D2N::Pointer cond(new RvePeriodicConditionDY2D2N(conditionId++, geom));
+#ifndef RVE_TEST_MOD_CONDITIONS
+		RvePeriodicConditionDY2D2N::Pointer cond(new RvePeriodicConditionDY2D2N(conditionId++, geom)); 
+#else
+		RvePeriodicCondition2D2N::Pointer cond(new RvePeriodicCondition2D2N(conditionId++, geom));
+#endif // !RVE_TEST_MOD_CONDITIONS
+
 		this->SetMacroscaleStatusOnCondition(cond, status);
 
 		modelPart.AddCondition(cond);
 	}
 
+#ifndef RVE_TEST_MOD_CONDITIONS
 	// Master-Master-Slave [X direction]
-    for(size_t i = 0; i < this->mMasterSlaveMapX2.size(); i++)
+	for(size_t i = 0; i < this->mMasterSlaveMapX2.size(); i++)
 	{
 		const RveUtilities::TwoToOneMasterSlaveMap& imap = this->mMasterSlaveMapX2[i];
 		Condition::NodesArrayType nodes;
@@ -276,11 +343,11 @@ void RveBoundary2D::AddConditions(ModelPart& modelPart, const RveMacroscaleStatu
 	}
 
 	// Master-Master-Slave [Y direction]
-    for(size_t i = 0; i < this->mMasterSlaveMapY2.size(); i++)
+	for(size_t i = 0; i < this->mMasterSlaveMapY2.size(); i++)
 	{
 		const RveUtilities::TwoToOneMasterSlaveMap& imap = this->mMasterSlaveMapY2[i];
 		Condition::NodesArrayType nodes;
-		
+
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Slave);
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Master1);
 		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, imap.Master2);
@@ -290,7 +357,9 @@ void RveBoundary2D::AddConditions(ModelPart& modelPart, const RveMacroscaleStatu
 		this->SetMacroscaleStatusOnCondition(cond, status);
 
 		modelPart.AddCondition(cond);
-	}
+	}  
+#endif // !RVE_TEST_MOD_CONDITIONS
+
 
 	KRATOS_CATCH("")
 }
@@ -353,6 +422,65 @@ void RveBoundary2D::DetectBoundaries(const ModelPart& modelPart)
 	}
 }
 
+void RveBoundary2D::DetectCornerNodes(const ModelPart& modelPart, int& n1, int& n2, int& n3, int& n4)
+{
+	RealType x_min =  std::numeric_limits<RealType>::max();
+	RealType x_max = -x_min;
+	RealType y_min =  x_min;
+	RealType y_max = -x_min;
+
+	for(ModelPart::NodeConstantIterator it = modelPart.NodesBegin(); it != modelPart.NodesEnd(); ++it)
+	{
+		const NodePointerType& inode = *(it.base());
+		if(this->GetHasLagrangianNodeID())
+			if(this->GetLagrangianNodeID() == inode->GetId())
+				continue;
+		RealType ix = inode->X0();
+		RealType iy = inode->Y0();
+		x_min = std::min(x_min, ix);
+		y_min = std::min(y_min, iy);
+		x_max = std::max(x_max, ix);
+		y_max = std::max(y_max, iy);
+	}
+
+	RealType lx = x_max - x_min;
+	RealType ly = y_max - y_min;
+
+	mToleranceX = RveUtilities::Precision() * lx;
+	mToleranceY = RveUtilities::Precision() * ly;
+
+	n1 = 0;
+	n2 = 0;
+	n3 = 0;
+	n4 = 0;
+
+	for(ModelPart::NodeConstantIterator it = modelPart.NodesBegin(); it != modelPart.NodesEnd(); ++it)
+	{
+		const NodePointerType& inode = *(it.base());
+		if(this->GetHasLagrangianNodeID())
+			if(this->GetLagrangianNodeID() == inode->GetId())
+				continue;
+
+		RealType ix = inode->X0();
+		RealType iy = inode->Y0();
+
+		if((ix - x_min) <= mToleranceX)
+		{
+			if((iy - y_min) <= mToleranceY)
+				n1 = inode->GetId();
+			else if((y_max - iy) <= mToleranceY)
+				n4 = inode->GetId();
+		}
+		else if((x_max - ix) <= mToleranceX)
+		{
+			if((iy - y_min) <= mToleranceY)
+				n2 = inode->GetId();
+			else if((y_max - iy) <= mToleranceY)
+				n3 = inode->GetId();
+		}
+	}
+}
+
 void RveBoundary2D::SortBoundaries()
 {
 	std::sort(mBottomEdge.begin(), mBottomEdge.end(), RveUtilities::RveBoundarySortXFunctor());
@@ -399,12 +527,12 @@ void RveBoundary2D::SetupMasterSlavePairs()
 
 	// 2. eliminate existing masters
 
-    for(size_t i = 0; i < mMasterSlaveMapX1.size(); i++) {
-		RveUtilities::OneToOneMasterSlaveMap& imap = mMasterSlaveMapX1[i];
+    for(size_t i = 0; i < mMasterSlaveMapX.size(); i++) {
+		RveUtilities::OneToOneMasterSlaveMap& imap = mMasterSlaveMapX[i];
 		floating_masters_x.remove(imap.Master);
 	}
-    for(size_t i = 0; i < mMasterSlaveMapY1.size(); i++) {
-		RveUtilities::OneToOneMasterSlaveMap& imap = mMasterSlaveMapY1[i];
+    for(size_t i = 0; i < mMasterSlaveMapY.size(); i++) {
+		RveUtilities::OneToOneMasterSlaveMap& imap = mMasterSlaveMapY[i];
 		floating_masters_y.remove(imap.Master);
 	}
     for(size_t i = 0; i < mMasterSlaveMapX2.size(); i++) {
@@ -456,7 +584,7 @@ void RveBoundary2D::SetupMasterSlavePairsX(NodePointerContainerType& master, Nod
 
 			if(std::abs( slave_pos - master_pos ) <= mToleranceY)
 			{
-				mMasterSlaveMapX1.push_back(RveUtilities::OneToOneMasterSlaveMap(aMaster, aSlave));
+				mMasterSlaveMapX.push_back(RveUtilities::OneToOneMasterSlaveMap(aMaster, aSlave));
 				slave_done = true;
 				break;
 			}
@@ -483,10 +611,10 @@ void RveBoundary2D::SetupMasterSlavePairsX(NodePointerContainerType& master, Nod
 			RealType c1 = d0 / length;
 			RealType c0 = d1 / length;
 			if(c1 >= mToleranceMS) {
-				mMasterSlaveMapX1.push_back(RveUtilities::OneToOneMasterSlaveMap(master_1, aSlave));
+				mMasterSlaveMapX.push_back(RveUtilities::OneToOneMasterSlaveMap(master_1, aSlave));
 			}
 			else if(c0 >= mToleranceMS) {
-				mMasterSlaveMapX1.push_back(RveUtilities::OneToOneMasterSlaveMap(master_0, aSlave));
+				mMasterSlaveMapX.push_back(RveUtilities::OneToOneMasterSlaveMap(master_0, aSlave));
 			}
 			else {
 				mMasterSlaveMapX2.push_back(RveUtilities::TwoToOneMasterSlaveMap(
@@ -515,7 +643,7 @@ void RveBoundary2D::SetupMasterSlavePairsY(NodePointerContainerType& master, Nod
 
 			if(std::abs( slave_pos - master_pos ) <= mToleranceX)
 			{
-				mMasterSlaveMapY1.push_back(RveUtilities::OneToOneMasterSlaveMap(aMaster, aSlave));
+				mMasterSlaveMapY.push_back(RveUtilities::OneToOneMasterSlaveMap(aMaster, aSlave));
 				slave_done = true;
 				break;
 			}
@@ -542,10 +670,10 @@ void RveBoundary2D::SetupMasterSlavePairsY(NodePointerContainerType& master, Nod
 			RealType c1 = d0 / length;
 			RealType c0 = d1 / length;
 			if(c1 >= mToleranceMS) {
-				mMasterSlaveMapY1.push_back(RveUtilities::OneToOneMasterSlaveMap(master_1, aSlave));
+				mMasterSlaveMapY.push_back(RveUtilities::OneToOneMasterSlaveMap(master_1, aSlave));
 			}
 			else if(c0 >= mToleranceMS) {
-				mMasterSlaveMapY1.push_back(RveUtilities::OneToOneMasterSlaveMap(master_0, aSlave));
+				mMasterSlaveMapY.push_back(RveUtilities::OneToOneMasterSlaveMap(master_0, aSlave));
 			}
 			else {
 				mMasterSlaveMapY2.push_back(RveUtilities::TwoToOneMasterSlaveMap(
@@ -553,6 +681,191 @@ void RveBoundary2D::SetupMasterSlavePairsY(NodePointerContainerType& master, Nod
 			}
 		}
 	}
+}
+
+void RveBoundary2D::SetupAsCustomQuadPolygon(ModelPart& modelPart, int n1, int n2, int n3, int n4)
+{
+	KRATOS_TRY
+
+	// find the 4 corner nodes
+
+	GET_NODE_OR_THROW_ERROR(modelPart, this->mpBottomLeftCorner,  n1);
+	GET_NODE_OR_THROW_ERROR(modelPart, this->mpBottomRightCorner, n2);
+	GET_NODE_OR_THROW_ERROR(modelPart, this->mpTopRightCorner,    n3);
+	GET_NODE_OR_THROW_ERROR(modelPart, this->mpTopLeftCorner,     n4);
+
+	// find the periodicity directions and the transformation matrix
+
+	array_1d<RealType,2> vx;
+	array_1d<RealType,2> vy;
+	vx[0] = this->mpBottomRightCorner->X0() - this->mpBottomLeftCorner->X0();
+	vx[1] = this->mpBottomRightCorner->Y0() - this->mpBottomLeftCorner->Y0();
+	vy[0] = this->mpTopLeftCorner->X0()     - this->mpBottomLeftCorner->X0();
+	vy[1] = this->mpTopLeftCorner->Y0()     - this->mpBottomLeftCorner->Y0();
+	RealType lx = std::sqrt(vx[0]*vx[0] + vx[1]*vx[1]);
+	RealType ly = std::sqrt(vy[0]*vy[0] + vy[1]*vy[1]);
+	vx /= lx;
+	vy /= ly;
+
+	RealType tolerance = 1.0E-6*lx*ly;
+	if(tolerance < 1.0E-10) tolerance = 1.0E-10;
+
+	Matrix xform_aux(2,2);
+	xform_aux(0,0) = vx[0]; xform_aux(0,1) = vy[0];
+	xform_aux(1,0) = vx[1]; xform_aux(1,1) = vy[1];
+	RealType xform_det(0.0);
+	Matrix xform(2,2);
+	MathUtils<RealType>::InvertMatrix2(xform_aux, xform, xform_det);
+
+	// find boundary nodes
+
+	array_1d<RealType,2> p10;
+	p10[0] = this->mpBottomLeftCorner->X0();
+	p10[1] = this->mpBottomLeftCorner->Y0();
+	p10 = prod(xform, p10);
+
+	array_1d<RealType,2> p20;
+	p20[0] = this->mpBottomRightCorner->X0();
+	p20[1] = this->mpBottomRightCorner->Y0();
+	p20 = prod(xform, p20);
+
+	array_1d<RealType,2> p40;
+	p40[0] = this->mpTopLeftCorner->X0();
+	p40[1] = this->mpTopLeftCorner->Y0();
+	p40 = prod(xform, p40);
+
+	RealType lx0 = norm_2(p20 - p10);
+	RealType ly0 = norm_2(p40 - p10);
+
+	for(ModelPart::NodeConstantIterator it = modelPart.NodesBegin(); it != modelPart.NodesEnd(); ++it)
+	{
+		const NodePointerType& inode = *(it.base());
+
+		if(this->GetHasLagrangianNodeID())
+			if(this->GetLagrangianNodeID() == inode->GetId())
+				continue;
+
+		array_1d<RealType,2> ipos;
+		ipos[0] = inode->X0();
+		ipos[1] = inode->Y0();
+		ipos = prod(xform, ipos);
+		ipos -= p10;
+
+		if(ipos[0] < tolerance) { // left
+			if(ipos[1] > tolerance && ipos[1] < ly0-tolerance)
+				this->mLeftEdge.push_back(inode);
+		}
+		else if(ipos[0] > lx0-tolerance) { // right
+			if(ipos[1] > tolerance && ipos[1] < ly0-tolerance)
+				this->mRightEdge.push_back(inode);
+		}
+		else {
+			if(ipos[1] < tolerance) // bottom
+				this->mBottomEdge.push_back(inode);
+			else if(ipos[1] > ly0-tolerance) // top
+				this->mTopEdge.push_back(inode);
+		}
+	}
+
+	// sort boundaries
+
+	std::sort(mBottomEdge.begin(), mBottomEdge.end(), RveUtilities::RveBoundarySortXFunctor_2DGeneric(xform));
+	std::sort(mTopEdge.begin(),    mTopEdge.end(),    RveUtilities::RveBoundarySortXFunctor_2DGeneric(xform));
+	std::sort(mLeftEdge.begin(),   mLeftEdge.end(),   RveUtilities::RveBoundarySortYFunctor_2DGeneric(xform));
+	std::sort(mRightEdge.begin(),  mRightEdge.end(),  RveUtilities::RveBoundarySortYFunctor_2DGeneric(xform));
+
+	// setup master and slaves
+
+	if(mBottomEdge.size() != mTopEdge.size() || mLeftEdge.size() != mRightEdge.size())
+	{
+		std::cout << this->GetInfo();
+		std::cout << "THE MESH SEEMS TO BE NON-PERIODIC" << std::endl;
+		KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
+	}
+
+	for(size_t i = 0; i < mLeftEdge.size(); i++)
+	{
+		NodePointerType& aSlave = mRightEdge[i];
+		NodePointerType& aMaster = mLeftEdge[i];
+		mMasterSlaveMapX.push_back(RveUtilities::OneToOneMasterSlaveMap(aMaster, aSlave));
+	}
+
+	for(size_t i = 0; i < mBottomEdge.size(); i++)
+	{
+		NodePointerType& aSlave = mTopEdge[i];
+		NodePointerType& aMaster = mBottomEdge[i];
+		mMasterSlaveMapY.push_back(RveUtilities::OneToOneMasterSlaveMap(aMaster, aSlave));
+	}
+
+	KRATOS_CATCH("")
+}
+
+void RveBoundary2D::AddWeakPeriodicConditions(ModelPart& modelPart, const RveMacroscaleStatus::Pointer& status)const
+{
+	KRATOS_TRY
+
+	size_t conditionId = 1;
+
+	if(modelPart.NumberOfConditions() > 0)
+		modelPart.Conditions().clear();
+
+	/**
+	* Notes:
+	* All the previous calculations for boundary detection were made on a 'protptype' model part.
+	* The model part passed to this function is not the original model part, but
+	* it is assumed to be a clone of the prototype one (see rve_utilities_model_part.h).
+	* If it is not the case, this algorithm will not work.
+	*/
+
+	// corner nodes
+	{
+		Condition::NodesArrayType nodes;
+
+		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, this->mpBottomLeftCorner);
+		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, this->mpBottomRightCorner);
+		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, this->mpTopRightCorner);
+		FIND_NODE_AND_ADD_OR_THROW_ERROR(modelPart, nodes, this->mpTopLeftCorner);
+
+		Geometry<NodeType>::Pointer geom( new Geometry<NodeType>(nodes) );
+		RveCornerCondition2D4N::Pointer cond(new RveCornerCondition2D4N(conditionId++, geom));
+		this->SetMacroscaleStatusOnCondition(cond, status);
+
+		modelPart.AddCondition(cond);
+	}
+
+	// get master lagrangian node
+
+	IndexType master_id = this->GetLagrangianNodeID();
+	NodePointerType master_node;
+	GET_NODE_OR_THROW_ERROR(modelPart, master_node,  master_id);
+
+	// add conditions
+
+#define ADD_WEAK_PERIODIC_CONDITION(EDGE,OFF_1,OFF_2) \
+	for(size_t i = 1; i < EDGE.size(); i++) \
+	{ \
+		Condition::NodesArrayType nodes; \
+		nodes.push_back(EDGE[i-OFF_1]); \
+		nodes.push_back(EDGE[i-OFF_2]); \
+		nodes.push_back(master_node); \
+		Geometry<NodeType>::Pointer geom( new Geometry<NodeType>(nodes) ); \
+		RveWeakPeriodicCondition2D2N::Pointer cond(new RveWeakPeriodicCondition2D2N(conditionId++, geom)); \
+		this->SetMacroscaleStatusOnCondition(cond, status); \
+		modelPart.AddCondition(cond); \
+	} 
+#define ADD_WEAK_PERIODIC_CONDITION_DIRECT(EDGE) ADD_WEAK_PERIODIC_CONDITION(EDGE,1,0)
+#define ADD_WEAK_PERIODIC_CONDITION_REVERSED(EDGE) ADD_WEAK_PERIODIC_CONDITION(EDGE,0,1)
+
+	ADD_WEAK_PERIODIC_CONDITION_DIRECT(this->mBottomEdge);
+	ADD_WEAK_PERIODIC_CONDITION_DIRECT(this->mRightEdge);
+	ADD_WEAK_PERIODIC_CONDITION_REVERSED(this->mLeftEdge);
+	ADD_WEAK_PERIODIC_CONDITION_REVERSED(this->mTopEdge);
+
+#undef ADD_WEAK_PERIODIC_CONDITION
+#undef ADD_WEAK_PERIODIC_CONDITION_DIRECT
+#undef ADD_WEAK_PERIODIC_CONDITION_REVERSED
+
+	KRATOS_CATCH("")
 }
 
 } // namespace Kratos

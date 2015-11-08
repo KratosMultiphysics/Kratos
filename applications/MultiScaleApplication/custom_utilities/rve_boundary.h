@@ -104,9 +104,23 @@ namespace Kratos
 
 		virtual void AddConditions(ModelPart& modelPart, Vector& strainVector)const;
 
+	public:
+
+		inline const IndexType GetLagrangianNodeID()const { return mLagrangianNodeID; }
+		inline void SetLagrangianNodeID(IndexType id) { mLagrangianNodeID = id ; }
+
+		inline const bool GetHasLagrangianNodeID()const { return mHasLagrangianNodeID; }
+		inline void SetHasLagrangianNodeID(bool val) { mHasLagrangianNodeID = val; }
+		
+
 	protected:
 
 		void SetMacroscaleStatusOnCondition(const RveConditionBase::Pointer& cond, const RveMacroscaleStatus::Pointer& status)const;
+
+	protected:
+
+		IndexType mLagrangianNodeID;
+		bool mHasLagrangianNodeID;
 
     };
 
