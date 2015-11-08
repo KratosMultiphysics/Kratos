@@ -59,11 +59,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "add_constitutive_laws_to_python.h"
 #include "constitutive_laws/j2_constitutive_law_3d.h"
-#include "constitutive_laws/isotropic_damage_plane_stress_2d_law.h"
+#include "constitutive_laws/damage_iso_plane_stress_2d_law.h"
+#include "constitutive_laws/damage_tc_plane_stress_2d_law.h"
+#include "constitutive_laws/damage_tc_3d_law.h"
 #include "constitutive_laws/scalar_damage_interface_2d_law.h"
 #include "constitutive_laws/scalar_damage_interface_3d_law.h"
+#include "constitutive_laws/plastic_damage_interface_2d_law.h"
 #include "constitutive_laws/shell_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/planestress_from_3d_constitutive_law_adapter.h"
+#include "constitutive_laws/planestrain_from_3d_constitutive_law_adapter.h"
 #include "multiscale_application.h"
 
 namespace Kratos
@@ -82,8 +86,18 @@ void AddConstitutiveLawsToPython()
 		init<>())
 		;
 
-	class_< IsotropicDamagePlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
-		"IsotropicDamagePlaneStress2DLaw",
+	class_< DamageIsoPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"DamageIsoPlaneStress2DLaw",
+		init<>())
+		;
+
+	class_< DamageTCPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"DamageTCPlaneStress2DLaw",
+		init<>())
+		;
+
+	class_< DamageTC3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"DamageTC3DLaw",
 		init<>())
 		;
 
@@ -94,6 +108,11 @@ void AddConstitutiveLawsToPython()
 	
 	class_< ScalarDamageInterface3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ScalarDamageInterface3DLaw",
+		init<>())
+		;
+
+	class_< PlasticDamageInterface2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"PlasticDamageInterface2DLaw",
 		init<>())
 		;
 
@@ -108,6 +127,13 @@ void AddConstitutiveLawsToPython()
 	class_< PlaneStressFrom3DConstitutiveLawAdapterType, PlaneStressFrom3DConstitutiveLawAdapterType::Pointer,
 		    bases< ConstitutiveLaw >, boost::noncopyable >(
 			"PlaneStressFrom3DConstitutiveLawAdapter",
+			init<const ConstitutiveLaw::Pointer&>())
+			;
+
+	typedef PlaneStrainFrom3DConstitutiveLawAdapter<ConstitutiveLaw> PlaneStrainFrom3DConstitutiveLawAdapterType;
+	class_< PlaneStrainFrom3DConstitutiveLawAdapterType, PlaneStrainFrom3DConstitutiveLawAdapterType::Pointer,
+		    bases< ConstitutiveLaw >, boost::noncopyable >(
+			"PlaneStrainFrom3DConstitutiveLawAdapter",
 			init<const ConstitutiveLaw::Pointer&>())
 			;
 

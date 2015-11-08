@@ -56,11 +56,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 
 // Project includes
+
 #include "linear_solvers/linear_solver.h"
 #include "add_strategies_to_python.h"
+
 #include "custom_strategies/strategies/static_general_strategy.h"
+#include "custom_strategies/strategies/static_general_strategy_krylov_newton.h"
+#include "custom_strategies/strategies/arc_length_strategy.h"
+#include "custom_strategies/strategies/arc_length_riks_strategy.h"
+#include "custom_strategies/strategies/arc_length_diss_nrg_strategy.h"
+#include "custom_strategies/strategies/displacement_control_strategy.h"
+
 #include "custom_strategies/builder_and_solvers/static_general_builder_and_solver.h"
+
 #include "custom_strategies/schemes/static_general_scheme.h"
+
 #include "custom_strategies/convergencecriterias/residual_norm_criteria.h"
 #include "custom_strategies/convergencecriterias/displacement_norm_criteria.h"
 #include "custom_strategies/convergencecriterias/energy_norm_criteria.h"
@@ -95,8 +105,6 @@ void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::Nodes
 
 void AddStrategiesToPython()
 {
-
-	
 
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType >							LinearSolverType;
 	typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >	BaseSolvingStrategyType;
@@ -140,6 +148,67 @@ void AddStrategiesToPython()
 		.def("GetMaxIterationNumber", &StaticGeneralStrategyType::GetMaxIterationNumber)
 		.def("SetKeepSystemConstantDuringIterations", &StaticGeneralStrategyType::SetKeepSystemConstantDuringIterations)
 		.def("GetKeepSystemConstantDuringIterations", &StaticGeneralStrategyType::GetKeepSystemConstantDuringIterations)
+		;
+	
+	typedef StaticGeneralStrategyKrylovNewton< SparseSpaceType, LocalSpaceType, LinearSolverType > StaticGeneralStrategyKrylovNewtonType;
+	class_< StaticGeneralStrategyKrylovNewtonType, bases< BaseSolvingStrategyType >, boost::noncopyable >(
+		"StaticGeneralStrategyKrylovNewton",
+		init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
+		.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+		.def("SetMaxIterationNumber", &StaticGeneralStrategyKrylovNewtonType::SetMaxIterationNumber)
+		.def("GetMaxIterationNumber", &StaticGeneralStrategyKrylovNewtonType::GetMaxIterationNumber)
+		.def("SetKeepSystemConstantDuringIterations", &StaticGeneralStrategyKrylovNewtonType::SetKeepSystemConstantDuringIterations)
+		.def("GetKeepSystemConstantDuringIterations", &StaticGeneralStrategyKrylovNewtonType::GetKeepSystemConstantDuringIterations)
+		;
+
+	typedef ArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthStrategyType;
+	class_< ArcLengthStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >(
+		"ArcLengthStrategy",
+		init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, double, double, double, double, int, bool, bool, bool>())
+		.def("SetMaxIterationNumber", &ArcLengthStrategyType::SetMaxIterationNumber)
+		.def("GetMaxIterationNumber", &ArcLengthStrategyType::GetMaxIterationNumber)
+		.def("SetKeepSystemConstantDuringIterations", &ArcLengthStrategyType::SetKeepSystemConstantDuringIterations)
+		.def("GetKeepSystemConstantDuringIterations", &ArcLengthStrategyType::GetKeepSystemConstantDuringIterations)
+		.def("PrepareFirstSolve", &ArcLengthStrategyType::PrepareFirstSolve)
+		;
+
+	typedef ArcLengthRiksStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthRiksStrategyType;
+	class_< ArcLengthRiksStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >(
+		"ArcLengthRiksStrategy",
+		init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
+		.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+		.def("SetMaxIterationNumber", &ArcLengthRiksStrategyType::SetMaxIterationNumber)
+		.def("GetMaxIterationNumber", &ArcLengthRiksStrategyType::GetMaxIterationNumber)
+		.def("SetKeepSystemConstantDuringIterations", &ArcLengthRiksStrategyType::SetKeepSystemConstantDuringIterations)
+		.def("GetKeepSystemConstantDuringIterations", &ArcLengthRiksStrategyType::GetKeepSystemConstantDuringIterations)
+		.def("PrepareFirstSolve", &ArcLengthRiksStrategyType::PrepareFirstSolve)
+		.def("SetLoadFactors", &ArcLengthRiksStrategyType::SetLoadFactors)
+		;
+	
+	typedef ArcLengthDissNrgStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthDissNrgStrategyType;
+	class_< ArcLengthDissNrgStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >(
+		"ArcLengthDissNrgStrategy",
+		init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
+		.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+		.def("SetMaxIterationNumber", &ArcLengthDissNrgStrategyType::SetMaxIterationNumber)
+		.def("GetMaxIterationNumber", &ArcLengthDissNrgStrategyType::GetMaxIterationNumber)
+		.def("SetKeepSystemConstantDuringIterations", &ArcLengthDissNrgStrategyType::SetKeepSystemConstantDuringIterations)
+		.def("GetKeepSystemConstantDuringIterations", &ArcLengthDissNrgStrategyType::GetKeepSystemConstantDuringIterations)
+		.def("PrepareFirstSolve", &ArcLengthDissNrgStrategyType::PrepareFirstSolve)
+		.def("SetLoadFactors", &ArcLengthDissNrgStrategyType::SetLoadFactors)
+		;
+
+	typedef DisplacementControlStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DisplacementControlStrategyType;
+	class_< DisplacementControlStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >(
+		"DisplacementControlStrategy",
+		init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool, unsigned int, unsigned int, double>())
+		.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool, unsigned int, unsigned int, double >())
+		.def("SetMaxIterationNumber", &DisplacementControlStrategyType::SetMaxIterationNumber)
+		.def("GetMaxIterationNumber", &DisplacementControlStrategyType::GetMaxIterationNumber)
+		.def("SetKeepSystemConstantDuringIterations", &DisplacementControlStrategyType::SetKeepSystemConstantDuringIterations)
+		.def("GetKeepSystemConstantDuringIterations", &DisplacementControlStrategyType::GetKeepSystemConstantDuringIterations)
+		.def("PrepareFirstSolve", &DisplacementControlStrategyType::PrepareFirstSolve)
+		.def("SetLoadFactors", &DisplacementControlStrategyType::SetLoadFactors)
 		;
 
 	// =========================================================================================================
