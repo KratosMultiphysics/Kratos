@@ -220,5 +220,3 @@ int RvePeriodicConditionDX2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 }
 
 }
-
-
