@@ -3,7 +3,9 @@ import datetime
 import time
 import TK_TimeLines
 from KratosMultiphysics import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.MultiScaleApplication import *
+from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 # ======================================================================================
@@ -26,6 +28,9 @@ def Variables():
 			# New...
 			REACTION_DISPLACEMENT_LAGRANGE,
 			REACTION_ROTATION_LAGRANGE,
+			# Thermic
+			TEMPERATURE,
+			TEMPERATURE_REACTION,
 			])
 
 # ======================================================================================
@@ -68,6 +73,8 @@ def DofsWithReactions():
 			(ROTATION_LAGRANGE_X,     REACTION_ROTATION_LAGRANGE_X    ),
 			(ROTATION_LAGRANGE_Y,     REACTION_ROTATION_LAGRANGE_Y    ),
 			(ROTATION_LAGRANGE_Z,     REACTION_ROTATION_LAGRANGE_Z    ),
+			# Thermic
+			(TEMPERATURE, TEMPERATURE_REACTION),
 			])
 
 # ======================================================================================
@@ -78,62 +85,68 @@ def DofsWithReactions():
 #
 # ======================================================================================
 
-class ALGO_TYPE:
-	FULL_NEWTON=1
-	KRYLOV_NEWTON=2
-	SECANT_NEWTON=3
-
 class SolutionStage:
 
 	# ==================================================================================
 	
 	def __init__(
 				self, 
-				ModelPart,
+				ModelPartMechanical,
+				ModelPartThermal,
 				TimeLine = TK_TimeLines.FixedTimeLine(
 					Duration = 1.0,
 					Increment = 1.0
 					),
-				Convergence = ResidualNormCriteria(1.0E-4, 1.0E-4),
+				ConvergenceCriteriaMechanical = ResidualNormCriteria(1.0E-4, 1.0E-4),
+				ConvergenceCriteriaThermal = ResidualNormCriteria(1.0E-4, 1.0E-4),
 				MaxIterations = 30,
 				DesiredIterations = 10,
 				CalculateReactions = True,
 				ReformDofSetAtEachStep = False,
 				MoveMesh = True,
 				ResultsIO = None,
-				LinearSolver = SkylineLUFactorizationSolver(),
+				LinearSolverMechanical = SkylineLUFactorizationSolver(),
+				LinearSolverThermal = SkylineLUFactorizationSolver(),
 				CalculateTangent = True,
 				Parallel = True,
-				CustomOp = None,
-				Algorithm = ALGO_TYPE.FULL_NEWTON):
+				CustomOpMechanical = None,
+				CustomOpThermal = None):
 		
 		# Parallelism
 		self.Parallel = Parallel
 		
-		# Model Part
-		self.ModelPart = ModelPart
+		# Model Parts
+		self.ModelPartMechanical = ModelPartMechanical
+		self.ModelPartThermal = ModelPartThermal
 		
 		# Time line
 		self.TimeLine = TimeLine
 		
 		# Time Scheme
-		self.TimeScheme = StaticGeneralScheme()
-		self.TimeScheme.Check(self.ModelPart)
+		self.TimeSchemeMechanical = StaticGeneralScheme()
+		self.TimeSchemeMechanical.Check(self.ModelPartMechanical)
+		self.TimeSchemeThermal = StaticGeneralScheme() # per adesso va bene -> (i)->SolutionStepValue += Dx(i)
+		self.TimeSchemeThermal.Check(self.ModelPartThermal)
 		
-		# Linear Solver
-		self.LinearSolver = LinearSolver
+		# LinearSolver
+		self.LinearSolverMechanical = LinearSolverMechanical
+		self.LinearSolverThermal = LinearSolverThermal
 		
-		# Convergence Criteria
-		self.Convergence = Convergence
-		self.Convergence.Check(self.ModelPart)
+		# ConvergenceCriteria
+		self.ConvergenceCriteriaMechanical = ConvergenceCriteriaMechanical
+		self.ConvergenceCriteriaMechanical.Check(self.ModelPartMechanical)
+		self.ConvergenceCriteriaThermal = ConvergenceCriteriaThermal
+		self.ConvergenceCriteriaThermal.Check(self.ModelPartThermal)
 		
-		# Builder and Solver
+		# BuilderAndSolver
 		if(self.Parallel):
-			self.BuilderAndSolver = StaticGeneralBuilderAndSolver(self.LinearSolver)
+			self.BuilderAndSolverMechanical = StaticGeneralBuilderAndSolver(self.LinearSolverMechanical)
+			self.BuilderAndSolverThermal = StaticGeneralBuilderAndSolver(self.LinearSolverThermal)# per adesso va bene
 		else:
-			self.BuilderAndSolver = StaticGeneralBuilderAndSolverSequential(self.LinearSolver)
+			self.BuilderAndSolverMechanical = StaticGeneralBuilderAndSolverSequential(self.LinearSolverMechanical)
+			self.BuilderAndSolverThermal = StaticGeneralBuilderAndSolverSequential(self.LinearSolverThermal)# per adesso va bene
 		
-		# Misc. Solver parameters
+		# Misc. SolverParameters
 		self.MaxIterations = MaxIterations
 		self.CalculateReactions = CalculateReactions
 		self.ReformDofSetAtEachStep = ReformDofSetAtEachStep
@@ -142,49 +155,39 @@ class SolutionStage:
 		# Results IO
 		self.ResultsIO = ResultsIO
 		
-		# Create and initialize the solver
-		if(Algorithm == ALGO_TYPE.FULL_NEWTON):
-			self.Solver = StaticGeneralStrategy(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
-		elif(Algorithm == ALGO_TYPE.KRYLOV_NEWTON):
-			self.Solver = StaticGeneralStrategyKrylovNewton(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
-		elif(Algorithm == ALGO_TYPE.SECANT_NEWTON):
-			self.Solver = StaticGeneralStrategySecantNewton(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
+		# Create and initialize the mechanical solver
+		self.SolverMechanical = StaticGeneralStrategy(
+			self.ModelPartMechanical,
+			self.TimeSchemeMechanical,
+			self.LinearSolverMechanical,
+			self.ConvergenceCriteriaMechanical,
+			self.BuilderAndSolverMechanical,
+			self.MaxIterations,
+			self.CalculateReactions,
+			self.ReformDofSetAtEachStep,
+			self.MoveMesh)
+		self.SolverMechanical.SetKeepSystemConstantDuringIterations(not CalculateTangent)
+		self.SolverMechanical.Check();
+		self.SolverMechanical.SetEchoLevel(1);
+		# Create and initialize the thermal solver
+		self.SolverThermal = StaticGeneralStrategy(
+			self.ModelPartThermal,
+			self.TimeSchemeThermal,
+			self.LinearSolverThermal,
+			self.ConvergenceCriteriaThermal,
+			self.BuilderAndSolverThermal,
+			self.MaxIterations,
+			self.CalculateReactions,
+			self.ReformDofSetAtEachStep,
+			self.MoveMesh)
+		self.SolverThermal.SetKeepSystemConstantDuringIterations(not CalculateTangent)
+		self.SolverThermal.Check();
+		self.SolverThermal.SetEchoLevel(1);
 		
-		self.Solver.SetKeepSystemConstantDuringIterations(not CalculateTangent)
-		
-		self.Solver.Check();
-		self.Solver.SetEchoLevel(1);
-		
+		# misc
 		self.IsConverged = False
-		
-		self.CustomOp = CustomOp
+		self.CustomOpMechanical = CustomOpMechanical
+		self.CustomOpThermal = CustomOpThermal
 		
 		# @todo: put it in the c-tor
 		self.AdaptiveIncrementation = True 
@@ -207,22 +210,28 @@ class SolutionStage:
 	# ==================================================================================
 	
 	def SetTimeBoundsOnProcessInfo(self, initial_time, end_time):
-		self.ModelPart.ProcessInfo[START_TIME] = initial_time
-		self.ModelPart.ProcessInfo[END_TIME]   = end_time
+		self.ModelPartMechanical.ProcessInfo[START_TIME] = initial_time
+		self.ModelPartMechanical.ProcessInfo[END_TIME]   = end_time
 	
 	# ==================================================================================
 	
 	def Initialize(self):
-		if(self.CustomOp is not None):
-			for cop in self.CustomOp:
-				cop.Initialize(self.ModelPart)
+		if(self.CustomOpMechanical is not None):
+			for cop in self.CustomOpMechanical:
+				cop.Initialize(self.ModelPartMechanical)
+		if(self.CustomOpThermal is not None):
+			for cop in self.CustomOpThermal:
+				cop.Initialize(self.ModelPartThermal)
 	
 	# ==================================================================================
 	
 	def Finalize(self):
-		if(self.CustomOp is not None):
-			for cop in self.CustomOp:
-				cop.Finalize(self.ModelPart)
+		if(self.CustomOpMechanical is not None):
+			for cop in self.CustomOpMechanical:
+				cop.Finalize(self.ModelPartMechanical)
+		if(self.CustomOpThermal is not None):
+			for cop in self.CustomOpThermal:
+				cop.Finalize(self.ModelPartThermal)
 	
 	# ==================================================================================
 	
@@ -244,13 +253,6 @@ class SolutionStage:
 		increment_min = self.TimeLine.MinIncrement
 		increment_max = self.TimeLine.MaxIncrement
 		
-		self.ModelPart.ProcessInfo[TIME] = current_time
-		
-		# call custom operations on stage initialization
-		if(self.CustomOp is not None):
-			for cop in self.CustomOp:
-				cop.OnBeforeSolutionStage(self.ModelPart)
-		
 		# begin time incrementation loop
 		while True:
 			
@@ -264,27 +266,39 @@ class SolutionStage:
 			increment_id += 1
 			
 			# set some data to the process info
-			self.ModelPart.CloneTimeStep(current_time)
-			self.ModelPart.ProcessInfo[TIME_STEPS] = increment_id
-			self.ModelPart.ProcessInfo[TIME] = current_time
-			self.ModelPart.ProcessInfo[DELTA_TIME] = current_delta_time
+			self.ModelPartMechanical.CloneTimeStep(current_time)
+			self.ModelPartMechanical.ProcessInfo[TIME_STEPS] = increment_id
+			self.ModelPartMechanical.ProcessInfo[TIME] = current_time
+			self.ModelPartMechanical.ProcessInfo[DELTA_TIME] = current_delta_time
+			self.ModelPartThermal.ProcessInfo = self.ModelPartMechanical.ProcessInfo
 			
 			# custom operations
-			for cop in self.CustomOp:
-				cop.OnBeforeSolutionStep(self.ModelPart)
+			for cop in self.CustomOpMechanical:
+				cop.OnBeforeSolutionStep(self.ModelPartMechanical)
+			for cop in self.CustomOpThermal:
+				cop.OnBeforeSolutionStep(self.ModelPartThermal)
 			
 			# solve the current time step
-			self.Solver.Solve()
+			temp_converged_flag = False
+			self.SolverThermal.Solve()
+			temp_converged_flag = self.SolverThermal.IsConverged()
+			temp_nl_iter_number = float(self.SolverThermal.ProcessInfo[NL_ITERATION_NUMBER])
+			if(temp_converged_flag):
+				self.SolverMechanical.Solve()
+				temp_converged_flag = self.SolverMechanical.IsConverged()
+				temp_nl_iter_number = max(temp_nl_iter_number,float(self.SolverMechanical.ProcessInfo[NL_ITERATION_NUMBER]))
 			
-			if(self.Solver.IsConverged()):
+			if(temp_converged_flag):
 				
 				# finalize the current step
 				# write results
 				if(self.ResultsIO != None):
 					self.ResultsIO.Write(current_time)
 				# custom operations
-				for cop in self.CustomOp:
-					cop.OnSolutionStepCompleted(self.ModelPart)
+				for cop in self.CustomOpMechanical:
+					cop.OnSolutionStepCompleted(self.ModelPartMechanical)
+				for cop in self.CustomOpThermal:
+					cop.OnSolutionStepCompleted(self.ModelPartThermal)
 				
 				# exit the incrementation loop if the end time has been reached
 				self.IsConverged = True
@@ -294,7 +308,7 @@ class SolutionStage:
 				# adapt the next time increment size
 				if(self.AdaptiveIncrementation):
 					target_iter = float(self.DesiredIterations)
-					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
+					needed_iter = temp_nl_iter_number
 					if(needed_iter > 0):
 						increment_mult *= target_iter/needed_iter
 					new_delta_time = delta_time * increment_mult
@@ -309,15 +323,9 @@ class SolutionStage:
 				if(self.AdaptiveIncrementation):
 					
 					target_iter = float(self.DesiredIterations)
-					needed_iter = float(self.ModelPart.ProcessInfo[NL_ITERATION_NUMBER])
-					if(needed_iter > 0):
-						increment_mult *= target_iter/needed_iter
+					needed_iter = temp_nl_iter_number
+					increment_mult *= target_iter/needed_iter
 					new_delta_time = delta_time * increment_mult
-					
-					# check for suggested time step
-					suggested_time_step = GetSuggestedTimeStep(self.ModelPart,increment_min,increment_max)
-					if(new_delta_time > suggested_time_step):
-						new_delta_time = suggested_time_step
 					
 					if(new_delta_time < increment_min):
 						
@@ -351,75 +359,6 @@ class SolutionStage:
 		# stage finalizations
 		timer_end = time.time()
 		self.PrintFooter(timer_end - timer_start)
-		
-		# call custom operations on stage finalization
-		if(self.CustomOp is not None):
-			for cop in self.CustomOp:
-				cop.OnSolutionStageCompleted(self.ModelPart)
-		
-	# ==================================================================================
-	
-	def Solve_OLD(self):
-		
-		self.PrintHeader()
-		
-		self.IsConverged = True
-		
-		timer_beg = time.time()
-		
-		last_time_step = self.TimeLine.InitialTime
-		time_step_counter = 0
-		
-		while True:
-			
-			hasNextTimeStep, NextTimeStep = self.TimeLine.NextTimeStep(
-				LastIterationConverged = self.IsConverged
-				)
-			
-			if(hasNextTimeStep == False):
-				self.PrintNonConvergence()
-				self.IsConverged = False
-				break
-			
-			self.ModelPart.CloneTimeStep(NextTimeStep)
-			
-			time_step_counter += 1
-			self.ModelPart.ProcessInfo[TIME_STEPS] = time_step_counter
-			
-			# custom operation : OnBeforeSolutionStep
-			
-			for cop in self.CustomOp:
-				cop.OnBeforeSolutionStep(self.ModelPart)
-			
-			# solve
-			
-			self.Solver.Solve()
-			
-			if(self.Solver.IsConverged() == False):
-				self.PrintNonConvergence()
-				self.IsConverged = False
-				continue
-			
-			last_time_step = NextTimeStep
-			self.IsConverged = True
-			
-			if(self.ResultsIO != None):
-				self.ResultsIO.Write(NextTimeStep)
-			
-			# end solve
-			
-			# custom operation : OnSolutionStepCompleted
-			
-			for cop in self.CustomOp:
-				cop.OnSolutionStepCompleted(self.ModelPart)
-			
-			if(self.TimeLine.Finished):
-				self.IsConverged = True
-				break
-		
-		timer_end = time.time()
-		
-		self.PrintFooter(timer_end - timer_beg)
 	
 	# ==================================================================================
 	

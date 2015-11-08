@@ -14,7 +14,8 @@ class ResultsIO:
 				 ModelPart, 
 				 OutputFileName,
 				 ResultsOnNodes = [], 
-				 ResultsOnGaussPoints = []):
+				 ResultsOnGaussPoints = [],
+				 Frequency = None):
 		
 		self.ModelPart = ModelPart
 		self.OutputFileName = OutputFileName
@@ -31,6 +32,9 @@ class ResultsIO:
 			WriteConditionsFlag.WriteElementsOnly)
 		
 		self.IsInitialized = False
+		
+		self.Frequency = Frequency
+		self.Tn = None
 		
 	# ==================================================================================
 	
@@ -56,9 +60,23 @@ class ResultsIO:
 			
 	# ==================================================================================
 	
+	def __check_write_freq(self,t):
+		r = True
+		f = self.Frequency
+		if(f is not None):
+			if(self.Tn is None):
+				self.Tn = t
+			else:
+				dt = t-self.Tn
+				if(dt >= f):
+					self.Tn = t
+				else:
+					r = False
+		return r
+	
 	def Write(self, theCurrentTime):
 		
-		if(self.IsInitialized):
+		if(self.IsInitialized and self.__check_write_freq(theCurrentTime)):
 			
 			for result in self.ResultsOnNodes:
 				self.myIO.WriteNodalResults(result, 
@@ -69,3 +87,5 @@ class ResultsIO:
 				self.myIO.PrintOnGaussPoints(result, 
 											 self.ModelPart, 
 											 theCurrentTime)
+			
+			self.myIO.Flush();

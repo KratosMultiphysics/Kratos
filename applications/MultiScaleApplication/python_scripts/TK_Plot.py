@@ -15,6 +15,12 @@ class GNUPlot_Folder:
 		if not os.path.exists(self.Name):
 			os.mkdir(self.Name)
 		
+	def OnBeforeSolutionStage(self, Model):
+		pass
+		
+	def OnSolutionStageCompleted(self, Model):
+		pass
+		
 	def OnBeforeSolutionStep(self, Model):
 		pass
 		
@@ -23,7 +29,6 @@ class GNUPlot_Folder:
 		
 	def Finalize(self, Model):
 		pass
-
 
 class GNUPlot_Nodal:
 
@@ -34,6 +39,7 @@ class GNUPlot_Nodal:
 				 VarY=None,
 				 NodeX=None,
 				 NodeY=None,
+				 Frequency = None,
 				 ):
 		self.BaseName = BaseName
 		self.Name = Name
@@ -42,6 +48,22 @@ class GNUPlot_Nodal:
 		self.NodeX = NodeX
 		self.NodeY = NodeY
 		self.ofile = None
+		self.Frequency = Frequency
+		self.Tn = None
+	
+	def __check_write_freq(self,t):
+		r = True
+		f = self.Frequency
+		if(f is not None):
+			if(self.Tn is None):
+				self.Tn = t
+			else:
+				dt = t-self.Tn
+				if(dt >= f):
+					self.Tn = t
+				else:
+					r = False
+		return r
 		
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
@@ -52,19 +74,27 @@ class GNUPlot_Nodal:
 		yy = Model.Nodes[self.NodeY].GetSolutionStepValue(self.VarY)
 		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 		self.ofile.flush()
+		self.Tn = Model.ProcessInfo[TIME]
+	
+	def OnBeforeSolutionStage(self, Model):
+		pass
+		
+	def OnSolutionStageCompleted(self, Model):
+		pass
 	
 	def OnBeforeSolutionStep(self, Model):
 		pass
 	
 	def OnSolutionStepCompleted(self, Model):
-		xx = Model.Nodes[self.NodeX].GetSolutionStepValue(self.VarX)
-		yy = Model.Nodes[self.NodeY].GetSolutionStepValue(self.VarY)
-		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
-		self.ofile.flush()
+		t = Model.ProcessInfo[TIME]
+		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
+			xx = Model.Nodes[self.NodeX].GetSolutionStepValue(self.VarX)
+			yy = Model.Nodes[self.NodeY].GetSolutionStepValue(self.VarY)
+			self.ofile.write(str(xx) + "   " + str(yy) + '\n')
+			self.ofile.flush()
 	
 	def Finalize(self, Model):
 		self.ofile.close()
-
 
 class GNUPlot_Nodal_Multiple:
 
@@ -75,6 +105,11 @@ class GNUPlot_Nodal_Multiple:
 				 VarY=None,
 				 NodesX=None,
 				 NodesY=None,
+				 FactorX=1.0,
+				 FactorY=1.0,
+				 XSumFactor=1.0,
+				 YSumFactor=1.0,
+				 Frequency = None,
 				 ):
 		self.BaseName = BaseName
 		self.Name = Name
@@ -82,38 +117,69 @@ class GNUPlot_Nodal_Multiple:
 		self.VarY = VarY
 		self.NodesX = NodesX
 		self.NodesY = NodesY
+		self.FactorX = FactorX
+		self.FactorY = FactorY
 		self.ofile = None
-		
+		self.XSumFactor=XSumFactor
+		self.YSumFactor=YSumFactor
+		self.Frequency = Frequency
+		self.Tn = None
+	
+	def __check_write_freq(self,t):
+		r = True
+		f = self.Frequency
+		if(f is not None):
+			if(self.Tn is None):
+				self.Tn = t
+			else:
+				dt = t-self.Tn
+				if(dt >= f):
+					self.Tn = t
+				else:
+					r = False
+		return r
+	
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
-		filename = self.BaseName + os.sep + self.Name + ".grf"
+		# filename = self.BaseName + os.sep + self.Name + ".grf"
+		filename = self.BaseName + os.sep + self.Name
 		self.ofile = open(filename, "w+")
 		sum_x = 0.0
 		sum_y = 0.0
+		x_sum_fac = self.XSumFactor
+		y_sum_fac = self.YSumFactor
 		for i in self.NodesX:
-			sum_x += Model.Nodes[i].GetSolutionStepValue(self.VarX)
+			sum_x += x_sum_fac*(Model.Nodes[i].GetSolutionStepValue(self.VarX))
 		for i in self.NodesY:
-			sum_y += Model.Nodes[i].GetSolutionStepValue(self.VarY)
-		self.ofile.write(str(sum_x) + "   " + str(sum_y) + '\n')
+			sum_y += y_sum_fac*(Model.Nodes[i].GetSolutionStepValue(self.VarY))
+		self.ofile.write(str(self.FactorX*sum_x) + "   " + str(self.FactorY*sum_y) + '\n')
 		self.ofile.flush()
+		self.Tn = Model.ProcessInfo[TIME]
+	
+	def OnBeforeSolutionStage(self, Model):
+		pass
+		
+	def OnSolutionStageCompleted(self, Model):
+		pass
 	
 	def OnBeforeSolutionStep(self, Model):
 		pass
 	
 	def OnSolutionStepCompleted(self, Model):
-		sum_x = 0.0
-		sum_y = 0.0
-		for i in self.NodesX:
-			sum_x += Model.Nodes[i].GetSolutionStepValue(self.VarX)
-		for i in self.NodesY:
-			sum_y += Model.Nodes[i].GetSolutionStepValue(self.VarY)
-		self.ofile.write(str(sum_x) + "   " + str(sum_y) + '\n')
-		self.ofile.flush()
+		t = Model.ProcessInfo[TIME]
+		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
+			sum_x = 0.0
+			sum_y = 0.0
+			for i in self.NodesX:
+				sum_x += Model.Nodes[i].GetSolutionStepValue(self.VarX)
+			for i in self.NodesY:
+				sum_y += Model.Nodes[i].GetSolutionStepValue(self.VarY)
+			self.ofile.write(str(self.FactorX*sum_x) + "   " + str(self.FactorY*sum_y) + '\n')
+			self.ofile.flush()
 	
 	def Finalize(self, Model):
 		self.ofile.close()
-
 
 class GNUPlot_Elemental:
 
@@ -126,9 +192,91 @@ class GNUPlot_Elemental:
 				 ComponentY=None,
 				 ElementID=None,
 				 GpID=None,
+				 Frequency = None,
 				 ):
 		self.BaseName = BaseName
 		self.Name = Name
+		self.VarX = VarX
+		self.VarY = VarY
+		self.ElementID = ElementID
+		self.GpID = GpID
+		self.ofile = None
+		self.ComponentX = ComponentX
+		self.ComponentY = ComponentY
+		self.Frequency = Frequency
+		self.Tn = None
+	
+	def __check_write_freq(self,t):
+		r = True
+		f = self.Frequency
+		if(f is not None):
+			if(self.Tn is None):
+				self.Tn = t
+			else:
+				dt = t-self.Tn
+				if(dt >= f):
+					self.Tn = t
+				else:
+					r = False
+		return r
+	
+	def Initialize(self, Model):
+		if not os.path.exists(self.BaseName):
+			os.mkdir(self.BaseName)
+		filename = self.BaseName + os.sep + self.Name + "_" + str(self.ElementID) + "_" + str(self.GpID) + ".grf"
+		self.ofile = open(filename, "w+")
+		xx = 0.0
+		yy = 0.0
+		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
+		self.ofile.flush()
+		self.Tn = Model.ProcessInfo[TIME]
+	
+	def OnBeforeSolutionStage(self, Model):
+		pass
+		
+	def OnSolutionStageCompleted(self, Model):
+		pass
+	
+	def OnBeforeSolutionStep(self, Model):
+		pass
+	
+	def OnSolutionStepCompleted(self, Model):
+		t = Model.ProcessInfo[TIME]
+		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
+			allx = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(self.VarX, Model.ProcessInfo)
+			ally = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(self.VarY, Model.ProcessInfo)
+			mx = allx[self.GpID]
+			my = ally[self.GpID]
+			if self.ComponentX is None:
+				xx = mx
+			else:
+				xx = mx[self.ComponentX]
+			if self.ComponentY is None:
+				yy = my
+			else:
+				yy = my[self.ComponentY]
+			self.ofile.write(str(xx) + "   " + str(yy) + '\n')
+			self.ofile.flush()
+	
+	def Finalize(self, Model):
+		self.ofile.close()
+
+class Plot_StrainVsStress:
+
+	def __init__(self,
+				 BaseName=None,
+				 Name=None,
+				 Dim=None,
+				 VarX=None,
+				 VarY=None,
+				 ComponentX=None,
+				 ComponentY=None,
+				 ElementID=None,
+				 GpID=None,
+				 ):
+		self.BaseName = BaseName
+		self.Name = Name
+		self.Dim = Dim
 		self.VarX = VarX
 		self.VarY = VarY
 		self.ElementID = ElementID
@@ -146,6 +294,12 @@ class GNUPlot_Elemental:
 		yy = 0.0
 		self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 		self.ofile.flush()
+	
+	def OnBeforeSolutionStage(self, Model):
+		pass
+		
+	def OnSolutionStageCompleted(self, Model):
+		pass
 	
 	def OnBeforeSolutionStep(self, Model):
 		pass
@@ -169,7 +323,6 @@ class GNUPlot_Elemental:
 	def Finalize(self, Model):
 		self.ofile.close()
 
-
 class GNUPlot_YieldSurf2D:
 
 	def __init__(self,
@@ -186,6 +339,12 @@ class GNUPlot_YieldSurf2D:
 	def Initialize(self, Model):
 		if not os.path.exists(self.BaseName):
 			os.mkdir(self.BaseName)
+	
+	def OnBeforeSolutionStage(self, Model):
+		pass
+		
+	def OnSolutionStageCompleted(self, Model):
+		pass
 	
 	def OnBeforeSolutionStep(self, Model):
 		pass

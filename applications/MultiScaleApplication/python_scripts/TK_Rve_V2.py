@@ -38,15 +38,12 @@ class RVEModelPartPrototype:
 				 ModelName,
 				 NodalVariables = ([
 					DISPLACEMENT,
-					DISPLACEMENT_LAGRANGE,
+					REACTION,
 					]),
 				 DOFs = ([
-					DISPLACEMENT_X,
-					DISPLACEMENT_Y,
-					DISPLACEMENT_Z,
-					DISPLACEMENT_LAGRANGE_X,
-					DISPLACEMENT_LAGRANGE_Y,
-					DISPLACEMENT_LAGRANGE_Z,
+					(DISPLACEMENT_X, REACTION_X),
+					(DISPLACEMENT_Y, REACTION_Y),
+					(DISPLACEMENT_Z, REACTION_Z),
 					]),
 				 BufferSize = 2,
 				 RVEPropertyMapList = None):
@@ -65,7 +62,7 @@ class RVEModelPartPrototype:
 		# add all degrees of freedom
 		for inode in self.Model.Nodes:
 			for idof in DOFs:
-				inode.AddDof(idof)
+				inode.AddDof(idof[0], idof[1])
 		
 		# set buffer size
 		self.Model.SetBufferSize(BufferSize)
@@ -98,8 +95,11 @@ class RVEModelerSolid:
 				 ResultsIOClass,
 				 ResultsOnNodes = [], 
 				 ResultsOnGaussPoints = [],
+				 RveConstraintHandlerClass = RveConstraintHandler_ZBF_SD,
+				 RveHomogenizerClass = RveHomogenizer,
+				 SchemeClass = RveStaticScheme,
 				 LinearSolverClass = SuperLUSolver,
-				 MaxIterations = 20,
+				 MaxIterations = 10,
 				 CalculateReactions = False,
 				 ReformDofSetAtEachIteration = False,
 				 MoveMesh = False,
@@ -108,27 +108,32 @@ class RVEModelerSolid:
 				 ConvergenceAbsoluteTolerance = 1.0E-9,
 				 ConvergenceIsVerbose = False,
 				 TargetElementList = [],
-				 OutputElementList = []):
+				 OutputElementList = [],
+				 BoundingPolygonNodesID = None):
 		
 		self.MicroModelPartPrototype = MicroModelPartPrototype
 		self.StrainSize = StrainSize
 		
+		self.BoundingPolygonNodesID = BoundingPolygonNodesID
+		
 		if(self.StrainSize == RVEStrainSize.RVE_PLANE_STRESS):
-			self.RveBoundaryManagerClass = RveBoundary2D
-			self.RveAdapterClass = RvePlaneStressAdapter
-			self.RveMaterialClass = RveConstitutiveLawPlaneStress
+			self.RveAdapterClass = RvePlaneStressAdapterV2
+			self.RveMaterialClass = RveConstitutiveLawV2PlaneStress
 		elif(self.StrainSize == RVEStrainSize.RVE_PLANE_STRAIN):
 			raise Exception("Rve Plane Strain Not Yet Implemented")
 		else: # RVEStrainSize.RVE_3D):
-			self.RveBoundaryManagerClass = RveBoundary3D
-			self.RveAdapterClass = Rve3DAdapter
-			self.RveMaterialClass = RveConstitutiveLaw3D
+			self.RveAdapterClass = Rve3DAdapterV2
+			self.RveMaterialClass = RveConstitutiveLawV23D
 		
-		self.RveBoundaryManager = None
+		self.RveGeometryDescr = None
 		
 		self.ResultsIOClass = ResultsIOClass
 		self.ResultsOnNodes = ResultsOnNodes
 		self.ResultsOnGaussPoints = ResultsOnGaussPoints
+		
+		self.RveConstraintHandlerClass = RveConstraintHandlerClass
+		self.RveHomogenizerClass       = RveHomogenizerClass
+		self.SchemeClass               = SchemeClass
 		
 		self.LinearSolverClass = LinearSolverClass
 		self.MaxIterations = MaxIterations
@@ -155,8 +160,13 @@ class RVEModelerSolid:
 	# only once.
 	def Initialize(self, Model):
 		if(self.Initialized == False):
-			# initialize the boundary manager.
-			self.RveBoundaryManager = self.RveBoundaryManagerClass(self.MicroModelPartPrototype.Model)
+			
+			# initialize the geometry descriptor
+			self.RveGeometryDescr = RveGeometryDescriptor()
+			if(self.BoundingPolygonNodesID is not None):
+				self.RveGeometryDescr.SetUserCornerNodes(self.BoundingPolygonNodesID)
+			self.RveGeometryDescr.Build(self.MicroModelPartPrototype.Model)
+			print(self.RveGeometryDescr)
 			
 			# generate,assign and track all required rve's
 			for elem_id in self.TargetElementList:
@@ -168,6 +178,18 @@ class RVEModelerSolid:
 			
 			# set initialization flag
 			self.Initialized = True
+	
+	## OnBeforeSolutionStage
+	#
+	# called before each solutions stage
+	def OnBeforeSolutionStage(self, Model):
+		pass
+	
+	## OnSolutionStageCompleted
+	#
+	# called after each solutions stage
+	def OnSolutionStageCompleted(self, Model):
+		pass
 	
 	## OnBeforeSolutionStep
 	#
@@ -206,33 +228,34 @@ class RVEModelerSolid:
 		modelPartClone = ModelPart(self.MicroModelPartPrototype.Model.Name + "_RVE")
 		RveCloneModelPart(self.MicroModelPartPrototype.Model, modelPartClone) # clone the model part prototype
 		
-		msStatus = RveMacroscaleStatus() # the macro-scale status
-		self.RveBoundaryManager.AddConditions(modelPartClone, msStatus) # create the rve boundary conditions
+		msData = RveMacroscaleData() 
 		
-		linSolver = self.LinearSolverClass()
-		timeScheme = StaticGeneralScheme() # TODO: NOT IN SETTINGS...
+		linSolver = self.LinearSolverClass() 
+		
+		timeScheme = self.SchemeClass()
 		timeScheme.Check(modelPartClone)
+		
 		convCriteria = self.ConvergenceCriteriaClass(
 			self.ConvergenceRelativeTolerance,
 			self.ConvergenceAbsoluteTolerance,
 			self.ConvergenceIsVerbose,
 			)
 		
-		rveStrategy = StaticGeneralStrategy( # TODO: NOT IN SETTINGS...
-			modelPartClone,
-			timeScheme,
-			linSolver,
-			convCriteria,
-			StaticGeneralBuilderAndSolver(linSolver), # TODO: NOT IN SETTINGS...
-			self.MaxIterations,
-			self.CalculateReactions,
-			self.ReformDofSetAtEachIteration,
-			self.MoveMesh,
-			)
-		rveStrategy.SetEchoLevel(0) # TODO: NOT IN SETTINGS...
+		constraint_handler = self.RveConstraintHandlerClass()
+		
+		homogenizer = self.RveHomogenizerClass()
 		
 		adapter = self.RveAdapterClass() # generate the rve adapter
-		adapter.SetRveData(modelPartClone, rveStrategy, msStatus) # set all data (just for testing...)
+		adapter.SetRveData(
+			modelPartClone,
+			msData,
+			self.RveGeometryDescr,
+			constraint_handler,
+			RveLinearSystemOfEquations(linSolver),
+			homogenizer,
+			timeScheme,
+			convCriteria
+		) # set all data (just for testing...)
 		
 		rveLaw = self.RveMaterialClass(adapter) # finally generate the constitutive law adapter
 		for i in range(modelPartClone.GetBufferSize()):
@@ -246,9 +269,12 @@ class RVEModelerSolid:
 	# This method is meant to be private, do NOT call it explicitly
 	def __track_rve_constitutive_law(self, rveLaw, elemID, gpID):
 		elInfo = SolidElementInfo(elemID, gpID)
-		outputFileName = self.MicroModelPartPrototype.Model.Name + "__" + elInfo.GetStringExtension()
-		rveLawIO = self.ResultsIOClass(rveLaw.GetModelPart(), outputFileName, self.ResultsOnNodes, self.ResultsOnGaussPoints)
-		self.TrackList[elInfo] = (rveLaw, rveLawIO)
+		if( next((x for x in self.OutputElementList if x == elemID), None) is not None ):
+			outputFileName = self.MicroModelPartPrototype.Model.Name + "__" + elInfo.GetStringExtension()
+			rveLawIO = self.ResultsIOClass(rveLaw.GetModelPart(), outputFileName, self.ResultsOnNodes, self.ResultsOnGaussPoints)
+			self.TrackList[elInfo] = (rveLaw, rveLawIO)
+		else:
+			self.TrackList[elInfo] = (rveLaw, None)
 	
 	## __assign_rve_constitutive_law
 	#
@@ -303,6 +329,21 @@ class RVEModelerSolid:
 			if(rveIO is not None):
 				rveIO.Finalize()
 	
+	def GENERATE_RVE_LAW(self):
+		return self.__generate_rve_constitutive_law()
+	
+	def TRACK_RVE_LAW(self,rveLaw,elemID,gpID):
+		return self.__track_rve_constitutive_law(rveLaw,elemID,gpID)
+	
+	def INIT_OUTPUT(self):
+		return self.__initialize_output()
+	
+	def WRITE_OUTPUT(self,time):
+		return self.__write_output(time)
+	
+	def FIN_OUTPUT(self):
+		return self.__finalize_output()
+	
 	## Prints an extensive description of this object
 	def __print_info(self):
 		
@@ -328,3 +369,6 @@ class RVEModelerSolid:
 			print (micro)
 			print ("+--------------------------------------------------------+")
 			ii+=1
+
+
+# class RVE_MPI_Utils ( 1) copy prototype; 2) partition target/output elements; 3) generate a modeler for each node)
