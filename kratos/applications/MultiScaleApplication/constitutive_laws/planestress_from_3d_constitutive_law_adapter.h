@@ -132,6 +132,20 @@ public:
         return 3;
     }
 
+	/**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue)
+	{
+		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
+			return m_error_code;
+		else
+			return MyBase::GetValue(rThisVariable, rValue);
+	}
+
     /**
      * This is to be called at the very beginning of the calculation
      * (e.g. from InitializeElement) in order to initialize all relevant
@@ -149,6 +163,7 @@ public:
 		{
 			mEz.clear();
 			mEz_converged.clear();
+			m_error_code = 0.0;
 			mInitialized = true;
 		}
 	}
@@ -306,6 +321,8 @@ private:
 	bool mInitialized;
 	array_1d<double, 3> mEz;
 	array_1d<double, 3> mEz_converged;
+	double m_error_code;
+
     ///@}
     
     ///@name Private Operators
@@ -318,7 +335,9 @@ private:
 	void CalculateAdaptedMaterialResponse(ConstitutiveLaw::Parameters& rValues, ConstitutiveLaw::StressMeasure rStressMeasure)
 	{
 		CHECK_STRAIN_CALCULATION;
-		
+
+		m_error_code = 0.0;
+
 		// some parameters
 		const int maxiter = 100;
 		const double relative_tolerance = 1.0E-6;
@@ -335,6 +354,12 @@ private:
 
 	    // construct the parameters for the 3D adaptee
 		ConstitutiveLaw::Parameters rValues3D( rValues );
+		/*ConstitutiveLaw::Parameters rValues3D;
+		rValues3D.SetProcessInfo(rValues.GetProcessInfo());
+		rValues3D.SetMaterialProperties(rValues.GetMaterialProperties());
+		rValues3D.SetElementGeometry(rValues.GetElementGeometry());
+		rValues3D.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
+		rValues3D.SetShapeFunctionsDerivatives(rValues.GetShapeFunctionsDerivatives());*/
 
 		Vector strain_3d(6);
 		Matrix tangent_3d(6,6,0.0);
@@ -397,9 +422,15 @@ private:
 			strain_3d(4) = mEz(1);
 			strain_3d(5) = mEz(2);
 		}
-		/*if(!converged) {
-			std::cout << "PlaneStress from 3d material adapter - Maximum iteration reached!\n";
-		}*/
+		if(iter >= maxiter) {
+			//std::cout << "PlaneStress from 3d material adapter - Maximum iteration reached!\n";
+			m_error_code = 1.0;
+		}
+
+		/*std::stringstream ss;
+		ss << "Ez: " << mEz(0) << ", " << mEz(1) << ", " << mEz(2) << std::endl;
+		ss << "Sz: " << Szz(0) << ", " << Szz(1) << ", " << Szz(2) << std::endl;
+		std::cout << ss.str();*/
 
 		ConstitutiveMatrix(0, 0) = tangent_3d(0, 0);   ConstitutiveMatrix(0, 1) = tangent_3d(0, 1);  ConstitutiveMatrix(0, 2) = tangent_3d(0, 3);
 		ConstitutiveMatrix(1, 0) = tangent_3d(1, 0);   ConstitutiveMatrix(1, 1) = tangent_3d(1, 1);  ConstitutiveMatrix(1, 2) = tangent_3d(1, 3);
@@ -415,6 +446,7 @@ private:
 		LT(1, 0) = tangent_3d(1, 2);   LT(1, 1) = tangent_3d(1, 4);   LT(1,  2) = tangent_3d(1, 5);
 		LT(2, 0) = tangent_3d(3, 2);   LT(2, 1) = tangent_3d(3, 4);   LT(2,  2) = tangent_3d(3, 5);
 
+		MathUtils<double>::InvertMatrix3(Czz, invCzz, dummy_det);
 		Matrix LTinvC(3, 3);
 		noalias( LTinvC ) = prod( LT, invCzz );
 
@@ -425,6 +457,7 @@ private:
 		StressVector(1) = stress_3d(1);
 		StressVector(2) = stress_3d(3);
 		noalias(StressVector) += prod( LTinvC, Szz );
+
 	}
 
     ///@}

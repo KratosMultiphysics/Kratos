@@ -52,13 +52,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define M_PI 3.1415926535897932384626433832795
 #endif // !M_PI
 
+//#define USE_AS_BRICK_INTERFACE
+
 namespace Kratos
 {
 
     ScalarDamageInterface2DLaw::ScalarDamageInterface2DLaw() 
         : ConstitutiveLaw()
 		, mInitialized(false)
-    {
+		, m_initial_strain()
+#ifdef INTERF_DAM_2D_IMPLEX
+		, mK1_converged_old(0.0)
+		, mK2_converged_old(0.0)
+		, m_strain()
+		, m_dTime_n(0.0)
+		, m_dTime_n_converged(0.0)
+#endif // INTERF_DAM_2D_IMPLEX
+	{
     }
  
     ConstitutiveLaw::Pointer ScalarDamageInterface2DLaw::Clone() const
@@ -91,7 +101,9 @@ namespace Kratos
     {
 		if(rThisVariable == YIELD_SURFACE_DATA_2D_X || rThisVariable == YIELD_SURFACE_DATA_2D_Y)
 			return true;
-        return false;
+		if (rThisVariable == INITIAL_STRAIN)
+			return true;
+		return false;
     }
 
     bool ScalarDamageInterface2DLaw::Has(const Variable<Matrix>& rThisVariable)
@@ -123,6 +135,11 @@ namespace Kratos
 
     Vector& ScalarDamageInterface2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
+		if (rThisVariable == INITIAL_STRAIN) {
+			if (rValue.size() != m_initial_strain.size())
+				rValue.resize(m_initial_strain.size());
+			noalias(rValue) = m_initial_strain;
+		}
 		if(rThisVariable == YIELD_SURFACE_DATA_2D_X || rThisVariable == YIELD_SURFACE_DATA_2D_Y)
 		{
 			int ijob = rThisVariable == YIELD_SURFACE_DATA_2D_X ? 1 : 2;
@@ -180,6 +197,10 @@ namespace Kratos
     void ScalarDamageInterface2DLaw::SetValue(const Variable<Vector >& rVariable,
                                               const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
+		if (rVariable == INITIAL_STRAIN) {
+			if (rValue.size() == m_initial_strain.size())
+				noalias(m_initial_strain) = rValue;
+		}
     }
 
     void ScalarDamageInterface2DLaw::SetValue(const Variable<Matrix >& rVariable,
@@ -203,11 +224,11 @@ namespace Kratos
     {
 		if( !rMaterialProperties.Has(NORMAL_STIFFNESS) ) return false;
 		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) ) return false;
-		if( !rMaterialProperties.Has(YIELD_STRESS_T) ) return false;
+		if( !rMaterialProperties.Has(INTERFACE_TENSILE_LAW_S0) ) return false;
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) ) return false;
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_II) ) return false;
 		if( !rMaterialProperties.Has(INITIAL_COHESION) ) return false;
-		if( !rMaterialProperties.Has(INTERNAL_FRICTION_ANGLE) ) return false;
+		if( !rMaterialProperties.Has(INITIAL_FRICTION_ANGLE) ) return false;
         return true;
     }
 
@@ -241,7 +262,15 @@ namespace Kratos
 			mD2_bar = 0.0;
 			mD2_bar_converged = 0.0;
 			mYieldValue = 0.0;
+			m_initial_strain = ZeroVector(this->GetStrainSize());
 			mInitialized = true;
+#ifdef INTERF_DAM_2D_IMPLEX
+			mK1_converged_old = mK1;
+			mK2_converged_old = mK2;
+			m_strain = ZeroVector(this->GetStrainSize());
+			m_dTime_n = 0.0;
+			m_dTime_n_converged = 0.0;
+#endif // INTERF_DAM_2D_IMPLEX
 		}
     }
 
@@ -250,9 +279,6 @@ namespace Kratos
                                                             const Vector& rShapeFunctionsValues,
                                                             const ProcessInfo& rCurrentProcessInfo)
     {
-		mK1 = mK1_converged;
-		mK2 = mK2_converged;
-		mD2_bar = mD2_bar_converged;
     }
 
     void ScalarDamageInterface2DLaw::FinalizeSolutionStep(const Properties& rMaterialProperties,
@@ -260,6 +286,46 @@ namespace Kratos
                                                           const Vector& rShapeFunctionsValues,
                                                           const ProcessInfo& rCurrentProcessInfo)
     {
+#ifdef INTERF_DAM_2D_IMPLEX
+
+		// implicit step
+		// create dummy material parameters
+		Vector dummy_stress(this->GetStrainSize());
+		Matrix dummy_tangent(this->GetStrainSize(), this->GetStrainSize());
+		ConstitutiveLaw::Parameters parameters(rElementGeometry, rMaterialProperties, rCurrentProcessInfo);
+		parameters.SetStrainVector( m_strain );
+		parameters.SetStressVector( dummy_stress );
+		parameters.SetConstitutiveMatrix( dummy_tangent );
+		Flags& options = parameters.GetOptions();
+		options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+		options.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
+		double detF = 1.0;
+		double detF0 = 1.0;
+		Matrix F(IdentityMatrix(2,2));
+		Matrix F0(IdentityMatrix(2,2));
+		parameters.SetDeterminantF(detF);
+		parameters.SetDeterminantF0(detF0);
+		parameters.SetDeformationGradientF(F);
+		parameters.SetDeformationGradientF0(F0);
+		// initialize calculation data
+		CalculationData data;
+		InitializeCalculationData(rMaterialProperties, rElementGeometry, m_strain, rCurrentProcessInfo, data);
+		CalculateElasticStressVector( data, m_strain );
+		// calculate internal variables implicitly
+		CalculateEquivalentMeasure( data );
+		UpdateDamage( data );
+		mD1 = data.D1;
+		mD2 = data.D2;
+
+		// move from n to n-1
+		mK1_converged_old  = mK1_converged;
+		mK2_converged_old  = mK2_converged;
+		m_dTime_n_converged = m_dTime_n;
+
+#endif // INTERF_DAM_2D_IMPLEX
+
+		// save converged values
 		mK1_converged = mK1;
 		mK2_converged = mK2;
 		mD2_bar_converged = mD2_bar;
@@ -304,6 +370,10 @@ namespace Kratos
 		bool compute_constitutive_tensor = Options.Is(COMPUTE_CONSTITUTIVE_TENSOR);
 		bool compute_stress = Options.Is(COMPUTE_STRESS) || compute_constitutive_tensor;
 
+#ifdef INTERF_DAM_2D_IMPLEX
+		this->m_strain = rValues.GetStrainVector();
+#endif // INTERF_DAM_2D_IMPLEX
+
 		SizeType size = GetStrainSize();
 		if(compute_stress) 
 			if(stressVector.size() != size)
@@ -313,21 +383,43 @@ namespace Kratos
 				constitutiveMatrix.resize(size, size, false);
 
 		CalculationData data;
-		
-		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, data );
-		
+		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, rValues.GetProcessInfo(), data );
 		CalculateElasticStressVector( data, strainVector );
 
-		CalculateEquivalentMeasure( data );
+#ifdef INTERF_DAM_2D_IMPLEX
 
+		double time_factor = 0.0;
+		if(m_dTime_n_converged>0.0) time_factor = data.dTime/m_dTime_n_converged;
+		m_dTime_n = data.dTime;
+		mK1 = mK1_converged + time_factor * (mK1_converged-mK1_converged_old);
+		mK2 = mK2_converged + time_factor * (mK2_converged-mK2_converged_old);
+		if(mK1 > 0.0)
+		{
+			data.D1 = 1.0 - data.Ft/(mK1+data.Ft) * std::exp( -data.Ft/(data.GI*data.Kn) * mK1 );
+			data.D1 = std::max( std::min( data.D1, 1.0 ), 0.0 );
+		}
+		if(mK2 > 0.0)
+		{
+			data.D2 = 1.0 - data.C0/(mK2+data.C0) * std::exp( -data.C0/data.GII/data.Kt * mK2 );
+			data.D2 = std::max( std::min( data.D2, 1.0 ), 0.0 );
+		}
+#ifdef USE_AS_BRICK_INTERFACE
+		data.D2 = 0.0;
+		if(data.D1 > 0.99)
+			data.D2 = 1.0;
+#endif // USE_AS_BRICK_INTERFACE
+#else
+
+		CalculateEquivalentMeasure( data );
 		UpdateDamage( data );
+
+#endif // INTERF_DAM_2D_IMPLEX
+
 		mD1 = data.D1;
 		mD2 = data.D2;
 		
 		if( compute_stress )
-		{
 			CalculateStress( data, stressVector );
-		}
 
 		//**********************************************
 		double sig_n = stressVector(1);
@@ -338,7 +430,17 @@ namespace Kratos
 		
 		if( compute_constitutive_tensor )
 		{
-			CalculateConstitutiveMatrix( data, strainVector, stressVector, constitutiveMatrix );
+			if(data.ForceSecant) {
+				constitutiveMatrix.clear();
+				constitutiveMatrix(0,0) = data.Kt*(1.0-mD2);
+				constitutiveMatrix(1,1) = data.Kn;
+				if(stressVector(1) > 0.0) {
+					constitutiveMatrix(1,1) *= (1.0-mD1);
+				}
+			}
+			else {
+				CalculateConstitutiveMatrix( data, strainVector, stressVector, constitutiveMatrix );
+			}
 		}
     }
 
@@ -405,8 +507,8 @@ namespace Kratos
 		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TANGENTIAL_STIFFNESS", "");
 
-		if( !rMaterialProperties.Has(YIELD_STRESS_T) )
-			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_T", "");
+		if( !rMaterialProperties.Has(INTERFACE_TENSILE_LAW_S0) )
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_TENSILE_LAW_S0", "");
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_I", "");
@@ -417,8 +519,8 @@ namespace Kratos
 		if( !rMaterialProperties.Has(INITIAL_COHESION) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_COHESION", "");
 
-		if( !rMaterialProperties.Has(INTERNAL_FRICTION_ANGLE) )
-			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERNAL_FRICTION_ANGLE", "");
+		if( !rMaterialProperties.Has(INITIAL_FRICTION_ANGLE) )
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_FRICTION_ANGLE", "");
 
         return 0;
 
@@ -428,11 +530,11 @@ namespace Kratos
 	void ScalarDamageInterface2DLaw::InitializeCalculationData(const Properties& props, 
 		                                                       const GeometryType& geom, 
 															   const Vector& strainVector,
+															   const ProcessInfo& pinfo,
 															   CalculationData& data)
 	{
 		data.Kn  = props[NORMAL_STIFFNESS];
 		data.Kt  = props[TANGENTIAL_STIFFNESS];
-		data.Kt = 0.0; // TEST ONLY TENSION
 
 		data.Kn_compression_multiplier = 1.0;
 		if(props.Has(NORMAL_STIFFNESS_COMPRESSION_MULTIPLIER)) {
@@ -443,10 +545,10 @@ namespace Kratos
 				data.Kn *= data.Kn_compression_multiplier;
 		}
 
-		data.Ft  = props[YIELD_STRESS_T];
+		data.Ft  = props[INTERFACE_TENSILE_LAW_S0];
 
 		data.C0 = props[INITIAL_COHESION];
-		data.Fs = std::tan( props[INTERNAL_FRICTION_ANGLE] * M_PI / 180.0 );
+		data.Fs = std::tan( props[INITIAL_FRICTION_ANGLE] * M_PI / 180.0 );
 
 		data.GI  = props[FRACTURE_ENERGY_MODE_I];
 		data.GII = props[FRACTURE_ENERGY_MODE_II];
@@ -481,52 +583,117 @@ namespace Kratos
 		data.ForceSecant = false;
 		if(props.Has(DAMAGE_SECANT_MATRIX))
 			data.ForceSecant = props[DAMAGE_SECANT_MATRIX] != 0;
+
+		data.lch = 1.0; // * m_lch_multiplier;
+		data.eta = 0.0;
+		if(props.Has(VISCOSITY)) data.eta = props[VISCOSITY];
+		data.dTime = pinfo[DELTA_TIME];
+		if(data.dTime > 0.0 && data.eta > 0.0)
+		{
+			data.rate_coeff_1 = data.eta/(data.eta+data.dTime);
+			data.rate_coeff_2 = data.dTime/(data.eta+data.dTime);
+		}
+		else
+		{
+			data.rate_coeff_1 = 0.0;
+			data.rate_coeff_2 = 1.0;
+		}
 	}
 
 	void ScalarDamageInterface2DLaw::CalculateElasticStressVector(CalculationData& data,
 		                                                          const Vector& strainVector)
 	{
 		data.ElasticStressVector(0) = data.Kt * strainVector(0);
-		data.ElasticStressVector(1) = data.Kn * strainVector(1);	
+		data.ElasticStressVector(1) = data.Kn * strainVector(1);
 	}
 
 	void ScalarDamageInterface2DLaw::CalculateEquivalentMeasure(CalculationData& data)
 	{
+		//double sigma_t = std::abs(data.ElasticStressVector(0));
+		//double sigma_n = data.ElasticStressVector(1);
+
+		//double lambda1 = sigma_n - data.Ft;
+		//double lambda2 = sigma_n * data.Fs + sigma_t - data.C0;
+
+		//data.K1 = 0.0;
+		//data.K2 = 0.0;
+
+		//if(lambda1 > 0.0)
+		//{
+		//	if(lambda2 > 0.0)
+		//	{
+		//		// both active
+		//		data.K1 = std::sqrt( lambda1*lambda1 + (lambda2/data.MRatio)*(lambda2/data.MRatio) );
+		//		data.K2 = std::sqrt( lambda2*lambda2 + (lambda1*data.MRatio)*(lambda1*data.MRatio) );
+		//	}
+		//	else
+		//	{
+		//		// only tension cut-off
+		//		data.K1 = lambda1;
+		//		data.K2 = lambda1 * data.MRatio;
+		//	}
+		//}
+		//else
+		//{
+		//	if(lambda2 > 0.0)
+		//	{
+		//		// only coulomb friction
+		//		data.K1 = lambda2 / data.MRatio;
+		//		data.K2 = lambda2;
+		//	}
+		//}
+
 		double sigma_t = std::abs(data.ElasticStressVector(0));
 		double sigma_n = data.ElasticStressVector(1);
 
-		double lambda1 = sigma_n - data.Ft;
-		double lambda2 = sigma_n * data.Fs + sigma_t - data.C0;
-
 		data.K1 = 0.0;
 		data.K2 = 0.0;
-		lambda2 = 0.0; // only for test!!!
 
-		if(lambda1 > 0.0)
+		if(sigma_n <= 0.0)
 		{
+			double lambda2 = sigma_n * data.Fs + sigma_t - data.C0;
 			if(lambda2 > 0.0)
 			{
-				// both active
-				data.K1 = std::sqrt( lambda1*lambda1 + (lambda2/data.MRatio)*(lambda2/data.MRatio) );
-				data.K2 = std::sqrt( lambda2*lambda2 + (lambda1*data.MRatio)*(lambda1*data.MRatio) );
-			}
-			else
-			{
-				// only tension cut-off
-				data.K1 = lambda1;
-				data.K2 = lambda1 * data.MRatio;
+				// only coulomb friction
+				//data.K1 = lambda2 / data.MRatio;
+				data.K2 = lambda2;
 			}
 		}
 		else
 		{
-			if(lambda2 > 0.0)
+			/*double lambda1 = sigma_n - data.Ft;
+			double lambda2 = sigma_n * data.Fs + sigma_t - data.C0;*/
+			double lambda = std::sqrt(std::pow(sigma_n,2) + std::pow(data.Ft/data.C0*sigma_t,2)) - data.Ft;
+			if(lambda>0.0)
 			{
-				// only coulomb friction
-				data.K1 = lambda2 / data.MRatio;
-				data.K2 = lambda2;
+				data.K1 = lambda;
+				data.K2 = lambda;
 			}
+			//if(lambda1 > 0.0)
+			//{
+			//	if(lambda2 > 0.0)
+			//	{
+			//		// both active
+			//		data.K1 = std::sqrt( lambda1*lambda1 + (lambda2/data.MRatio)*(lambda2/data.MRatio) );
+			//		data.K2 = std::sqrt( lambda2*lambda2 + (lambda1*data.MRatio)*(lambda1*data.MRatio) );
+			//	}
+			//	else
+			//	{
+			//		// only tension cut-off
+			//		data.K1 = lambda1;
+			//		data.K2 = lambda1 * data.MRatio;
+			//	}
+			//}
+			//else
+			//{
+			//	if(lambda2 > 0.0)
+			//	{
+			//		// only coulomb friction
+			//		data.K1 = lambda2 / data.MRatio;
+			//		data.K2 = lambda2;
+			//	}
+			//}
 		}
-		data.K2 = 0.0; // test
 	}
 
 	void ScalarDamageInterface2DLaw::UpdateDamageIndicator(CalculationData& data)
@@ -559,24 +726,42 @@ namespace Kratos
 
 		if(data.K1 > mK1) 
 		{
-			mK1 = data.K1;
+			//mK1 = data.K1;
+			mK1 = data.rate_coeff_1*mK1 + data.rate_coeff_2*data.K1;
 		}
 		if(data.K2 > mK2) 
 		{
-			mK2 = data.K2;
+			//mK2 = data.K2;
+			mK2 = data.rate_coeff_1*mK2 + data.rate_coeff_2*data.K2;
 			update_equ_shear_damage = true;
 		}
 
+
+
 		if(mK1 > 0.0)
 		{
-			data.D1 = 1.0 - data.Ft/(mK1+data.Ft) * std::exp( -data.Ft/(data.GI*data.Kn) * mK1 );
+			//data.D1 = 1.0 - data.Ft/(mK1+data.Ft) * std::exp( -data.Ft/(data.GI*data.Kn) * mK1 );
+			double lt  = 2.0*data.Kn*data.GI/data.Ft/data.Ft;
+			double Hs  = data.lch/(lt-data.lch);
+			double A   = 2.0*Hs;
+			data.D1 = 1.0-data.Ft/(mK1+data.Ft)*std::exp(A*(1.0-(mK1+data.Ft)/data.Ft));
 			data.D1 = std::max( std::min( data.D1, 1.0 ), 0.0 );
 		}
 		if(mK2 > 0.0)
 		{
-			data.D2 = 1.0 - data.C0/(mK2+data.C0) * std::exp( -data.C0/data.GII/data.Kt * mK2 );
+			//data.D2 = 1.0 - data.C0/(mK2+data.C0) * std::exp( -data.C0/data.GII/data.Kt * mK2 );
+			double lt  = 2.0*data.Kt*data.GII/data.C0/data.C0;
+			double Hs  = data.lch/(lt-data.lch);
+			double A   = 2.0*Hs;
+			data.D2 = 1.0-data.C0/(mK2+data.C0)*std::exp(A*(1.0-(mK2+data.C0)/data.C0));
 			data.D2 = std::max( std::min( data.D2, 1.0 ), 0.0 );
 		}
+
+#ifdef USE_AS_BRICK_INTERFACE
+		data.D2 = 0.0;
+		if(data.D1 > 0.25)
+			data.D2 = 1.0;
+#endif // USE_AS_BRICK_INTERFACE
 
 		if(update_equ_shear_damage)
 		{
@@ -584,15 +769,20 @@ namespace Kratos
 			double sigma_t = data.ElasticStressVector(0);
 			if(sigma_t != 0.0)
 			{
-				double C0_d = (1.0 - data.D2)*data.C0;
-				double tau = std::max(C0_d - sigma_n*data.Fs, 0.0);
+				if(sigma_n < 0.0) {
+					double C0_d = (1.0 - data.D2)*data.C0;
+					double tau = std::max(C0_d - sigma_n*data.Fs, 0.0);
 
-				if(sigma_t < 0.0) tau = -tau;
+					if(sigma_t < 0.0) tau = -tau;
 
-				if(std::abs(sigma_t) > std::abs(tau))
-				{
-					mD2_bar = 1.0 - tau / sigma_t;
-					mD2_bar = std::max(std::min(mD2_bar,1.0),0.0);
+					if(std::abs(sigma_t) > std::abs(tau))
+					{
+						mD2_bar = 1.0 - tau / sigma_t;
+						mD2_bar = std::max(std::min(mD2_bar,1.0),0.0);
+					}
+				}
+				else {
+					mD2_bar = data.D2;
 				}
 			}
 		}
@@ -603,12 +793,12 @@ namespace Kratos
 	{
 		double sigma_n = data.ElasticStressVector(1);
 		double sigma_t = data.ElasticStressVector(0);
-		sigma_t = 0.0; // TEST ONLY TENSION
 
 		if(sigma_n > 0.0) sigma_n *= (1.0 - data.D1);
 		stressVector(1) = sigma_n;
 
 		stressVector(0) = (1.0 - mD2_bar) * sigma_t;
+		//stressVector(0) = (1.0 - data.D2) * sigma_t;
 	}
 
 	void ScalarDamageInterface2DLaw::CalculateConstitutiveMatrix(CalculationData& data, 
@@ -621,7 +811,7 @@ namespace Kratos
 		constitutiveMatrix(1, 1) = data.Kn;
 		constitutiveMatrix(0, 1) = constitutiveMatrix(1, 0) = 0.0;
 
-		double perturbation = 1.0E-8;
+		double perturbation = 1.0E-9;
 		Vector perturbedStrainVector(2);
 		Vector stressPerturbation(2);
 
@@ -635,7 +825,8 @@ namespace Kratos
 			// FORWARD difference
 			noalias( perturbedStrainVector ) = strainVector;
 
-			double delta_strain = perturbedStrainVector(j) < 0.0 ? -perturbation : perturbation;
+			//double delta_strain = perturbedStrainVector(j) < 0.0 ? -perturbation : perturbation;
+			double delta_strain = perturbation;
 			perturbedStrainVector(j) += delta_strain;
 
 			CalculateElasticStressVector( data, perturbedStrainVector );

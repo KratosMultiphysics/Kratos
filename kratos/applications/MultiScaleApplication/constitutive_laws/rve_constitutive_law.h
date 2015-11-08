@@ -72,6 +72,8 @@ public:
 	typedef ConstitutiveLawAdapter<TRveAdapter> MyBase;
 
     typedef typename MyBase::GeometryType GeometryType;
+
+	typedef typename MyBase::SizeType SizeType;
 	
 public:
 
@@ -183,9 +185,9 @@ public:
         return MyBase::mpAdaptee->GetModelPart();
 	}
 
-	bool TestMaterialResponse(const Vector& strains, bool compute_constitutive_tensor)
+	bool TestMaterialResponse(const Vector& strains, bool compute_constitutive_tensor, const SizeType& load_id)
 	{
-        return MyBase::mpAdaptee->TestMaterialResponse(strains, compute_constitutive_tensor);
+		return MyBase::mpAdaptee->TestMaterialResponse(strains, compute_constitutive_tensor, load_id);
 	}
 
 protected:

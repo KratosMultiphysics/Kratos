@@ -54,6 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/constitutive_law.h"
 
+//#define INTERF_DAM_2D_IMPLEX
+
 namespace Kratos
 {
 
@@ -426,6 +428,12 @@ protected:
 		double MRatio;
 		array_1d<double,2> ElasticStressVector;
 		bool ForceSecant;
+		// misc
+		double eta;
+		double lch;
+		double dTime;
+		double rate_coeff_1;
+		double rate_coeff_2;
 	};
 
     ///@name Protected static Member Variables
@@ -445,6 +453,16 @@ protected:
 	double mD2_bar;
 	double mD2_bar_converged;
 	double mYieldValue;
+	Vector m_initial_strain;
+
+#ifdef INTERF_DAM_2D_IMPLEX
+	// testing: for IMPLEX
+	double mK1_converged_old;
+	double mK2_converged_old;
+	Vector m_strain;
+	double m_dTime_n;
+	double m_dTime_n_converged;
+#endif // INTERF_DAM_2D_IMPLEX
 
     ///@}
     
@@ -454,6 +472,7 @@ protected:
 	void InitializeCalculationData(const Properties& props, 
 		                           const GeometryType& geom, 
 								   const Vector& strainVector,
+								   const ProcessInfo& pinfo,
 								   CalculationData& data);
 
 	virtual void CalculateElasticStressVector(CalculationData& data,

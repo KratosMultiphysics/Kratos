@@ -453,6 +453,7 @@ protected:
     double mD3_bar;
     double mD3_bar_converged;
     double mYieldValue;
+	Vector m_initial_strain;
 
     ///@}
     

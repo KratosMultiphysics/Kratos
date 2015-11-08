@@ -34,15 +34,15 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
- */
+*/
 
 /* *********************************************************
- *
- *   Last Modified by:    $Author:   Massimo Petracca$
- *   Date:                $Date:     30-10-2013$
- *   Revision:            $Revision: 1.0$
- *
- * ***********************************************************/
+*
+*   Last Modified by:    $Author:   Massimo Petracca$
+*   Date:                $Date:     30-10-2013$
+*   Revision:            $Revision: 1.0$
+*
+* ***********************************************************/
 
 #if !defined(KRATOS_J2_CONSTITUTIVE_LAW_H_INCLUDED )
 #define  KRATOS_J2_CONSTITUTIVE_LAW_H_INCLUDED
@@ -57,433 +57,476 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-/**
- * Base class of constitutive laws.
- */
-class J2ConstitutiveLaw3D : public ConstitutiveLaw
-{
+	/**
+	* Base class of constitutive laws.
+	*/
+	class J2ConstitutiveLaw3D : public ConstitutiveLaw
+	{
 
-public:
+	public:
 
-	KRATOS_CLASS_POINTER_DEFINITION(J2ConstitutiveLaw3D);
-	
-public:
+		KRATOS_CLASS_POINTER_DEFINITION(J2ConstitutiveLaw3D);
 
-    /**
-     * Constructor.
-     */
-    J2ConstitutiveLaw3D();
+	public:
 
-    /**
-     * Destructor.
-     */
-    virtual ~J2ConstitutiveLaw3D(){};
+		/**
+		* Constructor.
+		*/
+		J2ConstitutiveLaw3D();
 
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     * NOTE: implementation scheme:
-     *      ConstitutiveLaw::Pointer p_clone(new J2ConstitutiveLaw3D());
-     *      return p_clone;
-     */
-    virtual ConstitutiveLaw::Pointer Clone() const;
+		/**
+		* Destructor.
+		*/
+		virtual ~J2ConstitutiveLaw3D(){};
 
-    /**
-     * @return the working space dimension of the current constitutive law
-     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
-     */
-    virtual SizeType WorkingSpaceDimension();
+		/**
+		* Clone function (has to be implemented by any derived class)
+		* @return a pointer to a new instance of this constitutive law
+		* NOTE: implementation scheme:
+		*      ConstitutiveLaw::Pointer p_clone(new J2ConstitutiveLaw3D());
+		*      return p_clone;
+		*/
+		virtual ConstitutiveLaw::Pointer Clone() const;
 
-    /**
-     * returns the size of the strain vector of the current constitutive law
-     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
-     */
-    virtual SizeType GetStrainSize();
+		/**
+		* @return the working space dimension of the current constitutive law
+		* NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+		*/
+		virtual SizeType WorkingSpaceDimension();
 
-    /**
-     * returns whether this constitutive Law has specified variable
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    virtual bool Has(const Variable<double>& rThisVariable);
+		/**
+		* returns the size of the strain vector of the current constitutive law
+		* NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+		*/
+		virtual SizeType GetStrainSize();
 
-    /**
-     * returns whether this constitutive Law has specified variable
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    virtual bool Has(const Variable<Vector>& rThisVariable);
+		/**
+		* returns whether this constitutive Law has specified variable
+		* @param rThisVariable the variable to be checked for
+		* @return true if the variable is defined in the constitutive law
+		*/
+		virtual bool Has(const Variable<double>& rThisVariable);
 
-    /**
-     * returns whether this constitutive Law has specified variable
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    virtual bool Has(const Variable<Matrix>& rThisVariable);
+		/**
+		* returns whether this constitutive Law has specified variable
+		* @param rThisVariable the variable to be checked for
+		* @return true if the variable is defined in the constitutive law
+		*/
+		virtual bool Has(const Variable<Vector>& rThisVariable);
 
-    /**
-     * returns whether this constitutive Law has specified variable
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     * NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
-     */
-    virtual bool Has(const Variable<array_1d<double, 3 > >& rThisVariable);
+		/**
+		* returns whether this constitutive Law has specified variable
+		* @param rThisVariable the variable to be checked for
+		* @return true if the variable is defined in the constitutive law
+		*/
+		virtual bool Has(const Variable<Matrix>& rThisVariable);
 
-    /**
-     * returns whether this constitutive Law has specified variable
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     * NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
-     */
-    virtual bool Has(const Variable<array_1d<double, 6 > >& rThisVariable);
+		/**
+		* returns whether this constitutive Law has specified variable
+		* @param rThisVariable the variable to be checked for
+		* @return true if the variable is defined in the constitutive law
+		* NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
+		*/
+		virtual bool Has(const Variable<array_1d<double, 3 > >& rThisVariable);
 
-    /**
-     * returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+		/**
+		* returns whether this constitutive Law has specified variable
+		* @param rThisVariable the variable to be checked for
+		* @return true if the variable is defined in the constitutive law
+		* NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
+		*/
+		virtual bool Has(const Variable<array_1d<double, 6 > >& rThisVariable);
 
-    /**
-     * returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return the value of the specified variable
-     */
-    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
+		/**
+		* returns the value of a specified variable
+		* @param rThisVariable the variable to be returned
+		* @param rValue a reference to the returned value
+		* @param rValue output: the value of the specified variable
+		*/
+		virtual double& GetValue(
+			const Variable<double>& rThisVariable, 
+			double& rValue);
 
-    /**
-     * returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
-     * @return the value of the specified variable
-     */
-    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
+		/**
+		* returns the value of a specified variable
+		* @param rThisVariable the variable to be returned
+		* @param rValue a reference to the returned value
+		* @return the value of the specified variable
+		*/
+		virtual Vector& GetValue(
+			const Variable<Vector>& rThisVariable, 
+			Vector& rValue);
 
-    /**
-     * returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return the value of the specified variable
-     */
-    virtual array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rVariable,
-                                            array_1d<double, 3 > & rValue);
+		/**
+		* returns the value of a specified variable
+		* @param rThisVariable the variable to be returned
+		* @return the value of the specified variable
+		*/
+		virtual Matrix& GetValue(
+			const Variable<Matrix>& rThisVariable, 
+			Matrix& rValue);
 
-    /**
-     * returns the value of a specified variable
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return the value of the specified variable
-     */
-    virtual array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rVariable,
-                                            array_1d<double, 6 > & rValue);
+		/**
+		* returns the value of a specified variable
+		* @param rThisVariable the variable to be returned
+		* @param rValue a reference to the returned value
+		* @return the value of the specified variable
+		*/
+		virtual array_1d<double, 3 > & GetValue(
+			const Variable<array_1d<double, 3 > >& rVariable,
+			array_1d<double, 3 > & rValue);
 
-    /**
-     * sets the value of a specified variable
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    virtual void SetValue(const Variable<double>& rVariable,
-                          const double& rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* returns the value of a specified variable
+		* @param rThisVariable the variable to be returned
+		* @param rValue a reference to the returned value
+		* @return the value of the specified variable
+		*/
+		virtual array_1d<double, 6 > & GetValue(
+			const Variable<array_1d<double, 6 > >& rVariable,
+			array_1d<double, 6 > & rValue);
 
-    /**
-     * sets the value of a specified variable
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    virtual void SetValue(const Variable<Vector >& rVariable,
-                          const Vector& rValue, 
-                          const ProcessInfo& rCurrentProcessInfo);
- 
-    /**
-     * sets the value of a specified variable
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    virtual void SetValue(const Variable<Matrix >& rVariable,
-                          const Matrix& rValue, 
-                          const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* sets the value of a specified variable
+		* @param rVariable the variable to be returned
+		* @param rValue new value of the specified variable
+		* @param rCurrentProcessInfo the process info
+		*/
+		virtual void SetValue(
+			const Variable<double>& rVariable,
+			const double& rValue,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * sets the value of a specified variable
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    virtual void SetValue(const Variable<array_1d<double, 3 > >& rVariable,
-                          const array_1d<double, 3 > & rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* sets the value of a specified variable
+		* @param rVariable the variable to be returned
+		* @param rValue new value of the specified variable
+		* @param rCurrentProcessInfo the process info
+		*/
+		virtual void SetValue(
+			const Variable<Vector >& rVariable,
+			const Vector& rValue, 
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * sets the value of a specified variable
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    virtual void SetValue(const Variable<array_1d<double, 6 > >& rVariable,
-                          const array_1d<double, 6 > & rValue,
-                          const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* sets the value of a specified variable
+		* @param rVariable the variable to be returned
+		* @param rValue new value of the specified variable
+		* @param rCurrentProcessInfo the process info
+		*/
+		virtual void SetValue(
+			const Variable<Matrix >& rVariable,
+			const Matrix& rValue, 
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Is called to check whether the provided material parameters in the Properties
-     * match the requirements of current constitutive model.
-     * @param rMaterialProperties the current Properties to be validated against.
-     * @return true, if parameters are correct; false, if parameters are insufficient / faulty
-     * NOTE: this has to be implemented by each constitutive model. Returns false in base class since
-     * no valid implementation is contained here.
-     */
-    virtual bool ValidateInput(const Properties& rMaterialProperties);
+		/**
+		* sets the value of a specified variable
+		* @param rVariable the variable to be returned
+		* @param rValue new value of the specified variable
+		* @param rCurrentProcessInfo the process info
+		*/
+		virtual void SetValue(
+			const Variable<array_1d<double, 3 > >& rVariable,
+			const array_1d<double, 3 > & rValue,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * returns the expected strain measure of this constitutive law (by default linear strains)
-     * @return the expected strain measure
-     */
-    virtual StrainMeasure GetStrainMeasure();
+		/**
+		* sets the value of a specified variable
+		* @param rVariable the variable to be returned
+		* @param rValue new value of the specified variable
+		* @param rCurrentProcessInfo the process info
+		*/
+		virtual void SetValue(
+			const Variable<array_1d<double, 6 > >& rVariable,
+			const array_1d<double, 6 > & rValue,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
-     * @return the expected stress measure
-     */
-    virtual StressMeasure GetStressMeasure();
+		/**
+		* Is called to check whether the provided material parameters in the Properties
+		* match the requirements of current constitutive model.
+		* @param rMaterialProperties the current Properties to be validated against.
+		* @return true, if parameters are correct; false, if parameters are insufficient / faulty
+		* NOTE: this has to be implemented by each constitutive model. Returns false in base class since
+		* no valid implementation is contained here.
+		*/
+		virtual bool ValidateInput(const Properties& rMaterialProperties);
 
-    /**
-     * returns whether this constitutive model is formulated in incremental strains/stresses
-     * NOTE: by default, all constitutive models should be formulated in total strains
-     * @return true, if formulated in incremental strains/stresses, false otherwise
-     */
-    virtual bool IsIncremental();
+		/**
+		* returns the expected strain measure of this constitutive law (by default linear strains)
+		* @return the expected strain measure
+		*/
+		virtual StrainMeasure GetStrainMeasure();
 
-    /**
-     * This is to be called at the very beginning of the calculation
-     * (e.g. from InitializeElement) in order to initialize all relevant
-     * attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    virtual void InitializeMaterial(const Properties& rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues);
+		/**
+		* returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
+		* @return the expected stress measure
+		*/
+		virtual StressMeasure GetStressMeasure();
 
-    /**
-     * to be called at the beginning of each solution step
-     * (e.g. from Element::InitializeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    virtual void InitializeSolutionStep(const Properties& rMaterialProperties,
-                                        const GeometryType& rElementGeometry,
-                                        const Vector& rShapeFunctionsValues,
-                                        const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* returns whether this constitutive model is formulated in incremental strains/stresses
+		* NOTE: by default, all constitutive models should be formulated in total strains
+		* @return true, if formulated in incremental strains/stresses, false otherwise
+		*/
+		virtual bool IsIncremental();
 
-    /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector& rShapeFunctionsValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
- 
-    /**
-     * to be called at the beginning of each step iteration
-     * (e.g. from Element::InitializeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
-                                              const GeometryType& rElementGeometry,
-                                              const Vector& rShapeFunctionsValues,
-                                              const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* This is to be called at the very beginning of the calculation
+		* (e.g. from InitializeElement) in order to initialize all relevant
+		* attributes of the constitutive law
+		* @param rMaterialProperties the Properties instance of the current element
+		* @param rElementGeometry the geometry of the current element
+		* @param rShapeFunctionsValues the shape functions values in the current integration point
+		*/
+		virtual void InitializeMaterial(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const Vector& rShapeFunctionsValues);
 
-    /**
-     * to be called at the end of each step iteration
-     * (e.g. from Element::FinalizeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-                                            const GeometryType& rElementGeometry,
-                                            const Vector& rShapeFunctionsValues,
-                                            const ProcessInfo& rCurrentProcessInfo);
-    
-    /**
-     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    virtual void CalculateMaterialResponsePK1 (Parameters& rValues);
-    
-    /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    virtual void CalculateMaterialResponsePK2 (Parameters& rValues);
-    
-    /**
-     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters& rValues);
-    
-    /**
-     * Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @see Parameters
-     */
-    virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
-    
-    /**
-     * Updates the material response in terms of 1st Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    virtual void FinalizeMaterialResponsePK1 (Parameters& rValues);
-    
-    /**
-     * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @see Parameters
-     */
-    virtual void FinalizeMaterialResponsePK2 (Parameters& rValues);
+		/**
+		* to be called at the beginning of each solution step
+		* (e.g. from Element::InitializeSolutionStep)
+		* @param rMaterialProperties the Properties instance of the current element
+		* @param rElementGeometry the geometry of the current element
+		* @param rShapeFunctionsValues the shape functions values in the current integration point
+		* @param the current ProcessInfo instance
+		*/
+		virtual void InitializeSolutionStep(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const Vector& rShapeFunctionsValues,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Updates the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-    virtual void FinalizeMaterialResponseKirchhoff (Parameters& rValues);
+		/**
+		* to be called at the end of each solution step
+		* (e.g. from Element::FinalizeSolutionStep)
+		* @param rMaterialProperties the Properties instance of the current element
+		* @param rElementGeometry the geometry of the current element
+		* @param rShapeFunctionsValues the shape functions values in the current integration point
+		* @param the current ProcessInfo instance
+		*/
+		virtual void FinalizeSolutionStep(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const Vector& rShapeFunctionsValues,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Updates the material response in terms of Cauchy stresses
-     * @see Parameters
-     */
-    virtual void FinalizeMaterialResponseCauchy (Parameters& rValues);
+		/**
+		* to be called at the beginning of each step iteration
+		* (e.g. from Element::InitializeNonLinearIteration)
+		* @param rMaterialProperties the Properties instance of the current element
+		* @param rElementGeometry the geometry of the current element
+		* @param rShapeFunctionsValues the shape functions values in the current integration point
+		* @param the current ProcessInfo instance
+		*/
+		virtual void InitializeNonLinearIteration(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const Vector& rShapeFunctionsValues,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * This can be used in order to reset all internal variables of the
-     * constitutive law (e.g. if a model should be reset to its reference state)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    virtual void ResetMaterial(const Properties& rMaterialProperties,
-                               const GeometryType& rElementGeometry,
-                               const Vector& rShapeFunctionsValues);
+		/**
+		* to be called at the end of each step iteration
+		* (e.g. from Element::FinalizeNonLinearIteration)
+		* @param rMaterialProperties the Properties instance of the current element
+		* @param rElementGeometry the geometry of the current element
+		* @param rShapeFunctionsValues the shape functions values in the current integration point
+		* @param the current ProcessInfo instance
+		*/
+		virtual void FinalizeNonLinearIteration(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const Vector& rShapeFunctionsValues,
+			const ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    virtual void GetLawFeatures(Features& rFeatures);
+		/**
+		* Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+		* @see Parameters
+		*/
+		virtual void CalculateMaterialResponsePK1 (Parameters& rValues);
 
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return
-     */
-    virtual int Check(const Properties& rMaterialProperties,
-                      const GeometryType& rElementGeometry,
-                      const ProcessInfo& rCurrentProcessInfo);
+		/**
+		* Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+		* @see Parameters
+		*/
+		virtual void CalculateMaterialResponsePK2 (Parameters& rValues);
 
-protected:
+		/**
+		* Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+		* @see Parameters
+		*/
+		virtual void CalculateMaterialResponseKirchhoff (Parameters& rValues);
 
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    
-    ///@name Protected Operators
-    ///@{
-    ///@}
-    
-    ///@name Protected Operations
-    ///@{
-    ///@}
+		/**
+		* Computes the material response in terms of Cauchy stresses and constitutive tensor
+		* @see Parameters
+		*/
+		virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
 
+		/**
+		* Updates the material response in terms of 1st Piola-Kirchhoff stresses
+		* @see Parameters
+		*/
+		virtual void FinalizeMaterialResponsePK1 (Parameters& rValues);
 
-private:
+		/**
+		* Updates the material response in terms of 2nd Piola-Kirchhoff stresses
+		* @see Parameters
+		*/
+		virtual void FinalizeMaterialResponsePK2 (Parameters& rValues);
 
-    ///@name Static Member Variables
-    ///@{
+		/**
+		* Updates the material response in terms of Kirchhoff stresses
+		* @see Parameters
+		*/
+		virtual void FinalizeMaterialResponseKirchhoff (Parameters& rValues);
 
-	double m_xi_n;
-	double m_xi_n1;
-	array_1d<double, 6> m_eps_p_n;
-	array_1d<double, 6> m_eps_p_n1;
-	bool m_initialized;
+		/**
+		* Updates the material response in terms of Cauchy stresses
+		* @see Parameters
+		*/
+		virtual void FinalizeMaterialResponseCauchy (Parameters& rValues);
 
-    ///@}
-    
-    ///@name Member Variables
-    ///@{
-    ///@}
-    
-    ///@name Private Operators
-    ///@{
+		/**
+		* This can be used in order to reset all internal variables of the
+		* constitutive law (e.g. if a model should be reset to its reference state)
+		* @param rMaterialProperties the Properties instance of the current element
+		* @param rElementGeometry the geometry of the current element
+		* @param rShapeFunctionsValues the shape functions values in the current integration point
+		* @param the current ProcessInfo instance
+		*/
+		virtual void ResetMaterial(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const Vector& rShapeFunctionsValues);
 
-	void CalculateNumericalVersion(Parameters& rValues);
+		/**
+		* This function is designed to be called once to check compatibility with element
+		* @param rFeatures
+		*/
+		virtual void GetLawFeatures(Features& rFeatures);
 
-	void CalculateStressVector(Parameters& rValues, const Vector& eps, Vector& stressVector);
+		/**
+		* This function is designed to be called once to perform all the checks needed
+		* on the input provided. Checks can be "expensive" as the function is designed
+		* to catch user's errors.
+		* @param rMaterialProperties
+		* @param rElementGeometry
+		* @param rCurrentProcessInfo
+		* @return
+		*/
+		virtual int Check(
+			const Properties& rMaterialProperties,
+			const GeometryType& rElementGeometry,
+			const ProcessInfo& rCurrentProcessInfo);
 
-	void CalculateNumericalTangent(Parameters& rValues);
+	protected:
 
-    ///@}
-    
-    ///@name Private Operations
-    ///@{
-    ///@}
-    
-    ///@name Private  Access
-    ///@{
-    ///@}
+		///@name Protected static Member Variables
+		///@{
+		///@}
 
-    ///@name Serialization
-    ///@{
+		///@name Protected member Variables
+		///@{
 
-    friend class Serializer;
+		Vector m_init_strain;
+
+		///@}
 
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw );
-		rSerializer.save("xi_n", m_xi_n);
-		rSerializer.save("xi_n1", m_xi_n1);
-		rSerializer.save("ep_n", m_eps_p_n);
-		rSerializer.save("ep_n1", m_eps_p_n1);
-		rSerializer.save("init", m_initialized);
-    }
 
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw );
-		rSerializer.load("xi_n", m_xi_n);
-		rSerializer.load("xi_n1", m_xi_n1);
-		rSerializer.load("ep_n", m_eps_p_n);
-		rSerializer.load("ep_n1", m_eps_p_n1);
-		rSerializer.load("init", m_initialized);
-    }
+		///@name Protected Operators
+		///@{
 
-    ///@}
+		//void CalculateMaterialResponseCauchy(Parameters& rValues);
 
-}; /* Class J2ConstitutiveLaw3D */
+		///@}
+
+		///@name Protected Operations
+		///@{
+		///@}
+
+
+	private:
+
+		///@name Static Member Variables
+		///@{
+
+		double m_xi;
+		double m_xi_converged;
+		array_1d<double, 6> m_eps_pl;
+		array_1d<double, 6> m_eps_pl_converged;
+		double m_lch;
+		bool m_initialized;
+
+		///@}
+
+		///@name Member Variables
+		///@{
+		///@}
+
+		///@name Private Operators
+		///@{
+
+		inline double HardeningFunction(double xi, double sy, double sinf, double Hi, double Gf)
+		{
+			//return sy;
+			/*double A = std::abs(sy-sinf)*m_lch/Gf;
+			return sy + (sinf-sy)*(1.0-std::exp(-A*xi))+Hi*xi;*/
+			double delta = sy/50.0;
+			return sy + (sinf-sy)*(1.0-std::exp(-delta*xi))+Hi*xi;
+		}
+
+		inline double HardeningDerivative(double xi, double sy, double sinf, double Hi, double Gf)
+		{
+			//return 0.0;
+			/*double A = std::abs(sy-sinf)*m_lch/Gf;
+			return Hi + A*(sinf-sy)/std::exp(A*xi);*/
+			double delta = sy/50.0;
+			return Hi + delta*(sinf-sy)/std::exp(delta*xi);
+		}
+
+		///@}
+
+		///@name Private Operations
+		///@{
+		///@}
+
+		///@name Private  Access
+		///@{
+		///@}
+
+		///@name Serialization
+		///@{
+
+		friend class Serializer;
+
+
+		virtual void save(Serializer& rSerializer) const
+		{
+			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw );
+			rSerializer.save("xi", m_xi);
+			rSerializer.save("xi_c", m_xi_converged);
+			rSerializer.save("ep", m_eps_pl);
+			rSerializer.save("ep_c", m_eps_pl_converged);
+			rSerializer.save("lch", m_lch);
+			rSerializer.save("init", m_initialized);
+		}
+
+		virtual void load(Serializer& rSerializer)
+		{
+			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw );
+			rSerializer.load("xi", m_xi);
+			rSerializer.load("xi_c", m_xi_converged);
+			rSerializer.load("ep", m_eps_pl);
+			rSerializer.load("ep_c", m_eps_pl_converged);
+			rSerializer.load("lch", m_lch);
+			rSerializer.load("init", m_initialized);
+		}
+
+		///@}
+
+	}; /* Class J2ConstitutiveLaw3D */
 
 } /* namespace Kratos.*/
 #endif /* KRATOS_J2_CONSTITUTIVE_LAW_H_INCLUDED  defined */
