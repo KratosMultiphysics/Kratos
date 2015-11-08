@@ -50,8 +50,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_RVE_CORNER_CONDITION_2D4N_H_INCLUDED )
-#define  KRATOS_RVE_CORNER_CONDITION_2D4N_H_INCLUDED
+#if !defined(KRATOS_PERIODIC_CONDITION_LM_2D2N_H_INCLUDED )
+#define  KRATOS_PERIODIC_CONDITION_LM_2D2N_H_INCLUDED
 
 
 
@@ -70,7 +70,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "custom_utilities/load_function.h"
-#include "rve_condition_base.h"
 
 namespace Kratos
 {
@@ -97,30 +96,30 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class RveCornerCondition2D4N
-    : public RveConditionBase
+class PeriodicConditionLM2D2N
+    : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of RveCornerCondition2D4N
-    KRATOS_CLASS_POINTER_DEFINITION(RveCornerCondition2D4N);
+    /// Counted pointer of PeriodicConditionLM2D2N
+    KRATOS_CLASS_POINTER_DEFINITION(PeriodicConditionLM2D2N);
 
-	typedef RveConditionBase MyBase;
+	typedef Condition MyBase;
 
     ///@}
 	
     ///@name Life Cycle
     ///@{
 
-	RveCornerCondition2D4N(IndexType NewId, GeometryType::Pointer pGeometry);
+	PeriodicConditionLM2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 
-	RveCornerCondition2D4N(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+	PeriodicConditionLM2D2N(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 	
-	RveCornerCondition2D4N(const RveCornerCondition2D4N& rOther);
+	PeriodicConditionLM2D2N(const PeriodicConditionLM2D2N& rOther);
 	
-    virtual ~RveCornerCondition2D4N();
+    virtual ~PeriodicConditionLM2D2N();
 
     ///@}
 	
@@ -198,7 +197,7 @@ private:
     ///@}
 	
     ///@name Member Variables
-    ///@{
+    ///@{	
     ///@}
 	
     ///@name Private Operators
@@ -210,7 +209,7 @@ private:
 
 	friend class Serializer;
 
-    RveCornerCondition2D4N() {};
+    PeriodicConditionLM2D2N() {};
 
     virtual void save(Serializer& rSerializer) const
     {
@@ -236,7 +235,7 @@ private:
     ///@{
     ///@}
 
-}; // Class RveCornerCondition2D4N
+}; // Class PeriodicConditionLM2D2N
 
 ///@}
 
@@ -250,6 +249,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RVE_CORNER_CONDITION_2D4N_H_INCLUDED 
+#endif // KRATOS_PERIODIC_CONDITION_LM_2D2N_H_INCLUDED 
 
 
