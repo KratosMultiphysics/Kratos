@@ -70,7 +70,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "custom_utilities/load_function.h"
-#include "rve_condition_base.h"
 
 namespace Kratos
 {
