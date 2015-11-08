@@ -95,13 +95,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // flag to use or not the linesearch
 //#define RVE_V2_USE_LINE_SEARCH
 
-// flag to activate the modified newton with a krylov subspace accelerator
-//#define RVE_V2_USES_KRYLOV_NEWTON
-
 //#define RVE_V2_CHECK_HOMG_STRAIN
 
 //#define RVE_V2_INCREMENTAL_REGULARIZATION
 
+// flag to activate the modified newton with a krylov subspace accelerator
+#define RVE_V2_USES_KRYLOV_NEWTON
+
+// activate the krylov newtown accelerator. note: it needs eigen lib
+#ifdef RVE_V2_USES_KRYLOV_NEWTON
+#ifndef MULTISCALE_APPLICATION_USE_EIGEN
+#undef RVE_V2_USES_KRYLOV_NEWTON
+#endif
+#endif
 #ifdef RVE_V2_USES_KRYLOV_NEWTON
 #include "krylov_subspace_accelerator_eigenlib_utilities.h"
 #endif // RVE_V2_USES_KRYLOV_NEWTON
