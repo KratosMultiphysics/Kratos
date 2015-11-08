@@ -44,39 +44,77 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
-//   Date:                $Date: 2013-11-04 12:00:00 $
+//   Date:                $Date: 2013-06-06 10:37:00 $
 //   Revision:            $Revision: 1.00 $
 //
 //
 
-#include "rve_boundary.h"
+#if !defined(RVE_ADAPTER_SETTINGS_H_INCLUDED)
+#define RVE_ADAPTER_SETTINGS_H_INCLUDED
+
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
 
-RveBoundary::RveBoundary()
-	: mLagrangianNodeID(0)
-	, mHasLagrangianNodeID(false)
+struct RveAdapterSettings_PlaneStress
 {
-}
-        
-RveBoundary::~RveBoundary()
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 3; }
+	static SizeType WorkingSpaceDimension() { return 2; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRESS_LAW );
+		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
+struct RveAdapterSettings_PlaneStrain
 {
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 4; }
+	static SizeType WorkingSpaceDimension() { return 2; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set( ConstitutiveLaw::PLANE_STRAIN_LAW );
+		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
+struct RveAdapterSettings_3D
+{
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 6; }
+	static SizeType WorkingSpaceDimension() { return 3; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set( ConstitutiveLaw::THREE_DIMENSIONAL_LAW );
+		rFeatures.mOptions.Set( ConstitutiveLaw::INFINITESIMAL_STRAINS );
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
 }
 
-std::string RveBoundary::GetInfo()const
-{
-	return "RevBoundary base class"; 
-}
 
-void RveBoundary::AddConditions(ModelPart& modelPart, Vector& strainVector)const
-{
-	KRATOS_THROW_ERROR(std::logic_error, "Calling AddConditions from RveBoundary which is a base class", "");
-}
-
-void RveBoundary::SetMacroscaleStatusOnCondition(const RveConditionBase::Pointer& cond, const RveMacroscaleStatus::Pointer& status)const
-{
-	cond->SetMacroscaleStatus(status);
-}
-
-} // namespace Kratos
+#endif // RVE_ADAPTER_SETTINGS_H_INCLUDED
