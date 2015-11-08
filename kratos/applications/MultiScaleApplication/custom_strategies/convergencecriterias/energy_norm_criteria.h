@@ -120,16 +120,20 @@ public:
 		, mInitialNorm(0.0)
 		, mInitialized(false)
 		, mVerbose(true)
+		, mNumDivergence(0)
+		, mRatioOld(1.0)
     {
     }
 
-	EnergyNormCriteria(TDataType relativeTolerance,TDataType absoluteTolerance, bool Verbose)
+	EnergyNormCriteria(TDataType relativeTolerance,TDataType absoluteTolerance, bool verbose)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
 		, mRelativeTolerance(relativeTolerance)
 		, mAbsoluteTolerance(absoluteTolerance)
 		, mInitialNorm(0.0)
 		, mInitialized(false)
-		, mVerbose(Verbose)
+		, mVerbose(verbose)
+		, mNumDivergence(0)
+		, mRatioOld(1.0)
     {
     }
 
@@ -149,8 +153,16 @@ public:
                       const TSystemVectorType& Dx,
                       const TSystemVectorType& b)
     {
-		SizeType vsize = TSparseSpace::Size(Dx);
-		if(vsize == 0) return true;
+		ProcessInfo& pinfo = r_model_part.GetProcessInfo();
+
+		SizeType vsize = TSparseSpace::Size(b);
+
+		int convergence_flag = 0;
+		if(vsize == 0) 
+		{
+			pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+			return true;
+		}
 
 		TDataType currentNorm;
 
@@ -158,7 +170,6 @@ public:
 		{
 			mInitialNorm = std::abs(TSparseSpace::Dot(Dx, b) * 0.5);
 			currentNorm = mInitialNorm;
-			mInitialized = true;
 		}
 		else 
 		{
@@ -170,19 +181,68 @@ public:
 			ratio = currentNorm/mInitialNorm;
 		
 		currentNorm /= (TDataType)vsize;
-
-		if (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose)
+		
+		std::stringstream ss;
+		bool do_print = (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose);
+		if (do_print)
 		{
-			std::stringstream ss;
+			ss.precision(3);
 			ss << "   ENERGY NORM       | Ratio : " 
 			   << std::scientific << ratio << 
 			   " | Norm : " 
-			   << std::scientific << currentNorm 
-			   << std::endl;
+			   << std::scientific << currentNorm;
+		}
+
+		if(boost::math::isnan(currentNorm))
+		{
+			convergence_flag = -1;
+		}
+		else
+		{
+			if(mInitialized)
+			{
+				if(ratio > mRatioOld || ratio > 1.0)
+					mNumDivergence++;
+			}
+		}
+		mRatioOld = ratio;
+		if(mNumDivergence > 4)
+			convergence_flag = -1;
+
+		pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+
+		mInitialized = true;
+
+		bool res = (ratio <= mRelativeTolerance || currentNorm <= mAbsoluteTolerance);
+		if(!res) {
+			if(pinfo.Has(DELTA_TIME)) {
+				double delta_t = pinfo[DELTA_TIME];
+				if(delta_t <= 1.0E-5) {
+					bool accept_alternative_tolerance = true;
+					if(pinfo.Has(NL_ITERATION_NUMBER)) {
+						// todo: check max iterations
+						if(pinfo[NL_ITERATION_NUMBER] < 9)
+							accept_alternative_tolerance = false;
+					}
+					if(accept_alternative_tolerance) {
+						double alternative_tolerance = 1.0e-1;
+						if(ratio <= alternative_tolerance) {
+							res = true;
+							if(do_print) {
+								ss << " | ALTERNATIVE TOLERANCE";
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if(do_print) {
+			ss << std::endl;
 			std::cout << ss.str();
 		}
 
-		return (ratio <= mRelativeTolerance || currentNorm <= mAbsoluteTolerance);
+		return res;
     }
 
     void Initialize(ModelPart& r_model_part)
@@ -190,6 +250,8 @@ public:
         BaseType::mConvergenceCriteriaIsInitialized = true;
 		mInitialized = false;
 		mInitialNorm = 0.0;
+		mNumDivergence = 0;
+		mRatioOld = 1.0;
     }
 
     void InitializeSolutionStep(
@@ -201,6 +263,8 @@ public:
     {
 		mInitialized = false;
 		mInitialNorm = 0.0;
+		mNumDivergence = 0;
+		mRatioOld = 1.0;
     }
 
     void FinalizeSolutionStep(
@@ -288,6 +352,13 @@ private:
 	TDataType mInitialNorm;
 	bool mInitialized;
 	bool mVerbose;
+
+	// criteria for divergence check:
+	// 1) if norm(R) is NAN -> divergence
+	// 2) temp_diverg = (ratio > 1 || ratio > ratio_old)
+	// if temp_diverg > max_diverg -> divergence
+	int mNumDivergence;
+	TDataType mRatioOld;
 
     /*@} */
     /**@name Private Operators*/

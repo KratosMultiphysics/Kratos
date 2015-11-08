@@ -51,6 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <iomanip>
+#include <math.h>
 
 /* External includes */
 
@@ -63,33 +64,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-/*@} */
-
-/**@name  Enum's */
-/*@{ */
-/*@} */
-
-/**@name  Functions */
-/*@{ */
-/*@} */
-
-/**@name Kratos Classes */
-/*@{ */
-
-/** Residual Norm Criteria.
-*/
 template<class TSparseSpace,class TDenseSpace>
 class ResidualNormCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualNormCriteria );
 
@@ -107,11 +85,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    /*@} */
-	
-    /**@name Life Cycle
-    */
-    /*@{ */
+public:
 
     ResidualNormCriteria(TDataType relativeTolerance, TDataType absoluteTolerance)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
@@ -120,7 +94,8 @@ public:
 		, mInitialNorm(0.0)
 		, mInitialized(false)
 		, mVerbose(true)
-		
+		, mNumDivergence(0)
+		, mRatioOld(1.0)
     {
     }
 
@@ -131,7 +106,8 @@ public:
 		, mInitialNorm(0.0)
 		, mInitialized(false)
 		, mVerbose(verbose)
-		
+		, mNumDivergence(0)
+		, mRatioOld(1.0)
     {
     }
 
@@ -139,20 +115,22 @@ public:
 	{
 	}
 
-    /*@} */
-	
-    /**@name Operators
-    */
-    /*@{ */
-
     bool PostCriteria(ModelPart& r_model_part,
                       DofsArrayType& rDofSet,
                       const TSystemMatrixType& A,
                       const TSystemVectorType& Dx,
                       const TSystemVectorType& b)
     {
+		ProcessInfo& pinfo = r_model_part.GetProcessInfo();
+
 		SizeType vsize = TSparseSpace::Size(b);
-		if(vsize == 0) return true;
+
+		int convergence_flag = 0;
+		if(vsize == 0) 
+		{
+			pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+			return true;
+		}
 
 		TDataType currentNorm;
 
@@ -160,32 +138,79 @@ public:
 		{
 			mInitialNorm = TSparseSpace::TwoNorm(b);
 			currentNorm = mInitialNorm;
-			mInitialized = true;
 		}
 		else 
 		{
 			currentNorm = TSparseSpace::TwoNorm(b);
 		}
-		
+
 		TDataType ratio = 1.0;
 		if(mInitialNorm != 0.0)
 			ratio = currentNorm/mInitialNorm;
 		
 		currentNorm /= (TDataType)vsize;
 		
-		if (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose)
+		std::stringstream ss;
+		bool do_print = (r_model_part.GetCommunicator().MyPID() == 0 && mVerbose);
+		if (do_print)
 		{
-			std::stringstream ss;
 			ss.precision(3);
 			ss << "   RESIDUAL NORM     | Ratio : " 
 			   << std::scientific << ratio << 
 			   " | Norm : " 
-			   << std::scientific << currentNorm 
-			   << std::endl;
+			   << std::scientific << currentNorm << " - ITER: " << pinfo[NL_ITERATION_NUMBER];
+		}
+
+		if(boost::math::isnan(currentNorm))
+		{
+			convergence_flag = -1;
+		}
+		else
+		{
+			if(mInitialized)
+			{
+				if(ratio > mRatioOld && ratio > 1.0)
+					mNumDivergence++;
+			}
+		}
+		mRatioOld = ratio;
+		if(mNumDivergence > 3)
+			convergence_flag = -1;
+
+		pinfo[ITERATION_CONVERGENCE_FLAG] = convergence_flag;
+
+		mInitialized = true;
+
+		bool res = (ratio <= mRelativeTolerance || currentNorm <= mAbsoluteTolerance);
+		//if(!res) {
+		//	if(pinfo.Has(DELTA_TIME)) {
+		//		double delta_t = pinfo[DELTA_TIME];
+		//		if(delta_t <= 1.0E-5) {
+		//			bool accept_alternative_tolerance = true;
+		//			if(pinfo.Has(NL_ITERATION_NUMBER)) {
+		//				// todo: check max iterations
+		//				if(pinfo[NL_ITERATION_NUMBER] < 9)
+		//					accept_alternative_tolerance = false;
+		//			}
+		//			if(accept_alternative_tolerance) {
+		//				double alternative_tolerance = 1.0e-1;
+		//				if(ratio <= alternative_tolerance) {
+		//					res = true;
+		//					if(do_print) {
+		//						ss << " | ALTERNATIVE TOLERANCE";
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+
+		if(do_print) {
+			ss << std::endl;
 			std::cout << ss.str();
 		}
 
-		return (ratio <= mRelativeTolerance || currentNorm <= mAbsoluteTolerance);
+		return res;
     }
 
     void Initialize(ModelPart& r_model_part)
@@ -193,6 +218,8 @@ public:
         BaseType::mConvergenceCriteriaIsInitialized = true;
 		mInitialized = false;
 		mInitialNorm = 0.0;
+		mNumDivergence = 0;
+		mRatioOld = 1.0;
     }
 
     void InitializeSolutionStep(
@@ -204,6 +231,8 @@ public:
     {
 		mInitialized = false;
 		mInitialNorm = 0.0;
+		mNumDivergence = 0;
+		mRatioOld = 1.0;
     }
 
     void FinalizeSolutionStep(
@@ -215,76 +244,7 @@ public:
 	{
 	}
 
-
-
-    /*@} */
-    /**@name Operations */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
-
-protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
 private:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
 
 	TDataType mRelativeTolerance;
 	TDataType mAbsoluteTolerance;
@@ -292,41 +252,16 @@ private:
 	bool mInitialized;
 	bool mVerbose;
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+	// criteria for divergence check:
+	// 1) if norm(R) is NAN -> divergence
+	// 2) temp_diverg = (ratio > 1 || ratio > ratio_old)
+	// if temp_diverg > max_diverg -> divergence
+	int mNumDivergence;
+	TDataType mRatioOld;
 
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
 
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
-
-}; /* Class ClassName */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
+}; 
 
 }  /* namespace Kratos.*/
 

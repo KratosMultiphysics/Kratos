@@ -22,6 +22,8 @@
 #include <omp.h>
 #endif
 
+#define STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+
 /* External includes */
 #include "boost/smart_ptr.hpp"
 #include "utilities/timer.h"
@@ -90,6 +92,13 @@ public:
     StaticGeneralBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
     {
+		mTotalBuildTime = 0.0;
+        mTotalSolutionTime = 0.0;
+		mTotalBuildTime_accum = 0.0;
+        mTotalSolutionTime_accum = 0.0;
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+		mDoFactorization = false;
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
     }
 
     virtual ~StaticGeneralBuilderAndSolver()
@@ -100,6 +109,8 @@ public:
 
     void Build(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemMatrixType& A, TSystemVectorType& b)
     {
+		double time_begin = Timer::GetTime();
+
         if (!pScheme)
             KRATOS_THROW_ERROR( std::runtime_error, "No scheme provided!", "" )
 
@@ -197,7 +208,7 @@ public:
 				
                 //assemble the elemental contribution
                 Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
-				
+
                 // clean local elemental memory
                 pScheme->CleanMemory(*it);
             }
@@ -242,10 +253,17 @@ public:
             KRATOS_WATCH( "finished parallel building" )
 
 #endif
+		mTotalBuildTime += Timer::GetTime() - time_begin;
+
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+		mDoFactorization = true;
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
     }
 
     void BuildLHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemMatrixType& A)
     {
+		double time_begin = Timer::GetTime();
+
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
 
@@ -288,10 +306,18 @@ public:
             //assemble the elemental contribution
             AssembleLHS(A, LHS_Contribution, EquationId);
         }
+
+		mTotalBuildTime += Timer::GetTime() - time_begin;
+
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+		mDoFactorization = true;
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
     }
 
     void BuildLHS_CompleteOnFreeRows(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemMatrixType& A)
     {
+		double time_begin = Timer::GetTime();
+
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
 
@@ -333,10 +359,18 @@ public:
             //assemble the elemental contribution
             AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
         }
+
+		mTotalBuildTime += Timer::GetTime() - time_begin;
+
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+		mDoFactorization = true;
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
     }
 
     void SystemSolve(TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b)
     {
+		double time_begin = Timer::GetTime();
+
         double norm_b;
         if (TSparseSpace::Size(b) != 0)
             norm_b = TSparseSpace::TwoNorm(b);
@@ -345,21 +379,29 @@ public:
 
         if (norm_b != 0.00)
         {
-#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_USES_OPENMP
-			#pragma omp critical
-			{
-				BaseType::mpLinearSystemSolver->Solve(A, Dx, b); 
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+			if(mDoFactorization) {
+				BaseType::mpLinearSystemSolver->InitializeSolutionStep(A, Dx, b);
+				BaseType::mpLinearSystemSolver->PerformSolutionStep(A, Dx, b);
+				mDoFactorization = false;
+			}
+			else {
+				BaseType::mpLinearSystemSolver->PerformSolutionStep(A, Dx, b);
 			}
 #else
-			BaseType::mpLinearSystemSolver->Solve(A, Dx, b); 
-#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_USES_OPENMP
+			BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
         }
         else
             TSparseSpace::SetToZero(Dx);
+
+		mTotalSolutionTime += Timer::GetTime() - time_begin;
     }
 
     void SystemSolveWithPhysics(TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b, ModelPart& r_model_part)
     {
+		double time_begin = Timer::GetTime();
+
         double norm_b;
         if (TSparseSpace::Size(b) != 0)
             norm_b = TSparseSpace::TwoNorm(b);
@@ -370,14 +412,19 @@ public:
         {
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, r_model_part);
-#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_USES_OPENMP
-			#pragma omp critical
-			{
-				BaseType::mpLinearSystemSolver->Solve(A, Dx, b); 
+
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+			if(mDoFactorization) {
+				BaseType::mpLinearSystemSolver->InitializeSolutionStep(A, Dx, b);
+				BaseType::mpLinearSystemSolver->PerformSolutionStep(A, Dx, b);
+				mDoFactorization = false;
+			}
+			else {
+				BaseType::mpLinearSystemSolver->PerformSolutionStep(A, Dx, b);
 			}
 #else
-			BaseType::mpLinearSystemSolver->Solve(A, Dx, b); 
-#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_USES_OPENMP
+			BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
 
         }
         else
@@ -386,46 +433,32 @@ public:
 			if( this->GetEchoLevel() > 0 && r_model_part.GetCommunicator().MyPID() == 0)
 				std::cout << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
+
+		mTotalSolutionTime += Timer::GetTime() - time_begin;
     }
 
     void BuildAndSolve(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b)
     {
-		double tempTime;
-
         bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
 		BaseType::mCalculateReactionsFlag = false;
-		
-        tempTime = Timer::GetTime();
         this->Build(pScheme, r_model_part, A, b);
-		mTotalBuildTime += Timer::GetTime() - tempTime;
-
 		BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
-		
-		tempTime = Timer::GetTime();
         SystemSolveWithPhysics(A, Dx, b, r_model_part);
-		mTotalSolutionTime += Timer::GetTime() - tempTime;
     }
 
     void BuildRHSAndSolve(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b)
     {
-		double tempTime;
-
         bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
 		BaseType::mCalculateReactionsFlag = false;
-
-		tempTime = Timer::GetTime();
 		this->BuildRHS(pScheme, r_model_part, b);
-		mTotalBuildTime += Timer::GetTime() - tempTime;
-
 		BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
-		
-		tempTime = Timer::GetTime();
         SystemSolve(A, Dx, b);
-		mTotalSolutionTime += Timer::GetTime() - tempTime;
     }
 
     void BuildRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemVectorType& b)
     {
+		double time_begin = Timer::GetTime();
+
         if (!pScheme)
             KRATOS_THROW_ERROR( std::runtime_error, "No scheme provided!", "" )
 
@@ -571,6 +604,8 @@ public:
         }
 
 #endif
+		
+		mTotalBuildTime += Timer::GetTime() - time_begin;
     }
     
     void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part)
@@ -710,14 +745,16 @@ public:
 
     void FinalizeSolutionStep(ModelPart& r_model_part, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b)
     {
+		mTotalBuildTime_accum += mTotalBuildTime;
+		mTotalSolutionTime_accum += mTotalSolutionTime;
         if( this->GetEchoLevel() > 0 && r_model_part.GetCommunicator().MyPID() == 0)
             PromptStatistics(r_model_part.GetProcessInfo());
     }
 
     void CalculateReactions(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part, TSystemMatrixType& A, TSystemVectorType& Dx, TSystemVectorType& b)
     {
-        //refresh RHS to have the correct reactions
-        this->BuildRHS(pScheme, r_model_part, b);
+        ////refresh RHS to have the correct reactions
+        //this->BuildRHS(pScheme, r_model_part, b);
 
         int i;
         int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
@@ -956,7 +993,13 @@ private:
 
     double mTotalBuildTime;
     double mTotalSolutionTime;
+	double mTotalBuildTime_accum;
+    double mTotalSolutionTime_accum;
     unsigned int mNumberOfFreeDofs;
+
+#ifdef STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
+	bool mDoFactorization;
+#endif // STATIC_GENERAL_BUILDER_AND_SOLVER_OPTIMIZE_SOLUTION
 
 private:
 
@@ -970,6 +1013,9 @@ private:
         ss << " Number of Iterations:\t" << nit << std::endl;
         ss << " Mean Build Time:    \t" << mTotalBuildTime / dnit << " seconds" << std::endl;
         ss << " Mean Solution Time: \t" << mTotalSolutionTime / dnit << " seconds" << std::endl;
+		ss << " Total Build Time from start: " << mTotalBuildTime_accum << " seconds" << std::endl;
+		ss << " Total Solution Time from start: " << mTotalSolutionTime_accum << " seconds" << std::endl;
+		ss << " Total Time from start: " << mTotalSolutionTime_accum + mTotalBuildTime_accum << " seconds" << std::endl;
         std::cout << ss.str();
     }
 
@@ -983,7 +1029,6 @@ private:
                   std::vector< omp_lock_t >& lock_array)
     {
         unsigned int local_size = RHS_Contribution.size();
-
         for (unsigned int i_local = 0; i_local < local_size; i_local++)
         {
             unsigned int i_global = EquationId[i_local];
