@@ -50,8 +50,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_RVE_CORNER_CONDITION_3D8N_H_INCLUDED )
-#define  KRATOS_RVE_CORNER_CONDITION_3D8N_H_INCLUDED
+#if !defined(KRATOS_RVE_WEAK_PERIODIC_CONDITION_2D2N_H_INCLUDED )
+#define  KRATOS_RVE_WEAK_PERIODIC_CONDITION_2D2N_H_INCLUDED
 
 
 
@@ -97,30 +97,30 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class RveCornerCondition3D8N
-    : public RveConditionBase
+class RveWeakPeriodicCondition2D2N
+    : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of RveCornerCondition3D8N
-    KRATOS_CLASS_POINTER_DEFINITION(RveCornerCondition3D8N);
+    /// Counted pointer of RveWeakPeriodicCondition2D2N
+    KRATOS_CLASS_POINTER_DEFINITION(RveWeakPeriodicCondition2D2N);
 
-	typedef RveConditionBase MyBase;
+	typedef Condition MyBase;
 
     ///@}
 	
     ///@name Life Cycle
     ///@{
 
-	RveCornerCondition3D8N(IndexType NewId, GeometryType::Pointer pGeometry);
+	RveWeakPeriodicCondition2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 
-	RveCornerCondition3D8N(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+	RveWeakPeriodicCondition2D2N(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 	
-	RveCornerCondition3D8N(const RveCornerCondition3D8N& rOther);
+	RveWeakPeriodicCondition2D2N(const RveWeakPeriodicCondition2D2N& rOther);
 	
-    virtual ~RveCornerCondition3D8N();
+    virtual ~RveWeakPeriodicCondition2D2N();
 
     ///@}
 	
@@ -149,6 +149,10 @@ public:
 	
     ///@name Access
     ///@{
+
+	inline bool& IsSkewSymmetricConstraint() { return m_is_skew_symmetric_constraint; }
+	inline const bool IsSkewSymmetricConstraint()const { return m_is_skew_symmetric_constraint; }
+
     ///@}
 	
     ///@name Inquiry
@@ -198,7 +202,7 @@ private:
     ///@}
 	
     ///@name Member Variables
-    ///@{
+    ///@{	
     ///@}
 	
     ///@name Private Operators
@@ -208,9 +212,13 @@ private:
     ///@name Private Operations
     ///@{
 
+	unsigned int CalculateLagrangianDofMask(array_1d<unsigned int, 3>& mask);
+
+	bool m_is_skew_symmetric_constraint;
+
 	friend class Serializer;
 
-    RveCornerCondition3D8N() {};
+    RveWeakPeriodicCondition2D2N() {};
 
     virtual void save(Serializer& rSerializer) const
     {
@@ -236,7 +244,7 @@ private:
     ///@{
     ///@}
 
-}; // Class RveCornerCondition3D8N
+}; // Class RveWeakPeriodicCondition2D2N
 
 ///@}
 
@@ -250,6 +258,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RVE_CORNER_CONDITION_3D8N_H_INCLUDED 
+#endif // KRATOS_RVE_WEAK_PERIODIC_CONDITION_2D2N_H_INCLUDED 
 
 

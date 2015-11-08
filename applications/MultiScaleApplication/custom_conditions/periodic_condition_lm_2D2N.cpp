@@ -58,39 +58,40 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "rve_periodic_condition_DY_2D2N.h"
+#include "periodic_condition_lm_2D2N.h"
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
 #include "multiscale_application.h"
+#include "custom_utilities/math_helpers.h"
 
 namespace Kratos
 {
 	
-RvePeriodicConditionDY2D2N::RvePeriodicConditionDY2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
+PeriodicConditionLM2D2N::PeriodicConditionLM2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
 	: MyBase(NewId, pGeometry)
 {
 }
 
-RvePeriodicConditionDY2D2N::RvePeriodicConditionDY2D2N(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+PeriodicConditionLM2D2N::PeriodicConditionLM2D2N(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 	: MyBase(NewId, pGeometry, pProperties)
 {
 }
 	
-RvePeriodicConditionDY2D2N::RvePeriodicConditionDY2D2N(const RvePeriodicConditionDY2D2N& rOther)
+PeriodicConditionLM2D2N::PeriodicConditionLM2D2N(const PeriodicConditionLM2D2N& rOther)
 	: MyBase(rOther)
 {
 }
 
-Condition::Pointer RvePeriodicConditionDY2D2N::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+Condition::Pointer PeriodicConditionLM2D2N::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-	return Condition::Pointer(new RvePeriodicConditionDY2D2N(NewId, GetGeometry().Create(ThisNodes), pProperties));
+	return Condition::Pointer(new PeriodicConditionLM2D2N(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-RvePeriodicConditionDY2D2N::~RvePeriodicConditionDY2D2N()
+PeriodicConditionLM2D2N::~PeriodicConditionLM2D2N()
 {
 }
 
-void RvePeriodicConditionDY2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PeriodicConditionLM2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     if(rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6) rLeftHandSideMatrix.resize(6, 6,false);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(6, 6);
@@ -98,24 +99,9 @@ void RvePeriodicConditionDY2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
     if(rRightHandSideVector.size() != 6) rRightHandSideVector.resize(6, false);
 	noalias( rRightHandSideVector ) = ZeroVector(6);
 
-	// some geometric info
-	// Note:
-	// to get the right sign for the distance do ALWAYS master.coordinate - slave.coordinate
+	// Nodal IDs = [slave ID, master ID]
 	
 	GeometryType& geom = GetGeometry();
-	double ly = geom[1].Y0() - geom[0].Y0();
-
-	// setup RHS vector with prescribed values
-
-	Vector strainVector(3);
-	if( this->GetMacroStrainVector(strainVector) )
-	{
-		double eyy = strainVector(1) * ly;
-		double exy = strainVector(2) * ly * 0.5;
-	
-		rRightHandSideVector(4) = -exy;
-		rRightHandSideVector(5) = -eyy;
-	}
 
 	// get current values and form the system matrix
 
@@ -127,6 +113,8 @@ void RvePeriodicConditionDY2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
 	currentValues(4) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_X);
 	currentValues(5) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_Y);
 	
+	//KRATOS_WATCH(currentValues);
+
 	rLeftHandSideMatrix(4,0) =  1.0;
 	rLeftHandSideMatrix(4,2) = -1.0;
 	rLeftHandSideMatrix(0,4) =  1.0;
@@ -141,13 +129,13 @@ void RvePeriodicConditionDY2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
 	noalias(rRightHandSideVector) -= prod( rLeftHandSideMatrix, currentValues );
 }
 
-void RvePeriodicConditionDY2D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PeriodicConditionLM2D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType dummy;
 	CalculateLocalSystem(dummy, rRightHandSideVector, rCurrentProcessInfo);
 }
 
-void RvePeriodicConditionDY2D2N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void PeriodicConditionLM2D2N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
 	if(rResult.size() != 6) rResult.resize(6);
 	GeometryType& geom = GetGeometry();
@@ -162,7 +150,7 @@ void RvePeriodicConditionDY2D2N::EquationIdVector(EquationIdVectorType& rResult,
 	rResult[5] = geom[0].GetDof( DISPLACEMENT_LAGRANGE_Y ).EquationId();
 }
 
-void RvePeriodicConditionDY2D2N::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void PeriodicConditionLM2D2N::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
 {
 	if(ConditionalDofList.size() != 6) ConditionalDofList.resize(6);
 	GeometryType& geom = GetGeometry();
@@ -177,7 +165,7 @@ void RvePeriodicConditionDY2D2N::GetDofList(DofsVectorType& ConditionalDofList,P
 	ConditionalDofList[5] = geom[0].pGetDof( DISPLACEMENT_LAGRANGE_Y );
 }
 
-int RvePeriodicConditionDY2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
+int PeriodicConditionLM2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
 	MyBase::Check(rCurrentProcessInfo);
 	KRATOS_TRY
@@ -186,7 +174,7 @@ int RvePeriodicConditionDY2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	
 	if(geom.size() != 2) {
 		std::stringstream ss;
-		ss << "RvePeriodicConditionDY2D2N - The Geometry should have 2 nodes. Condition with ID = " << this->GetId();
+		ss << "PeriodicConditionLM2D2N - The Geometry should have 2 nodes. Condition with ID = " << this->GetId();
 		KRATOS_THROW_ERROR(std::logic_error, ss.str(), "");
 	}
 	
@@ -220,5 +208,3 @@ int RvePeriodicConditionDY2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 }
 
 }
-
-
