@@ -110,40 +110,42 @@ namespace Kratos
 
                 else if (((time - angular_velocity_start_time) > 0.0) && ((time - angular_velocity_stop_time) < 0.0)) {
 
-                if (angular_period > 0.0) {
-                    double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
-                    double inv_angular_omega = 1.0 / angular_omega;
-                    noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
-                    sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
-                    noalias(angular_velocity_changed) = angular_velocity * cos(angular_omega * (time - angular_velocity_start_time));
-                    final_angle = angle;
-                } else {
-                    noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
-                    angular_velocity_changed = angular_velocity;
+                    if (angular_period > 0.0) {
+                        double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                        double inv_angular_omega = 1.0 / angular_omega;
+                        noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
+                        sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
+                        noalias(angular_velocity_changed) = angular_velocity * cos(angular_omega * (time - angular_velocity_start_time));
+                        final_angle = angle;
+                    } else {
+                        noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
+                        angular_velocity_changed = angular_velocity;
                     }
-                } else { //if ((time - angular_velocity_stop_time) > 0.0) {
+                }
+                
+                else { //if ((time - angular_velocity_stop_time) > 0.0) {
                     angular_velocity_changed = ZeroVector(3);
 
                     if (angular_period > 0.0) {
                         angle = final_angle;
                     } else {
                         noalias(angle) = angular_velocity * (angular_velocity_stop_time - angular_velocity_start_time);
-                        }
                     }
+                }
 
                 double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
 
-                array_1d<double, 3 > new_axes1;
+                array_1d<double, 3> new_axes1;
                 new_axes1[0] = 1.0;
                 new_axes1[1] = 0.0;
                 new_axes1[2] = 0.0;
 
-                array_1d<double, 3 > new_axes2;
+                array_1d<double, 3> new_axes2;
                 new_axes2[0] = 0.0;
                 new_axes2[1] = 1.0;
                 new_axes2[2] = 0.0;
 
-                array_1d<double, 3 > new_axes3;
+                array_1d<double, 3> new_axes3;
                 new_axes3[0] = 0.0;
                 new_axes3[1] = 0.0;
                 new_axes3[2] = 1.0;
@@ -151,14 +153,14 @@ namespace Kratos
                 if (mod_angular_velocity > 0.0) {
 
                     double ang = sign_angle * MathUtils<double>::Norm3(angle);
-                    array_1d<double, 3 > rotation_axis;
-                    noalias(rotation_axis) = angular_velocity / MathUtils<double>::Norm3(angular_velocity);
-                    array_1d<double, 3 > e1;
+                    array_1d<double, 3> rotation_axis;
+                    noalias(rotation_axis) = angular_velocity / mod_angular_velocity;
+                    array_1d<double, 3> e1;
                     e1[0] = 1.0;
                     e1[1] = 0.0;
                     e1[2] = 0.0;
 
-                    array_1d<double, 3 > e2;
+                    array_1d<double, 3> e2;
                     e2[0] = 0.0;
                     e2[1] = 1.0;
                     e2[2] = 0.0;
@@ -180,11 +182,11 @@ namespace Kratos
                     #pragma omp parallel for
                     for (int k = 0; k < number_of_threads; k++) {
 
-                        array_1d<double, 3 > local_coordinates;
+                        array_1d<double, 3> local_coordinates;
                         local_coordinates[0] = 0.0;
                         local_coordinates[1] = 0.0;
                         local_coordinates[2] = 0.0;
-                        array_1d<double, 3 > relative_position;
+                        array_1d<double, 3> relative_position;
                         relative_position[0] = 0.0;
                         relative_position[1] = 0.0;
                         relative_position[2] = 0.0;
@@ -197,14 +199,14 @@ namespace Kratos
                             noalias(local_coordinates) = node->GetInitialPosition().Coordinates() - initial_center;
                             noalias(relative_position) = new_axes1 * local_coordinates[0] + new_axes2 * local_coordinates[1] + new_axes3 * local_coordinates[2];
 
-                            array_1d<double, 3 > displacement;
-                            array_1d<double, 3 > old_coordinates;
+                            array_1d<double, 3> displacement;
+                            array_1d<double, 3> old_coordinates;
                             noalias(old_coordinates) = node->Coordinates();
                                                                 
-                            array_1d<double, 3 > velocity_due_to_rotation;
+                            array_1d<double, 3> velocity_due_to_rotation;
                             CrossProduct(angular_velocity_changed, relative_position, velocity_due_to_rotation);
                                
-                            array_1d<double, 3 >& velocity = node->FastGetSolutionStepValue(VELOCITY);
+                            array_1d<double, 3>& velocity = node->FastGetSolutionStepValue(VELOCITY);
                             noalias(velocity) = linear_velocity_changed + velocity_due_to_rotation;  
                                                                
                             if (!fixed_mesh) {
@@ -216,31 +218,28 @@ namespace Kratos
                                 noalias( node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) ) = node->Coordinates() - old_coordinates;
                             } else {
                                 (node->FastGetSolutionStepValue(DISPLACEMENT)).clear(); //Set values to zero
-                                noalias( node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) ) = velocity * dt; //But still there must be some delta_displacement (or motion won't be detected by the spheres!)
+                                noalias(node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = velocity * dt; //But still there must be some delta_displacement (or motion won't be detected by the spheres!)
                             }
                         }
                     }
                 }
             } //for (unsigned int mesh_number = 1; mesh_number < r_model_part.NumberOfMeshes(); mesh_number++)
         } //if ( r_model_part.NumberOfMeshes() > 1 )
-    }        
-
-
+    }
+    
     void DEMFEMUtilities::CreateRigidFacesFromAllElements(ModelPart& r_model_part, PropertiesType::Pointer pProps) {
             
-        ElementsArrayType&  all_elements = r_model_part.Elements();            
+        ElementsArrayType& all_elements = r_model_part.Elements();            
         
         for (unsigned int i = 0; i < all_elements.size(); i++) {
             
             ConditionType::Pointer pCondition;
-            ElementsArrayType::iterator pElement = all_elements.ptr_begin()+i;
+            ElementsArrayType::iterator pElement = all_elements.ptr_begin() + i;
             pCondition = ConditionType::Pointer(new RigidFace3D( pElement->Id(), pElement->pGetGeometry(), pProps));        
             r_model_part.Conditions().push_back(pCondition); 
         }
     }
-        
-        
-        
+            
         /// Turn back information as a string.
     std::string DEMFEMUtilities::Info() const {
             return "";
@@ -252,9 +251,6 @@ namespace Kratos
         /// Print object's data.
     void DEMFEMUtilities::PrintData(std::ostream& rOStream) const {}
 
-
-   
-
 ///@}
 
 ///@name Type Definitions
@@ -264,9 +260,6 @@ namespace Kratos
 ///@}
 ///@name Input and output
 ///@{
-
-
-
 
 /// output stream function
 // 	template<std::size_t TDim>
@@ -279,6 +272,5 @@ namespace Kratos
 // 		return rOStream;
 // 	}
 ///@}
-
 
 } // namespace Kratos
