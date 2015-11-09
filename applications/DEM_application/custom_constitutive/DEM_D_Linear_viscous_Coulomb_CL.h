@@ -100,8 +100,8 @@ namespace Kratos {
                                         SphericParticle* const element,
                                         DEMWall* const wall,
                                         double indentation);
-
-
+        
+        
     private:
         
         friend class Serializer;
