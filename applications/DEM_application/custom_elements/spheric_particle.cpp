@@ -1435,13 +1435,21 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
             if (r_process_info[VIRTUAL_MASS_OPTION]){
                 mass = mass / (1 - coeff);
             }
+            
+            double eq_mass = 0.5*mass; //"mass" of the contact
 
-            double K = KRATOS_M_PI * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
+            double kn = 0.0;
+            double kt = 0.0;
+            double ini_delta = 0.05*GetRadius(); // Hertz needs an initial Delta, linear ignores it
+            
+            mDiscontinuumConstitutiveLaw->GetContactStiffness(this, this, ini_delta, kn, kt);
+             
+            //double K = KRATOS_M_PI * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
 
-            Output = 0.34 * sqrt(mass / K);
+            Output = 0.34 * sqrt(eq_mass / kn);
 
             if (this->Is(DEMFlags::HAS_ROTATION) ){
-                Output *= 0.5; //factor for critical time step when rotation is allowed.
+                //Output *= 0.5; //factor for critical time step when rotation is allowed.
             }
         }
 
