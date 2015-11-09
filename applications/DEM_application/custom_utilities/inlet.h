@@ -54,7 +54,11 @@ namespace Kratos {
         void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator);
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); 
         void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
-        void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator); 
+        void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
+        void CrossProduct(const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector);
+        void RotateRightHandedBasisAroundAxis(const array_1d<double, 3 >& e1,  const array_1d<double, 3 >& e2,  const array_1d<double, 3 >& axis,
+                                                           const double ang, array_1d<double, 3 >& new_axes1, array_1d<double, 3 >& new_axes2,
+                                                           array_1d<double, 3 >& new_axes3);
 
     private:
         
