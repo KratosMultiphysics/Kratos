@@ -65,13 +65,22 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }    
     
-    void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* element1, SphericParticle* element2) {        
+    void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
     }
     
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta){
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
     }
+    
+    void DEMDiscontinuumConstitutiveLaw::GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt){
+      
+      InitializeContact(element1, element2, ini_delta);
+      kn = mKn;
+      kt = mKt;
+      
+    }
+    
     void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                                         const double OldLocalContactForce[3],
                                                         double LocalElasticContactForce[3],
@@ -86,7 +95,7 @@ namespace Kratos {
      
         
         bool sliding = false;
-        InitializeContact(element1, element2);   
+        InitializeContact(element1, element2, indentation);   
             
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);   
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
