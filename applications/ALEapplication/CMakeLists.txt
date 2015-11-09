@@ -28,6 +28,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosALEApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
+# changing the .dylib suffix to .so 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set_target_properties(KratosALEApplication PROPERTIES SUFFIX .so)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 install(TARGETS KratosALEApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

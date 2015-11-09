@@ -40,6 +40,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
+# changing the .dylib suffix to .so 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .so)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 install(TARGETS KratosMetisApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
