@@ -331,4 +331,5 @@ namespace Kratos {
         return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM(element, wall, indentation);
     }
 
+
 } /* namespace Kratos.*/
