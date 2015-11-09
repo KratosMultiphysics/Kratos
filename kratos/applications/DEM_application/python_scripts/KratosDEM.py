@@ -291,12 +291,13 @@ while (time < DEM_parameters.FinalTime):
     #### GENERAL TEST LOAD&UNLOAD  #####################
     #DEMFEMProcedures.ApplyMovementbySteps(time)
     
-    # Walls movement:
-    mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
-    #mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
-    
     #### SOLVE #########################################
     solver.Solve()
+    
+    # Walls movement:
+    mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+    mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
+    mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
     
     #### TIME CONTROL ##################################
     
