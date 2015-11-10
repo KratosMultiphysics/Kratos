@@ -50,6 +50,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/gid_io.h"
 #include "geometries/geometry_data.h"
+#include "includes/deprecated_variables.h"
+
+
 namespace Kratos
 {
 /**

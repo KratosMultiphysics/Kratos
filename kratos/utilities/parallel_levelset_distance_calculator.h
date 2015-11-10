@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/deprecated_variables.h"
 
 
 namespace Kratos

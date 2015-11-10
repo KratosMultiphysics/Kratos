@@ -122,6 +122,9 @@ public:
 
 
     void RegisterVariables();
+    
+    ///////////////////////////////////////////////////////////////////
+    void RegisterDeprecatedVariables();
 
     ///@}
     ///@name Access

@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
 #include "spatial_containers/octree_binary.h"
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/timer.h"
