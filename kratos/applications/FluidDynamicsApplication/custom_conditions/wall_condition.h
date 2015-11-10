@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 
 #include "includes/kratos_flags.h"
+#include "includes/deprecated_variables.h"
 
 // External includes
 

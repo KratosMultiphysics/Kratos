@@ -25,6 +25,8 @@
 #include "includes/node.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
+
 
 
 namespace Kratos

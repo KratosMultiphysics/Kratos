@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

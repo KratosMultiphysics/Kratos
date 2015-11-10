@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 //#include "geometries/tetrahedra_3d_4.h"

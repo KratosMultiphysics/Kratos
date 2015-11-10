@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 //#include "includes/datafile_io.h"
 #include "includes/gid_io.h"
+#include "includes/deprecated_variables.h"
+
 
 namespace Kratos
 {

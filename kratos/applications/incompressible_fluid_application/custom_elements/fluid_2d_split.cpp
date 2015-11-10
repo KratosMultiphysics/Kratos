@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/divide_elem_utils.h"
 #include "incompressible_fluid_application.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

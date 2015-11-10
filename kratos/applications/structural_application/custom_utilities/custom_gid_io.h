@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 // #include "includes/datafile_io.h"
 #include "includes/gid_io.h"
+#include "includes/deprecated_variables.h"
 #include "structural_application.h"
 
 

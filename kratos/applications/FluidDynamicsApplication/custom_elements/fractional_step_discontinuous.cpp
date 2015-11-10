@@ -1,6 +1,8 @@
 #include "fractional_step_discontinuous.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/kratos_flags.h"
+#include "includes/deprecated_variables.h"
+
 
 namespace Kratos
 {

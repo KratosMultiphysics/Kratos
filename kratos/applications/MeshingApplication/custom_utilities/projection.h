@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
 #include "geometries/triangle_2d_3.h"
 #include "utilities/timer.h"
 
