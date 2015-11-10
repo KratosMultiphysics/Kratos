@@ -69,6 +69,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "geometries/tetrahedra_3d_4.h"
 #include "geometries/point.h"
 #include "thermo_mechanical_application.h"
+#include "includes/deprecated_variables.h"
+
 // #include "custom_conditions/environment_contact.h"
 //#include "includes/variables.h"
 #include "utilities/openmp_utils.h"

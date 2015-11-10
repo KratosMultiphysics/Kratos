@@ -31,6 +31,7 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 
 #include "includes/kratos_application.h"  /* ?? */
 

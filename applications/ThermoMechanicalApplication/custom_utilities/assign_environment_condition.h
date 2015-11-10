@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "thermo_mechanical_application.h"
 // #include "custom_conditions/environment_contact.h"
 //#include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 
 
 

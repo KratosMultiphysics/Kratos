@@ -20,6 +20,7 @@
 #include "incompressible_fluid_application.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

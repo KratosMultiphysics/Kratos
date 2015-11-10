@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "utilities/coordinate_transformation_utilities.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

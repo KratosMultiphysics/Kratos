@@ -3,6 +3,7 @@
 
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"

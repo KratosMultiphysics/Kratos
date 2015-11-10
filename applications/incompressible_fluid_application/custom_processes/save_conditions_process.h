@@ -25,6 +25,8 @@
 #include "includes/node.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
+
 //#include "custom_elements/updated_lagrangian_fluid.h"
 //#include "custom_elements/updated_lagrangian_fluid3D.h"
 //#include "custom_elements/updated_lagrangian_fluid_inc.h"

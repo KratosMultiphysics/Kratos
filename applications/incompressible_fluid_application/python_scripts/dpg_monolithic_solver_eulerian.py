@@ -10,7 +10,7 @@ from KratosMultiphysics.Click2CastApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-import levelset_solver
+#import levelset_solver
 import linear_solver_factory
 
 # settings for the convection solver
@@ -59,7 +59,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(WET_VOLUME) #
     #model_part.AddNodalSolutionStepVariable(NODAL_MASS_BALANCE) #
     # variables needed for the distance solver
-    levelset_solver.AddVariables(model_part, distance_settings)
+    #levelset_solver.AddVariables(model_part, distance_settings)
+    model_part.AddNodalSolutionStepVariable(DISTANCE)
 
     print("variables for the MONOLITHIC_SOLVER_EULERIAN added correctly")
 
@@ -74,7 +75,7 @@ def AddDofs(model_part):
         #node.AddDof(MESH_VELOCITY_X)
         #node.AddDof(MESH_VELOCITY_Y)
         #node.AddDof(MESH_VELOCITY_Z)
-    levelset_solver.AddDofs(model_part, distance_settings)
+    #levelset_solver.AddDofs(model_part, distance_settings)
     print("dofs for the monolithic solver added correctly")
 
 
@@ -155,21 +156,32 @@ class MonolithicSolver:
 
         # Creat Lavel_set solver
         # construct the model part
-        if(domain_size == 2):
-            raise "error, still not implemented in 2D"
-            conv_elem = "SUPGConv2D"
-            conv_cond = "Condition2D"
-        else:
-            conv_elem = "SUPGConv3D" #"SUPGConvLevelSet"#"SUPGConv3D"
-            conv_cond = "Condition3D"
-        self.level_set_model_part = ModelPart("level_set_model_part")
-        self.conv_generator = ConnectivityPreserveModeler()
-        (self.conv_generator).GenerateModelPart(self.model_part,self.level_set_model_part, conv_elem, conv_cond)
-        #(ParallelFillCommunicator(self.level_set_model_part)).Execute();
+        #if(domain_size == 2):
+            #raise "error, still not implemented in 2D"
+            #conv_elem = "SUPGConv2D"
+            #conv_cond = "Condition2D"
+        #else:
+            #conv_elem = "SUPGConv3D" #"SUPGConvLevelSet"#"SUPGConv3D"
+            #conv_cond = "Condition3D"
+        #self.level_set_model_part = ModelPart("level_set_model_part")
+        #self.conv_generator = ConnectivityPreserveModeler()
+        #(self.conv_generator).GenerateModelPart(self.model_part,self.level_set_model_part, conv_elem, conv_cond)
+        ##(ParallelFillCommunicator(self.level_set_model_part)).Execute();
 
-        # constructing the convection solver for the distance
-        self.level_set_solver = levelset_solver.Solver(self.level_set_model_part,domain_size,distance_settings)
-        self.level_set_solver.max_iter = 8
+        ## constructing the convection solver for the distance
+        #self.level_set_solver = levelset_solver.Solver(self.level_set_model_part,domain_size,distance_settings)
+        #self.level_set_solver.max_iter = 8
+        
+        max_cfl = 3.0;
+        linear_solver = ScalingSolver(AMGCLSolver(
+            AMGCLSmoother.ILU0,
+            AMGCLIterativeSolverType.GMRES, #AMGCLIterativeSolverType.GMRES, #BICGSTAB_WITH_GMRES_FALLBACK,
+            1e-9,
+            50,
+            fluid_linear_solver_settings.verbosity,
+            50),True)
+        #linear_solver = BICGSTABSolver(1e-9,200,DiagonalPreconditioner())
+        self.levelset_convection_process = LevelSetConvectionProcess3D(DISTANCE,self.model_part, linear_solver, max_cfl)
 
         #
         # properties of the two fluids
@@ -191,9 +203,9 @@ class MonolithicSolver:
         ##########################################
 
         if(self.domain_size == 2):
-            self.max_edge_size = ParallelDistanceCalculator2D().FindMaximumEdgeSize(self.level_set_model_part)
+            self.max_edge_size = ParallelDistanceCalculator2D().FindMaximumEdgeSize(self.model_part)
         else:
-            self.max_edge_size = ParallelDistanceCalculator3D().FindMaximumEdgeSize(self.level_set_model_part) 
+            self.max_edge_size = ParallelDistanceCalculator3D().FindMaximumEdgeSize(self.model_part) 
         # self.max_distance = self.max_edge_size * self.redistance_settings.max_distance_factor #Ojo antes 5.0
 
 
@@ -230,7 +242,7 @@ class MonolithicSolver:
                     node.Set(BOUNDARY,True)
 
             distance_calculator_aux = ParallelDistanceCalculator3D()
-            self.max_edge_size = distance_calculator_aux.FindMaximumEdgeSize(self.level_set_model_part)
+            self.max_edge_size = distance_calculator_aux.FindMaximumEdgeSize(self.model_part)
             distance_linear_solver=linear_solver_factory.ConstructSolver(self.redistance_settings)
             self.distance_calculator=VariationalDistanceCalculationProcess3D(self.model_part,distance_linear_solver,self.redistance_settings.redistance_iterations)
             self.max_distance = self.max_edge_size * self.redistance_settings.max_distance_factor
@@ -244,7 +256,7 @@ class MonolithicSolver:
         # element size
         self.maxmin = []
         ParticleLevelSetUtils3D().FindMaxMinEdgeSize(
-            self.level_set_model_part, self.maxmin)
+            self.model_part, self.maxmin)
         # Variables needed for computing the Efficiency of the Injection
         self.OldNetInletVolume=0.0
         self.OldWetVolume=0.0
@@ -279,27 +291,28 @@ class MonolithicSolver:
             self.ReformDofSetAtEachStep,
             self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
-        #print(">>>>>>>>>>>>>>> OSS_SWITCH = ", self.oss_switch)
+        print(">>>>>>>>>>>>>>> OSS_SWITCH = ", self.oss_switch)
+        print("----------------------------- dynamic tau fluid -------------------------------------")
         self.model_part.ProcessInfo.SetValue(
             DYNAMIC_TAU, self.dynamic_tau_fluid)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
 
         # LEvel_set solver initialization
-        self.level_set_solver.dynamic_tau = self.dynamic_tau_levelset
+        #self.level_set_solver.dynamic_tau = self.dynamic_tau_levelset
 
         #Calculate Distances
 
         #self.redistance_utils.CalculateDistances(self.model_part,DISTANCE, NODAL_AREA,self.max_levels,self.max_distance)
         self.DoRedistance()
 
-        self.level_set_solver.linear_solver = AMGCLSolver(
-            AMGCLSmoother.ILU0,
-            AMGCLIterativeSolverType.GMRES,
-            1e-6, #self.tol,
-            200,
-            self.verbosity,
-            self.gmres_size)
-        self.level_set_solver.Initialize()
+        #self.level_set_solver.linear_solver = AMGCLSolver(
+            #AMGCLSmoother.ILU0,
+            #AMGCLIterativeSolverType.GMRES,
+            #1e-6, #self.tol,
+            #200,
+            #self.verbosity,
+            #self.gmres_size)
+        #self.level_set_solver.Initialize()
 
         self.ApplyFluidProperties()
 
@@ -346,9 +359,12 @@ class MonolithicSolver:
 
     def ConvectDistance(self):
         #self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
-        (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, distance_settings)
-        (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU, self.dynamic_tau_levelset)  # self.dynamic_tau
-        (self.level_set_solver).Solve()
+        #(self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, distance_settings)
+        #(self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU, self.dynamic_tau_levelset)  # self.dynamic_tau
+        #(self.level_set_solver).Solve()
+        #BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,self.max_distance)
+        
+        self.levelset_convection_process.Execute()
         BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,self.max_distance)
 
     def Solve(self, step):
@@ -447,6 +463,8 @@ class MonolithicSolver:
         (self.solver).Solve()
         self.internal_step_counter += 1
         Timer.Stop("self.solve")
+        
+        
     #
 
     def SetEchoLevel(self, level):

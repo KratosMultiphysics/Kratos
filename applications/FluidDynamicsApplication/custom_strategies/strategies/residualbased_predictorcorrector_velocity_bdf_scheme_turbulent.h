@@ -536,6 +536,9 @@ namespace Kratos {
             }
 
             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
+            
+            for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+                (*itElem)->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
         //************************************************************************************************

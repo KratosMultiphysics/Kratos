@@ -29,6 +29,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "custom_conditions/proj_dirichlet_cond.h"
 #include "incompressible_fluid_application.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

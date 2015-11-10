@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/fluid3d_neumann.h"
 #include "utilities/math_utils.h"
 #include "incompressible_fluid_application.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

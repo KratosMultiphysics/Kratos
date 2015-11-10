@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 // #include "epetra_test_err.h"
+#include "includes/deprecated_variables.h"
 
 
 //aztec solver includes

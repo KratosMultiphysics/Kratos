@@ -52,6 +52,7 @@
 #include "includes/condition.h"
 #include "includes/process_info.h"
 #include "includes/kratos_flags.h"
+#include "includes/deprecated_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"

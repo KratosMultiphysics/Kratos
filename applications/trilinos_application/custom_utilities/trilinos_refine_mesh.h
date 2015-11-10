@@ -31,6 +31,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
 #include "includes/node.h"
 #include "includes/dof.h"
 #include "includes/variables.h"

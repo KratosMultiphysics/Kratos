@@ -403,6 +403,7 @@ KRATOS_WATCH(Ngauss);  */
 
             //compute stabilization parameters
             this->CalculateTau(TauOne, TauTwo, AdvVel, ElemSize, Density, Viscosity, rCurrentProcessInfo);
+//              TauOne = rCurrentProcessInfo[DELTA_TIME]/Density;
 
             this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
             

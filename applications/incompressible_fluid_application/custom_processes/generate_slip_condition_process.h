@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
+#include "includes/deprecated_variables.h"
 #include "geometries/point_3d.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "incompressible_fluid_application.h"

@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/estimate_time_step.h"
 #include "custom_utilities/particle_levelset_utilities.h"
 #include "custom_utilities/biphasic_filling_utilities.h"
-
+#include "includes/deprecated_variables.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 

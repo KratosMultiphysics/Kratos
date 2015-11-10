@@ -74,6 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "includes/variables.h"
 #include "../incompressible_fluid_application/custom_utilities/parallel_extrapolation_utilities.h"
 #include "includes/kratos_flags.h"
+#include "includes/deprecated_variables.h"
 
 
 namespace Kratos

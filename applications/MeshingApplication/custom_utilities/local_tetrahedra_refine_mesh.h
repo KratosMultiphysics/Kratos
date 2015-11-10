@@ -39,6 +39,7 @@
 #include "includes/node.h"
 #include "includes/dof.h"
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "containers/array_1d.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
