@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 //#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/deprecated_variables.h"
 
 
 namespace Kratos

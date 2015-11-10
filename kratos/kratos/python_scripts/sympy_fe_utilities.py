@@ -58,11 +58,25 @@ def MatrixB(DN):
                 B[2,i*dim] = DN[i,1]; B[2, i*dim+1] = DN[i,0];
         return B
     elif(dim == 3):
-        raise Exception("B not implemented yet for 3D")
+        strain_size = 6
+        nnodes = DN.shape[0]
+        B = Matrix( zeros(strain_size, nnodes*dim) )
+        for i in range(0,nnodes):
+            for k in range(0,dim):
+                B[0,i*dim] = DN[i,0]; 
+                B[1, i*dim+1] = DN[i,1];
+                B[2, i*dim+2] = DN[i,2];
+                
+                #TODO: revise the next three lines
+                B[3,i*dim] = DN[i,1]; B[3, i*dim+1] = DN[i,0]; #01
+                B[4,i*dim] = DN[i,2]; B[4, i*dim+2] = DN[i,0]; #02
+                B[5,i*dim+1] = DN[i,2]; B[5, i*dim+2] = DN[i,1]; #12
+        #raise Exception("B not implemented yet for 3D")
     
 def grad_sym_voigtform(DN, x):
-    dim = x.shape[1]
-    nnodes = x.shape[0]
+    dim = DN.shape[1]
+    nnodes = DN.shape[0]
+    print(nnodes, dim, x.shape)
 
     B = MatrixB(DN)
     
@@ -89,14 +103,18 @@ def div(DN,x):
     return Matrix( [ simplify(div_x) ])
     
 
-def OutputRHS(r, mode="python",max_index=10):
+def OutputRHS(r, mode="python", initial_tabs = 3,max_index=10):
+    initial_spaces = str("")
+    for i in range(0,initial_tabs):
+        initial_spaces += str("    ")
+    
     outstring = str("")
     for i in range(0,r.shape[0]):
         
         if(mode == "python"):
-            outstring += str("rhs[")+str(i)+str("]=")+str(r[i,0])+str("\n")
+            outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+str(r[i,0])+str("\n")
         elif(mode=="c"):
-            outstring += str("rhs[")+str(i)+str("]=")+ccode(r[i,0])+str("\n")
+            outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+ccode(r[i,0])+str("\n")
             
     #matrix entries (two indices)
     for i in range(0,max_index):
@@ -116,14 +134,17 @@ def OutputRHS(r, mode="python",max_index=10):
     return outstring
     
 
-def OutputLHS(lhs,mode, max_index=10):
+def OutputLHS(lhs,mode, initial_tabs = 3, max_index=10):
+    initial_spaces = str("")
+    for i in range(0,initial_tabs):
+        initial_spaces += str("    ")
     outstring = str("")
     for i in range(0,lhs.shape[0]):
         for j in range(0,lhs.shape[1]):
             if(mode == "python"):
-                outstring += str("lhs[")+str(i)+str(",")+str(j)+str("]=")+str(lhs[i,j])+str("\n")
+                outstring += initial_spaces+str("lhs[")+str(i)+str(",")+str(j)+str("]=")+str(lhs[i,j])+str("\n")
             elif(mode=="c"):
-                outstring += str("lhs[")+str(i)+str(",")+str(j)+str("]=")+ccode(lhs[i,j])+str("\n")
+                outstring += initial_spaces+str("lhs[")+str(i)+str(",")+str(j)+str("]=")+ccode(lhs[i,j])+str("\n")
     
     #matrix entries (two indices)
     for i in range(0,max_index):
