@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/free_surface_cond2d.h"
 #include "utilities/math_utils.h"
 #include "PFEM_application.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {

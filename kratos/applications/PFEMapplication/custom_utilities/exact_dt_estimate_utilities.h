@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
-
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
