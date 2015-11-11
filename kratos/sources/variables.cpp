@@ -242,6 +242,10 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, LAGRANGE_WATER_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, LAGRANGE_TEMPERATURE )
 
+  // for MultiScale application
+  KRATOS_CREATE_VARIABLE( Vector, INITIAL_STRAIN )
+  KRATOS_CREATE_VARIABLE( double, COEFFICIENT_THERMAL_EXPANSION )
+  KRATOS_CREATE_VARIABLE( double, CHARACTERISTIC_LENGTH_MULTIPLIER )
   //ALEApplication
   KRATOS_CREATE_VARIABLE( double, AUX_MESH_VAR )
 
@@ -917,6 +921,12 @@ namespace Kratos
 
       //--------------- STRUCTURAL Application -------------------//
 
+      //--------------- MULTISCALE Application -------------------//
+    
+      KRATOS_REGISTER_VARIABLE( INITIAL_STRAIN )
+      KRATOS_REGISTER_VARIABLE( COEFFICIENT_THERMAL_EXPANSION )
+      KRATOS_REGISTER_VARIABLE( CHARACTERISTIC_LENGTH_MULTIPLIER )
+      
       //--------------- Incompressible Fluid Application ---------//
 
 
