@@ -68,9 +68,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "utilities/projection.h"
 #include "includes/node.h"
 #include "includes/element.h"
-
+#include "includes/deprecated_variables.h"
 #include "PFEM_application.h"
-
+#include "includes/deprecated_variables.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
