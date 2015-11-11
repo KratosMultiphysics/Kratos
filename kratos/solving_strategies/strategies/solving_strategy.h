@@ -191,10 +191,17 @@ public:
     }
 
     /**
-    the problem of interest is solved
+    the problem of interest is solved.
+	This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
+	All those functions can otherwise be called separately.
      */
     virtual double Solve()
     {
+		Initialize();
+		InitializeSolutionStep();
+		Predict();
+		SolveSolutionStep();
+		FinalizeSolutionStep();
         return 0.00;
     }
 
@@ -224,6 +231,30 @@ public:
     {
     }
 
+	/**
+    Performs all the required operations that should be done (for each step) before solving the solution step.
+	A member variable should be used as a flag to make sure this function is called only once per step.
+    */
+	virtual void InitializeSolutionStep()
+	{
+	}
+	
+	/**
+    Performs all the required operations that should be done (for each step) after solving the solution step.
+	A member variable should be used as a flag to make sure this function is called only once per step.
+    */
+	virtual void FinalizeSolutionStep()
+	{
+	}
+	
+	/**
+    Solves the current step. This function returns true if a solution has been found, false otherwise.
+    */
+	virtual bool SolveSolutionStep()
+	{
+		return true;
+	}
+	
     //*********************************************************************************
 
     /**level of echo for the solving strategy
