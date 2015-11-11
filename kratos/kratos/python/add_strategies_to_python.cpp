@@ -264,6 +264,9 @@ namespace Kratos
                     .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
                     .def("Clear", &BaseSolvingStrategyType::Clear)
                     .def("Check", &BaseSolvingStrategyType::Check)
+					.def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+					.def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+					.def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     ;
 
