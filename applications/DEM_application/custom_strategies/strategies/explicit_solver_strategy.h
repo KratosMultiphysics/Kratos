@@ -15,9 +15,9 @@
 
 // Project includes
 #include "utilities/timer.h"
-
 #include "custom_elements/Particle_Contact_Element.h"
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "DEM_application.h"
 
 /* System includes */
@@ -316,7 +316,7 @@ namespace Kratos
                   }                  
               }
               
-              if(found) continue;
+              if (found) continue;
               
               for (PropertiesIterator props_it = mpCluster_model_part->GetMesh(0).PropertiesBegin(); props_it!= mpCluster_model_part->GetMesh(0).PropertiesEnd();   props_it++ ) {
                   int model_part_id = props_it->GetId();
@@ -327,7 +327,7 @@ namespace Kratos
                   }                  
               }
               
-              if(!found) KRATOS_THROW_ERROR(std::logic_error, "This particle could not find its properties!!" , "");
+              if (!found) KRATOS_THROW_ERROR(std::logic_error, "This particle could not find its properties!!" , "");
           }                                                                   
       }
       
