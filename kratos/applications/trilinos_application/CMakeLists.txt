@@ -71,8 +71,8 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 
 )
 
-add_executable(testmap ${CMAKE_CURRENT_SOURCE_DIR}/testmap.cpp )
-target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
+# add_executable(testmap ${CMAKE_CURRENT_SOURCE_DIR}/testmap.cpp )
+# target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
 
 # ###############################################################
 add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
