@@ -767,8 +767,8 @@ public:
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
-		//KRATOS_WATCH(file_name.str())
-		mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+		         //KRATOS_WATCH(file_name.str())
+		        mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
                     std::stringstream buffer;
@@ -903,6 +903,51 @@ public:
 
         KRATOS_CATCH("")
     }//WriteSphereMesh
+
+
+void WriteCircleMesh( MeshType& rThisMesh )
+    {
+        KRATOS_TRY
+
+        Timer::Start("Writing Mesh");
+        GiD_fBeginMesh(mMeshFile, "Kratos Mesh",GiD_2D,GiD_Circle,1);
+        GiD_fBeginCoordinates(mMeshFile);
+        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+                node_iterator != rThisMesh.NodesEnd();
+                ++node_iterator)
+        {
+            if ( mWriteDeformed == WriteUndeformed )
+                GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X0(),
+                                      node_iterator->Y0(), node_iterator->Z0() );
+            else if ( mWriteDeformed == WriteDeformed )
+                GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X(),
+                                      node_iterator->Y(), node_iterator->Z() );
+            else
+                KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+        }
+        GiD_fEndCoordinates( mMeshFile );
+        int nodes_id[1];
+        GiD_fBeginElements( mMeshFile );
+
+        double nx = 0.0;
+        double ny = 0.0;
+        double nz = 1.0;
+        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+                node_iterator != rThisMesh.NodesEnd();
+                ++node_iterator)
+        {
+            nodes_id[0] = node_iterator->Id();
+            GiD_fWriteCircleMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), nx, ny, nz, node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+        }       
+        GiD_fEndElements( mMeshFile );
+        GiD_fEndMesh( mMeshFile);
+        Timer::Stop("Writing Mesh");
+
+        KRATOS_CATCH("")
+    }//WriteCircleMesh
+
+
+
 
 
     /**
