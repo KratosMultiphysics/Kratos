@@ -13,6 +13,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
 #include "includes/define.h"
+#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
