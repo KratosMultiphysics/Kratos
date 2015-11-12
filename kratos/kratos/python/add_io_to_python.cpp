@@ -83,6 +83,12 @@ void WriteSphereMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
     dummy.WriteSphereMesh( rThisMesh );
 }
 
+void WriteCircleMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
+{
+    //KRATOS_WATCH("writing circle Mesh"); //should be a KRATOS_LOG not a KRATOS_WATCH
+    dummy.WriteCircleMesh( rThisMesh );
+}
+
 
 void WriteMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
 {
@@ -189,6 +195,7 @@ void  AddIOToPython()
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
     .def("WriteSphereMesh",WriteSphereMesh)
+    .def("WriteCircleMesh",WriteCircleMesh)
 
     .def("InitializeMesh",&GidIO<>::InitializeMesh)
     .def("FinalizeMesh",&GidIO<>::FinalizeMesh)
