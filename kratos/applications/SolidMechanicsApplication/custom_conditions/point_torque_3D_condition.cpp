@@ -13,9 +13,7 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_torque_3D_condition.hpp"
-#include "utilities/math_utils.h"
 
 #include "solid_mechanics_application.h"
 
@@ -88,6 +86,7 @@ void PointTorque3DCondition::InitializeNonLinearIteration( ProcessInfo& rCurrent
 void PointTorque3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     if(rRightHandSideVector.size() != 3)
         rRightHandSideVector.resize(3,false);
 
@@ -97,7 +96,8 @@ void PointTorque3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVe
     rRightHandSideVector[2] = Torque[2];
 
     //current rotations to compute energy
-    array_1d<double,3>& Rotation = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+    array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
+    Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
 
     mEnergy += Torque[0] * Rotation[0] + Torque[1] * Rotation[1] + Torque[2] * Rotation[2];
 
@@ -124,7 +124,10 @@ void PointTorque3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
 
     //current rotations to compute energy
-    array_1d<double,3>& Rotation = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+    array_1d<double,3> Rotation = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) + GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY,1);
+    Rotation *= 0.5 * rCurrentProcessInfo[DELTA_TIME];
+
+    //std::cout<<" Torque "<<Torque<<" Rotation "<<Rotation<<std::endl;
 
     mEnergy += Torque[0] * Rotation[0] + Torque[1] * Rotation[1] + Torque[2] * Rotation[2];
 
@@ -232,7 +235,7 @@ void PointTorque3DCondition::CalculateOnIntegrationPoints( const Variable<double
       //reading integration points
       for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
         {
-	  rOutput[PointNumber] = fabs(mEnergy);
+	  rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
 	}
     }
 

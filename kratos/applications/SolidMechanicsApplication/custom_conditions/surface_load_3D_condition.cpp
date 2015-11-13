@@ -14,8 +14,9 @@
 
 // Project includes
 #include "custom_conditions/surface_load_3D_condition.hpp"
+
 #include "solid_mechanics_application.h"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+
 
 namespace Kratos
 {

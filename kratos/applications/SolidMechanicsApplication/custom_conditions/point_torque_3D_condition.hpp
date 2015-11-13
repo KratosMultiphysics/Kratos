@@ -23,7 +23,7 @@
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
