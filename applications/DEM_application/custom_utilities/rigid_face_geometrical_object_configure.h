@@ -170,11 +170,18 @@ public:
       // 1: Plane;
       // 2: Edge;
       // 3: Point.
-      
-      bool ContactExists = EasyIntersection(rObj_1, rObj_2, Radius);//, NewContactType);
- 
-      return ContactExists;
-        
+
+      int facet_size = rObj_2->GetGeometry().size();
+      if (facet_size==2)
+      {
+         bool ContactExists = EasyIntersection2D(rObj_1, rObj_2, Radius);
+         return ContactExists;
+      }
+      else
+      {
+         bool ContactExists = EasyIntersection(rObj_1, rObj_2, Radius);//, NewContactType);
+         return ContactExists;
+      }
     }
        
     static inline bool RigidContact(int method, SphericParticle* rObj_1, DEMWall* rObj_2){ 
@@ -954,6 +961,144 @@ public:
         
     }//EasyIntersection
     
+
+
+
+    static inline bool EasyIntersection2D(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius){//, int& ContactType){
+        //rObj_1 is particle,  and rObj_2 is condition
+
+        double Particle_Coord[3] = {0.0};
+        Particle_Coord[0] = rObj_1->GetGeometry()[0].Coordinates()[0];
+        Particle_Coord[1] = rObj_1->GetGeometry()[0].Coordinates()[1];
+        Particle_Coord[2] = rObj_1->GetGeometry()[0].Coordinates()[2];
+
+        double Coord[2][3] = { {0.0},{0.0}};
+
+        array_1d<double, 3>& coordinates_obj2_0 = rObj_2->GetGeometry()[0].Coordinates();
+        array_1d<double, 3>& coordinates_obj2_1 = rObj_2->GetGeometry()[1].Coordinates();
+
+        Coord[0][0] = coordinates_obj2_0[0];
+        Coord[0][1] = coordinates_obj2_0[1];
+        Coord[0][2] = coordinates_obj2_0[2];
+
+        Coord[1][0] = coordinates_obj2_1[0];
+        Coord[1][1] = coordinates_obj2_1[1];
+        Coord[1][2] = coordinates_obj2_1[2];
+
+        int size = rObj_2->GetGeometry().size();
+
+        std::vector<double> dist_sq(2, 0.0); //vertices and edges of the face
+        std::vector<double> dist(2, 0.0);
+//        std::vector<double> dist_sq(size*2, 0.0); //vertices and edges of the face
+//        std::vector<double> dist(size*2, 0.0);
+
+        double base[2][3];
+        double base_sq    = 0.0;
+        double tau_sq     = 0.0;
+        double base_leng  = 0.0;
+        double diag_back  = 0.0;
+        double diag_front = 0.0;
+        double particle_radius_sq = Radius*Radius;
+
+        double NodeToP[2][3] = { {0.0},{0.0}};
+
+        //VERTICES
+        for (int n=0;n<size;n++){       //vertices
+
+
+            for (int k= 0; k<3; k++){   //components
+
+                NodeToP[n][k] =  Particle_Coord[k] - Coord[n][k];
+                dist_sq[n]    += NodeToP[n][k]*NodeToP[n][k];
+
+            }
+
+            if ( dist_sq[n] <= particle_radius_sq )
+            {
+                //ContactType = 3;   Point
+                return true;
+            }
+
+            dist[n] = sqrt(dist_sq[n]);
+
+        }
+/*
+        //EDGES
+        for (int i=0;i<size;i++)  //   not needed if there is only one edge
+        {
+
+            int j=(i+1)%size;
+            base_sq = 0.0;
+            tau_sq  = 0.0;
+            for (int k=0;k<3;k++)
+            {
+                base[i][k] = (Coord[j][k] - Coord[i][k]);
+                base_sq += base[i][k]*base[i][k];
+            }
+
+            base_leng = sqrt(base_sq);
+            diag_back  = dist[i];
+            diag_front = dist[j];
+
+            double a2  =  dist_sq[i];
+            double b2  =  base_sq;
+            double c2  =  dist_sq[j];
+
+
+            if ( (a2 <= b2 + c2) && (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
+
+                GeometryFunctions::TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
+
+                //dist_sq[i+size] = tau_sq/base_sq;
+                dist_sq[i] = tau_sq/base_sq;
+
+                //if ( dist_sq[i+size] <= particle_radius_sq )
+                if ( dist_sq[i] <= particle_radius_sq )
+                {
+                    //ContactType=2;   Edge
+                    return true;
+                }
+            }
+
+        }//for each edge starting at node i going to j
+*/
+
+            base_sq = 0.0;
+            tau_sq  = 0.0;
+            for (int k=0;k<3;k++)
+            {
+                base[0][k] = (Coord[1][k] - Coord[0][k]);
+                base_sq += base[0][k]*base[0][k];
+            }
+
+            base_leng = sqrt(base_sq);
+            diag_back  = dist[0];
+            diag_front = dist[1];
+
+            double a2  =  dist_sq[0];
+            double b2  =  base_sq;
+            double c2  =  dist_sq[1];
+
+
+            if ( (a2 <= b2 + c2) && (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
+
+                GeometryFunctions::TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
+
+                //dist_sq[i+size] = tau_sq/base_sq;
+                dist_sq[0] = tau_sq/base_sq;
+
+                //if ( dist_sq[i+size] <= particle_radius_sq )
+                if ( dist_sq[0] <= particle_radius_sq )
+                {
+                    //ContactType=2;   Edge
+                    return true;
+                }
+            }
+
+        return false;
+
+    }//EasyIntersection2d
+
     
      static inline bool QuickClosestEdgeVertexDetermination(/*int& ContactType,*/ double Coord[4][3], double Particle_Coord[3], int size, double particle_radius) 
     {                  
