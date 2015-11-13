@@ -881,23 +881,27 @@ public:
                 KRATOS_THROW_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
         }
         GiD_fEndCoordinates( mMeshFile );
-        int nodes_id[1];
+
         GiD_fBeginElements( mMeshFile );
 
-//         mNodeList.clear();
-
-        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+        /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
             GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
 //             mNodeList.push_back(*node_iterator);
+        }*/
+        
+        for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
+                element_iterator != rThisMesh.ElementsEnd();
+                ++element_iterator)
+        {
+            unsigned int node_id = element_iterator->GetGeometry()[0].Id();
+            GiD_fWriteSphereMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS), element_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL)/*element_iterator->GetProperties().Id()*/);
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);
-
-//         mNodeList.Unique();
 
         Timer::Stop("Writing Mesh");
 
