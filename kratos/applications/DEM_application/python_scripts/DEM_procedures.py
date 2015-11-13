@@ -1188,7 +1188,10 @@ class DEMIo(object):
             self.gid_io.InitializeMesh(0.0) 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh())         #MIQUEL MAPPING
-            self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+            if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+                self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
+            else:
+                self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
 
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
@@ -1197,7 +1200,7 @@ class DEMIo(object):
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
 
     def InitializeResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
- 
+        
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
@@ -1209,7 +1212,10 @@ class DEMIo(object):
             self.post_utility.AddModelPartToModelPart(mixed_model_part, mapping_model_part) #MIQUEL MAPPING
 
             self.gid_io.InitializeMesh(time) 
-            self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+            if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+                self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
+            else:
+                self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
@@ -1217,7 +1223,7 @@ class DEMIo(object):
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
-                               
+            
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
