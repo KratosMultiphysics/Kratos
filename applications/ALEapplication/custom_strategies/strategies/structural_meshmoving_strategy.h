@@ -24,9 +24,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_elements/structural_meshmoving_element.h"
-//#include "ale_application.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "custom_elements/structural_meshmoving_element.h"
 
 
 
@@ -79,8 +78,6 @@ public:
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
