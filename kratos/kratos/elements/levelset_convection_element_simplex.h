@@ -179,7 +179,7 @@ public:
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
         }
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
-        const double norm_grad = norm_2(grad_phi_halfstep);
+        //const double norm_grad = norm_2(grad_phi_halfstep);
 
         //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
 
