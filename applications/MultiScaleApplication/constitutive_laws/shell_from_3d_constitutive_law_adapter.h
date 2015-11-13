@@ -319,9 +319,9 @@ private:
 		CHECK_STRAIN_CALCULATION;
 
 		// some parameters
-		const int maxiter = 100;
-		const double relative_tolerance = 1.0E-6;
-		const double always_converged_tolerance = 1.0E-9;
+		const int maxiter = 10;
+		const double relative_tolerance = 1.0E-3;
+		const double always_converged_tolerance = 1.0E-5;
 
 		// get references (for the adapted shell material)
 		Vector& StrainVector = rValues.GetStrainVector();
@@ -385,7 +385,7 @@ private:
 			strain_3d(2) = mEz;
 		}
 		if(!converged) {
-			std::cout << "Shell from 3d material adapter - Maximum iteration reached!\n";
+			std::cout << "Shell from 3d material adapter - Maximum iteration reached! : " << Szz << "\n";
 		}
 
 		for(int i = 0; i < 2; i++)
