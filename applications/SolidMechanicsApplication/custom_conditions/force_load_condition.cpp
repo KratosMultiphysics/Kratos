@@ -13,9 +13,7 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/force_load_condition.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "solid_mechanics_application.h"
 
@@ -799,36 +797,43 @@ void ForceLoadCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 
 void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-							     GeneralVariables& rVariables,
-							     Vector& rVectorForce,
-							     double& rIntegrationWeight)
+						       GeneralVariables& rVariables,
+						       Vector& rVectorForce,
+						       double& rIntegrationWeight)
 
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    // Energy Calculation:
+    Vector CurrentValueVector = ZeroVector(dimension); 
+    Vector Displacements = ZeroVector(dimension);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	//current displacements to compute energy
+	CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, i );
+
+	Displacements += rVariables.N[i] * Displacements;
+      }
+    //------
+
+    Vector ForceVector = ZeroVector(3);
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
 	
-	Vector Forces = ZeroVector(dimension);
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  Forces[j] = rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
 	  rRightHandSideVector[index + j] += rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
         }
 
-	
-	// Energy Calculation:
-	Vector Movements;
-	this->GetCurrentNodalMovements( Movements, i );
-	//Movements *= rVariables.N[i]; 
-
-	mEnergy += inner_prod( Forces, Movements );
-
+	ForceVector += rVariables.N[i] * rVectorForce * rIntegrationWeight;
     }
-   
+
+
+    mEnergy += inner_prod( ForceVector, Displacements );
+
 
     //KRATOS_WATCH( rRightHandSideVector )
 
@@ -838,7 +843,7 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
 //************************************************************************************
 //************************************************************************************
 
-void ForceLoadCondition::GetCurrentNodalMovements(Vector& rValues, const int& rNode)
+void ForceLoadCondition::GetNodalDeltaMovements(Vector& rValues, const int& rNode)
 {
   unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -850,21 +855,25 @@ void ForceLoadCondition::GetCurrentNodalMovements(Vector& rValues, const int& rN
   Vector CurrentValueVector = ZeroVector(3);
   CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
 
-  rValues[0] = CurrentValueVector[0];
-  rValues[1] = CurrentValueVector[1];
+  Vector PreviousValueVector = ZeroVector(3);
+  CurrentValueVector = GetPreviousValue( DISPLACEMENT, CurrentValueVector, rNode );
+
+
+  rValues[0] = CurrentValueVector[0] - PreviousValueVector[0];
+  rValues[1] = CurrentValueVector[1] - PreviousValueVector[1];
 
   if( dimension == 3 )
-    rValues[2] = CurrentValueVector[2];
+    rValues[2] = CurrentValueVector[2] - PreviousValueVector[2];
 	
   //take imposed values away
-  if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_X))->IsFixed() )
-    rValues[0] = 0;
-  if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Y))->IsFixed() )
-    rValues[1] = 0;
+  // if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_X))->IsFixed() )
+  //   rValues[0] = 0;
+  // if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Y))->IsFixed() )
+  //   rValues[1] = 0;
 
-  if( dimension == 3 )
-    if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Z))->IsFixed() )
-      rValues[2] = 0;
+  // if( dimension == 3 )
+  //   if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Z))->IsFixed() )
+  //     rValues[2] = 0;
 
 }
 
@@ -895,6 +904,31 @@ Vector& ForceLoadCondition::GetCurrentValue(const Variable<array_1d<double,3> >&
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+Vector& ForceLoadCondition::GetPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    array_1d<double,3> ArrayValue;
+    ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
+    
+    if( rValue.size() != dimension )
+      rValue.resize(dimension, false);
+
+    for( unsigned int i=0; i<dimension; i++ )
+      {
+	rValue[i] = ArrayValue[i];
+      }
+   
+
+    return rValue;
+
+    KRATOS_CATCH( "" )
+}
 
 //*********************************GET DOUBLE VALUE***********************************
 //************************************************************************************
@@ -916,15 +950,21 @@ void ForceLoadCondition::CalculateOnIntegrationPoints( const Variable<double>& r
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
-    if ( rOutput.size() != integration_points_number )
-        rOutput.resize( integration_points_number, false );
+    unsigned int integration_points = 0;
+    if( integration_points_number == 0 )
+      integration_points = 1;
+
+    if ( rOutput.size() != integration_points )
+        rOutput.resize( integration_points, false );
+
 
     if ( rVariable == EXTERNAL_ENERGY )
     {
+      
       //reading integration points
-      for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+      for ( unsigned int PointNumber = 0; PointNumber < integration_points; PointNumber++ )
         {
-	  rOutput[PointNumber] = fabs(mEnergy);
+	  rOutput[PointNumber] = mEnergy; //fabs(mEnergy);
 	}
     }
 

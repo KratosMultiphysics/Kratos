@@ -31,8 +31,8 @@ def SetProperties(SectionType, SectionData, BeamProperties):
 
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, cross_area)
-        radius =  float(size_profile)*0.5
-        BeamProperties.SetValue(MEAN_RADIUS, radius)
+        mean_radius   =  float(size_profile) * 0.5
+        BeamProperties.SetValue(MEAN_RADIUS, mean_radius)
         sides = 4
         BeamProperties.SetValue(SECTION_SIDES, sides)
         return BeamProperties

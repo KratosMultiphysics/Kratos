@@ -590,7 +590,7 @@ namespace Kratos
     if( distorted )
       return false; //returns false if the geometry has not the correct shape and has to be removed
     else
-      return true;  //returns true if the geometry the correct shape and is kept
+      return true;  //returns true if the geometry has the correct shape and is kept
     
     
     KRATOS_CATCH( "" )
