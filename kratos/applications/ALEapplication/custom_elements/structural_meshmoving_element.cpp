@@ -40,13 +40,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-/* *********************************************************
-*
-*   Last Modified by:    $Author: AMini $
-*   Date:                $Date: Mai 2015 $
-*   Revision:            $Revision: 1.3 $
-*
-* ***********************************************************/
+/* ****************************************************************************
+*  Projectname:         $KratosALEApplication
+*  Last Modified by:    $Author: Andreas.Mini@tum.de $
+*  Date:                $Date: November 2015 $
+*  Revision:            $Revision: 1.4 $
+* *****************************************************************************/
+
 
 // System includes
 #include <cmath>
