@@ -12,13 +12,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set( KRATOS_CORE_SOURCES     
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
@@ -35,6 +36,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constant_matrix_to_python.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp       
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp		

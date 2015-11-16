@@ -30,8 +30,8 @@
 //
 
 
-#if !defined(KRATOS_ADD_DEPRECATED_VARIABLES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_DEPRECATED_VARIABLES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_C2C_VARIABLES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_C2C_VARIABLES_TO_PYTHON_H_INCLUDED
 
 
 
@@ -51,10 +51,10 @@ namespace Kratos
 namespace Python
 {
 
-void  AddDeprecatedVariablesToPython();
+void  AddC2CVariablesToPython();
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_DEPRECATED_VARIABLES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_C2C_VARIABLES_TO_PYTHON_H_INCLUDED  defined 
