@@ -118,7 +118,8 @@ namespace Kratos {
                                                         double ViscoDampingLocalContactForce[3],
                                                         double& cohesive_force,
                                                         SphericParticle* element1,
-                                                        SphericParticle* element2);
+                                                        SphericParticle* element2,
+                                                        bool& sliding);
         
         virtual void CalculateForcesWithFEM( ProcessInfo& rCurrentProcessInfo,
                                             const double OldLocalContactForce[3],
