@@ -37,6 +37,7 @@ COPYRIGHT RESERVED.
 #include "thermo_mechanical_application.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/c2c_variables.h"
 
 #define mu_parameter 0.0001
 

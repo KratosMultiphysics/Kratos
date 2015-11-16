@@ -27,6 +27,7 @@
 #include "includes/model_part.h"
 #include "thermo_mechanical_application.h"
 #include "includes/deprecated_variables.h"
+#include "includes/c2c_variables.h"
 
 namespace Kratos
 {
