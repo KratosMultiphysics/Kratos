@@ -740,7 +740,8 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
     double DeltDisp[3]               = {0.0};
     double LocalDeltDisp[3]          = {0.0};
     double RelVel[3]                 = {0.0};    
-
+    bool sliding = false;
+    
     //LOOP OVER NEIGHBORS:
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
         SphericParticle* ineighbour = mNeighbourElements[i];
@@ -785,7 +786,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         if (indentation > 0.0) {
             double LocalRelVel[3]            = {0.0};
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);            
-            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour);                      
+            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding);                      
         }
 
         // Transforming to global forces and adding up
@@ -989,10 +990,10 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForce_array,GlobalContactForce)
                     
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-              if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-                const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / mTimeStep;
-                noalias(rInitialRotaMoment) = coeff_acc * AngularVel; // the moment needed to stop the spin in one time step
-              }
+                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+                    const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / mTimeStep;
+                    noalias(rInitialRotaMoment) = coeff_acc * AngularVel; // the moment needed to stop the spin in one time step
+                }
               
               ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
