@@ -93,6 +93,9 @@
 
 //#include "custom_elements/explicit_hydro_2d.h"
 
+#include "includes/c2c_variables.h" //TODO: must be removed eventually
+#include "includes/dem_variables.h" //TODO: must be removed eventually
+
 namespace Kratos
 {
 ///@addtogroup IncompressibleFluidApplication
