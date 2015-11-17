@@ -114,12 +114,15 @@ def OutputRHS(r, mode="python", initial_tabs = 3,max_index=10):
         if(mode == "python"):
             outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+str(r[i,0])+str("\n")
         elif(mode=="c"):
-            outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+ccode(r[i,0])+str("\n")
+            outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+ccode(r[i,0])+str(";\n")
             
     #matrix entries (two indices)
     for i in range(0,max_index):
         for j in range(0,max_index):
-            replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+            if(mode == "python"):
+                replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+            elif(mode=="c"): 
+                replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
             to_be_replaced  = str("_")+str(i)+str("_")+str(j)
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
@@ -144,12 +147,15 @@ def OutputLHS(lhs,mode, initial_tabs = 3, max_index=10):
             if(mode == "python"):
                 outstring += initial_spaces+str("lhs[")+str(i)+str(",")+str(j)+str("]=")+str(lhs[i,j])+str("\n")
             elif(mode=="c"):
-                outstring += initial_spaces+str("lhs[")+str(i)+str(",")+str(j)+str("]=")+ccode(lhs[i,j])+str("\n")
+                outstring += initial_spaces+str("lhs(")+str(i)+str(",")+str(j)+str(")=")+ccode(lhs[i,j])+str(";\n")
     
     #matrix entries (two indices)
     for i in range(0,max_index):
         for j in range(0,max_index):
-            replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+            if(mode == "python"):
+                replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+            elif(mode=="c"): 
+                replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
             to_be_replaced  = str("_")+str(i)+str("_")+str(j)
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
