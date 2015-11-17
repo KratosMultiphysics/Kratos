@@ -72,6 +72,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/gid_mesh_container.h"
 #include "utilities/timer.h"
 
+#include "dem_variables.h" //TODO: must be removed eventually
+
 namespace Kratos
 {
 /**
