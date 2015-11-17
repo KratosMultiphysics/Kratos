@@ -29,6 +29,8 @@
 //#include "custom_elements/updated_lagrangian_fluid.h"
 #include "custom_conditions/free_surface_cond2d.h"
 
+#include "../../kratos/includes/dem_variables.h"  //TODO: to be removed eventually
+
 
 namespace Kratos
 {
