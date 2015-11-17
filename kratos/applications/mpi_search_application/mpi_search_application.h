@@ -27,6 +27,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/condition.h"
+#include "includes/dem_variables.h"
 
 namespace Kratos
 {
