@@ -53,6 +53,10 @@
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
+#ifdef USING_CGAL
+#include <CGAL/spatial_sort.h>
+#endif
+
 /* Timer defines */
 #ifdef CUSTOMTIMER
 #define KRATOS_TIMER_START(t) Timer::Start(t);
@@ -220,10 +224,56 @@ namespace Kratos
       {
           Timer::SetOuputFile("TimesPartialRelease");
           Timer::PrintTimingInformation();
-      }            
+      }     
       
+      
+      struct LessX {
+        bool operator()(const SphericParticle* p, const SphericParticle* q) const
+        {
+          return p->GetGeometry()[0].Coordinates()[0] < q->GetGeometry()[0].Coordinates()[0];
+        }
+      };
+      struct LessY {
+        bool operator()(const SphericParticle* p, const SphericParticle* q) const
+        {
+          return p->GetGeometry()[0].Coordinates()[1] < q->GetGeometry()[0].Coordinates()[1];
+        }
+      };
+      struct LessZ {
+        bool operator()(const SphericParticle* p, const SphericParticle* q) const
+        {
+          return p->GetGeometry()[0].Coordinates()[2] < q->GetGeometry()[0].Coordinates()[2];
+        }
+      };
+      struct SpatialSortingTraits {
+        typedef SphericParticle* Point_2;
+        typedef LessX Less_x_2;
+        typedef LessY Less_y_2;
+        typedef LessZ Less_z_2;
+
+        Less_x_2 less_x_2_object() const
+        {
+          return Less_x_2();
+        }
+        Less_y_2 less_y_2_object() const
+        {
+          return Less_y_2();
+        }
+        Less_z_2 less_z_2_object() const
+        {
+          return Less_z_2();
+        }
+      };                        
+
+#ifdef USING_CGAL
+      void ReorderParticles(){
+          SpatialSortingTraits sst;
+          CGAL::spatial_sort(mListOfSphericParticles.begin(), mListOfSphericParticles.end(), sst);          
+      }
+#endif
+            
       template <class T>
-      void RebuildListOfSphericParticles(ElementsArrayType& pElements, std::vector<T*>& rCustomListOfParticles){
+      void RebuildListOfSphericParticles(const ElementsArrayType& pElements, std::vector<T*>& rCustomListOfParticles){
           
           KRATOS_TRY
               
@@ -234,11 +284,11 @@ namespace Kratos
           #pragma omp parallel for
           for (int k = 0; k < mNumberOfThreads; k++){
               
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+            typename ElementsArrayType::const_iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::const_iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
             int elem_number = this->GetElementPartition()[k];
 
-            for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++elem_number){
+            for (typename ElementsArrayType::const_iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++elem_number){
                 T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
                 rCustomListOfParticles[elem_number] = spheric_particle;
             }                                
@@ -512,7 +562,7 @@ namespace Kratos
               SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
               ComputeNewRigidFaceNeighboursHistoricalData();
               mSearchControl = 2; // Search is active and has been performed during this time step
-
+              //ReorderParticles();
           }
 
           else {
@@ -541,7 +591,7 @@ namespace Kratos
           SynchronizeSolidMesh(r_model_part);
           
           // 5. Motion Integration
-          PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels desplaçaments i tot                  
+          PerformTimeIntegrationOfMotion();                   
           
           FinalizeSolutionStep();         
 
@@ -641,13 +691,11 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
-      virtual void PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
+      virtual void PerformTimeIntegrationOfMotion()
       {
           KRATOS_TRY
-          
-          ModelPart& r_model_part = BaseType::GetModelPart();
 
-          GetScheme()->Calculate(r_model_part);
+          GetScheme()->Calculate(BaseType::GetModelPart());
           GetScheme()->Calculate(*mpCluster_model_part);
 
           KRATOS_CATCH("")
