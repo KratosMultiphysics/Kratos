@@ -170,8 +170,23 @@ namespace Kratos {
 
                 for (unsigned int i = 0; i < spheric_particle.mNeighbourElements.size(); i++) {
                     SphericParticle* neighbour_iterator = spheric_particle.mNeighbourElements[i];
-                    Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0]; 
-                    if ((node_it.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED)) || (neighbour_node.IsNot(BLOCKED) && node_it.Is(BLOCKED))) {
+                    Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0];
+                    
+                    const double admissible_indentation_ratio = 0.0;  
+                    const array_1d<double,3>& node_it_coordinates = node_it.Coordinates();
+                    const array_1d<double,3>& neighbour_node_coordinates = neighbour_node.Coordinates();
+                    const double distance = sqrt( (node_it_coordinates[0]- neighbour_node_coordinates[0])*(node_it_coordinates[0] - neighbour_node_coordinates[0]) + 
+                                                  (node_it_coordinates[1]- neighbour_node_coordinates[1])*(node_it_coordinates[1] - neighbour_node_coordinates[1]) + 
+                                                  (node_it_coordinates[2]- neighbour_node_coordinates[2])*(node_it_coordinates[2] - neighbour_node_coordinates[2]) );                    
+                    const double radius_sum = node_it.FastGetSolutionStepValue(RADIUS) + neighbour_node.FastGetSolutionStepValue(RADIUS);
+                    const double indentation =  radius_sum - distance;
+                    double actual_indentation_ratio;
+                    if(indentation>=0) actual_indentation_ratio = indentation / radius_sum;
+                    else actual_indentation_ratio = 0.0;
+                    
+                    const bool correct_indentation = actual_indentation_ratio <= admissible_indentation_ratio;
+                    
+                    if ((node_it.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED) && !correct_indentation) || (node_it.Is(BLOCKED) && neighbour_node.IsNot(BLOCKED) && !correct_indentation)) {
                         still_touching = true;
                         break;
                     }              
@@ -189,7 +204,7 @@ namespace Kratos {
                         node_it.Set(NEW_ENTITY, 0);
                     }
                     else {
-                    //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.             
+                    //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted se they get available for injecting new elements.
                     node_it.Set(ACTIVE, false);
                     elem_it->Set(ACTIVE, false);
                     }
