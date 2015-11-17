@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
+#include "includes/dem_variables.h"
 #include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
