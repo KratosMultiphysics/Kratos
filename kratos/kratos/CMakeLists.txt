@@ -13,6 +13,7 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
@@ -37,6 +38,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp       
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp		
