@@ -1223,6 +1223,7 @@ class DEMIo(object):
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
+            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)
             
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
@@ -1345,6 +1346,63 @@ class DEMIo(object):
             
         self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
 
+    def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
+        
+        bounding_box_model_part = ModelPart("BoundingBoxPart")
+    
+        max_node_Id        = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
+        max_FEM_node_Id    = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
+        max_element_Id     = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
+        max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
+                            
+        if (max_FEM_node_Id > max_node_Id):
+            max_node_Id = max_FEM_node_Id
+        
+        if (max_FEM_element_Id > max_element_Id):
+            max_element_Id = max_FEM_element_Id
+
+        BBMaxX = dem_fem_search.GetBBHighPoint()[0]
+        BBMaxY = dem_fem_search.GetBBHighPoint()[1]
+        BBMaxZ = dem_fem_search.GetBBHighPoint()[2]
+        BBMinX = dem_fem_search.GetBBLowPoint()[0]
+        BBMinY = dem_fem_search.GetBBLowPoint()[1]
+        BBMinZ = dem_fem_search.GetBBLowPoint()[2]
+        
+        multi = BBMaxX*BBMaxY*BBMaxZ*BBMinX*BBMinY*BBMinZ;
+        if( (abs(multi) > 1e21) or (abs(multi) == 0.0) ):
+          BBMaxX = 0.0
+          BBMaxY = 0.0
+          BBMaxZ = 0.0
+          BBMinX = 0.0
+          BBMinY = 0.0
+          BBMinZ = 0.0
+          
+        
+        # BB Nodes:
+        node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
+        node2 = bounding_box_model_part.CreateNewNode(max_node_Id + 2, BBMaxX, BBMinY, BBMinZ)
+        node3 = bounding_box_model_part.CreateNewNode(max_node_Id + 3, BBMaxX, BBMaxY, BBMinZ)
+        node4 = bounding_box_model_part.CreateNewNode(max_node_Id + 4, BBMinX, BBMaxY, BBMinZ)
+        node5 = bounding_box_model_part.CreateNewNode(max_node_Id + 5, BBMinX, BBMinY, BBMaxZ)
+        node6 = bounding_box_model_part.CreateNewNode(max_node_Id + 6, BBMaxX, BBMinY, BBMaxZ)
+        node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
+        node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
+    
+        # BB Elements:                        
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  3, [node8.Id, node5.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  4, [node5.Id, node1.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  5, [node1.Id, node2.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  6, [node3.Id, node4.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  7, [node7.Id, node8.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  8, [node5.Id, node6.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  9, [node6.Id, node2.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], Properties(0))
+    
+        self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
 
 class ParallelUtils(object):
 
@@ -1362,3 +1420,5 @@ class ParallelUtils(object):
 
     def GetSearchStrategy(self, solver, model_part):
         return solver.search_strategy
+        
+        
