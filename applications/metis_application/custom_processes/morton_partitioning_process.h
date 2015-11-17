@@ -273,7 +273,7 @@ protected:
             for(IO::ConnectivitiesContainerType::value_type::iterator i_node = mrElementsConnectivities[i_element].begin() ;
                     i_node != mrElementsConnectivities[i_element].end() ; i_node++)
             { 
-                IO::NodesContainerType::iterator i_nod = mrNodesContainer.begin() + (*i_node-1);
+                //IO::NodesContainerType::iterator i_nod = mrNodesContainer.begin() + (*i_node-1);
 
                 NPart[(*i_node-1)] = i_element%mNumberOfPartitions;
                 EPart[i_element] = i_element%mNumberOfPartitions;
