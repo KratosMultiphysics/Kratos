@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "includes/dem_variables.h"
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
 #include "custom_elements/spheric_swimming_particle.h"
