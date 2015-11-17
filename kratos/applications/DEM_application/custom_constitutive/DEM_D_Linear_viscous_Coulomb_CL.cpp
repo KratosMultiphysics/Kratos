@@ -181,16 +181,9 @@ namespace Kratos {
                                                                       double indentation,
                                                                       double previous_indentation) {
                                                                         
-        if (previous_indentation < indentation) {
-            LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
-            LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
-        }
-        else {
-            const double minoring_factor = sqrt (indentation / previous_indentation);
-            LocalElasticContactForce[0]  = OldLocalContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
-            LocalElasticContactForce[1]  = OldLocalContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
-        }
-
+        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
+        
         const double my_tg_of_friction_angle   = element->GetTgOfFrictionAngle();
         const double wall_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
         const double equiv_tg_of_fri_ang       = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);    
