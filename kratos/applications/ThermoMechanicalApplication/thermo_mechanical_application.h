@@ -26,6 +26,8 @@
 
 
 #include "includes/variables.h"
+#include "includes/c2c_variables.h"
+#include "includes/dem_variables.h"
 #include "custom_elements/heat_contact_2d.h"
 #include "custom_elements/heat_contact_3d.h"
 #include "custom_elements/SUPG_conv_diff_2d.h"
