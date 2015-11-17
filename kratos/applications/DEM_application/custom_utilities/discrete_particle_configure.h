@@ -15,6 +15,7 @@
 
 // Kratos includes
 #include "spatial_containers/spatial_search.h"
+#include "includes/dem_variables.h"
 
 namespace Kratos
 {
