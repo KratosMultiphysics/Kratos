@@ -16,6 +16,8 @@
 #include <cmath>
 #include "utilities/spatial_containers_configure.h"
 
+#include "includes/dem_variables.h"
+
 namespace Kratos
 {
 
