@@ -344,7 +344,7 @@ public:
         double stop_prod = omp_get_wtime();
         for(int i = 0; i<A_size; i++)
             omp_destroy_lock(&lock_array[i]);
-        std::cout << "time: " << stop_prod - start_prod << std::endl;
+        std::cout << "building time: " << stop_prod - start_prod << std::endl;
         KRATOS_WATCH("finished parallel building");
 #endif
 
