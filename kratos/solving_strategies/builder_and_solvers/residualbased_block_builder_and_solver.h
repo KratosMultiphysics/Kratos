@@ -902,25 +902,31 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
-        vector<unsigned int> scaling_factors (A.size1());
-
-        int i=0;
+        std::size_t system_size = A.size1();
+        std::vector<double> scaling_factors (system_size, 0);
+//!!!POTENTIAL BUGS: it only works if the dofs are numberred consecutively
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            if(dof_iterator->IsFixed()) scaling_factors[i++] = 0;
-            else scaling_factors[i++] = 1;
+        {
+            std::size_t i = dof_iterator->EquationId();
+            if(i < system_size)
+                if(dof_iterator->IsFixed())
+                    scaling_factors[i] = 0;
+                else
+                    scaling_factors[i] = 1;
+        }
 
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();
         std::size_t* Acol_indices = A.index2_data().begin();
-        
-                //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+
+        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (A.size1() ); k++)
+        for(std::size_t k = 0; k < system_size; ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
             bool empty = true;
-            for (std::size_t j=col_begin; j<col_end; j++)
+            for (std::size_t j = col_begin; j < col_end; ++j)
             {
                 if(Avalues[j] != 0.0)
                 {
@@ -928,7 +934,7 @@ public:
                     break;
                 }
             }
-            
+
             if(empty == true)
             {
                 A(k,k) = 1.0;
@@ -937,30 +943,29 @@ public:
         } 
 
         #pragma omp parallel for
-        for (int k = 0; k < static_cast<int> (A.size1() ); k++)
+        for(std::size_t k = 0; k < system_size; ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
             double k_factor = scaling_factors[k];
             if(k_factor == 0)
             {
-                for (std::size_t j=col_begin; j<col_end; j++)
-                {
-                    if( static_cast<int>(Acol_indices[j]) != k ) Avalues[j] = 0.0;
-                }
+                // zero out the whole row, except the diagonal
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if( Acol_indices[j] != k )
+                        Avalues[j] = 0.0;
+
+                // zero out the RHS
                 b[k] = 0.0;
             }
             else
             {
-                for (std::size_t j=col_begin; j<col_end; j++)
-                {
-                    if(scaling_factors[ Acol_indices[j] ] == 0 ) Avalues[j] = 0.0;
-                }
+                // zero out the column which is associated with the zero'ed row
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if(scaling_factors[ Acol_indices[j] ] == 0 )
+                        Avalues[j] = 0.0;
             }
         }
-        
-       
-        
     }
 
     //**************************************************************************
