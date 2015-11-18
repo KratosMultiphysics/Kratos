@@ -441,6 +441,11 @@ void  AddMeshToPython()
     .def("SetValue", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< Vector > >)
 
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< vector<int> > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< vector<int> > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< vector<int> > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< vector<int> > >)
+
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Matrix > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< Matrix > >)
