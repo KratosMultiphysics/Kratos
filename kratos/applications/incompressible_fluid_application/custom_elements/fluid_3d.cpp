@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "incompressible_fluid_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

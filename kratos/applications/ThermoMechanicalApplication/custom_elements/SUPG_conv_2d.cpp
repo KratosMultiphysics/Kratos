@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "thermo_mechanical_application.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

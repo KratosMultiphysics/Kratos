@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/deprecated_variables.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/coordinate_transformation_utilities.h"

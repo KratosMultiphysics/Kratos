@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 
 // Application includes
@@ -1487,9 +1488,10 @@ protected:
                                  const array_1d< double, TNumNodes >& rShapeFunc)
     {
         // Compute the weighted value of the advective velocity in the (Gauss) Point
-        rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY));
+        GeometryType& rGeom = this->GetGeometry();
+        rAdvVel = rShapeFunc[0] * (rGeom[0].FastGetSolutionStepValue(VELOCITY) - rGeom[0].FastGetSolutionStepValue(MESH_VELOCITY));
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
-            rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY));
+            rAdvVel += rShapeFunc[iNode] * (rGeom[iNode].FastGetSolutionStepValue(VELOCITY) - rGeom[iNode].FastGetSolutionStepValue(MESH_VELOCITY));
     }
 
     /// Write the advective velocity evaluated at this point to an array
@@ -1505,9 +1507,10 @@ protected:
                                  const std::size_t Step)
     {
         // Compute the weighted value of the advective velocity in the (Gauss) Point
-        rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, Step) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY, Step));
+        GeometryType& rGeom = this->GetGeometry();
+        rAdvVel = rShapeFunc[0] * (rGeom[0].FastGetSolutionStepValue(VELOCITY, Step) - rGeom[0].FastGetSolutionStepValue(MESH_VELOCITY, Step));
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
-            rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step));
+            rAdvVel += rShapeFunc[iNode] * (rGeom[iNode].FastGetSolutionStepValue(VELOCITY, Step) - rGeom[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step));
     }
 
     /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
@@ -1532,28 +1535,6 @@ protected:
         }
     }
 
-    /// Add the weighted value of a variable at a point inside the element to a double
-    /**
-     * Evaluate a scalar variable in the point where the form functions take the
-     * values given by rShapeFunc and add the result, weighted by Weight, to
-     * rResult. This is an auxiliary function used to compute values in integration
-     * points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
-     */
-    virtual void AddPointContribution(double& rResult,
-                                      const Variable< double >& rVariable,
-                                      const array_1d< double, TNumNodes >& rShapeFunc,
-                                      const double Weight = 1.0)
-    {
-        // Compute the weighted value of the nodal variable in the (Gauss) Point
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-            rResult += Weight * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
-    }
-
     /// Write the value of a variable at a point inside the element to a double
     /**
      * Evaluate a scalar variable in the point where the form functions take the
@@ -1569,31 +1550,12 @@ protected:
                                  const array_1d< double, TNumNodes >& rShapeFunc)
     {
         // Compute the weighted value of the nodal variable in the (Gauss) Point
-        rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
+        GeometryType& rGeom = this->GetGeometry();
+        rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(rVariable);
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
-            rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
+            rResult += rShapeFunc[iNode] * rGeom[iNode].FastGetSolutionStepValue(rVariable);
     }
 
-    /// Add the weighted value of a variable at a point inside the element to a vector
-    /**
-     * Evaluate a vector variable in the point where the form functions take the
-     * values given by rShapeFunc and add the result, weighted by Weight, to
-     * rResult. This is an auxiliary function used to compute values in integration
-     * points.
-     * @param rResult: The vector where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
-     */
-    virtual void AddPointContribution(array_1d< double, 3 > & rResult,
-                                      const Variable< array_1d< double, 3 > >& rVariable,
-                                      const array_1d< double, TNumNodes>& rShapeFunc,
-                                      const double Weight = 1.0)
-    {
-        // Compute the weighted value of the nodal variable in the (Gauss) Point
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-            rResult += Weight * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
-    }
 
     /// Write the value of a variable at a point inside the element to a double
     /**
@@ -1609,9 +1571,10 @@ protected:
                                  const array_1d< double, TNumNodes >& rShapeFunc)
     {
         // Compute the weighted value of the nodal variable in the (Gauss) Point
-        rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
+        GeometryType& rGeom = this->GetGeometry();
+        rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(rVariable);
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
-            rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
+            rResult += rShapeFunc[iNode] * rGeom[iNode].FastGetSolutionStepValue(rVariable);
     }
 
     /// Return an estimate for the element size h, used to calculate the stabilization parameters
@@ -1624,48 +1587,6 @@ protected:
      */
     double ElementSize(const double);
 
-//    /// Return the filter width for the smagorinsky model (Delta squared)
-//    double FilterWidth();
-
-//    /// Return the filter width for the smagorinsky model (Delta squared)
-//    double FilterWidth(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& DN_DX);
-
-//    /// Compute the norm of the symmetric gradient of velocity
-//    /**
-//     * @param rShapeDeriv derivatives of the shape functions
-//     * @return Norm of the symmetric gradient
-//     */
-//    double SymmetricGradientNorm(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
-//    {
-//        const unsigned int StrainSize = (TDim*(TDim+1))/2;
-//        const unsigned int NodalVelSize = TDim*TNumNodes;
-//        double SGradNorm = 0.0;
-
-//        boost::numeric::ublas::bounded_matrix<double,StrainSize,NodalVelSize> B;
-//        this->CalculateB(B,rShapeDeriv);
-
-//        boost::numeric::ublas::vector<double> U = ZeroVector(NodalVelSize);
-//        for (unsigned int i = 0; i < TNumNodes; i++)
-//        {
-//            const array_1d<double,3>& rVel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-//            for (unsigned int d = 0; d < TDim; d++)
-//                U[i*TDim+d] = rVel[d];
-//        }
-
-//        boost::numeric::ublas::vector<double> StrainRate = prod(B,U);
-
-//        // Two loops are used due to different coefficients affecting diagonal and off-diagonal terms
-//        // In 2D: 2*{ du/dx^2 + dv/dy^2 + [ 0.5*( du/dy + dv/dx ) ]^2 } = 2*(du/dx^2 + dv/dy^2) + ( du/dy + dv/dx )^2
-//        for (unsigned int i = 0; i < TDim; i++)
-//            SGradNorm += 2.0*StrainRate[i]*StrainRate[i];
-
-//        for (unsigned int i = TDim; i < StrainSize; i++)
-//            SGradNorm += StrainRate[i]*StrainRate[i];
-
-//        // Eps = 0.5 * ( grad(u) + grad(u)^T )
-//        // Norm(Eps) = (2*Eps:Eps)^0.5
-//        return sqrt(SGradNorm);
-//    }
 
     /// Adds the contribution of the viscous term to the momentum equation.
     /**

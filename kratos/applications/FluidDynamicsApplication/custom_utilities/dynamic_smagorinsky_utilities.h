@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/openmp_utils.h"
 #include "utilities/geometry_utilities.h"
 
+#include "includes/cfd_variables.h"
 #include "fluid_dynamics_application_variables.h"
 
 #ifndef KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED

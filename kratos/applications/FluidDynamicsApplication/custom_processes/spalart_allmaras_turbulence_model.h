@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "includes/cfd_variables.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 //#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"

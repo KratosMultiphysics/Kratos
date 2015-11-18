@@ -65,6 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "includes/convection_diffusion_settings.h"
 
+#include "includes/dem_variables.h" ///@TODO:Remove this once we have app-specific variables that work properly
+
 namespace Kratos
 {
 

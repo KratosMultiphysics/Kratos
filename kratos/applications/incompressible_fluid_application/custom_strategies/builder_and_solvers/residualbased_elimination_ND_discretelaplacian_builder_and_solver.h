@@ -21,6 +21,7 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/cfd_variables.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/geometry_utilities.h"
 

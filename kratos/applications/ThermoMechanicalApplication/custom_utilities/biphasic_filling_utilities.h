@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "../incompressible_fluid_application/custom_utilities/parallel_extrapolation_utilities.h"
 #include "includes/kratos_flags.h"
 #include "includes/deprecated_variables.h"
+#include "includes/cfd_variables.h"
 
 
 namespace Kratos
@@ -482,7 +483,9 @@ public:
         {
 			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;  
 			it->FastGetSolutionStepValue(DISTANCE) -= correction;
-		}
+        }
+
+        ThisModelPart.GetCommunicator().SynchronizeVariable(DISTANCE);
 
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;

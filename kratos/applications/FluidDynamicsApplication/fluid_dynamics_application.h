@@ -88,7 +88,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
-#include "custom_elements/nonnewtonian_vms.h"
 
 #include "custom_elements/bingham_fluid.h"
 #include "custom_elements/herschel_bulkley_fluid.h"
@@ -315,11 +314,6 @@ private:
     const BinghamFluid< VMS<2> > mBinghamVMS2D;
     /// 3D Monolithic incompressible flow element with Bingham constitutive equation.
     const BinghamFluid< VMS<3> > mBinghamVMS3D;
-
-    /// 2D Monolithic incompressible flow element with Nonnewtonian constitutive equation.
-    const NonnewtonianVMS< 2 > mNonnewtonianVMS2D;
-    /// 3D Monolithic incompressible flow element with Nonnewtonian constitutive equation.
-    const NonnewtonianVMS< 3 > mNonnewtonianVMS3D;
 
     /// 2D Fractional step incompressible flow element with Bingham constitutive equation.
     const BinghamFluid< FractionalStep<2> > mBinghamFractionalStep2D;

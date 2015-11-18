@@ -1,6 +1,7 @@
 #include "spalart_allmaras.h"
 #include "utilities/math_utils.h"
 #include "fluid_dynamics_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

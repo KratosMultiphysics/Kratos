@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 
 
 #include "processes/calculate_nodal_area_process.h"

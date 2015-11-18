@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/cfd_variables.h"
 #include "custom_elements/NDfluid_3d.h"
 #include "incompressible_fluid_application.h"
 #include "utilities/math_utils.h"

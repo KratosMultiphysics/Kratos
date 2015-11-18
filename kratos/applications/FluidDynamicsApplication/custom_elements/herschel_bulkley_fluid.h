@@ -4,6 +4,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos {
 

@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/deprecated_variables.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

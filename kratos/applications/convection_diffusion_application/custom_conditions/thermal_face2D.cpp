@@ -132,10 +132,11 @@ void ThermalFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rR
     double lenght = x21*x21 + y21*y21;
     lenght = sqrt(lenght);
 
-    const double& ambient_temperature = GetProperties()[AMBIENT_TEMPERATURE];
+    const Properties& ConstProp = GetProperties();
+    const double& ambient_temperature = ConstProp[AMBIENT_TEMPERATURE];
     double StefenBoltzmann = 5.67e-8;
-    double emissivity = GetProperties()[EMISSIVITY];
-    double convection_coefficient = GetProperties()[CONVECTION_COEFFICIENT];
+    double emissivity = ConstProp[EMISSIVITY];
+    double convection_coefficient = ConstProp[CONVECTION_COEFFICIENT];
 
     const double& T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
     const double& T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
