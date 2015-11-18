@@ -135,7 +135,7 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    template<bool check = false>
+    template<bool check>// = false>
     static inline double Heron(double a, double b, double c)
     {
         double s = 0.5 * (a + b + c);

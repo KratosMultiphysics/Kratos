@@ -60,8 +60,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mDPGVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mNonnewtonianVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mNonnewtonianVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mBinghamFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mBinghamFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mBinghamFractionalStepDiscontinuous2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -119,8 +117,6 @@ void KratosFluidDynamicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("BinghamVMS2D",mBinghamVMS2D);
     KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D);
-    KRATOS_REGISTER_ELEMENT("NonnewtonianVMS2D",mNonnewtonianVMS2D);
-    KRATOS_REGISTER_ELEMENT("NonnewtonianVMS3D",mNonnewtonianVMS3D);
     KRATOS_REGISTER_ELEMENT("BinghamFractionalStep2D",mBinghamFractionalStep2D);
     KRATOS_REGISTER_ELEMENT("BinghamFractionalStep3D",mBinghamFractionalStep3D);
     KRATOS_REGISTER_ELEMENT("BinghamFractionalStepDiscontinuous2D",mBinghamFractionalStepDiscontinuous2D);

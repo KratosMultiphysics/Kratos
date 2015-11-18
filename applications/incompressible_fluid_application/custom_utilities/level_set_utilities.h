@@ -66,10 +66,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
 #include "includes/node.h"
+#include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
 //#include "geometries/tetrahedra_3d_4.h"
 #include "incompressible_fluid_application.h"
-
 
 
 #include "spatial_containers/spatial_containers.h"

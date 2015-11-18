@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/node.h"
 // #include "includes/element.h"
+#include "includes/cfd_variables.h"
 
 #include "PFEM_application.h"
 

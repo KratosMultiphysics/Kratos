@@ -55,6 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"

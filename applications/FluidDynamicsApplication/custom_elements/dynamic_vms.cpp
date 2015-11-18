@@ -1,4 +1,5 @@
 #include "dynamic_vms.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

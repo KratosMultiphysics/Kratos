@@ -2,6 +2,7 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/kratos_flags.h"
 #include "includes/deprecated_variables.h"
+#include "includes/cfd_variables.h"
 
 
 namespace Kratos

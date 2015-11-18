@@ -40,6 +40,7 @@
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
+#include "includes/cfd_variables.h"
 
 
 namespace Kratos

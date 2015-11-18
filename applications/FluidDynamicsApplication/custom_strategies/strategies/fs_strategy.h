@@ -4,6 +4,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
+#include "includes/cfd_variables.h"
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
@@ -571,6 +572,11 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
+        /*
+        mpPressureStrategy->Clear();
+        double NormDu = mpPressureStrategy->Solve();
+        mpPressureStrategy->Clear();
+        */
 
         // Additional steps
         for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();

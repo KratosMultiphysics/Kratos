@@ -1,4 +1,5 @@
 #include "fractional_step.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos {
 

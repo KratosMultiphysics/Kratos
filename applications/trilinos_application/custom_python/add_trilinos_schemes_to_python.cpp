@@ -49,6 +49,8 @@
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bdf_scheme.h"
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
@@ -196,6 +198,21 @@ void  AddSchemes()
             .def(init<double,double,unsigned int >())// constructor without a turbulence model
             .def(init<double,double,unsigned int, const Variable<int>&>())
            ;
+
+    class_ < ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases< TrilinosBaseSchemeType >, boost::noncopyable >
+           (
+               "ResidualBasedPredictorCorrectorBDFSchemeTurbulent", init<unsigned int>()
+           );
+
+    class_< TrilinosResidualBasedPredictorCorrectorBDFScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType>, bases< ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType> >,
+            boost::noncopyable >
+            (
+                "TrilinosResidualBasedPredictorCorrectorBDFScheme", init<unsigned int, Variable<double>& >()
+                )
+           ;
+
+
     class_ < TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
            bases< TrilinosPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> >, boost::noncopyable >
            (

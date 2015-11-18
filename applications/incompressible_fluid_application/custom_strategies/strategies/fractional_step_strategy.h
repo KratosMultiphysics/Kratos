@@ -26,6 +26,7 @@
 #include "custom_strategies/strategies/solver_configuration.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_processes/generate_slip_condition_process.h"
+#include "includes/cfd_variables.h"
 
 #ifdef _OPENMP
 #include "omp.h"

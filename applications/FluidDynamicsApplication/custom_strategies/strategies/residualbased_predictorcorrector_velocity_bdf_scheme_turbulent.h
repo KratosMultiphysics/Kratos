@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/coordinate_transformation_utilities.h"
@@ -247,7 +248,6 @@ namespace Kratos {
                              TSystemVectorType& Dv,
                              TSystemVectorType& b)
         {
-            KRATOS_WATCH("entered in PRedict")
             ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
@@ -288,7 +288,8 @@ namespace Kratos {
             }
             else
             {
-                std::cout << "predict is doing nothing since OldDt = " << OldDt << "and Dt = " << Dt << std::endl;
+                if (rModelPart.GetCommunicator().MyPID() == 0)
+                    std::cout << "predict is doing nothing since OldDt = " << OldDt << "and Dt = " << Dt << std::endl;
             }
             
             
@@ -507,9 +508,7 @@ namespace Kratos {
 
             for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
             {
-                itNode->FastGetSolutionStepValue(REACTION_X,0) = 0.0;
-                itNode->FastGetSolutionStepValue(REACTION_Y,0) = 0.0;
-                itNode->FastGetSolutionStepValue(REACTION_Z,0) = 0.0;
+                itNode->FastGetSolutionStepValue(REACTION,0) = array_1d<double,3>(3,0.0);
             }
 
             for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
@@ -528,9 +527,10 @@ namespace Kratos {
 
                 for (unsigned int i = 0; i < NumNodes; i++)
                 {
-                    rGeom[i].FastGetSolutionStepValue(REACTION_X,0) -= RHS_Contribution[index++];
-                    rGeom[i].FastGetSolutionStepValue(REACTION_Y,0) -= RHS_Contribution[index++];
-                    if (Dimension == 3) rGeom[i].FastGetSolutionStepValue(REACTION_Z,0) -= RHS_Contribution[index++];
+                    array_1d<double,3>& rReaction = rGeom[i].FastGetSolutionStepValue(REACTION,0);
+                    rReaction[0] -= RHS_Contribution[index++];
+                    rReaction[1] -= RHS_Contribution[index++];
+                    if (Dimension == 3) rReaction[2] -= RHS_Contribution[index++];
                     index++; // skip pressure dof
                 }
             }

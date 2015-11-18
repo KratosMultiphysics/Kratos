@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "PFEM_application.h"
 #include "includes/deprecated_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

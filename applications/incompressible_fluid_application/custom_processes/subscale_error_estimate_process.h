@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 
 //tools for adaptivity
 // #include "custom_utilities/adaptivity_utilities.h"

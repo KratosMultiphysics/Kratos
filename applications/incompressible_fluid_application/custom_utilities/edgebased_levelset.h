@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/deprecated_variables.h"
 #include "includes/node.h"
+#include "includes/cfd_variables.h"
 //#include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
 #include "incompressible_fluid_application.h"

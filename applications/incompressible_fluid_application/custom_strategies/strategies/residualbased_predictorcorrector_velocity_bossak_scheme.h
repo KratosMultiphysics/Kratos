@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
