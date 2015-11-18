@@ -20,7 +20,6 @@ namespace Kratos {
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
         virtual ~DEM_D_DMT_Cohesive_Law();
-        
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
@@ -41,9 +40,8 @@ namespace Kratos {
                     //rSerializer.load("MyMemberName", myMember);
         }
         
-        //DEM_D_DMT_Cohesive_Law(const DEM_D_DMT_Cohesive_Law&);
-    };
-
+    }; //DEM_D_DMT_Cohesive_Law(const DEM_D_DMT_Cohesive_Law&);
+    
 } // Namespace Kratos
 
 #endif // DEM_D_DMT_COHESIVE_LAW_H defined
