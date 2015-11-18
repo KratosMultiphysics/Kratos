@@ -40,10 +40,7 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName", myMember);
         }
-        
-        //DEM_D_JKR_Cohesive_Law(const DEM_D_JKR_Cohesive_Law&);
-    };
-
+    }; //DEM_D_JKR_Cohesive_Law(const DEM_D_JKR_Cohesive_Law&);
 } // Namespace Kratos
 
 #endif // DEM_D_JKR_COHESIVE_LAW_H defined
