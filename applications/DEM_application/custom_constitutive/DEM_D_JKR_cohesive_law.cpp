@@ -9,14 +9,11 @@
 
 namespace Kratos {
     
-    DEM_D_JKR_Cohesive_Law::DEM_D_JKR_Cohesive_Law() {
-        }
+    DEM_D_JKR_Cohesive_Law::DEM_D_JKR_Cohesive_Law() {}
     
-    DEM_D_JKR_Cohesive_Law::~DEM_D_JKR_Cohesive_Law() {
-        }
+    DEM_D_JKR_Cohesive_Law::~DEM_D_JKR_Cohesive_Law() {}
     
-    void DEM_D_JKR_Cohesive_Law::Initialize(const ProcessInfo& rCurrentProcessInfo) {
-    }
+    void DEM_D_JKR_Cohesive_Law::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
 
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_JKR_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_JKR_Cohesive_Law(*this));
@@ -40,12 +37,9 @@ namespace Kratos {
         const double radius_sum     = my_radius + other_radius;
         const double radius_sum_inv = 1.0 / radius_sum;
         const double equiv_radius   = my_radius * other_radius * radius_sum_inv;
-        
         const double contact_radius = sqrt(equiv_radius * indentation);
-        
         const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * KRATOS_M_PI * contact_radius * contact_radius * contact_radius / equiv_young);
-        //KRATOS_WATCH("This is JKR, with spheres")
-        //KRATOS_WATCH(cohesive_force)        
+        
         return cohesive_force;
     }
     
@@ -55,23 +49,16 @@ namespace Kratos {
         const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
         const double my_young         = element->GetYoung();
         const double my_poisson       = element->GetPoisson();
-        
         const double equiv_radius     = element->GetRadius(); // Equivalent Radius for RIGID WALLS
-        
         const double walls_young      = wall->GetYoung();
-       
         const double walls_poisson    = wall->GetPoisson();
-        
         const double equiv_young      = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
-                
         //const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
         //const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         //const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);        
         const double contact_radius = sqrt(equiv_radius * indentation);
-        
         const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * KRATOS_M_PI * contact_radius * contact_radius * contact_radius / equiv_young);
-        //KRATOS_WATCH("This is JKR, with walls")
-        //KRATOS_WATCH(cohesive_force)        
+       
         return cohesive_force;
     }
 } // Namespace Kratos
