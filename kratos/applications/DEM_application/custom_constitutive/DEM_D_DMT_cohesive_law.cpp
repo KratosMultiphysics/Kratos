@@ -9,14 +9,11 @@
 
 namespace Kratos {
     
-    DEM_D_DMT_Cohesive_Law::DEM_D_DMT_Cohesive_Law() {
-        }
+    DEM_D_DMT_Cohesive_Law::DEM_D_DMT_Cohesive_Law() {}
     
-    DEM_D_DMT_Cohesive_Law::~DEM_D_DMT_Cohesive_Law() {
-        }
+    DEM_D_DMT_Cohesive_Law::~DEM_D_DMT_Cohesive_Law() {}
     
-    void DEM_D_DMT_Cohesive_Law::Initialize(const ProcessInfo& rCurrentProcessInfo) {
-    }
+    void DEM_D_DMT_Cohesive_Law::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
 
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_DMT_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_DMT_Cohesive_Law(*this));
@@ -36,12 +33,8 @@ namespace Kratos {
         const double radius_sum     = my_radius + other_radius;
         const double radius_sum_inv = 1.0 / radius_sum;
         const double equiv_radius   = my_radius * other_radius * radius_sum_inv;
-                
         const double cohesive_force = 8.0 * KRATOS_M_PI * equiv_cohesion * equiv_radius;
-        
-        //KRATOS_WATCH("This is DMT, with spheres")
-        //KRATOS_WATCH(cohesive_force)        
-        
+
         return cohesive_force;
     }
     
@@ -50,12 +43,8 @@ namespace Kratos {
         const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
         const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
         const double equiv_radius     = element->GetRadius(); // Equivalent Radius for RIGID WALLS
-        
         const double cohesive_force = 8.0 * KRATOS_M_PI * equiv_cohesion * equiv_radius;
-        
-        //KRATOS_WATCH("This is DMT, with walls")
-        //KRATOS_WATCH(cohesive_force)        
-        
+
         return cohesive_force;
     }
 } // Namespace Kratos
