@@ -111,6 +111,7 @@ namespace Kratos {
         
         
     }
+    
     void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
                                                                 const double OldLocalContactForce[3],
                                                                 double LocalElasticContactForce[3],
@@ -132,6 +133,7 @@ namespace Kratos {
         CalculateTangentialForceWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
+    
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation, SphericParticle* element1, SphericParticle* element2) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
         return 0.0;
@@ -237,8 +239,7 @@ namespace Kratos {
         
         return cohesive_force;
     }
-    
-    
+        
     void DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForce(const double normal_force,
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
@@ -246,8 +247,8 @@ namespace Kratos {
                                                     SphericParticle* const element1,
                                                     SphericParticle* const element2) {        
                         
-        LocalElasticContactForce[0] += - mKt * LocalDeltDisp[0];  // 0: first tangential
-        LocalElasticContactForce[1] += - mKt * LocalDeltDisp[1];  // 1: second tangential
+        LocalElasticContactForce[0] += - mKt * LocalDeltDisp[0]; // 0: first tangential
+        LocalElasticContactForce[1] += - mKt * LocalDeltDisp[1]; // 1: second tangential
         
         //Get equivalent tangent of friction angle
         const double my_tg_of_friction_angle        = element1->GetTgOfFrictionAngle();
@@ -275,7 +276,7 @@ namespace Kratos {
                                                     SphericParticle* const element,
                                                     DEMWall* const wall) {        
         
-        const double WallBallFriction = wall->GetTgOfFrictionAngle();         //TODO: CHECK THIS (SHOULD IT BE AN AVERAGE?)      
+        const double WallBallFriction = wall->GetTgOfFrictionAngle(); //TODO: CHECK THIS (SHOULD IT BE AN AVERAGE?)      
         
         LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
         LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
@@ -453,7 +454,7 @@ namespace Kratos {
 
         //*** component-wise since localContactForce and RelVel have in principle no relationship.
         // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
-        // But in oposite direction the visco damping can't overpass the force...
+        // But in opposite direction the visco damping can't overpass the force...
 
         KRATOS_TRY  
         if (mDampType > 0) {
