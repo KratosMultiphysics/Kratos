@@ -1475,27 +1475,27 @@ class Benchmark10: ########## LINEAR THORNTON
         self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Normalized incident angle'\nset ylabel 'Normalized rebound tangential surface velocity'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:10][-2:3] '" + normalized_rebound_tangential_surface_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_tang_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'e = 0.25'\n")
+        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_tang_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'Paper data'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_2 = 'benchmark10_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Normalized incident angle'\nset ylabel 'Normalized final angular velocity'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:14][-6:0] '" + normalized_rebound_angular_velocity_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_ang_vel_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'Steel'\n")
+        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_ang_vel_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'Paper data'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_3 = 'benchmark10_comparison_3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_3, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Normalized incident angle'\nset ylabel 'Tangential coefficient of restitution'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:10][0.5:1.0] '" + tangential_coefficient_of_restitution_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/bench_10_tang_coeff_rest_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'e = 0.25'\n")
+        self.gnuplot_outfile.write("'paper_data/bench_10_tang_coeff_rest_e_" + coeff_of_rest_string + ".dat' index 1 w lp ls 1 t 'Paper data'\n")
         self.gnuplot_outfile.close()
-        '''                  
+        '''               
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
         print_gnuplot_files_on_screen(gnuplot_script_name_2)
-        print_gnuplot_files_on_screen(gnuplot_script_name_3)'''
-
+        print_gnuplot_files_on_screen(gnuplot_script_name_3)
+        '''
         
     def compute_errors(self, normalized_rebound_tangential_surface_vel_list_outfile_name,
                              normalized_rebound_angular_velocity_list_outfile_name,
@@ -1730,21 +1730,21 @@ class Benchmark11: ########## HERTZIAN THORNTON
         self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Normalized incident angle'\nset ylabel 'Normalized rebound tangential surface velocity'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:10][-2:3] '" + normalized_rebound_tangential_surface_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_tang_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'e = 0.25'\n")
+        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_tang_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'Paper data'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_2 = 'benchmark11_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Normalized incident angle'\nset ylabel 'Normalized final angular velocity'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:14][-6:0] '" + normalized_rebound_angular_velocity_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_ang_vel_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'e = 0.25'\n")
+        self.gnuplot_outfile.write("'paper_data/bench_10_norm_reb_ang_vel_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'Paper data'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_3 = 'benchmark11_comparison_3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_3, 'w')
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Normalized incident angle'\nset ylabel 'Tangential coefficient of restitution'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:10][0.5:1.0] '" + tangential_coefficient_of_restitution_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
-        self.gnuplot_outfile.write("'paper_data/bench_10_tang_coeff_rest_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'e = 0.25'\n")
+        self.gnuplot_outfile.write("'paper_data/bench_10_tang_coeff_rest_e_" + coeff_of_rest_string + ".dat' index 0 w lp ls 1 t 'Paper data'\n")
         self.gnuplot_outfile.close()
         '''                  
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
