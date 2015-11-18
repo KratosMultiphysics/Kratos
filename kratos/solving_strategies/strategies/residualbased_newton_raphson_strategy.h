@@ -427,7 +427,7 @@ public:
             boost::timer setup_system_time;
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
             if (this->GetEchoLevel() > 0 && rank == 0)
-                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
+                std::cout << rank << ": setup_system_time : " << setup_system_time.elapsed() << std::endl;
         }
 
         //prints informations about the current time
@@ -699,27 +699,27 @@ public:
     void Clear()
     {
         KRATOS_TRY
-        std::cout << "Newton Raphson strategy Clear function used" << std::endl;
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
 
         SparseSpaceType::Clear(mpA);
+        TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
 
         SparseSpaceType::Clear(mpDx);
+        TSystemVectorType& mDx = *mpDx;
         SparseSpaceType::Resize(mDx, 0);
 
         SparseSpaceType::Clear(mpb);
+        TSystemVectorType& mb = *mpb;
         SparseSpaceType::Resize(mb, 0);
-
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
 
         GetScheme()->Clear();
+
+        if(BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -910,17 +910,15 @@ protected:
 
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-
         //setting up the Vectors involved to the correct size
         boost::timer system_matrix_resize_time;
         pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
         if (this->GetEchoLevel() > 0 && rank == 0)
-                std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+            std::cout << rank << ": system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
-
 
         //initial operations ... things that are constant over the Solution Step
         pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
