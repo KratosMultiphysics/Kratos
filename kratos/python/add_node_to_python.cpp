@@ -108,6 +108,11 @@ void NodeAddDofwithReaction(Node<3>& rThisNode, TVariableType const& rThisVariab
     rThisNode.pAddDof(rThisVariable, rReactionVariable);
 }
 
+template<class TVariableType>
+bool NodeSolutionStepsDataHas(Node<3>& rThisNode, const TVariableType& rThisVariable)
+{
+    return rThisNode.SolutionStepsDataHas(rThisVariable);
+}
 
 void PointSetX0(Node<3>& ThisPoint, double Value)
 {
@@ -210,6 +215,14 @@ void  AddNodeToPython()
     .def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
 // 				.def("IsFixed", &NodeType::IsFixed)
 // 				.def("HasDofFor", &NodeType::HasDofFor)
+//    .def("SolutionStepsDataHas", &NodeType::SolutionStepsDataHas<bool>)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<bool> >)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<int> >)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<double> >)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<array_1d<double, 3> > >)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<vector<double> > >)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<Variable<matrix<double> > >)
+    .def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def(self_ns::str(self))
     .def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData)
     .add_property("X0", PointGetX0, PointSetX0)
