@@ -135,6 +135,24 @@ public:
 
     //***********************************************************************
     //***********************************************************************
+    template<bool check = false>
+    static inline double Heron(double a, double b, double c)
+    {
+        double s = 0.5 * (a + b + c);
+        double A2 = s * (s - a) * (s - b) * (s - c);
+        if(check == true)
+        {
+            if(A2 < 0.0)
+                KRATOS_THROW_ERROR(std::runtime_error, "The square of area is negative, probably the triangle is in bad shape:", A2)
+            else
+                return sqrt(A2);
+        }
+        else
+            return sqrt(fabs(A2));
+    }
+
+    //***********************************************************************
+    //***********************************************************************
     static TDataType Abs(const TDataType& rData)
     {
         return rData > TDataType(0) ? rData : -rData;
