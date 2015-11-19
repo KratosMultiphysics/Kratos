@@ -172,7 +172,7 @@ public:
         rTarget.CloneTimeStep(SourceCurrentProcessInfo[TIME]);
 
         ElementsArrayType& OldMeshElementsArray= rSource.Elements();
-        Element correspondingElement;
+        Element::Pointer correspondingElement;
 //				FixDataValueContainer newNodalValues;
 //				FixDataValueContainer oldNodalValues;
         Point<3>  localPoint;
@@ -189,49 +189,49 @@ public:
                         || it->HasDofFor(DISPLACEMENT_Z))
                 {
                     noalias(it->GetSolutionStepValue(DISPLACEMENT_NULL))=
-                        MappedValue(correspondingElement,
+                        MappedValue(*correspondingElement,
                                     localPoint,DISPLACEMENT_NULL );
                     noalias(it->GetSolutionStepValue(DISPLACEMENT_EINS))=
-                        MappedValue(correspondingElement,
+                        MappedValue(*correspondingElement,
                                     localPoint,DISPLACEMENT_EINS );
                     noalias(it->GetSolutionStepValue(DISPLACEMENT_NULL_DT))=
-                        MappedValue(correspondingElement,
+                        MappedValue(*correspondingElement,
                                     localPoint,DISPLACEMENT_NULL_DT );
                     noalias(it->GetSolutionStepValue(ACCELERATION_NULL))=
-                        MappedValue(correspondingElement,
+                        MappedValue(*correspondingElement,
                                     localPoint,ACCELERATION_NULL );
                     noalias(it->GetSolutionStepValue(DISPLACEMENT_OLD))=
-                        MappedValue(correspondingElement,
+                        MappedValue(*correspondingElement,
                                     localPoint,DISPLACEMENT_OLD );
                 }
                 if(it->HasDofFor(WATER_PRESSURE))
                 {
                     it->GetSolutionStepValue(WATER_PRESSURE_NULL)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             WATER_PRESSURE_NULL);
                     it->GetSolutionStepValue(WATER_PRESSURE_EINS)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             WATER_PRESSURE_EINS);
                     it->GetSolutionStepValue(WATER_PRESSURE_NULL_DT)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             WATER_PRESSURE_NULL_DT);
                     it->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             WATER_PRESSURE_NULL_ACCELERATION);
                 }
                 if(it->HasDofFor(AIR_PRESSURE))
                 {
                     it->GetSolutionStepValue(AIR_PRESSURE_NULL)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             AIR_PRESSURE_NULL);
                     it->GetSolutionStepValue(AIR_PRESSURE_EINS)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             AIR_PRESSURE_EINS);
                     it->GetSolutionStepValue(AIR_PRESSURE_NULL_DT)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             AIR_PRESSURE_NULL_DT);
                     it->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION)=
-                        MappedValuePressure(correspondingElement, localPoint,
+                        MappedValuePressure(*correspondingElement, localPoint,
                                             AIR_PRESSURE_NULL_ACCELERATION);
                 }
                 std::cout <<"VARIABLES TRANSFERRED" << std::endl;
@@ -606,7 +606,7 @@ public:
                 noalias(targetLocalPoint)= integration_points[point];
                 Point<3> targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
-                Element sourceElement;
+                Element::Pointer sourceElement;
                 //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                 if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
                                       sourceElement,sourceLocalPoint))
@@ -615,7 +615,7 @@ public:
                     ValuesOnIntPoint[point]= ZeroMatrix(3,3);
 
                     ValuesOnIntPoint[point]=
-                        ValueMatrixInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
+                        ValueMatrixInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable );
                 }
             }
             (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
@@ -636,7 +636,7 @@ public:
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<Kratos::Vector>& rThisVariable)
     {
-        std::cout << "At TransferVariablesToGaussPoints(rSource, rTarget, Variable<Vector> rThisVariable)" << std::endl;
+        std::cout << "At TransferVariablesToGaussPoints(" << rSource.Name() << "," << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
@@ -675,15 +675,15 @@ public:
                     Point<3> targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
 //                    KRATOS_WATCH(targetGlobalPoint)
-                    Element sourceElement;
+                    Element::Pointer sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                     ValuesOnIntPoint[point].resize(6, false);
                     if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
                                           sourceElement,sourceLocalPoint))
                     {
-//                        KRATOS_WATCH(sourceElement.Id())
+//                        KRATOS_WATCH(sourceElement->Id())
                         noalias(ValuesOnIntPoint[point])=
-                            ValueVectorInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
+                            ValueVectorInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable );
                     }
                 }
                 (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
@@ -732,13 +732,13 @@ public:
                 noalias(targetLocalPoint)= integration_points[point];
                 Point<3> targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
-                Element sourceElement;
+                Element::Pointer sourceElement;
                 //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                 if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
                                       sourceElement,sourceLocalPoint))
                 {
                     ValuesOnIntPoint[point]=
-                        MappedValue(sourceElement, sourceLocalPoint, rThisVariable );
+                        MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
                 }
             }
             (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
@@ -1495,7 +1495,7 @@ public:
                         Point<3> targetGlobalPoint;
                         (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                                targetLocalPoint);
-                        Element sourceElement;
+                        Element::Pointer sourceElement;
                         double functionValue;
                         //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                         if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
@@ -1503,7 +1503,7 @@ public:
                         {
 
                             functionValue=
-                                ValueMatrixInOldMesh( sourceElement,sourceLocalPoint,rThisVariable, firstvalue, secondvalue );
+                                ValueMatrixInOldMesh( *sourceElement,sourceLocalPoint,rThisVariable, firstvalue, secondvalue );
                         }
                         else
                         {
@@ -1630,14 +1630,14 @@ public:
                     Point<3> targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                            targetLocalPoint);
-                    Element sourceElement;
+                    Element::Pointer sourceElement;
                     double functionValue;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                     if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
                                           sourceElement,sourceLocalPoint))
                     {
                         functionValue=
-                            ValueVectorInOldMesh( sourceElement,sourceLocalPoint,rThisVariable, firstvalue);
+                            ValueVectorInOldMesh( *sourceElement,sourceLocalPoint,rThisVariable, firstvalue);
                     }
                     else
                     {
@@ -1728,14 +1728,14 @@ public:
                 Point<3> targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                        targetLocalPoint);
-                Element sourceElement;
+                Element::Pointer sourceElement;
                 double functionValue;
                 //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                 if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
                                       sourceElement,sourceLocalPoint))
                 {
                     functionValue=
-                        MappedValue( sourceElement,sourceLocalPoint,rThisVariable);
+                        MappedValue( *sourceElement,sourceLocalPoint,rThisVariable);
                 }
                 else
                 {
@@ -1946,7 +1946,7 @@ public:
      */
     bool FindPartnerElement( CoordinatesArrayType& newNode,
                              ElementsArrayType& OldMeshElementsArray,
-                             Element& oldElement, Point<3>&  rResult)
+                             Element::Pointer& oldElement, Point<3>&  rResult)
     {
         bool partner_found= false;
         //noalias(rResult)= ZeroVector(3);
@@ -1997,7 +1997,7 @@ public:
             }
 
             OldMinDist.push_back(minDist);
-//                     KRATOS_WATCH(OldElementsSet->size());
+//            KRATOS_WATCH(OldElementsSet->size());
 
             for( ElementsArrayType::ptr_iterator it = OldElementsSet->ptr_begin();
                     it != OldElementsSet->ptr_end(); ++it )
@@ -2005,9 +2005,10 @@ public:
 //                         std::cout << "checking elements list" << std::endl;
                 if( (*it)->GetGeometry().IsInside( newNode, rResult ) )
                 {
-//                             std::cout << "isInside" << std::endl;
-                    oldElement=**(it);
-                    partner_found=true;
+//                    std::cout << "isInside" << std::endl;
+//                    oldElement = *(*it);
+                    oldElement = (*it);
+                    partner_found = true;
                     return partner_found;
                 }
             }
