@@ -77,6 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 //#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
 #include "pfem_2_application.h"
 //#include "custom_utilities/neighbours_calculator.h"
