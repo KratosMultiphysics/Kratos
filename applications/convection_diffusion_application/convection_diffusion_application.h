@@ -24,8 +24,12 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
+#include "custom_elements/eulerian_conv_diff.h"
+
 #include "custom_elements/conv_diff_2d.h"
 #include "custom_elements/conv_diff_3d.h"
+#include "custom_elements/eulerian_conv_diff.h"
+
 #include "custom_elements/laplacian_element.h"
 #include "custom_conditions/thermal_face2D.h"
 #include "custom_conditions/thermal_face3D.h"
@@ -194,6 +198,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const EulerianConvectionDiffusionElement<2,3>  mEulerianConvDiff2D;
+    const EulerianConvectionDiffusionElement<3,4>  mEulerianConvDiff3D;
+
+
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
     const LaplacianElement mLaplacian3D4N;
