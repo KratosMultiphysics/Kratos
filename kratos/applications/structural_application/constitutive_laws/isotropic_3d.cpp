@@ -161,8 +161,9 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
     {
         const unsigned int size = mPrestress.size();
-    rValue.resize(size, false );
-        rValue = mPrestressFactor*mPrestress;
+        if(rValue.size() != size)
+            rValue.resize(size, false );
+        noalias(rValue) = mPrestressFactor * mPrestress;
         return rValue;
     }
 
@@ -220,7 +221,7 @@ void Isotropic3D::SetValue( const Variable<Vector>& rThisVariable, const Vector&
 {
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
     {
-        mPrestress = rValue;
+        noalias(mPrestress) = rValue;
     }
 }
 

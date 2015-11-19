@@ -258,7 +258,7 @@ namespace Kratos
                 rSerializer.save( "CurrentStress", mCurrentStress );
                 rSerializer.save( "mE", mE );
                 rSerializer.save( "mNU", mNU );
-		rSerializer.save( "mDE", mDE );
+		        rSerializer.save( "mDE", mDE );
             }
 
             virtual void load( Serializer& rSerializer )
@@ -269,7 +269,7 @@ namespace Kratos
                 rSerializer.load( "CurrentStress", mCurrentStress );
                 rSerializer.load( "mE", mE );
                 rSerializer.load( "mNU", mNU );
-		rSerializer.load( "mDe", mDE );
+		        rSerializer.load( "mDE", mDE );
             }
 
             /**

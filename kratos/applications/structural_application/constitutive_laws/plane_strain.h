@@ -245,11 +245,19 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        rSerializer.save( "mE", mE );
+        rSerializer.save( "mNU", mNU );
+        rSerializer.save( "mDE", mDE );
+        rSerializer.save( "mCurrentStress", mCurrentStress );
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        rSerializer.load( "mE", mE );
+        rSerializer.load( "mNU", mNU );
+        rSerializer.load( "mDE", mDE );
+        rSerializer.load( "mCurrentStress", mCurrentStress );
     }
 
     /**
