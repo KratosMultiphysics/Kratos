@@ -52,17 +52,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRYLOV_SUBSPACE_ACCELERATOR_LAPACK_UTILITIES_H_INCLUDED)
 #define KRYLOV_SUBSPACE_ACCELERATOR_LAPACK_UTILITIES_H_INCLUDED
 
-#ifdef _WIN32
-extern "C" int  DGELS(char *T, int *M, int *N, int *NRHS,
-		      double *A, int *LDA, double *B, int *LDB,
-		      double *WORK, int *LWORK, int *INFO);
-#define CALL_DGELS DGELS
-#else
-extern "C" int dgels_(char *T, int *M, int *N, int *NRHS,
-		      double *A, int *LDA, double *B, int *LDB,
-		      double *WORK, int *LWORK, int *INFO);
-#define CALL_DGELS dgels_
-#endif
+#ifdef MULTISCALE_APPLICATION_LAPACK_HAS_DGELS
+
+
+extern "C" int  MULTISCALE_APPLICATION_LAPACK_DGELS(
+					char *T, int *M, int *N, int *NRHS,
+					double *A, int *LDA, double *B, int *LDB,
+					double *WORK, int *LWORK, int *INFO);
+#define CALL_DGELS MULTISCALE_APPLICATION_LAPACK_DGELS
 
 namespace Kratos
 {
@@ -270,5 +267,50 @@ namespace KrylovSubspaceAcceleratorUtilties
 }
 
 } // namespace Kratos
+
+
+
+#else
+
+namespace Kratos
+{
+
+namespace KrylovSubspaceAcceleratorUtilties
+{
+
+	class KrylovAcceleratorLapack
+	{
+
+	public:
+		
+		KrylovAcceleratorLapack(int max_krylov_dimension = 10)
+		{
+			this->InitializeData();
+		}
+		
+		~KrylovAcceleratorLapack()
+		{
+			this->DestroyData();
+		}
+
+		void InitializeData() {}
+
+		void DestroyData() {}
+
+		void BeginSolutionStep(int new_numEqns) {}
+		
+		bool BuildSystemMatrix(){ return true; }
+		
+		int LeastSquares(const Vector& r){ return 0; }
+		
+		void AccelerateSolution(Vector& r){}
+		
+	};
+
+}
+
+} // namespace Kratos
+
+#endif // MULTISCALE_APPLICATION_LAPACK_HAS_DGELS
 
 #endif // KRYLOV_SUBSPACE_ACCELERATOR_LAPACK_UTILITIES_H_INCLUDED
