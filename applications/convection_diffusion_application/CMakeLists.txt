@@ -12,6 +12,8 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_conv_diff.h
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_element.cpp
