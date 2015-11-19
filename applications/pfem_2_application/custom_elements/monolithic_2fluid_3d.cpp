@@ -18,7 +18,7 @@
 #include "includes/node.h"
 //#include "includes/element.h"
 #include "includes/model_part.h"
-
+#include "includes/cfd_variables.h"
 
 
 namespace Kratos
