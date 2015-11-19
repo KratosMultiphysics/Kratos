@@ -383,7 +383,8 @@ protected:
 
     //general elements must be defined
     const Element  mElement;
-
+    const Element  mElement3D4N;
+    const Element  mElement2D3N;
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
 
