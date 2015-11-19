@@ -59,7 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "includes/dem_variables.h"
+#include "includes/dem_variables.h"  //TODO: must be removed eventually
+#include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 
 namespace Kratos
 {
