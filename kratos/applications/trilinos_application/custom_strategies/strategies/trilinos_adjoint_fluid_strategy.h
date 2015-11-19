@@ -14,6 +14,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
+#include "includes/dem_variables.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/normal_calculation_utils.h"
 #include "solving_strategies/strategies/solving_strategy.h"

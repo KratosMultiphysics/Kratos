@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 #include "includes/element.h"
+#include "includes/legacy_structural_app_vars.h"
 
 namespace Kratos
 {
