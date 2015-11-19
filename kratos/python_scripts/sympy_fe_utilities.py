@@ -18,18 +18,19 @@ def DefineVector( name, m):
 
 ###note that partition of unity is imposed
 ###the name HAS TO BE --> N and DN
-def DefineShapeFunctions(nnodes, dim):
+def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
     DN = DefineMatrix('DN',nnodes,dim)
     N = DefineVector('N',nnodes)
     
     #impose partition of unity
-    N[nnodes-1] = 1
-    for i in range(0,nnodes-1):
-        N[nnodes-1] -= N[i]
-        
-    DN[nnodes-1,:] = -DN[0,:]
-    for i in range(1,nnodes-1):
-        DN[nnodes-1,:] -= DN[i,:]
+    if(impose_partion_of_unity == True):
+        N[nnodes-1] = 1
+        for i in range(0,nnodes-1):
+            N[nnodes-1] -= N[i]
+            
+        DN[nnodes-1,:] = -DN[0,:]
+        for i in range(1,nnodes-1):
+            DN[nnodes-1,:] -= DN[i,:]
     
     return N,DN
     
