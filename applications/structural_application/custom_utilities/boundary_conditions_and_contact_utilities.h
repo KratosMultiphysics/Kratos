@@ -73,7 +73,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
 #include "includes/mesh.h"
 
 #include "geometries/geometry.h"
@@ -112,6 +111,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 
+#include "structural_application.h"
 
 
 namespace Kratos
