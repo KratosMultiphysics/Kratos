@@ -58,10 +58,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/master_contact_face_2d.h"
-// #include "structural_application.h"
+#include "structural_application.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
