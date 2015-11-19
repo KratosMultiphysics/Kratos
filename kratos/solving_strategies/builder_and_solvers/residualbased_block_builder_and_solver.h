@@ -909,10 +909,12 @@ public:
         {
             std::size_t i = dof_iterator->EquationId();
             if(i < system_size)
+            {
                 if(dof_iterator->IsFixed())
                     scaling_factors[i] = 0;
                 else
                     scaling_factors[i] = 1;
+            }
         }
 
         double* Avalues = A.value_data().begin();
