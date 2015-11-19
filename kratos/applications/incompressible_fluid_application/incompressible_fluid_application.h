@@ -37,6 +37,7 @@
 //#include "custom_conditions/no_slip_fract_step.h"
 
 #include "includes/variables.h"
+#include "includes/legacy_structural_app_vars.h" //TODO: must be removed eventually
 #include "includes/condition.h"
 
 #include "custom_elements/fluid_2dcoupled.h"
