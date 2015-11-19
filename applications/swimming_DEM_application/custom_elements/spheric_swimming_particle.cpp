@@ -468,7 +468,7 @@ double SphericSwimmingParticle::ComputeWeatherfordDragCoefficient(ProcessInfo& r
     const array_1d<double, 3>& gravity         = r_current_process_info[GRAVITY];
     const int manually_imposed_drag_law_option = r_current_process_info[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
     const int drag_modifier_type               = r_current_process_info[DRAG_MODIFIER_TYPE];
-    const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(GEL_STRENGTH);
+    const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
     const double power_law_n                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
     const double power_law_K                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
     const double yield_stress                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);

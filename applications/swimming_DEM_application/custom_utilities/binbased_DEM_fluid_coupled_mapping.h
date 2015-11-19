@@ -805,8 +805,8 @@ void Project(Element::Pointer p_elem,
         Interpolate(p_elem, N, p_node, POWER_LAW_K, POWER_LAW_K);
     }
 
-    else if (*r_destination_variable == GEL_STRENGTH){
-        Interpolate(p_elem, N, p_node, GEL_STRENGTH, GEL_STRENGTH);
+    else if (*r_destination_variable == YIELD_STRESS){
+        Interpolate(p_elem, N, p_node, YIELD_STRESS, YIELD_STRESS);
     }
 
     else if (*r_destination_variable == DISTANCE){
@@ -863,8 +863,8 @@ void Project(Element::Pointer p_elem,
         Interpolate(p_elem, N, p_node, POWER_LAW_K, POWER_LAW_K, alpha);
     }
 
-    else if (*r_destination_variable == GEL_STRENGTH){
-        Interpolate(p_elem, N, p_node, GEL_STRENGTH, GEL_STRENGTH, alpha);
+    else if (*r_destination_variable == YIELD_STRESS){
+        Interpolate(p_elem, N, p_node, YIELD_STRESS, YIELD_STRESS, alpha);
     }
 
     else if (*r_destination_variable == DISTANCE){

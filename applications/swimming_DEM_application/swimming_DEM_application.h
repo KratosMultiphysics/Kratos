@@ -22,7 +22,9 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "includes/dem_variables.h"
+#include "includes/dem_variables.h"  //TODO: must be removed eventually
+#include "includes/cfd_variables.h"  //TODO: must be removed eventually
+#include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
 #include "custom_elements/spheric_swimming_particle.h"
