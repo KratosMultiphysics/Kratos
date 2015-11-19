@@ -81,7 +81,6 @@ def DofsWithReactions():
 class ALGO_TYPE:
 	FULL_NEWTON=1
 	KRYLOV_NEWTON=2
-	SECANT_NEWTON=3
 
 class SolutionStage:
 
@@ -156,17 +155,6 @@ class SolutionStage:
 				self.MoveMesh)
 		elif(Algorithm == ALGO_TYPE.KRYLOV_NEWTON):
 			self.Solver = StaticGeneralStrategyKrylovNewton(
-				self.ModelPart,
-				self.TimeScheme,
-				self.LinearSolver,
-				self.Convergence,
-				self.BuilderAndSolver,
-				self.MaxIterations,
-				self.CalculateReactions,
-				self.ReformDofSetAtEachStep,
-				self.MoveMesh)
-		elif(Algorithm == ALGO_TYPE.SECANT_NEWTON):
-			self.Solver = StaticGeneralStrategySecantNewton(
 				self.ModelPart,
 				self.TimeScheme,
 				self.LinearSolver,
@@ -313,11 +301,6 @@ class SolutionStage:
 					if(needed_iter > 0):
 						increment_mult *= target_iter/needed_iter
 					new_delta_time = delta_time * increment_mult
-					
-					# check for suggested time step
-					suggested_time_step = GetSuggestedTimeStep(self.ModelPart,increment_min,increment_max)
-					if(new_delta_time > suggested_time_step):
-						new_delta_time = suggested_time_step
 					
 					if(new_delta_time < increment_min):
 						
