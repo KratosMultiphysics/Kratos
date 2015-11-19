@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "custom_strategies/strategies/residualbased_eulerian_convdiff_strategy.h"
 
 
 
@@ -103,6 +104,13 @@ void  AddCustomStrategiesToPython()
             ("ResidualBasedConvectionDiffusionStrategy",
              init<	ModelPart&, LinearSolverType::Pointer,	bool, int, int	>() )
             .def("Clear",&ResidualBasedConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+            ;
+    
+    class_< ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+            bases< BaseSolvingStrategyType >,  boost::noncopyable >
+            ("ResidualBasedEulerianConvectionDiffusionStrategy",
+             init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+            .def("Clear",&ResidualBasedEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
             ;
 
     class_< ResidualBasedConvectionDiffusionStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,
