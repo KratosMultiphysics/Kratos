@@ -54,6 +54,7 @@ memcpy((void *)(buffer),(const void *)(host_ptr[0]),size*sizeof(pointer_type));
 #include "custom_utilities/opencl_interface.h"
 #include "processes/node_erase_process.h"
 #include "includes/model_part.h"
+#include "includes/cfd_variables.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 
