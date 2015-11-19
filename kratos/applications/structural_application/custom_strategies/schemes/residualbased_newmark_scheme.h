@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 #include "includes/element.h"
+#include "structural_application.h"
 
 namespace Kratos
 {
@@ -239,6 +240,48 @@ public:
                 {
                     i->GetSolutionStepValue(AIR_PRESSURE_EINS)
                     +=Dx[i->GetDof(AIR_PRESSURE).EquationId()];
+                }
+            }
+
+            // update this variables to account for Lagrange multiplier
+            if( i->HasDofFor(LAGRANGE_DISPLACEMENT_X) )
+            {
+                if(i->GetDof(LAGRANGE_DISPLACEMENT_X).IsFree())
+                {
+                    i->GetSolutionStepValue(LAGRANGE_DISPLACEMENT_X)
+                    +=Dx[i->GetDof(LAGRANGE_DISPLACEMENT_X).EquationId()];
+                }
+            }
+            if( i->HasDofFor(LAGRANGE_DISPLACEMENT_Y) )
+            {
+                if(i->GetDof(LAGRANGE_DISPLACEMENT_Y).IsFree())
+                {
+                    i->GetSolutionStepValue(LAGRANGE_DISPLACEMENT_Y)
+                    +=Dx[i->GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId()];
+                }
+            }
+            if( i->HasDofFor(LAGRANGE_DISPLACEMENT_Z) )
+            {
+                if(i->GetDof(LAGRANGE_DISPLACEMENT_Z).IsFree())
+                {
+                    i->GetSolutionStepValue(LAGRANGE_DISPLACEMENT_Z)
+                    +=Dx[i->GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId()];
+                }
+            }
+            if( i->HasDofFor(LAGRANGE_WATER_PRESSURE) )
+            {
+                if(i->GetDof(LAGRANGE_WATER_PRESSURE).IsFree())
+                {
+                    i->GetSolutionStepValue(LAGRANGE_WATER_PRESSURE)
+                    +=Dx[i->GetDof(LAGRANGE_WATER_PRESSURE).EquationId()];
+                }
+            }
+            if( i->HasDofFor(LAGRANGE_AIR_PRESSURE) )
+            {
+                if(i->GetDof(LAGRANGE_AIR_PRESSURE).IsFree())
+                {
+                    i->GetSolutionStepValue(LAGRANGE_AIR_PRESSURE)
+                    +=Dx[i->GetDof(LAGRANGE_AIR_PRESSURE).EquationId()];
                 }
             }
         }

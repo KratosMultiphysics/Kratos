@@ -59,7 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
 #include "includes/element.h"
@@ -79,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/cg_solver.h"
 
 #include "custom_utilities/variable_transfer_utility.h"
+#include "structural_application.h"
 
 namespace Kratos
 {
