@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "trilinos_application.h"
 #include "includes/deprecated_variables.h"
+#include "includes/legacy_structural_app_vars.h"
 
 
 namespace Kratos

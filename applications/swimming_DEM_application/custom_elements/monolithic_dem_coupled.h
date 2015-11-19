@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/cfd_variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
