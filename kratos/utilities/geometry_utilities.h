@@ -235,6 +235,28 @@ public:
 
 
 
+    static inline void CalculateGeometryData(
+        Element::GeometryType& geom,
+        boost::numeric::ublas::bounded_matrix<double,2,1>& DN_DX,
+        array_1d<double,2>& N,
+        double& Area)
+    {
+        double x10 = fabs(geom[1].X() - geom[0].X());
+
+
+        double detJ = x10;
+
+        DN_DX(0,0) = 1.0/(geom[0].X() - geom[1].X());
+        DN_DX(0,1) = 1.0/(geom[1].X() - geom[0].X());
+
+
+        //DN_DX /= detJ;
+        N[0] = 0.5;
+        N[1] = 0.5;
+
+        Area = detJ;
+    }
+
     /**
      * Calculate the exact distances to an isosurface define by a set of initial
      * distances
