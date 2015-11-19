@@ -15,6 +15,7 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
         ${CMAKE_CURRENT_SOURCE_DIR}/sources/cfd_variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/dem_variables.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
@@ -29,6 +30,7 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;	
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES     
@@ -41,6 +43,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp       
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp		
@@ -61,7 +64,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_zero_matrix_to_python.cpp		
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp		
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp			
-        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/vectorial_spaces_python.cpp		
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp		
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp			

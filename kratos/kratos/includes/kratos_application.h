@@ -128,6 +128,7 @@ public:
     void RegisterC2CVariables(); //TODO: move to application
     void RegisterCFDVariables(); //TODO: move to application
     void RegisterDEMVariables(); //TODO: move to application
+    void RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
     ///@}
     ///@name Access
