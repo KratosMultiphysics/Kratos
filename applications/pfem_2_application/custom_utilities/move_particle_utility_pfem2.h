@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///
 #include "includes/dof.h"
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "containers/array_1d.h"
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
