@@ -24,6 +24,8 @@
 #include "custom_utilities/pfem_particle_fluidonly.h"
 #include "pfem_2_application.h"
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
+
 #include "geometries/point_2d.h"   //add the point_2d (necessary for the pointsource)
 #include "geometries/point_3d.h"   //add the point_2d (necessary for the pointsource)
 //#include "utilities/enrich_2d_2dofs.h"
