@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/builder_and_solvers/static_general_builder_and_solver.h"
 
 #include "custom_strategies/schemes/static_general_scheme.h"
+#include "custom_strategies/schemes/rve_static_scheme.h"
 
 #include "custom_strategies/convergencecriterias/residual_norm_criteria.h"
 #include "custom_strategies/convergencecriterias/displacement_norm_criteria.h"
@@ -253,6 +254,12 @@ void AddStrategiesToPython()
 	typedef StaticGeneralScheme< SparseSpaceType, LocalSpaceType> StaticGeneralSchemeType;
     class_< StaticGeneralSchemeType, bases< BaseSchemeType >, boost::noncopyable >(
             "StaticGeneralScheme", 
+			init< >())
+			;
+
+	typedef RveStaticScheme< SparseSpaceType, LocalSpaceType> RveStaticSchemeType;
+    class_< RveStaticSchemeType, bases< BaseSchemeType >, boost::noncopyable >(
+            "RveStaticScheme", 
 			init< >())
 			;
 

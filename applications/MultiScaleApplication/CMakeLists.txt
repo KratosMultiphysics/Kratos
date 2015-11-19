@@ -115,14 +115,15 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 	message("link also MUMPS and OpenBLAS")
 	target_link_libraries( KratosMultiScaleApplication 
 						   KratosCore
-						   ${OPENBLAS_LIB}
+						   ${BLAS_LIBRARIES}
 						   ${MUMPS_LIB} )
 
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 	message("MUMPS and OpenBLAS will not be linked")
 	target_link_libraries( KratosMultiScaleApplication 
-						   KratosCore )
+						   KratosCore
+						   ${BLAS_LIBRARIES} )
 
 endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
@@ -179,3 +180,38 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MultiScaleApplication.py" DESTINATION KratosMultiphysics )
+
+
+INCLUDE (CheckLibraryExists)
+set(CMAKE_REQUIRED_LIBRARIES  ${LAPACK_LIBRARIES})
+message("Finding required functions from LAPACK")
+message("LAPACK library: " ${LAPACK_LIBRARIES})
+
+foreach( lapack_lib ${LAPACK_LIBRARIES})
+	message("checking dgels in library: " ${lapack_lib})
+	CHECK_LIBRARY_EXISTS(${LAPACK_LIBRARIES} "dgels" "" CHECK_HAVE_DGELS)
+	if(CHECK_HAVE_DGELS)
+		message("found dgels")
+		add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
+		add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=dgels)
+	else()
+		message("checking DGELS in library: " ${lapack_lib})
+		CHECK_LIBRARY_EXISTS(${LAPACK_LIBRARIES} "DGELS" "" CHECK_HAVE_DGELS_1)
+		if(CHECK_HAVE_DGELS_1)
+			message("found DGELS")
+			add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
+			add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=DGELS)
+		else()
+			message("checking dgels_ in library: " ${lapack_lib})
+			CHECK_LIBRARY_EXISTS(${LAPACK_LIBRARIES} "dgels_" "" CHECK_HAVE_DGELS_2)
+			if(CHECK_HAVE_DGELS_2)
+				message("found dgels_")
+				add_definitions(-DMULTISCALE_APPLICATION_LAPACK_HAS_DGELS)
+				add_definitions(-DMULTISCALE_APPLICATION_LAPACK_DGELS=dgels_)
+			else()
+				message("Cannot find DGELS")
+			endif()
+		endif()
+	endif()
+endforeach(lapack_lib)
+
