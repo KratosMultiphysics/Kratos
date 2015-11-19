@@ -87,6 +87,11 @@ DummyConstitutiveLaw::~DummyConstitutiveLaw()
 {
 }
 
+bool DummyConstitutiveLaw::Has( const Variable<int>& rThisVariable )
+{
+    return false;
+}
+
 bool DummyConstitutiveLaw::Has( const Variable<double>& rThisVariable )
 {
     return false;
@@ -102,6 +107,11 @@ bool DummyConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
     return false;
 }
 
+int& DummyConstitutiveLaw::GetValue( const Variable<int>& rThisVariable, int& rValue )
+{
+    KRATOS_THROW_ERROR( std::logic_error, "this variable is not supported", "" );
+}
+
 double& DummyConstitutiveLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     KRATOS_THROW_ERROR( std::logic_error, "this variable is not supported", "" );
@@ -115,6 +125,11 @@ Vector& DummyConstitutiveLaw::GetValue( const Variable<Vector>& rThisVariable, V
 Matrix& DummyConstitutiveLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
     KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+}
+
+void DummyConstitutiveLaw::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
+{
 }
 
 void DummyConstitutiveLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
