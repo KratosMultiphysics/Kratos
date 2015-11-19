@@ -143,7 +143,7 @@ public:
 		mdimension = dimension;
         mOldDt = 0.00;
 
-        ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+        //ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
         //ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         //(mpConvectionModelPart->GetProcessInfo()).GetValue(CONVECTION_DIFFUSION_SETTINGS) = my_settings;
 		Check();
@@ -196,9 +196,9 @@ public:
 
         //calculate the BDF coefficients
         //careful. Using information from the currentprocessinfo of the original model part (not the convection model part)
-      ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-      double Dt = rCurrentProcessInfo[DELTA_TIME];
-      int stationary= rCurrentProcessInfo[STATIONARY];
+      //ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+      //double Dt = rCurrentProcessInfo[DELTA_TIME];
+      //int stationary= rCurrentProcessInfo[STATIONARY];
             
 	  //SOLVING THE PROBLEM	  
 	  double Dp_norm = mstep1->Solve();
