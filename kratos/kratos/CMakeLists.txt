@@ -30,7 +30,6 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;	
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES     
