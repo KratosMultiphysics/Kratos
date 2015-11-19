@@ -25,6 +25,7 @@
 #include "includes/kratos_application.h"
 
 #include "includes/variables.h"
+#include "includes/legacy_structural_app_vars.h" //TODO: must be removed eventually
 #include "includes/condition.h"
 #include "includes/element.h"
 
