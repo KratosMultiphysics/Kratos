@@ -679,7 +679,7 @@ public:
         int i=0;
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)           
             if(dof_iterator->IsFixed()) b[i++] = 0;
-            else b[i++] = 1;
+            else i++;
 
         KRATOS_CATCH("")
 
