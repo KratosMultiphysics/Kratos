@@ -116,7 +116,7 @@ public:
     //Point
     typedef TConfigure                                      Configure;
     typedef typename TConfigure::PointType                  PointType;
-    
+
     //Container
     typedef typename TConfigure::PointerType                PointerType;
     typedef typename TConfigure::ContainerType              ContainerType;
@@ -170,14 +170,14 @@ public:
 
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
+
         BinsExtension = 2;
-        
+
         CalculateBoundingBox();             // Calculate mMinPoint, mMaxPoint
         GenerateCommunicationGraph();       // Share The min and max
         CalculateCellSize(mObjectsSize);    // Calculate number of Cells
         AllocateContainer();                // Allocate cell list
-        GenerateBins();                     // Fill Cells with objects     
+        GenerateBins();                     // Fill Cells with objects
 
     }
 
@@ -185,15 +185,15 @@ public:
         : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
     {
         mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
-/*        
+/*
         CommunicationToken = PointerType(ObjectsBegin[0]);
         CommunicationToken->GetValue(NUMBER_OF_NEIGHBOURS) = -2;*/
-        
+
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
+
         BinsExtension = 2;
-        
+
         CalculateBoundingBox();             // Calculate mMinPoint, mMaxPoint
         GenerateCommunicationGraph();
         CalculateCellSize(CellSize);        // Calculate number of Cells
@@ -208,10 +208,10 @@ public:
 
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
+
 //         CommunicationToken = PointerType(ObjectsBegin[0]);
 //         CommunicationToken->GetValue(NUMBER_OF_NEIGHBOURS) = -1;
-      
+
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMinPoint[i] = MinPoint[i];
@@ -227,10 +227,10 @@ public:
 
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
+
 //         CommunicationToken = PointerType(ObjectsBegin[0]);
 //         CommunicationToken->GetValue(NUMBER_OF_NEIGHBOURS) = -1;
-        
+
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMinPoint[i] = MinPoint[i];
@@ -291,8 +291,8 @@ public:
         SearchInBoxLocal(ThisObject, Result, Box );
         return Result.size();
     }
-    
-    
+
+
 //************************************************************************
 //************************************************************************
 
@@ -302,7 +302,7 @@ public:
       * The method implemented by this function is one-to-one what means that all particles not found in the local
       * processes are send only to the processes intersecting the search radius of the particle
       * @param ThisObjects List of objects to be search
-      * @param NumberOfObjects Number of points to be search 
+      * @param NumberOfObjects Number of points to be search
       * @param Radius Radius of search
       * @param Radius2 Radius of search^2
       * @param Results List of results
@@ -312,19 +312,19 @@ public:
       **/
     void SearchObjectsMpi(const ElementsContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
           std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator& Communicator, bool useRealData = true)
-    {  
+    {
         std::vector<ElementsContainerType> remoteResults(mpi_size);
         std::vector<ElementsContainerType> SearchPetitions(mpi_size);
         std::vector<ElementsContainerType> SearchResults(mpi_size);
         std::vector<ElementsContainerType> SendObjectToProcess(mpi_size);
-        
+
         std::vector<std::vector<double> >  SendRadiusToProcess(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  SearchPetitionsRadius(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  SendResultsPerPoint(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  RecvResultsPerPoint(mpi_size, std::vector<double>(0));
-  
-        int NumberOfSendPoints[mpi_size];
-        int NumberOfRecvPoints[mpi_size];
+
+        int * NumberOfSendPoints = new int[mpi_size];
+        int * NumberOfRecvPoints = new int[mpi_size];
 
         std::vector<bool> SendPoint(NumberOfObjects*mpi_size);
 
@@ -332,27 +332,27 @@ public:
         SearchStructureType Box;
 
         for(int i = 0; i < mpi_size; i++)
-        {                   
+        {
             NumberOfSendPoints[i] = 0;
         }
-        
+
         IteratorType it_begin = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin();
         IteratorType it_end   = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).end();
-        
+
         int objectCounter = 0;
 
-        for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)  
-        {   
+        for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)
+        {
             ResultIteratorType   ResultsPointer          = Results[objectCounter].begin();
             DistanceIteratorType ResultsDistancesPointer = ResultsDistances[objectCounter].begin();
 
             NumberOfResults[objectCounter] = 0;
-            
+
             TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-            
+
             SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
-            
+
             //For each point with results < MaxResults and each process excluding ourself
             if(NumberOfResults[objectCounter] < MaxNumberOfResults)
             {
@@ -400,8 +400,8 @@ public:
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
 
         //Calculate remote points
-        for(int i = 0; i < mpi_size; i++) 
-        { 
+        for(int i = 0; i < mpi_size; i++)
+        {
             int NumberOfRanks = Communicator.GetNumberOfColors();
             if(i != mpi_rank)
             {
@@ -410,21 +410,21 @@ public:
                 for(int j = 0; j < NumberOfRanks; j++)
                     if(i == communicator_ranks[j])
                         destination = j;
-              
+
                 int accum_results = 0;
-                
+
                 NumberOfRecvPoints[i] = SearchPetitions[i].size();
                 remoteResults[i].reserve((MaxNumberOfResults+1)*NumberOfRecvPoints[i]);
                 SendResultsPerPoint[i].resize(SearchPetitionsRadius[i].size());
-                
+
                 std::vector<double> TempResultsDistances(MaxNumberOfResults);
 
-                for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
-                {   
+                for(int j = 0; j < NumberOfRecvPoints[i]; j++)
+                {
                     DistanceIteratorType ResultsDistancesPointer = TempResultsDistances.begin(); //Useless
                     ResultContainerType  TempResults(MaxNumberOfResults);
                     ResultIteratorType   remoteResultsPointer = TempResults.begin();
-                    
+
                     SizeType thisNumberOfResults = 0;
                     *ResultsDistancesPointer = 0;
 
@@ -461,30 +461,30 @@ public:
             {
                 int ParticleCounter = 0;
                 int ResultCounter = 0;
-                
+
                 int origin = -1;
 
                 for(int j = 0; j < NumberOfRanks; j++)
                     if(i == communicator_ranks[j])
                         origin = j;
-                
+
                 for(size_t j = 0; j < NumberOfObjects; j++)
-                { 
+                {
                     if(SendPoint[i*NumberOfObjects+j])
                     {
                         for(size_t k = 0; k < RecvResultsPerPoint[i][ParticleCounter]; k++)
                         {
                             double dist;
                             IteratorType itrObject = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin() + j;
-                                                          
+
                             Results[j][NumberOfResults[j]] = (SearchResults[i].GetContainer())[ResultCounter];
                             TConfigure::Distance((*itrObject),(SearchResults[i].GetContainer())[ResultCounter],dist);
                             ResultsDistances[j][NumberOfResults[j]] = dist;
                             NumberOfResults[j]++;
-                            
+
                             Communicator.GhostMesh().Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
                             Communicator.GhostMesh(origin).Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
-                            
+
                             bool repeat = 0;
                             for(ModelPart::NodesContainerType::iterator it = Communicator.GhostMesh(origin).Nodes().begin(); !repeat && it != Communicator.GhostMesh(origin).Nodes().end(); ++it)
                               if((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()[0].Id() == it->Id())
@@ -494,7 +494,7 @@ public:
                                 Communicator.GhostMesh().Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
                                 Communicator.GhostMesh(origin).Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
                             }
-                            
+
                             ResultCounter++;
                         }
                         ParticleCounter++;
@@ -502,6 +502,9 @@ public:
                 }
             }
         }
+
+        delete [] NumberOfSendPoints;
+        delete [] NumberOfRecvPoints;
     }
 
 //************************************************************************
@@ -546,7 +549,7 @@ public:
         SearchInRadius(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -779,10 +782,10 @@ private:
                 mMinPoint[i]  = (mMinPoint[i]  > Min[k][i]) ? Min[k][i] : mMinPoint[i];
             }
         }
-        
+
         PointType Epsilon = mMaxPoint - mMinPoint;
-       
-        for(SizeType i = 0 ; i < Dimension ; i++) 
+
+        for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMaxPoint[i] += Epsilon[i] * 0.1;
             mMinPoint[i] -= Epsilon[i] * 0.1;
@@ -849,7 +852,7 @@ private:
         CoordinateType alpha[Dimension];
         CoordinateType mult_delta = 1.00;
         SizeType index = 0;
-        
+
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             delta[i] = mMaxPoint[i] - mMinPoint[i];
@@ -902,18 +905,18 @@ private:
 //************************************************************************
 //************************************************************************
 
-    void GenerateCommunicationGraph() 
+    void GenerateCommunicationGraph()
     {
-        double MpiMinPoints[mpi_size * Dimension];
-        double MpiMaxPoints[mpi_size * Dimension];
-        
-        double MyMinPoint[Dimension];
-        double MyMaxPoint[Dimension];
-        
+        double * MpiMinPoints = new double[mpi_size * Dimension];
+        double * MpiMaxPoints = new double[mpi_size * Dimension];
+
+        double * MyMinPoint = new double[Dimension];
+        double * MyMaxPoint = new double[Dimension];
+
         mMinBoundingBox = vector<PointType>(mpi_size);
         mMaxBoundingBox = vector<PointType>(mpi_size);
-        
-        for(size_t i = 0; i < Dimension; i++) 
+
+        for(size_t i = 0; i < Dimension; i++)
         {
             MyMinPoint[i] = mMinPoint[i];
             MyMaxPoint[i] = mMaxPoint[i];
@@ -926,31 +929,37 @@ private:
         MPI_Allgather(MyMinPoint,Dimension,MPI_DOUBLE,MpiMinPoints,Dimension,MPI_DOUBLE,MPI_COMM_WORLD);
         MPI_Allgather(MyMaxPoint,Dimension,MPI_DOUBLE,MpiMaxPoints,Dimension,MPI_DOUBLE,MPI_COMM_WORLD);
 
-        for(int i = 0; i < mpi_size; i++) 
+        for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i)
             {
                 mpi_connectivity[i] = 0;
-                
+
                 for(size_t j = 0; j < Dimension; j++)
                 {
                     mpi_MinPoints[i][j] = MpiMinPoints[i * Dimension + j];
                     mpi_MaxPoints[i][j] = MpiMaxPoints[i * Dimension + j];
                 }
-                
+
                 mMinBoundingBox[i].X() = mpi_MinPoints[i][0];
                 mMaxBoundingBox[i].X() = mpi_MaxPoints[i][0];
-                
+
                 mMinBoundingBox[i].Y() = mpi_MinPoints[i][1];
                 mMaxBoundingBox[i].Y() = mpi_MaxPoints[i][1];
-                
+
                 mMinBoundingBox[i].Z() = mpi_MinPoints[i][2];
                 mMaxBoundingBox[i].Z() = mpi_MaxPoints[i][2];
             }
         }
+
+        delete [] MpiMinPoints;
+        delete [] MpiMaxPoints;
+
+        delete [] MyMinPoint;
+        delete [] MyMaxPoint;
     }
-    
-    
+
+
 //************************************************************************
 //************************************************************************
 
@@ -1440,19 +1449,19 @@ private:
                 for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] )
                 {
                     if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                    {   
+                    {
                         mCells[I].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
                     }
                 }
             }
         }
     }
-    
+
     //TEMP!!!!
     int EmptyCellsArround(PointerType& ThisObject, CoordinateType const& Radius,SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
         int found = 0;
-      
+
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
 
@@ -1481,7 +1490,7 @@ private:
                 }
             }
         }
-        
+
         return found;
     }
 
@@ -1589,18 +1598,18 @@ private:
             }
         }
     }
-    
+
 //     void FillDomain( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
 //     {
 //         PointType  MinCell, MaxCell;
 //         PointType  MinBox, MaxBox;
-// 
+//
 //         for(SizeType i = 0; i < 3; i++)
 //         {
 //             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
 //             MaxBox[i] = MinBox[i] + mCellSize[i];
 //         }
-// 
+//
 //         MinCell[2] = MinBox[2];
 //         MaxCell[2] = MaxBox[2];
 //         for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2]+=mCellSize[2], MaxCell[2]+=mCellSize[2] )
@@ -1775,19 +1784,19 @@ private:
     ///@}
     ///@name MPI Variables
     ///@{
-      
+
     int mpi_rank;
     int mpi_size;
-    
+
     int BinsExtension;
-    
+
     vector<int> mpi_connectivity;
     vector<vector<double> > mpi_MinPoints;
     vector<vector<double> > mpi_MaxPoints;
-    
+
     vector<PointType> mMinBoundingBox;
     vector<PointType> mMaxBoundingBox;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -1889,6 +1898,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
-
-
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
