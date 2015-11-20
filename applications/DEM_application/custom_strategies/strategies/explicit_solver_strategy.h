@@ -1349,18 +1349,40 @@ namespace Kratos
             for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
             }
+            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
+            //NOTE:: VERY IMPORTANT: Neighbours are saved inside the Intersection function redefined in the configure file: rigid_face_geometrical_object_configure
+            //The results:  this->GetRigidFaceResults() and this->GetRigidFaceResultsDistances() are not the neighbours, but all the elements checked by the bins.
+            //neighbours are saved in mNeighbourRigidFaces and made unique (skipping the deactivated ones through the hierarchy procedure) next:
 
-            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
-           
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
+
                 std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-                for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){                                                  
-                    Condition* p_neighbour_condition = (*neighbour_it).get();
-                    DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
-                    bool ContactExists = RigidFaceGeometricalConfigureType::RigidContact(local_resolution_method, mListOfSphericParticles[i], p_wall);
-                    if (ContactExists) { neighbour_rigid_faces.push_back(p_wall); }
-                }
+                std::vector<double>& RF_Param = mListOfSphericParticles[i]->mNeighbourRigidFacesPram;
+                size_t neigh_size = neighbour_rigid_faces.size();
+                std::vector<DEMWall*> temporal_neigh (0); 
+                std::vector<double>  RF_Param_temp (0);
+
+                for (unsigned int n = 0; n < neigh_size; n++ ){
+
+                  if(RF_Param[n * 16 + 15] != -1) //if(it is not a -1 contact neighbour, we copy it)
+                  {
+                    temporal_neigh.push_back(neighbour_rigid_faces[n]);
+                    int current_RF_temp_size = RF_Param_temp.size();
+                    RF_Param_temp.resize(current_RF_temp_size + 16);
+                    for (int k=0; k<16; k++ )
+                    {
+                      RF_Param_temp[current_RF_temp_size + k] = RF_Param[n * 16 + k];
+                    }
+
+                  }//if(it is not a -1 contact neighbour, we copy it)
+
+                }//loop over temporal neighbours
+
+                //swap
+                temporal_neigh.swap(neighbour_rigid_faces);
+                RF_Param_temp.swap(RF_Param);
+
                 this->GetRigidFaceResults()[i].clear();
                 this->GetRigidFaceResultsDistances()[i].clear();   
             }
