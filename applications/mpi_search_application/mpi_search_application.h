@@ -42,7 +42,7 @@ namespace Kratos
 ///@{
 
 KRATOS_DEFINE_VARIABLE(int, NEIGHBOUR_PARTITION_INDEX)
-  
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -129,7 +129,7 @@ public:
 
     virtual void PrintData(std::ostream& rOStream) const
     {
-      
+
     }
 
 
@@ -243,6 +243,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_KRATOS_MPI_SEARCH_APPLICATION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_KRATOS_MPI_SEARCH_APPLICATION_H_INCLUDED  defined

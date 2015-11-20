@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Application includes
 #include "custom_utilities/bins_dynamic_objects_mpi.h"
-    
+
 int compareFunction(const void * a, const void * b)
 {
     return ( *(int*)a - *(int*)b );
@@ -111,7 +111,7 @@ public:
     typedef TConfigure                                      Configure;
     typedef typename Configure::PointType                  PointType;
     //typedef typename TConfigure::ResultNumberIteratorType   ResultNumberIteratorType;
-    
+
     //Container
     typedef typename Configure::PointerType                PointerType;
     typedef typename Configure::ContainerType              ContainerType;
@@ -123,7 +123,7 @@ public:
     typedef typename Configure::ResultIteratorType         ResultIteratorType;
     typedef typename Configure::PointerContactType         PointerContactType;
 //     typedef typename Configure::PointerTypeIterator        PointerTypeIterator;
-    
+
     typedef WeakPointerVector<Element> ParticleWeakVector;
 
     //Search Structures
@@ -148,7 +148,7 @@ public:
     ///typedef TreeNodeType LeafType;
     typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
     typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
-    
+
     PointerType CommunicationToken;
 
     /// Pointer definition of BinsObjectDynamic
@@ -159,7 +159,7 @@ public:
     ///@{
 
     /// Default constructor.
-    LloydParallelPartitioner() 
+    LloydParallelPartitioner()
     {
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
@@ -173,28 +173,29 @@ public:
     Vector Normal;
     Vector Plane;
     Vector Dot;
-    
+
     //Lloyd based partitioning
     void LloydsBasedPartitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundary)
     {
         //Elements
         ContainerType& pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-        
+
         //Stuff
-        double SetCentroid[mpi_size*Dimension], SendSetCentroid[mpi_size*Dimension];
-        
+        double * SetCentroid = new double[mpi_size*Dimension];
+        double * SendSetCentroid = new double[mpi_size*Dimension];
+
         //Boundary conditions
         MeanPoint.resize(mpi_size*Dimension,false);
         Normal.resize(mpi_size*Dimension,false);
         Plane.resize(mpi_size,false);
         Dot.resize(mpi_size,false);
-        
+
         //Define algorthm iterations (maybe is a good idea pass this as a parameter)
         int NumIterations = 100;
-        
+
         //Calcualate Partitions
         CalculatePartitions(pElements,NumIterations,SetCentroid,SendSetCentroid);
-        
+
         //Calculate boundaries
         for(int i = 0; i < mpi_size; i++)
         {
@@ -208,11 +209,14 @@ public:
                 Dot[i]                  += Normal[i*Dimension+j] * Normal[i*Dimension+j];
                 Plane[i]                -= Normal[i*Dimension+j] * MeanPoint[i*Dimension+j];
             }
-            
+
             Dot[i] = sqrt(Dot[i]);
         }
+
+        delete [] SetCentroid;
+        delete [] SendSetCentroid;
     }
-    
+
     /**
      * Calcuate the partition for all elements and nodes. This function must correctly set
      * PARTICLE_INDEX variable for each element and node.
@@ -221,8 +225,9 @@ public:
      **/
     void CalculatePartitions(ContainerType& pElements, const int &NumIterations, double SetCentroid[], double SendSetCentroid[])
     {
-        int NumParticlesPerVirtualPartition[mpi_size], SendNumParticlesPerVirtualPartition[mpi_size];
-      
+        int * NumParticlesPerVirtualPartition = new int[mpi_size];
+        int * SendNumParticlesPerVirtualPartition = new int[mpi_size];
+
         for(int iterations = 0; iterations < NumIterations; iterations++)
         {
             for(int i = 0; i < mpi_size; i++)
@@ -239,17 +244,17 @@ public:
                 {
                     ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
                     int element_partition = i_nod->GetSolutionStepValue(PARTITION_INDEX);
-                    
+
                     for(int j = 0; j < Dimension; j++)
                     {
                         SendSetCentroid[element_partition*Dimension+j] += i_nod->Coordinate(j+1);
                     }
-                    
+
                     SendNumParticlesPerVirtualPartition[element_partition]++;
                 }
             }
 
-            MPI_Allreduce(SendSetCentroid,SetCentroid,mpi_size*Dimension,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);                     
+            MPI_Allreduce(SendSetCentroid,SetCentroid,mpi_size*Dimension,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
             MPI_Allreduce(SendNumParticlesPerVirtualPartition,NumParticlesPerVirtualPartition,mpi_size,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
             //Set the centroids
@@ -260,9 +265,9 @@ public:
                     SendSetCentroid[mpi_rank*Dimension+j] = 0;
                     SetCentroid[mpi_rank*Dimension+j] = 0;
                 }
-            } 
+            }
             else
-            {                   
+            {
                 for(int i = 0; i < mpi_size; i++)
                 {
                     for(int j = 0; j < Dimension; j++)
@@ -275,61 +280,65 @@ public:
 
             //Continue with the partitioning
             for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-            { 
+            {
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
                 {
                     ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    
+
                     int PartitionIndex = mpi_rank;
-                    
+
                     //Calcualte distance with my center first.
                     double distX = i_nod->X() - SetCentroid[mpi_rank*Dimension+0];
                     double distY = i_nod->Y() - SetCentroid[mpi_rank*Dimension+1];
                     double distZ = i_nod->Z() - SetCentroid[mpi_rank*Dimension+2];
-                    
+
                     distX *= distX;
                     distY *= distY;
                     distZ *= distZ;
-                    
+
                     double dist = (distX+distY+distZ);
                     double min_dist = dist;
-                    
+
                     for(int j = 0; j < mpi_size; j++)
-                    {    
+                    {
                         distX = i_nod->X() - SetCentroid[j*Dimension+0];
                         distY = i_nod->Y() - SetCentroid[j*Dimension+1];
                         distZ = i_nod->Z() - SetCentroid[j*Dimension+2];
-                        
+
                         distX *= distX;
                         distY *= distY;
                         distZ *= distZ;
-                        
+
                         double TheyDist = (distX+distY+distZ);
-                        
+
                         if (TheyDist < min_dist)
                         {
                             min_dist = TheyDist;
                             PartitionIndex = j;
                         }
                     }
-                    
+
                     (*particle_pointer_it)->GetValue(PARTITION_INDEX) = PartitionIndex;
                     i_nod->FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
                 }
             }
         }
+
+        delete [] NumParticlesPerVirtualPartition;
+        delete [] SendNumParticlesPerVirtualPartition;
+
     }
-        
+
     void CalculatePartitionInterface(ModelPart& mModelPart)
     {
         ContainerType pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
         ContainerType pElementsMarked;
 
         MPI_Barrier(MPI_COMM_WORLD);
-        
+
         //Mark elements in boundary (Level-1)
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-        {   
+        {
             double Radius       = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
             int myRank          = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
 
@@ -403,23 +412,23 @@ private:
     ///@}
     ///@name MPI Variables
     ///@{
-      
+
     int mpi_rank;
     int mpi_size;
     int mpi_total_elements;
-    
-    int ParticlesInDomain; 
+
+    int ParticlesInDomain;
     int IdealParticlesInDomain;
-    
+
     vector<int> mpi_connectivity;
     vector<vector<double> > mpi_MinPoints;
     vector<vector<double> > mpi_MaxPoints;
-    
+
     vector<PointType> mMinBoundingBox;
     vector<PointType> mMaxBoundingBox;
-    
+
     static double MyDimish;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -517,6 +526,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LLOYD_PARALLEL_PARTITIONER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_LLOYD_PARALLEL_PARTITIONER_H_INCLUDED  defined
