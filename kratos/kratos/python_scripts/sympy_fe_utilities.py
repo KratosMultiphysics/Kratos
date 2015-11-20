@@ -56,24 +56,23 @@ def MatrixB(DN):
             for k in range(0,dim):
                 B[0,i*dim] = DN[i,0]; B[0, i*dim+1] = 0;
                 B[1,i*dim] = 0;       B[1, i*dim+1] = DN[i,1];
-                B[2,i*dim] = DN[i,1]; B[2, i*dim+1] = DN[i,0];
-        return B
+                B[2,i*dim] = DN[i,1]; B[2, i*dim+1] = DN[i,0];        
     elif(dim == 3):
         strain_size = 6
         nnodes = DN.shape[0]
         B = Matrix( zeros(strain_size, nnodes*dim) )
         for i in range(0,nnodes):
-            for k in range(0,dim):
-                B[0,i*dim] = DN[i,0]; 
-                B[1, i*dim+1] = DN[i,1];
-                B[2, i*dim+2] = DN[i,2];
-                
-                #TODO: revise the next three lines
-                B[3,i*dim] = DN[i,1]; B[3, i*dim+1] = DN[i,0]; #01
-                B[4,i*dim] = DN[i,2]; B[4, i*dim+2] = DN[i,0]; #02
-                B[5,i*dim+1] = DN[i,2]; B[5, i*dim+2] = DN[i,1]; #12
-        #raise Exception("B not implemented yet for 3D")
-    
+            B[ 0, i*3 ] = DN[ i, 0 ];
+            B[ 1, i*3 + 1 ] = DN[ i, 1 ];
+            B[ 2, i*3 + 2 ] = DN[ i, 2 ];
+            B[ 3, i*3 ] = DN[ i, 1 ];
+            B[ 3, i*3 + 1 ] = DN[ i, 0 ];
+            B[ 4, i*3 + 1 ] = DN[ i, 2 ];
+            B[ 4, i*3 + 2 ] = DN[ i, 1 ];
+            B[ 5, i*3 ] = DN[ i, 2 ];
+            B[ 5, i*3 + 2 ] = DN[ i, 0 ];
+    return B
+            
 def grad_sym_voigtform(DN, x):
     dim = DN.shape[1]
     nnodes = DN.shape[0]
@@ -104,7 +103,7 @@ def div(DN,x):
     return Matrix( [ simplify(div_x) ])
     
 
-def OutputRHS(r, mode="python", initial_tabs = 3,max_index=10):
+def OutputRHS(r, mode="python", initial_tabs = 3,max_index=30):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -138,7 +137,7 @@ def OutputRHS(r, mode="python", initial_tabs = 3,max_index=10):
     return outstring
     
 
-def OutputLHS(lhs,mode, initial_tabs = 3, max_index=10):
+def OutputLHS(lhs,mode, initial_tabs = 3, max_index=30):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -169,4 +168,37 @@ def OutputLHS(lhs,mode, initial_tabs = 3, max_index=10):
         outstring = newstring
             
     return outstring
+  
+def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30):
+    initial_spaces = str("")
+    for i in range(0,initial_tabs):
+        initial_spaces += str("    ")
     
+    outstring = str("")
+
+    print(var)
+    if(mode == "python"):
+        outstring += initial_spaces+str(var)+str("\n")
+    elif(mode=="c"):
+        outstring += initial_spaces+ccode(var)+str(";\n")
+    print("aaa")
+    #matrix entries (two indices)
+    for i in range(0,max_index):
+        for j in range(0,max_index):
+            if(mode == "python"):
+                replacement_string = str("[")+str(i)+str(",")+str(j)+str("]")
+            elif(mode=="c"): 
+                replacement_string = str("(")+str(i)+str(",")+str(j)+str(")")
+            to_be_replaced  = str("_")+str(i)+str("_")+str(j)
+            newstring = outstring.replace(to_be_replaced, replacement_string)
+            outstring = newstring
+    print("bbb")
+    #vector entries(one index(
+    for i in range(0,max_index):
+        replacement_string = str("[")+str(i)+str("]")
+        to_be_replaced  = str("_")+str(i)
+        newstring = outstring.replace(to_be_replaced, replacement_string)
+        outstring = newstring
+    print("ccc")
+    
+    return outstring
