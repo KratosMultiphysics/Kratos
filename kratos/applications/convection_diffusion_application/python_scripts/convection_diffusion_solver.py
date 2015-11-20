@@ -8,34 +8,28 @@ CheckForPreviousImport()
 
 def AddVariables(model_part, config):
 
-    #
+    
     thermal_settings = ConvectionDiffusionSettings()
     thermal_settings.SetUnknownVariable(globals()[config.unknown_variable])
     thermal_settings.SetDensityVariable(globals()[config.density_variable])
     thermal_settings.SetDiffusionVariable(globals()[config.diffusion_variable])
-    thermal_settings.SetVolumeSourceVariable(globals()[config.volume_source_variable])
-    thermal_settings.SetSurfaceSourceVariable(globals()[config.surface_source_variable])
+    #thermal_settings.SetVolumeSourceVariable(globals()[config.volume_source_variable])
+    #thermal_settings.SetSurfaceSourceVariable(globals()[config.surface_source_variable])
     thermal_settings.SetMeshVelocityVariable(globals()[config.mesh_velocity_variable])
-    thermal_settings.SetProjectionVariable(globals()[config.projection_variable])
+    #thermal_settings.SetProjectionVariable(globals()[config.projection_variable])
     thermal_settings.SetSpecificHeatVariable(globals()[config.specific_heat_variable])
     thermal_settings.SetVelocityVariable(globals()[config.velocity_variable])
-    #
-
-#    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    # model_part.AddNodalSolutionStepVariable(VELOCITY);
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-#    model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
-    model_part.AddNodalSolutionStepVariable(CONVECTION_COEFFICIENT)
 
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetUnknownVariable())
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetDensityVariable())
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetDiffusionVariable())
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetVolumeSourceVariable())
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetSurfaceSourceVariable())
+    #model_part.AddNodalSolutionStepVariable(thermal_settings.GetVolumeSourceVariable())
+    #model_part.AddNodalSolutionStepVariable(thermal_settings.GetSurfaceSourceVariable())
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetMeshVelocityVariable());
-    model_part.AddNodalSolutionStepVariable(thermal_settings.GetProjectionVariable());
+    #model_part.AddNodalSolutionStepVariable(thermal_settings.GetProjectionVariable());
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetSpecificHeatVariable());
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetVelocityVariable());
+    print("variables for the convection diffusion solver added correctly")
 
 
 def AddDofs(model_part, config):
@@ -44,10 +38,8 @@ def AddDofs(model_part, config):
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetUnknownVariable());
 
     for node in model_part.Nodes:
-        # adding dofs
-        # print config.unknown_variable
         node.AddDof(thermal_settings.GetUnknownVariable());
-    print("variables for the convection diffusion solver added correctly")
+    print("DOFs for the convection diffusion solver added correctly")
 
 
 class ConvectionDiffusionSolver:
@@ -126,7 +118,6 @@ class ConvectionDiffusionSolver:
 
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, self.thermal_settings)
 
-        #(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)
         (self.solver).Solve()
 
 
@@ -136,12 +127,8 @@ def CreateSolver(model_part, config):
     conv_diff_solver = ConvectionDiffusionSolver(model_part, config.domain_size, config)
 
     # default settings
-    if(hasattr(config, "time_order")):
-        conv_diff_solver.time_order = config.time_order
     if(hasattr(config, "domain_size")):
         conv_diff_solver.domain_size = config.domain_size
-    if(hasattr(config, "prediction_order")):
-        conv_diff_solver.prediction_order = config.prediction_order
     if(hasattr(config, "ReformDofAtEachIteration")):
         conv_diff_solver.ReformDofAtEachIteration = config.ReformDofAtEachIteration
     if(hasattr(config, "echo_level")):
