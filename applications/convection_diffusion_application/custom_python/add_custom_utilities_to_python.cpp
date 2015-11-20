@@ -131,10 +131,14 @@ void  AddCustomUtilitiesToPython()
 
     class_<BFECCConvection<2> > ("BFECCConvection2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
+    .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
+    .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
     ;                   
 
     class_<BFECCConvection<3> > ("BFECCConvection3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
+    .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
+    .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
     ;
     
     class_< MoveParticleUtilityScalarTransport<2> > ("MoveParticleUtilityScalarTransport2D", init<ModelPart& , int >())
