@@ -264,11 +264,25 @@ protected:
     virtual void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
+        rSerializer.save( "mIsInitialized", mIsInitialized );
+        rSerializer.save( "mInitialDisp", mInitialDisp );
+//        rSerializer.save( "mThisIntegrationMethod", mThisIntegrationMethod );
+        rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
+        rSerializer.save( "mInvJ0", mInvJ0 );
+        rSerializer.save( "mDetJ0", mDetJ0 );
+        rSerializer.save( "mTotalDomainInitialSize", mTotalDomainInitialSize );
     }
 
     virtual void load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
+        rSerializer.load( "mIsInitialized", mIsInitialized );
+        rSerializer.load( "mInitialDisp", mInitialDisp );
+//        rSerializer.load( "mThisIntegrationMethod", mThisIntegrationMethod );
+        rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
+        rSerializer.load( "mInvJ0", mInvJ0 );
+        rSerializer.load( "mDetJ0", mDetJ0 );
+        rSerializer.load( "mTotalDomainInitialSize", mTotalDomainInitialSize );
     }
 
     /**
@@ -320,12 +334,6 @@ private:
     void InitializeVariables();
 
     void InitializeMaterial( std::vector<std::vector<Matrix> >& C );
-
-    void CalculateAndAddExtForceContribution( const Vector& N,
-                                              const ProcessInfo& CurrentProcessInfo,
-                                              Vector& BodyForce,
-                                              VectorType& mResidualVector,
-                                              double weight );
 
     //************************************************************************************
     //************************************************************************************

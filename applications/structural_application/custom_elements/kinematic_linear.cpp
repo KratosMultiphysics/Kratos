@@ -64,6 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define ENABLE_DEBUG_CONSTITUTIVE_LAW
 
+//TODO: there is a potential bug at the CalculateRightHandSide, which is used for calculating the reaction. In principal, it should not tell the material to update themself, however, CalculateRightHandSide indirectly call CalculateMaterialResponse. THis should be fixed, by introducing another abstract layer to update the material in the input parameters for CalculateAll
+
 namespace Kratos
 {
     KinematicLinear::KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry )
@@ -113,7 +115,7 @@ namespace Kratos
 
         //dimension of the problem
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        
+
         if ( mIsInitialized )
         {
             //Set Up Initial displacement for StressFreeActivation of Elements
@@ -123,9 +125,13 @@ namespace Kratos
                 for ( unsigned int i = 0; i < dim; ++i )
                     mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
 
+            #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
+//            std::cout << "Element " << Id() << " mInitialDisp is reinitialized to " << mInitialDisp << std::endl;
+            #endif
+
             return;
         }
-        
+
         if(GetProperties().Has( INTEGRATION_ORDER ) == true)
         {
             if(GetProperties()[INTEGRATION_ORDER] == 1)
@@ -178,7 +184,7 @@ namespace Kratos
 
         //calculating the Jacobian
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod );
-        
+
         //calculating the inverse Jacobian
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
         {
@@ -189,6 +195,7 @@ namespace Kratos
             //calculating the total area
             mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
         }
+        this->SetValue(AREA, mTotalDomainInitialSize);
 
         //Set Up Initial displacement for StressFreeActivation of Elements
         mInitialDisp.resize( GetGeometry().size(), dim, false );
@@ -196,6 +203,10 @@ namespace Kratos
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             for ( unsigned int i = 0; i < dim; ++i )
                 mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
+
+        #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
+//        std::cout << "Element " << Id() << " mInitialDisp is initialized to " << mInitialDisp << std::endl;
+        #endif
 
         //Initialization of the constitutive law vector and
         // declaration, definition and initialization of the material
@@ -250,6 +261,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        // TODO: This needs to be reviewed (BUI)
+
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dim = GetGeometry().WorkingSpaceDimension();;
         unsigned int strain_size = dim * ( dim + 1 ) / 2;
@@ -261,6 +274,11 @@ namespace Kratos
         Vector StressVector( strain_size );
         Matrix DN_DX( number_of_nodes, dim );
         Matrix CurrentDisp( number_of_nodes, dim );
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
 
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -329,7 +347,11 @@ namespace Kratos
             //             std::cout << StressVector[2] << "\t";
         }
 
-        //         std::cout << std::endl;
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        // clean the geometry
+        GetGeometry().Clean();
+        #endif
+
         KRATOS_CATCH( "" )
     }
 
@@ -340,6 +362,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
                 mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
@@ -348,6 +374,10 @@ namespace Kratos
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
             }
 
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+
         KRATOS_CATCH( "" )
     }
 
@@ -355,10 +385,18 @@ namespace Kratos
     {
         KRATOS_TRY
 
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
                 mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
             }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
 
         KRATOS_CATCH( "" )
     }
@@ -414,6 +452,11 @@ namespace Kratos
             noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
         }
 
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -443,6 +486,11 @@ namespace Kratos
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
             mConstitutiveLawVector[PointNumber]->SetValue(PARENT_ELEMENT_ID, this->Id(), rCurrentProcessInfo);
             mConstitutiveLawVector[PointNumber]->SetValue(INTEGRATION_POINT_INDEX, PointNumber, rCurrentProcessInfo);
+            std::cout << "At element " << Id() << " integration point " << PointNumber << ":" << std::endl;
+            std::cout << "B: " << B << std::endl;
+            std::cout << "CurrentDisp: " << CurrentDisp << std::endl;
+            std::cout << "mInitialDisp: " << mInitialDisp << std::endl;
+            std::cout << "StrainVector: " << StrainVector << std::endl;
             #endif
             
             //calculate stress and consistent tangent
@@ -485,35 +533,40 @@ namespace Kratos
                 AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, mDetJ0[PointNumber] );
             }
         }//loop over integration points
-        
+
         // modify the right hand side to account for prescribed displacement
         // according to the book of Bazant & Jirasek, this scheme is more stable than the current scheme for prescribing displacement.
-        // However, I have to temporarily disable it to keep the consistency.
-//        if(CalculateStiffnessMatrixFlag && CalculateResidualVectorFlag)
-//        {
-//            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-//            {
-//                if(GetGeometry()[node].IsFixed(DISPLACEMENT_X))
-//                {
-//                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
-//                    for( unsigned int i = 0; i < mat_size; ++i )
-//                        rRightHandSideVector[i] -= rLeftHandSideMatrix(i, node * dim) * temp;
-//                }
-//                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Y))
-//                {
-//                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
-//                    for( unsigned int i = 0; i < mat_size; ++i )
-//                        rRightHandSideVector[i] -= rLeftHandSideMatrix(i, node * dim + 1) * temp;
-//                }
-//                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Z) && dim == 3)
-//                {
-//                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
-//                    for( unsigned int i = 0; i < mat_size; ++i )
-//                        rRightHandSideVector[i] -= rLeftHandSideMatrix(i, node * dim + 2) * temp;
-//                }
-//            }
-//        }
-        
+        // // However, I have to temporarily disable it to keep the consistency.
+        if(CalculateStiffnessMatrixFlag && CalculateResidualVectorFlag)
+        {
+            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            {
+                if(GetGeometry()[node].IsFixed(DISPLACEMENT_X))
+                {
+                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        rRightHandSideVector[i] -= rLeftHandSideMatrix(i, node * dim) * temp;
+                }
+                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Y))
+                {
+                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        rRightHandSideVector[i] -= rLeftHandSideMatrix(i, node * dim + 1) * temp;
+                }
+                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Z) && dim == 3)
+                {
+                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        rRightHandSideVector[i] -= rLeftHandSideMatrix(i, node * dim + 2) * temp;
+                }
+            }
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //clean the internal data of the geometry
+        GetGeometry().Clean();
+        #endif
+
         KRATOS_CATCH( "" )
     }
 
@@ -559,42 +612,24 @@ namespace Kratos
      */
     void KinematicLinear::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int strain_size = dim * (dim + 1) / 2;
-        unsigned int mat_size = number_of_nodes * dim;
-
-        //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-        //Current displacements
-        Matrix CurrentDisp( number_of_nodes, dim );
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-        
-        Matrix DN_DX( number_of_nodes, dim );
-        Vector StrainVector(strain_size);
-        Matrix B( strain_size, mat_size );
-                    
-        for ( unsigned int Point = 0; Point < integration_points.size(); ++Point )
+        if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
         {
-            if(mConstitutiveLawVector[Point]->Has(PRE_STRAIN_VECTOR))
+            std::vector<Vector> Values;
+            this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
             {
-                //Initializing B_Operator at the current integration point
-                noalias( DN_DX ) = prod( DN_De[Point], mInvJ0[Point] );
-                CalculateBoperator( B, DN_DX );
-                
-                //calculate strain
-                CalculateStrain( B, CurrentDisp, StrainVector );
-                
-                //set the strain vector to the constitutive law
-                mConstitutiveLawVector[Point]->SetValue(PRE_STRAIN_VECTOR, StrainVector, CurrentProcessInfo);
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
             }
-            mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point ), CurrentProcessInfo );
+        }
+
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            Vector dummy;
+//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
+            mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
         }
     }
-    
+
     void KinematicLinear::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
         //reset all resistant forces at node
@@ -604,51 +639,42 @@ namespace Kratos
             GetGeometry()[i].GetSolutionStepValue( REACTION_Y ) = 0.0;
             GetGeometry()[i].GetSolutionStepValue( REACTION_Z ) = 0.0;
         }
-        
-        //reading integration points
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-        
-        for ( unsigned int Point = 0; Point < integration_points.size(); ++Point )
+
+        if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
         {
-            mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point ), CurrentProcessInfo );
+            std::vector<Vector> Values;
+            this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            Vector dummy;
+//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
+            mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
         }
     }
     
     void KinematicLinear::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int strain_size = dim * (dim + 1) / 2;
-        unsigned int mat_size = number_of_nodes * dim;
-
-        //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-        //Current displacements
-        Matrix CurrentDisp( number_of_nodes, dim );
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-        
-        Matrix DN_DX( number_of_nodes, dim );
-        Vector StrainVector(strain_size);
-        Matrix B( strain_size, mat_size );
-                    
-        for ( unsigned int Point = 0; Point < integration_points.size(); ++Point )
+        if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
         {
-            if(mConstitutiveLawVector[Point]->Has(POST_STRAIN_VECTOR))
+            std::vector<Vector> Values;
+            this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
             {
-                //Initializing B_Operator at the current integration point
-                noalias( DN_DX ) = prod( DN_De[Point], mInvJ0[Point] );
-                CalculateBoperator( B, DN_DX );
-                
-                //calculate strain
-                CalculateStrain( B, CurrentDisp, StrainVector );
-                
-                //set the strain vector to the constitutive law
-                mConstitutiveLawVector[Point]->SetValue(POST_STRAIN_VECTOR, StrainVector, CurrentProcessInfo);
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
             }
-            mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point ), CurrentProcessInfo );
+        }
+
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            Vector dummy;
+//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
+            mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
         }
     }
     
@@ -659,12 +685,21 @@ namespace Kratos
      */
     void KinematicLinear::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
-        //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-        for ( unsigned int Point = 0; Point < integration_points.size(); ++Point )
+        if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
         {
-            mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point ), CurrentProcessInfo );
+            std::vector<Vector> Values;
+            this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            Vector dummy;
+//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
+            mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
         }
     }
 
@@ -734,12 +769,12 @@ namespace Kratos
         CalculateAll( StiffnessMatrix, RHS_Vector, rCurrentProcessInfo, true, false );
 
         double alpha = 0.001, beta = 0.001;
-        
+
         if(GetProperties().Has(RAYLEIGH_DAMPING_ALPHA))
         {
             alpha = GetProperties()[RAYLEIGH_DAMPING_ALPHA];
         }
-        
+
         if(GetProperties().Has(RAYLEIGH_DAMPING_BETA))
         {
             beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
@@ -822,18 +857,6 @@ namespace Kratos
     KinematicLinear::IntegrationMethod KinematicLinear::GetIntegrationMethod() const
     {
         return mThisIntegrationMethod;
-    }
-
-    /**
-     * not used
-     */
-    void KinematicLinear::CalculateAndAddExtForceContribution( const Vector& N,
-            const ProcessInfo& CurrentProcessInfo, Vector& BodyForce, VectorType& rRightHandSideVector,
-            double weight )
-    {
-        KRATOS_TRY
-
-        KRATOS_CATCH( "" )
     }
 
     /**
@@ -1161,6 +1184,8 @@ namespace Kratos
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int strain_size = dim * (dim + 1) / 2;
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int mat_size = dim * number_of_nodes;
 
         if ( rVariable == MATERIAL_PARAMETERS )
         {
@@ -1239,15 +1264,60 @@ namespace Kratos
         
         if ( rVariable == INTERNAL_VARIABLES )
         {
-            //        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            //        {
-            //            if ( rValues[i].size() != 8 ) //hbui: why 8?
-            //                rValues[i].resize( 8 );
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INTERNAL_VARIABLES, rValues[i] );
+            }
+        }
 
-            //            noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INTERNAL_VARIABLES, rValues[i] );
-            //        }
+        if ( rVariable == STRAIN || rVariable == CURRENT_STRAIN_VECTOR )
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
 
-            KRATOS_WATCH("INTERNAL_VARIABLE are disabled for this element");
+            // calculate shape function values and local gradients
+            Matrix B(strain_size, mat_size);
+            Vector StrainVector(strain_size);
+            Matrix DN_DX(number_of_nodes, dim);
+            Matrix CurrentDisp(number_of_nodes, dim);
+
+            const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            // extract current displacements
+            for (unsigned int node = 0; node < GetGeometry().size(); ++node)
+                noalias(row(CurrentDisp, node)) =
+                    GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+
+            for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+            {
+                if (rValues[i].size() != 6)
+                    rValues[i].resize(6);
+
+                // compute B_Operator at the current integration point
+                noalias(DN_DX) = prod(DN_De[i], mInvJ0[i]);
+                CalculateBoperator(B, DN_DX);
+
+                // compute the strain at integration point
+                CalculateStrain(B, CurrentDisp, StrainVector);
+                if(dim == 2)
+                {
+                    rValues[i](0) = StrainVector(0);
+                    rValues[i](1) = StrainVector(1);
+                    rValues[i](2) = 0.0; // note: it's only correct for plane strain, TODO: we must make this available for plane stress constitutive law
+                    rValues[i](3) = StrainVector(2);
+                    rValues[i](4) = 0.0;
+                    rValues[i](5) = 0.0;
+                }
+                else if(dim == 3)
+                    noalias(rValues[i]) = StrainVector;
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
         }
     }
 
@@ -1299,7 +1369,6 @@ namespace Kratos
                 mConstitutiveLawVector[i]->SetValue( ELASTIC_LEFT_CAUCHY_GREEN_OLD, rValues[i], rCurrentProcessInfo );
             }
         }
-
     }
 
     /**
@@ -1330,8 +1399,15 @@ namespace Kratos
         {
             for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); ++PointNumber )
             {
-                mConstitutiveLawVector[PointNumber]->SetValue( MATERIAL_PARAMETERS,
-                        rValues[PointNumber], rCurrentProcessInfo );
+                mConstitutiveLawVector[PointNumber]->SetValue( MATERIAL_PARAMETERS, rValues[PointNumber], rCurrentProcessInfo );
+            }
+        }
+
+        if ( rVariable == STRESSES )
+        {
+            for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); ++PointNumber )
+            {
+                mConstitutiveLawVector[PointNumber]->SetValue( STRESSES, rValues[PointNumber], rCurrentProcessInfo );
             }
         }
     }
@@ -1402,11 +1478,19 @@ namespace Kratos
     {
         if ( rVariable == CONSTITUTIVE_LAW )
         {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
             for ( unsigned int i = 0; i < rValues.size(); ++i )
             {
                 mConstitutiveLawVector[i] = rValues[i];
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
             }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
         }
     }
 
