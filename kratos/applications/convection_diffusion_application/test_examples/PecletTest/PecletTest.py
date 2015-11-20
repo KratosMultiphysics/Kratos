@@ -2,7 +2,7 @@ from math import exp,sqrt
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = 2
+
 
 ##################################################################
 ##################################################################
@@ -11,11 +11,16 @@ domain_size = 2
 from KratosMultiphysics import *    #we import the KRATOS  
 from KratosMultiphysics.ConvectionDiffusionApplication import *        #and now our application. note that we can import as many as we need to solve our specific problem 
 from KratosMultiphysics.PFEM2Application import *
-import eulerian_convection_diffusion_solver
+
+#import eulerian_convection_diffusion_solver as convection_diffusion_solver
+#import pfem2_convection_diffusion_solver as convection_diffusion_solver
+import bfecc_convection_diffusion_solver as convection_diffusion_solver
 
 import ProjectParameters
 
 ConvDiffSettings = ProjectParameters.ConvectionSolverSettings
+
+domain_size = ProjectParameters.domain_size 
 
 #defining a model part
 model_part = ModelPart("DummyPart");  
@@ -24,7 +29,7 @@ model_part = ModelPart("DummyPart");
 #OPTION 1 is using the ProjectParameters , where the parameters are defined like unknown_variable="TEMPERATURE" and so on:
 #this option is meant for GUIs, although not so transparent to the user
 ConvDiffSettings = ProjectParameters.ConvectionSolverSettings
-eulerian_convection_diffusion_solver.AddVariables(model_part, ConvDiffSettings)
+convection_diffusion_solver.AddVariables(model_part, ConvDiffSettings)
 
 #OPTION 2 is aimed at developers. The CONVECTION_DIFFUSION_SETTINGS of the model_part are defined by the user in this file
 #then the AddVariables will read the values directly from the model part: 
@@ -51,7 +56,7 @@ velocity=1.0
 
 #the ConvDiffSettings can be passed, but are ignored in the AddDofs. (only added to match 
 #After adding the variables, only the model_part.convdiffsettings is used.
-eulerian_convection_diffusion_solver.AddDofs(model_part)
+convection_diffusion_solver.AddDofs(model_part)
 
 #BOUNDARY CONDITIONS MUST ALSO BE SET BY THE USER!
 for node in model_part.Nodes:
@@ -74,7 +79,7 @@ print(model_part)
 #the buffer size should be set up here after the mesh is read for the first time  (this is important for transcient problems, in this static problem =1 is enough)  
 model_part.SetBufferSize(2)
 
-convection_solver = eulerian_convection_diffusion_solver.EulerianConvectionDiffusionSolver(model_part, domain_size)
+convection_solver = convection_diffusion_solver.CreateSolver(model_part, ProjectParameters)
 convection_solver.Initialize()
 
 gid_io.InitializeResults(mesh_name,(model_part).GetMesh()) 
@@ -88,7 +93,7 @@ while time<final_time:
    step += 1
    time += delta_time
    model_part.CloneTimeStep(time)
-   if step>1:
+   if step>3:
         convection_solver.Solve()
    gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,time,0)
    
