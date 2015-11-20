@@ -131,7 +131,7 @@ public:
             Element::Pointer pelement;
             array_1d<double,3> bckPos = iparticle->Coordinates();
             const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var);
-            bool is_found = ConvectBySubstepping(dt,bckPos,vel, N, pelement, result_begin, max_results, -1.0, substeps);
+            bool is_found = ConvectBySubstepping(dt,bckPos,vel, N, pelement, result_begin, max_results, -1.0, substeps, conv_var);
             found[i] = is_found;
             
             if(is_found) {
@@ -160,7 +160,7 @@ public:
             Element::Pointer pelement;
             array_1d<double,3> fwdPos = iparticle->Coordinates();
             const array_1d<double,3>& vel = iparticle->FastGetSolutionStepValue(conv_var,1);
-            bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, pelement, result_begin, max_results, 1.0, substeps);
+            bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, pelement, result_begin, max_results, 1.0, substeps, conv_var);
                         
             if(is_found) {
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
@@ -207,7 +207,8 @@ public:
                  typename BinBasedFastPointLocator<TDim>::ResultIteratorType& result_begin,
                  const unsigned int max_results,
                  const double velocity_sign,
-                 const double subdivisions)
+                 const double subdivisions,
+		 const Variable<array_1d<double,3> >& conv_var)
     {
         bool is_found = false;
         array_1d<double,3> veulerian;
@@ -229,9 +230,9 @@ public:
                     const double new_step_factor = static_cast<double>(substep)/subdivisions;
                     const double old_step_factor = (1.0 - new_step_factor);
 
-                    noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY,1));
+                    noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
                     for (unsigned int k = 1; k < geom.size(); k++)
-                        noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY,1) );
+                        noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
                     
                     noalias(position) += small_dt*veulerian;
 
@@ -257,9 +258,9 @@ public:
                    const double old_step_factor = static_cast<double>(substep)/subdivisions;
                    const double new_step_factor = (1.0 - old_step_factor);
  
-                    noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY,1));
+                    noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[0].FastGetSolutionStepValue(conv_var,1));
                     for (unsigned int k = 1; k < geom.size(); k++)
-                        noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY,1) );
+                        noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(conv_var) + old_step_factor*geom[k].FastGetSolutionStepValue(conv_var,1) );
                     
                     noalias(position) -= small_dt*veulerian;
 
