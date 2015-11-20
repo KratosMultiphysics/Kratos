@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_fractional_step_settings.h"
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/gather_modelpart_utility.h"
-#include "custom_utilities/mpi_normal_calculation_utilities.h"
+// #include "custom_utilities/mpi_normal_calculation_utilities.h"
 
 namespace Kratos
 {
@@ -186,11 +186,11 @@ void  AddCustomUtilitiesToPython()
    ;
 
 
-    class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer, boost::noncopyable > ("MPINormalCalculationUtils",init<>())
-            .def("Check",&MPINormalCalculationUtils::Check)
-            .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-            .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
-            ;
+//    class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer, boost::noncopyable > ("MPINormalCalculationUtils",init<>())
+//            .def("Check",&MPINormalCalculationUtils::Check)
+//            .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
+//            .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
+//            ;
 
 
 }
