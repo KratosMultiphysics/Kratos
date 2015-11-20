@@ -326,7 +326,7 @@ public:
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         return true;
     }
-    
+
     virtual bool SynchronizeElementalIds()
     {
         int rank;
@@ -388,20 +388,20 @@ public:
     }
 
     virtual bool SynchronizeNodalSolutionStepsData()
-    {   
+    {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-            
+
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
             {
                 NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
                 NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
-                
+
                 // Calculating send and received buffer size
                 // NOTE: This part works ONLY when all nodes have the same variables list size!
                 unsigned int nodal_data_size = 0;
@@ -431,7 +431,7 @@ public:
                 unsigned int position = 0;
                 double* send_buffer = new double[send_buffer_size];
                 double* receive_buffer = new double[receive_buffer_size];
-                
+
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
                 {
@@ -456,7 +456,7 @@ public:
                 position = 0;
                 for (ModelPart::NodeIterator i_node = GhostMesh(i_color).NodesBegin();
                         i_node != GhostMesh(i_color).NodesEnd(); i_node++)
-                { 
+                {
                     std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size * sizeof (double));
                     position += nodal_data_size;
                 }
@@ -537,37 +537,37 @@ public:
 
         return true;
     }
-    
+
     virtual bool SynchronizeVariable(Variable<int> const& ThisVariable)
     {
         SynchronizeVariable<int,int>(ThisVariable);
         return true;
     }
-    
+
     virtual bool SynchronizeVariable(Variable<double> const& ThisVariable)
     {
         SynchronizeVariable<double,double>(ThisVariable);
         return true;
     }
-    
+
     virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
     {
         SynchronizeVariable<array_1d<double, 3 >,double >(ThisVariable);
         return true;
     }
-    
+
     virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
     {
         SynchronizeVariable<Vector,double>(ThisVariable);
         return true;
     }
-    
+
     virtual bool SynchronizeVariable(Variable<Matrix> const& ThisVariable)
     {
         SynchronizeVariable<Matrix,double>(ThisVariable);
         return true;
     }
-    
+
     // This function is for test and will be changed. Pooyan.
     virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
     {
@@ -623,7 +623,7 @@ public:
         AssembleThisNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
-    
+
     virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
     {
         AssembleThisNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
@@ -641,9 +641,9 @@ public:
         AssembleThisNonHistoricalVariable<Matrix,double>(ThisVariable);
         return true;
     }
-    
+
     /////////////////////////////////////////////////////////////////////////////
-    
+
     virtual bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable)
     {
         SynchronizeElementalNonHistoricalVariable<int,int>(ThisVariable);
@@ -661,7 +661,7 @@ public:
         SynchronizeElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
-    
+
     virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
     {
         SynchronizeElementalNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
@@ -681,7 +681,7 @@ public:
     }
 
     /////////////////////////////////////////////////////////////////////////////
-         
+
     /**
      * Transfer objects from a given process to a destination process
      * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
@@ -693,7 +693,7 @@ public:
         AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
-    
+
     /**
     * Transfer objects from a given process to a destination process
     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
@@ -705,7 +705,7 @@ public:
         AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
-    
+
     /**
     * Transfer objects from a given process to a destination process
     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
@@ -717,7 +717,7 @@ public:
         AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
-    
+
     /**
      * Transfer objects from a given process to a destination process
      * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
@@ -728,7 +728,7 @@ public:
         AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
-    
+
     /**
     * Transfer objects from a given process to a destination process
     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
@@ -739,7 +739,7 @@ public:
         AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
-    
+
     /**
     * Transfer objects from a given process to a destination process
     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
@@ -750,7 +750,7 @@ public:
         AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
-    
+
     /////////////////////////////////////////////////////////////////////////////
 
     ///@}
@@ -871,7 +871,7 @@ private:
     //
     //      // To store interfaces ghost+local entities
     //      MeshesContainerType mInterfaceMeshes;
-    
+
     VariablesList* mpVariables_list;
 
     ///@}
@@ -972,7 +972,7 @@ private:
 
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                { 
+                {
                     *(TDataType*) (send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable);
                     position += nodal_data_size;
                 }
@@ -1001,7 +1001,7 @@ private:
                 NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
 
                 for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                {   
+                {
                     i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
                     position += nodal_data_size;
                 }
@@ -1183,8 +1183,8 @@ private:
 
         return true;
     }
-    
-    
+
+
 
     template< class TDataType, class TSendType >
     bool AssembleThisNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
@@ -1339,7 +1339,7 @@ private:
 
         return true;
     }
-    
+
     template< class TDataType, class TSendType >
     bool SynchronizeElementalNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
     {
@@ -1356,7 +1356,7 @@ private:
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
             {
-              
+
                 ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
                 ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
 
@@ -1365,7 +1365,7 @@ private:
                 unsigned int ghost_elements_size = r_ghost_elements.size();
                 unsigned int send_buffer_size = local_elements_size * elemental_data_size;
                 unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
-                
+
                 if ((local_elements_size == 0) && (ghost_elements_size == 0))
                     continue; // nothing to transfer!
 
@@ -1404,28 +1404,28 @@ private:
 
         return true;
     }
-    
+
     template<class TObjectType>
     bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& externParticleSerializer)
-    { 
+    {
         int mpi_rank;
         int mpi_size;
-        
+
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
-        int msgSendSize[mpi_size];
-        int msgRecvSize[mpi_size];
-        
-        char * message[mpi_size];
-        char * mpi_send_buffer[mpi_size];
-        
+
+        int * msgSendSize = new int[mpi_size];
+        int * msgRecvSize = new int[mpi_size];
+
+        char ** message = new char * [mpi_size];
+        char ** mpi_send_buffer = new char * [mpi_size];
+
         for(int i = 0; i < mpi_size; i++)
         {
             msgSendSize[i] = 0;
             msgRecvSize[i] = 0;
         }
-        
+
         for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i)
@@ -1434,11 +1434,11 @@ private:
 
                 particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
-                
+
                 std::stringstream * stream = (std::stringstream *)particleSerializer.pGetBuffer();
                 const std::string & stream_str = stream->str();
                 const char * cstr = stream_str.c_str();
-               
+
                 msgSendSize[i] = sizeof(char) * (stream_str.size()+1);
                 mpi_send_buffer[i] = (char *)malloc(msgSendSize[i]);
                 memcpy(mpi_send_buffer[i],cstr,msgSendSize[i]);
@@ -1446,18 +1446,18 @@ private:
         }
 
         MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
-        
+
         int NumberOfCommunicationEvents      = 0;
         int NumberOfCommunicationEventsIndex = 0;
-        
+
         for(int j = 0; j < mpi_size; j++)
         {
             if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
             if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
         }
-        
-        MPI_Request reqs[NumberOfCommunicationEvents];
-        MPI_Status stats[NumberOfCommunicationEvents];
+
+        MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
+        MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
 
         //Set up all receive and send events
         for(int i = 0; i < mpi_size; i++)
@@ -1474,49 +1474,58 @@ private:
                 MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
             }
         }
-        
+
         //wait untill all communications finish
         int err = MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
 
-        if(err != MPI_SUCCESS) 
+        if(err != MPI_SUCCESS)
             KRATOS_THROW_ERROR(std::runtime_error,"Error in mpi_communicator","")
 
         MPI_Barrier(MPI_COMM_WORLD);
 
         for(int i = 0; i < mpi_size; i++)
-        { 
+        {
             if (i != mpi_rank && msgRecvSize[i])
             {
                 Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
-                
+
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
-                
+
                 VariablesList* tmp_mpVariables_list = NULL;
-                
+
                 particleSerializer.load("VariableList",tmp_mpVariables_list);
-               
+
                 if(tmp_mpVariables_list != NULL)
                   delete tmp_mpVariables_list;
                 tmp_mpVariables_list = mpVariables_list;
-                
+
                 particleSerializer.load("ObjectList",RecvObjects[i].GetContainer());
             }
 
             MPI_Barrier(MPI_COMM_WORLD);
         }
-       
+
         // Free buffers
         for(int i = 0; i < mpi_size; i++)
         {
             if(msgRecvSize[i])
                 free(message[i]);
-            
+
             if(msgSendSize[i])
                 free(mpi_send_buffer[i]);
         }
-        
+
+        delete [] reqs;
+        delete [] stats;
+
+        delete [] message;
+        delete [] mpi_send_buffer;
+
+        delete [] msgSendSize;
+        delete [] msgRecvSize;
+
         return true;
     }
 
@@ -1600,6 +1609,4 @@ inline MPI_Datatype MPICommunicator::GetMPIDatatype<double>(const double& Value)
 
 } // namespace Kratos.
 
-#endif // KRATOS_MPI_COMMUNICATOR_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MPI_COMMUNICATOR_H_INCLUDED  defined
