@@ -254,7 +254,7 @@ class DEM_FEM_Search : public SpatialSearch
               Vector_GLOBAL_BB_HighPoint[k][i]  = (Vector_GLOBAL_BB_HighPoint[k][i] < rHighPoint[i]) ? rHighPoint[i] : Vector_GLOBAL_BB_HighPoint[k][i];
             }
             Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].push_back(*it);
-          } 
+          }
         }//Loop on Conditions
       }//Loop on threads
 
