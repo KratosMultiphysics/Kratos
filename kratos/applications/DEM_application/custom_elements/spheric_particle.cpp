@@ -1022,20 +1022,29 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
                                             double Weight[4], 
                                             int& ContactType){
 
-    double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
+    size_t FE_size = wall->GetGeometry().size(); 
+    std::vector< array_1d <double,3> >Coord;
+    Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
+    std::vector<double> TempWeight;
+    TempWeight.resize(FE_size);
+  
     double total_weight = 0.0;
-    double tempWeight[2] = {0.0};
     int points = 0;
     int inode1 = 0, inode2 = 0;
 
-    for (unsigned int inode = 0; inode < wall->GetGeometry().size(); inode++) {
+    for (unsigned int inode = 0; inode < FE_size; inode++) {
 
         if (Weight[inode] > 1.0e-6){
-            DEM_COPY_SECOND_TO_FIRST_3(Coord[0+points], wall->GetGeometry()[inode].Coordinates())
+          
+            for (unsigned int j = 0; j<3; j++)
+            {
+                Coord[inode][j] = wall->GetGeometry()[inode].Coordinates()[j];
+            }
             total_weight = total_weight + Weight[inode];
             points++;
             if (points == 1) {inode1 = inode;}
             if (points == 2) {inode2 = inode;}
+            
         }
 
         if (fabs(total_weight - 1.0) < 1.0e-6){
@@ -1050,16 +1059,35 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
     
     const double radius = this->GetRadius();
 
-    if (points == 3 || points == 4) {contact_exists = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(points, Coord, node_coor, radius, LocalCoordSystem, Weight, DistPToB);}
-
+    if (points == 3 || points == 4) 
+    {
+      unsigned int dummy_current_edge_index;
+      contact_exists = GeometryFunctions::FacetCheck(Coord, node_coor, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
+      Weight[0]=TempWeight[0];
+      Weight[1]=TempWeight[1];
+      Weight[2]=TempWeight[2];
+      if(points == 4)
+      {
+        Weight[3] = TempWeight[0];
+      }
+      else
+      {
+       Weight[3] = 0.0; 
+      }
+    }
+ 
     if (points == 2) {
-        contact_exists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord[0], Coord[1], node_coor, radius, LocalCoordSystem, tempWeight, DistPToB);
-        Weight[inode1] = tempWeight[0];
-        Weight[inode2] = tempWeight[1];
+      
+        double eta = 0.5;
+        contact_exists = GeometryFunctions::EdgeCheck(Coord[0], Coord[1], node_coor, radius, LocalCoordSystem, DistPToB, eta);
+     
+        Weight[inode1] = 1-eta;
+        Weight[inode2] = eta;
+        
     }
 
     if (points == 1) {
-        contact_exists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord[0], node_coor, radius, LocalCoordSystem, DistPToB);
+        contact_exists = GeometryFunctions::VertexCheck(Coord[0], node_coor, radius, LocalCoordSystem, DistPToB);
         Weight[inode1] = 1.0;
     }
 
