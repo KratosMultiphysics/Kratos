@@ -61,6 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/pure_convection_tools.h"
 #include "custom_utilities/pure_convection_CrankN_tools.h"
 #include "custom_utilities/bfecc_convection.h"
+#include "custom_utilities/move_particle_utility.h"
+
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -134,7 +136,34 @@ void  AddCustomUtilitiesToPython()
     class_<BFECCConvection<3> > ("BFECCConvection3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     ;
-
+    
+    class_< MoveParticleUtilityScalarTransport<2> > ("MoveParticleUtilityScalarTransport2D", init<ModelPart& , int >())
+    .def("MountBin", &MoveParticleUtilityScalarTransport<2>::MountBin)
+    .def("MoveParticles", &MoveParticleUtilityScalarTransport<2>::MoveParticles)
+    .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
+    .def("PreReseed", &MoveParticleUtilityScalarTransport<2>::PreReseed)
+    .def("PostReseed", &MoveParticleUtilityScalarTransport<2>::PostReseed)
+    .def("ResetBoundaryConditions", &MoveParticleUtilityScalarTransport<2>::ResetBoundaryConditions)
+    .def("TransferLagrangianToEulerian",&MoveParticleUtilityScalarTransport<2>::TransferLagrangianToEulerian)
+    .def("CalculateVelOverElemSize", &MoveParticleUtilityScalarTransport<2>::CalculateVelOverElemSize)
+    .def("CalculateDeltaVariables", &MoveParticleUtilityScalarTransport<2>::CalculateDeltaVariables)
+    .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityScalarTransport<2>::CopyScalarVarToPreviousTimeStep)
+    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<2>::ExecuteParticlesPritingTool)
+    ;    
+    
+    class_< MoveParticleUtilityScalarTransport<3> > ("MoveParticleUtilityScalarTransport3D", init<ModelPart& , int >())
+    .def("MountBin", &MoveParticleUtilityScalarTransport<3>::MountBin)
+    .def("MoveParticles", &MoveParticleUtilityScalarTransport<3>::MoveParticles)
+    .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<3>::CorrectParticlesWithoutMovingUsingDeltaVariables)
+    .def("PreReseed", &MoveParticleUtilityScalarTransport<3>::PreReseed)
+    .def("PostReseed", &MoveParticleUtilityScalarTransport<3>::PostReseed)
+    .def("ResetBoundaryConditions", &MoveParticleUtilityScalarTransport<3>::ResetBoundaryConditions)
+    .def("TransferLagrangianToEulerian",&MoveParticleUtilityScalarTransport<3>::TransferLagrangianToEulerian)
+    .def("CalculateVelOverElemSize", &MoveParticleUtilityScalarTransport<3>::CalculateVelOverElemSize)
+    .def("CalculateDeltaVariables", &MoveParticleUtilityScalarTransport<3>::CalculateDeltaVariables)
+    .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityScalarTransport<3>::CopyScalarVarToPreviousTimeStep)
+    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<3>::ExecuteParticlesPritingTool)
+    ;    
 
 }
 
