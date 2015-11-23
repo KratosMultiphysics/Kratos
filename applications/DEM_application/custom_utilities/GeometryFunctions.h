@@ -342,12 +342,11 @@ namespace Kratos
         Vector1[0] = FaceCoord2[0] - FaceCoord1[0];
         Vector1[1] = FaceCoord2[1] - FaceCoord1[1];
         Vector1[2] = FaceCoord2[2] - FaceCoord1[2];
-        //Vector1 = FaceCoord2 - FaceCoord1; with array_1d msimsi
+        
         Vector2[0] = FaceCoord3[0] - FaceCoord2[0];
         Vector2[1] = FaceCoord3[1] - FaceCoord2[1];
         Vector2[2] = FaceCoord3[2] - FaceCoord2[2];
-        //Vector2 = FaceCoord3 - FaceCoord2; with array_1d msimsi
-
+        
         normalize(Vector1);
         CrossProduct(Vector1, Vector2, Normal);
         normalize(Normal);
@@ -358,7 +357,7 @@ namespace Kratos
         Vector3[0] = ParticleCoord[0] - FaceCoord1[0];
         Vector3[1] = ParticleCoord[1] - FaceCoord1[1];
         Vector3[2] = ParticleCoord[2] - FaceCoord1[2];
-        //Vector3 = ParticleCoord - FaceCoord1;  with array_1d msimsi
+        
         normalize(Vector3);
 
         if (DotProduct(Vector3, Normal) > 0.0)
