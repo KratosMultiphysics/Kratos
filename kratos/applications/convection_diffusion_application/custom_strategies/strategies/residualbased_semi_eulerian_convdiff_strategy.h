@@ -264,15 +264,20 @@ public:
 			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: SurfaceSource not yet implemented", "");
 
 		//PROJECTION VARIABLE
-		//if(my_settings->IsDefinedProjectionVariable()==true) 
-		//{
-		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetProjectionVariable()) == false)
-		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Projection Variable defined but not contained in the model part", "");
-		//}
-		//else
-		//	std::cout << "No Projection variable assigned for ConvDiff. Assuming Projection=0" << std::endl;
+		//used as intermediate variable, is the variable at time n+1 but only accounting for the convective term.
 		if(my_settings->IsDefinedProjectionVariable()==true) 
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ProjectionVariable not useed. Remove it", "");
+		{
+			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetProjectionVariable()) == false)
+				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Projection Variable defined but not contained in the model part", "");
+		}
+		else
+		{
+			std::cout << "No Projection variable assigned for ConvDiff. Using PROJECTED_SCALAR1" << std::endl;
+			my_settings->SetProjectionVariable(PROJECTED_SCALAR1);
+			
+		}
+		//if(my_settings->IsDefinedProjectionVariable()==true) 
+		//	KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ProjectionVariable not useed. Remove it", "");
 
 		//CONVECTION VELOCITY VARIABLE
 		//CURRENTLY WE ARE USING (VELOCITY -MESH_VELOCITY) TO CONVECT, so the ConvectionVariable must not be used:
