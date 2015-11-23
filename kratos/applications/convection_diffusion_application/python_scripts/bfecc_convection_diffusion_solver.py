@@ -46,9 +46,6 @@ def AddVariables(model_part, py_settings=None):
         raise ValueError('CONVECTION_DIFFUSION_SETTINGS not defined in the model part!')
     #now we add the specific variables needed for the PFEM-2 convection
     model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
-    model_part.AddNodalSolutionStepVariable(DELTA_SCALAR1);
-    model_part.AddNodalSolutionStepVariable(YP);
-    model_part.AddNodalSolutionStepVariable(MEAN_SIZE);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     #model_part.AddNodalSolutionStepVariable(NORMAL);
 
@@ -76,6 +73,7 @@ class BFECCConvectionDiffusionSolver:
 
         self.thermal_settings  = (model_part.ProcessInfo).GetValue(CONVECTION_DIFFUSION_SETTINGS)
         self.unknown_var = (self.thermal_settings).GetUnknownVariable()
+        self.projection_var = (self.thermal_settings).GetProjectionVariable()
         self.velocity_var = (self.thermal_settings).GetVelocityVariable()
 
         # assignation of parameters to be used
@@ -112,9 +110,11 @@ class BFECCConvectionDiffusionSolver:
 
     def Solve(self):
         substepping  = 10.0
-        self.bfecc_utility.BFECCconvect(self.model_part,self.unknown_var,self.velocity_var,substepping)        
-        self.bfecc_utility.ResetBoundaryConditions(self.model_part,self.unknown_var)        
-        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.unknown_var)        
+        (self.VariableUtils).CopyScalarVar(self.unknown_var,PROJECTED_SCALAR1,self.model_part.Nodes)   
+        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,PROJECTED_SCALAR1)        
+        self.bfecc_utility.BFECCconvect(self.model_part,PROJECTED_SCALAR1,self.velocity_var,substepping)        
+        #self.bfecc_utility.ResetBoundaryConditions(self.model_part,self.unknown_var)        
+        #self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.unknown_var)        
         #we only solve the mesh problem if there is diffusion or heat sources. otherwise->pure convection problem
         if (self.thermal_settings).IsDefinedDiffusionVariable() or (self.thermal_settings).IsDefinedSurfaceSourceVariable() or (self.thermal_settings).IsDefinedVolumeSourceVariable(): 
               (self.diffusion_solver).Solve()
