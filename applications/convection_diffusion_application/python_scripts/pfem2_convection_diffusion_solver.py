@@ -120,9 +120,9 @@ class PFEM2ConvectionDiffusionSolver:
         pre_minimum_number_of_particles=self.domain_size;
         (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
         (self.moveparticles).TransferLagrangianToEulerian();
-        (self.VariableUtils).CopyScalarVar(PROJECTED_SCALAR1,self.unknown_var,self.model_part.Nodes)   
-        (self.moveparticles).ResetBoundaryConditions()
-        (self.moveparticles).CopyScalarVarToPreviousTimeStep(self.unknown_var,self.model_part.Nodes)  
+        #(self.VariableUtils).CopyScalarVar(PROJECTED_SCALAR1,self.unknown_var,self.model_part.Nodes)   
+        #(self.moveparticles).ResetBoundaryConditions()
+        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(self.unknown_var,self.model_part.Nodes)  
         
         #we only solve the mesh problem if there is diffusion or heat sources. otherwise->pure convection problem
         if (self.thermal_settings).IsDefinedDiffusionVariable() or (self.thermal_settings).IsDefinedSurfaceSourceVariable() or (self.thermal_settings).IsDefinedVolumeSourceVariable(): 
