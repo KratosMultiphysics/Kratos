@@ -167,23 +167,32 @@ public:
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);        
 
         //here we get all the variables we will need
-        array_1d<double,TNumNodes> phi, phi_old;
+        array_1d<double,TNumNodes> phi, phi_old, phi_convected;
         //bool active_convection=false;    // to kill some terms in case active_convection=false. For the moment it is inactive.
         //using only one Gauss Point for the material properties and volumetric heat flux
         double conductivity = 0.0;
         double specific_heat = 0.0;
         double density = 0.0;
 
-		//storing locally the flags to avoid repeated check in the nodal loops
+	//storing locally the flags to avoid repeated check in the nodal loops
         const bool IsDefinedDensityVariable = my_settings->IsDefinedDensityVariable();
         const bool IsDefinedSpecificHeatVariableVariable = my_settings->IsDefinedSpecificHeatVariable();
         const bool IsDefinedDiffusionVariable = my_settings->IsDefinedDiffusionVariable();
+        const bool IsDefinedProjectionVariable = my_settings->IsDefinedProjectionVariable();
 
+	//if it is a convection diffusion problem, then the projection variable will exist and therefore we must use it instead of unknownVar(timestep n)
+	//that is, to take the convection into account.
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {	
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
+	    if (IsDefinedProjectionVariable)
+            	phi_convected[i] = GetGeometry()[i].FastGetSolutionStepValue((my_settings->GetProjectionVariable()),0);
+	    else
+		phi_convected[i] = phi_old[i];
+
+                 
 //             dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
 			
 			if (IsDefinedDensityVariable)
@@ -226,11 +235,11 @@ public:
         }
         
         //mass matrix
-        noalias(rLeftHandSideMatrix)  = (dt_inv*density*specific_heat)*aux1; //the 0.5 comes from the use of Crank Nichlson
-        noalias(rRightHandSideVector) = (dt_inv*density*specific_heat)*prod(aux1,phi_old); //the 0.5 comes from the use of Crank Nichlson
+        noalias(rLeftHandSideMatrix)  = (dt_inv*density*specific_heat)*aux1; 
+        noalias(rRightHandSideVector) = (dt_inv*density*specific_heat)*prod(aux1,phi_convected); 
         //adding the diffusion
-        noalias(rLeftHandSideMatrix)  += (conductivity *1.0 * prod(DN_DX, trans(DN_DX)))*static_cast<double>(TNumNodes);
-        //noalias(rRightHandSideVector) -= prod((conductivity *0.5 * prod(DN_DX, trans(DN_DX))),phi_old)*static_cast<double>(TNumNodes) ;
+        noalias(rLeftHandSideMatrix)  += (conductivity *0.5 * prod(DN_DX, trans(DN_DX)))*static_cast<double>(TNumNodes);
+        noalias(rRightHandSideVector) -= prod((conductivity *0.5 * prod(DN_DX, trans(DN_DX))),phi_convected)*static_cast<double>(TNumNodes) ;
         
 
         
