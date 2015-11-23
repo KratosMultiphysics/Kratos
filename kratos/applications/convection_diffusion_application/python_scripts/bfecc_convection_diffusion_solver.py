@@ -41,13 +41,13 @@ def AddVariables(model_part, py_settings=None):
             model_part.AddNodalSolutionStepVariable(thermal_settings.GetSpecificHeatVariable())
         if (thermal_settings).IsDefinedDensityVariable():
             model_part.AddNodalSolutionStepVariable(thermal_settings.GetDensityVariable())
+        if (thermal_settings).IsDefinedProjectionVariable():
+            model_part.AddNodalSolutionStepVariable(thermal_settings.GetProjectionVariable())
 
     else:
         raise ValueError('CONVECTION_DIFFUSION_SETTINGS not defined in the model part!')
     #now we add the specific variables needed for the PFEM-2 convection
     model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-    #model_part.AddNodalSolutionStepVariable(NORMAL);
 
 def AddDofs(model_part, settings=None):
     thermal_settings  = (model_part.ProcessInfo).GetValue(CONVECTION_DIFFUSION_SETTINGS)
@@ -71,11 +71,6 @@ class BFECCConvectionDiffusionSolver:
         self.model_part = model_part
         self.domain_size = domain_size
 
-        self.thermal_settings  = (model_part.ProcessInfo).GetValue(CONVECTION_DIFFUSION_SETTINGS)
-        self.unknown_var = (self.thermal_settings).GetUnknownVariable()
-        self.projection_var = (self.thermal_settings).GetProjectionVariable()
-        self.velocity_var = (self.thermal_settings).GetVelocityVariable()
-
         # assignation of parameters to be used
         self.ReformDofAtEachIteration = False;
         
@@ -96,6 +91,12 @@ class BFECCConvectionDiffusionSolver:
         # diffusion only tool
         self.diffusion_solver = ResidualBasedSemiEulerianConvectionDiffusionStrategy(self.model_part,self.linear_solver,self.ReformDofAtEachIteration,self.domain_size)
 
+
+        self.thermal_settings  = (self.model_part.ProcessInfo).GetValue(CONVECTION_DIFFUSION_SETTINGS)
+        self.unknown_var = (self.thermal_settings).GetUnknownVariable()
+        self.projection_var = (self.thermal_settings).GetProjectionVariable()
+        self.velocity_var = (self.thermal_settings).GetVelocityVariable()
+
         #now tools for pfem2:
         self.VariableUtils = VariableUtils()
         
@@ -110,9 +111,9 @@ class BFECCConvectionDiffusionSolver:
 
     def Solve(self):
         substepping  = 10.0
-        (self.VariableUtils).CopyScalarVar(self.unknown_var,PROJECTED_SCALAR1,self.model_part.Nodes)   
-        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,PROJECTED_SCALAR1)        
-        self.bfecc_utility.BFECCconvect(self.model_part,PROJECTED_SCALAR1,self.velocity_var,substepping)        
+        (self.VariableUtils).CopyScalarVar(self.unknown_var,self.projection_var,self.model_part.Nodes)   
+        self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.projection_var)        
+        self.bfecc_utility.BFECCconvect(self.model_part,self.projection_var,self.velocity_var,substepping)        
         #self.bfecc_utility.ResetBoundaryConditions(self.model_part,self.unknown_var)        
         #self.bfecc_utility.CopyScalarVarToPreviousTimeStep(self.model_part,self.unknown_var)        
         #we only solve the mesh problem if there is diffusion or heat sources. otherwise->pure convection problem
