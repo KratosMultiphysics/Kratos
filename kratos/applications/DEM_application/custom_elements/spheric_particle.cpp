@@ -920,7 +920,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         
         ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
 
-        //Renew neighbour parameters for stepes between searches
+        //Renew neighbour parameters for steps between searches
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
             if (search_control == 1) { //Search active but not performed in this timestep
                 UpdateDistanceToWall(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, ContactType);                                
@@ -1068,7 +1068,7 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
       Weight[2]=TempWeight[2];
       if(points == 4)
       {
-        Weight[3] = TempWeight[0];
+        Weight[3] = TempWeight[3];
       }
       else
       {
@@ -1078,8 +1078,8 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
  
     if (points == 2) {
       
-        double eta = 0.5;
-        contact_exists = GeometryFunctions::EdgeCheck(Coord[0], Coord[1], node_coor, radius, LocalCoordSystem, DistPToB, eta);
+        double eta = 0.0;
+        contact_exists = GeometryFunctions::EdgeCheck(Coord[inode1], Coord[inode2], node_coor, radius, LocalCoordSystem, DistPToB, eta);
      
         Weight[inode1] = 1-eta;
         Weight[inode2] = eta;
@@ -1087,7 +1087,7 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
     }
 
     if (points == 1) {
-        contact_exists = GeometryFunctions::VertexCheck(Coord[0], node_coor, radius, LocalCoordSystem, DistPToB);
+        contact_exists = GeometryFunctions::VertexCheck(Coord[inode1], node_coor, radius, LocalCoordSystem, DistPToB);
         Weight[inode1] = 1.0;
     }
 
