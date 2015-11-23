@@ -131,11 +131,13 @@ namespace Kratos
 		MoveParticleUtilityScalarTransport(ModelPart& model_part, int maximum_number_of_particles)
 			: mr_model_part(model_part) , mmaximum_number_of_particles(maximum_number_of_particles) ,
 			 mUnknownVar((model_part.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS])->GetUnknownVariable()) ,
+			 mProjectionVar((model_part.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS])->GetProjectionVariable()) ,
 			 mVelocityVar((model_part.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS])->GetVelocityVariable()) ,
 			 mMeshVelocityVar((model_part.GetProcessInfo()[CONVECTION_DIFFUSION_SETTINGS])->GetMeshVelocityVariable())
 		{
 			std::cout << "initializing moveparticle utility for scalar transport" << std::endl;
 			
+			Check();
             //storing water and air density and their inverses, just in case it is needed for the streamline integration
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
 			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
@@ -422,7 +424,7 @@ namespace Kratos
 				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-						inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(mUnknownVar) - inode->FastGetSolutionStepValue(PROJECTED_SCALAR1) ;
+						inode->FastGetSolutionStepValue(DELTA_SCALAR1) = inode->FastGetSolutionStepValue(mUnknownVar) - inode->FastGetSolutionStepValue(mProjectionVar) ;
 				}
 			}
 
@@ -653,7 +655,7 @@ namespace Kratos
 				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-					inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0; 
+					inode->FastGetSolutionStepValue(mProjectionVar)=0.0; 
 					inode->FastGetSolutionStepValue(YP)=0.0;
 				}
 	
@@ -745,7 +747,7 @@ namespace Kratos
 					
 					for (int i=0 ; i!=(TDim+1) ; ++i) {
 						geom[i].SetLock();
-						geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1) +=nodes_added_scalar1[i];
+						geom[i].FastGetSolutionStepValue(mProjectionVar) +=nodes_added_scalar1[i];
 						geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
 						geom[i].UnSetLock();
 					}
@@ -762,13 +764,13 @@ namespace Kratos
 					if (sum_weights>0.00001) 
 					{
 						//inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=(inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT))/sum_weights; //resetting the temperature
-						double & height = inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
+						double & height = inode->FastGetSolutionStepValue(mProjectionVar);
 						 height /=sum_weights; //resetting the density	
 					}
 						
 					else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
 					{
-						inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(mUnknownVar,1); //resetting the temperature
+						inode->FastGetSolutionStepValue(mProjectionVar)=inode->FastGetSolutionStepValue(mUnknownVar,1); //resetting the temperature
 					}
 				}
 			}
@@ -814,7 +816,7 @@ namespace Kratos
 				for(unsigned int ii=node_partition[kkk]; ii<node_partition[kkk+1]; ii++)
 				{
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
-					inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=0.0;
+					inode->FastGetSolutionStepValue(mProjectionVar)=0.0;
 					inode->FastGetSolutionStepValue(YP)=0.0;
 				}
 	
@@ -936,7 +938,7 @@ namespace Kratos
 					
 					for (int i=0 ; i!=(TDim+1) ; ++i) {
 						geom[i].SetLock();
-						geom[i].FastGetSolutionStepValue(PROJECTED_SCALAR1) +=nodes_added_scalar1[i];
+						geom[i].FastGetSolutionStepValue(mProjectionVar) +=nodes_added_scalar1[i];
 						geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
 						geom[i].UnSetLock();
 					}
@@ -952,13 +954,13 @@ namespace Kratos
 					double sum_weights = inode->FastGetSolutionStepValue(YP);
 					if (sum_weights>0.00001) 
 					{
-						 double & scalar1 = inode->FastGetSolutionStepValue(PROJECTED_SCALAR1);
+						 double & scalar1 = inode->FastGetSolutionStepValue(mProjectionVar);
 						 scalar1 /=sum_weights; //resetting the density						
 					}
 						
 					else //this should never happen because other ways to recover the information have been executed before, but leaving it just in case..
 					{
-						inode->FastGetSolutionStepValue(PROJECTED_SCALAR1)=inode->FastGetSolutionStepValue(mUnknownVar,1); 
+						inode->FastGetSolutionStepValue(mProjectionVar)=inode->FastGetSolutionStepValue(mUnknownVar,1); 
 					}
 				}
 			}
@@ -2370,6 +2372,73 @@ namespace Kratos
 			return true;
 		}
 		
+	virtual int Check()
+    {
+        KRATOS_TRY
+        ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+        if (rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)==false)
+			KRATOS_THROW_ERROR(std::logic_error, "no CONVECTION_DIFFUSION_SETTINGS in model_part", "");
+        //std::cout << "ConvDiff::Check(). If crashes, check CONVECTION_DIFFUSION_SETTINGS is defined" << std::endl;
+        
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+		
+		//UNKNOWN VARIABLE
+		if(my_settings->IsDefinedUnknownVariable()==true) 
+		{
+			if (mr_model_part.NodesBegin()->SolutionStepsDataHas(my_settings->GetUnknownVariable()) == false)
+				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Unknown Variable defined but not contained in the model part", "");
+		}
+		else
+			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Unknown Variable not defined!", "");
+		
+
+		//PROJECTION VARIABLE
+		//used as intermediate variable, is the variable at time n+1 but only accounting for the convective term.
+		if(my_settings->IsDefinedProjectionVariable()==true) 
+		{
+			if (mr_model_part.NodesBegin()->SolutionStepsDataHas(my_settings->GetProjectionVariable()) == false)
+				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Projection Variable defined but not contained in the model part", "");
+		}
+		else
+			KRATOS_THROW_ERROR(std::logic_error, "No Projection variable assigned for ConvDiff!", "");
+
+
+		//CONVECTION VELOCITY VARIABLE
+		//CURRENTLY WE ARE USING (VELOCITY -MESH_VELOCITY) TO CONVECT, so the ConvectionVariable must not be used:
+		//if(my_settings->IsDefinedConvectionVariable()==true) 
+		//{
+		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetConvectionVariable()) == false)
+		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Convection Variable defined but not contained in the model part", "");
+		//}
+		//else
+		//	std::cout << "No Projection variable assigned for ConvDiff. Assuming Convection=0" << std::endl;
+		if(my_settings->IsDefinedConvectionVariable()==true) 
+			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ConvectionVariable not used. Use VelocityVariable instead", "");
+
+		//VELOCITY VARIABLE	
+		if(my_settings->IsDefinedVelocityVariable()==true) 
+		{
+			if (mr_model_part.NodesBegin()->SolutionStepsDataHas(my_settings->GetVelocityVariable()) == false)
+				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Velocity Variable defined but not contained in the model part", "");
+		}
+		else
+			KRATOS_THROW_ERROR(std::logic_error, "No Velocity variable assigned for ConvDiff!", "");
+
+		if (mr_model_part.NodesBegin()->SolutionStepsDataHas(MEAN_SIZE) == false)
+				KRATOS_THROW_ERROR(std::logic_error, "Add MEAN_SIZE variable to model part!", "");
+				
+		if (mr_model_part.NodesBegin()->SolutionStepsDataHas(DELTA_SCALAR1) == false)
+				KRATOS_THROW_ERROR(std::logic_error, "Add DELTA_SCALAR1 variable to model part!", "");
+								
+        return 0;
+
+        KRATOS_CATCH("")
+
+    }
+
+		
+		
+		
 	ModelPart& mr_model_part;
 	int m_nparticles;
 	int mnelems;
@@ -2394,6 +2463,7 @@ namespace Kratos
 	typename BinsObjectDynamic<Configure>::Pointer  mpBinsObjectDynamic;
 	
 	const Variable<double>& mUnknownVar;
+	const Variable<double>& mProjectionVar;
 	const Variable<array_1d<double,3> >& mVelocityVar;
 	const Variable<array_1d<double,3> >& mMeshVelocityVar;
 
