@@ -112,19 +112,7 @@ namespace Kratos
         double mTemperature;
         double mConductiveHeatFlux;
         double mThermalConductivity;
-        double mSpecificHeat;
-       
-//        std::vector<double>         mcont_ini_neigh_area;        
-//        std::vector<double>         mIniNeighbourDelta;
-//        std::vector<int>            mIniNeighbourFailureId;
-//        std::vector<int>            mIniNeighbourToIniContinuum;        
-//        std::vector<int>            mMapping_New_Ini;
-//        std::vector<int>            mMapping_New_Cont;
-//        std::vector<double>         mNeighbourDelta;
-        
-                       
-//        std::vector<DEMThermalConstitutiveLaw::Pointer> mThermalConstitutiveLawArray;
-       
+        double mSpecificHeat;       
     
 
     private:
