@@ -306,11 +306,11 @@ namespace Kratos {
     }
 
     double DEM_D_Hertz_viscous_Coulomb2D::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
-        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForce(element1, element2, indentation);
+        return 0.0;
     }
     
     double DEM_D_Hertz_viscous_Coulomb2D::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
-        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM(element, wall, indentation);
+        return 0.0;
     }            
     
 } /* namespace Kratos.*/
