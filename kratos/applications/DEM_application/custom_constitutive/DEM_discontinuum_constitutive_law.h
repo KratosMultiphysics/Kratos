@@ -167,35 +167,7 @@ namespace Kratos {
                                                     SphericParticle* const element,
                                                     DEMWall* const wall,
                                                     double indentation);
-
-
-        double CalculateStandardCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
-        double CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
-
-        void CalculateStandardTangentialForce(const double normal_force,
-                                            double LocalElasticContactForce[3],
-                                            const double LocalDeltDisp[3],
-                                            bool& sliding,
-                                            SphericParticle * const element1,
-                                            SphericParticle * const element2);
-        void CalculateStandardTangentialForceWithFEM(const double OldLocalContactForce[3],
-                                                    double LocalElasticContactForce[3],
-                                                    const double LocalDeltDisp[3],            
-                                                    bool& sliding,
-                                                    SphericParticle* const element,
-                                                    DEMWall* const wall);
-
-        void CalculateStandardViscoDampingForce(double LocalRelVel[3],
-                                                double ViscoDampingLocalContactForce[3],
-                                                bool sliding,
-                                                SphericParticle * const element1,
-                                                SphericParticle * const element2);
-        void CalculateStandardViscoDampingForceWithFEM(double LocalRelVel[3],
-                                                        double ViscoDampingLocalContactForce[3],
-                                                        bool sliding,
-                                                        SphericParticle* const element,
-                                                        DEMWall* const wall);
-
+        
     private:
 
         friend class Serializer;
