@@ -82,21 +82,19 @@ namespace Kratos
         double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
         double total_equiv_perimeter = 0.0;
 
-        ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-        int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
-        
-        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);  //NOTE: Here we use "mcont_ini_neigh_area" just because in the general 3D particle this is the name used.ContactAreaWeighting2D
-        
+        int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
+
+        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
+
         //computing the total equivalent area
         
         size_t index = 0;
         
-        for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
-            ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-        {   
+        for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
+            SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
+
             double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
             double equiv_radius     = 2*GetRadius() * other_radius / (GetRadius() + other_radius);        
-            //double equiv_area       = (0.25)*KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
             total_equiv_perimeter  += equiv_radius;
         
             mcont_ini_neigh_area[index] = equiv_radius; //*  //this is consistent since in 2D, we work with cylinders of depth unit 1.0.
@@ -106,17 +104,14 @@ namespace Kratos
       
         if (cont_ini_neighbours_size >= 3)
         {
-            if(!*mSkinSphere)
-            {
+            if(!*mSkinSphere) {
                           
               AuxiliaryFunctions::CalculateAlphaFactor2D(cont_ini_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
               
               size_t not_skin_index = 0;
           
-              for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-                  ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-                  
-                  {      
+                for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
+
                       mcont_ini_neigh_area[not_skin_index] = alpha*mcont_ini_neigh_area[not_skin_index];
                       not_skin_index++;  
                       
@@ -129,24 +124,19 @@ namespace Kratos
  
                 size_t skin_index = 0; 
                 
-                for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-                  ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-                  
-                  {
+                for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
 
                           alpha            = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
                           mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
-     
-                    
-                  skin_index++;
+                         
+                  skin_index++;                  
+                  }     //loop on cont neighs
                   
-                  }//loop on cont neighs       
-                  
-            }//skin particles.
+            }           //skin particles.
             
-        }//if 3 neighbours or more.
+        }               //if 3 neighbours or more.
    
-      } //Contact Area Weighting
+      }                 //Contact Area Weighting
       
       
       void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
