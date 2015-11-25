@@ -1350,14 +1350,16 @@ namespace Kratos
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
             }
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
-            //NOTE:: VERY IMPORTANT: Neighbours are saved inside the Intersection function redefined in the configure file: rigid_face_geometrical_object_configure
-            //The results:  this->GetRigidFaceResults() and this->GetRigidFaceResultsDistances() are not the neighbours, but all the elements checked by the bins.
-            //neighbours are saved in mNeighbourRigidFaces and made unique (skipping the deactivated ones through the hierarchy procedure) next:
-
+            
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
-
-                std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
+              std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
+              for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){                                                  
+                    Condition* p_neighbour_condition = (*neighbour_it).get();
+                    DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
+                    RigidFaceGeometricalConfigureType::DoubleHierarchyMethod3D(mListOfSphericParticles[i], p_wall); 
+                }
+              
                 std::vector<double>& RF_Param = mListOfSphericParticles[i]->mNeighbourRigidFacesPram;
                 size_t neigh_size = neighbour_rigid_faces.size();
                 std::vector<DEMWall*> temporal_neigh (0); 
