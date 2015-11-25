@@ -24,7 +24,7 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/constitutive_law.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
