@@ -80,11 +80,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 
-#ifdef _OPENMP
-#include "omp.h"
-#endif
-
-
 
 namespace Kratos
 {
@@ -123,7 +118,7 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
         
         //FIRST LOOP: estimate rVar(n+1) 
-        #pragma omp parallel for firstprivate(results,N)
+        #pragma omp parallel for firstprivate(results,N,N_valid)
         for (int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -169,7 +164,7 @@ public:
         }
         
         //now obtain the value AT TIME STEP N by taking it from N+1
-        #pragma omp parallel for firstprivate(results,N)
+        #pragma omp parallel for firstprivate(results,N,N_valid)
         for (int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
