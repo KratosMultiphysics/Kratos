@@ -923,7 +923,7 @@ public:
 
         //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel for
-        for(std::size_t k = 0; k < system_size; ++k)
+        for(int k = 0; k < (int)system_size; ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
@@ -945,7 +945,7 @@ public:
         } 
 
         #pragma omp parallel for
-        for(std::size_t k = 0; k < system_size; ++k)
+        for(int k = 0; k < (int)system_size; ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
