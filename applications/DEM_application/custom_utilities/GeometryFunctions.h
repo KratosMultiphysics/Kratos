@@ -526,6 +526,7 @@ namespace Kratos
    
     static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_out, double& area){
 
+      //NOTE:: Normal_out here has to be the normal pointing the side of the particle.
         array_1d<double, 3> cp1;
         array_1d<double, 3> b_a; 
         array_1d<double, 3> p1_a;
@@ -570,33 +571,42 @@ namespace Kratos
     
     static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
     {
+      
       int facet_size = Coord.size();
       //Calculate Normal
       
       array_1d <double,3> A;
       array_1d <double,3> B;
       array_1d <double,3> N;
+      array_1d <double,3> PC;
       
       for(unsigned int i = 0; i<3; i++)
       {
         A[i] = Coord[1][i]-Coord[0][i];
         B[i] = Coord[2][i]-Coord[0][i];
+        PC[i] = Particle_Coord[i]-Coord[0][i];
       }
   
       N[0] = A[1]*B[2] - A[2]*B[1];
       N[1] = A[2]*B[0] - A[0]*B[2];
       N[2] = A[0]*B[1] - A[1]*B[0];
       //normalize
+
+      if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
+      {
+        N = -N;
+      }
       normalize(N); 
      
       //Calculate distance:
       
       DistPToB = 0.0;
+      
       for(unsigned int i = 0; i<3; i++)
       {
-        DistPToB += N[i]*Particle_Coord[i] - N[i]*Coord[0][i];
+        DistPToB += N[i]*PC[i];
       }
-            
+
       if(DistPToB < rad )
       {
         
@@ -637,17 +647,24 @@ namespace Kratos
       array_1d <double,3> A;
       array_1d <double,3> B;
       array_1d <double,3> N;
+      array_1d <double,3> PC;
       
       for(unsigned int i = 0; i<3; i++)
       {
         A[i] = Coord[1][i]-Coord[0][i];
         B[i] = Coord[2][i]-Coord[0][i];
+        PC[i] = Particle_Coord[i]-Coord[0][i];
       }
   
       N[0] = A[1]*B[2] - A[2]*B[1];
       N[1] = A[2]*B[0] - A[0]*B[2];
       N[2] = A[0]*B[1] - A[1]*B[0];
       //normalize
+
+      if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
+      {
+        N = -N;
+      }
       normalize(N); 
      
       //Calculate distance:
@@ -656,7 +673,7 @@ namespace Kratos
       
       for(unsigned int i = 0; i<3; i++)
       {
-        DistPToB += N[i]*Particle_Coord[i] - N[i]*Coord[0][i];
+        DistPToB += N[i]*PC[i];
       }
 
       if(DistPToB < rad )
