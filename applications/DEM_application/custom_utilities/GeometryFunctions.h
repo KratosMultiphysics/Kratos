@@ -524,18 +524,15 @@ namespace Kratos
 
 
    
-    static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, double JudgeCoord[3], double normal_out[3], double& area){
+    static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_out, double& area){
 
-        double cp1[3]  = {0.0};
-        double b_a[3]  = {0.0};
-        double p1_a[3] = {0.0};
-
-        for (int i=0;i<3;i++){
-
-            b_a[i]  = Coord2[i]-Coord1[i];
-            p1_a[i] = JudgeCoord[i]-Coord1[i];
-        }
-
+        array_1d<double, 3> cp1;
+        array_1d<double, 3> b_a; 
+        array_1d<double, 3> p1_a;
+        
+        b_a  = Coord2 - Coord1;
+        p1_a = JudgeCoord - Coord1;
+        
         GeometryFunctions::CrossProduct(b_a, p1_a, cp1);
 
         if (GeometryFunctions::DotProduct(cp1, normal_out) >= 0)
@@ -570,68 +567,232 @@ namespace Kratos
       else{KRATOS_WATCH("WEIGHTS FOR N-SIZE POLYGONAL FE TO BE IMPLEMENTED")}
     }//WeightsCalculation
 
+    
+    static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
+    {
+      int facet_size = Coord.size();
+      //Calculate Normal
+      
+      array_1d <double,3> A;
+      array_1d <double,3> B;
+      array_1d <double,3> N;
+      
+      for(unsigned int i = 0; i<3; i++)
+      {
+        A[i] = Coord[1][i]-Coord[0][i];
+        B[i] = Coord[2][i]-Coord[0][i];
+      }
+  
+      N[0] = A[1]*B[2] - A[2]*B[1];
+      N[1] = A[2]*B[0] - A[0]*B[2];
+      N[2] = A[0]*B[1] - A[1]*B[0];
+      //normalize
+      normalize(N); 
+     
+      //Calculate distance:
+      
+      DistPToB = 0.0;
+      for(unsigned int i = 0; i<3; i++)
+      {
+        DistPToB += N[i]*Particle_Coord[i] - N[i]*Coord[0][i];
+      }
+            
+      if(DistPToB < rad )
+      {
+        
+        array_1d <double,3> IntersectionCoord;
+        
+        for(unsigned int i = 0; i<3; i++)
+        {
+          IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+        }
+        
+        for (int i = 0; i<facet_size; i++)
+        {
+          double this_area = 0.0;
+          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, N, this_area) == false )
+          {
 
+            current_edge_index = i;
+            return false;
+
+          }
+          
+        }
+        
+        return true;
+        
+      }//if DistPToB < rad
+      
+      return false;
+    }//FastFacetCheck
+        
     static inline bool FacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad,
                                   double LocalCoordSystem[3][3], double &DistPToB, std::vector<double> &Weight, unsigned int &current_edge_index) 
     {
+      
+      int facet_size = Coord.size();
+      //Calculate Normal
+      
+      array_1d <double,3> A;
+      array_1d <double,3> B;
+      array_1d <double,3> N;
+      
+      for(unsigned int i = 0; i<3; i++)
+      {
+        A[i] = Coord[1][i]-Coord[0][i];
+        B[i] = Coord[2][i]-Coord[0][i];
+      }
+  
+      N[0] = A[1]*B[2] - A[2]*B[1];
+      N[1] = A[2]*B[0] - A[0]*B[2];
+      N[2] = A[0]*B[1] - A[1]*B[0];
+      //normalize
+      normalize(N); 
+     
+      //Calculate distance:
+      
+      DistPToB = 0.0;
+      
+      for(unsigned int i = 0; i<3; i++)
+      {
+        DistPToB += N[i]*Particle_Coord[i] - N[i]*Coord[0][i];
+      }
 
-        bool If_Contact = false;
+      if(DistPToB < rad )
+      {
 
-        double normal_flag = 0.0;
-
-        int facet_size = Coord.size();
-
-        Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem, normal_flag);
-
-        DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
-
-        if(DistPToB < rad )
+        array_1d <double,3> IntersectionCoord;
+        
+        for(unsigned int i = 0; i<3; i++)
         {
+          IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+        }
+        
+        std::vector<double> Area;
+        Area.resize(facet_size);
+        
+        for (int i = 0; i<facet_size; i++)
+        {
+          double this_area = 0.0;
+          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, N, this_area) == false )
+          {
 
-            double IntersectionCoord[3];
-            double PlaneUnitNormalVector[3];
-            PlaneUnitNormalVector[0] = LocalCoordSystem[2][0]*normal_flag;
-            PlaneUnitNormalVector[1] = LocalCoordSystem[2][1]*normal_flag;
-            PlaneUnitNormalVector[2] = LocalCoordSystem[2][2]*normal_flag;
+            current_edge_index = i;
+            return false;
 
-            //Projection of C onto plane
-            for (unsigned int j = 0; j<3; j++)
-            {
-              IntersectionCoord[j] = Particle_Coord[j] - DistPToB*LocalCoordSystem[2][j]; //LocalCoordSystem[2] always points the particle
+          }
+            
+          else
+          {
+            Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
+          }
 
-            }
-
-            std::vector<double> Area;
-            Area.resize(facet_size);
-
-            for (int i = 0; i<facet_size; i++)
-            {
-              double this_area = 0.0;
-              if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, PlaneUnitNormalVector, this_area) == false )
-              {
-
-                current_edge_index = i;
-                return false;
-
-              }
-              else
-              {
-                Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
-              }
-
-            }//for every vertex
-
-            If_Contact = true;
-            WeightsCalculation(Area,Weight);
+        }//for every vertex
+  
+        double auxiliar_unit_vector[3];
+        CrossProduct( N,A,auxiliar_unit_vector );
+        normalize( auxiliar_unit_vector );
+        normalize( A );
+        for (unsigned int j = 0; j<3; j++)
+        {
+          LocalCoordSystem[0][j] = A[j];
+          LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
+          LocalCoordSystem[2][j] = N[j];
+        }
+                        
+        WeightsCalculation(Area,Weight);
+        return true;
 
       }//if DistPToB < rad
+       
+      return false;
 
-      return If_Contact;
+    } //FacetCheck
+    
+    
+    static inline bool FastEdgeVertexCheck( array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius )
+    {
+      
+      double IntersectionCoordEdge[3];
+      double normal_unit_vector[3];
+      double edge_unit_vector[3];
+      double module_edge_vector = 0.0;
+      double particle_vector1[3];
+      double particle_vector2[3];
 
-    }
+      for (unsigned int j = 0; j<3; j++)
+      {
+          edge_unit_vector[j] = Coord2[j] - Coord1[j];
+          particle_vector1[j]  = Particle_Coord[j] - Coord1[j];
+          particle_vector2[j]  = Particle_Coord[j] - Coord2[j];
+      }
 
+      normalize( edge_unit_vector, module_edge_vector);
+      double projection_on_edge = DotProduct(particle_vector1,edge_unit_vector);
+
+      double eta = projection_on_edge/module_edge_vector;
+      
+      if( (eta>=0.0) && (eta<=1.0) ) //can only be edge, no vertex
+      {
+        
+          for (unsigned int j = 0; j<3; j++)
+          {
+
+            IntersectionCoordEdge[j] = Coord1[j] + projection_on_edge*edge_unit_vector[j];
+            normal_unit_vector[j]   = Particle_Coord[j] - IntersectionCoordEdge[j];
+          }
+
+          double DistParticleToEdge;
+          normalize( normal_unit_vector, DistParticleToEdge);
+
+          if ( DistParticleToEdge < Radius)
+          {
+            return true;   
+          }
+      }
+ 
+      if( eta < 0.0)  //1rst Vertex
+      {
+        double dist_to_vertex_sq = 0.0;
+        double Rad_sq = Radius*Radius;
+        
+        for (unsigned int j = 0; j<3; j++)
+        {
+          dist_to_vertex_sq +=particle_vector1[j]*particle_vector1[j];
+          
+        }
+      
+        if(dist_to_vertex_sq < Rad_sq)
+        {
+          return true;
+          
+        } 
+      }
+      
+      if( eta > 1.0)  //2n vertex
+      {
+        double dist_to_vertex_sq = 0.0;
+        double Rad_sq = Radius*Radius;
+        for (unsigned int j = 0; j<3; j++)
+        {
+          dist_to_vertex_sq +=particle_vector2[j]*particle_vector2[j];
+          
+        }
+        
+        if(dist_to_vertex_sq < Rad_sq)
+        {
+          return true;
+        } 
+      }
+      
+      return false;
+      
+    }//FastEdgeVertexCheck;
+      
+    
     static inline bool EdgeCheck( array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius,
-                                  double LocalCoordSystem[3][3], double &DistEdgeToPlane, double& eta) 
+                                  double LocalCoordSystem[3][3], double &DistParticleToEdge, double& eta) 
     {
       double IntersectionCoordEdge[3];
       double normal_unit_vector[3];
@@ -655,9 +816,9 @@ namespace Kratos
         normal_unit_vector[j]   = Particle_Coord[j] - IntersectionCoordEdge[j];
       }
 
-      normalize( normal_unit_vector, DistEdgeToPlane);
+      normalize( normal_unit_vector, DistParticleToEdge);
 
-      if ( DistEdgeToPlane < Radius)
+      if ( DistParticleToEdge < Radius)
       {
 
         eta = projection_on_edge/module_edge_vector;
@@ -684,20 +845,20 @@ namespace Kratos
 
     }//EdgeCheck
 
-    static inline bool VertexCheck( array_1d <double,3> Coord, double Particle_Coord[3], double Radius, double LocalCoordSystem[3][3], double &DistEdgeToPlane)
+    static inline bool VertexCheck( array_1d <double,3> Coord, double Particle_Coord[3], double Radius, double LocalCoordSystem[3][3], double &DistParticleToVertex)
     {
 
-      double DistEdgeToPlaneSq = 0.0;
+      double dist_sq = 0.0;
       array_1d<double,3> normal_v;
       for(unsigned int j = 0; j<3; j++)
       {
         normal_v[j] = Particle_Coord[j] - Coord[j];
-        DistEdgeToPlaneSq += normal_v[j]*normal_v[j];
+        dist_sq += normal_v[j]*normal_v[j];
       }
-      if(DistEdgeToPlaneSq <= Radius*Radius)
+      if(dist_sq <= Radius*Radius)
       {
-        DistEdgeToPlane = sqrt(DistEdgeToPlaneSq);
-        ComputeContactLocalCoordSystem(normal_v, DistEdgeToPlane, LocalCoordSystem);
+        DistParticleToVertex = sqrt(dist_sq);
+        ComputeContactLocalCoordSystem(normal_v, DistParticleToVertex, LocalCoordSystem);
         return true;
       }
 
@@ -930,7 +1091,7 @@ namespace Kratos
 
             return;
       }
-
+  
 
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      ///////////////****************************TRIANGLE - SPHERE INTERSECTION AREA CALCULATION**************************///////////
