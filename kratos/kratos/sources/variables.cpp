@@ -517,6 +517,7 @@ namespace Kratos
       
       KratosApplication::RegisterDeprecatedVariables();
       KratosApplication::RegisterC2CVariables(); //TODO: move to application
+      KratosApplication::RegisterCFDVariables(); //TODO: move to application
       KratosApplication::RegisterDEMVariables(); //TODO: move to application
       KratosApplication::RegisterLegacyStructuralAppVariables(); //TODO: move to application
 
