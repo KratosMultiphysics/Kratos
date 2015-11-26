@@ -31,13 +31,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.search_control                 = 1
-        if(Var_Translator(Param.DontSearchUntilFailure)):
+        if (Var_Translator(Param.DontSearchUntilFailure)):
           print ("Search is not active until a bond is broken.")
-          self.search_control                = 0
-          if (len(fem_model_part.Nodes)>0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+          self.search_control               = 0
+          if (len(fem_model_part.Nodes) > 0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
             print ("WARNING: Search should be activated since there might contact with FEM.")
 
-        self.fix_velocities_flag                 = 0       
+        self.fix_velocities_flag            = 0       
 
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
         self.MoveMeshFlag = True
@@ -45,12 +45,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.virtual_mass_option            = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
-           self.virtual_mass_option            = 1
+           self.virtual_mass_option         = 1
         
         self.delta_option = Var_Translator(Param.DeltaOption)
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
         self.test_type = Param.TestType
-        self.automatic_bounding_box_option = Var_Translator(Param.AutomaticBoundingBoxOption)
+        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
@@ -270,8 +270,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
                 
         self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                       self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
-                                                    
-                                                      
+                                                
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)
 
         #Setting the constitutive LAWS
