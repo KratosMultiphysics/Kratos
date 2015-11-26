@@ -524,9 +524,9 @@ namespace Kratos
 
 
    
-    static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_out, double& area){
+    static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element, double& area){
 
-      //NOTE:: Normal_out here has to be the normal pointing the side of the particle.
+      //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         array_1d<double, 3> cp1;
         array_1d<double, 3> b_a; 
         array_1d<double, 3> p1_a;
@@ -536,7 +536,7 @@ namespace Kratos
         
         GeometryFunctions::CrossProduct(b_a, p1_a, cp1);
 
-        if (GeometryFunctions::DotProduct(cp1, normal_out) >= 0)
+        if (GeometryFunctions::DotProduct(cp1, normal_element) >= 0)
         {
             area = sqrt(cp1[0] * cp1[0] + cp1[1] * cp1[1] + cp1[2] * cp1[2]) / 2.0;
             return true;
@@ -582,18 +582,20 @@ namespace Kratos
       
       for(unsigned int i = 0; i<3; i++)
       {
-        A[i] = Coord[1][i]-Coord[0][i];
-        B[i] = Coord[2][i]-Coord[0][i];
-        PC[i] = Particle_Coord[i]-Coord[0][i];
+        A[i] = Coord[2][i]-Coord[1][i];
+        B[i] = Coord[0][i]-Coord[1][i];
+        PC[i] = Particle_Coord[i]-Coord[1][i];
       }
   
       N[0] = A[1]*B[2] - A[2]*B[1];
       N[1] = A[2]*B[0] - A[0]*B[2];
       N[2] = A[0]*B[1] - A[1]*B[0];
       //normalize
-
+      
+      double normal_flag = 1.0;
       if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
       {
+        normal_flag = -1.0;
         N = -N;
       }
       normalize(N); 
@@ -620,7 +622,7 @@ namespace Kratos
         for (int i = 0; i<facet_size; i++)
         {
           double this_area = 0.0;
-          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, N, this_area) == false )
+          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false )
           {
 
             current_edge_index = i;
@@ -651,18 +653,20 @@ namespace Kratos
       
       for(unsigned int i = 0; i<3; i++)
       {
-        A[i] = Coord[1][i]-Coord[0][i];
-        B[i] = Coord[2][i]-Coord[0][i];
-        PC[i] = Particle_Coord[i]-Coord[0][i];
+        A[i] = Coord[2][i]-Coord[1][i];
+        B[i] = Coord[0][i]-Coord[1][i];
+        PC[i] = Particle_Coord[i]-Coord[1][i];
       }
   
       N[0] = A[1]*B[2] - A[2]*B[1];
       N[1] = A[2]*B[0] - A[0]*B[2];
       N[2] = A[0]*B[1] - A[1]*B[0];
       //normalize
-
+      
+      double normal_flag = 1.0;
       if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
       {
+        normal_flag = - 1.0;
         N = -N;
       }
       normalize(N); 
@@ -692,7 +696,7 @@ namespace Kratos
         for (int i = 0; i<facet_size; i++)
         {
           double this_area = 0.0;
-          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, N, this_area) == false )
+          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false )
           {
 
             current_edge_index = i;
