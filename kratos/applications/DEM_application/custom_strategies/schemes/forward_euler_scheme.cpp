@@ -134,8 +134,7 @@ namespace Kratos {
                     moment_reduction_factor = 1.0 - virtual_mass_coeff;                    
                     if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
                 }
-                
-                
+                   
                 bool Fix_Ang_vel[3] = {false, false, false};
 
                 Fix_Ang_vel[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
@@ -190,8 +189,8 @@ namespace Kratos {
                         EulerAngles[2] = 0.0;
                     }
                     else {
-                        EulerAngles[0] = atan2(2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2], 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1]);
-                        EulerAngles[1] = asin(2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0]);
+                        EulerAngles[0] =  atan2(2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2], 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1]);
+                        EulerAngles[1] =  asin( 2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0]);
                         EulerAngles[2] = -atan2(2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1], 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2]);
                     }
                 }// Trihedron Option                  
@@ -217,9 +216,11 @@ namespace Kratos {
         vector<unsigned int> element_partition;
         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
+        
         #pragma omp parallel
         {
         double rotation_matrix[3][3];
+        
         #pragma omp for
         for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
             ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
