@@ -14,21 +14,20 @@
 namespace Kratos {
 
     class DEM_D_Hertz_viscous_Coulomb : public DEMDiscontinuumConstitutiveLaw {
+    
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_viscous_Coulomb);
 
-        DEM_D_Hertz_viscous_Coulomb() {
-        }
+        DEM_D_Hertz_viscous_Coulomb() {}
+        
+        ~DEM_D_Hertz_viscous_Coulomb() {}
       
         void Initialize(const ProcessInfo& rCurrentProcessInfo);         
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
         
         std::string GetTypeOfLaw();
-
-        ~DEM_D_Hertz_viscous_Coulomb() {
-        }
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;      
         
@@ -107,7 +106,8 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
-    };
+        
+    }; //class DEM_D_Hertz_viscous_Coulomb
 
 } /* namespace Kratos.*/
 #endif /* DEM_D_HERTZ_VISCOUS_COULOMB_CL_H_INCLUDED  defined */
