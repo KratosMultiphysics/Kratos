@@ -1,7 +1,7 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: Salva $
-//   Date:                $Date: 2011-6-13 08:56:42 $
+//   Last Modified by:    $Author: Salva Latorre$
+//   Date:                $Date: 2015-10-26 09:50:15 $
 //   Revision:            $Revision: 1.5 $
 //
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
@@ -9,13 +9,6 @@
 // System includes
 #include <string>
 #include <iostream>
-
-// External includes
-
-// System includes
-
-// Project includes
-
 #include "DEM_application.h"
 #include "create_and_destroy.h"
 
@@ -160,7 +153,7 @@ namespace Kratos {
     void ParticleCreatorDestructor::NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                     Node < 3 > ::Pointer& pnew_node,
                                                                     int aId,
-                                                                    Node < 3 > ::Pointer & reference_node,
+                                                                    Node < 3 > ::Pointer& reference_node,
                                                                     double radius,
                                                                     Properties& params,
                                                                     bool has_sphericity,
@@ -268,13 +261,13 @@ namespace Kratos {
             
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
-            else KRATOS_THROW_ERROR(std::runtime_error,"Unknown probability distribution.","")
+            else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
         }
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial);
 
         Geometry< Node < 3 > >::PointsArrayType nodelist;
-
+        
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
@@ -292,7 +285,6 @@ namespace Kratos {
 
         p_particle->Set(NEW_ENTITY);
         pnew_node->Set(NEW_ENTITY);
-
         //p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());       
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
