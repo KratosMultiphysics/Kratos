@@ -660,9 +660,9 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                                      double indentation,
                                      bool wall)
 {
-    
     double arm_length = GetRadius() - indentation;
-    if(!wall) {
+    
+    if (!wall) {
         const double other_young = p_neighbour->GetYoung();
         const double my_young = GetYoung();
         arm_length = GetRadius() - indentation * other_young / (other_young + my_young);
@@ -745,7 +745,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
     //LOOP OVER NEIGHBORS:
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
         SphericParticle* ineighbour = mNeighbourElements[i];
-
+        
         if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;        
         if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
         
@@ -783,15 +783,16 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
         const double previous_indentation = indentation + LocalDeltDisp[2];
         
+        
         if (indentation > 0.0) {
             double LocalRelVel[3]            = {0.0};
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);            
-            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding);                      
+            mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding);                      
         }
-
+        
         // Transforming to global forces and adding up
         AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
-        
+                
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
             if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
@@ -1355,8 +1356,8 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             double GlobalElasticContactForce[3],
                                             double ViscoDampingLocalContactForce[3],
                                             const double cohesive_force,
-                                            array_1d<double, 3> &r_elastic_force,
-                                            array_1d<double, 3> &r_contact_force,
+                                            array_1d<double, 3>& r_elastic_force,
+                                            array_1d<double, 3>& r_contact_force,
                                             const unsigned int i_neighbour_count)
 {
     for (unsigned int index = 0; index < 3; index++) {
@@ -1373,6 +1374,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
     DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
+    
 }
 
 void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
