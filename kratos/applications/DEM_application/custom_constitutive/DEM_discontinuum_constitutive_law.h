@@ -108,7 +108,7 @@ namespace Kratos {
         
         virtual void GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt);
         
-        virtual void CalculateForces( ProcessInfo& rCurrentProcessInfo,
+        virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                                         const double OldLocalContactForce[3],
                                                         double LocalElasticContactForce[3],
                                                         double LocalDeltDisp[3],
