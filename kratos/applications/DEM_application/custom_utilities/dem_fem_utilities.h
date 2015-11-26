@@ -30,6 +30,8 @@ namespace Kratos
 
 class DEMFEMUtilities {
     
+    
+    
     public:
 
     typedef ModelPart::ConditionType                                  ConditionType;
@@ -48,11 +50,6 @@ class DEMFEMUtilities {
     /// Destructor
 
     virtual ~DEMFEMUtilities();
-      
-    void CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector);
-      
-    void RotateRightHandedBasisAroundAxis(const array_1d<double, 3 >& e1,  const array_1d<double, 3 >& e2,  const array_1d<double, 3 >& axis, const double ang, 
-                                                  array_1d<double, 3 >& new_axes1, array_1d<double, 3 >& new_axes2, array_1d<double, 3 >& new_axes3);
       
     void MoveAllMeshes(ModelPart& r_model_part, double time, double dt);
 
