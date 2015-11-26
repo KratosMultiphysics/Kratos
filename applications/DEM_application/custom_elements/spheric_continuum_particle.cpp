@@ -99,7 +99,7 @@ namespace Kratos {
         mIniNeighbourFailureId.resize(neighbours_size);
         mMapping_New_Ini.resize(neighbours_size);
 
-        //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
+        //SAVING THE INITIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*> (mNeighbourElements[i]);
@@ -216,7 +216,7 @@ namespace Kratos {
 
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
             double equiv_radius = 2 * GetRadius() * other_radius / (GetRadius() + other_radius);
-            double equiv_area = (0.25) * KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective radius.
+            double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the effective radius.
             total_equiv_area += equiv_area;
 
             mcont_ini_neigh_area[index] = equiv_area; //*
@@ -236,9 +236,9 @@ namespace Kratos {
 
 
 
-        } //for every neighbour
+        } //for every neighbor
 
-        if (cont_ini_neighbours_size >= 4) //more than 3 neigbours. 
+        if (cont_ini_neighbours_size >= 4) //more than 3 neighbors. 
         {
             if (!*mSkinSphere) {
 
@@ -251,7 +251,7 @@ namespace Kratos {
                     mcont_ini_neigh_area[not_skin_index] = alpha * mcont_ini_neigh_area[not_skin_index];
                     not_skin_index++;
 
-                } //for every neighbour
+                } //for every neighbor
 
             }//if(!*mSkinSphere)
 
@@ -266,16 +266,16 @@ namespace Kratos {
                     mcont_ini_neigh_area[skin_index] = alpha * mcont_ini_neigh_area[skin_index];
 
                     skin_index++;
-                } //for every neighbour
+                } //for every neighbor
 
             }//skin particles.
 
-        }//if more than 3 neighbours
+        }//if more than 3 neighbors
 
     } //Contact Area Weighting           
 
     /**
-     * Calculates all particle's ball-to-ball forces based on its neighbours
+     * Calculates all particle's ball-to-ball forces based on its neighbors
      * @param rContactForce
      * @param rContactMoment
      * @param rCurrentProcessInfo
@@ -296,10 +296,10 @@ namespace Kratos {
 
         /* Initializations */
 
-        const array_1d<double, 3>& vel          = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-        const array_1d<double, 3>& ang_vel      = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        const double moment_of_inertia          = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+        const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+        const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
         double RotaAcc[3] = {0.0};
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
@@ -311,13 +311,13 @@ namespace Kratos {
             rInitialRotaMoment[1] = RotaAcc[1] * moment_of_inertia;
             rInitialRotaMoment[2] = RotaAcc[2] * moment_of_inertia;
         }
-
+               
         for (unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
-            
+                                
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i_neighbour_count]);
-
+            
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();
-
+            
             array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             const double &other_radius = neighbour_iterator->GetRadius();
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
@@ -503,10 +503,10 @@ namespace Kratos {
                                                                                         LocalCoordSystem, 
                                                                                         LocalElasticContactForce[2], 
                                                                                         calculation_area);}
-
+            
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                     GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, rElasticForce, rContactForce, i_neighbour_count);
-
+                       
             array_1d<double, 3> temp_force = ZeroVector(3);
         
             temp_force[0] = GlobalContactForce[0];
@@ -536,9 +536,7 @@ namespace Kratos {
                                                         calculation_area);}            
         } //for each neighbor
 
-
         KRATOS_CATCH("")
-
 
     } //ComputeBallToBallContactForce
 
@@ -620,7 +618,6 @@ namespace Kratos {
         mTempNeighboursMapping.resize(temp_size);
         mTempContNeighboursMapping.resize(temp_size);
 
-
         array_1d<double, 3> vector_of_zeros;
         vector_of_zeros[0] = vector_of_zeros[1] = vector_of_zeros[2] = 0.0;
 
@@ -657,7 +654,7 @@ namespace Kratos {
                 }
             }
 
-            //Judge if its neighbor            
+            //Judge if it is neighbor            
             double other_radius = i_neighbour->GetRadius();
             double radius_sum = GetRadius() + other_radius;
             array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
@@ -832,13 +829,11 @@ namespace Kratos {
              mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];
              mNeighbourElasticContactForces[w] = temp_neighbours_contact_forces[w];
            }
-        
-        
 
          KRATOS_CATCH("")
 
          } //ComputeNewNeighboursHistoricalData
-      
+ 
       
      */
 
@@ -900,7 +895,7 @@ namespace Kratos {
                 }
             }
 
-            //Judge if its neighbor                  
+            //Judge if it is neighbor                  
             double indentation = -(DistPToB - GetRadius()) - ini_delta;
 
             if (indentation > 0.0) {
@@ -1076,8 +1071,6 @@ namespace Kratos {
             return;
         }
 
-
-
         KRATOS_CATCH("")
 
     }//calculate
@@ -1178,9 +1171,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo) {
 
-
         externally_applied_force = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-
 
         /*
          double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
@@ -1225,7 +1216,6 @@ namespace Kratos {
 } // namespace Kratos.
 
 
-
 //NOTE::
 /*
  * #1: Here, Initial_delta is expected to be positive if it is embedding and negative if there's a separation.
@@ -1235,12 +1225,6 @@ namespace Kratos {
  * #5: We only store in the initial neighbors array the ones that are cohesive or the ones that have positive or negative initial indentation. In other words,
  *     the non-cohesive ones with 0 indentation (<some tolerance) don't have to be stored since we can treat it indistinctly from other new neighbours that the particle in stury would meet.
  */
-
-
-
-
-
-
 
 //#C2: ComputeParticleRotationSpring;
 
