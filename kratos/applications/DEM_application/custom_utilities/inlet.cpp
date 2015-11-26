@@ -1,21 +1,17 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: Salva $
+//   Last Modified by:    $Author: Salva Latorre$
 //   Date:                $Date: 2014-07-28 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
 
-// System includes
 #include <string>
 #include <iostream>
-
-// External includes
-
-// Project includes
 
 #include "DEM_application.h"
 #include "inlet.h"
 #include "dem_fem_utilities.h"
+#include "GeometryFunctions.h"
 
 namespace Kratos {
     
@@ -46,34 +42,10 @@ namespace Kratos {
     /// Destructor
     
     DEM_Inlet::~DEM_Inlet() {}
-        
-    void DEM_Inlet::CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector) {
-
-        ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
-        ReturnVector[1] = u[2]*v[0] - u[0]*v[2];
-        ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
-    }
-      
-    void DEM_Inlet::RotateRightHandedBasisAroundAxis(const array_1d<double, 3 >& e1,  const array_1d<double, 3 >& e2,  const array_1d<double, 3 >& axis,
-                                                           const double ang, array_1d<double, 3 >& new_axes1, array_1d<double, 3 >& new_axes2,
-                                                           array_1d<double, 3 >& new_axes3) {
-        double cang = cos(ang);
-        double sang = sin(ang);
-            
-        new_axes1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (- axis[2] * e1[1] + axis[1] * e1[2]) * sang;
-        new_axes1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang +   (axis[2] * e1[0] - axis[0] * e1[2]) * sang;
-        new_axes1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (- axis[1] * e1[0] + axis[0] * e1[1]) * sang;
-          
-        new_axes2[0] = axis[0] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[0] * cang + (- axis[2] * e2[1] + axis[1] * e2[2]) * sang;
-        new_axes2[1] = axis[1] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[1] * cang +   (axis[2] * e2[0] - axis[0] * e2[2]) * sang;
-        new_axes2[2] = axis[2] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[2] * cang + (- axis[1] * e2[0] + axis[0] * e2[1]) * sang;  
-            
-        CrossProduct(new_axes1, new_axes2, new_axes3);
-    }
+     
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator) {
         
         unsigned int& max_Id=creator.mMaxNodeId;       
-        
         CreatePropertiesProxies(mFastProperties, mInletModelPart);      
                
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
@@ -143,7 +115,6 @@ namespace Kratos {
                                                              mesh_it->Elements()); 
 		max_Id++;
             }                 
-            
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
         
@@ -264,12 +235,9 @@ namespace Kratos {
                         node_it.Set(NEW_ENTITY, 0);                    
                     }                    
                 }                
-                
             } //loop clusters
         } //loop threads
-        
         mFirstTime=false;
-        
     } //DettachClusters
     
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
@@ -356,76 +324,23 @@ namespace Kratos {
                 const double angular_period = (*mesh_it)[ANGULAR_VELOCITY_PERIOD];
                 array_1d<double, 3> angular_velocity_changed;
                 double time = r_modelpart.GetProcessInfo()[TIME];
-                array_1d<double, 3> angle = ZeroVector(3);
-                double sign_angle = 1.0;
-                array_1d<double, 3> final_angle = ZeroVector(3);
-                
-                if (time < angular_velocity_start_time) angular_velocity_changed = ZeroVector(3);
-
-                else if (((time - angular_velocity_start_time) > 0.0) && ((time - angular_velocity_stop_time) < 0.0)) {
-
-                    if (angular_period > 0.0) {
-                        double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
-                        double inv_angular_omega = 1.0 / angular_omega;
-                        noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
-                        sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
-                        noalias(angular_velocity_changed) = angular_velocity * cos(angular_omega * (time - angular_velocity_start_time));
-                        final_angle = angle;
-                    } else {
-                        noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
-                        angular_velocity_changed = angular_velocity;
-                    }
-                }
-                
-                else { //if ((time - angular_velocity_stop_time) > 0.0) {
-                    angular_velocity_changed = ZeroVector(3);
-
-                    if (angular_period > 0.0) {
-                        angle = final_angle;
-                    } else {
-                        noalias(angle) = angular_velocity * (angular_velocity_stop_time - angular_velocity_start_time);
-                    }
-                }
-                
                 array_1d<double, 3> new_axes1;
-                new_axes1[0] = 1.0;
-                new_axes1[1] = 0.0;
-                new_axes1[2] = 0.0;
-
                 array_1d<double, 3> new_axes2;
-                new_axes2[0] = 0.0;
-                new_axes2[1] = 1.0;
-                new_axes2[2] = 0.0;
-
                 array_1d<double, 3> new_axes3;
-                new_axes3[0] = 0.0;
-                new_axes3[1] = 0.0;
-                new_axes3[2] = 1.0;
-                    
-                if (mod_angular_velocity > 0.0) {
-
-                    double ang = sign_angle * MathUtils<double>::Norm3(angle);
-                    array_1d<double, 3> rotation_axis;
-                    rotation_axis = angular_velocity / mod_angular_velocity;
-                    array_1d<double, 3> e1;
-                    e1[0] = 1.0;
-                    e1[1] = 0.0;
-                    e1[2] = 0.0;
-
-                    array_1d<double, 3> e2;
-                    e2[0] = 0.0;
-                    e2[1] = 1.0;
-                    e2[2] = 0.0;
-
-                    RotateRightHandedBasisAroundAxis(e1, e2, rotation_axis, ang, new_axes1, new_axes2, new_axes3);
-                    array_1d<double, 3> inlet_velocity = mInletModelPart.GetProperties(mesh_number)[INLET_INITIAL_VELOCITY];
-                    mInletModelPart.GetProperties(mesh_number)[VELOCITY] = new_axes1 * inlet_velocity[0] + new_axes2 * inlet_velocity[1] + new_axes3 * inlet_velocity[2];
-                }     
-                                  
-               std::string& ElementNameString = mInletModelPart.GetProperties(mesh_number)[ELEMENT_TYPE];
-               const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+                
+                // The objective of the function call that follows is to rotate the inlet velocity, thus preserving perpendicularity with respect to the inlet plane.
+                // Here we compute the three axis new_axes1, new_axes2, new_axes3 where we will have to project the initial inlet velocity to obtain the actual inlet velocity.
+                GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
+                                                     angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
+                 
+                array_1d<double, 3> inlet_velocity = mInletModelPart.GetProperties(mesh_number)[INLET_INITIAL_VELOCITY];
+                // Dot product to compute the updated inlet velocity from the initial one:
+                mInletModelPart.GetProperties(mesh_number)[VELOCITY] = new_axes1 * inlet_velocity[0] + new_axes2 * inlet_velocity[1] + new_axes3 * inlet_velocity[2];
+                
+                std::string& ElementNameString = mInletModelPart.GetProperties(mesh_number)[ELEMENT_TYPE];
+                const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
                
-               if( mInletModelPart.GetProperties(mesh_number)[CONTAINS_CLUSTERS] == false ) {
+                if (mInletModelPart.GetProperties(mesh_number)[CONTAINS_CLUSTERS] == false) {
                
                     for (int i = 0; i < number_of_particles_to_insert; i++) {
                         creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
@@ -474,4 +389,4 @@ namespace Kratos {
         
     }    //CreateElementsFromInletMesh       
 
-} // namespace Kratos.
+} // namespace Kratos
