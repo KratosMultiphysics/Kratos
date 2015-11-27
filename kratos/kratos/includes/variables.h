@@ -403,13 +403,13 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
 
     // Variables that should be moved to applications (but have too many dependencies)
-    KRATOS_DEFINE_VARIABLE( int, FRACTIONAL_STEP )
-    KRATOS_DEFINE_VARIABLE( double, EQ_STRAIN_RATE );
-    KRATOS_DEFINE_VARIABLE( double, POWER_LAW_N);
-    KRATOS_DEFINE_VARIABLE( double, POWER_LAW_K);
-    KRATOS_DEFINE_VARIABLE( double, YIELD_STRESS );
-    KRATOS_DEFINE_VARIABLE( double, MU );
-    KRATOS_DEFINE_VARIABLE( double, TAU );
+    KRATOS_DEFINE_VARIABLE(int, FRACTIONAL_STEP)
+    KRATOS_DEFINE_VARIABLE(double, EQ_STRAIN_RATE)
+    KRATOS_DEFINE_VARIABLE(double, POWER_LAW_N)
+    KRATOS_DEFINE_VARIABLE(double, POWER_LAW_K)
+    KRATOS_DEFINE_VARIABLE(double, YIELD_STRESS)
+    KRATOS_DEFINE_VARIABLE(double, MU)
+    KRATOS_DEFINE_VARIABLE(double, TAU)
 
     // for Vulcan application
 //     KRATOS_DEFINE_VARIABLE(double,  LAST_AIR)
