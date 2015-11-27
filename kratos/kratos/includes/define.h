@@ -300,8 +300,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_FLAG
 #endif
 #define KRATOS_DEFINE_FLAG(name) \
-    extern const API Kratos::Flags name;     \
-    extern const API Kratos::Flags NOT_##name
+    extern const Kratos::Flags name;     \
+    extern const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
 #undef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
