@@ -319,30 +319,29 @@ public:
     }
     
     
-   static inline bool DistanceHierarchy(SphericParticle* rObj_1, DEMWall* rObj_2, double LocalCoordSystem[3][3], double DistPToB, std::vector< double > Weight, int ContactType)
+   static inline bool DistanceHierarchy(SphericParticle* rObj_1, DEMWall* rObj_2, double LocalCoordSystem[3][3], double DistPToB, std::vector<double> Weight, int ContactType)
    {
+        std::vector<double>& RF_Param = rObj_1->mNeighbourRigidFacesPram;  //NOTE: THIS member has to be cleared every time step. It is done in: the SphericParticle Function: ComputeNewRigidFaceNeighboursHistoricalData
 
-       std::vector<double>& RF_Param = rObj_1->mNeighbourRigidFacesPram;  //NOTE: THIS member has to be cleared every timestep. It is done in: the SphericParticle Function: ComputeNewRigidFaceNeighboursHistoricalData
+        int new_ID = rObj_2->Id();
 
-       int new_ID = rObj_2->Id();
+        std::size_t i_current = RF_Param.size();
+        std::size_t neighbor_size = i_current / 16;
 
-       std::size_t i_current = RF_Param.size();
-       std::size_t neighbor_size = i_current / 16;
+        bool substitute = false;
+        int  position   = i_current;
 
-       bool substitute = false;
-       int  position   = i_current;
+        for (std::size_t i_old_neigh = 0; i_old_neigh < neighbor_size; i_old_neigh++)
+        {
+            int i_Old_RF_position = i_old_neigh * 16;
 
-       for(std::size_t i_old_neigh = 0; i_old_neigh < neighbor_size; i_old_neigh++)
-       {
-           int i_Old_RF_position = i_old_neigh * 16;
+            double Old_Normal_Vector[3] = {0.0};
+            Old_Normal_Vector[0] = RF_Param[i_Old_RF_position + 6];
+            Old_Normal_Vector[1] = RF_Param[i_Old_RF_position + 7];
+            Old_Normal_Vector[2] = RF_Param[i_Old_RF_position + 8];
 
-           double Old_Normal_Vector[3] = {0.0};
-           Old_Normal_Vector[0] = RF_Param[i_Old_RF_position + 6];
-           Old_Normal_Vector[1] = RF_Param[i_Old_RF_position + 7];
-           Old_Normal_Vector[2] = RF_Param[i_Old_RF_position + 8];
-
-           double New_dist = DistPToB;
-           double Old_dist = RF_Param[i_Old_RF_position + 9];
+            double New_dist = DistPToB;
+            double Old_dist = RF_Param[i_Old_RF_position + 9];
 
            double New_projected_on_old = GeometryFunctions::DotProduct(LocalCoordSystem[2], Old_Normal_Vector);
            double New_projected_distance = New_projected_on_old * New_dist;
@@ -378,29 +377,10 @@ public:
            if ( ( (Old_projected_distance-New_dist )  / fabs(New_dist) ) > -1.0e-15 )  //new has hierarchy over old
            {
              int old_ID = RF_Param[i_Old_RF_position + 14];
-             if(new_ID == old_ID) //SUBSTITUTE
+             if (new_ID == old_ID) //SUBSTITUTE
              {
                 position = i_Old_RF_position;
                 substitute = true;
-                if(RF_Param[i_Old_RF_position + 15] != 2)
-                {
-                  KRATOS_WATCH("SOMETHING WRONG? CHECK:")
-                  KRATOS_WATCH(rObj_1->Id())
-                  KRATOS_WATCH(rObj_1->GetGeometry()[0].Coordinates()[0])
-                  KRATOS_WATCH(rObj_1->GetGeometry()[0].Coordinates()[1])
-                  KRATOS_WATCH(rObj_1->GetGeometry()[0].Coordinates()[2])
-                  KRATOS_WATCH(rObj_2->Id())
-                  KRATOS_WATCH(rObj_2->GetGeometry()[0].Coordinates()[0])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[0].Coordinates()[1])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[0].Coordinates()[2])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[1].Coordinates()[0])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[1].Coordinates()[1])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[1].Coordinates()[2])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[2].Coordinates()[0])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[2].Coordinates()[1])
-                  KRATOS_WATCH(rObj_2->GetGeometry()[2].Coordinates()[2])
-                  
-                }
              }
              else
              {
@@ -525,8 +505,8 @@ public:
               if(eta<0.0){ vertex_to_check = e;}
               else if(eta>1.0){ vertex_to_check = (e+1)%FE_size;}
               else{continue;}
-              double distance_point_to_vertex;
-              local_contact_exists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
+              double distance_point_to_vertex = 0.0;
+              local_contact_exists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
 
               if(local_contact_exists)
               {
@@ -595,7 +575,7 @@ public:
         unsigned int vertex_to_check = -1;
         if(eta<0.0){ vertex_to_check = 0;}
         else if(eta>1.0){ vertex_to_check = 1;}
-        double distance_point_to_vertex;
+        double distance_point_to_vertex = 0.0;
         ContactExists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
 
         if(ContactExists)
