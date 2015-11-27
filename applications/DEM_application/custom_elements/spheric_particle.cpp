@@ -473,13 +473,13 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
     GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coordinate System (normalizes other_to_me_vect)
 
     // FORMING OLD LOCAL COORDINATES
-    array_1d<double,3> old_coord_target;
+    array_1d<double, 3> old_coord_target;
     noalias(old_coord_target) = this->GetGeometry()[0].Coordinates() - delta_displ;
-    const array_1d<double, 3 >& other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-    array_1d<double,3> old_coord_neigh;
+    const array_1d<double, 3>& other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+    array_1d<double, 3> old_coord_neigh;
     noalias(old_coord_neigh) = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
 
-    array_1d<double,3> old_other_to_me_vect;
+    array_1d<double, 3> old_other_to_me_vect;
     noalias(old_other_to_me_vect) = old_coord_target - old_coord_neigh;
 
     const double old_distance = DEM_MODULUS_3(old_other_to_me_vect);
