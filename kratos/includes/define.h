@@ -212,13 +212,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_VARIABLE
 #endif
 #define KRATOS_DEFINE_VARIABLE(type, name) \
-    KRATOS_DEFINE_VARIABLE_IMPLEMETATION((KRATOS_CORE), type, name)
+    KRATOS_DEFINE_VARIABLE_IMPLEMETATION(KRATOS_CORE, type, name)
 
 #ifdef KRATOS_DEFINE_APPLICATION_VARIABLE
 #undef KRATOS_DEFINE_APPLICATION_VARIABLE
 #endif
 #define KRATOS_DEFINE_APPLICATION_VARIABLE(application, type, name) \
-    KRATOS_DEFINE_VARIABLE_IMPLEMETATION((application), type, name)
+    KRATOS_API(application) extern Variable<type > name;
 
 #ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
@@ -233,13 +233,16 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #endif
 #define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(name) \
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION((KRATOS_CORE), name)
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(KRATOS_CORE, name)
 
 #ifdef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
 #endif
 #define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION((application), name)
+  KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
+  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_X;\
+  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Y;\
+  KRATOS_API(application) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Z;
 
 #ifdef KRATOS_CREATE_VARIABLE
 #undef KRATOS_CREATE_VARIABLE
