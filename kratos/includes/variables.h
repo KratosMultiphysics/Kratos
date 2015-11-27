@@ -1,22 +1,22 @@
 // Kratos Multi-Physics
-// 
+//
 // Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
+//
 // 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
 // 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
 // 			This product includes Kratos Multi-Physics technology.
 // 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
@@ -42,25 +42,19 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
-#include "includes/kratos_export_dll.h"
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 namespace Kratos
 {
-
     //Define Variables by type:
 
     //bools
 
-
-
     //ints
 
-    //for General kratos application: 
+    //for General kratos application:
     KRATOS_DEFINE_VARIABLE( int, LOAD_RESTART )
     KRATOS_DEFINE_VARIABLE( int, TIME_STEPS )
     KRATOS_DEFINE_VARIABLE( int, RIGID_BODY_ID )
@@ -86,7 +80,7 @@ namespace Kratos
 
     //doubles
 
-    //for General kratos application: 
+    //for General kratos application:
     KRATOS_DEFINE_VARIABLE( double, TIME )
     KRATOS_DEFINE_VARIABLE( double, START_TIME )
     KRATOS_DEFINE_VARIABLE( double, END_TIME )
@@ -113,7 +107,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, INTERNAL_ENERGY )
   KRATOS_DEFINE_VARIABLE( double, STRAIN_ENERGY )
     KRATOS_DEFINE_VARIABLE( double, EXTERNAL_ENERGY )
-    
+
 
     KRATOS_DEFINE_VARIABLE( double, STABILIZATION_FACTOR )
 
@@ -158,7 +152,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRAIN )
     KRATOS_DEFINE_VARIABLE( double, COEFFICIENT_THERMAL_EXPANSION )
     KRATOS_DEFINE_VARIABLE( double, CHARACTERISTIC_LENGTH_MULTIPLIER )
-    
+
     //AdjointFluidApplication
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VELOCITY )
     KRATOS_DEFINE_VARIABLE(double, ADJOINT_PRESSURE )
@@ -192,7 +186,7 @@ namespace Kratos
 
 
 
-    //for PFEM fluids application: 
+    //for PFEM fluids application:
     KRATOS_DEFINE_VARIABLE( double, NODAL_AREA )
 
     KRATOS_DEFINE_VARIABLE( double, BULK_MODULUS )
@@ -222,8 +216,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, NODAL_MASS )
     KRATOS_DEFINE_VARIABLE( double, AUX_INDEX )
     KRATOS_DEFINE_VARIABLE( double, VELOCITY_PERIOD )
-    KRATOS_DEFINE_VARIABLE( double, ANGULAR_VELOCITY_PERIOD )        
-    KRATOS_DEFINE_VARIABLE( std::string, IDENTIFIER )  
+    KRATOS_DEFINE_VARIABLE( double, ANGULAR_VELOCITY_PERIOD )
+    KRATOS_DEFINE_VARIABLE( std::string, IDENTIFIER )
 
     //for Other applications:
     KRATOS_DEFINE_VARIABLE( double, ARRHENIUS )
@@ -269,7 +263,7 @@ namespace Kratos
 
     KRATOS_DEFINE_VARIABLE( double, SWITCH_TEMPERATURE )
     KRATOS_DEFINE_VARIABLE( double, NODAL_SWITCH )
-      
+
     //for Xfem application:
     KRATOS_DEFINE_VARIABLE( double, CRACK_OPENING )
     KRATOS_DEFINE_VARIABLE( double, CRACK_TRANSLATION )
@@ -279,7 +273,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, MAX_DT )
     KRATOS_DEFINE_VARIABLE( double, VEL_ART_VISC )
     KRATOS_DEFINE_VARIABLE( double, PR_ART_VISC )
-   
+
 //     //for Vulcan application
     KRATOS_DEFINE_VARIABLE( double, LATENT_HEAT )
 //     KRATOS_DEFINE_VARIABLE( double, SOLID_TEMPERATURE )
@@ -296,7 +290,7 @@ namespace Kratos
 
     //vectors
 
-    //for General kratos application: 
+    //for General kratos application:
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ROTATION )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( DELTA_ROTATION )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( TORQUE )
@@ -332,7 +326,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Vector, LOAD_LABELS )
     KRATOS_DEFINE_VARIABLE( Vector, LOAD_MESHES )
 
-    //for Structural application: 
+    //for Structural application:
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MOMENTUM )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_DISPLACEMENT )
 
@@ -381,7 +375,7 @@ namespace Kratos
 
     //matrices
 
-    //for General kratos application: 
+    //for General kratos application:
     KRATOS_DEFINE_VARIABLE( Matrix, GREEN_LAGRANGE_STRAIN_TENSOR )
     KRATOS_DEFINE_VARIABLE( Matrix, PK2_STRESS_TENSOR )
     KRATOS_DEFINE_VARIABLE( Matrix, CAUCHY_STRESS_TENSOR )
@@ -391,15 +385,15 @@ namespace Kratos
     //for Structural application:
     KRATOS_DEFINE_VARIABLE( Matrix, INERTIA )
 
-    //for General kratos application: 
+    //for General kratos application:
     //KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW )
 
 
     //for Structural application:
     //KRATOS_DEFINE_VARIABLE( WeakPointerVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
     //KRATOS_DEFINE_VARIABLE( ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS )
-    //KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )           
-            
+    //KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )
+
     KRATOS_DEFINE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
 
     // Variables that should be moved to applications (but have too many dependencies)
@@ -435,8 +429,8 @@ namespace Kratos
 //     KRATOS_DEFINE_VARIABLE(double, POSETIVE_DISTANCE)
 //     KRATOS_DEFINE_VARIABLE(double, NAGATIVE_DISTANCE)
 //     KRATOS_DEFINE_VARIABLE(bool, IS_ESCAPED)
-//     KRATOS_DEFINE_VARIABLE(int, IS_SOLIDIFIED)  
-//     KRATOS_DEFINE_VARIABLE(double, SOLIDFRACTION ) 
+//     KRATOS_DEFINE_VARIABLE(int, IS_SOLIDIFIED)
+//     KRATOS_DEFINE_VARIABLE(double, SOLIDFRACTION )
 //     KRATOS_DEFINE_VARIABLE(double, SOLIDIF_TIME  )
 //     KRATOS_DEFINE_VARIABLE(double, SOLIDIF_MODULUS  )
 //     KRATOS_DEFINE_VARIABLE(double, FILLTIME  )
@@ -444,8 +438,8 @@ namespace Kratos
 //     KRATOS_DEFINE_VARIABLE(double, SHRINKAGE_POROSITY  )
 //     KRATOS_DEFINE_VARIABLE(double, MAX_VEL  )
 //     KRATOS_DEFINE_VARIABLE(int, IS_GRAVITY_FILLING)
-//     KRATOS_DEFINE_VARIABLE(double,VOLUME_FRACTION ) 
-//     KRATOS_DEFINE_VARIABLE(double,KAPPA ) 
+//     KRATOS_DEFINE_VARIABLE(double,VOLUME_FRACTION )
+//     KRATOS_DEFINE_VARIABLE(double,KAPPA )
 //     KRATOS_DEFINE_VARIABLE(double,EPSILON )
 //     KRATOS_DEFINE_VARIABLE(double,SHRINKAGE_POROSITY_US)
 //     KRATOS_DEFINE_VARIABLE(double,SOLIDIF_MODULUS_US)
@@ -454,10 +448,7 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-// Resotre the default defines
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
-#endif // KRATOS_VARIABLES_H_INCLUDED  defined 
+#endif // KRATOS_VARIABLES_H_INCLUDED  defined

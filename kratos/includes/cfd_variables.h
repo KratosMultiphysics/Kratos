@@ -41,12 +41,9 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
-#include "includes/kratos_export_dll.h"
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 //TODO: move to the FluidDynamics application
 namespace Kratos
@@ -76,11 +73,7 @@ namespace Kratos
 
 } // namespace Kratos
 
-
-// Resotre the default defines
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 #endif // KRATOS_CFD_VARIABLES_H_INCLUDED  defined

@@ -1,22 +1,22 @@
 // Kratos Multi-Physics
-// 
+//
 // Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
+//
 // 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
 // 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
 // 			This product includes Kratos Multi-Physics technology.
 // 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
@@ -42,12 +42,9 @@
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
-#include "includes/kratos_export_dll.h"
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 //TODO: move to the Kratos DEM_application or eventually to the FluidDynamicsAsNeeded
 namespace Kratos
@@ -70,16 +67,16 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( vector<int>, CONTINUUM_INI_NEIGHBOURS_IDS )
     KRATOS_DEFINE_VARIABLE( vector<int>, NEIGHBOURS_IDS )
     KRATOS_DEFINE_VARIABLE( vector<int>, PARTICLE_INITIAL_FAILURE_ID )
-    KRATOS_DEFINE_VARIABLE( vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID )   
-            
-    KRATOS_DEFINE_VARIABLE( int, FIXED_MESH_OPTION)  
+    KRATOS_DEFINE_VARIABLE( vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID )
+
+    KRATOS_DEFINE_VARIABLE( int, FIXED_MESH_OPTION)
     KRATOS_DEFINE_VARIABLE( int, PARTICLE_MATERIAL )
-            
+
     KRATOS_DEFINE_VARIABLE( std::string, ELEMENT_TYPE )
-            
+
     typedef vector<array_1d<double,3> > VectorArray3Double;
     KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
-            
+
     // Swimming DEM Application BEGINNING
     KRATOS_DEFINE_VARIABLE( int, NON_NEWTONIAN_OPTION )
     KRATOS_DEFINE_VARIABLE( int, MANUALLY_IMPOSED_DRAG_LAW_OPTION )
@@ -127,15 +124,9 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PHASE_FRACTION_GRADIENT )
     // Swimming DEM Application END
 
-
 }  // namespace Kratos.
 
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
-
-// Resotre the default defines
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
-
-#endif // KRATOS_DEM_VARIABLES_H_INCLUDED  defined 
+#endif // KRATOS_DEM_VARIABLES_H_INCLUDED  defined

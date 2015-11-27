@@ -95,7 +95,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_EXPORT_DLL Timer
+class KRATOS_API(KRATOS_CORE) Timer
 {
     class TimerData
     {

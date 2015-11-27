@@ -69,7 +69,7 @@ namespace Kratos
 */
 
 template<class TComponentType>
-class KRATOS_EXPORT_DLL KratosComponents
+class KRATOS_API(KRATOS_CORE) KratosComponents
 {
 
 public:
@@ -277,7 +277,7 @@ private:
 
 ///@}
 template<>
-class KRATOS_EXPORT_DLL KratosComponents<VariableData>
+class KRATOS_API(KRATOS_CORE) KratosComponents<VariableData>
 {
 public:
 
@@ -484,17 +484,17 @@ private:
 }; // Class KratosComponents
 
 
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<bool> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<int> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<unsigned int> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<double> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<array_1d<double, 3> > >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<Vector> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<Matrix> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<std::string> >;
-template class KRATOS_EXPORT_DLL KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KRATOS_EXPORT_DLL KratosComponents<Variable<Flags> >;
-template class KRATOS_EXPORT_DLL KratosComponents<Flags>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
 
 #ifdef KratosCore_EXPORTS
 template<class TComponentType>
@@ -524,17 +524,17 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<bool> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<int> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<unsigned int> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<double> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<array_1d<double, 3> > const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<std::string> const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Flags const& ThisComponent);
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<bool> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<int> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<unsigned int> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<double> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<array_1d<double, 3> > const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Vector> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<std::string> const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Flags const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent);
 
 template<class TComponentType> void AddKratosComponent(std::string const& Name, TComponentType const& ThisComponent)
 {

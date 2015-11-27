@@ -6,7 +6,7 @@
 *
 */
 
-#include "includes/kratos_export_dll.h"
+#include "includes/kratos_export_api.h"
 
 #ifndef MM_IO_H
 #define MM_IO_H
@@ -17,15 +17,15 @@
 
 typedef char MM_typecode[4];
 
-KRATOS_EXPORT_DLL char *mm_typecode_to_str(MM_typecode matcode);
+KRATOS_API(KRATOS_CORE) char *mm_typecode_to_str(MM_typecode matcode);
 
-KRATOS_EXPORT_DLL int mm_read_banner(FILE *f, MM_typecode *matcode);
-KRATOS_EXPORT_DLL int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz);
-KRATOS_EXPORT_DLL int mm_read_mtx_array_size(FILE *f, int *M, int *N);
+KRATOS_API(KRATOS_CORE) int mm_read_banner(FILE *f, MM_typecode *matcode);
+KRATOS_API(KRATOS_CORE) int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz);
+KRATOS_API(KRATOS_CORE) int mm_read_mtx_array_size(FILE *f, int *M, int *N);
 
-KRATOS_EXPORT_DLL int mm_write_banner(FILE *f, MM_typecode matcode);
-KRATOS_EXPORT_DLL int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
-KRATOS_EXPORT_DLL int mm_write_mtx_array_size(FILE *f, int M, int N);
+KRATOS_API(KRATOS_CORE) int mm_write_banner(FILE *f, MM_typecode matcode);
+KRATOS_API(KRATOS_CORE) int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
+KRATOS_API(KRATOS_CORE) int mm_write_mtx_array_size(FILE *f, int M, int N);
 
 
 /********************* MM_typecode query fucntions ***************************/
@@ -47,7 +47,7 @@ KRATOS_EXPORT_DLL int mm_write_mtx_array_size(FILE *f, int M, int N);
 #define mm_is_skew(typecode)	((typecode)[3]=='K')
 #define mm_is_hermitian(typecode)((typecode)[3]=='H')
 
-KRATOS_EXPORT_DLL int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
+KRATOS_API(KRATOS_CORE) int mm_is_valid(MM_typecode matcode);		/* too complex for a macro */
 
 
 /********************* MM_typecode modify fucntions ***************************/

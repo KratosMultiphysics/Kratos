@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-class KRATOS_EXPORT_DLL HexahedraGaussianIntegrationPoints1
+class KRATOS_API(KRATOS_CORE) HexahedraGaussianIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedraGaussianIntegrationPoints1);
@@ -109,7 +109,7 @@ private:
 
 }; // Class HexahedraGaussianIntegrationPoints1
 
-class KRATOS_EXPORT_DLL HexahedraGaussianIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) HexahedraGaussianIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedraGaussianIntegrationPoints2);
@@ -157,7 +157,7 @@ private:
 
 }; // Class HexahedraGaussianIntegrationPoints2
 
-class KRATOS_EXPORT_DLL HexahedraGaussianIntegrationPoints3
+class KRATOS_API(KRATOS_CORE) HexahedraGaussianIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexahedraGaussianIntegrationPoints3);

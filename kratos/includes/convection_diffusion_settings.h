@@ -47,7 +47,7 @@ namespace Kratos
 ///@{
 
 /// Convection diffusion settings. This class contains information to be used by the convection diffusion solver, all the variables that will be needed by the solver.
-/** All the variables needed by any convection diffusion problem are included here. However, many problems do not require such a large ammount of variables. 
+/** All the variables needed by any convection diffusion problem are included here. However, many problems do not require such a large ammount of variables.
  * For those cases, variables that are not defined will be set to either zero or one (depending on the varible)
  * For this purpouse, there are flags to ask wether a varible has been defined or not. For each variable, there are three main functions.
  * SetVaribleforXuse: we assing the varible for this use. When doing that we also set the flag that now this variable has been defined.
@@ -70,17 +70,17 @@ public:
     /// Default constructor.
     ConvectionDiffusionSettings()
      {
-		mis_defined_DensityVar=false; 
-		mis_defined_DiffusionVar=false; 
-		mis_defined_UnknownVar=false; 
-		mis_defined_VolumeSourceVar=false; 
-		mis_defined_SurfaceSourceVar=false; 
-		mis_defined_ProjectionVar=false; 
-		mis_defined_ConvectionVar=false; 
-		mis_defined_MeshVelocityVar=false; 
-		mis_defined_TransferCoefficientVar=false; 
-		mis_defined_VelocityVar=false; 
-		mis_defined_SpecificHeatVar=false; 
+		mis_defined_DensityVar=false;
+		mis_defined_DiffusionVar=false;
+		mis_defined_UnknownVar=false;
+		mis_defined_VolumeSourceVar=false;
+		mis_defined_SurfaceSourceVar=false;
+		mis_defined_ProjectionVar=false;
+		mis_defined_ConvectionVar=false;
+		mis_defined_MeshVelocityVar=false;
+		mis_defined_TransferCoefficientVar=false;
+		mis_defined_VelocityVar=false;
+		mis_defined_SpecificHeatVar=false;
 	 };
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
@@ -117,7 +117,7 @@ public:
     void SetDensityVariable(const Variable<double>& rvar)
     {
         mpDensityVar = &rvar;
-        mis_defined_DensityVar=true; 
+        mis_defined_DensityVar=true;
     }
     const Variable<double>& GetDensityVariable()
     {
@@ -131,7 +131,7 @@ public:
     void SetDiffusionVariable(const Variable<double>& rvar)
     {
         mpDiffusionVar = &rvar;
-		mis_defined_DiffusionVar=true; 
+		mis_defined_DiffusionVar=true;
     }
     const Variable<double>& GetDiffusionVariable()
     {
@@ -145,7 +145,7 @@ public:
     void SetUnknownVariable(const Variable<double>& rvar)
     {
         mpUnknownVar = &rvar;
-		mis_defined_UnknownVar=true; 
+		mis_defined_UnknownVar=true;
     }
     const Variable<double>& GetUnknownVariable()
     {
@@ -159,7 +159,7 @@ public:
     void SetVolumeSourceVariable(const Variable<double>& rvar)
     {
         mpVolumeSourceVar = &rvar;
-		mis_defined_VolumeSourceVar=true; 
+		mis_defined_VolumeSourceVar=true;
     }
     const Variable<double>& GetVolumeSourceVariable()
     {
@@ -173,7 +173,7 @@ public:
     void SetSurfaceSourceVariable(const Variable<double>& rvar)
     {
         mpSurfaceSourceVar = &rvar;
-		mis_defined_SurfaceSourceVar=true; 
+		mis_defined_SurfaceSourceVar=true;
     }
     const Variable<double>& GetSurfaceSourceVariable()
     {
@@ -187,7 +187,7 @@ public:
     void SetProjectionVariable(const Variable<double>& rvar)
     {
         mpProjectionVar = &rvar;
-		mis_defined_ProjectionVar=true; 
+		mis_defined_ProjectionVar=true;
     }
     const Variable<double>& GetProjectionVariable()
     {
@@ -201,7 +201,7 @@ public:
     void SetConvectionVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpConvectionVar = &rvar;
-		mis_defined_ConvectionVar=true; 
+		mis_defined_ConvectionVar=true;
     }
     const Variable<array_1d<double,3> >& GetConvectionVariable()
     {
@@ -215,7 +215,7 @@ public:
     void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpMeshVelocityVar = &rvar;
-		mis_defined_MeshVelocityVar=true; 
+		mis_defined_MeshVelocityVar=true;
     }
     const Variable<array_1d<double,3> >& GetMeshVelocityVariable()
     {
@@ -229,7 +229,7 @@ public:
     void SetTransferCoefficientVariable(const Variable<double>& rvar)
     {
         mpTransferCoefficientVar = &rvar;
-		mis_defined_TransferCoefficientVar=true; 
+		mis_defined_TransferCoefficientVar=true;
     }
     const Variable<double>& GetTransferCoefficientVariable()
     {
@@ -239,11 +239,11 @@ public:
     {
 		return mis_defined_TransferCoefficientVar;
 	}
-   
+
     void SetVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpVelocityVar = &rvar;
-		mis_defined_VelocityVar=true; 
+		mis_defined_VelocityVar=true;
     }
     const Variable<array_1d<double,3> >& GetVelocityVariable()
     {
@@ -257,7 +257,7 @@ public:
     void SetSpecificHeatVariable(const Variable<double>& rvar)
     {
         mpSpecificHeatVar = &rvar;
-		mis_defined_SpecificHeatVar=true; 
+		mis_defined_SpecificHeatVar=true;
     }
     const Variable<double>& GetSpecificHeatVariable()
     {
@@ -290,18 +290,18 @@ public:
 		mpSpecificHeatVar = rOther.mpSpecificHeatVar;
         mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         //now the is_defined
-        mis_defined_DensityVar = rOther.mis_defined_DensityVar; 
-		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar; 
-		mis_defined_UnknownVar = rOther.mis_defined_UnknownVar; 
-		mis_defined_VolumeSourceVar = rOther.mis_defined_VolumeSourceVar; 
-		mis_defined_SurfaceSourceVar = rOther.mis_defined_SurfaceSourceVar; 
-		mis_defined_ProjectionVar = rOther.mis_defined_ProjectionVar; 
-		mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar; 
-		mis_defined_MeshVelocityVar = rOther.mis_defined_MeshVelocityVar; 
-		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar; 
-		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar; 
-		mis_defined_SpecificHeatVar = rOther.mis_defined_SpecificHeatVar; 
-        
+        mis_defined_DensityVar = rOther.mis_defined_DensityVar;
+		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar;
+		mis_defined_UnknownVar = rOther.mis_defined_UnknownVar;
+		mis_defined_VolumeSourceVar = rOther.mis_defined_VolumeSourceVar;
+		mis_defined_SurfaceSourceVar = rOther.mis_defined_SurfaceSourceVar;
+		mis_defined_ProjectionVar = rOther.mis_defined_ProjectionVar;
+		mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
+		mis_defined_MeshVelocityVar = rOther.mis_defined_MeshVelocityVar;
+		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar;
+		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
+		mis_defined_SpecificHeatVar = rOther.mis_defined_SpecificHeatVar;
+
         return *this;
     }
 
@@ -361,17 +361,17 @@ protected:
     const Variable<double>* mpTransferCoefficientVar;
     const Variable<array_1d<double,3> >* mpVelocityVar;
     const Variable<double>* mpSpecificHeatVar;
-    bool mis_defined_DensityVar; 
-    bool mis_defined_DiffusionVar; 
-    bool mis_defined_UnknownVar; 
-    bool mis_defined_VolumeSourceVar; 
-    bool mis_defined_SurfaceSourceVar; 
-    bool mis_defined_ProjectionVar; 
+    bool mis_defined_DensityVar;
+    bool mis_defined_DiffusionVar;
+    bool mis_defined_UnknownVar;
+    bool mis_defined_VolumeSourceVar;
+    bool mis_defined_SurfaceSourceVar;
+    bool mis_defined_ProjectionVar;
     bool mis_defined_ConvectionVar;
-    bool mis_defined_MeshVelocityVar;  
-    bool mis_defined_TransferCoefficientVar; 
-    bool mis_defined_VelocityVar; 
-    bool mis_defined_SpecificHeatVar; 
+    bool mis_defined_MeshVelocityVar;
+    bool mis_defined_TransferCoefficientVar;
+    bool mis_defined_VelocityVar;
+    bool mis_defined_SpecificHeatVar;
 
     ///@}
     ///@name Protected Operators
@@ -432,8 +432,8 @@ private:
         rSerializer.save("ConvectionVar",mpConvectionVar);
         rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
         rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
-	rSerializer.save("VelocityVar",mpVelocityVar);
- 	rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
+		rSerializer.save("VelocityVar",mpVelocityVar);
+ 		rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
 
 // 	  rSerializer.save("",);
     }
@@ -450,9 +450,7 @@ private:
         rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
         rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
         rSerializer.load("VelocityVar",mpVelocityVar);
-	rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
-
-
+		rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
     }
 
 
@@ -513,23 +511,14 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
-
-
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 KRATOS_DEFINE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSION_SETTINGS)
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED  defined 
-
-
+#endif // KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED  defined

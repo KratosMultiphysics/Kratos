@@ -68,7 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints1
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints1);
@@ -109,7 +109,7 @@ private:
 }; // Class QuadrilateralGaussianIntegrationPoints1
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints2);
@@ -151,7 +151,7 @@ private:
 }; // Class QuadrilateralGaussianIntegrationPoints2
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints3
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints3);
@@ -195,7 +195,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints4
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints4);
@@ -240,7 +240,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints5
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints5);
@@ -286,7 +286,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints6
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints6
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints6);
@@ -333,7 +333,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints7
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints7
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints7);
@@ -381,7 +381,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints8
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints8
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints8);
@@ -430,7 +430,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints9
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints9
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints9);
@@ -480,7 +480,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints10
+class KRATOS_API(KRATOS_CORE) GaussLegendreIntegrationPoints10
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints10);

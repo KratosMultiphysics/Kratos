@@ -421,7 +421,7 @@ public:
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
-	
+
 	// Deep copying the dofs
         for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
            pAddDof(*i_dof);
@@ -1252,8 +1252,8 @@ private:
 
 ///@}
 
-//template class KRATOS_EXPORT_DLL KratosComponents<Node<3,double> >;
-//template class KRATOS_EXPORT_DLL KratosComponents<Node<3,double>::Pointer >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node<3,double> >;
+// template class KRATOS_API(KRATOS_CORE) KratosComponents<Node<3,double>::Pointer >;
 
 ///@name Type Definitions
 ///@{
@@ -1289,16 +1289,16 @@ inline std::ostream& operator << (std::ostream& rOStream,
 //*********************************************************************************
 //*********************************************************************************
 //*********************************************************************************
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
+
 KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, NEIGHBOUR_NODES)
 KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
+
 
 //     namespace Globals
 //     {
@@ -1309,6 +1309,4 @@ KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_NODE_H_INCLUDED  defined
