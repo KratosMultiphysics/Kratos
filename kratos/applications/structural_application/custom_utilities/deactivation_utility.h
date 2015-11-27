@@ -74,6 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/kratos_flags.h"
+#include "utilities/openmp_utils.h"
 #include "structural_application.h"
 
 namespace Kratos
@@ -135,12 +136,13 @@ public:
      */
     void Initialize( ModelPart& model_part )
     {
+        #ifndef _OPENMP
         if(mEchoLevel > 0)
             std::cout << "initializing deactivation utility" << std::endl;
 
         //initializing elements
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
-                it!=model_part.Elements().ptr_end(); ++it)
+                it!=model_part.Elements().ptr_end(); ++it )
         {
             if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 )
             {
@@ -155,7 +157,7 @@ public:
             (*it)->Initialize();
         }
         for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
-                it != model_part.Conditions().ptr_end(); ++it)
+                it != model_part.Conditions().ptr_end(); ++it )
         {
             if( (*it)->GetValue(IS_CONTACT_MASTER) || (*it)->GetValue(IS_CONTACT_SLAVE) )
             {
@@ -173,6 +175,68 @@ public:
             }
             (*it)->Initialize();
         }
+        #else
+        if(mEchoLevel > 0)
+            std::cout << "multithreaded initializing deactivation utility" << std::endl;
+
+        int number_of_threads = omp_get_max_threads();
+
+        vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, model_part.Elements().size(), element_partition);
+
+        vector<unsigned int> condition_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, model_part.Conditions().size(), condition_partition);
+
+        #pragma omp parallel for
+        for(int k = 0; k < number_of_threads; ++k)
+        {
+            typename ElementsArrayType::ptr_iterator it_begin = model_part.Elements().ptr_begin() + element_partition[k];
+            typename ElementsArrayType::ptr_iterator it_end = model_part.Elements().ptr_begin() + element_partition[k + 1];
+
+            for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            {
+                if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 )
+                {
+                    (*it)->SetValue(IS_INACTIVE, true);
+                    (*it)->Set(ACTIVE, false);
+                }
+                else
+                {
+                    (*it)->SetValue(IS_INACTIVE, false);
+                    (*it)->Set(ACTIVE, true);
+                }
+//                std::cout << "element of type " << typeid(*(*it)).name() << " Id = " << (*it)->Id() << " is going to be initialized" << std::endl;
+                (*it)->Initialize();
+            }
+        }
+
+        #pragma omp parallel for
+        for(int k = 0; k < number_of_threads; ++k)
+        {
+            typename ConditionsArrayType::ptr_iterator it_begin = model_part.Conditions().ptr_begin() + condition_partition[k];
+            typename ConditionsArrayType::ptr_iterator it_end = model_part.Conditions().ptr_begin() + condition_partition[k + 1];
+
+            for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            {
+                if( (*it)->GetValue(IS_CONTACT_MASTER) || (*it)->GetValue(IS_CONTACT_SLAVE) )
+                {
+                    (*it)->SetValue(ACTIVATION_LEVEL, 0 );
+                }
+                if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 )
+                {
+                    (*it)->SetValue(IS_INACTIVE, true);
+                    (*it)->Set(ACTIVE, false);
+                }
+                else
+                {
+                    (*it)->SetValue(IS_INACTIVE, false);
+                    (*it)->Set(ACTIVE, true);
+                }
+//                std::cout << "condition of type " << typeid(*(*it)).name() << " Id = " << (*it)->Id() << " is going to be initialized" << std::endl;
+                (*it)->Initialize();
+            }
+        }
+        #endif
 
         if(mEchoLevel > 0)
             std::cout << "deactivation utility initialized" << std::endl;
@@ -313,6 +377,13 @@ public:
         }
 
         KRATOS_CATCH("");
+    }
+
+    /// Get name from an abject
+    template<class Object>
+    std::string GetName(const Object& o)
+    {
+        return std::string(typeid(o).name());
     }
 
     /**
