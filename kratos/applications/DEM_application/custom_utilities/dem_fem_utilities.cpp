@@ -28,8 +28,6 @@
 
 namespace Kratos
 {
-    //using namespace GeometryFunctions;
-    
     // Constructor
     //DEMFEMUtilities::DEMFEMUtilities() {}
 
@@ -94,26 +92,16 @@ namespace Kratos
         }
     }
             
-        /// Turn back information as a string.
+    /// Turn back information as a string.
     std::string DEMFEMUtilities::Info() const {
             return "";
     }
 
-        /// Print information about this object.
+    /// Print information about this object.
     void DEMFEMUtilities::PrintInfo(std::ostream& rOStream) const {}
 
-        /// Print object's data.
+    /// Print object's data.
     void DEMFEMUtilities::PrintData(std::ostream& rOStream) const {}
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 /// output stream function
 // 	template<std::size_t TDim>
