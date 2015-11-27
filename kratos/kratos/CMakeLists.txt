@@ -90,6 +90,7 @@ set( KRATOS_PYTHON_SOURCES
 ## define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES})
 target_link_libraries(KratosCore ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
+set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 install(TARGETS KratosCore DESTINATION libs )
 
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -105,7 +106,6 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 ## define library Kratos which defines the basic python interface
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos KratosCore)
-set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 set_target_properties(Kratos PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd
