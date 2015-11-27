@@ -5,13 +5,13 @@ message("**** configuring KratosFluidDynamicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES     
+set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
@@ -32,14 +32,15 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosFluidDynamicsApplication SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES})
 target_link_libraries(KratosFluidDynamicsApplication KratosCore )
+set_target_properties(KratosFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosFluidDynamicsApplication PROPERTIES PREFIX "")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosFluidDynamicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
