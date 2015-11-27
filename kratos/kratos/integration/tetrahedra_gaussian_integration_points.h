@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-class KRATOS_EXPORT_DLL TetrahedraGaussianIntegrationPoints1
+class KRATOS_API(KRATOS_CORE) TetrahedraGaussianIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints1);
@@ -109,7 +109,7 @@ private:
 
 }; // Class TetrahedraGaussianIntegrationPoints1
 
-class KRATOS_EXPORT_DLL TetrahedraGaussianIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) TetrahedraGaussianIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints2);
@@ -152,7 +152,7 @@ private:
 
 }; // Class TetrahedraGaussianIntegrationPoints2
 
-class KRATOS_EXPORT_DLL TetrahedraGaussianIntegrationPoints3
+class KRATOS_API(KRATOS_CORE) TetrahedraGaussianIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints3);
@@ -190,7 +190,7 @@ private:
 
 }; // Class TetrahedraGaussianIntegrationPoints3
 
-class KRATOS_EXPORT_DLL TetrahedraGaussianIntegrationPoints4
+class KRATOS_API(KRATOS_CORE) TetrahedraGaussianIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints4);
@@ -229,7 +229,7 @@ private:
 
 };
 
-class KRATOS_EXPORT_DLL TetrahedraGaussianIntegrationPoints5
+class KRATOS_API(KRATOS_CORE) TetrahedraGaussianIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints4);

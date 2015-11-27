@@ -153,14 +153,14 @@ public:
     ///@{
 
     /**
-     * ELEMENTS inherited from this class have to implement next 
+     * ELEMENTS inherited from this class have to implement next
      * contructors, copy constructors and destructor: MANDATORY
      */
 
     /**
      * Constructor.
      */
-    Element(IndexType NewId = 0) 
+    Element(IndexType NewId = 0)
         : BaseType(NewId)
         , Flags()
         , mpProperties(new PropertiesType)
@@ -190,7 +190,7 @@ public:
     /**
      * Constructor using Properties
      */
-    Element(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) 
+    Element(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId,pGeometry)
         , Flags()
         , mpProperties(pProperties)
@@ -199,7 +199,7 @@ public:
 
     /// Copy constructor.
 
-    Element(Element const& rOther) 
+    Element(Element const& rOther)
         : BaseType(rOther)
         , Flags(rOther)
         , mpProperties(rOther.mpProperties)
@@ -217,7 +217,7 @@ public:
     ///@{
 
     /**
-     * ELEMENTS inherited from this class have to implement next 
+     * ELEMENTS inherited from this class have to implement next
      * assignment operator: MANDATORY
      */
 
@@ -234,7 +234,7 @@ public:
     ///@}
     ///@name Informations
     ///@{
-    
+
     /** Dimensional space of the element geometry
 	@return SizeType, working space dimension of this geometry.
     */
@@ -249,7 +249,7 @@ public:
     ///@{
 
     /**
-     * ELEMENTS inherited from this class have to implement next 
+     * ELEMENTS inherited from this class have to implement next
      * Create and Clone methods: MANDATORY
      */
 
@@ -301,7 +301,7 @@ public:
 
 
     /**
-     * ELEMENTS inherited from this class have to implement next 
+     * ELEMENTS inherited from this class have to implement next
      * EquationIdVector and GetDofList methods: MANDATORY
      */
 
@@ -343,7 +343,7 @@ public:
 
     /**
      * ELEMENTS inherited from this class must implement this methods
-     * if they need the values of the time derivatives of any of the dof 
+     * if they need the values of the time derivatives of any of the dof
      * set by the element. If the derivatives do not exist can set to zero
      * these methods are: MANDATORY ( when compatibility with dynamics is required )
      */
@@ -445,9 +445,9 @@ public:
 
 
     /**
-     * ELEMENTS inherited from this class have to implement next 
+     * ELEMENTS inherited from this class have to implement next
      * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-     * they can be managed internally with a private method to do the same calculations 
+     * they can be managed internally with a private method to do the same calculations
      * only once: MANDATORY
      */
 
@@ -541,17 +541,17 @@ public:
 
     /**
      * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions 
+     * if they need to add dynamic element contributions
      * note: first derivatives means the velocities if the displacements are the dof of the analysis
      * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-     * CalculateFirstDerivativesContributions, 
+     * CalculateFirstDerivativesContributions,
      * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
-     */    
+     */
 
 
     /**
      * this is called during the assembling process in order
-     * to calculate the first derivatives contributions for the LHS and RHS 
+     * to calculate the first derivatives contributions for the LHS and RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -579,7 +579,7 @@ public:
 	  rLeftHandSideMatrix.resize(0, 0, false);
     }
 
- 
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector for the first derivatives constributions
@@ -597,17 +597,17 @@ public:
 
     /**
      * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions 
+     * if they need to add dynamic element contributions
      * note: second derivatives means the accelerations if the displacements are the dof of the analysis
      * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-     * CalculateSecondDerivativesContributions, 
+     * CalculateSecondDerivativesContributions,
      * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
-     */    
+     */
 
 
    /**
      * this is called during the assembling process in order
-     * to calculate the second derivative contributions for the LHS and RHS 
+     * to calculate the second derivative contributions for the LHS and RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -636,7 +636,7 @@ public:
 	  rLeftHandSideMatrix.resize(0, 0, false);
     }
 
- 
+
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector for the second derivatives constributions
@@ -654,9 +654,9 @@ public:
 
     /**
      * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions 
+     * if they need to add dynamic element contributions
      * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
-     */    
+     */
 
     /**
      * this is called during the assembling process in order
@@ -684,7 +684,7 @@ public:
     }
 
 
- 
+
     /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need to write something at the element geometry nodes
@@ -694,7 +694,7 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the 
+     * NodalData is modified Inside the function, so the
      * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
      * IS ALLOWED TO WRITE ON ITS NODES.
      * the caller is expected to ensure thread safety hence
@@ -704,7 +704,7 @@ public:
     virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /**
      * this function is designed to make the element to assemble an rRHS vector
      * identified by a variable rRHSVariable by assembling it to the nodes on the variable
@@ -715,19 +715,19 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
     virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
-        
+
     virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
          KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
-       
+
     /**
      * Calculate a Element variable usually associated to a integration point
      * the Output is given on integration points and characterizes the element
@@ -802,8 +802,8 @@ public:
      * GetValueOnIntegrationPoints: get the values for given Variable.
      * these methods are: OPTIONAL
      */
-    
-    //SET ON INTEGRATION POINTS - METHODS 
+
+    //SET ON INTEGRATION POINTS - METHODS
 
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
@@ -841,7 +841,7 @@ public:
     {
     }
 
-    //GET ON INTEGRATION POINTS METHODS 
+    //GET ON INTEGRATION POINTS METHODS
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
@@ -907,15 +907,15 @@ public:
     }
 
     //METHODS TO BE CLEANED: DEPRECATED start
- 
+
     //NOTE: They will be deleted in December, 2015
 
 
     /**
      * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions 
+     * if they need to add dynamic element contributions
      * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */    
+     */
 
     /**
      * this is called during the assembling process in order
@@ -929,7 +929,7 @@ public:
 	  rMassMatrix.resize(0, 0, false);
     }
 
-    /** 
+    /**
      * adds the mass matrix scaled by a given factor to the LHS
      * @param rLeftHandSideMatrix: the elemental LHS matrix
      * @param coeff: the given factor
@@ -952,7 +952,7 @@ public:
 	  rDampMatrix.resize(0, 0, false);
     }
 
-    /** 
+    /**
      * adds the inertia forces to the RHS --> performs residua = static_residua - coeff*M*acc
      * @param rCurrentProcessInfo: the current process info instance
      */
@@ -962,7 +962,7 @@ public:
     }
 
 
-    /** 
+    /**
      * Calculate Damp matrix and add velocity contribution to RHS
      * @param rDampingMatrix: the velocity-proportional "damping" matrix
      * @param rRightHandSideVector: the elemental right hand side matrix
@@ -1002,7 +1002,7 @@ public:
     {
         return *mpProperties;
     }
-    
+
     void SetProperties(PropertiesType::Pointer pProperties)
     {
         mpProperties = pProperties;
@@ -1063,7 +1063,7 @@ public:
     ///@name Flags
     ///@{
 
-	Flags& GetFlags() 
+	Flags& GetFlags()
 	{
 		return *this;
 	}
@@ -1146,7 +1146,7 @@ private:
      * pointer to the data related to this element
      */
     DataValueContainer mData;
-    
+
     /**
      * pointer to the element's properties
      */
@@ -1216,25 +1216,21 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-template class KRATOS_EXPORT_DLL KratosComponents<Element >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Element >;
 
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Element const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element const& ThisComponent);
 
 /**
  * definition of elemental specific variables
  */
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
-
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_ELEMENT_H_INCLUDED  defined

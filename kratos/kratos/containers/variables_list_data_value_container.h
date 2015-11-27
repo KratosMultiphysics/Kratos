@@ -95,7 +95,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_EXPORT_DLL VariablesListDataValueContainer
+class KRATOS_API(KRATOS_CORE) VariablesListDataValueContainer
 {
 public:
     ///@name Type Definitions
@@ -1119,6 +1119,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED  defined

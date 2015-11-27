@@ -66,7 +66,7 @@
       load(rTag, *p_new);                                            \
       return p_new;                                                  \
     }
-    
+
 #define KRATOS_SERIALIZER_MODE_BINARY \
     if(!mTrace) {
 #define KRATOS_SERIALIZER_MODE_ASCII \
@@ -104,7 +104,7 @@ template <class TDataType> class Variable;
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_EXPORT_DLL Serializer
+class KRATOS_API(KRATOS_CORE) Serializer
 {
 public:
     ///@name  Enum's
@@ -739,7 +739,7 @@ private:
 
     SavedPointersContainerType mSavedPointers;
     LoadedPointersContainerType mLoadedPointers;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -803,40 +803,40 @@ private:
     void read(PointerType& rValue)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         int temp;
         mpBuffer->read((char *)(&temp),sizeof(PointerType));
         rValue = PointerType(temp);
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         int temp;
         *mpBuffer >> temp;
         rValue = PointerType(temp);
         mNumberOfLines++;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
     void write(PointerType const& rValue)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         int ptr = (int)rValue;
         const char * data = reinterpret_cast<const char*>(&ptr);
         mpBuffer->write(data,sizeof(PointerType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         *mpBuffer << int(rValue) << std::endl;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
     void read(std::string& rValue)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
         char* c_binStream = new char [size];
@@ -844,34 +844,34 @@ private:
         std::string s_binStream(c_binStream,size);
         rValue = s_binStream;
         delete [] c_binStream;
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         // going to the first '"'
         std::getline( *mpBuffer,rValue, '\"');
         // reading the string itself until second '"'
         std::getline( *mpBuffer,rValue, '\"');
         mNumberOfLines++;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
     void write(std::string const& rValue)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         const char * data = rValue.c_str();
         SizeType rData_size = rValue.length() * sizeof(char);
-        
+
         const char * data1 = reinterpret_cast<const char *>(&rData_size);
-        
+
         mpBuffer->write(data1,sizeof(SizeType));
         mpBuffer->write(data,rData_size);
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         *mpBuffer << "\"" << rValue << "\"" << std::endl;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -879,14 +879,14 @@ private:
     void read(TDataType& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         mpBuffer->read((char *)(&rData),sizeof(TDataType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         *mpBuffer >> rData;
         mNumberOfLines++;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -894,14 +894,14 @@ private:
     void write(TDataType const& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         const char * data = reinterpret_cast<const char*>(&rData);
         mpBuffer->write(data,sizeof(TDataType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         *mpBuffer << rData << std::endl;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -909,23 +909,23 @@ private:
     void read(std::vector<TDataType>& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
 
         rData.resize(size);
 
         read(rData.begin(), rData.end(), sizeof(TDataType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         std::size_t size;
         *mpBuffer >> size;
         rData.resize(size);
         mNumberOfLines++;
 
         read(rData.begin(), rData.end());
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -933,19 +933,19 @@ private:
     void write(std::vector<TDataType> const& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         SizeType rData_size = rData.size();
 
         const char * data = reinterpret_cast<const char *>(&rData_size);
         mpBuffer->write(data,sizeof(SizeType));
-        
+
         write(rData.begin(), rData.end(), sizeof(TDataType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         *mpBuffer << rData.size() << std::endl;
         write(rData.begin(), rData.end());
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -982,19 +982,19 @@ private:
     void read(boost::numeric::ublas::matrix<TDataType>& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         SizeType size1;
         SizeType size2;
 
         mpBuffer->read((char *)(&size1),sizeof(SizeType));
         mpBuffer->read((char *)(&size2),sizeof(SizeType));
-        
+
         rData.resize(size1,size2);
 
         read(rData.data().begin(), rData.data().end(), sizeof(TDataType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         SizeType size1;
         SizeType size2;
 
@@ -1006,7 +1006,7 @@ private:
         rData.resize(size1,size2);
 
         read(rData.data().begin(), rData.data().end(),0);
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -1014,25 +1014,25 @@ private:
     void write(boost::numeric::ublas::matrix<TDataType> const& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         SizeType rData_size1 = rData.size1();
         SizeType rData_size2 = rData.size2();
-        
+
         const char * data1 = reinterpret_cast<const char *>(&rData_size1);
         const char * data2 = reinterpret_cast<const char *>(&rData_size2);
-        
+
         mpBuffer->write(data1,sizeof(SizeType));
         mpBuffer->write(data2,sizeof(SizeType));
-        
+
         write(rData.data().begin(), rData.data().end(), sizeof(TDataType));
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         *mpBuffer << rData.size1() << std::endl;
         *mpBuffer << rData.size2() << std::endl;
 
         write(rData.data().begin(), rData.data().end(),0);
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -1040,39 +1040,39 @@ private:
     void read(TIteratorType First, TIteratorType Last, SizeType size)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
+
         for(; First != Last ; First++)
         {
             mpBuffer->read((char *)First,sizeof(size));
         }
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         for(; First != Last ; First++)
         {
             *mpBuffer >> *First;
             mNumberOfLines++;
 
         }
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
     template<class TIteratorType>
     void write(TIteratorType First, TIteratorType Last, SizeType size)
     {
         KRATOS_SERIALIZER_MODE_BINARY
-        
-        for(; First != Last ; First++) 
+
+        for(; First != Last ; First++)
         {
             const char * data = reinterpret_cast<const char *>(First);
             mpBuffer->write(data,sizeof(size));
         }
-        
+
         KRATOS_SERIALIZER_MODE_ASCII
-        
+
         for(; First != Last ; First++)
             *mpBuffer << *First << std::endl;
-        
+
         KRATOS_SERIALIZER_MODE_END
     }
 
@@ -1161,6 +1161,4 @@ private:
 #undef KRATOS_SERIALIZATION_DIRECT_LOAD
 #undef KRATOS_SERIALIZATION_DIRECT_SAVE
 
-#endif // KRATOS_SERIALIZER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_SERIALIZER_H_INCLUDED  defined

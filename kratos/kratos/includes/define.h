@@ -62,12 +62,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/constant.h"
 #include "includes/kratos_config.h"
-#include "includes/kratos_export_dll.h"
-
+#include "includes/kratos_export_api.h"
 
 #define KRATOS_BOOST_SERIALIZATION_DEFINED
-
-
 
 #define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
 typedef boost::shared_ptr<a > SharedPointer; \
@@ -203,38 +200,46 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 //
 //-----------------------------------------------------------------
 
-#ifdef KRATOS_DEFINE_VARIABLE_NO_DLL
-#undef KRATOS_DEFINE_VARIABLE_NO_DLL
-#endif
-#define KRATOS_DEFINE_VARIABLE_NO_DLL(type, name) \
-    extern /*const*/ Variable<type > name;
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
-#ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#ifdef KRATOS_DEFINE_VARIABLE_IMPLEMETATION
+#undef KRATOS_DEFINE_VARIABLE_IMPLEMETATION
 #endif
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL(name) \
-    extern /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-    extern /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_X;\
-    extern /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Y;\
-    extern /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Z;
+#define KRATOS_DEFINE_VARIABLE_IMPLEMETATION(module, type, name) \
+    KRATOS_EXPORT_MACRO(module) extern Variable<type > name;
 
-#ifdef KRATOS_DEFINE_VARIABLE_DLL
-#undef KRATOS_DEFINE_VARIABLE_DLL
+#ifdef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_VARIABLE
 #endif
-#define KRATOS_DEFINE_VARIABLE_DLL(type, name) \
-    extern KRATOS_EXPORT_DLL Variable<type > name;
+#define KRATOS_DEFINE_VARIABLE(type, name) \
+    KRATOS_DEFINE_VARIABLE_IMPLEMETATION(KRATOS_CORE, type, name)
 
-#ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+#ifdef KRATOS_DEFINE_APPLICATION_VARIABLE
+#undef KRATOS_DEFINE_APPLICATION_VARIABLE
 #endif
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL(name) \
-    extern KRATOS_EXPORT_DLL Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-    extern KRATOS_EXPORT_DLL Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_X;\
-    extern KRATOS_EXPORT_DLL Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Y;\
-    extern KRATOS_EXPORT_DLL Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Z;
+#define KRATOS_DEFINE_APPLICATION_VARIABLE(application, type, name) \
+    KRATOS_DEFINE_VARIABLE_IMPLEMETATION(application, type, name)
 
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name) \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_X;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Y;\
+    KRATOS_EXPORT_MACRO(module) extern Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > name##_Z;
+
+#ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(name) \
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(KRATOS_CORE, name)
+
+#ifdef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(application, name)
 
 #ifdef KRATOS_CREATE_VARIABLE
 #undef KRATOS_CREATE_VARIABLE
@@ -295,8 +300,8 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_FLAG
 #endif
 #define KRATOS_DEFINE_FLAG(name) \
-    extern const Kratos::Flags name;     \
-    extern const Kratos::Flags NOT_##name
+    extern const API Kratos::Flags name;     \
+    extern const API Kratos::Flags NOT_##name
 
 #ifdef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
 #undef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
@@ -327,7 +332,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
   static const Kratos::Flags name;			\
   static const Kratos::Flags NOT_##name
 
-#ifdef KRATOS_CREATE_LOCAL_FLAG 
+#ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
 #define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)		\
@@ -449,4 +454,3 @@ typedef const char* PointerToConstCharType;
 
 
 #endif /* KRATOS_DEFINE  defined */
-

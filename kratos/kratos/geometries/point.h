@@ -498,7 +498,7 @@ private:
 
 ///@}
 
-template class KRATOS_EXPORT_DLL KratosComponents<Point<3,double> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Point<3,double> >;
 
 ///@name Type Definitions
 ///@{
@@ -529,6 +529,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_H_INCLUDED  defined 
-
-
+#endif // KRATOS_POINT_H_INCLUDED  defined

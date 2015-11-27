@@ -155,7 +155,7 @@ public:
     ///@{
 
     /**
-     * CONDITIONS inherited from this class have to implement next 
+     * CONDITIONS inherited from this class have to implement next
      * contructors, copy constructors and destructor: MANDATORY
      */
 
@@ -220,7 +220,7 @@ public:
     ///@{
 
     /**
-     * CONDITIONS inherited from this class have to implement next 
+     * CONDITIONS inherited from this class have to implement next
      * assignment operator: MANDATORY
      */
 
@@ -234,12 +234,12 @@ public:
 
         return *this;
     }
-   
+
 
     ///@}
     ///@name Informations
     ///@{
-    
+
     /** Dimensional space of the element geometry
 	@return SizeType, working space dimension of this geometry.
     */
@@ -255,7 +255,7 @@ public:
     ///@{
 
     /**
-     * CONDITIONS inherited from this class have to implement next 
+     * CONDITIONS inherited from this class have to implement next
      * Create and Clone methods: MANDATORY
      */
 
@@ -266,7 +266,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, 
+    virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
 			   PropertiesType::Pointer pProperties) const
     {
         return Condition::Pointer(new Condition(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -302,7 +302,7 @@ public:
     }
 
     /**
-     * CONDITIONS inherited from this class have to implement next 
+     * CONDITIONS inherited from this class have to implement next
      * EquationIdVector and GetDofList methods: MANDATORY
      */
 
@@ -312,7 +312,7 @@ public:
      * @param rResult: the condition equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult, 
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
 				  ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
@@ -324,7 +324,7 @@ public:
      * @param ConditionDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rConditionDofList, 
+    virtual void GetDofList(DofsVectorType& rConditionDofList,
 			    ProcessInfo& rCurrentProcessInfo)
     {
         if (rConditionDofList.size() != 0)
@@ -345,7 +345,7 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need the values of the time derivatives of any of the dof 
+     * if they need the values of the time derivatives of any of the dof
      * set by the condition. If the derivatives do not exist can set to zero
      * these methods are: MANDATORY ( when compatibility with dynamics is required )
      */
@@ -379,7 +379,7 @@ public:
      * or clean memory deleting obsolete variables
      * this methods are: OPTIONAL
      */
-   
+
     /**
      * is called to initialize the condition
      * if the condition needs to perform any operation before any calculation is done
@@ -442,9 +442,9 @@ public:
     }
 
     /**
-     * CONDITIONS inherited from this class have to implement next 
+     * CONDITIONS inherited from this class have to implement next
      * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-     * they can be managed internally with a private method to do the same calculations 
+     * they can be managed internally with a private method to do the same calculations
      * only once: MANDATORY
      */
 
@@ -456,8 +456,8 @@ public:
      * @param rRightHandSideVector: the condition right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-				      VectorType& rRightHandSideVector, 
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+				      VectorType& rRightHandSideVector,
 				      ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
@@ -465,7 +465,7 @@ public:
         if (rRightHandSideVector.size() != 0)
 	  rRightHandSideVector.resize(0, false);
     }
-    
+
     /**
      * this function provides a more general interface to the condition.
      * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
@@ -489,7 +489,7 @@ public:
      * @param rLeftHandSideMatrix: the condition left hand side matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
+    virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 				       ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
@@ -515,13 +515,13 @@ public:
      * @param rRightHandSideVector: the condition right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, 
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
 					ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
 	  rRightHandSideVector.resize(0, false);
     }
-     
+
     /**
      * this function provides a more general interface to the condition.
      * it is designed so that rRHSvariables are passed TO the condition
@@ -539,17 +539,17 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions 
+     * if they need to add dynamic condition contributions
      * note: first derivatives means the velocities if the displacements are the dof of the analysis
      * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-     * CalculateFirstDerivativesContributions, 
+     * CalculateFirstDerivativesContributions,
      * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
-     */    
+     */
 
 
     /**
      * this is called during the assembling process in order
-     * to calculate the first derivatives contributions for the LHS and RHS 
+     * to calculate the first derivatives contributions for the LHS and RHS
      * @param rLeftHandSideMatrix: the condition left hand side matrix
      * @param rRightHandSideVector: the condition right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -577,7 +577,7 @@ public:
 	  rLeftHandSideMatrix.resize(0, 0, false);
     }
 
- 
+
     /**
      * this is called during the assembling process in order
      * to calculate the condition right hand side vector for the first derivatives constributions
@@ -595,17 +595,17 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions 
+     * if they need to add dynamic condition contributions
      * note: second derivatives means the accelerations if the displacements are the dof of the analysis
      * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-     * CalculateSecondDerivativesContributions, 
+     * CalculateSecondDerivativesContributions,
      * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
-     */    
+     */
 
 
    /**
      * this is called during the assembling process in order
-     * to calculate the second derivative contributions for the LHS and RHS 
+     * to calculate the second derivative contributions for the LHS and RHS
      * @param rLeftHandSideMatrix: the condition left hand side matrix
      * @param rRightHandSideVector: the condition right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -634,7 +634,7 @@ public:
 	  rLeftHandSideMatrix.resize(0, 0, false);
     }
 
- 
+
     /**
      * this is called during the assembling process in order
      * to calculate the condition right hand side vector for the second derivatives constributions
@@ -651,9 +651,9 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions 
+     * if they need to add dynamic condition contributions
      * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
-     */    
+     */
 
     /**
      * this is called during the assembling process in order
@@ -690,7 +690,7 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the condition contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the 
+     * NodalData is modified Inside the function, so the
      * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
      * IS ALLOWED TO WRITE ON ITS NODES.
      * the caller is expected to ensure thread safety hence
@@ -700,7 +700,7 @@ public:
     virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /**
      * this function is designed to make the condition to assemble an rRHS vector
      * identified by a variable rRHSVariable by assembling it to the nodes on the variable
@@ -711,18 +711,18 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
     virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
-    
+
     virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
          KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
-    }     
+    }
 
     /**
      * Calculate a Condition variable usually associated to a integration point
@@ -730,26 +730,26 @@ public:
      * Calculate(..) methods are: OPTIONAL
      */
 
-    virtual void Calculate(const Variable<double >& rVariable, 
-			   double& Output, 
+    virtual void Calculate(const Variable<double >& rVariable,
+			   double& Output,
 			   const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable, 
-			   array_1d<double,3>& Output, 
+    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
+			   array_1d<double,3>& Output,
 			   const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void Calculate(const Variable<Vector >& rVariable, 
-			   Vector& Output, 
+    virtual void Calculate(const Variable<Vector >& rVariable,
+			   Vector& Output,
 			   const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void Calculate(const Variable<Matrix >& rVariable, 
-			   Matrix& Output, 
+    virtual void Calculate(const Variable<Matrix >& rVariable,
+			   Matrix& Output,
 			   const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -764,13 +764,13 @@ public:
      * these methods are: OPTIONAL
      */
 
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
-					      std::vector<double>& rOutput, 
+    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable, 
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& Output,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
@@ -782,8 +782,8 @@ public:
     {
     }
 
-    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, 
-					      std::vector< Matrix >& Output, 
+    virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+					      std::vector< Matrix >& Output,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -799,10 +799,10 @@ public:
      * these methods are: OPTIONAL
      */
 
-    //SET ON INTEGRATION POINTS - METHODS 
+    //SET ON INTEGRATION POINTS - METHODS
 
-    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-					     std::vector<double>& rValues, 
+    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -825,7 +825,7 @@ public:
     {
     }
 
-    //GET ON INTEGRATION POINTS METHODS 
+    //GET ON INTEGRATION POINTS METHODS
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
@@ -893,9 +893,9 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions 
+     * if they need to add dynamic condition contributions
      * MassMatrix, AddMassMatrix, DampingMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */  
+     */
 
     /**
      * this is called during the assembling process in order
@@ -1033,7 +1033,7 @@ public:
     ///@name Flags
     ///@{
 
-	Flags& GetFlags() 
+	Flags& GetFlags()
 	{
 		return *this;
 	}
@@ -1117,7 +1117,7 @@ private:
      * pointer to the data related to this condition
      */
     DataValueContainer mData;
-    
+
     /**
      * pointer to the condition properties
      */
@@ -1188,26 +1188,21 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-template class KRATOS_EXPORT_DLL KratosComponents<Condition >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition >;
 
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Condition const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Condition const& ThisComponent);
 
 /**
  * definition of condition specific variables
  */
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Condition >, NEIGHBOUR_CONDITIONS)
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
 
 } // namespace Kratos.
-#endif // KRATOS_CONDITION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_CONDITION_H_INCLUDED  defined

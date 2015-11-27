@@ -32,7 +32,7 @@ namespace Kratos
 {
 
 
-class KRATOS_EXPORT_DLL QuadrilateralInterfaceLobattoIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) QuadrilateralInterfaceLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralInterfaceLobattoIntegrationPoints2);
@@ -76,7 +76,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL HexaedralInterfaceLobattoIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) HexaedralInterfaceLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(HexaedralInterfaceLobattoIntegrationPoints2);
@@ -126,7 +126,7 @@ private:
 
 
 
-class KRATOS_EXPORT_DLL PrismInterfaceLobattoIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) PrismInterfaceLobattoIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismInterfaceLobattoIntegrationPoints2);

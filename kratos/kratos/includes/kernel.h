@@ -88,7 +88,7 @@ namespace Kratos
     @see InitializeApplication
     @see KratosApplication
 */
-class KRATOS_EXPORT_DLL Kernel
+class KRATOS_API(KRATOS_CORE) Kernel
 {
 public:
     ///@name Type Definitions

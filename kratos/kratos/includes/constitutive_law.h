@@ -34,11 +34,11 @@ namespace Kratos
 /**
  * Base class of constitutive laws.
  */
-class KRATOS_EXPORT_DLL ConstitutiveLaw : public Flags
+class KRATOS_API(KRATOS_CORE) ConstitutiveLaw : public Flags
 {
 public:
 
-   
+
    enum StrainMeasure
     {
         StrainMeasure_Infinitesimal,   //strain measure small displacements
@@ -53,7 +53,7 @@ public:
 	StrainMeasure_Deformation_Gradient, //deformation gradient as a strain measure
 	StrainMeasure_Right_CauchyGreen,    //right cauchy-green tensor as a strain measure
 	StrainMeasure_Left_CauchyGreen      //left  cauchy-green tensor as a strain measure
-	
+
     };
 
     enum StressMeasure
@@ -85,14 +85,14 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRESS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_CONSTITUTIVE_TENSOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN_ENERGY );
-    
+
     KRATOS_DEFINE_LOCAL_FLAG( ISOCHORIC_TENSOR_ONLY );
     KRATOS_DEFINE_LOCAL_FLAG( VOLUMETRIC_TENSOR_ONLY );
-      
+
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_TENSOR );
-   
+
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
-    
+
 
     /**
      * Flags related to the Features of the Contitutive Law
@@ -110,7 +110,7 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG( ISOTROPIC );
     KRATOS_DEFINE_LOCAL_FLAG( ANISOTROPIC );
-    
+
 
     struct Features
     {
@@ -119,7 +119,7 @@ public:
      * Structure "Features" to be used by the element to get the the constitutive law characteristics*
      * its variables will be used to check constitutive law and element compatibility
 
-     * @param mOptions        flags  with the current constitutive law characteristics 
+     * @param mOptions        flags  with the current constitutive law characteristics
      * @param mStrainSize     double with the strain vector size
      * @param mStrainMeasures vector with the strain measures accepted by the constitutive law
 
@@ -165,27 +165,27 @@ public:
 
      */
 
-      
+
     private:
 
       /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
-    
+
       Flags                mOptions;
       const double*        mDeterminantF;
 
       Vector*              mpStrainVector;
-      Vector*              mpStressVector; 
+      Vector*              mpStressVector;
 
       const Vector*        mpShapeFunctionsValues;
       const Matrix*        mpShapeFunctionsDerivatives;
 
       const Matrix*        mpDeformationGradientF;
       Matrix*              mpConstitutiveMatrix;
-     
+
       const ProcessInfo*   mpCurrentProcessInfo;
       const Properties*    mpMaterialProperties;
       const GeometryType*  mpElementGeometry;
-    
+
 
     public:
 
@@ -194,7 +194,7 @@ public:
        * Constructor.
        */
       Parameters ()
-      {  
+      {
 	//Initialize pointers to NULL
 	mDeterminantF=NULL;
 	mpStrainVector=NULL;
@@ -207,7 +207,7 @@ public:
 	mpMaterialProperties=NULL;
 	mpElementGeometry=NULL;
       };
-    
+
 
       /**
        * Constructor with Properties, Geometry and ProcessInfo
@@ -218,7 +218,7 @@ public:
       :mpCurrentProcessInfo(&rCurrentProcessInfo)
       ,mpMaterialProperties(&rMaterialProperties)
       ,mpElementGeometry(&rElementGeometry)
-      {  
+      {
 	//Initialize pointers to NULL
 	mDeterminantF=NULL;
 	mpStrainVector=NULL;
@@ -229,7 +229,7 @@ public:
 	mpConstitutiveMatrix=NULL;
       };
 
- 
+
       /**
        * Copy Constructor.
        */
@@ -245,7 +245,7 @@ public:
 	,mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
 	,mpMaterialProperties(rNewParameters.mpMaterialProperties)
 	,mpElementGeometry(rNewParameters.mpElementGeometry)
-      {  
+      {
       };
 
       /**
@@ -267,7 +267,7 @@ public:
 	  return 0;
       }
 
-     
+
       /**
        *Check currentprocessinfo, material properties and geometry
        */
@@ -286,7 +286,7 @@ public:
       /**
        *Check currentprocessinfo, material properties and geometry
        */
-      
+
       bool CheckInfoMaterialGeometry ()
       {
 	if(!mpCurrentProcessInfo)
@@ -297,7 +297,7 @@ public:
 
 	if(!mpElementGeometry)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"ElementGeometry NOT SET","");
-     
+
 	return 1;
       }
 
@@ -319,13 +319,13 @@ public:
 
 	if(!mpStressVector)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"StressVector NOT SET","");
-     
+
 	if(!mpConstitutiveMatrix)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"ConstitutiveMatrix NOT SET","");
 
 	return 1;
       }
-      
+
 
       /**
        * Public Methods to access variables of the struct class
@@ -340,27 +340,27 @@ public:
 
       void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
       void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=&rDeterminantF;};
- 
+
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
       void SetDeformationGradientF         (const Matrix& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
 
       void SetStrainVector                 (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
-      void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};     
+      void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};
       void SetConstitutiveMatrix           (Matrix& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
 
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
       void SetElementGeometry              (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
 
- 
+
       /**
        * returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
-       */ 
+       */
       Flags& GetOptions () {return mOptions;};
-   
-      const double& GetDeterminantF              () {return *mDeterminantF;};     
+
+      const double& GetDeterminantF              () {return *mDeterminantF;};
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
@@ -374,20 +374,20 @@ public:
       const ProcessInfo&  GetProcessInfo         () {return *mpCurrentProcessInfo;};
       const Properties&   GetMaterialProperties  () {return *mpMaterialProperties;};
       const GeometryType& GetElementGeometry     () {return *mpElementGeometry;};
-            
+
 
 
       /**
        * returns the reference to the value of a specified variable with not constant access
-       */ 
-      
+       */
+
       double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=*mDeterminantF; return rDeterminantF;};
       Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
       Vector& GetStressVector                  (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       Matrix& GetConstitutiveMatrix            (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
-  
-    };// struct Parameters end  
+
+    };// struct Parameters end
 
 
 
@@ -543,9 +543,9 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     virtual void SetValue(const Variable<Vector >& rVariable,
-                          const Vector& rValue, 
+                          const Vector& rValue,
 			  const ProcessInfo& rCurrentProcessInfo);
- 
+
     /**
      * sets the value of a specified variable
      * @param rVariable the variable to be returned
@@ -553,7 +553,7 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     virtual void SetValue(const Variable<Matrix >& rVariable,
-                          const Matrix& rValue, 
+                          const Matrix& rValue,
 			  const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -642,7 +642,7 @@ public:
                                       const GeometryType& rElementGeometry,
                                       const Vector& rShapeFunctionsValues,
                                       const ProcessInfo& rCurrentProcessInfo);
- 
+
 
 
     /**
@@ -673,7 +673,7 @@ public:
 					    const Vector& rShapeFunctionsValues,
 					    const ProcessInfo& rCurrentProcessInfo);
 
-    
+
 
     /**
      * Computes the material response in terms of stresses and constitutive tensor
@@ -681,7 +681,7 @@ public:
      * @see StressMeasure
      */
     void CalculateMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
-    
+
 
 
     /**
@@ -689,36 +689,36 @@ public:
      * @see Parameters
      */
     virtual void CalculateMaterialResponsePK1 (Parameters& rValues);
-    
+
 
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     virtual void CalculateMaterialResponsePK2 (Parameters& rValues);
-    
+
 
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     virtual void CalculateMaterialResponseKirchhoff (Parameters& rValues);
-    
+
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
     virtual void CalculateMaterialResponseCauchy (Parameters& rValues);
-    
-    
+
+
     /**
      * Updates the material response,  called by the element in FinalizeSolutionStep.
      * @see Parameters
      * @see StressMeasures
      */
     void FinalizeMaterialResponse (Parameters& rValues,const StressMeasure& rStressMeasure);
-    
+
 
     /**
      * Updates the material response in terms of 1st Piola-Kirchhoff stresses
@@ -726,7 +726,7 @@ public:
      */
 
     virtual void FinalizeMaterialResponsePK1 (Parameters& rValues);
-    
+
     /**
      * Updates the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
@@ -747,7 +747,7 @@ public:
      */
 
     virtual void FinalizeMaterialResponseCauchy (Parameters& rValues);
- 
+
 
 
 
@@ -776,13 +776,13 @@ public:
 				     const Matrix &rF,
 				     StrainMeasure rStrainInitial,
 				     StrainMeasure rStrainFinal);
-    
+
     /**
      * Methods to transform stress Matrices:
      * @param rStressMatrix the stress tensor in matrix which its stress measure will be changed
      * @param rF the DeformationGradientF matrix between the configurations
      * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
-     * @param rStressInitial the measure of stress of the given  rStressMatrix 
+     * @param rStressInitial the measure of stress of the given  rStressMatrix
      * @param rStressFinal the measure of stress of the returned rStressMatrix
      */
     virtual Matrix& TransformStresses (Matrix& rStressMatrix,
@@ -790,7 +790,7 @@ public:
 				       const double &rdetF,
 				       StressMeasure rStressInitial,
 				       StressMeasure rStressFinal);
-    
+
 
     /**
      * Methods to transform stress Vectors:
@@ -805,9 +805,9 @@ public:
 				       const double &rdetF,
 				       StressMeasure rStressInitial,
 				       StressMeasure rStressFinal);
-   
-    
-    
+
+
+
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure PK1:
      * @param rStressVector the stress tensor in matrix which its stress measure will be changed
@@ -819,7 +819,7 @@ public:
 				  const Matrix &rF,
 				  const double &rdetF,
 				  StressMeasure rStressFinal);
-     
+
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure PK2:
      * @param rStressVector the stress tensor in matrix which its stress measure will be changed
@@ -831,7 +831,7 @@ public:
 				  const Matrix &rF,
 				  const double &rdetF,
 				  StressMeasure rStressFinal);
-     
+
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure Kirchhoff:
      * @param rStressVector the stress tensor in matrix which its stress measure will be changed
@@ -843,7 +843,7 @@ public:
 					const Matrix &rF,
 					const double &rdetF,
 					StressMeasure rStressFinal);
-    
+
     /**
      * Methods to transform stress Vectors specialized with the initial stress Measure Cauchy:
      * @param rStressVector the stress tensor in matrix which its stress measure will be changed
@@ -855,12 +855,12 @@ public:
 				     const Matrix &rF,
 				     const double &rdetF,
 				     StressMeasure rStressFinal);
-      
+
 
 
     /**
      * Methods to transform Constitutive Matrices:
-     * @param rConstitutiveMatrix the constitutive matrix 
+     * @param rConstitutiveMatrix the constitutive matrix
      * @param rF the DeformationGradientF matrix between the configurations
      */
 
@@ -877,7 +877,7 @@ public:
     void PushForwardConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
 					 const Matrix & rF );
 
-    
+
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
@@ -897,7 +897,7 @@ public:
     virtual int Check(const Properties& rMaterialProperties,
                       const GeometryType& rElementGeometry,
                       const ProcessInfo& rCurrentProcessInfo);
-    
+
 
 
     //*** OUTDATED METHODS: ***//
@@ -1020,31 +1020,31 @@ protected:
      * i.e. 2nd PK stress to Kirchhoff stress
      */
     void ContraVariantPushForward( Matrix& rMatrix,
-				   const Matrix& rF );   
-    
+				   const Matrix& rF );
+
     /**
      * This method performs a contra-variant pull-back between to tensors
      * i.e. Kirchhoff stress to 2nd PK stress
      */
     void ContraVariantPullBack( Matrix& rMatrix,
-				const Matrix& rF );      
-        
+				const Matrix& rF );
+
 
     /**
      * This method performs a co-variant push-forward between to tensors
      * i.e. Green-Lagrange strain to Almansi strain
-     */       
+     */
     void CoVariantPushForward( Matrix& rMatrix,
-			       const Matrix& rF );  
-    
+			       const Matrix& rF );
+
 
     /**
      * This method performs a co-variant pull-back between to tensors
      * i.e. Almansi strain to Green-Lagrange strain
      */
     void CoVariantPullBack( Matrix& rMatrix,
-			    const Matrix& rF );  
- 
+			    const Matrix& rF );
+
 
     /**
      * This method performs a pull-back or a push-forward between two constitutive matrices
@@ -1062,16 +1062,16 @@ protected:
 					   const Matrix & rF,
 					   const unsigned int& a, const unsigned int& b,
 					   const unsigned int& c, const unsigned int& d);
-      
+
     /**
-     * This method gets the constitutive tensor components 
+     * This method gets the constitutive tensor components
      * from a consitutive matrix supplied in voigt notation
      */
     double& GetConstitutiveComponent(double & rCabcd,
 				     const Matrix& rConstitutiveMatrix,
 				     const unsigned int& a, const unsigned int& b,
 				     const unsigned int& c, const unsigned int& d);
-    
+
      ///@}
 
 
@@ -1120,25 +1120,22 @@ private:
 
 }; /* Class ConstitutiveLaw */
 
-template class KRATOS_EXPORT_DLL KratosComponents<ConstitutiveLaw >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
 
-void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
 
 /**
  * Definition of ConstitutiveLaw variable
  */
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_API
 
 KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 
-#undef KRATOS_DEFINE_VARIABLE
-#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
-#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
+#undef  KRATOS_EXPORT_MACRO
+#define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
+
 
 } /* namespace Kratos.*/
 #endif /* KRATOS_CONSTITUTIVE_LAW  defined */

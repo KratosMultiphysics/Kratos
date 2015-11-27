@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-class KRATOS_EXPORT_DLL QuadrilateralGaussianIntegrationPoints1
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints1);
@@ -109,7 +109,7 @@ private:
 
 }; // Class QuadrilateralGaussianIntegrationPoints1
 
-class KRATOS_EXPORT_DLL QuadrilateralGaussianIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints2);
@@ -152,7 +152,7 @@ private:
 
 }; // Class QuadrilateralGaussianIntegrationPoints2
 
-class KRATOS_EXPORT_DLL QuadrilateralGaussianIntegrationPoints3
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints3);
@@ -201,7 +201,7 @@ private:
 
 }; // Class QuadrilateralGaussianIntegrationPoints3
 
-class KRATOS_EXPORT_DLL QuadrilateralGaussianIntegrationPoints4
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints4);
@@ -255,7 +255,7 @@ private:
 
 }; // Class QuadrilateralGaussianIntegrationPoints4
 
-class KRATOS_EXPORT_DLL QuadrilateralGaussianIntegrationPoints5 {
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints5 {
 public:
 	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints5);
 	typedef std::size_t SizeType;
