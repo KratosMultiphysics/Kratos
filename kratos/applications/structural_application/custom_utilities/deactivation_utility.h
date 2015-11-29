@@ -190,10 +190,10 @@ public:
         #pragma omp parallel for
         for(int k = 0; k < number_of_threads; ++k)
         {
-            typename ElementsArrayType::ptr_iterator it_begin = model_part.Elements().ptr_begin() + element_partition[k];
-            typename ElementsArrayType::ptr_iterator it_end = model_part.Elements().ptr_begin() + element_partition[k + 1];
+            ElementsArrayType::ptr_iterator it_begin = model_part.Elements().ptr_begin() + element_partition[k];
+            ElementsArrayType::ptr_iterator it_end = model_part.Elements().ptr_begin() + element_partition[k + 1];
 
-            for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            for (ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
                 if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 )
                 {
@@ -213,10 +213,10 @@ public:
         #pragma omp parallel for
         for(int k = 0; k < number_of_threads; ++k)
         {
-            typename ConditionsArrayType::ptr_iterator it_begin = model_part.Conditions().ptr_begin() + condition_partition[k];
-            typename ConditionsArrayType::ptr_iterator it_end = model_part.Conditions().ptr_begin() + condition_partition[k + 1];
+            ConditionsArrayType::ptr_iterator it_begin = model_part.Conditions().ptr_begin() + condition_partition[k];
+            ConditionsArrayType::ptr_iterator it_end = model_part.Conditions().ptr_begin() + condition_partition[k + 1];
 
-            for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            for (ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
                 if( (*it)->GetValue(IS_CONTACT_MASTER) || (*it)->GetValue(IS_CONTACT_SLAVE) )
                 {
