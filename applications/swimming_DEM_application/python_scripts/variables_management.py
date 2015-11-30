@@ -62,7 +62,7 @@ def ConstructListsOfVariables(pp):
     if (pp.swim.drag_force_type >= 0):
         pp.fluid_vars += [POWER_LAW_N]
         pp.fluid_vars += [POWER_LAW_K]
-        #pp.fluid_vars += [GEL_STRENGTH]
+        pp.fluid_vars += [GEL_STRENGTH]
         pp.fluid_vars += [YIELD_STRESS]
         pp.fluid_vars += [BINGHAM_SMOOTHER]
 
@@ -224,7 +224,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     if (pp.swim.drag_force_type >= 2):
         pp.coupling_fluid_vars += [POWER_LAW_N]
         pp.coupling_fluid_vars += [POWER_LAW_K]
-        #pp.coupling_fluid_vars += [GEL_STRENGTH]
+        pp.coupling_fluid_vars += [GEL_STRENGTH]
         pp.coupling_fluid_vars += [YIELD_STRESS]
 
     # dem coupling variables
