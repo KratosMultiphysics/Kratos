@@ -462,7 +462,7 @@ class MaterialTest(object):
     self.chart.write( "    EDR    = " + (str(self.spheres_model_part.GetProperties()[1][DAMAGE_FACTOR]).rjust(3))+"           " +'\n')
     self.chart.write( "    SEC    = " + (str(self.spheres_model_part.GetProperties()[1][SHEAR_ENERGY_COEF]).rjust(3))+"           " +'\n')
     self.chart.write( "    GDAMP  = " + (str(self.spheres_model_part.GetProperties()[1][DEMPACK_GLOBAL_DAMPING]).rjust(3))+"           " +'\n')
-    self.chart.write( "    LDAMP  = " + (str(self.spheres_model_part.GetProperties()[1][DEMPACK_LOCAL_DAMPING]).rjust(3))+"           " +'\n')
+#    self.chart.write( "    LDAMP  = " + (str(self.spheres_model_part.GetProperties()[1][DEMPACK_LOCAL_DAMPING]).rjust(3))+"           " +'\n')
 #    self.chart.write( "    ALPHA  = " + str(1.00).rjust(3) +"           " +'\n')
     self.chart.write( "                                    " +'\n')
     self.chart.write( "**************************************" +'\n')
