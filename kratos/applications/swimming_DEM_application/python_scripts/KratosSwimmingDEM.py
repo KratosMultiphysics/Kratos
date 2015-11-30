@@ -25,7 +25,6 @@ from KratosMultiphysics.MeshingApplication import *
 sys.path.insert(0,'')
 # DEM Application
 import DEM_explicit_solver_var as DEM_parameters
-import DEM_procedures
 
 # import the configuration data as read from the GiD
 print(os.getcwd())
@@ -191,28 +190,28 @@ vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
 mixed_model_part = ModelPart("MixedPart")
 
 
-# reading the balls model part
+# Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 
-# performing the initial partition
+# Perform the initial partition
 [model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+
 model_part_io_spheres.ReadModelPart(spheres_model_part)
 
-# reading the cluster model part
+rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
+model_part_io_fem.ReadModelPart(rigid_face_model_part)
+
 clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
 model_part_io_clusters = ModelPartIO(clusters_mp_filename)
 model_part_io_clusters.ReadModelPart(cluster_model_part)
-# reading the fem-dem model part
-rigid_face_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-model_part_io_fem = ModelPartIO(rigid_face_mp_filename)
-model_part_io_fem.ReadModelPart(rigid_face_model_part)
-# reading the dem inlet model part
-DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+
+DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
-# setting up the buffer size: SHOULD BE DONE AFTER READING!!!
+# Setting up the buffer size
 if pp.swim.virtual_mass_force_type  > 0:
     buffer_size = 2
 
@@ -224,10 +223,10 @@ cluster_model_part.SetBufferSize(buffer_size)
 DEM_inlet_model_part.SetBufferSize(buffer_size)
 rigid_face_model_part.SetBufferSize(1)
 
-# adding nodal degrees of freedom
-SolverStrategy.AddDofs(spheres_model_part)
-SolverStrategy.AddDofs(cluster_model_part)
-SolverStrategy.AddDofs(DEM_inlet_model_part)
+# Adding dofs
+solver.AddDofs(spheres_model_part)
+solver.AddDofs(cluster_model_part)
+solver.AddDofs(DEM_inlet_model_part)
 
 # adding extra process info variables
 vars_man.AddingDEMProcessInfoVariables(pp, spheres_model_part)
@@ -475,7 +474,6 @@ if pp.swim.inlet_option:
 # Creating necessary directories
 main_path = os.getcwd()
 [post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
-
 #_____________________________________________________________________________________________________________________________________
 #
 #                               F L U I D    B L O C K    B E G I N S
@@ -495,7 +493,6 @@ output_time = pp.output_time
 time = pp.Start_time
 out = Dt
 step = 0
-
 #_____________________________________________________________________________________________________________________________________
 #
 #                               F L U I D    B L O C K    E N D S
@@ -554,6 +551,21 @@ particles_results_counter = swim_proc.Counter(pp.swim.print_particles_results_cy
 #meshing_utils.ModifyRadiusesGivenPorosity(model_part, porosity, tol)
 #Z
 
+if (DEM_parameters.ModelDataInfo == "ON"):
+    os.chdir(data_and_results)
+    if (DEM_parameters.ContactMeshOption == "ON"):
+        (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
+        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+        os.chdir(main_path)
+    else:
+        KRATOSprint("Activate Contact Mesh for ModelData information")
+
+##############################################################################
+#                                                                            #
+#    MAIN LOOP                                                               #
+#                                                                            #
+##############################################################################
+
 DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
 time_dem     = 0.0
 Dt_DEM       = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -561,7 +573,15 @@ rigid_face_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
 cluster_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
 stationarity = False
 
+report.total_steps_expected = int(DEM_parameters.FinalTime / Dt_DEM)
+
+KRATOSprint(report.BeginReport(timer))
+
 mesh_motion = DEMFEMUtilities()
+
+# creating a Post Utils object that executes several post-related tasks
+post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
+
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part) # all variables are set to 0 by default
 
 while time <= final_time:
@@ -658,21 +678,19 @@ while time <= final_time:
         if not pp.swim.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
             dem_solver.Solve()
 
-        # adding DEM elements by the inlet
-
-        if pp.swim.inlet_option:
-            DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.        
-        
-        # eliminating remote balls
-
-        #creator_destructor.DestroyParticlesOutsideBoundingBox(spheres_model_part)
-        
+    # adding DEM elements by the inlet:
+    if (DEM_parameters.dem_inlet_option):
+        DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
+    
         first_dem_iter = False
-
+    #### PRINTING GRAPHS ####
+    os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
+    if (DEM_parameters.VelocityTrapOption):
+        compute_flow = False
+        post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time, compute_flow)
 
-    if pp.velocity_trap_option:
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time_dem)
+    os.chdir(post_path)
 
     # applying DEM-to-fluid coupling
 
