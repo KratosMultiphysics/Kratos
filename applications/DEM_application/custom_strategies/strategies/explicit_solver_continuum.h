@@ -664,7 +664,7 @@ namespace Kratos
                 typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
                 for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                    (it)->Calculate(DEMPACK_LOCAL_DAMPING, Output, rCurrentProcessInfo);
+                    (it)->Calculate(DEMPACK_GLOBAL_DAMPING, Output, rCurrentProcessInfo);
                 } //loop over particles
             }// loop threads OpenMP
 
