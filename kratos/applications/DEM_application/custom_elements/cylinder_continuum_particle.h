@@ -131,7 +131,7 @@ namespace Kratos
       CylinderContinuumParticle();
       
       void Initialize();
-      virtual void ContactAreaWeighting2D();
+      virtual void ContactAreaWeighting();
       void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
                                                 array_1d<double,3> &other_to_me_vect,
                                                 const double &distance,

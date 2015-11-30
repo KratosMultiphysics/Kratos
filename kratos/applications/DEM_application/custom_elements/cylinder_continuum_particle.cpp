@@ -52,7 +52,6 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          mDimension                = 2;
           mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
           double density            = GetDensity();
 
@@ -75,7 +74,7 @@ namespace Kratos
 
            
       
-       void CylinderContinuumParticle::ContactAreaWeighting2D() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+       void CylinderContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
         double alpha = 1.0;
