@@ -317,9 +317,10 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
+//        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
+        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
 
-        equiv_visco_damp_coeff_normal = mDempack_local_damping * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+        equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
         KRATOS_CATCH("")  
     }   
