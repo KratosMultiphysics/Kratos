@@ -708,12 +708,35 @@ namespace Kratos {
 
         if (GeometryFunctions::DotProduct(cp1, normal_element) >= 0)
         {
-            area = sqrt(cp1[0] * cp1[0] + cp1[1] * cp1[1] + cp1[2] * cp1[2]) / 2.0;
+            area = sqrt(cp1[0] * cp1[0] + cp1[1] * cp1[1] + cp1[2] * cp1[2]) * 0.5;
             return true;
         }
         else return false;
 
-    }//PosCrossProd
+    }//InsideOutside
+    
+    
+        static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element){
+
+      //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
+        array_1d<double, 3> cp1;
+        array_1d<double, 3> b_a; 
+        array_1d<double, 3> p1_a;
+        
+        b_a  = Coord2 - Coord1;
+        p1_a = JudgeCoord - Coord1;
+        
+        GeometryFunctions::CrossProduct(b_a, p1_a, cp1);
+
+        if (GeometryFunctions::DotProduct(cp1, normal_element) >= 0)
+        {
+            //area = sqrt(cp1[0] * cp1[0] + cp1[1] * cp1[1] + cp1[2] * cp1[2]) * 0.5;
+            return true;
+        }
+        else return false;
+
+    }//InsideOutside
+    
 
 
     static inline void WeightsCalculation(std::vector<double> Area, std::vector<double> &Weight)
