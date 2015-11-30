@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+import math
 
 import sphere_strategy as SolverStrategy
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
@@ -324,6 +325,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]            
         ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()        
         ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
-        
-        
-        
+
+        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+        self.ln_of_restitution_coeff = math.log(coefficient_of_restitution)
+        properties[LN_OF_RESTITUTION_COEFF] = self.ln_of_restitution_coeff
