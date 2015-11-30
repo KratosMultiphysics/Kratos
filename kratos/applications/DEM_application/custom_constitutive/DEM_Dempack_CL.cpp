@@ -68,33 +68,35 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
+        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        const double mOtherCoefficientOfRestitution = element2->GetProperties()[DAMPING_GAMMA];
+        const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
 
-        equiv_visco_damp_coeff_normal = mDempack_local_damping * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+        equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
         KRATOS_CATCH("")  
     }
 
     void DEM_Dempack::CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                       double LocalElasticContactForce[3],
-            double LocalDeltDisp[3],
-            const double kn_el,
-            double kt_el,
-            double& failure_criterion_state,
-            double equiv_young,
-            double indentation,
-            double calculation_area,
-            double& acumulated_damage,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            double &mNeighbourDelta_count,
-            int time_steps,
-            bool& sliding,
-            int search_control,
-            vector<int>& search_control_vector,
-            double mapping_new_cont) {
+                                      double LocalDeltDisp[3],
+                                      const double kn_el,
+                                      double kt_el,
+                                      double& failure_criterion_state,
+                                      double equiv_young,
+                                      double indentation,
+                                      double calculation_area,
+                                      double& acumulated_damage,
+                                      SphericContinuumParticle* element1,
+                                      SphericContinuumParticle* element2,
+                                      int &mNeighbourFailureId_count,
+                                      int &mIniNeighbourFailureId_mapping,
+                                      double &mNeighbourDelta_count,
+                                      int time_steps,
+                                      bool& sliding,
+                                      int search_control,
+                                      vector<int>& search_control_vector,
+                                      double mapping_new_cont) {
 
         KRATOS_TRY 
         CalculateNormalForces(LocalElasticContactForce,
@@ -141,27 +143,58 @@ namespace Kratos {
             int time_steps) {
         
         KRATOS_TRY 
-        const double mN1 = element1->GetProperties()[SLOPE_FRACTION_N1];
-        const double mN2 = element1->GetProperties()[SLOPE_FRACTION_N2];
-        const double mN3 = element1->GetProperties()[SLOPE_FRACTION_N3];
-        const double mC1 = element1->GetProperties()[SLOPE_LIMIT_COEFF_C1]*1e6;
-        const double mC2 = element1->GetProperties()[SLOPE_LIMIT_COEFF_C2]*1e6;
-        const double mC3 = element1->GetProperties()[SLOPE_LIMIT_COEFF_C3]*1e6;
-        const double mYoungPlastic = element1->GetProperties()[YOUNG_MODULUS_PLASTIC];
-        const double mPlasticityLimit = element1->GetProperties()[PLASTIC_YIELD_STRESS]*1e6;
-        const double mDamageMaxDisplacementFactor = element1->GetProperties()[DAMAGE_FACTOR];
-        const double mTensionLimit = element1->GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2
 
-        double kn_b = kn_el / mN1;
-        double kn_c = kn_el / mN2;
-        double kn_d = kn_el / mN3;
-        double kp_el = mYoungPlastic / equiv_young * kn_el;
-        double Yields_el = mPlasticityLimit * calculation_area;
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+        double mN1;
+        double mN2;
+        double mN3;
+        double mC1;
+        double mC2;
+        double mC3;
+        double mYoungPlastic;
+        double mPlasticityLimit;
+        double mDamageMaxDisplacementFactor;
+        double mTensionLimit;
 
-        double Ncstr1_el = mC1 * calculation_area;
-        double Ncstr2_el = mC2 * calculation_area;
-        double Ncstr3_el = mC3 * calculation_area;
-        double Ntstr_el = mTensionLimit * calculation_area;
+        if(&element1_props == &element2_props ){
+
+             mN1 = element1_props[SLOPE_FRACTION_N1];
+             mN2 = element1_props[SLOPE_FRACTION_N2];
+             mN3 = element1_props[SLOPE_FRACTION_N3];
+             mC1 = element1_props[SLOPE_LIMIT_COEFF_C1]*1e6;
+             mC2 = element1_props[SLOPE_LIMIT_COEFF_C2]*1e6;
+             mC3 = element1_props[SLOPE_LIMIT_COEFF_C3]*1e6;
+             mYoungPlastic = element1_props[YOUNG_MODULUS_PLASTIC];
+             mPlasticityLimit = element1_props[PLASTIC_YIELD_STRESS]*1e6;
+             mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6; //N/m2
+        }
+
+        else{
+
+            mN1 = 0.5*(element1_props[SLOPE_FRACTION_N1] + element2_props[SLOPE_FRACTION_N1] );
+            mN2 = 0.5*(element1_props[SLOPE_FRACTION_N2] + element2_props[SLOPE_FRACTION_N2] );
+            mN3 = 0.5*(element1_props[SLOPE_FRACTION_N3] + element2_props[SLOPE_FRACTION_N3] );
+            mC1 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C1] + element2_props[SLOPE_LIMIT_COEFF_C1]);
+            mC2 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C2] + element2_props[SLOPE_LIMIT_COEFF_C2]);
+            mC3 = 0.5*1e6*(element1_props[SLOPE_LIMIT_COEFF_C3] + element2_props[SLOPE_LIMIT_COEFF_C3]);
+            mYoungPlastic = 0.5*(element1_props[YOUNG_MODULUS_PLASTIC] + element2_props[YOUNG_MODULUS_PLASTIC]);
+            mPlasticityLimit = 0.5*1e6*(element1_props[PLASTIC_YIELD_STRESS] + element2_props[PLASTIC_YIELD_STRESS]);
+            mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
+            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
+        }
+
+        const double kn_b = kn_el / mN1;
+        const double kn_c = kn_el / mN2;
+        const double kn_d = kn_el / mN3;
+        const double kp_el = mYoungPlastic / equiv_young * kn_el;
+        const double Yields_el = mPlasticityLimit * calculation_area;
+
+        const double Ncstr1_el = mC1 * calculation_area;
+        const double Ncstr2_el = mC2 * calculation_area;
+        const double Ncstr3_el = mC3 * calculation_area;
+        const double Ntstr_el = mTensionLimit * calculation_area;
         double u_max = mHistoryMaxInd;
 
         double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force                
@@ -175,47 +208,47 @@ namespace Kratos {
 
             if ((indentation > u_max) || (time_steps <= 1)) { //maximum historical intentation OR first step  MSIMSI 0
 
-                mHistoryMaxInd = indentation; // Guarda el threshold del màxim desplaçament
+                mHistoryMaxInd = indentation;               // Guarda el threshold del màxim desplaçament
 
-                if (indentation > u_ela3) { //4rt tram
+                if (indentation > u_ela3) {                 //4rt tram
                     fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
                     mHistoryDegradation = kn_d / kn_el;
-                } else if (indentation > u_ela2) {//3r tram
+                } else if (indentation > u_ela2) {          //3r tram
                     fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                     mHistoryDegradation = kn_c / kn_el;
                 } else {
-                    if (indentation > u_ela1) { //2n tram
+                    if (indentation > u_ela1) {             //2n tram
                         fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                         mHistoryDegradation = kn_b / kn_el;
                     }
                 }
-                mHistoryMaxForce = fn; //actualitzar la força màxima a compressió.
-            } else { //Per sota del màxim.
-                if (mHistoryMaxForce > 0.0) { //Màxim en compressió. 
+                mHistoryMaxForce = fn;                      //actualitzar la força màxima a compressió.
+            } else {                                        //Per sota del màxim.
+                if (mHistoryMaxForce > 0.0) {               //Màxim en compressió.
 
-                    double u_plas; //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
-                    if (Yields_el <= Ncstr1_el) { //si el punt de plastificació està en la primera rama elastica.
+                    double u_plas;                          //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
+                    if (Yields_el <= Ncstr1_el) {           //si el punt de plastificació està en la primera rama elastica.
 
                         u_plas = Yields_el / kn_el;
                     } else {
-                        if (Yields_el <= Ncstr2_el) { //si està en la segona...
+                        if (Yields_el <= Ncstr2_el) {       //si està en la segona...
                             u_plas = u_ela1 + (Yields_el - Ncstr1_el) / (kn_b);
                         } else if (Yields_el <= Ncstr3_el) { //si està en la tercera...
                             u_plas = u_ela2 + (Yields_el - Ncstr2_el) / (kn_c);
-                        } else { //en la quarta                   
+                        } else {                            //en la quarta
                             u_plas = u_ela3 + (Yields_el - Ncstr3_el) / (kn_d);
                         }
                     }
-                    if (u_plas < u_max) { //si nosaltres estem per sota del maxim pero ja estem plastificant 
+                    if (u_plas < u_max) {                   //si nosaltres estem per sota del maxim pero ja estem plastificant
                         fn = mHistoryMaxForce - kp_el * (u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
                         mHistoryDegradation = kp_el / kn_el;
-                    } else { // Esta en zona descarga elastica, ens despreocupem de la plasticitat                 
-                        if (indentation > u_ela3) { //en la 4a ramma                   
+                    } else {                                // Esta en zona descarga elastica, ens despreocupem de la plasticitat
+                        if (indentation > u_ela3) {         // en la 4a ramma
                             fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
-                        } else if (indentation > u_ela2) { //en la 3a ramma                    
+                        } else if (indentation > u_ela2) {  // en la 3a ramma
                             fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                         } else {
-                            if (indentation > u_ela1) { //en la 2a rama                     
+                            if (indentation > u_ela1) {     // en la 2a rama
                                 fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                             }
                         }
@@ -267,12 +300,34 @@ namespace Kratos {
             double mapping_new_cont) {
         
         KRATOS_TRY
+
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+
         double contact_tau = 0.0;
         double contact_sigma = 0.0;
-        const double mTensionLimit = element1-> GetProperties()[CONTACT_SIGMA_MIN]*1e6;
-        const double mTauZero = element1-> GetProperties()[CONTACT_TAU_ZERO]*1e6;
-        const double mInternalFriccion = element1-> GetProperties()[CONTACT_INTERNAL_FRICC];
-        const double mShearEnergyCoef = element1-> GetProperties()[SHEAR_ENERGY_COEF]; 
+        double mTensionLimit;
+        double mTauZero;
+        double mInternalFriccion;
+        double mShearEnergyCoef;
+
+
+        if(&element1_props == &element2_props ){
+
+            mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+            mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
+            mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
+            mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
+
+        }
+        else{
+
+            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+            mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
+            mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
+            mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
+
+        }
 
         double degradation = 1.0; //Tangential. With degradation:
 
