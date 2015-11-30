@@ -168,8 +168,8 @@ namespace Kratos {
 
         if (initial) {
             pnew_node = reference_node;
-            r_modelpart.AddNode(pnew_node); // The same node is added to r_modelpart (the calculation model part)
             pnew_node->SetId(aId);
+            r_modelpart.AddNode(pnew_node); // The same node is added to r_modelpart (the calculation model part)          
             pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
             //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
