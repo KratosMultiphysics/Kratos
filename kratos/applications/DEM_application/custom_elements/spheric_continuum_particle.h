@@ -109,9 +109,8 @@ namespace Kratos
         SphericContinuumParticle();
         
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
-        virtual void ContactAreaWeighting2D();
-        void ContactAreaWeighting3D( ProcessInfo& rCurrentProcessInfo );
-        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );        
+        virtual void ContactAreaWeighting();
+        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         virtual void CustomInitialize();	
         virtual double GetInitialDeltaWithFEM(int index);      
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
@@ -134,7 +133,6 @@ namespace Kratos
         //double mFinalSimulationTime;
      
         int*  mSkinSphere; 
-        int mDimension;
 
         //sphere neighbour information
         
