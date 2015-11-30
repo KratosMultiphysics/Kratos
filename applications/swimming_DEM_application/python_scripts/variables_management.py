@@ -5,6 +5,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
+import DEM_explicit_solver_var as DEM_parameters
 
 def AddNodalVariables(model_part, variable_list):
 
@@ -61,7 +62,7 @@ def ConstructListsOfVariables(pp):
     if (pp.swim.drag_force_type >= 0):
         pp.fluid_vars += [POWER_LAW_N]
         pp.fluid_vars += [POWER_LAW_K]
-        pp.fluid_vars += [GEL_STRENGTH]
+        #pp.fluid_vars += [GEL_STRENGTH]
         pp.fluid_vars += [YIELD_STRESS]
         pp.fluid_vars += [BINGHAM_SMOOTHER]
 
@@ -104,10 +105,10 @@ def ConstructListsOfResultsToPrint(pp):
     pp.clusters_nodal_results = []
     pp.rigid_faces_nodal_results = []
 
-    if (pp.dem.PostRadius):
+    if (DEM_parameters.PostRadius):
         pp.dem_nodal_results += ["RADIUS"]
 
-    if (pp.dem.PostAngularVelocity):
+    if (DEM_parameters.PostAngularVelocity):
         pp.dem_nodal_results += ["ANGULAR_VELOCITY"]
 
     if (pp.swim.projection_module_option):
@@ -223,7 +224,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     if (pp.swim.drag_force_type >= 2):
         pp.coupling_fluid_vars += [POWER_LAW_N]
         pp.coupling_fluid_vars += [POWER_LAW_K]
-        pp.coupling_fluid_vars += [GEL_STRENGTH]
+        #pp.coupling_fluid_vars += [GEL_STRENGTH]
         pp.coupling_fluid_vars += [YIELD_STRESS]
 
     # dem coupling variables
@@ -253,7 +254,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     if (pp.swim.drag_force_type >= 2):
         pp.coupling_dem_vars += [POWER_LAW_N]
         pp.coupling_dem_vars += [POWER_LAW_K]
-        pp.coupling_dem_vars += [GEL_STRENGTH]
+        #pp.coupling_dem_vars += [GEL_STRENGTH]
         pp.coupling_dem_vars += [YIELD_STRESS]
 
     if (pp.swim.print_REYNOLDS_NUMBER_option):
@@ -283,13 +284,13 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
         pp.nodal_results += ["DISTANCE"]
 
 def ChangeInputDataForConsistency(pp):
-    pp.swim.coupling_level_type = pp.dem.project_from_particles_option
-    pp.dem.project_from_particles_option *= pp.swim.projection_module_option
+    pp.swim.coupling_level_type = DEM_parameters.project_from_particles_option
+    DEM_parameters.project_from_particles_option *= pp.swim.projection_module_option
     pp.swim.project_at_every_substep_option *= pp.swim.projection_module_option
-    pp.swim.lift_force_type *= pp.dem.consider_lift_force_option
-    pp.swim.drag_modifier_type = pp.dem.drag_modifier_type
+    pp.swim.lift_force_type *= DEM_parameters.consider_lift_force_option
+    pp.swim.drag_modifier_type = DEM_parameters.drag_modifier_type
     
-    if (pp.dem.VelocityTrapOption == "ON"):
+    if (DEM_parameters.VelocityTrapOption == "ON"):
         pp.velocity_trap_option = 1
     else: 
         pp.velocity_trap_option = 0
@@ -298,7 +299,7 @@ def ChangeInputDataForConsistency(pp):
         pp.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but is externally imposed
 
     pp.swim.time_steps_per_stationarity_step = max(1, int(pp.swim.time_steps_per_stationarity_step)) # it should never be smaller than 1!
-    pp.swim.stationary_problem_option *= not pp.dem.project_from_particles_option
+    pp.swim.stationary_problem_option *= not DEM_parameters.project_from_particles_option
 
 def EliminateRepeatedValuesFromList(redundant_list):
     clean_list = []

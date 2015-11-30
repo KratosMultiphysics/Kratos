@@ -9,6 +9,8 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
 
+import sphere_strategy as SolverStrategy
+
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
     max_id = 1

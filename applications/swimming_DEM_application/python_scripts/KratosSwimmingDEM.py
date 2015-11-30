@@ -4,19 +4,30 @@
 # Some parts of the original fluid script have been kept practically untouched and are clearly marked.
 # Whenever a minor modification has been made on one of these parts, the corresponding line is indicated with a comment: # MOD.
 
-#_____________________________________________________________________________________________________________________________________
-#
-#                               F L U I D    B L O C K    B E G I N S
-#_____________________________________________________________________________________________________________________________________
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+# Python imports
+import time as timer
+import os
 import sys
-#sys.path.append(pp.kratos_path)
-sys.path.insert(0,'')
+import math
 
+# Kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.SwimmingDEMApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.MeshingApplication import *
+
+sys.path.insert(0,'')
+# DEM Application
+import DEM_explicit_solver_var as DEM_parameters
+import DEM_procedures
 
 # import the configuration data as read from the GiD
-import os
 print(os.getcwd())
 import ProjectParameters as pp # MOD
 import define_output
@@ -24,47 +35,69 @@ import define_output
 # setting the domain size for the problem to be solved
 domain_size = pp.domain_size
 
-
-from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MeshingApplication import *
-
-#_____________________________________________________________________________________________________________________________________
-#
-#                               F L U I D    B L O C K    E N D S
-#_____________________________________________________________________________________________________________________________________
-
-import math
-import os
-current_script_path = os.path.dirname(os.path.abspath(__file__))
-
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-import DEM_explicit_solver_var
 import swimming_dem_parameters
-import DEM_procedures
 import swimming_DEM_procedures as swim_proc
 import CFD_DEM_coupling
 import variables_management as vars_man
 import embedded
 
 # listing project parameters (to be put in problem type)
-pp.dem                                    = DEM_explicit_solver_var
 pp.swim                                   = swimming_dem_parameters
 
-#G
-pp.dem.SearchTolerance = 0
-pp.dem.ModelDataInfo = "OFF"
-pp.swim.coupling_level_type = pp.dem.project_from_particles_option
-pp.swim.lift_force_type = pp.dem.consider_lift_force_option
-pp.swim.drag_modifier_type = pp.dem.drag_modifier_type
-pp.swim.fluid_domain_volume                    = 2 * math.pi # write down the volume you know it has
-#Z
+# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
+if "OMPI_COMM_WORLD_SIZE" in os.environ:
+    # Kratos MPI
+    from KratosMultiphysics.MetisApplication import *
+    from KratosMultiphysics.MPISearchApplication import *
+    from KratosMultiphysics.mpi import *
 
-dem_parallel_utils = DEM_procedures.ParallelUtils()
+    # DEM Application MPI
+    import DEM_procedures_mpi as DEM_procedures
+    import DEM_material_test_script_mpi as DEM_material_test_script
+    print("Running under MPI...........")
+else:
+    # DEM Application
+    import DEM_procedures
+    import DEM_material_test_script
+    print("Running under OpenMP........")
+
+# TO_DO: Ugly fix. Change it. I don't like this to be in the main...
+# Strategy object
+
+import sphere_strategy as SolverStrategy
+
+pp.swim.coupling_level_type = DEM_parameters.project_from_particles_option
+pp.swim.lift_force_type = DEM_parameters.consider_lift_force_option
+pp.swim.drag_modifier_type = DEM_parameters.drag_modifier_type
+pp.swim.fluid_domain_volume                    = 2 * math.pi # write down the volume you know it has
+
+##############################################################################
+#                                                                            #
+#    INITIALIZE                                                              #
+#                                                                            #
+##############################################################################
+
+# Import utilities from models
+procedures    = DEM_procedures.Procedures(DEM_parameters)
+demio         = DEM_procedures.DEMIo(DEM_parameters)
+report        = DEM_procedures.Report()
+parallelutils = DEM_procedures.ParallelUtils()
+materialTest  = DEM_procedures.MaterialTest()
+ 
+# Set the print function TO_DO: do this better...
+KRATOSprint   = procedures.KRATOSprint
+
+# Preprocess the model
+procedures.PreProcessModel(DEM_parameters)
+
+# Prepare modelparts
+spheres_model_part    = ModelPart("SpheresPart")
+rigid_face_model_part = ModelPart("RigidFace_Part")
+mixed_model_part      = ModelPart("Mixed_Part")
+cluster_model_part    = ModelPart("Cluster_Part")
+DEM_inlet_model_part  = ModelPart("DEMInletPart")
+mapping_model_part    = ModelPart("Mappingmodel_part")
+contact_model_part    = ""
 
 # defining and adding imposed porosity fields
 pp.fluid_fraction_fields = []
@@ -128,33 +161,30 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 #                               F L U I D    B L O C K    E N D S
 #_____________________________________________________________________________________________________________________________________
 
-# creating utilities from DEM_procedures
-DEM_proc = DEM_procedures.Procedures(pp.dem)
-DEM_proc.PreProcessModel(pp.dem)
+# Constructing a utilities objects
+creator_destructor = ParticleCreatorDestructor()
+dem_fem_search = DEM_FEM_Search()
 
-# defining model parts for the balls part and for the DEM-FEM interaction elements
+# Creating a solver object and set the search strategy
 
-balls_model_part = ModelPart("SolidPart")
-clusters_model_part    = ModelPart("Cluster_Part");
-rigid_faces_model_part = ModelPart("RigidFace_Part");
-DEM_inlet_model_part = ModelPart("DEMInletPart")
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
 
-import sphere_strategy as DEMSolverStrategy
-
-DEM_proc.AddCommonVariables(balls_model_part, pp.dem)
-DEM_proc.AddSpheresVariables(balls_model_part, pp.dem)
-DEM_proc.AddMpiVariables(balls_model_part)
-vars_man.AddNodalVariables(balls_model_part, pp.dem_vars)
-DEM_proc.AddCommonVariables(rigid_faces_model_part, pp.dem)
-DEM_proc.AddRigidFaceVariables(rigid_faces_model_part, pp.dem)
-vars_man.AddNodalVariables(rigid_faces_model_part, pp.rigid_faces_vars)
-DEM_proc.AddMpiVariables(rigid_faces_model_part)
-DEM_proc.AddCommonVariables(clusters_model_part, pp.dem)
-DEM_proc.AddClusterVariables(clusters_model_part, pp.dem)
-DEM_proc.AddMpiVariables(clusters_model_part)
-DEM_proc.AddCommonVariables(DEM_inlet_model_part, pp.dem)
-DEM_proc.AddSpheresVariables(DEM_inlet_model_part, pp.dem)
-DEM_proc.AddMpiVariables(DEM_inlet_model_part)
+# Add variables
+procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
+procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
+procedures.AddMpiVariables(spheres_model_part)
+solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
+procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
+procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
+procedures.AddMpiVariables(cluster_model_part)
+procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
+procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
+solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
+procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
+procedures.AddMpiVariables(rigid_face_model_part)
+vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
+vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
 
 # defining a model part for the mixed part
@@ -162,23 +192,23 @@ mixed_model_part = ModelPart("MixedPart")
 
 
 # reading the balls model part
-spheres_mp_filename   = pp.dem.problem_name + "DEM"
+spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 
 # performing the initial partition
-[model_part_io_spheres, balls_model_part, MPICommSetup] = dem_parallel_utils.PerformInitialPartition(balls_model_part, model_part_io_spheres, spheres_mp_filename)
-model_part_io_spheres.ReadModelPart(balls_model_part)
+[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
+model_part_io_spheres.ReadModelPart(spheres_model_part)
 
 # reading the cluster model part
-clusters_mp_filename = pp.dem.problem_name + "DEM_Clusters"
+clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
 model_part_io_clusters = ModelPartIO(clusters_mp_filename)
-model_part_io_clusters.ReadModelPart(clusters_model_part)
+model_part_io_clusters.ReadModelPart(cluster_model_part)
 # reading the fem-dem model part
-rigid_face_mp_filename = pp.dem.problem_name + "DEM_FEM_boundary"
+rigid_face_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
 model_part_io_fem = ModelPartIO(rigid_face_mp_filename)
-model_part_io_fem.ReadModelPart(rigid_faces_model_part)
+model_part_io_fem.ReadModelPart(rigid_face_model_part)
 # reading the dem inlet model part
-DEM_Inlet_filename = pp.dem.problem_name + "DEM_Inlet"
+DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
@@ -189,18 +219,18 @@ if pp.swim.virtual_mass_force_type  > 0:
 else:
     buffer_size = 1
 
-balls_model_part.SetBufferSize(buffer_size)
-clusters_model_part.SetBufferSize(buffer_size)
+spheres_model_part.SetBufferSize(buffer_size)
+cluster_model_part.SetBufferSize(buffer_size)
 DEM_inlet_model_part.SetBufferSize(buffer_size)
-rigid_faces_model_part.SetBufferSize(1)
+rigid_face_model_part.SetBufferSize(1)
 
 # adding nodal degrees of freedom
-DEMSolverStrategy.AddDofs(balls_model_part)
-DEMSolverStrategy.AddDofs(clusters_model_part)
-DEMSolverStrategy.AddDofs(DEM_inlet_model_part)
+SolverStrategy.AddDofs(spheres_model_part)
+SolverStrategy.AddDofs(cluster_model_part)
+SolverStrategy.AddDofs(DEM_inlet_model_part)
 
 # adding extra process info variables
-vars_man.AddingDEMProcessInfoVariables(pp, balls_model_part)
+vars_man.AddingDEMProcessInfoVariables(pp, spheres_model_part)
 
 #_____________________________________________________________________________________________________________________________________
 #
@@ -287,7 +317,7 @@ swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_na
                                                                    pp.GiDWriteMeshFlag,
                                                                    pp.GiDWriteConditionsFlag)
 
-swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part)
+swimming_DEM_gid_io.initialize_swimming_DEM_results(spheres_model_part, cluster_model_part, rigid_face_model_part, mixed_model_part)
 
 #_____________________________________________________________________________________________________________________________________
 #
@@ -352,9 +382,9 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
 if pp.swim.body_force_on_fluid_option:
 
     for node in fluid_model_part.Nodes:
-        node.SetSolutionStepValue(BODY_FORCE_X, 0, pp.dem.GravityX)
-        node.SetSolutionStepValue(BODY_FORCE_Y, 0, pp.dem.GravityY)
-        node.SetSolutionStepValue(BODY_FORCE_Z, 0, pp.dem.GravityZ)
+        node.SetSolutionStepValue(BODY_FORCE_X, 0, DEM_parameters.GravityX)
+        node.SetSolutionStepValue(BODY_FORCE_Y, 0, DEM_parameters.GravityY)
+        node.SetSolutionStepValue(BODY_FORCE_Z, 0, DEM_parameters.GravityZ)
 
 # coarse-graining: applying changes to the physical properties of the model to adjust for
 # the similarity transformation if required (fluid effects only).
@@ -364,9 +394,9 @@ swim_proc.ApplySimilarityTransformations(fluid_model_part, pp.swim.similarity_tr
 post_utils = swim_proc.PostUtils(swimming_DEM_gid_io,
                                                pp,
                                                fluid_model_part,
-                                               balls_model_part,
-                                               clusters_model_part,
-                                               rigid_faces_model_part,
+                                               spheres_model_part,
+                                               cluster_model_part,
+                                               rigid_face_model_part,
                                                mixed_model_part)
 
 # creating an IOTools object to perform other printing tasks
@@ -378,18 +408,18 @@ n_balls = 1
 fluid_volume = 10
 pp.swim.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
 # creating a physical calculations module to analyse the DEM model_part
-dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
+dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_part)
 
 if pp.swim.projection_module_option:
 
-    if pp.swim.meso_scale_length  <= 0.0 and balls_model_part.NumberOfElements(0) > 0:
-        biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(balls_model_part, RADIUS)
+    if pp.swim.meso_scale_length  <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
+        biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
         pp.swim.meso_scale_length  = 20 * biggest_size
 
-    elif balls_model_part.NumberOfElements(0) == 0:
+    elif spheres_model_part.NumberOfElements(0) == 0:
         pp.swim.meso_scale_length  = 1.0
 
-    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, balls_model_part, rigid_faces_model_part, domain_size, pp)
+    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp)
     projection_module.UpdateDatabase(h_min)
 
 # creating a custom functions calculator for the implementation of additional custom functions
@@ -399,24 +429,26 @@ custom_functions_tool = swim_proc.FunctionsCalculator(pp)
 stationarity_tool = swim_proc.StationarityAssessmentTool(pp.swim.max_pressure_variation_rate_tol , custom_functions_tool)
 
 # creating a debug tool
-dem_volume_tool = swim_proc.ProjectionDebugUtils(pp.swim.fluid_domain_volume, fluid_model_part, balls_model_part, custom_functions_tool)
+dem_volume_tool = swim_proc.ProjectionDebugUtils(pp.swim.fluid_domain_volume, fluid_model_part, spheres_model_part, custom_functions_tool)
 
 # creating a CreatorDestructor object, responsible for any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
+dem_fem_search = DEM_FEM_Search()
 
 # setting up a bounding box for the DEM balls (it is used for erasing remote balls)
-DEM_proc.SetBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor)
+procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
-dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, rigid_faces_model_part, clusters_model_part, DEM_inlet_model_part, creator_destructor, pp.dem) 
+dem_solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+
 # Initializing the DEM solver (must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part)
-dem_solver.search_strategy = dem_parallel_utils.GetSearchStrategy(dem_solver, balls_model_part)
+dem_solver.search_strategy = parallelutils.GetSearchStrategy(dem_solver, spheres_model_part)
 dem_solver.Initialize()
 
 # creating a distance calculation process for the embedded technology
 # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
 if (pp.swim.embedded_option):
-    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(rigid_faces_model_part, fluid_model_part)
+    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(rigid_face_model_part, fluid_model_part)
     calculate_distance_process.Execute()
 
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
@@ -424,8 +456,8 @@ if (pp.swim.embedded_option):
 if pp.swim.inlet_option:
     
     vars_man.AddingDEMProcessInfoVariables(pp, DEM_inlet_model_part)
-    max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(balls_model_part)
-    max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_faces_model_part)
+    max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+    max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
     max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
     max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
     
@@ -436,15 +468,13 @@ if pp.swim.inlet_option:
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
 
-    # constructiong the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
+    # constructiong the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
+    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
 
-# creating problem directories
-directories = ['results']
-
-if pp.swim.make_results_directories_option:
-    dir_path_dictionary = io_tools.CreateProblemDirectories(current_script_path, directories)
+# Creating necessary directories
+main_path = os.getcwd()
+[post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
 
 #_____________________________________________________________________________________________________________________________________
 #
@@ -453,7 +483,7 @@ if pp.swim.make_results_directories_option:
 
 # renumerating IDs if required
 
-# swim_proc.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, rigid_faces_model_part)
+# swim_proc.RenumberNodesIdsToAvoidRepeating(fluid_model_part, spheres_model_part, rigid_face_model_part)
 
 # Stepping and time settings
 
@@ -480,12 +510,11 @@ if pp.swim.flow_in_porous_medium_option:
     fluid_frac_util.AddFluidFractionField()
 
 if pp.swim.flow_in_porous_DEM_medium_option:
-    swim_proc.FixModelPart(balls_model_part)
+    swim_proc.FixModelPart(spheres_model_part)
 
 # choosing the directory in which we want to work (print to)
 
-if pp.swim.make_results_directories_option:
-    os.chdir(dir_path_dictionary['results'])
+os.chdir(post_path)
 
 def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
     current_time += delta_time
@@ -520,20 +549,20 @@ particles_results_counter = swim_proc.Counter(pp.swim.print_particles_results_cy
     #node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
     #node.SetSolutionStepValue(BODY_FORCE_Y, 0, 0.0)
     #node.SetSolutionStepValue(BODY_FORCE_Z, 0, - 9.81)
-import meshing_utils
+#import meshing_utils
 
 #meshing_utils.ModifyRadiusesGivenPorosity(model_part, porosity, tol)
 #Z
 
 DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
 time_dem     = 0.0
-Dt_DEM       = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-rigid_faces_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
-clusters_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+Dt_DEM       = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
+rigid_face_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+cluster_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
 stationarity = False
 
 mesh_motion = DEMFEMUtilities()
-swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
+swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part) # all variables are set to 0 by default
 
 while time <= final_time:
 
@@ -550,7 +579,7 @@ while time <= final_time:
         time_final_DEM_substepping = time
 
     # walls movement
-    mesh_motion.MoveAllMeshes(rigid_faces_model_part, time, Dt)
+    mesh_motion.MoveAllMeshes(rigid_face_model_part, time, Dt)
 
     # calculating elemental distances defining the structure embedded in the fluid mesh
     if pp.swim.embedded_option:
@@ -558,7 +587,7 @@ while time <= final_time:
 
     if embedded_counter.Tick():
         embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
-        embedded.ApplyEmbeddedBCsToBalls(balls_model_part, pp.dem)
+        embedded.ApplyEmbeddedBCsToBalls(spheres_model_part, DEM_parameters)
 
     # solving the fluid part
 
@@ -582,16 +611,16 @@ while time <= final_time:
         # eliminating remote balls
         
         #if pp.dem.BoundingBoxOption == "ON":
-        #    creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+        #    creator_destructor.DestroyParticlesOutsideBoundingBox(spheres_model_part)
             
-        io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
+        io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, spheres_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if output_time <= out and pp.swim.coupling_scheme_type == "UpdatedDEM":
 
         if pp.swim.projection_module_option:
-            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
+            projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
         out = 0
@@ -602,7 +631,7 @@ while time <= final_time:
     if pressure_gradient_counter.Tick():
         custom_functions_tool.CalculatePressureGradient(fluid_model_part)
 
-    print("Solving DEM... (", balls_model_part.NumberOfElements(0), "elements )")
+    print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
     first_dem_iter = True
 
@@ -610,7 +639,7 @@ while time <= final_time:
 
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
 
-        balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
+        spheres_model_part.ProcessInfo[TIME_STEPS] = DEM_step
 
         # applying fluid-to-DEM coupling if required
 
@@ -624,7 +653,7 @@ while time <= final_time:
 
         # performing the time integration of the DEM part
 
-        balls_model_part.CloneTimeStep(time_dem)
+        spheres_model_part.CloneTimeStep(time_dem)
 
         if not pp.swim.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
             dem_solver.Solve()
@@ -632,11 +661,11 @@ while time <= final_time:
         # adding DEM elements by the inlet
 
         if pp.swim.inlet_option:
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, clusters_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.        
+            DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.        
         
         # eliminating remote balls
 
-        #creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+        #creator_destructor.DestroyParticlesOutsideBoundingBox(spheres_model_part)
         
         first_dem_iter = False
 
@@ -664,16 +693,16 @@ while time <= final_time:
         # eliminating remote balls
         
         if pp.dem.BoundingBoxOption == "ON":
-            creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+            creator_destructor.DestroyParticlesOutsideBoundingBox(spheres_model_part)
             
-        io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
+        io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, spheres_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if output_time <= out and pp.swim.coupling_scheme_type == "UpdatedFluid":
 
         if pp.swim.projection_module_option:
-            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
+            projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
         out = 0
