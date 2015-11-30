@@ -141,13 +141,7 @@ namespace Kratos {
 
         } //end for: ParticleWeakIteratorType ineighbour
 
-        if (mDimension == 3) {
-            ContactAreaWeighting3D(rCurrentProcessInfo);
-        }
-
-        else if (mDimension == 2) {
-            ContactAreaWeighting2D();
-        }
+        ContactAreaWeighting();
 
     }//SetInitialSphereContacts
 
@@ -195,12 +189,11 @@ namespace Kratos {
 
     }//SetInitialFemContacts              
 
-    void SphericContinuumParticle::ContactAreaWeighting3D(ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+    void SphericContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
     {
 
         double alpha = 1.0;
         double external_sphere_area = 4 * KRATOS_M_PI * GetRadius()*GetRadius();
-
         double total_equiv_area = 0.0;
 
         int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
@@ -222,19 +215,13 @@ namespace Kratos {
             mcont_ini_neigh_area[index] = equiv_area; //*
             index++; //*
 
-
             //RECAREY
             //array_1d<double,3> other_to_me_vect   = this->GetGeometry()[0].Coordinates() - ini_cont_neighbour_iterator->GetGeometry()[0].Coordinates();
-
-
             //double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
             //                                              other_to_me_vect[1] * other_to_me_vect[1] +
             //                                              other_to_me_vect[2] * other_to_me_vect[2]);
-
             //do this in pragma omp critical!!
             //rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES] +=  0.5*distance*distance;
-
-
 
         } //for every neighbor
 
@@ -568,10 +555,6 @@ namespace Kratos {
         
         KRATOS_CATCH("")
     } //SymmetrizeTensor
-
-    void SphericContinuumParticle::ContactAreaWeighting2D() {
-        KRATOS_WATCH("ERROR: THIS FUNCTION MUST NOT BE CALLED FROM 3D ELEMENT")
-    }
 
     void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {         
         KRATOS_TRY
@@ -989,7 +972,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if (rVariable == DEMPACK_LOCAL_DAMPING) {
+        if (rVariable == DEMPACK_GLOBAL_DAMPING) {
             array_1d<double, 3>& total_force = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
             array_1d<double, 3>& velocity = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
@@ -1205,7 +1188,6 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        mDimension = 3;
         mSkinSphere                     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup                 = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
         
