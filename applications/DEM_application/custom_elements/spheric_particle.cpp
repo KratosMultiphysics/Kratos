@@ -563,6 +563,8 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         array_1d<double, 3> angular_velocity = angular_vel;
         array_1d<double, 3> other_angular_velocity = neigh_angular_vel;
         array_1d<double, 3> temp_neigh_angular_vel = neigh_angular_vel;
+        const double other_young = p_neighbour->GetYoung();
+        const double my_young = GetYoung();
         
         DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt);
         DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt);
@@ -630,8 +632,10 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         GeometryFunctions::normalize(radial_vector);
         GeometryFunctions::normalize(other_radial_vector);
         
-        double arm = GetRadius() - indentation * GetRadius() / radius_sum; //////////////////////////LINEAR FORMULATION: SHOULD BE COMPUTED BY THE CONSTITUTIVE LAW
-        double other_arm = other_radius - indentation * other_radius / radius_sum;
+        //double arm = GetRadius() - indentation * GetRadius() / radius_sum; //////////////////////////LINEAR FORMULATION: SHOULD BE COMPUTED BY THE CONSTITUTIVE LAW
+        //double other_arm = other_radius - indentation * other_radius / radius_sum;
+        double arm = GetRadius() - indentation * other_young / (other_young + my_young);
+        double other_arm = other_radius - indentation * other_young / (other_young + my_young);
         
         radial_vector *= arm;
         other_radial_vector *= other_arm;
