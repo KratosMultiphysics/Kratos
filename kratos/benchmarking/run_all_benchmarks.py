@@ -11,6 +11,18 @@ KratosRoot = CurrentDir + "/../"
 ApplicationsRoot = KratosRoot + "applications/"
 
 Text = "Status of Kratos examples:\n\n"
+
+
+
+# Kratos core tests
+try:
+    os.chdir(KratosRoot + "kratos/test_examples")
+    import kratos_run_all_benchmarks
+    Text += solid_mechanics_run_all_benchmarks.Run()
+except:
+    pass
+
+
 os.chdir(ApplicationsRoot)
 
 # SolidMechanics application
