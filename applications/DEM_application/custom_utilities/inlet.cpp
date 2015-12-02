@@ -118,8 +118,8 @@ namespace Kratos {
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
         
-    void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {    
-                            
+    void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
+
         vector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;       
@@ -175,7 +175,7 @@ namespace Kratos {
                         node_it.Set(NEW_ENTITY, 0);
                     }
                     else {
-                    //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted se they get available for injecting new elements.
+                    //Inlet BLOCKED nodes are ACTIVE when injecting, but once they cease to be in contact with other balls, ACTIVE can be reset to 'false' as they become available for injecting new elements.
                     node_it.Set(ACTIVE, false);
                     elem_it->Set(ACTIVE, false);
                     }
@@ -269,7 +269,7 @@ namespace Kratos {
                 continue;
             }                        
                         
-            double num_part_surface_time = mInletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES]; 
+            double num_part_surface_time = mInletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES];
             double delta_t = r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0;//inlet_surface; // this should probably be projected to velocity vector
             
@@ -290,7 +290,7 @@ namespace Kratos {
                     if( all_elements[i]->IsNot(ACTIVE) ) { 
 		        valid_elements[valid_elements_length]=all_elements[i];   
 		        valid_elements_length++; 
-		    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
+            } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
                 }
 
                 if (valid_elements_length < number_of_particles_to_insert) {
@@ -299,8 +299,8 @@ namespace Kratos {
                 }
                
                 for (int i = 0; i < number_of_particles_to_insert; i++) {
-		    int pos = rand() % valid_elements_length;
-		    //int pos = i;
+            int pos = rand() % valid_elements_length;
+            //int pos = i;
                     inserting_elements[i] = valid_elements[pos]; //This only works for pos as real position in the vector if 
                     //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
                     valid_elements[pos] = valid_elements[valid_elements_length - 1];
