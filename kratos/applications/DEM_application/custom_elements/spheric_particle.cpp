@@ -405,7 +405,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<unsigned in
         noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
         noalias(mTempNeighbourTotalContactForces[i]) = vector_of_zeros;
 
-        for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++){
+        for (unsigned int j = 0; j < mOldNeighbourIds.size(); j++){
             if (i_neighbour->Id() == mOldNeighbourIds[j]){
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
                 noalias(mTempNeighbourTotalContactForces[i])   = mNeighbourTotalContactForces[j];
