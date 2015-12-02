@@ -57,8 +57,9 @@ namespace Kratos {
         void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);
 
     private:
-        
-        Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
+        Vector mPartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
+        Vector mLastInjectionTimes; //array of doubles, must be resized in the constructor to the number of meshes
+        std::vector<int> mTotalNumberOfDetachedParticles;
         ModelPart& mInletModelPart; //The model part used to insert elements
         bool mFirstTime;
         boost::numeric::ublas::vector<bool> mLayerRemoved;
