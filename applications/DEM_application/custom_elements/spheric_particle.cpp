@@ -1339,17 +1339,17 @@ void SphericParticle::CalculateViscoDamping(double LocalRelVel[3],
     // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
     // But in opposite direction the visco damping can't overpass the force...
 
-    if (mDampType > 0) {
 
-        if (mDampType == 11 || mDampType == 10) {
+
+
             ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
-        }
 
-        if (sliding == false && (mDampType == 1 || mDampType == 11)) { //only applied when no sliding to help to the regularized friction law or the spring convergence
+
+        if (sliding == false) { //only applied when no sliding to help to the regularized friction law or the spring convergence
             ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
             ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
-    }
+
 }
 
 void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
@@ -1416,8 +1416,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
     }
 
-    mDampType                                    = r_process_info[DAMP_TYPE];
-        
     if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION, true);
     else                                         this->Set(DEMFlags::HAS_ROTATION, false);
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
