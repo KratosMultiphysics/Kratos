@@ -978,7 +978,7 @@ namespace Kratos
       KRATOS_REGISTER_CONDITION( "PeriodicConditionEdge", mPeriodicConditionEdge )
       KRATOS_REGISTER_CONDITION( "PeriodicConditionCorner", mPeriodicConditionCorner )
 
-      //Register specific elements ( must be completed : elemtns defined in kratos_appliction.h)
+      //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
       KRATOS_REGISTER_ELEMENT( "Element3D4N", mElement3D4N )
       KRATOS_REGISTER_ELEMENT( "Element2D3N", mElement2D3N )
 
