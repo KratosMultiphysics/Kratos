@@ -127,45 +127,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.gravity[0] = Param.GravityX
         self.gravity[1] = Param.GravityY
         self.gravity[2] = Param.GravityZ
-        
-        if (Param.MaterialModel == "Linear"):
-            self.force_calculation_type_id = 0
-        elif (Param.MaterialModel == "Hertz"):
-            self.force_calculation_type_id = 1
-        elif (Param.MaterialModel == "1DPlasticity"):
-            self.force_calculation_type_id = 2
-        elif (Param.MaterialModel == "ExpHard"):
-            self.force_calculation_type_id = 3
-
-
-        if (self.force_calculation_type_id == 3):
-            self.donze_g1 = Param.G1
-            self.donze_g2 = Param.G2
-            self.donze_g3 = Param.G3
-            self.donze_max_def = Param.MaxDef
-
-        if (Param.LocalContactDamping == "Both"):         
-            self.damp_id = 11
-              
-        elif (Param.LocalContactDamping == "Normal"):
-            self.damp_id = 10
-            
-        elif (Param.LocalContactDamping == "Tangential"):
-            self.damp_id = 1
-        else:
-            self.damp_id = 0
-            
-        self.dempack_option = Var_Translator(Param.Dempack)
+                   
+        #self.dempack_option = Var_Translator(Param.Dempack)
                          
         self.rolling_friction_option = 0
         if (Var_Translator(Param.RollingFrictionOption)):
             self.rolling_friction_option = 1
-
-        if (Param.FailureCriterionType == "Mohr-Coulomb"):
-            self.failure_criterion_option = 1
-
-        elif (Param.FailureCriterionType == "Uncoupled"):
-            self.failure_criterion_option = 2
 
 
         # PRINTING VARIABLES
@@ -206,7 +173,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
-        self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
+        #self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
@@ -223,7 +190,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # PRINTING VARIABLES
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
         self.model_part.ProcessInfo.SetValue(PRINT_SKIN_SPHERE, self.print_export_skin_sphere)
-        self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # TIME RELATED PARAMETERS
@@ -242,13 +208,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
 
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
-        self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
-
-        if (self.force_calculation_type_id == 3):
-            self.model_part.ProcessInfo.SetValue(DONZE_G1, self.donze_g1)
-            self.model_part.ProcessInfo.SetValue(DONZE_G2, self.donze_g2)
-            self.model_part.ProcessInfo.SetValue(DONZE_G3, self.donze_g3)
-            self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.donze_max_def)
+        #self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
 
         if ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
