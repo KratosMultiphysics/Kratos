@@ -73,7 +73,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "processes/levelset_convection_process.h"
-
+#include "processes/apply_constant_scalarvalue_process.h"
+#include "processes/apply_constant_vectorvalue_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -180,6 +181,15 @@ void  AddProcessesToPython()
     class_<LevelSetConvectionProcess<3> , bases<Process>, boost::noncopyable >("LevelSetConvectionProcess3D",
             init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
     ;   
+
+
+    class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
+            init<ModelPart&, Variable<double>&, double, std::size_t, Flags>())
+    ; 
+
+    class_<ApplyConstantVectorValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
+            init<ModelPart&, Variable<array_1d<double,3> >&, const Vector&, std::size_t, Flags>())
+    ; 
     
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
