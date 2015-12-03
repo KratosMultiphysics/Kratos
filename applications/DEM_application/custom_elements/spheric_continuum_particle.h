@@ -101,7 +101,12 @@ namespace Kratos
       std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
       std::vector<Particle_Contact_Element*> mBondElements;
       std::vector<int> mIniNeighbourIds;
-            
+      std::vector<int> mNeighbourFailureId;
+      std::vector<int> mIniNeighbourFailureId;
+      std::vector<double> mNeighbourDelta;
+      std::vector<int> mMapping_New_Cont;
+      std::vector<int> mMapping_New_Ini;
+
       ///@}
       
     protected:
@@ -137,13 +142,8 @@ namespace Kratos
         //sphere neighbour information
         
         std::vector<double>         mcont_ini_neigh_area;        
-        std::vector<double>         mIniNeighbourDelta;
-        std::vector<int>            mIniNeighbourFailureId;
         std::vector<int>            mIniNeighbourToIniContinuum;        
-        std::vector<int>            mMapping_New_Ini;
-        std::vector<int>            mMapping_New_Cont;
-        std::vector<double>         mNeighbourDelta;
-        std::vector<int>            mNeighbourFailureId;              
+        std::vector<double>         mIniNeighbourDelta;
                   
         //fem neighbour information
         std::vector<double>         mFemNeighbourDelta;                        
