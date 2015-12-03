@@ -61,14 +61,11 @@ namespace Kratos {
                 double& acumulated_damage,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
-                int &mNeighbourFailureId_count,
-                int &mIniNeighbourFailureId_mapping,
-                double &mNeighbourDelta_count,
+                int i_neighbour_count,
                 int time_steps,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector,
-                double mapping_new_cont);
+                vector<int>& search_control_vector);
 
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -79,9 +76,7 @@ namespace Kratos {
                 double& acumulated_damage,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
-                int &mNeighbourFailureId_count,
-                int &mIniNeighbourFailureId_mapping,
-                double &mNeighbourDelta_count,
+                int i_neighbour_count,
                 int time_steps);
 
 
@@ -93,12 +88,10 @@ namespace Kratos {
                 double& failure_criterion_state,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
-                int &mNeighbourFailureId_count,
-                int &mIniNeighbourFailureId_mapping,
+                int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector,
-                double mapping_new_cont);
+                vector<int>& search_control_vector);
 
 
     private:

@@ -95,14 +95,11 @@ namespace Kratos {
             double& acumulated_damage,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            double &mNeighbourDelta_count,
+            int i_neighbour_count,
             int time_steps,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
-            double mapping_new_cont) {
+            vector<int>& search_control_vector) {
         
         KRATOS_TRY
         CalculateNormalForces(LocalElasticContactForce,
@@ -113,9 +110,7 @@ namespace Kratos {
                 acumulated_damage,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mIniNeighbourFailureId_mapping,
-                mNeighbourDelta_count,
+                i_neighbour_count,
                 time_steps);
 
         CalculateTangentialForces(LocalElasticContactForce,
@@ -126,12 +121,11 @@ namespace Kratos {
                 failure_criterion_state,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mIniNeighbourFailureId_mapping,
+                i_neighbour_count,
                 sliding,
                 search_control,
-                search_control_vector,
-                mapping_new_cont);
+                search_control_vector);
+
     KRATOS_CATCH("")      
     }
 
@@ -143,12 +137,16 @@ namespace Kratos {
             double& acumulated_damage,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            double &mNeighbourDelta_count,
+            int i_neighbour_count,
             int time_steps) {
 
         KRATOS_TRY
+
+        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+
+
         const double mN1 = element1->GetProperties()[SLOPE_FRACTION_N1];
         const double mN2 = element1->GetProperties()[SLOPE_FRACTION_N2];
         const double mN3 = element1->GetProperties()[SLOPE_FRACTION_N3];
@@ -267,14 +265,20 @@ namespace Kratos {
             double& failure_criterion_state,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
+            int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
-            double mapping_new_cont) {
+            vector<int>& search_control_vector) {
 
         KRATOS_TRY
+
+        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mapping_new_cont = element1->mMapping_New_Cont[i_neighbour_count];
+
+        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+
+
         const double other_tg_of_fri_angle = element2->GetTgOfFrictionAngle();
         const double myTgOfFrictionAngle = element1->GetTgOfFrictionAngle();
         double contact_tau = 0.0;
@@ -287,14 +291,12 @@ namespace Kratos {
         double degradation = 1.0; //Tangential. With degradation:
 
         if (mapping_new_cont != -1) {
-            if (indentation >= 0.0) { //COMPRESSION              
+            if (indentation >= 0.0) { //COMPRESSION
                 degradation = mHistoryDegradation;
             } else {
                 degradation = (1.0 - mHistoryDamage);
             }
         }
-
-        //        degradation = 1.0; // revisar degradation = 1.0 hardcoded   ////////////////
 
         if (mNeighbourFailureId_count == 0) {
             if (mHistoryShearFlag == 0.0) {

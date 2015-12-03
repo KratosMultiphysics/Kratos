@@ -39,26 +39,23 @@ namespace Kratos {
             double indentation,
             double equiv_visco_damp_coeff_normal,
             double equiv_visco_damp_coeff_tangential,
-            bool sliding,
-            int mDampType) {
+            bool sliding) {
 
         //*** component-wise since localContactForce and RelVel have in principle no relationship.
         // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
         // But in oposite direction the visco damping can't overpass the force...
 
         KRATOS_TRY  
-        if (mDampType > 0) {
 
-            if (mDampType == 11 || mDampType == 10) {
                 ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
-            }
 
-            if (sliding == false && (mDampType == 1 || mDampType == 11)) { //only applied when no sliding to help to the regularized friction law or the spring convergence
+            if (sliding == false) { //only applied when no sliding to help to the regularized friction law or the spring convergence
                 ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
                 ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
             }
-        }
-    KRATOS_CATCH("")      
+
+    KRATOS_CATCH("")
+
     }
 
 } //kratos
