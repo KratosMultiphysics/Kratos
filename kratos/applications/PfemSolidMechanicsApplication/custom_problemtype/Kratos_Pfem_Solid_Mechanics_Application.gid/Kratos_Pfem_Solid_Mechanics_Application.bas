@@ -374,9 +374,9 @@ End Conditions
 
 *# Point Condition Blocks
 
-*Set cond point_PointLoad2DCondition *nodes
+*Set cond point_PointLoadCondition2D1N *nodes
 *if(CondNumEntities > 0)
-Begin Conditions PointLoad2DCondition
+Begin Conditions PointLoadCondition2D1N
 *loop nodes *OnlyInCond
 *set var icond=operation(icond+1)
 *format "%i%i%i"
@@ -385,9 +385,9 @@ Begin Conditions PointLoad2DCondition
 End Conditions
 
 *endif
-*Set cond point_PointLoadAxisym2DCondition *nodes
+*Set cond point_AxisymPointLoadCondition2D1N *nodes
 *if(CondNumEntities > 0)
-Begin Conditions PointLoadAxisym2DCondition
+Begin Conditions AxisymPointLoadCondition2D1N
 *loop nodes *OnlyInCond
 *set var icond=operation(icond+1)
 *format "%i%i%i"
@@ -405,9 +405,9 @@ End Conditions
 *if(CondNumEntities > 0)
 *loop groups *OnlyInCond
 *if(strcmp(cond(Contact_Condition),"3D")==0)
-Begin Conditions WallCondition3D
+Begin Conditions WallCondition3D3N
 *else
-Begin Conditions WallCondition2D
+Begin Conditions WallCondition2D2N
 *endif
 *#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *elems
@@ -907,8 +907,8 @@ Begin Mesh *cond(Group_ID)
 *# Point Condition Blocks
 *set group *GroupName *nodes
 *if(GroupNumEntities > 0)
-*set cond point_PointLoad2DCondition *nodes
-*add cond point_PointLoadAxisym2DCondition *nodes
+*set cond point_PointLoadCondition2D1N *nodes
+*add cond point_AxisymPointLoadCondition2D1N *nodes
 *if(CondNumEntities > 0)	    
 *loop nodes *onlyincond *onlyingroup
 *set var point_conditions_num=operation(point_conditions_num+1)

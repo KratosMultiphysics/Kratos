@@ -380,20 +380,20 @@ namespace Kratos
     const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
 
 
-    const Condition mCondition2D;
-    const Condition mCondition3D;
+    const Condition mCondition2D2N;
+    const Condition mCondition3D3N;
 
-    const CompositeCondition mCompositeCondition2D;
-    const CompositeCondition mCompositeCondition3D;
+    const CompositeCondition mCompositeCondition2D2N;
+    const CompositeCondition mCompositeCondition3D3N;
 
-    const WallCondition mWallCondition2D;
-    const WallCondition mWallCondition3D;
+    const WallCondition mWallCondition2D2N;
+    const WallCondition mWallCondition3D3N;
 
-    const ContactDomainLM2DCondition   mContactDomainLM2DCondition;
-    const ContactDomainPenalty2DCondition   mContactDomainPenalty2DCondition;
+    const ContactDomainLM2DCondition   mContactDomainLMCondition2D3N;
+    const ContactDomainPenalty2DCondition   mContactDomainPenaltyCondition2D3N;
 
-    const AxisymContactDomainLM2DCondition    mAxisymContactDomainLM2DCondition;
-    const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
+    const AxisymContactDomainLM2DCondition    mAxisymContactDomainLMCondition2D3N;
+    const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenaltyCondition2D3N;
 
     //const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     //const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;

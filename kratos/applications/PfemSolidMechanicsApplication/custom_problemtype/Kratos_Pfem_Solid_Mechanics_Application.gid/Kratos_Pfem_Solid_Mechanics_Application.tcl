@@ -124,8 +124,8 @@ proc BeforeMeshGeneration {elementsize} {
 	set surf_elemtype_check 0
 	set vol_elemtype_check 0
 	
-	# check_elemtype LineLoad2DCondition line None
-	# check_elemtype LineLoadAxisym2DCondition line None
+	# check_elemtype LineLoadCondition2D1N line None
+	# check_elemtype AxisymLineLoadCondition2D1N line None
 	# check_elemtype UpdatedLagrangianElement2D3N surface Triangle
 	# check_elemtype AxisymUpdatedLagrangianElement2D3N surface Triangle
 	# check_elemtype UpdatedLagrangianUPElement2D3N surface Triangle
@@ -203,8 +203,8 @@ proc BeforeMeshGeneration {elementsize} {
 	# Select Elements from Options
 	
 	# Assign Non-Default Mesh Criteria to Entities
-	# meshtype LineLoad2DCondition line None
-	# meshtype LineLoadAxisym2DCondition line None
+	# meshtype LineLoadCondition2D1N line None
+	# meshtype AxisymLineLoadCondition2D1N line None
 	# meshtype UpdatedLagrangianElement2D3N surface Triangle
 	# meshtype AxisymUpdatedLagrangianElement2D3N surface Triangle
 	# meshtype UpdatedLagrangianUPElement2D3N surface Triangle
@@ -212,7 +212,7 @@ proc BeforeMeshGeneration {elementsize} {
 
 	# End Meshing Block
 
-    } ;#end if 0
+    };#end if 0
     
     ::GidUtils::EnableGraphics
 }

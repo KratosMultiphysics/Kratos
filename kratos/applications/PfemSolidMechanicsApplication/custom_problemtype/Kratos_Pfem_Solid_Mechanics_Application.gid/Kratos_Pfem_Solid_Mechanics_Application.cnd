@@ -554,7 +554,7 @@ END CONDITION
 # Classical conditions on points,lines and surfaces
 
 BOOK: Conditions
-CONDITION: point_PointLoad2DCondition
+CONDITION: point_PointLoadCondition2D1N
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
@@ -565,7 +565,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: point_PointLoadAxisym2DCondition
+CONDITION: point_AxisymPointLoadCondition2D1N
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic

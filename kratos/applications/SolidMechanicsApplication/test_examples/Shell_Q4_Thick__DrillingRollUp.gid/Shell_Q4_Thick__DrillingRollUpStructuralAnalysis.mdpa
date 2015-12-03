@@ -1171,7 +1171,7 @@ Begin NodalData ROTATION_Y
        243    1   0.000000
 End NodalData
 
-Begin Conditions PointTorque3DCondition // GUI puntual load group identifier: load
+Begin Conditions PointTorqueCondition3D1N // GUI puntual load group identifier: load
    1    1        242
 End Conditions
 

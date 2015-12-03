@@ -13,7 +13,29 @@ VALUE: 0.29
 QUESTION: THICKNESS
 VALUE: 1.0
 END MATERIAL
-NUMBER: 2 MATERIAL: Plastic
+NUMBER: 2 MATERIAL: Damage
+QUESTION: Type#CB#(Damage)
+VALUE: Damage
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(IsotropicDamageSimoJu3DLaw, IsotropicDamageSimoJuPlaneStrain2DLaw, IsotropicDamageSimoJuPlaneStress2DLaw)
+VALUE: IsotropicDamageSimoJu3DLaw
+QUESTION: DENSITY
+VALUE: 2500
+QUESTION: YOUNG_MODULUS
+VALUE: 28.0e9
+QUESTION: POISSON_RATIO
+VALUE: 0.1
+QUESTION: HARDENING_MODEL#CB#(SIMO_JU)
+VALUE: SIMO_JU
+QUESTION: STRENGTH_RATIO
+VALUE: 10.9375
+QUESTION: FRACTURE_ENERGY
+VALUE: 140
+QUESTION: DAMAGE_THRESHOLD
+VALUE: 19.12366
+QUESTION: THICKNESS
+VALUE: 1.0
+END MATERIAL
+NUMBER: 3 MATERIAL: Plastic
 QUESTION: Type#CB#(Plastic)
 VALUE: Plastic
 QUESTION: CONSTITUTIVE_LAW_NAME#CB#(HyperElasticPlasticJ23DLaw,HyperElasticPlasticJ2PlaneStrain2DLaw,HyperElasticPlasticUPJ2PlaneStrain2DLaw,HyperElasticPlasticJ2Axisym2DLaw,HenckyTrescaPlasticPlaneStrain2DLaw,HenckyTrescaPlasticAxisym2DLaw,HenckyPlasticUPTrescaPlaneStrain2DLaw,HenckyPlasticUPTrescaAxisym2DLaw,HenckyMohrCoulombPlasticPlaneStrain2DLaw,HenckyMohrCoulombPlasticAxisym2DLaw)
@@ -72,10 +94,10 @@ VALUE: 0.5
 QUESTION: THICKNESS
 VALUE: 1.0
 END MATERIAL
-NUMBER: 3 MATERIAL: CriticalStatePlasticity
+NUMBER: 4 MATERIAL: CriticalStatePlasticity
 QUESTION: Type#CB#(CriticalStatePlasticity)
 VALUE: CriticalStatePlasticity
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(BorjaHenckyCamClayPlasticPlaneStrain2DLaw,BorjaHenckyCamClayPlasticAxisym2DLaw,NonLinearHenckyCamClayPlasticPlaneStrain2DLaw,NonLinearHenckyCamClayPlasticAxisym2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(BorjaHenckyCamClayPlasticPlaneStrain2DLaw,BorjaHenckyCamClayPlasticAxisym2DLaw)
 VALUE: BorjaHenckyCamClayPlasticPlaneStrain2DLaw
 QUESTION: DENSITY
 VALUE: 2.0

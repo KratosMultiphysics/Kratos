@@ -230,7 +230,7 @@ class ModelerUtility:
                 print("(Type:",conditions["MeshElement"],")")
 
             #remesh data
-            self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", conditions["Remesh"], conditions["Constrained"], conditions["MeshSmoothing"], conditions["JacobiSmoothing"], self.avoid_tip_elements, self.alpha_shape, self.offset_factor, mesh_id)
+            self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D2N", conditions["Remesh"], conditions["Constrained"], conditions["MeshSmoothing"], conditions["JacobiSmoothing"], self.avoid_tip_elements, self.alpha_shape, self.offset_factor, mesh_id)
 
             #refine data
             self.mesh_modeler.SetRefineData(conditions["Refine"], self.h_factor, critical_mesh_size, conditions["DissipationVariable"], conditions["CriticalDissipation"], conditions["ErrorVariable"], conditions["CriticalError"], mesh_id)
