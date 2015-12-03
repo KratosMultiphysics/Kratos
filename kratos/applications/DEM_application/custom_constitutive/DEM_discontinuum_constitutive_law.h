@@ -93,8 +93,7 @@ namespace Kratos {
                 double indentation,
                 double equiv_visco_damp_coeff_normal,
                 double equiv_visco_damp_coeff_tangential,
-                bool sliding,
-                int mDampType);
+                bool sliding);
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,

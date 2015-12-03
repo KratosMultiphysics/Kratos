@@ -76,7 +76,6 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-//        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
         const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
 
         equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
@@ -87,24 +86,21 @@ namespace Kratos {
 
     void DEM_ExponentialHC::CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                             double LocalElasticContactForce[3],
-            double LocalDeltDisp[3],
-            const double kn_el,
-            double kt_el,
-            double& failure_criterion_state,
-            double equiv_young,
-            double indentation,
-            double calculation_area,
-            double& acumulated_damage,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            double &mNeighbourDelta_count,
-            int time_steps,
-            bool& sliding,
-            int search_control,
-            vector<int>& search_control_vector,
-            double mapping_new_cont) {
+                                            double LocalDeltDisp[3],
+                                            const double kn_el,
+                                            double kt_el,
+                                            double& failure_criterion_state,
+                                            double equiv_young,
+                                            double indentation,
+                                            double calculation_area,
+                                            double& acumulated_damage,
+                                            SphericContinuumParticle* element1,
+                                            SphericContinuumParticle* element2,
+                                            int i_neighbour_count,
+                                            int time_steps,
+                                            bool& sliding,
+                                            int search_control,
+                                            vector<int>& search_control_vector) {
 
 
         KRATOS_TRY
@@ -116,9 +112,7 @@ namespace Kratos {
                 acumulated_damage,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mIniNeighbourFailureId_mapping,
-                mNeighbourDelta_count,
+                i_neighbour_count,
                 time_steps);
 
         CalculateTangentialForces(LocalElasticContactForce,
@@ -129,31 +123,37 @@ namespace Kratos {
                 failure_criterion_state,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mIniNeighbourFailureId_mapping,
+                i_neighbour_count,
                 sliding,
                 search_control,
-                search_control_vector,
-                mapping_new_cont);
+                search_control_vector);
+
         KRATOS_CATCH("")  
     }
 
     void DEM_ExponentialHC::CalculateTangentialForces(double LocalElasticContactForce[3],
-            double LocalDeltDisp[3],
-            double kt_el,
-            double indentation,
-            double calculation_area,
-            double& failure_criterion_state,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            bool& sliding,
-            int search_control,
-            vector<int>& search_control_vector,
-            double mapping_new_cont) {
+                                                        double LocalDeltDisp[3],
+                                                        double kt_el,
+                                                        double indentation,
+                                                        double calculation_area,
+                                                        double& failure_criterion_state,
+                                                        SphericContinuumParticle* element1,
+                                                        SphericContinuumParticle* element2,
+                                                        int i_neighbour_count,
+                                                        bool& sliding,
+                                                        int search_control,
+                                                        vector<int>& search_control_vector) {
 
         KRATOS_TRY
+
+
+        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mapping_new_cont = element1->mMapping_New_Cont[i_neighbour_count];
+
+        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+
+
         const double other_tg_of_fri_angle = element2->GetTgOfFrictionAngle();
         const double myTgOfFrictionAngle = element1->GetTgOfFrictionAngle();
         double contact_tau = 0.0;
@@ -274,9 +274,7 @@ namespace Kratos {
             double& acumulated_damage,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            double &mNeighbourDelta_count,
+            int i_neighbour_count,
             int time_steps) {
 
         //        mGamma1 = rCurrentProcessInfo[DONZE_G1];
@@ -286,10 +284,17 @@ namespace Kratos {
         
         
         KRATOS_TRY
+
         mGamma1 = 0.2;
         mGamma2 = 16;
         mGamma3 = 0.275;
         mMaxDef = 0.002;
+
+        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        double &mNeighbourDelta_count = element1->mNeighbourDelta[i_neighbour_count];
+
         const double mDamageMaxDisplacementFactor = element1->GetProperties()[DAMAGE_FACTOR];
         const double mTensionLimit = element1->GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2
         const double &other_radius = element2->GetRadius();

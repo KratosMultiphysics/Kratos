@@ -69,7 +69,7 @@ namespace Kratos {
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
         const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        const double mOtherCoefficientOfRestitution = element2->GetProperties()[DAMPING_GAMMA];
+        const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
         const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
 
         equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
@@ -89,16 +89,14 @@ namespace Kratos {
                                       double& acumulated_damage,
                                       SphericContinuumParticle* element1,
                                       SphericContinuumParticle* element2,
-                                      int &mNeighbourFailureId_count,
-                                      int &mIniNeighbourFailureId_mapping,
-                                      double &mNeighbourDelta_count,
+                                      int i_neighbour_count,
                                       int time_steps,
                                       bool& sliding,
                                       int search_control,
-                                      vector<int>& search_control_vector,
-                                      double mapping_new_cont) {
+                                      vector<int>& search_control_vector) {
 
-        KRATOS_TRY 
+        KRATOS_TRY
+
         CalculateNormalForces(LocalElasticContactForce,
                 kn_el,
                 equiv_young,
@@ -107,9 +105,7 @@ namespace Kratos {
                 acumulated_damage,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mIniNeighbourFailureId_mapping,
-                mNeighbourDelta_count,
+                i_neighbour_count,
                 time_steps);
 
         CalculateTangentialForces(LocalElasticContactForce,
@@ -120,12 +116,11 @@ namespace Kratos {
                 failure_criterion_state,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mIniNeighbourFailureId_mapping,
+                i_neighbour_count,
                 sliding,
                 search_control,
-                search_control_vector,
-                mapping_new_cont);
+                search_control_vector);
+
         KRATOS_CATCH("")  
     }
 
@@ -137,12 +132,14 @@ namespace Kratos {
             double& acumulated_damage,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
-            double &mNeighbourDelta_count,
+            int i_neighbour_count,
             int time_steps) {
         
-        KRATOS_TRY 
+        KRATOS_TRY
+
+        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -292,14 +289,18 @@ namespace Kratos {
             double& failure_criterion_state,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            int &mNeighbourFailureId_count,
-            int &mIniNeighbourFailureId_mapping,
+            int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
-            double mapping_new_cont) {
+            vector<int>& search_control_vector) {
         
         KRATOS_TRY
+
+        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mapping_new_cont = element1->mMapping_New_Cont[i_neighbour_count];
+
+        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
