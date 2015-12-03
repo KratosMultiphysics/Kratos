@@ -1558,7 +1558,51 @@ namespace Kratos
           }
 
           KRATOS_CATCH("")
-     }            
+     }
+
+
+     void GlobalDamping() {
+
+         KRATOS_TRY
+
+         ModelPart& r_model_part = BaseType::GetModelPart();
+         ElementsArrayType& pElements = GetElements(r_model_part);
+
+         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
+
+         #pragma omp parallel for
+         for (int k = 0; k < mNumberOfThreads; k++) {
+             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+             typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+             for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
+                 ModelPart::NodeType pNode = it->GetGeometry()[0];
+
+                 array_1d<double, 3>& total_force = pNode.FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
+                 array_1d<double, 3>& velocity = pNode.FastGetSolutionStepValue(VELOCITY);
+
+                 const double global_damping         = it->GetProperties()[DEMPACK_GLOBAL_DAMPING];
+
+                 if (pNode.IsNot(DEMFlags::FIXED_VEL_X)) {
+                     total_force[0] = total_force[0] - global_damping * fabs(total_force[0]) * GeometryFunctions::sign(velocity[0]);
+                 }
+
+                 if (pNode.IsNot(DEMFlags::FIXED_VEL_Y)) {
+                     total_force[1] = total_force[1] - global_damping * fabs(total_force[1]) * GeometryFunctions::sign(velocity[1]);
+                 }
+
+                 if (pNode.IsNot(DEMFlags::FIXED_VEL_Z)) {
+                     total_force[2] = total_force[2] - global_damping * fabs(total_force[2]) * GeometryFunctions::sign(velocity[2]);
+                 }
+
+             } // loop over particles
+
+         }   // loop threads OpenMP
+
+         KRATOS_CATCH("")
+     }       // GlobalDamping
+
+
     
     //*******************************************************************************************************
     
@@ -1605,7 +1649,11 @@ namespace Kratos
     vector<unsigned int>&                        GetConditionPartition(){return (mConditionPartition);}
     
     std::vector<PropertiesProxy>                 mFastProperties;
-            
+
+    virtual ElementsArrayType& GetElements(ModelPart& r_model_part)
+    {
+        return r_model_part.GetCommunicator().LocalMesh().Elements();
+    }
     
     protected:
 

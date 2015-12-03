@@ -163,7 +163,7 @@ namespace Kratos
         BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
         BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);        
         
-        mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]);                 
+        //mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]);
         
         this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
         this->GetSearchControl()         = rCurrentProcessInfo[SEARCH_CONTROL];
@@ -318,9 +318,9 @@ namespace Kratos
           //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes          
           BaseType::Clear_forces_FEM();
           BaseType::Calculate_Conditions_RHS_and_Add();
-          if (mDempackOption) {
-              this->GlobalDamping();
-          }       
+
+          this->BaseType::GlobalDamping();
+
           
            
           // 3. Move particles   /////////////////////////////////  
@@ -646,30 +646,7 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        void GlobalDamping() {
 
-            KRATOS_TRY
-
-            ModelPart& r_model_part = BaseType::GetModelPart();
-            ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-            ElementsArrayType& pElements = GetElements(r_model_part);
-
-            OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pElements.size(), this->GetElementPartition());
-
-            double Output = 0.0;
-
-            #pragma omp parallel for          
-            for (int k = 0; k < BaseType::mNumberOfThreads; k++) {
-                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-                typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-                for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                    (it)->Calculate(DEMPACK_GLOBAL_DAMPING, Output, rCurrentProcessInfo);
-                } //loop over particles
-            }// loop threads OpenMP
-
-            KRATOS_CATCH("")
-        } //GlobalDamping
 
         void Particle_Area_Calculate(const bool first) {
 
@@ -790,7 +767,7 @@ namespace Kratos
     
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
-    bool   mDempackOption;
+    //bool   mDempackOption;
     std::vector<SphericContinuumParticle*>  mListOfSphericContinuumParticles;
     std::vector<SphericContinuumParticle*>  mListOfGhostSphericContinuumParticles;
 
