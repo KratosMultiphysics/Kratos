@@ -119,17 +119,6 @@ class ExplicitStrategy:
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
            self.virtual_mass_option            = 1
-
-        if (Param.LocalContactDamping == "Both"):         
-            self.damp_id = 11
-              
-        elif (Param.LocalContactDamping == "Normal"):
-            self.damp_id = 10
-            
-        elif (Param.LocalContactDamping == "Tangential"):
-            self.damp_id = 1
-        else:
-            self.damp_id = 0
             
         self.rolling_friction_option = Var_Translator(Param.RollingFrictionOption)
 
@@ -190,7 +179,6 @@ class ExplicitStrategy:
         
         # PRINTING VARIABLES
 
-        self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
