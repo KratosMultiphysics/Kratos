@@ -27,8 +27,8 @@
 //
 
 
-#if !defined(KRATOS_PROCESS_H_INCLUDED )
-#define  KRATOS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED )
+#define  KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED
 
 
 
@@ -43,6 +43,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
@@ -51,32 +52,47 @@ namespace Kratos
 ///@{
 
 /// The base class for all processes in Kratos.
-/** The process is the base class for all processes and defines a simple interface for them.
-    Execute method is used to execute the Process algorithms. While the parameters of this method
-  can be very different from one Process to other there is no way to create enough overridden
-  versions of it. For this reason this method takes no argument and all Process parameters must
-  be passed at construction time. The reason is that each constructor can take different set of
-  argument without any dependency to other processes or the base Process class.
+/** This function applies a constant value (and fixity) to all of the nodes in a given mesh
 */
-class Process : public Flags
+class ApplyConstantVectorValueProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_DEFINE_LOCAL_FLAG(X_COMPONENT_FIXED);
+    KRATOS_DEFINE_LOCAL_FLAG(Y_COMPONENT_FIXED);
+    KRATOS_DEFINE_LOCAL_FLAG(Z_COMPONENT_FIXED);
 
-    /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION(Process);
+    /// Pointer definition of ApplyConstantVectorValueProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantVectorValueProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Process() : Flags() {}
-    Process(Flags options) : Flags( options ) {}
+    ApplyConstantVectorValueProcess(ModelPart& model_part, 
+                              Variable<array_1d<double,3> >& rVariable, 
+                              const Vector value, 
+                              std::size_t mesh_id,
+                              Flags options
+                                   ) : Process(options) , mr_model_part(model_part), mrVariable(rVariable),mvalue(value),mmesh_id(mesh_id)
+    {
+        KRATOS_TRY
+        
+        if(this->IsDefined(X_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","")
+        if(this->IsDefined(Y_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","")
+        if(this->IsDefined(Z_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","")
+
+        
+            
+        KRATOS_CATCH("")
+    }
+    
+    
 
     /// Destructor.
-    virtual ~Process() {}
+    virtual ~ApplyConstantVectorValueProcess() {}
 
 
     ///@}
@@ -95,13 +111,37 @@ public:
     ///@{
 
 
-    /// Execute method is used to execute the Process algorithms.
+    /// Execute method is used to execute the ApplyConstantVectorValueProcess algorithms.
     virtual void Execute() {}
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     virtual void ExecuteInitialize()
     {
+       
+        ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).Nodes().begin();
+        ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).Nodes().end();
+        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        const bool fix_x = this->Is(X_COMPONENT_FIXED);
+        const bool fix_y = this->Is(Y_COMPONENT_FIXED);
+        const bool fix_z = this->Is(Z_COMPONENT_FIXED);
+        
+        const array_1d<double,3> value = mvalue;
+        
+        #pragma omp parallel for
+        for(int i = 0; i<nnodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            
+            //TODO: make this to work! right now it is broken!!
+//             if(fix_x)
+//                 it->Fix(mrVariable); //TODO: correct this. Now fixing all of the components at once!!
+//             if(fix_y)
+//                 it->Fix(mrVariable);
+//             if(fix_z)
+//                 it->Fix(mrVariable);
+            noalias(it->FastGetSolutionStepValue(mrVariable)) = value;
+        }
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
@@ -158,13 +198,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Process";
+        return "ApplyConstantVectorValueProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Process";
+        rOStream << "ApplyConstantVectorValueProcess";
     }
 
     /// Print object's data.
@@ -179,7 +219,12 @@ public:
 
 
     ///@}
-
+protected:
+    
+    ModelPart& mr_model_part;
+    Variable<array_1d<double,3> >& mrVariable;
+    const Vector mvalue;
+    std::size_t mmesh_id;
 
 private:
     ///@name Static Member Variables
@@ -193,15 +238,20 @@ private:
     ///@{
 
     /// Assignment operator.
-    Process& operator=(Process const& rOther);
+    ApplyConstantVectorValueProcess& operator=(ApplyConstantVectorValueProcess const& rOther);
 
     /// Copy constructor.
-    //Process(Process const& rOther);
+    //ApplyConstantVectorValueProcess(ApplyConstantVectorValueProcess const& rOther);
 
 
     ///@}
 
-}; // Class Process
+}; // Class ApplyConstantVectorValueProcess
+
+KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,X_COMPONENT_FIXED, 0);
+KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,Y_COMPONENT_FIXED, 1);
+KRATOS_CREATE_LOCAL_FLAG(ApplyConstantVectorValueProcess,Z_COMPONENT_FIXED, 2);
+
 
 ///@}
 
@@ -216,11 +266,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Process& rThis);
+                                  ApplyConstantVectorValueProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Process& rThis)
+                                  const ApplyConstantVectorValueProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -233,6 +283,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED  defined 
 
 
