@@ -304,7 +304,7 @@ proc ::wkcf::WritePointLoads {AppId cloadtid kwordlist} {
 
   switch -exact -- $ndime {
       "2D" {
-    set pointforcekword "PointLoad2DCondition"
+    set pointforcekword "PointLoadCondition2D1N"
     foreach item [list $Fx $Fy $Mz] {
         if {$item !="0"} {
             set usepointforce "Yes"
@@ -313,7 +313,7 @@ proc ::wkcf::WritePointLoads {AppId cloadtid kwordlist} {
     }
       }
       "3D" {
-    set pointforcekword "PointLoad3DCondition"
+    set pointforcekword "PointLoadCondition3D1N"
     foreach item [list $Fx $Fy $Fz $Mx $My $Mz] {
         if {$item !="0"} {
             set usepointforce "Yes"
@@ -415,7 +415,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
 
   switch -exact -- $ndime {
       "2D" {
-    set pointforcekword "PointTorque2DCondition"
+    set pointforcekword "PointTorqueCondition2D1N"
     foreach item [list $Mz] {
         if {$item !="0"} {
             set usepointforce "Yes"
@@ -424,7 +424,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
     }
       }
       "3D" {
-    set pointforcekword "PointTorque3DCondition"
+    set pointforcekword "PointTorqueCondition3D1N"
     foreach item [list $Mx $My $Mz] {
         if {$item !="0"} {
             set usepointforce "Yes"
@@ -718,7 +718,7 @@ proc ::wkcf::WritePointLoadsAxisym {AppId cloadtid kwordlist} {
 
   switch -exact -- $ndime {
       "2D" {
-    set pointforcekword "PointLoadAxiSym2DCondition"
+    set pointforcekword "AxsymPointLoadCondition2D1N"
     foreach item [list $Fx $Fy $Mz] {
         if {$item !="0"} {
             set usepointforce "Yes"
