@@ -325,7 +325,7 @@ namespace Kratos {
             double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
             bool sliding = false;
 
-            const int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
+            //const int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
             const int mapping_new_cont = mMapping_New_Cont[i_neighbour_count];
 
             double contact_tau = 0.0;
@@ -412,14 +412,11 @@ namespace Kratos {
                             acumulated_damage,
                             this,
                             neighbour_iterator,
-                            mNeighbourFailureId[i_neighbour_count],
-                            mIniNeighbourFailureId[mapping_new_ini],
-                            mNeighbourDelta[i_neighbour_count],
+                            i_neighbour_count,
                             rCurrentProcessInfo[TIME_STEPS],
                             sliding,
                             search_control,
-                            search_control_vector,
-                            mapping_new_cont);
+                            search_control_vector);
                 } else {
                     mDiscontinuumConstitutiveLaw -> CalculateForces(
                             rCurrentProcessInfo,
@@ -454,14 +451,12 @@ namespace Kratos {
                             kn_el,
                             kt_el);
 
-                    int mDampType = rCurrentProcessInfo[DAMP_TYPE];
                     mContinuumConstitutiveLawArray[mapping_new_cont]->CalculateViscoDamping(LocalRelVel,
                             ViscoDampingLocalContactForce,
                             indentation,
                             equiv_visco_damp_coeff_normal,
                             equiv_visco_damp_coeff_tangential,
-                            sliding,
-                            mDampType);
+                            sliding);
                 } else {
                     mDiscontinuumConstitutiveLaw -> CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                             equiv_visco_damp_coeff_tangential,
@@ -470,14 +465,12 @@ namespace Kratos {
                             kn_el,
                             kt_el);
 
-                    int mDampType = rCurrentProcessInfo[DAMP_TYPE];
                     mDiscontinuumConstitutiveLaw -> CalculateViscoDamping(LocalRelVel,
                             ViscoDampingLocalContactForce,
                             indentation,
                             equiv_visco_damp_coeff_normal,
                             equiv_visco_damp_coeff_tangential,
-                            sliding,
-                            mDampType);
+                            sliding);
                 }
 
             }
@@ -971,28 +964,6 @@ namespace Kratos {
     void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {
 
         KRATOS_TRY
-
-        if (rVariable == DEMPACK_GLOBAL_DAMPING) {
-            array_1d<double, 3>& total_force = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
-            array_1d<double, 3>& velocity = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-
-            const double Dempack_global_damping         = this->GetProperties()[DEMPACK_GLOBAL_DAMPING];
-            
-            if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_X)) {
-                total_force[0] = total_force[0] - Dempack_global_damping * fabs(total_force[0]) * GeometryFunctions::sign(velocity[0]);
-            }
-
-            if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Y)) {
-                total_force[1] = total_force[1] - Dempack_global_damping * fabs(total_force[1]) * GeometryFunctions::sign(velocity[1]);
-            }
-
-            if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Z)) {
-                total_force[2] = total_force[2] - Dempack_global_damping * fabs(total_force[2]) * GeometryFunctions::sign(velocity[2]);
-            }
-
-            return;
-        }
-        ////////////////////////////////////////////////////////////////////////
 
         if (rVariable == DELTA_TIME) {
 
