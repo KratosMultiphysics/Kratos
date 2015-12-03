@@ -308,7 +308,6 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
 
 //const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
-int mDampType;
 
 //const double* mSearchControl;
 
