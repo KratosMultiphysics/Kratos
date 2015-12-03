@@ -515,7 +515,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 BOOK:Conditions
-NUMBER: 29 CONDITION: point_PointLoad2DCondition
+NUMBER: 29 CONDITION: point_PointLoadCondition2D1N
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
@@ -525,7 +525,7 @@ QUESTION: ID#FUNC#(NumEntity)
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-NUMBER: 30 CONDITION: point_PointLoadAxisym2DCondition
+NUMBER: 30 CONDITION: point_AxisymPointLoadCondition2D1N
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
@@ -566,7 +566,7 @@ QUESTION: Remesh#CB#(False,True)
 VALUE: False
 DEPENDENCIES: (True,RESTORE,MeshingElement,#CURRENT#,RESTORE,Constrained,#CURRENT#,RESTORE,MeshSmoothing,#CURRENT#,RESTORE,JacobiSmoothing,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#,RESTORE,Refine,#CURRENT#)
 DEPENDENCIES: (False,HIDE,MeshingElement,#CURRENT#,HIDE,Constrained,#CURRENT#,HIDE,MeshSmoothing,#CURRENT#,HIDE,JacobiSmoothing,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#,HIDE,Refine,False)
-QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUPStabElement2D3N,AxisymSpatianLagrangianUPStabElement2D3N)
+QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUPStabElement2D3N,AxisymUpdatedLagrangianUPStabElement2D3N)
 VALUE: UpdatedLagrangianUPElement2D3N
 QUESTION: Constrained#CB#(False,True)
 VALUE: True

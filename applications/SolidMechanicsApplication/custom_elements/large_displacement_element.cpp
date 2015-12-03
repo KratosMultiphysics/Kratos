@@ -2253,6 +2253,8 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CATCH( "" );
 }
 
+//************************************************************************************
+//************************************************************************************
 
 void LargeDisplacementElement::save( Serializer& rSerializer ) const
 {

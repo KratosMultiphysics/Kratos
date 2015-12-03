@@ -450,7 +450,7 @@ public:
        return this->GetRadius();
     }
 
-    virtual void SetRadius(double& rRadius)
+    virtual void SetRadius(double rRadius)
     {
         mBox.Radius = rRadius;
     }

@@ -502,15 +502,15 @@ private:
     //conditions
     const ForceLoadCondition                  mForceLoadCondition;
 
-    const PointLoad2DCondition              mPointLoad2DCondition;
-    const PointLoadAxisym2DCondition  mPointLoadAxisym2DCondition;
-    const PointLoad3DCondition              mPointLoad3DCondition;
-    const PointTorque3DCondition          mPointTorque3DCondition;
+    const PointLoad2DCondition              mPointLoadCondition2D1N;
+    const PointLoadAxisym2DCondition  mAxisymPointLoadCondition2D1N;
+    const PointLoad3DCondition              mPointLoadCondition3D1N;
+    const PointTorque3DCondition          mPointTorqueCondition3D1N;
 
     const LineLoad2DCondition              mLineLoadCondition2D2N;
     const LineLoad2DCondition              mLineLoadCondition2D3N;
-    const LineLoadAxisym2DCondition  mLineLoadAxisymCondition2D2N;
-    const LineLoadAxisym2DCondition  mLineLoadAxisymCondition2D3N;
+    const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D2N;
+    const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D3N;
     const LineLoad3DCondition              mLineLoadCondition3D2N;
 
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;

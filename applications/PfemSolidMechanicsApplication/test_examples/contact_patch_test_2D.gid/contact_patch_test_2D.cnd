@@ -515,7 +515,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 BOOK:Conditions
-NUMBER: 29 CONDITION: point_PointLoad2DCondition
+NUMBER: 29 CONDITION: point_PointLoadCondition2D1N
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
@@ -525,7 +525,7 @@ QUESTION: ID#FUNC#(NumEntity)
 VALUE: 0
 STATE: HIDDEN
 END CONDITION
-NUMBER: 30 CONDITION: point_PointLoadAxisym2DCondition
+NUMBER: 30 CONDITION: point_AxisymPointLoadCondition2D1N
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Automatic
