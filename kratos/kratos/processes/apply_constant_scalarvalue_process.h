@@ -71,17 +71,21 @@ public:
 
     /// Default constructor.
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              std::string rVariable, 
+                              std::string variable_name, 
                               double value, 
                               std::size_t mesh_id,
                               Flags options
-                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(rVariable),mvalue(value),mmesh_id(mesh_id)
+                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(variable_name),mvalue(value),mmesh_id(mesh_id)
     {
         KRATOS_TRY
         
         if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+           
+        Variable<double> rVar = KratosComponents< Variable<double> >::Get( variable_name );
 
-            
+        if( model_part.GetNodalSolutionStepVariablesList().Has( rVar ) == false )
+            KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part","");
+        
         KRATOS_CATCH("")
     }
     
