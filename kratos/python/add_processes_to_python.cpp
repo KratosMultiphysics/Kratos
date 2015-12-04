@@ -184,11 +184,15 @@ void  AddProcessesToPython()
 
 
     class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
-            init<ModelPart&, Variable<double>&, double, std::size_t, Flags>())
+            init<ModelPart&, std::string, double, std::size_t, Flags>())
+            .def_readonly("VARIABLE_IS_FIXED", &ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)
     ; 
 
-    class_<ApplyConstantVectorValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
-            init<ModelPart&, Variable<array_1d<double,3> >&, const Vector&, std::size_t, Flags>())
+    class_<ApplyConstantVectorValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantVectorValueProcess",
+            init<ModelPart&, std::string, const double, const Vector , std::size_t, Flags>())
+            .def_readonly("X_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::X_COMPONENT_FIXED)
+            .def_readonly("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
+            .def_readonly("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
     ; 
     
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
