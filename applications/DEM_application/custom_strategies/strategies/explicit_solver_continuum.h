@@ -17,7 +17,7 @@
 
 namespace Kratos
 {
-  
+
   template<
   class TSparseSpace,
   class TDenseSpace,
