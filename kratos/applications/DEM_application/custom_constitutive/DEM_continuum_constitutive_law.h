@@ -18,9 +18,6 @@
 //#include "../custom_elements/spheric_continuum_particle.h"
 
 
-
-
-
 namespace Kratos {
 
     /**
@@ -30,13 +27,14 @@ namespace Kratos {
     class SphericContinuumParticle; // forward declaration of spheric cont particle
 
     class /*__declspec( dllexport )*/ DEMContinuumConstitutiveLaw : public Flags {
+    
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEMContinuumConstitutiveLaw);
 
         DEMContinuumConstitutiveLaw();
 
-        DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
+        DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw& rReferenceContinuumConstitutiveLaw);
 
         virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
@@ -47,7 +45,6 @@ namespace Kratos {
         virtual ~DEMContinuumConstitutiveLaw();
 
         virtual DEMContinuumConstitutiveLaw::Pointer Clone() const;
-
 
         virtual void CalculateViscoDamping(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
@@ -123,8 +120,6 @@ namespace Kratos {
                 vector<int>& search_control_vector) {
         };
 
-
-
     private:
 
         friend class Serializer;
@@ -141,7 +136,6 @@ namespace Kratos {
     };
 
     KRATOS_DEFINE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
-
 
 } /* namespace Kratos.*/
 #endif /* DEM_CONSTITUTIVE_LAW_H_INCLUDED  defined */
