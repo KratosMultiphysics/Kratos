@@ -53,6 +53,7 @@ namespace Kratos
 
 /// The base class for all processes in Kratos.
 /** This function applies a constant value (and fixity) to all of the nodes in a given mesh
+ * TODO: still segfaults if the mesh to which it is applied is not existing
 */
 class ApplyConstantVectorValueProcess : public Process
 {
@@ -80,29 +81,27 @@ public:
                                    ) : Process(options) , mr_model_part(model_part),mvariable_name(variable_name), mfactor(factor),mdirection(direction),mmesh_id(mesh_id)
     {
         KRATOS_TRY
+        
+        //get mesh to ensure it exists
+        ModelPart::MeshType::Pointer pmesh = model_part.pGetMesh(mesh_id);
                 
         if(this->IsDefined(X_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","")
         if(this->IsDefined(Y_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","")
         if(this->IsDefined(Z_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","")
             
-        std::cout << "before has" << std::endl;
+        if(direction.size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
+            
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
-        {
-            KRATOS_WATCH(KratosComponents< component_type >())
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_X"))
-        }
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Y")) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Y"))
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
-std::cout << "after has" << std::endl;
-KRATOS_WATCH(KratosComponents< component_type >::Get(mvariable_name+std::string("_X")))
-std::cout << "after watch" << std::endl;
+
 //         if(model_part.GetMesh(mesh_id).Nodes().size() != 0)
-//             if( model_part.GetNodalSolutionStepVariablesList().Has(   KratosComponents< component_type >::Get(mvariable_name+std::string("_X"))) == false )
-//                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part","");
-    std::cout << "end of constructor" << std::endl;
+//              if( model_part.GetNodalSolutionStepVariablesList().Has(   KratosComponents< component_type >::Get(mvariable_name+std::string("_X"))) == false )
+//                  KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part","");
     
         KRATOS_CATCH("")
     }
@@ -140,9 +139,18 @@ std::cout << "after watch" << std::endl;
         array_1d<double,3> value = mfactor*mdirection;
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         
-        InternalApplyValue<>(KratosComponents< component_type >::Get(mvariable_name+std::string("_X")), this->Is(X_COMPONENT_FIXED),  value[0]);
-        InternalApplyValue<>(KratosComponents< component_type >::Get(mvariable_name+std::string("_Y")), this->Is(Y_COMPONENT_FIXED),  value[1]);
-        InternalApplyValue<>(KratosComponents< component_type >::Get(mvariable_name+std::string("_Z")), this->Is(Z_COMPONENT_FIXED),  value[2]);
+        KRATOS_WATCH(value);
+        KRATOS_WATCH(this->Is(X_COMPONENT_FIXED));
+        component_type varx = KratosComponents< component_type >::Get(mvariable_name+std::string("_X"));
+        component_type vary = KratosComponents< component_type >::Get(mvariable_name+std::string("_Y"));
+        component_type varz = KratosComponents< component_type >::Get(mvariable_name+std::string("_Z"));
+        KRATOS_WATCH(varx);
+        KRATOS_WATCH(vary);
+        KRATOS_WATCH(varz);
+        
+        InternalApplyValue<component_type >(varx, this->Is(X_COMPONENT_FIXED),  value[0]);
+        InternalApplyValue<component_type >(vary, this->Is(Y_COMPONENT_FIXED),  value[1]);
+        InternalApplyValue<component_type >(varz, this->Is(Z_COMPONENT_FIXED),  value[2]);
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
@@ -235,21 +243,23 @@ private:
     template< class TVarType >
     void InternalApplyValue(TVarType& rVar, const bool to_be_fixed, const double value)
     {
-       
-        ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).Nodes().begin();
-        ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).Nodes().end();
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
         
-        #pragma omp parallel for
-        for(int i = 0; i<nnodes; i++)
+        if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
             
-            //TODO: make this to work! right now it is broken!!
-            if(to_be_fixed)
-                it->Fix(rVar); //TODO: correct this. Now fixing all of the components at once!!
- 
-            it->FastGetSolutionStepValue(rVar) = value;
+             #pragma omp parallel for
+            for(int i = 0; i<nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                
+                if(to_be_fixed)
+                    it->Fix(rVar); 
+    
+                it->FastGetSolutionStepValue(rVar) = value;
+            }
         }
     }
 
