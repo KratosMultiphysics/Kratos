@@ -99,10 +99,12 @@ public:
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
 
-//         if(model_part.GetMesh(mesh_id).Nodes().size() != 0)
-//              if( model_part.GetNodalSolutionStepVariablesList().Has(   KratosComponents< component_type >::Get(mvariable_name+std::string("_X"))) == false )
-//                  KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part","");
-    
+             
+         if( model_part.GetNodalSolutionStepVariablesList().Has(   KratosComponents<Variable<array_1d<double, 3> > >::Get(mvariable_name)) == false )
+         {
+             std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
+             KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
+         }
         KRATOS_CATCH("")
     }
     
