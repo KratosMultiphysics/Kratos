@@ -71,11 +71,11 @@ public:
 
     /// Default constructor.
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              Variable<double>& rVariable, 
+                              std::string rVariable, 
                               double value, 
                               std::size_t mesh_id,
                               Flags options
-                                   ) : Process(options) , mr_model_part(model_part), mrVariable(rVariable),mvalue(value),mmesh_id(mesh_id)
+                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(rVariable),mvalue(value),mmesh_id(mesh_id)
     {
         KRATOS_TRY
         
@@ -120,13 +120,15 @@ public:
         ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).Nodes().end();
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
         
+        const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(mvariable_name);
+        
         #pragma omp parallel for
         for(int i = 0; i<nnodes; i++)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
             if(is_fixed)
-                it->Fix(mrVariable);
-            it->FastGetSolutionStepValue(mrVariable) = mvalue;
+                it->Fix(rVariable);
+            it->FastGetSolutionStepValue(rVariable) = mvalue;
         }
     }
 
@@ -208,7 +210,7 @@ public:
 protected:
     
     ModelPart& mr_model_part;
-    Variable<double>& mrVariable;
+    std::string mvariable_name;
     const double mvalue;
     std::size_t mmesh_id;
 
