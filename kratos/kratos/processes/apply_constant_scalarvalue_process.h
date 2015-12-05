@@ -72,25 +72,119 @@ public:
     /// Default constructor.
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
                               std::string variable_name, 
-                              double value, 
+                              double double_value, 
                               std::size_t mesh_id,
                               Flags options
-                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(variable_name),mvalue(value),mmesh_id(mesh_id)
+                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(variable_name),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
     {
         KRATOS_TRY
         
         if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+            
+        //the variable can be of type double or component
            
-        Variable<double> rVar = KratosComponents< Variable<double> >::Get( variable_name );
+        
 
-        if( model_part.GetNodalSolutionStepVariablesList().Has( rVar ) == false )
-            KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part","");
+        bool has_variable = false;
+        KRATOS_WATCH("aaa")
+        if( KratosComponents< Variable<double> >::Has( variable_name ) )
+        {
+            Variable<double> rVar = KratosComponents< Variable<double> >::Get( variable_name );
+            has_variable = true;
+            if( model_part.GetNodalSolutionStepVariablesList().Has( rVar ) == false )
+                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
+        }
+        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) )
+        {
+            has_variable = true;
+            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+            
+            const std::string base_variable_name = var_component.GetSourceVariable().Name();
+            KRATOS_WATCH( base_variable_name )
+            
+            Variable< array_1d<double,3> > base_vector_var = KratosComponents<  Variable<array_1d<double,3> > >::Get( base_variable_name );
+            if( model_part.GetNodalSolutionStepVariablesList().Has( base_vector_var ) == false )
+                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
+        }
+        else
+            KRATOS_THROW_ERROR(std::runtime_error,"the variable passed is neither of type Variable<double> nor Variable<array_1d<double,3> while the VALUE to be imposed is of type double - variable name is ",mvariable_name);
+            
+            
+            
+        if(has_variable == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"it was not possible to find as a double or component variable the Variable : ",mvariable_name);
+        
         
         KRATOS_CATCH("")
     }
     
-    
+    ApplyConstantScalarValueProcess(ModelPart& model_part, 
+                              std::string variable_name, 
+                              int int_value, 
+                              std::size_t mesh_id,
+                              Flags options
+                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(variable_name),mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
+    {
+        KRATOS_TRY
+        
+        if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
+        
+       
+        bool has_variable = false;
+        if( KratosComponents< Variable<int> >::Has( variable_name ) )
+        {
+            has_variable = true;
+            Variable<int> rVar = KratosComponents< Variable<int> >::Get( variable_name );
+            if( model_part.GetNodalSolutionStepVariablesList().Has( rVar ) == false )
+                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable in question is : ",variable_name);
+        }   
+        else
+            KRATOS_THROW_ERROR(std::runtime_error,"the variable passed is not of type Variable<int>  while the VALUE to be imposed is of type int - variable name is ",mvariable_name);
 
+        if(has_variable == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"it was not possible to find as a Variable<int> the Variable : ",mvariable_name);
+        
+        if(this->Is(VARIABLE_IS_FIXED)) 
+            KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
+ 
+        
+        KRATOS_CATCH("")
+    }
+
+    ApplyConstantScalarValueProcess(ModelPart& model_part, 
+                              std::string variable_name, 
+                              bool bool_value, 
+                              std::size_t mesh_id,
+                              Flags options
+                                   ) : Process(options) , mr_model_part(model_part), mvariable_name(variable_name),mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
+    {
+        KRATOS_TRY
+        
+        if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+            
+            
+        bool has_variable = false;
+        if( KratosComponents< Variable<bool> >::Has( variable_name ) )
+        {
+            has_variable = true;
+            Variable<bool> rVar = KratosComponents< Variable<bool> >::Get( variable_name );
+            if( model_part.GetNodalSolutionStepVariablesList().Has( rVar ) == false )
+                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable in question is : ",variable_name);
+        }   
+        else
+            KRATOS_THROW_ERROR(std::runtime_error,"the variable passed is not of type Variable<bool>  while the VALUE to be imposed is of type bool - variable name is ",mvariable_name);
+
+        
+        if(has_variable == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"it was not possible to find as a Variable<bool> the Variable : ",mvariable_name);
+
+        if(this->Is(VARIABLE_IS_FIXED)) 
+            KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<bool>. Only double variables or vector components can be fixed","");
+        
+        KRATOS_CATCH("")
+    }
+    
     /// Destructor.
     virtual ~ApplyConstantScalarValueProcess() {}
 
@@ -118,22 +212,33 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteInitialize()
     {
+        KRATOS_TRY
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
         
-        ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).Nodes().begin();
-        ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).Nodes().end();
-        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+                KRATOS_WATCH(is_fixed)
+        KRATOS_WATCH(mdouble_value);
         
-        const Variable<double>& rVariable = KratosComponents<Variable<double> >::Get(mvariable_name);
-        
-        #pragma omp parallel for
-        for(int i = 0; i<nnodes; i++)
+        if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
-            ModelPart::NodesContainerType::iterator it = it_begin + i;
-            if(is_fixed)
-                it->Fix(rVariable);
-            it->FastGetSolutionStepValue(rVariable) = mvalue;
+            InternalApplyValue<>(KratosComponents< Variable<double> >::Get(mvariable_name) , is_fixed, mdouble_value);
         }
+        else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
+        {
+            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+//            KRATOS_WATCH( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get(mvariable_name) )
+           InternalApplyValue< component_type, double>(var_component , is_fixed,  mdouble_value);
+        }
+        else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
+        {
+            InternalApplyValueWithoutFixing<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
+        }
+        else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
+        {
+            InternalApplyValueWithoutFixing<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
+        }
+        
+        KRATOS_CATCH("")
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
@@ -215,15 +320,58 @@ protected:
     
     ModelPart& mr_model_part;
     std::string mvariable_name;
-    const double mvalue;
+    const double mdouble_value;
+    const int mint_value;
+    const bool mbool_value;
     std::size_t mmesh_id;
 
 private:
     ///@name Static Member Variables
     ///@{
+    template< class TVarType, class TDataType >
+    void InternalApplyValue(TVarType& rVar, const bool to_be_fixed, const TDataType value)
+    {
+        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        KRATOS_WATCH(rVar)
+        KRATOS_WATCH(value);
+        
+        if(nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+            
+             #pragma omp parallel for
+            for(int i = 0; i<nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                
+                if(to_be_fixed)
+                    it->Fix(rVar); 
+    
+                it->FastGetSolutionStepValue(rVar) = value;
+            }
+        }
+    }
 
-
-
+    template< class TVarType, class TDataType >
+    void InternalApplyValueWithoutFixing(TVarType& rVar, const TDataType value)
+    {
+        const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
+        
+        if(nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+            
+             #pragma omp parallel for
+            for(int i = 0; i<nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+    
+                it->FastGetSolutionStepValue(rVar) = value;
+            }
+        }
+    }
 
     ///@}
     ///@name Un accessible methods

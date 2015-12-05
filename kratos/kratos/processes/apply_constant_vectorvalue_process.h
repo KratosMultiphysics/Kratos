@@ -141,14 +141,10 @@ public:
         array_1d<double,3> value = mfactor*mdirection;
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         
-        KRATOS_WATCH(value);
-        KRATOS_WATCH(this->Is(X_COMPONENT_FIXED));
         component_type varx = KratosComponents< component_type >::Get(mvariable_name+std::string("_X"));
         component_type vary = KratosComponents< component_type >::Get(mvariable_name+std::string("_Y"));
         component_type varz = KratosComponents< component_type >::Get(mvariable_name+std::string("_Z"));
-        KRATOS_WATCH(varx);
-        KRATOS_WATCH(vary);
-        KRATOS_WATCH(varz);
+
         
         InternalApplyValue<component_type >(varx, this->Is(X_COMPONENT_FIXED),  value[0]);
         InternalApplyValue<component_type >(vary, this->Is(Y_COMPONENT_FIXED),  value[1]);
