@@ -186,6 +186,8 @@ void  AddProcessesToPython()
 
     class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
             init<ModelPart&, std::string, double, std::size_t, Flags>())
+            .def(init<ModelPart&, std::string, int, std::size_t, Flags>())
+            .def(init<ModelPart&, std::string, bool, std::size_t, Flags>())
             .def_readonly("VARIABLE_IS_FIXED", &ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)
     ; 
 
