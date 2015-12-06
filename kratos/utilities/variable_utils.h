@@ -1,40 +1,24 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
+// Kratos
+// Kratos Multi-Physics
+// 
+// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
+// All rights reserved.
+// 
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+// 
+// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
+// 		in the documentation and/or other materials provided with the distribution.
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
+// 			This product includes Kratos Multi-Physics technology.
+// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+// 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+// THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 /* *********************************************************
@@ -352,6 +336,145 @@ public:
         return 0;
 
         KRATOS_CATCH("");
+    }
+    
+    //***********************************************************************
+    //***********************************************************************
+    ///fix or free rVar for all of the nodes in the list depending on the value of is_fixed
+    template< class TVarType >
+    void ApplyFixity(  const TVarType& rVar,
+                       const bool is_fixed,
+                       ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+        
+        if(rNodes.size() != 0)
+        {
+            if( rNodes.begin()->SolutionStepsDataHas( rVar ) == false )
+                    KRATOS_THROW_ERROR(std::runtime_error,"trying to fix/free a variable that is not in the model_part - variable is ",rVar);
+                
+            if(is_fixed == true)
+            {
+                
+                #pragma omp parallel for
+                for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                    i->Fix(rVar);
+                }
+            }
+            else
+            {
+                #pragma omp parallel for
+                for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+                {
+                    ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                    i->Free(rVar);
+                }
+            }
+        }
+        
+  
+        KRATOS_CATCH("")
+    }
+    
+/*    
+    
+    void ApplyFixity(  const std::string variable_name,
+                       const bool is_fixed,
+                       ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+        
+        if(rNodes.size() != 0)
+        {
+            //case it is a double variable
+            if( KratosComponents< Variable<double> >::Has( variable_name ) )
+            {
+                Variable<double> rVar = KratosComponents< Variable<double> >::Get( variable_name );
+                if( rNodes.begin()->SolutionStepsDataHas( rVar ) == false )
+                    KRATOS_THROW_ERROR(std::runtime_error,"trying to fix/free a variable that is not in the model_part - variable name is ",variable_name);
+                
+                if(is_fixed == true)
+                {
+                    
+                    #pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+                    {
+                        ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                        i->Fix(rVar);
+                    }
+                }
+                else
+                {
+                    #pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+                    {
+                        ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                        i->Free(rVar);
+                    }
+                }
+            }
+            else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) )
+            {
+                typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+                component_type var_component = KratosComponents< component_type >::Get(variable_name);
+                
+                const std::string base_variable_name = var_component.GetSourceVariable().Name();
+                
+                Variable< array_1d<double,3> > base_vector_var = KratosComponents<  Variable<array_1d<double,3> > >::Get( base_variable_name );
+                if( rNodes.begin()->SolutionStepsDataHas( base_vector_var ) == false )
+                    KRATOS_THROW_ERROR(std::runtime_error,"trying to fix/free a variable that is not in the model_part - variable name is ",variable_name);
+                
+                if(is_fixed == true)
+                {
+                    #pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+                    {
+                        ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                        i->Fix(var_component);
+                    }
+                }
+                else
+                {
+                    #pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+                    {
+                        ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                        i->Free(var_component);
+                    }
+                }
+            }
+        }
+  
+        KRATOS_CATCH("")
+    }*/
+
+    //***********************************************************************
+    //***********************************************************************
+    ///fix or free rVar for all of the nodes in the list depending on the value of is_fixed
+    template< class TVarType >
+    void ApplyVector(  const TVarType& rVar,
+                       Vector data,
+                       ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+        
+        if(rNodes.size() == data.size())
+        {
+            if( rNodes.begin()->SolutionStepsDataHas( rVar ) == false )
+                    KRATOS_THROW_ERROR(std::runtime_error,"trying to fix/free a variable that is not in the model_part - variable is ",rVar);
+                               
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+            {
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+                i->FastGetSolutionStepValue(rVar) = data[k];
+            }
+        }
+        else
+            KRATOS_THROW_ERROR(std::runtime_error,"there is a mismatch between the size of data and the number of nodes ","");
+        KRATOS_CATCH("")
     }
 
     /*@} */
