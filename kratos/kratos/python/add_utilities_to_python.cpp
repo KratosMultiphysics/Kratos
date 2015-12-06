@@ -93,6 +93,7 @@ namespace Kratos
 		.def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
 		;
 
+
             class_<VariableUtils > ("VariableUtils", init<>())
                     .def("SetVectorVar", &VariableUtils::SetVectorVar)
                     .def("SetScalarVar", &VariableUtils::SetScalarVar)
@@ -105,7 +106,11 @@ namespace Kratos
                     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
                     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
                     .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
-                    .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
+//                     .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
+                    .def("ApplyFixity", &VariableUtils::ApplyFixity< Variable<double> >)
+                    .def("ApplyFixity", &VariableUtils::ApplyFixity< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
+                    .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)
+                    .def("ApplyVector", &VariableUtils::ApplyVector< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
                     ;
 
             // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
