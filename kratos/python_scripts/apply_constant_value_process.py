@@ -112,4 +112,4 @@ def Factory(settings, Model):
         is_fixed_y = params["is_fixed_y"]
         is_fixed_z = params["is_fixed_z"]
         
-        return ApplyConstantVectorValue(model_part, variable_name, value,is_fixed_x, is_fixed_y, is_fixed_z)
+        return ApplyConstantVectorValue(model_part, variable_name, value,is_fixed)

@@ -2,6 +2,31 @@ from KratosMultiphysics import *
 import python_process
 from math import *
 
+class aux_object:
+    def __init__(self, t, compiled_function, variable ):
+        self.t = t
+        self.compiled_function = compiled_function
+        self.variable = variable
+    
+    #def f(self,node):
+        #x = node.X
+        #y = node.Y
+        #z = node.Z
+        #t = self.t
+        #node.SetSolutionStepValue(self.variable,0, eval(self.compiled_function) )
+        
+    def freturn(self,node):
+        x = node.X
+        y = node.Y
+        z = node.Z
+        t = self.t
+        #x = 0.0
+        #y = 0.0
+        #z = 0.0
+        #t = 0.0
+        return eval(self.compiled_function)
+
+        
 ##all the processes python processes should be derived from "python_process"
 class ApplyCustomFunctionProcess(python_process.PythonProcess):
     def __init__(self, model_part, mesh_id, variable_name, interval, is_fixed, function_string, free_outside_of_interval=True):
@@ -15,34 +40,47 @@ class ApplyCustomFunctionProcess(python_process.PythonProcess):
         self.is_fixed = is_fixed
         self.free_outside_of_interval = free_outside_of_interval
         self.function_string = function_string
+        
+        ##compile function function_string
+        self.compiled_function = compile(self.function_string, '', 'eval') #here we precompile the expression so that then it is much faster to execute it
+        
+        #construct a variable_utils object to speedup fixing
+        self.variable_utils = VariableUtils()
             
         print("finished construction of ApplyCustomFunctionProcess Process")
-        
+    
+    
     def function(self, x,y,z,t):
-        import math
-        value = eval(self.function_string)
-        return value
+        return eval(self.compiled_function) #this one is MUCH FASTER!
+        #return eval(self.function_string)
+      
             
+
+    
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[TIME]
         
         if(current_time > self.interval[0] and  current_time<self.interval[1]):
-            if self.is_fixed:
-                for node in self.mesh.Nodes:
-                    node.Fix(self.variable)
-                       
-            for node in self.mesh.Nodes:
-                value = self.function(node.X,node.Y,node.Z, current_time)
-                
-                node.SetSolutionStepValue(self.variable,0,value)
+            self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
+            
+            #FASTEST OPTION - create and pass around a list
+            tmp = aux_object(current_time, self.compiled_function, self.variable)   
+            self.variable_utils.ApplyVector(self.variable, list(map(tmp.freturn, self.mesh.Nodes)),  self.mesh.Nodes)
+                           
+            #slightly slower option
+            #for node in self.mesh.Nodes:
+                #node.SetSolutionStepValue(self.variable,0,    self.function(node.X,node.Y,node.Z, current_time)    )
             
     def ExecuteFinalizeSolutionStep(self):
         if self.free_outside_of_interval:
             current_time = self.model_part.ProcessInfo[TIME]
         
             if(current_time > self.interval[0] and  current_time<self.interval[1]):
-                for node in self.mesh.Nodes:
-                    node.Free(self.variable)
+                
+                #here we free all of the nodes in the mesh
+                fix = False
+                self.variable_utils.ApplyFixity(self.variable, fix, self.mesh.Nodes)
+
     
     
     

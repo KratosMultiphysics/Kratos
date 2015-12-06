@@ -71,6 +71,9 @@ def MatrixB(DN):
             B[ 4, i*3 + 2 ] = DN[ i, 1 ];
             B[ 5, i*3 ] = DN[ i, 2 ];
             B[ 5, i*3 + 2 ] = DN[ i, 0 ];
+    else:
+        print("dimension askedi n Matrix B is ",dim)
+        raise Exception("wrong dimension")
     return B
             
 def grad_sym_voigtform(DN, x):
@@ -102,8 +105,29 @@ def div(DN,x):
     
     return Matrix( [ simplify(div_x) ])
     
+def SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_value ):
+    
+    for lll  in range(where_to_substitute.shape[0] ) :
+        for kkk  in range(where_to_substitute.shape[1] ) :
+            tmp  = where_to_substitute[lll,kkk]
+            for i in range(what_to_substitute.shape[0]):
+                for j in range(what_to_substitute.shape[1]):
+                    #print("what to substitute ",what_to_substitute[i,j])
+                    #print("substituted_value ",substituted_value[i,j])
+                    tmp = tmp.subs( what_to_substitute[i,j], substituted_value[i,j] )
+                
+            where_to_substitute[lll,kkk] = tmp
+        
+    return where_to_substitute
+   
+def SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_value ):
+    for lll  in range(where_to_substitute.shape[0] ) :
+        tmp  = where_to_substitute[lll]
+        tmp = tmp.subs( what_to_substitute, substituted_value )
+        where_to_substitute[lll] = tmp
+    return where_to_substitute
 
-def OutputRHS(r, mode="python", initial_tabs = 3,max_index=30):
+def OutputVector(r,name, mode="python", initial_tabs = 3,max_index=30):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -112,9 +136,9 @@ def OutputRHS(r, mode="python", initial_tabs = 3,max_index=30):
     for i in range(0,r.shape[0]):
         
         if(mode == "python"):
-            outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+str(r[i,0])+str("\n")
+            outstring += initial_spaces+name + str("[")+str(i)+str("]=")+str(r[i,0])+str("\n")
         elif(mode=="c"):
-            outstring += initial_spaces+str("rhs[")+str(i)+str("]=")+ccode(r[i,0])+str(";\n")
+            outstring += initial_spaces+name + str("[")+str(i)+str("]=")+ccode(r[i,0])+str(";\n")
             
     #matrix entries (two indices)
     for i in range(0,max_index):
@@ -137,7 +161,7 @@ def OutputRHS(r, mode="python", initial_tabs = 3,max_index=30):
     return outstring
     
 
-def OutputLHS(lhs,mode, initial_tabs = 3, max_index=30):
+def OutputMatrix(lhs,name, mode, initial_tabs = 3, max_index=30):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
         initial_spaces += str("    ")
@@ -145,9 +169,9 @@ def OutputLHS(lhs,mode, initial_tabs = 3, max_index=30):
     for i in range(0,lhs.shape[0]):
         for j in range(0,lhs.shape[1]):
             if(mode == "python"):
-                outstring += initial_spaces+str("lhs[")+str(i)+str(",")+str(j)+str("]=")+str(lhs[i,j])+str("\n")
+                outstring += initial_spaces+name + str("[")+str(i)+str(",")+str(j)+str("]=")+str(lhs[i,j])+str("\n")
             elif(mode=="c"):
-                outstring += initial_spaces+str("lhs(")+str(i)+str(",")+str(j)+str(")=")+ccode(lhs[i,j])+str(";\n")
+                outstring += initial_spaces+name + str("(")+str(i)+str(",")+str(j)+str(")=")+ccode(lhs[i,j])+str(";\n")
     
     #matrix entries (two indices)
     for i in range(0,max_index):
@@ -176,12 +200,12 @@ def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30):
     
     outstring = str("")
 
-    print(var)
+    #print(var)
     if(mode == "python"):
         outstring += initial_spaces+str(var)+str("\n")
     elif(mode=="c"):
         outstring += initial_spaces+ccode(var)+str(";\n")
-    print("aaa")
+    #print("aaa")
     #matrix entries (two indices)
     for i in range(0,max_index):
         for j in range(0,max_index):
@@ -192,13 +216,13 @@ def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30):
             to_be_replaced  = str("_")+str(i)+str("_")+str(j)
             newstring = outstring.replace(to_be_replaced, replacement_string)
             outstring = newstring
-    print("bbb")
+    #print("bbb")
     #vector entries(one index(
     for i in range(0,max_index):
         replacement_string = str("[")+str(i)+str("]")
         to_be_replaced  = str("_")+str(i)
         newstring = outstring.replace(to_be_replaced, replacement_string)
         outstring = newstring
-    print("ccc")
+    #print("ccc")
     
     return outstring
