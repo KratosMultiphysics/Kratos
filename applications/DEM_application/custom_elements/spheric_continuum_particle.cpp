@@ -915,6 +915,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < r_continuum_ini_neighbours.size(); i++) {
             if (r_continuum_ini_neighbours[i] == NULL) continue; //The initial neighbor was deleted at some point in time!!
+            //TODO: SHOULD WE CHECK HERE THAT BOTH BELONG TO THE SAME CONTINUUM GROUP??? It is done in other places.
 
             Particle_Contact_Element* bond_i = mBondElements[i];
             double other_partition_index = 0.0;
