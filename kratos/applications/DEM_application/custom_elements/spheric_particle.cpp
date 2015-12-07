@@ -475,12 +475,14 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
     // FORMING OLD LOCAL COORDINATES
     array_1d<double, 3> old_coord_target;
     noalias(old_coord_target) = this->GetGeometry()[0].Coordinates() - delta_displ;
+
     const array_1d<double, 3>& other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     array_1d<double, 3> old_coord_neigh;
     noalias(old_coord_neigh) = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
 
     array_1d<double, 3> old_other_to_me_vect;
     noalias(old_other_to_me_vect) = old_coord_target - old_coord_neigh;
+
 
     const double old_distance = DEM_MODULUS_3(old_other_to_me_vect);
 
@@ -497,7 +499,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
     RelDeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
     RelDeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
     RelDeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
-          
+ 
 }
 
 void SphericParticle::DisplacementDueToRotation(const double indentation,
@@ -569,73 +571,71 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt);
         DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt);
         
-        double angle = DEM_MODULUS_3(temp_angular_vel);
-        double angle_2 = DEM_MODULUS_3(temp_neigh_angular_vel);
+        double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
+        double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
         
         array_1d<double, 3> e1;
         
         DEM_COPY_SECOND_TO_FIRST_3(e1, OldLocalCoordSystem[2]);
-        DEM_MULTIPLY_BY_SCALAR_3(e1, -GetRadius())
+        
+        array_1d<double, 3> other_to_me_vect;
+        noalias(other_to_me_vect)  = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
+        double distance            = DEM_MODULUS_3(other_to_me_vect);
+        double radius_sum          = GetRadius() + other_radius;
+        double indentation         = radius_sum - distance;
+        
+        double arm = GetRadius() - indentation * other_young / (other_young + my_young);
+        double other_arm = other_radius - indentation * my_young / (other_young + my_young);
+        
+        DEM_MULTIPLY_BY_SCALAR_3(e1, -arm)
         
         array_1d<double, 3> new_axes1 = e1;
            
         array_1d<double, 3> e2;
         
         DEM_COPY_SECOND_TO_FIRST_3(e2, OldLocalCoordSystem[2]);
-        DEM_MULTIPLY_BY_SCALAR_3(e2, other_radius) 
+        DEM_MULTIPLY_BY_SCALAR_3(e2, other_arm) 
                     
         array_1d<double, 3> new_axes2 = e2;
         
-        if (angle) {
+        if (my_rotated_angle) {
             
             array_1d<double, 3> axis;
-            axis[0] = temp_angular_vel[0] / angle;
-            axis[1] = temp_angular_vel[1] / angle;
-            axis[2] = temp_angular_vel[2] / angle;
-
-            double cang = cos(angle);
-            double sang = sin(angle);
-
+            axis[0] = temp_angular_vel[0] / my_rotated_angle;
+            axis[1] = temp_angular_vel[1] / my_rotated_angle;
+            axis[2] = temp_angular_vel[2] / my_rotated_angle;
+                    
+            double cang = cos(my_rotated_angle);
+            double sang = sin(my_rotated_angle);
+            
             new_axes1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (-axis[2] * e1[1] + axis[1] * e1[2]) * sang;
             new_axes1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang + (axis[2] * e1[0] - axis[0] * e1[2]) * sang;
             new_axes1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (-axis[1] * e1[0] + axis[0] * e1[1]) * sang;
-            
-        } //if angle
-        
-        if (angle_2) {
+   
+        } //if my_rotated_angle
+
+        if (other_rotated_angle) {
             
             array_1d<double, 3> axis_2;
-            axis_2[0] = temp_neigh_angular_vel[0] / angle_2;
-            axis_2[1] = temp_neigh_angular_vel[1] / angle_2;
-            axis_2[2] = temp_neigh_angular_vel[2] / angle_2;
-
-            double cang = cos(angle_2);
-            double sang = sin(angle_2);
-
+            axis_2[0] = temp_neigh_angular_vel[0] / other_rotated_angle;
+            axis_2[1] = temp_neigh_angular_vel[1] / other_rotated_angle;
+            axis_2[2] = temp_neigh_angular_vel[2] / other_rotated_angle;
+                    
+            double cang = cos(other_rotated_angle);
+            double sang = sin(other_rotated_angle);
+                    
             new_axes2[0] = axis_2[0] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[0] * cang + (-axis_2[2] * e2[1] + axis_2[1] * e2[2]) * sang;
             new_axes2[1] = axis_2[1] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[1] * cang + (axis_2[2] * e2[0] - axis_2[0] * e2[2]) * sang;
             new_axes2[2] = axis_2[2] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[2] * cang + (-axis_2[1] * e2[0] + axis_2[0] * e2[1]) * sang;
-
-        } //if angle_2
+                    
+        } //if other_rotated_angle
         
-        //other_radius = p_neighbour->GetRadius();
-        
-        array_1d<double, 3> other_to_me_vect;
-        noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
-        double distance            = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum          = GetRadius() + other_radius;
-        double indentation         = radius_sum - distance;
-    
         array_1d<double, 3> radial_vector = - other_to_me_vect;
         array_1d<double, 3> other_radial_vector = other_to_me_vect;
         
         GeometryFunctions::normalize(radial_vector);
         GeometryFunctions::normalize(other_radial_vector);
-        
-        //double arm = GetRadius() - indentation * GetRadius() / radius_sum; //////////////////////////LINEAR FORMULATION: SHOULD BE COMPUTED BY THE CONSTITUTIVE LAW
-        //double other_arm = other_radius - indentation * other_radius / radius_sum;
-        double arm = GetRadius() - indentation * other_young / (other_young + my_young);
-        double other_arm = other_radius - indentation * other_young / (other_young + my_young);
+
         
         radial_vector *= arm;
         other_radial_vector *= other_arm;
@@ -654,6 +654,7 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         DeltDisp[0] += (new_axes1[0] - e1[0] - new_axes2[0] + e2[0]);
         DeltDisp[1] += (new_axes1[1] - e1[1] - new_axes2[1] + e2[1]);
         DeltDisp[2] += (new_axes1[2] - e1[2] - new_axes2[2] + e2[2]);
+
 }
 
 void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
@@ -668,8 +669,7 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     
     if (!wall) {
         const double other_young = p_neighbour->GetYoung();
-        const double my_young = GetYoung();
-        arm_length = GetRadius() - indentation * other_young / (other_young + my_young);
+        arm_length = GetRadius() - indentation * other_young / (other_young + GetYoung());
     }
         
     array_1d<double, 3> arm_vector;
@@ -1354,7 +1354,6 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
     DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
-    
 }
 
 void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
