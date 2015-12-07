@@ -374,7 +374,6 @@ namespace Kratos {
                     historic = std::min(kn_el, kt_el);
                 }
             }*/
-
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
@@ -972,7 +971,7 @@ namespace Kratos {
             double mass = mRealMass;
 
             if (coeff > 1.0) {
-                KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff)
+                KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", coeff)
             }
             else if ((coeff == 1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])) {
                 Output = 9.0E09;
@@ -1028,7 +1027,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
 
-    }//calculate
+    }//Calculate
 
     void SphericContinuumParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) {
     }//calculate Output vector
