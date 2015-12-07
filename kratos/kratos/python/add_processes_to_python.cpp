@@ -85,9 +85,16 @@ namespace Kratos
 
 namespace Python
 {
+    
+
+
+
 void  AddProcessesToPython()
 {
     using namespace boost::python;
+    
+
+    
     class_<Process>("Process")
             .def("Execute",&Process::Execute)
             .def("ExecuteInitialize",&Process::ExecuteInitialize)
