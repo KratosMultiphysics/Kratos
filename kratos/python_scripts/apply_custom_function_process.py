@@ -8,24 +8,28 @@ class aux_object:
         self.compiled_function = compiled_function
         self.variable = variable
     
-    #def f(self,node):
-        #x = node.X
-        #y = node.Y
-        #z = node.Z
-        #t = self.t
-        #node.SetSolutionStepValue(self.variable,0, eval(self.compiled_function) )
+    def f(self,node):
+        x = node.X
+        y = node.Y
+        z = node.Z
+        t = self.t
+        node.SetSolutionStepValue(self.variable,0, eval(self.compiled_function) )
+
         
     def freturn(self,node):
         x = node.X
         y = node.Y
         z = node.Z
         t = self.t
-        #x = 0.0
-        #y = 0.0
-        #z = 0.0
-        #t = 0.0
         return eval(self.compiled_function)
 
+class aux_object_cpp_callback:
+    def __init__(self, compiled_function, variable ):
+        self.compiled_function = compiled_function
+        self.variable = variable
+
+    def f(self,x,y,z,t):
+        return eval(self.compiled_function)
         
 ##all the processes python processes should be derived from "python_process"
 class ApplyCustomFunctionProcess(python_process.PythonProcess):
@@ -46,6 +50,9 @@ class ApplyCustomFunctionProcess(python_process.PythonProcess):
         
         #construct a variable_utils object to speedup fixing
         self.variable_utils = VariableUtils()
+        
+        self.tmp = aux_object_cpp_callback(self.compiled_function, self.variable)
+        self.cpp_apply_function_utility = PythonGenericFunctionUtility(self.variable, self.mesh.Nodes, self.tmp ) 
             
         print("finished construction of ApplyCustomFunctionProcess Process")
     
@@ -63,13 +70,20 @@ class ApplyCustomFunctionProcess(python_process.PythonProcess):
         if(current_time > self.interval[0] and  current_time<self.interval[1]):
             self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
             
-            #FASTEST OPTION - create and pass around a list
-            tmp = aux_object(current_time, self.compiled_function, self.variable)   
-            self.variable_utils.ApplyVector(self.variable, list(map(tmp.freturn, self.mesh.Nodes)),  self.mesh.Nodes)
-                           
-            #slightly slower option
+            #create and pass around a list
+            #tmp = aux_object(current_time, self.compiled_function, self.variable)   
+            #self.variable_utils.ApplyVector(self.variable, list(map(tmp.freturn, self.mesh.Nodes)),  self.mesh.Nodes)
+                
+            #other option - also faster than the first for larger examples
+            #tmp = aux_object(current_time, self.compiled_function, self.variable)   
+            #any(map(tmp.f, self.mesh.Nodes))
+        
+            #faster for larger examples
             #for node in self.mesh.Nodes:
                 #node.SetSolutionStepValue(self.variable,0,    self.function(node.X,node.Y,node.Z, current_time)    )
+                
+            #ultimate version. calling custom defined function from c++
+            self.cpp_apply_function_utility.ApplyFunction(current_time)
             
     def ExecuteFinalizeSolutionStep(self):
         if self.free_outside_of_interval:
