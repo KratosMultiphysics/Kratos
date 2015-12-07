@@ -85,9 +85,45 @@ namespace Kratos
     namespace Python
     {
 
+        class PythonGenericFunctionUtility
+        {
+            public:
+                PythonGenericFunctionUtility( Variable<double>& rVariable, ModelPart::NodesContainerType& rNodes, PyObject* obj): mrVariable(rVariable), mrNodes(rNodes), mpy_obj(obj)
+                {}
+                
+                void ApplyFunction(const double t)
+                {
+                    //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+                    for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+                    {
+                        ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+                        const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+                        i->FastGetSolutionStepValue(mrVariable) = value;
+                    }
+                }
+            
+
+            
+            private:
+                Variable<double> mrVariable;
+                ModelPart::NodesContainerType& mrNodes;
+                PyObject* mpy_obj;
+                
+                
+                double CallFunction(const double x, const double y, const double z, const double t)
+                {
+                    return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
+                }
+        };
+
         void AddUtilitiesToPython()
         {
             using namespace boost::python;
+            
+            class_<PythonGenericFunctionUtility>("PythonGenericFunctionUtility", init<Variable<double>& , ModelPart::NodesContainerType& , PyObject*>() )
+                .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunction)
+                ;
+        
 
 	    class_<DeflationUtils>("DeflationUtils", init<>())
 		.def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
