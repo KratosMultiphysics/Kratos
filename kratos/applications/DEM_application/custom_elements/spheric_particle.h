@@ -280,13 +280,6 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     array_1d<double, 3>& rContactForce,
                     const unsigned int iRigidFaceNeighbour);
 
-virtual void CalculateViscoDamping(double LocalRelVel[3],
-                                      double ViscoDampingLocalContactForce[3],
-                                      double indentation,
-                                      double equiv_visco_damp_coeff_normal,
-                                      double equiv_visco_damp_coeff_tangential,
-                                      bool sliding);
-
 virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
                          double mTimeStep, double density, bool sliding, double inverse_of_volume,
                          double LocalElasticContactForce, DEMWall* cast_neighbour);

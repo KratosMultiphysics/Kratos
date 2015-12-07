@@ -1328,30 +1328,6 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
     externally_applied_force = mRealMass * gravity;
 }
 
-void SphericParticle::CalculateViscoDamping(double LocalRelVel[3],
-                                            double ViscoDampingLocalContactForce[3],
-                                            double indentation,
-                                            double equiv_visco_damp_coeff_normal,
-                                            double equiv_visco_damp_coeff_tangential,
-                                            bool sliding)
-{
-    //*** The check is component-wise since localContactForce and RelVel have in principle no relationship.
-    // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
-    // But in opposite direction the visco damping can't overpass the force...
-
-
-
-
-            ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
-
-
-        if (sliding == false) { //only applied when no sliding to help to the regularized friction law or the spring convergence
-            ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-        }
-
-}
-
 void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             double LocalCoordSystem[3][3],
                                             double LocalContactForce[3],
