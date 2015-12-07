@@ -1284,7 +1284,7 @@ namespace Kratos
             Matrix CurrentDisp(number_of_nodes, dim);
 
             const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+            //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
             // extract current displacements
             for (unsigned int node = 0; node < GetGeometry().size(); ++node)
