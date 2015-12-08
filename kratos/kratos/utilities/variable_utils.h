@@ -455,12 +455,12 @@ public:
     ///fix or free rVar for all of the nodes in the list depending on the value of is_fixed
     template< class TVarType >
     void ApplyVector(  const TVarType& rVar,
-                       Vector data,
+                       const Vector& data,
                        ModelPart::NodesContainerType& rNodes)
     {
         KRATOS_TRY
         
-        if(rNodes.size() == data.size())
+        if(rNodes.size() != 0 && rNodes.size() == data.size())
         {
             if( rNodes.begin()->SolutionStepsDataHas( rVar ) == false )
                     KRATOS_THROW_ERROR(std::runtime_error,"trying to fix/free a variable that is not in the model_part - variable is ",rVar);
