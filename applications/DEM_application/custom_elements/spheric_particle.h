@@ -1,10 +1,7 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
-//
+
 
 
 #if !defined(KRATOS_SPHERIC_PARTICLE_H_INCLUDED )

@@ -1,9 +1,6 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Salva $
-//   Date:                $Date: 2014-07-28 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
-//
+// Authors: 
+// Miguel Angel Celigueta maceli@cimne.upc.edu
 //
 
 #if !defined(PROPERTIES_PROXIES_H_INCLUDED)

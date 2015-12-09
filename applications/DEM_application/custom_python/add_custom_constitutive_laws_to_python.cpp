@@ -1,8 +1,5 @@
 //
-//   Last modified by:    $Author:            MSantasusana $
-//   Date:                $Date:                Maig 2014 $
-//   Revision:            $Revision:                  0.0 $
-//
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
 // System includes
