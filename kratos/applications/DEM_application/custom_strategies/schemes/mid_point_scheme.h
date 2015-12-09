@@ -1,9 +1,7 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 2012-04-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
 //
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+//
+
 
 #if !defined(KRATOS_MID_POINT__SCHEME_H_INCLUDED )
 #define  KRATOS_MID_POINT__SCHEME_H_INCLUDED
@@ -15,7 +13,7 @@
 // External includes 
 
 // Project includes
-#include "integration_scheme.h"
+#include "dem_integration_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
@@ -51,7 +49,7 @@ namespace Kratos
   /** Detail class definition.
   */
   
-  class MidPointScheme :  public IntegrationScheme
+  class MidPointScheme :  public DEMIntegrationScheme
     {
     public:
       ///@name Type Definitions

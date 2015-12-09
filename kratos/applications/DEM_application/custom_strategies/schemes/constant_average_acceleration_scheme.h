@@ -13,7 +13,7 @@
 
 
 // Project includes
-#include "integration_scheme.h"
+#include "dem_integration_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
@@ -23,7 +23,7 @@ namespace Kratos
 {
   
   
-  class ConstAverageAccelerationScheme :  public IntegrationScheme
+  class ConstAverageAccelerationScheme :  public DEMIntegrationScheme
     {
     public:
       ///@name Type Definitions
@@ -44,9 +44,7 @@ namespace Kratos
 
       /// Destructor.
       virtual ~ConstAverageAccelerationScheme(){}
-      
-      
-
+            
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
      void Calculate(ModelPart& model_part)

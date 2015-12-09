@@ -1,9 +1,7 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 2012-04-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
 //
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+//
+
 
 
 #if !defined(KRATOS_INTEGRATION_SCHEME_H_INCLUDED)
