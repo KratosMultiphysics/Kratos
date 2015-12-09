@@ -1,8 +1,7 @@
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine  $
-//   Date:                $Date: 2012-05-24 $
-//   Revision:            $Revision: 1.0 $
 //
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+//
+
 
 
 #if !defined(KRATOS_RIGID_FACE_GEOMETRICAL_OBJECT_CONFIGURE_INCLUDED)

@@ -1,9 +1,5 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: M.Santasusana $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
-//
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
 

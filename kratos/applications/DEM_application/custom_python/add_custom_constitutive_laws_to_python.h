@@ -1,9 +1,5 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            MSantasusana $
-//   Date:                $Date:                Maig 2014 $
-//   Revision:            $Revision:                  0.0 $
-//
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
 #if !defined(KRATOS_ADD_CUSTOM_DEM_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED )

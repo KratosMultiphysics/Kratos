@@ -1,8 +1,5 @@
-//
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Salva Latorre$
-//   Date:                $Date: 2015-10-26 09:50:15 $
-//   Revision:            $Revision: 1.5 $
+// Author: 
+// Miguel Angel Celigueta maceli@cimne.upc.edu
 //
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 

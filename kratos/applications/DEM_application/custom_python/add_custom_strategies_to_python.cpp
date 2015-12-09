@@ -1,58 +1,6 @@
-/*
-==============================================================================
-KratosTestApplication 
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
- 
-//   
-//   Project Name:        Kratos       
-//   Last modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
 //
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
-
-
-// System includes 
-
 
 // External includes 
 #include <boost/python.hpp>
@@ -79,6 +27,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/mid_point_scheme.h"
@@ -112,27 +61,27 @@ namespace Kratos
           typedef OMP_DEMSearch                                                         OmpDemSearchType;
           typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
 
-          class_<IntegrationScheme, boost::noncopyable >
-                    ("IntegrationScheme", init< >())
+          class_<DEMIntegrationScheme, boost::noncopyable >
+                    ("DEMIntegrationScheme", init< >())
                   ;
 
           class_<ParticleCreatorDestructor, boost::noncopyable >
                     ("ParticleCreatorDestructor", init<>())
                   ;
 
-          class_< ForwardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
+          class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "ForwardEulerScheme", init<>()
                   )
                   ;
 
-          class_< MidPointScheme, bases<IntegrationScheme>,  boost::noncopyable>
+          class_< MidPointScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "MidPointScheme", init<>()
                   )
                   ;
 
-          class_< ConstAverageAccelerationScheme, bases<IntegrationScheme>,  boost::noncopyable>
+          class_< ConstAverageAccelerationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "ConstAverageAccelerationScheme", init<>()
                   )
@@ -157,7 +106,7 @@ namespace Kratos
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareElementsForPrinting)
@@ -165,7 +114,7 @@ namespace Kratos
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  
