@@ -1,10 +1,9 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 2008-10-13 08:56:42 $
-//   Revision:            $Revision: 1.5 $
+// Authors: 
+// Miguel Angel Celigueta maceli@cimne.upc.edu
+// Miquel Santasusana msantasusana@cimne.upc.edu
 //
-//
+
 
 #if !defined(KRATOS_EXPLICIT_SOLVER_STRATEGY)
 #define KRATOS_EXPLICIT_SOLVER_STRATEGY
@@ -41,7 +40,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/schemes/integration_scheme.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/GeometryFunctions.h"
@@ -178,7 +177,7 @@ namespace Kratos
                              const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
-                             typename IntegrationScheme::Pointer pScheme,
+                             typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
       :
       BaseType( *(settings.r_model_part),move_mesh_flag)
@@ -1640,7 +1639,7 @@ namespace Kratos
     vector<unsigned int>&                        GetElementPartition(){return (mElementPartition);}
 
     typename ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor(){return (mpParticleCreatorDestructor);}
-    typename IntegrationScheme::Pointer&         GetScheme(){return (mpScheme);}
+    typename DEMIntegrationScheme::Pointer&         GetScheme(){return (mpScheme);}
     typename SpatialSearch::Pointer&             GetSpSearch(){return (mpSpSearch);}
     
     //Cfeng
@@ -1683,7 +1682,7 @@ namespace Kratos
     vector<unsigned int>                         mElementPartition;
     typename ParticleCreatorDestructor::Pointer  mpParticleCreatorDestructor;
     typename DEM_FEM_Search::Pointer             mpDemFemSearch;
-    typename IntegrationScheme::Pointer          mpScheme;
+    typename DEMIntegrationScheme::Pointer          mpScheme;
     typename SpatialSearch::Pointer              mpSpSearch;
     
     
