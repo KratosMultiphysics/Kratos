@@ -87,7 +87,7 @@ namespace Kratos {
         }
 
         virtual void UpdateTranslationalVariables(
-                const ModelPart::NodeIterator& i,
+                const Node < 3 > & i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
                 array_1d<double, 3 >& delta_displ,
@@ -125,22 +125,23 @@ namespace Kratos {
                 NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
                 NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
 
-                for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
-                    if (i->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-                    array_1d<double, 3 >& vel = i->FastGetSolutionStepValue(VELOCITY);
-                    array_1d<double, 3 >& displ = i->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3 >& delta_displ = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                    array_1d<double, 3 >& coor = i->Coordinates();
-                    array_1d<double, 3 >& initial_coor = i->GetInitialPosition();
-                    array_1d<double, 3 >& force = i->FastGetSolutionStepValue(TOTAL_FORCES);
+                for (ModelPart::NodeIterator i_iterator = i_begin; i_iterator != i_end; ++i_iterator) {
+                    Node < 3 > & i = *i_iterator;
+                    if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+                    array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
+                    array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
+                    array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                    array_1d<double, 3 >& coor = i.Coordinates();
+                    array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
+                    array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
 
-                    double mass = i->FastGetSolutionStepValue(NODAL_MASS);                   
+                    double mass = i.FastGetSolutionStepValue(NODAL_MASS);                   
 
                     bool Fix_vel[3] = {false, false, false};
 
-                    Fix_vel[0] = i->Is(DEMFlags::FIXED_VEL_X);
-                    Fix_vel[1] = i->Is(DEMFlags::FIXED_VEL_Y);
-                    Fix_vel[2] = i->Is(DEMFlags::FIXED_VEL_Z);
+                    Fix_vel[0] = i.Is(DEMFlags::FIXED_VEL_X);
+                    Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
+                    Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
 
                     UpdateTranslationalVariables(i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
 
@@ -150,32 +151,27 @@ namespace Kratos {
 
             KRATOS_CATCH(" ")
         }
+        
+        virtual void CalculateLocalAngularAcceleration(
+                                const Node < 3 > & i,
+                                const double moment_of_inertia,
+                                const array_1d<double, 3 >& torque, 
+                                const double moment_reduction_factor,
+                                array_1d<double, 3 >& angular_acceleration){
+            
+        }
 
         virtual void UpdateRotationalVariables(
-                const ModelPart::NodeIterator& i,
-                array_1d<double, 3 >& rotated_angle,
-                array_1d<double, 3 >& delta_rotation,
-                array_1d<double, 3 >& angular_velocity,
-                const array_1d<double, 3 >& torque,
-                const double moment_reduction_factor,
-                const double moment_of_inertia,
-                const double delta_t,
-                const bool Fix_Ang_vel[3]) {
-
-            KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
-        }
-        
-        virtual void UpdateRotationalVariablesOfClusters(
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
-                const array_1d<double, 3 >& angular_acceleration,
+                array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-            
-                KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariablesOfClusters) shouldn't be accessed, use derived class instead", 0);                        
-        }
+
+            KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
+        }                
 
         virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
 
@@ -202,25 +198,29 @@ namespace Kratos {
                 NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
                 NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
 
-                for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
+                for (ModelPart::NodeIterator i_iterator = i_begin; i_iterator != i_end; ++i_iterator) {
+                    Node < 3 > & i = *i_iterator;
 
-                    double moment_of_inertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                    double moment_of_inertia = i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-                    array_1d<double, 3 >& angular_velocity = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                    array_1d<double, 3 >& torque = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                    array_1d<double, 3 >& rotated_angle = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                    array_1d<double, 3 >& delta_rotation = i->FastGetSolutionStepValue(DELTA_ROTATION);
+                    array_1d<double, 3 >& angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    array_1d<double, 3 >& torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
+                    array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                    array_1d<double, 3 >& delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
                     double Orientation_real;
                     array_1d<double, 3 > Orientation_imag;                    
 
                     bool Fix_Ang_vel[3] = {false, false, false};
 
-                    Fix_Ang_vel[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
-                    Fix_Ang_vel[1] = i->Is(DEMFlags::FIXED_ANG_VEL_Y);
-                    Fix_Ang_vel[2] = i->Is(DEMFlags::FIXED_ANG_VEL_Z);
-
-                    UpdateRotationalVariables(i, rotated_angle, delta_rotation, angular_velocity, torque, moment_reduction_factor, moment_of_inertia, delta_t, Fix_Ang_vel);
-
+                    Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+                    Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+                    Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+                    
+                    array_1d<double, 3 > angular_acceleration;                    
+                    CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor,angular_acceleration);
+                                        
+                    UpdateRotationalVariables(i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+                    
                     if (if_trihedron_option) {
                         double theta[3] = {0.0};
 
@@ -241,7 +241,7 @@ namespace Kratos {
                             Orientation_imag[2] = (theta[2] / thetaMag) * sin(thetaMag);
                         }
 
-                        array_1d<double, 3>& EulerAngles = i->FastGetSolutionStepValue(EULER_ANGLES);
+                        array_1d<double, 3>& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
 
                         double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
 
@@ -274,7 +274,7 @@ namespace Kratos {
                                     const double moment_reduction_factor,
                                     array_1d<double, 3 >& local_angular_acceleration){
                 KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);                        
-        }
+        }                
 
         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part) { //must be done AFTER the translational motion!
 
@@ -336,7 +336,7 @@ namespace Kratos {
                         Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
                         Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                        UpdateRotationalVariablesOfClusters(i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
+                        UpdateRotationalVariables(i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
                         double ang = sqrt(delta_rotation[0] * delta_rotation[0] + delta_rotation[1] * delta_rotation[1] + delta_rotation[2] * delta_rotation[2]);
                         if (ang) {
@@ -359,7 +359,7 @@ namespace Kratos {
                             GeometryFunctions::GetEulerAngles(rotation_matrix, EulerAngles);
                         } //if ang                                                                                                    
 
-                        cluster_element.UpdatePositionOfSpheres(rotation_matrix, delta_t);
+                        cluster_element.UpdatePositionOfSpheres(rotation_matrix);
                     } //for Elements
                 } //for number of threads
             } //End of parallel region
