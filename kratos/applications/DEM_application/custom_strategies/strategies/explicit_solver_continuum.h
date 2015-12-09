@@ -1,10 +1,7 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 2008-10-13 08:56:42 $
-//   Revision:            $Revision: 1.5 $
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
-//
+
 
 #if !defined(KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY)
 #define  KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY
@@ -59,7 +56,7 @@ namespace Kratos
                              const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
-                             typename IntegrationScheme::Pointer pScheme,
+                             typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
       :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {                    
