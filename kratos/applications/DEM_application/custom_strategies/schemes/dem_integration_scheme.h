@@ -111,8 +111,12 @@ namespace Kratos {
             double delta_t = rCurrentProcessInfo[DELTA_TIME];
             double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
             bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+            double force_reduction_factor = 1.0;
+            if (if_virtual_mass_option) {
+                force_reduction_factor = 1.0 - virtual_mass_coeff;
+                if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+            }                        
             vector<unsigned int> node_partition;
-
             unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
@@ -130,14 +134,7 @@ namespace Kratos {
                     array_1d<double, 3 >& initial_coor = i->GetInitialPosition();
                     array_1d<double, 3 >& force = i->FastGetSolutionStepValue(TOTAL_FORCES);
 
-                    double mass = i->FastGetSolutionStepValue(NODAL_MASS);
-
-                    double force_reduction_factor = 1.0;
-
-                    if (if_virtual_mass_option) {
-                        force_reduction_factor = 1.0 - virtual_mass_coeff;
-                        if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
-                        }
+                    double mass = i->FastGetSolutionStepValue(NODAL_MASS);                   
 
                     bool Fix_vel[3] = {false, false, false};
 
@@ -156,7 +153,7 @@ namespace Kratos {
 
         virtual void UpdateRotationalVariables(
                 const ModelPart::NodeIterator& i,
-                array_1d<double, 3 >& rotational_displacement,
+                array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
                 const array_1d<double, 3 >& torque,
@@ -166,7 +163,18 @@ namespace Kratos {
                 const bool Fix_Ang_vel[3]) {
 
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
-
+        }
+        
+        virtual void UpdateRotationalVariablesOfClusters(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                array_1d<double, 3 >& angular_velocity,
+                const array_1d<double, 3 >& angular_acceleration,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+            
+                KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariablesOfClusters) shouldn't be accessed, use derived class instead", 0);                        
         }
 
         virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
@@ -175,10 +183,15 @@ namespace Kratos {
 
             ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
             double delta_t = rCurrentProcessInfo[DELTA_TIME];
-            bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
             vector<unsigned int> node_partition;
             bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
             double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+            bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+            double moment_reduction_factor = 1.0;
+            if (if_virtual_mass_option) {
+                moment_reduction_factor = 1.0 - virtual_mass_coeff;
+                if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+            }      
 
             unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
@@ -195,17 +208,10 @@ namespace Kratos {
 
                     array_1d<double, 3 >& angular_velocity = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                     array_1d<double, 3 >& torque = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                    array_1d<double, 3 >& rotational_displacement = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                    array_1d<double, 3 >& rotated_angle = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
                     array_1d<double, 3 >& delta_rotation = i->FastGetSolutionStepValue(DELTA_ROTATION);
                     double Orientation_real;
-                    array_1d<double, 3 > Orientation_imag;
-
-                    double moment_reduction_factor = 1.0;
-
-                    if (if_virtual_mass_option) {
-                        moment_reduction_factor = 1.0 - virtual_mass_coeff;
-                        if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
-                        }
+                    array_1d<double, 3 > Orientation_imag;                    
 
                     bool Fix_Ang_vel[3] = {false, false, false};
 
@@ -213,14 +219,14 @@ namespace Kratos {
                     Fix_Ang_vel[1] = i->Is(DEMFlags::FIXED_ANG_VEL_Y);
                     Fix_Ang_vel[2] = i->Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                    UpdateRotationalVariables(i, rotational_displacement, delta_rotation, angular_velocity, torque, moment_reduction_factor, moment_of_inertia, delta_t, Fix_Ang_vel);
+                    UpdateRotationalVariables(i, rotated_angle, delta_rotation, angular_velocity, torque, moment_reduction_factor, moment_of_inertia, delta_t, Fix_Ang_vel);
 
                     if (if_trihedron_option) {
                         double theta[3] = {0.0};
 
-                        theta[0] = rotational_displacement[0] * 0.5;
-                        theta[1] = rotational_displacement[1] * 0.5;
-                        theta[2] = rotational_displacement[2] * 0.5;
+                        theta[0] = rotated_angle[0] * 0.5;
+                        theta[1] = rotated_angle[1] * 0.5;
+                        theta[2] = rotated_angle[2] * 0.5;
 
                         double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
                         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON) { //Taylor: low angle                      
@@ -258,7 +264,17 @@ namespace Kratos {
 
             KRATOS_CATCH(" ")
 
-        }//rotational_motion                  
+        }//rotational_motion
+        
+        virtual void CalculateLocalAngularAccelerationByEulerEquations(
+                                    const Node < 3 > & i,
+                                    const array_1d<double, 3 >& local_angular_velocity,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& local_torque, 
+                                    const double moment_reduction_factor,
+                                    array_1d<double, 3 >& local_angular_acceleration){
+                KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);                        
+        }
 
         virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part) { //must be done AFTER the translational motion!
 
@@ -269,8 +285,13 @@ namespace Kratos {
             ProcessInfo& rCurrentProcessInfo = rcluster_model_part.GetProcessInfo();
 
             double delta_t = rCurrentProcessInfo[DELTA_TIME];
+            double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
             bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
-            double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+            double moment_reduction_factor = 1.0;
+            if (if_virtual_mass_option) {
+                moment_reduction_factor = 1.0 - virtual_mass_coeff;
+                if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+            }     
 
             vector<unsigned int> element_partition;
             ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
@@ -303,34 +324,19 @@ namespace Kratos {
                         //Angular velocity and torques are saved in the local framework:
                         GeometryFunctions::VectorGlobal2Local(rotation_matrix, torque, local_torque);
                         GeometryFunctions::VectorGlobal2Local(rotation_matrix, angular_velocity, local_angular_velocity);
-
-                        for (int j = 0; j < 3; j++) {
-                            //Euler equations in Explicit (Forward Euler) scheme:
-                            local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
-                            if (if_virtual_mass_option) {
-                                local_angular_acceleration[j] = local_angular_acceleration[j] * (1 - coeff);
-                            }
-                        }
+                        
+                        CalculateLocalAngularAccelerationByEulerEquations(i,local_angular_velocity,moments_of_inertia,local_torque, moment_reduction_factor,local_angular_acceleration);                        
 
                         //Angular acceleration is saved in the Global framework:
                         GeometryFunctions::VectorLocal2Global(rotation_matrix, local_angular_acceleration, angular_acceleration);
 
-                        bool If_Fix_Rotation[3] = {false, false, false};
+                        bool Fix_Ang_vel[3] = {false, false, false};
 
-                        If_Fix_Rotation[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-                        If_Fix_Rotation[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-                        If_Fix_Rotation[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+                        Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+                        Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+                        Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                        for (int j = 0; j < 3; j++) {
-                            if (If_Fix_Rotation[j] == false) {
-                                delta_rotation[j] = angular_velocity[j] * delta_t;
-                                angular_velocity[j] += angular_acceleration[j] * delta_t;
-                                rotated_angle[j] += delta_rotation[j];
-                            } else {
-                                angular_velocity[j] = 0.0;
-                                delta_rotation[j] = 0.0;
-                            }
-                        }
+                        UpdateRotationalVariablesOfClusters(i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
                         double ang = sqrt(delta_rotation[0] * delta_rotation[0] + delta_rotation[1] * delta_rotation[1] + delta_rotation[2] * delta_rotation[2]);
                         if (ang) {
