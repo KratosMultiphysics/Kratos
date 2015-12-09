@@ -170,7 +170,7 @@ namespace Kratos {
         }        
     }
     
-    void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt) {
+    void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3]) {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3> global_relative_coordinates;      
