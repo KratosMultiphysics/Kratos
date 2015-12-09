@@ -34,7 +34,7 @@ namespace Kratos {
 
     void ForwardEulerScheme::UpdateRotationalVariables(
             const ModelPart::NodeIterator& i,
-            array_1d<double, 3 >& rotational_displacement,
+            array_1d<double, 3 >& rotated_angle,
             array_1d<double, 3 >& delta_rotation,
             array_1d<double, 3 >& angular_velocity,
             const array_1d<double, 3 >& torque,
@@ -46,13 +46,48 @@ namespace Kratos {
         for (int k = 0; k < 3; k++) {
             if (Fix_Ang_vel[k] == false) {
                 delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotational_displacement[k] += delta_rotation[k];
+                rotated_angle[k] += delta_rotation[k];
                 angular_velocity[k] += delta_t * moment_reduction_factor * torque[k] / moment_of_inertia;
             } else {
                 delta_rotation[k] = angular_velocity[k] * delta_t;
-                rotational_displacement[k] += delta_rotation[k];
+                rotated_angle[k] += delta_rotation[k];
             }
         }
-
     }    
+    
+    void ForwardEulerScheme::UpdateRotationalVariablesOfClusters(
+        const Node < 3 > & i,
+        array_1d<double, 3 >& rotated_angle,
+        array_1d<double, 3 >& delta_rotation,
+        array_1d<double, 3 >& angular_velocity,
+        const array_1d<double, 3 >& angular_acceleration,
+        const double delta_t,
+        const bool Fix_Ang_vel[3]) {
+
+        for (int j = 0; j < 3; j++) {
+            if (Fix_Ang_vel[j] == false) {
+                delta_rotation[j] = angular_velocity[j] * delta_t;
+                angular_velocity[j] += angular_acceleration[j] * delta_t;
+                rotated_angle[j] += delta_rotation[j];
+            } else {
+                angular_velocity[j] = 0.0;
+                delta_rotation[j] = 0.0;
+            }
+        }
+    }
+    
+    void ForwardEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
+                                const Node < 3 > & i,
+                                const array_1d<double, 3 >& local_angular_velocity,
+                                const array_1d<double, 3 >& moments_of_inertia,
+                                const array_1d<double, 3 >& local_torque, 
+                                const double moment_reduction_factor,
+                                array_1d<double, 3 >& local_angular_acceleration){
+        for (int j = 0; j < 3; j++) {
+            //Euler equations in Explicit (Forward Euler) scheme:
+            local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
+            local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
+            
+        }
+    }
 } //namespace Kratos

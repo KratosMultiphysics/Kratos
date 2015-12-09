@@ -49,7 +49,7 @@ namespace Kratos {
         
         void UpdateRotationalVariables(
                 const ModelPart::NodeIterator& i,
-                array_1d<double, 3 >& rotational_displacement,
+                array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
                 const array_1d<double, 3 >& torque,
@@ -57,6 +57,23 @@ namespace Kratos {
                 const double moment_of_inertia,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
+        
+        void UpdateRotationalVariablesOfClusters(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                array_1d<double, 3 >& angular_velocity,
+                const array_1d<double, 3 >& angular_acceleration,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]);
+        
+        void CalculateLocalAngularAccelerationByEulerEquations(
+                                    const Node < 3 > & i,
+                                    const array_1d<double, 3 >& local_angular_velocity,
+                                    const array_1d<double, 3 >& moments_of_inertia,
+                                    const array_1d<double, 3 >& local_torque, 
+                                    const double moment_reduction_factor,
+                                    array_1d<double, 3 >& local_angular_acceleration);
         
         /// Turn back information as a string.
 
