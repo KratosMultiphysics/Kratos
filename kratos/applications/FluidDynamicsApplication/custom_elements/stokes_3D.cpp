@@ -1,4 +1,4 @@
-#include "custom_elements/stokes_element_symbolic_3D.h"
+#include "custom_elements/stokes_3D.h"
 
 namespace Kratos
 {
