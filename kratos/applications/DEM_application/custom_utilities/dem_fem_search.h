@@ -80,8 +80,6 @@ class DEM_FEM_Search : public SpatialSearch
       typedef double*                                   DistanceVector;
       typedef double*                                   DistanceIterator;
 
-      typedef ModelPart::ElementsContainerType                          ElementsArrayType;
-
 //       //Configure Types
 //       typedef RigidFaceConfigure<3>                        ElementConfigureType;   //Element
 //       //Bin Types
@@ -101,6 +99,9 @@ class DEM_FEM_Search : public SpatialSearch
 
       /// Default constructor.
       DEM_FEM_Search(){
+        
+        mBins = NULL;
+        
       }
 
       /// Destructor.
@@ -124,8 +125,8 @@ class DEM_FEM_Search : public SpatialSearch
         3. GATHER DEM BOUNDING BOX
         4. FIND THE FE INSIDE DEM_BB TO BUILD THE BINS AND CONSTRUCT THE GLOBAL BBX
         5. GATHER FEM ELEMENTS AND THE GLOBAL BBX
-        6. AMPLIFY THE GLOBAL BOX WITH THE RADIUS OF THE BIGGER SPHERE IN THE NEEDED DIRECTIONS (bbx can have 0 thickness)
-        7. PERFORM THE SEARCH FOR THE PARTICLES INSIDE THE GLOBAL BBX
+        6. BUILD THE BINS
+        7. PERFORM THE SEARCH FOR THE SPHERES INSIDE THE BBX (amplified by the radius of each particle)
       */
 
       //1. INITIALIZE
@@ -207,8 +208,8 @@ class DEM_FEM_Search : public SpatialSearch
       }
 
       for(std::size_t i = 0; i < 3; i++) {
-        DEM_BB_LowPoint[i]  -= 1.01f * Global_Ref_Radius;
-        DEM_BB_HighPoint[i] += 1.01f * Global_Ref_Radius;
+        DEM_BB_LowPoint[i]  -= 1.00f * Global_Ref_Radius;
+        DEM_BB_HighPoint[i] += 1.00f * Global_Ref_Radius;
       }
 
       //4. FIND THE FE INSIDE DEM_BB TO BUILD THE BINS AND CONSTRUCT THE GLOBAL BBX
@@ -281,15 +282,15 @@ class DEM_FEM_Search : public SpatialSearch
 
       if(BinsConditionPointerToGeometricalObjecPointerTemporalVector.size() >0 ) {
 
-      //6. AMPLIFY THE GLOBAL BOX WITH THE RADIUS OF THE BIGGER SPHERE (bbx can have 0 thickness)
-      for (std::size_t i = 0; i < 3; i++) {
-        mGlobal_BB_LowPoint[i]  -= 2.0f * Global_Ref_Radius;
-        mGlobal_BB_HighPoint[i] += 2.0f * Global_Ref_Radius;
+      //6. CREATE THE BINS
+      if(mBins)
+      {
+        free(mBins);
       }
-
-      //7. PERFORM THE SEARCH
-      GeometricalBinsType bins(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());
-
+      
+      mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());       
+           
+      //7. PERFORM THE SEARCH ON THE SPHERES
       #pragma omp parallel
       {
         GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
@@ -309,17 +310,18 @@ class DEM_FEM_Search : public SpatialSearch
             bool search_particle = true;
 
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
+            double Rad = go_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
             for(unsigned int i = 0; i < 3; i++ ) {
-              search_particle &= !(aux_coor[i]  < mGlobal_BB_LowPoint[i]) || (aux_coor[i]  > mGlobal_BB_HighPoint[i]);
+              search_particle &= !(aux_coor[i]  < (mGlobal_BB_LowPoint[i] - Rad) ) || (aux_coor[i]  > (mGlobal_BB_HighPoint[i] + Rad) ); //amplify the BBX with the radius for every particle
             }
 
             if(search_particle) {
               GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
               DistanceType::iterator                           ResultsDistancesPointer = localResultsDistances.begin();
 
-              double Rad = go_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-              NumberOfResults = bins.SearchObjectsInRadiusExclusive(go_it,Rad,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+              //double Rad = go_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+              NumberOfResults = (*mBins).SearchObjectsInRadiusExclusive(go_it,Rad,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
 
               rResults[gResultIndex].reserve(NumberOfResults);
 
@@ -417,6 +419,7 @@ class DEM_FEM_Search : public SpatialSearch
 
       array_1d<double, 3 > DEM_BB_HighPoint;
       array_1d<double, 3 > DEM_BB_LowPoint;
+      GeometricalBinsType* mBins;
 
 
 
