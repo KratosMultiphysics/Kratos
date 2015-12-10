@@ -1223,8 +1223,8 @@ class DEMIo(object):
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
-            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)
-            
+#            self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)
+
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
@@ -1345,7 +1345,7 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], Properties(0))
             
         self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
-
+        
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
         
         bounding_box_model_part = ModelPart("BoundingBoxPart")
@@ -1368,8 +1368,27 @@ class DEMIo(object):
         BBMinY = dem_fem_search.GetBBLowPoint()[1]
         BBMinZ = dem_fem_search.GetBBLowPoint()[2]
         
-        multi = BBMaxX*BBMaxY*BBMaxZ*BBMinX*BBMinY*BBMinZ;
-        if( (abs(multi) > 1e21) or (abs(multi) == 0.0) ):
+        DX = (BBMaxX-BBMinX)
+        DY = (BBMaxY-BBMinY)
+        DZ = (BBMaxZ-BBMinZ)
+        
+        #The cases with 0 thickness in one direction, a 10% of the shortest other two is given to the 0-thickness direction.
+        if(DX == 0):
+          height = min(DY,DZ)
+          BBMinX = BBMinX - 0.05*height
+          BBMaxX = BBMaxX + 0.05*height
+        if(DY == 0):
+          height = min(DX,DZ)
+          BBMinY = BBMinY - 0.05*height
+          BBMaxY = BBMaxY + 0.05*height
+        if(DZ == 0):
+          height = min(DX,DY)
+          BBMinZ = BBMinZ - 0.05*height
+          BBMaxZ = BBMaxZ + 0.05*height
+          
+        volume = DX*DY*DZ
+                        
+        if(abs(volume) > 1e21) :
           BBMaxX = 0.0
           BBMaxY = 0.0
           BBMaxZ = 0.0
@@ -1403,7 +1422,8 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], Properties(0))
     
         self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
-
+        
+        
 class ParallelUtils(object):
 
     def __init__(self):
