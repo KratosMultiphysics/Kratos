@@ -65,7 +65,9 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mBinghamFractionalStepDiscontinuous2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mBinghamFractionalStepDiscontinuous3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mHerschelBulkleyVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mNavierStokesSymbolic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {}
 
 void KratosFluidDynamicsApplication::Register()
@@ -125,6 +127,9 @@ void KratosFluidDynamicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS2D",mHerschelBulkleyVMS2D);
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D",mHerschelBulkleyVMS3D);
+    
+//     KRATOS_REGISTER_ELEMENT("NavierStokesSymbolic2D",mNavierStokesSymbolic2D);
+    KRATOS_REGISTER_ELEMENT("Stokes3D",mStokes3D);
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D",mWallCondition2D);
