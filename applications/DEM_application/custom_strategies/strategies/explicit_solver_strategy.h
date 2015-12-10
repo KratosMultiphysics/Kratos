@@ -151,7 +151,6 @@ namespace Kratos
       typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
       typedef typename PropertiesContainerType::iterator                PropertiesIterator;
       typedef RigidFaceGeometricalObjectConfigure<3>                    RigidFaceGeometricalConfigureType;
- 
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -1329,16 +1328,13 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    
-   
     
     virtual void SearchRigidFaceNeighbours(int local_resolution_method)
     {
         KRATOS_TRY
         
-        ElementsArrayType&   pElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
-        ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        ElementsArrayType&   pTElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
+        ConditionsArrayType& pTConditions       = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
 
         if (pTConditions.size() > 0) {
         
@@ -1347,9 +1343,10 @@ namespace Kratos
             #pragma omp parallel for 
             for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
+                mListOfSphericParticles[i]->mNeighbourRigidFacesPram.resize(0);
             }
-            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
-            
+            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pTElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
+
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
               std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
