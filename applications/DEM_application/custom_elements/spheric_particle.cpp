@@ -445,7 +445,6 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     mFemOldNeighbourIds.swap(temp_neighbours_ids);
     mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_elastic_contact_forces);
     mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
-    mNeighbourRigidFacesPram.resize(0);
 }
 
 void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info){}
