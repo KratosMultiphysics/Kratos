@@ -1,5 +1,9 @@
 //
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+// Authors: 
+// Miguel Angel Celigueta maceli@cimne.upc.edu
+// Salvador Latorre latorre@cimne.upc.edu
+// Miquel Santasusana msantasusana@cimne.upc.edu
+// Guillermo Casas gcasas@cimne.upc.edu
 //
 
 // System includes
