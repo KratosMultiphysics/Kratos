@@ -11,7 +11,9 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp 
+
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
@@ -19,6 +21,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_discontinuous.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spalart_allmaras.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stationary_stokes.cpp
+#     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/navier_stokes_element_symbolic.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fs_werner_wengle_wall_condition.cpp
@@ -26,6 +30,9 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition_discontinuous.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fs_periodic_condition.cpp
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bingham_3d_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_3d_law.cpp
     )
 
 ###############################################################
