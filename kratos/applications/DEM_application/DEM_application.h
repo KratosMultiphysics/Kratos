@@ -1,7 +1,7 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
+//   Last Modified by:    $Author: Salva Latorre
+//   Date:                $Date: 20151209
 //   Revision:            $Revision: 1.2 $
 //
 //
@@ -14,16 +14,13 @@
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
-
 
 #include "includes/variables.h"
 #include "custom_elements/cylinder_particle.h"
@@ -75,7 +72,6 @@
 
 namespace Kratos
 {
-
 
 class KratosDEMApplication : public KratosApplication
 {
