@@ -10,7 +10,6 @@ from math import exp,sqrt
 #including kratos path
 from KratosMultiphysics import *    #we import the KRATOS  
 from KratosMultiphysics.ConvectionDiffusionApplication import *        #and now our application. note that we can import as many as we need to solve our specific problem 
-from KratosMultiphysics.PFEM2Application import *
 
 #import eulerian_convection_diffusion_solver as convection_diffusion_solver
 #import pfem2_convection_diffusion_solver as convection_diffusion_solver
