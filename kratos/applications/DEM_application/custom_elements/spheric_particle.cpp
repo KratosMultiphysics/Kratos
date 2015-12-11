@@ -567,15 +567,11 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         const double other_young = p_neighbour->GetYoung();
         const double my_young = GetYoung();
         
-        DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt);
-        DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt);
+        DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt); //THIS MACRO OPERATION CONVERTS THE temp_angular_vel VARIABLE INTO AN ANGLE, DESPITE THE NAME
+        DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt); // SAME COMMENT AS IN THE PREVIOUS LINE
         
         double my_rotated_angle = DEM_MODULUS_3(temp_angular_vel);
         double other_rotated_angle = DEM_MODULUS_3(temp_neigh_angular_vel);
-        
-        array_1d<double, 3> e1;
-        
-        DEM_COPY_SECOND_TO_FIRST_3(e1, OldLocalCoordSystem[2]);
         
         array_1d<double, 3> other_to_me_vect;
         noalias(other_to_me_vect)  = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
@@ -584,33 +580,26 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         double indentation         = radius_sum - distance;
         
         double arm = GetRadius() - indentation * other_young / (other_young + my_young);
-        double other_arm = other_radius - indentation * my_young / (other_young + my_young);
-        
-        DEM_MULTIPLY_BY_SCALAR_3(e1, -arm)
-        
+        array_1d<double, 3> e1;
+        DEM_COPY_SECOND_TO_FIRST_3(e1, OldLocalCoordSystem[2]);
+        DEM_MULTIPLY_BY_SCALAR_3(e1, -arm);
         array_1d<double, 3> new_axes1 = e1;
-           
+               
+        double other_arm = other_radius - indentation * my_young / (other_young + my_young);
         array_1d<double, 3> e2;
-        
         DEM_COPY_SECOND_TO_FIRST_3(e2, OldLocalCoordSystem[2]);
-        DEM_MULTIPLY_BY_SCALAR_3(e2, other_arm) 
-                    
+        DEM_MULTIPLY_BY_SCALAR_3(e2, other_arm);
         array_1d<double, 3> new_axes2 = e2;
         
         if (my_rotated_angle) {
             
-            array_1d<double, 3> axis;
-            axis[0] = temp_angular_vel[0] / my_rotated_angle;
-            axis[1] = temp_angular_vel[1] / my_rotated_angle;
-            axis[2] = temp_angular_vel[2] / my_rotated_angle;
-                    
-            double cang = cos(my_rotated_angle);
-            double sang = sin(my_rotated_angle);
+            array_1d<double, 3> axis_1;
+            axis_1[0] = temp_angular_vel[0] / my_rotated_angle;
+            axis_1[1] = temp_angular_vel[1] / my_rotated_angle;
+            axis_1[2] = temp_angular_vel[2] / my_rotated_angle;
             
-            new_axes1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (-axis[2] * e1[1] + axis[1] * e1[2]) * sang;
-            new_axes1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang + (axis[2] * e1[0] - axis[0] * e1[2]) * sang;
-            new_axes1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (-axis[1] * e1[0] + axis[0] * e1[1]) * sang;
-   
+            GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(e1, axis_1, my_rotated_angle, new_axes1);
+        
         } //if my_rotated_angle
 
         if (other_rotated_angle) {
@@ -619,14 +608,9 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
             axis_2[0] = temp_neigh_angular_vel[0] / other_rotated_angle;
             axis_2[1] = temp_neigh_angular_vel[1] / other_rotated_angle;
             axis_2[2] = temp_neigh_angular_vel[2] / other_rotated_angle;
-                    
-            double cang = cos(other_rotated_angle);
-            double sang = sin(other_rotated_angle);
-                    
-            new_axes2[0] = axis_2[0] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[0] * cang + (-axis_2[2] * e2[1] + axis_2[1] * e2[2]) * sang;
-            new_axes2[1] = axis_2[1] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[1] * cang + (axis_2[2] * e2[0] - axis_2[0] * e2[2]) * sang;
-            new_axes2[2] = axis_2[2] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[2] * cang + (-axis_2[1] * e2[0] + axis_2[0] * e2[1]) * sang;
-                    
+            
+            GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(e2, axis_2, other_rotated_angle, new_axes2);     
+   
         } //if other_rotated_angle
         
         array_1d<double, 3> radial_vector = - other_to_me_vect;
@@ -634,11 +618,10 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         
         GeometryFunctions::normalize(radial_vector);
         GeometryFunctions::normalize(other_radial_vector);
-
         
         radial_vector *= arm;
         other_radial_vector *= other_arm;
-        //
+
         array_1d<double, 3> vel = ZeroVector(3);
         array_1d<double, 3> other_vel = ZeroVector(3);
         
@@ -653,7 +636,6 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         DeltDisp[0] += (new_axes1[0] - e1[0] - new_axes2[0] + e2[0]);
         DeltDisp[1] += (new_axes1[1] - e1[1] - new_axes2[1] + e2[1]);
         DeltDisp[2] += (new_axes1[2] - e1[2] - new_axes2[2] + e2[2]);
-
 }
 
 void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
