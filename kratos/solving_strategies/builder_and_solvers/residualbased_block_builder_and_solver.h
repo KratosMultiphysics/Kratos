@@ -945,16 +945,16 @@ public:
         } 
 
         #pragma omp parallel for
-        for(int k = 0; k < (int)system_size; ++k)
+        for (unsigned int k = 0; k < (unsigned int)system_size; ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
             double k_factor = scaling_factors[k];
-            if(k_factor == 0)
+            if (k_factor == 0)
             {
                 // zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if( Acol_indices[j] != k )
+                    if (Acol_indices[j] != k )
                         Avalues[j] = 0.0;
 
                 // zero out the RHS
