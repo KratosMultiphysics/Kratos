@@ -8,13 +8,22 @@
 #ifndef _GEOMETRYFUNCTIONS_H
 #define	_GEOMETRYFUNCTIONS_H
 
-
 #include <cmath>
 #include "utilities/openmp_utils.h"
 
 namespace Kratos {
     
     namespace GeometryFunctions {
+    
+    static inline void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
+                                                                    const double ang, array_1d<double, 3>& new_vec) {
+        double cang = cos(ang);
+        double sang = sin(ang);
+            
+        new_vec[0] = axis[0] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[0] * cang + (-axis[2] * old_vec[1] + axis[1] * old_vec[2]) * sang;
+        new_vec[1] = axis[1] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[1] * cang + ( axis[2] * old_vec[0] - axis[0] * old_vec[2]) * sang;
+        new_vec[2] = axis[2] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[2] * cang + (-axis[1] * old_vec[0] + axis[0] * old_vec[1]) * sang;
+    }
         
     static inline void TranslateGridOfNodes(const double time, const double velocity_start_time, const double velocity_stop_time, array_1d<double, 3>& center_position,
                                             const array_1d<double, 3> initial_center, array_1d<double, 3>& previous_displ, array_1d<double, 3>& linear_velocity_changed,
@@ -79,7 +88,7 @@ namespace Kratos {
             Vector[2] = Vector[2] * inv_distance;
     }
 
-    static inline void normalize( array_1d<double,3>& Vector, double& distance)
+    static inline void normalize(array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
@@ -89,7 +98,7 @@ namespace Kratos {
             Vector[2] = Vector[2] * inv_distance;
     }
 
-    static inline void normalize( double Vector[3], double& distance)
+    static inline void normalize(double Vector[3], double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
@@ -99,7 +108,7 @@ namespace Kratos {
             Vector[2] = Vector[2] * inv_distance;
     }
 
-    static inline void normalize( array_1d<double,3>& Vector)
+    static inline void normalize(array_1d<double,3>& Vector)
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
@@ -109,22 +118,22 @@ namespace Kratos {
             Vector[2] = Vector[2] * inv_distance;
     }
 
-    static inline void module( const array_1d<double,3>& Vector, double& distance)
+    static inline void module(const array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
     }
 
-     static inline double module( const double Vector[3])
+    static inline double module(const double Vector[3])
     {
             return sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
     }
 
-     static inline void module( const double Vector[3], double& distance)
+    static inline void module(const double Vector[3], double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
     }
 
-    static inline double module( const array_1d<double,3>& Vector)
+    static inline double module(const array_1d<double,3>& Vector)
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             return distance;
@@ -139,6 +148,7 @@ namespace Kratos {
             }
         }
     }
+    
     static inline void VectorGlobal2Local(const double LocalCoordSystem[3][3], const array_1d<double, 3>& GlobalVector, array_1d<double, 3>& LocalVector)
     {
         for (int i=0; i<3; i++) {
@@ -189,7 +199,6 @@ namespace Kratos {
         }
     }
 
-
     static inline double DotProduct(double Vector1[3], double Vector2[3])
     {
         return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
@@ -235,7 +244,7 @@ namespace Kratos {
         ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
-    static inline void CrossProduct(const array_1d<double,3>& u, const array_1d<double,3>& v,  double ReturnVector[3])
+    static inline void CrossProduct(const array_1d<double,3>& u, const array_1d<double,3>& v, double ReturnVector[3])
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
         ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
@@ -245,17 +254,11 @@ namespace Kratos {
     static inline void RotateRightHandedBasisAroundAxis(const array_1d<double, 3>& e1,  const array_1d<double, 3>& e2,  const array_1d<double, 3>& axis,
                                                         const double ang, array_1d<double, 3>& new_axes1, array_1d<double, 3>& new_axes2,
                                                         array_1d<double, 3>& new_axes3) {
-        double cang = cos(ang);
-        double sang = sin(ang);
-            
-        new_axes1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (- axis[2] * e1[1] + axis[1] * e1[2]) * sang;
-        new_axes1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang +   (axis[2] * e1[0] - axis[0] * e1[2]) * sang;
-        new_axes1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (- axis[1] * e1[0] + axis[0] * e1[1]) * sang;
-          
-        new_axes2[0] = axis[0] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[0] * cang + (- axis[2] * e2[1] + axis[1] * e2[2]) * sang;
-        new_axes2[1] = axis[1] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[1] * cang +   (axis[2] * e2[0] - axis[0] * e2[2]) * sang;
-        new_axes2[2] = axis[2] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[2] * cang + (- axis[1] * e2[0] + axis[0] * e2[1]) * sang;  
-            
+        
+        RotateAVectorAGivenAngleAroundAUnitaryVector(e1, axis, ang, new_axes1);
+        
+        RotateAVectorAGivenAngleAroundAUnitaryVector(e2, axis, ang, new_axes2);
+ 
         CrossProduct(new_axes1, new_axes2, new_axes3);
     }
     
@@ -346,14 +349,8 @@ namespace Kratos {
             #pragma omp parallel for
             for (int k = 0; k < number_of_threads; k++) {
 
-                array_1d<double, 3> local_coordinates;
-                local_coordinates[0] = 0.0;
-                local_coordinates[1] = 0.0;
-                local_coordinates[2] = 0.0;
-                array_1d<double, 3> relative_position;
-                relative_position[0] = 0.0;
-                relative_position[1] = 0.0;
-                relative_position[2] = 0.0;
+                array_1d<double, 3> local_coordinates = ZeroVector(3);
+                array_1d<double, 3> relative_position = ZeroVector(3);
 
                 ModelPart::NodesContainerType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
                 ModelPart::NodesContainerType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
@@ -501,7 +498,7 @@ namespace Kratos {
     static inline void Compute3DimElementFaceLocalSystem(array_1d <double,3> FaceCoord1, array_1d <double,3> FaceCoord2, array_1d <double,3> FaceCoord3, double ParticleCoord[3],
                                                           double LocalCoordSystem[3][3], double& normal_flag)
     {
-        //NOTE: this function is designed in a way that the normal always points the side where the centre of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
+        //NOTE: this function is designed in a way that the normal always points the side where the center of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
         //the function returns a flag with the same value as the dotproduct of the normal of the triangle and the normal pointing to the particle.
 
         double Vector1[3] = {0.0};
@@ -532,23 +529,23 @@ namespace Kratos {
 
         if (DotProduct(Vector3, Normal) > 0.0)
         {
-        for (int ia = 0; ia < 3; ia++)
-        {
-              normal_flag             = 1.0;
-              LocalCoordSystem[0][ia] = Vector1[ia];
-              LocalCoordSystem[1][ia] = Vector2[ia];
-              LocalCoordSystem[2][ia] = Normal [ia];
-        }
+            for (int ia = 0; ia < 3; ia++)
+            {
+                normal_flag             = 1.0;
+                LocalCoordSystem[0][ia] = Vector1[ia];
+                LocalCoordSystem[1][ia] = Vector2[ia];
+                LocalCoordSystem[2][ia] = Normal [ia];
+           }
         }
         else
         {
-        for (int ia = 0; ia < 3; ia++)
-        {
-              normal_flag             = -1.0;
-              LocalCoordSystem[0][ia] = -Vector1[ia];
-              LocalCoordSystem[1][ia] = -Vector2[ia];
-              LocalCoordSystem[2][ia] = -Normal [ia];
-        }
+            for (int ia = 0; ia < 3; ia++)
+            {
+                normal_flag             = -1.0;
+                LocalCoordSystem[0][ia] = -Vector1[ia];
+                LocalCoordSystem[1][ia] = -Vector2[ia];
+                LocalCoordSystem[2][ia] = -Normal [ia];
+            }
         }
 
     }
@@ -558,7 +555,7 @@ namespace Kratos {
                                                          double LocalCoordSystem[3][3], double& normal_flag){
          
         //NOTE: this function is designed in a way that the normal always points the side where the center of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
-                //the function returns a flag with the same value as the dot product of the normal of the triangle and the normal pointing to the particle.
+        //the function returns a flag with the same value as the dot product of the normal of the triangle and the normal pointing to the particle.
          
         double Vector1[3] = {0.0};
         double Vector2[3] = {0.0};
@@ -584,8 +581,6 @@ namespace Kratos {
         Vector3[1] = ParticleCoord[1] - FaceCoord1[1];
         Vector3[2] = ParticleCoord[2] - FaceCoord1[2];
         normalize(Vector3);
-
-
 
         if (DotProduct(Vector3, Normal) > 0.0) 
         {
@@ -616,32 +611,22 @@ namespace Kratos {
 
     static inline void RotatePointAboutArbitraryLine(array_1d<double,3>& TargetPoint, const array_1d<double,3>& CentrePoint, const array_1d<double,3>& LineVector, const double RotationAngle)
     {
-
         const double O = RotationAngle;
-
         double x = TargetPoint[0], a = CentrePoint[0], u = LineVector[0];
         double y = TargetPoint[1], b = CentrePoint[1], v = LineVector[1];
         double z = TargetPoint[2], c = CentrePoint[2], w = LineVector[2];
-
         double L = u*u+v*v+w*w;
 
         if (L==0)
         {
-
            // KRATOS_WATCH("WARNING! Null vector for the rotation!")
-
         }
-
         else
-
         {
-
         TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))*(1/L);
         TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))*(1/L);
         TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))*(1/L);
-
         }
-
     }
 
     /////////****Quaternions****///////////////
@@ -691,8 +676,6 @@ namespace Kratos {
         EulerAngles[2] = acos(return3);
 
     }*/
-
-
    
     static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element, double& area){
 
@@ -715,10 +698,9 @@ namespace Kratos {
 
     }//InsideOutside
     
-    
-        static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element){
+    static inline bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element) {
 
-      //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
+        //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         array_1d<double, 3> cp1;
         array_1d<double, 3> b_a; 
         array_1d<double, 3> p1_a;
@@ -737,9 +719,7 @@ namespace Kratos {
 
     }//InsideOutside
     
-
-
-    static inline void WeightsCalculation(std::vector<double> Area, std::vector<double> &Weight)
+    static inline void WeightsCalculation(std::vector<double> Area, std::vector<double>& Weight)
     {
         unsigned int facet_size = Area.size();
         if (facet_size == 3)
@@ -760,302 +740,281 @@ namespace Kratos {
         }
         else{KRATOS_WATCH("WEIGHTS FOR N-SIZE POLYGONAL FE TO BE IMPLEMENTED")}
     }//WeightsCalculation
-
     
     static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
     {
+        int facet_size = Coord.size();
+        //Calculate Normal
       
-      int facet_size = Coord.size();
-      //Calculate Normal
+        array_1d <double,3> A;
+        array_1d <double,3> B;
+        array_1d <double,3> N;
+        array_1d <double,3> PC;
       
-      array_1d <double,3> A;
-      array_1d <double,3> B;
-      array_1d <double,3> N;
-      array_1d <double,3> PC;
-      
-      for(unsigned int i = 0; i<3; i++)
-      {
-        A[i] = Coord[2][i]-Coord[1][i];
-        B[i] = Coord[0][i]-Coord[1][i];
-        PC[i] = Particle_Coord[i]-Coord[1][i];
-      }
-  
-      N[0] = A[1]*B[2] - A[2]*B[1];
-      N[1] = A[2]*B[0] - A[0]*B[2];
-      N[2] = A[0]*B[1] - A[1]*B[0];
-      //normalize
-      
-      double normal_flag = 1.0;
-      if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
-      {
-        normal_flag = -1.0;
-        N = -N;
-      }
-      normalize(N); 
-     
-      //Calculate distance:
-      
-      DistPToB = 0.0;
-      
-      for(unsigned int i = 0; i<3; i++)
-      {
-        DistPToB += N[i]*PC[i];
-      }
-
-      if(DistPToB < rad )
-      {
-        
-        array_1d <double,3> IntersectionCoord;
-        
         for(unsigned int i = 0; i<3; i++)
         {
-          IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+            A[i] = Coord[2][i]-Coord[1][i];
+            B[i] = Coord[0][i]-Coord[1][i];
+            PC[i] = Particle_Coord[i]-Coord[1][i];
         }
-        
-        for (int i = 0; i<facet_size; i++)
-        {
-          double this_area = 0.0;
-          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false )
-          {
-
-            current_edge_index = i;
-            return false;
-
-          }
-          
-        }
-        
-        return true;
-        
-      }//if DistPToB < rad
+  
+        N[0] = A[1]*B[2] - A[2]*B[1];
+        N[1] = A[2]*B[0] - A[0]*B[2];
+        N[2] = A[0]*B[1] - A[1]*B[0];
+        //normalize
       
-      return false;
+        double normal_flag = 1.0;
+        
+        if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
+        {
+            normal_flag = -1.0;
+            N = -N;
+        }
+        normalize(N); 
+     
+        //Calculate distance:
+      
+        DistPToB = 0.0;
+      
+        for (unsigned int i = 0; i<3; i++)
+        {
+            DistPToB += N[i]*PC[i];
+        }
+
+        if (DistPToB < rad )
+        {
+            array_1d <double, 3> IntersectionCoord;
+        
+            for (unsigned int i = 0; i<3; i++)
+            {
+                IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+            }
+        
+            for (int i = 0; i<facet_size; i++)
+            {
+                double this_area = 0.0;
+                if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false)
+                {
+                    current_edge_index = i;
+                    return false;
+
+                }
+            }
+            return true;
+        }//if DistPToB < rad
+      
+        return false;
     }//FastFacetCheck
         
     static inline bool FacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad,
-                                  double LocalCoordSystem[3][3], double &DistPToB, std::vector<double> &Weight, unsigned int &current_edge_index) 
+                                  double LocalCoordSystem[3][3], double& DistPToB, std::vector<double>& Weight, unsigned int& current_edge_index) 
     {
+        int facet_size = Coord.size();
+        //Calculate Normal
       
-      int facet_size = Coord.size();
-      //Calculate Normal
+        array_1d <double,3> A;
+        array_1d <double,3> B;
+        array_1d <double,3> N;
+        array_1d <double,3> PC;
       
-      array_1d <double,3> A;
-      array_1d <double,3> B;
-      array_1d <double,3> N;
-      array_1d <double,3> PC;
-      
-      for(unsigned int i = 0; i<3; i++)
-      {
-        A[i] = Coord[2][i]-Coord[1][i];
-        B[i] = Coord[0][i]-Coord[1][i];
-        PC[i] = Particle_Coord[i]-Coord[1][i];
-      }
-  
-      N[0] = A[1]*B[2] - A[2]*B[1];
-      N[1] = A[2]*B[0] - A[0]*B[2];
-      N[2] = A[0]*B[1] - A[1]*B[0];
-      //normalize
-      
-      double normal_flag = 1.0;
-      if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
-      {
-        normal_flag = - 1.0;
-        N = -N;
-      }
-      normalize(N); 
-     
-      //Calculate distance:
-      
-      DistPToB = 0.0;
-      
-      for(unsigned int i = 0; i<3; i++)
-      {
-        DistPToB += N[i]*PC[i];
-      }
-
-      if(DistPToB < rad )
-      {
-
-        array_1d <double,3> IntersectionCoord;
-        
-        for(unsigned int i = 0; i<3; i++)
+        for (unsigned int i = 0; i<3; i++)
         {
-          IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+            A[i] = Coord[2][i]-Coord[1][i];
+            B[i] = Coord[0][i]-Coord[1][i];
+            PC[i] = Particle_Coord[i]-Coord[1][i];
         }
-        
-        std::vector<double> Area;
-        Area.resize(facet_size);
-        
-        for (int i = 0; i<facet_size; i++)
-        {
-          double this_area = 0.0;
-          if( InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false )
-          {
-
-            current_edge_index = i;
-            return false;
-
-          }
-            
-          else
-          {
-            Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
-          }
-
-        }//for every vertex
   
-        double auxiliar_unit_vector[3];
-        CrossProduct( N,A,auxiliar_unit_vector );
-        normalize( auxiliar_unit_vector );
-        normalize( A );
+        N[0] = A[1]*B[2] - A[2]*B[1];
+        N[1] = A[2]*B[0] - A[0]*B[2];
+        N[2] = A[0]*B[1] - A[1]*B[0];
+        //normalize
+      
+        double normal_flag = 1.0;
+        if (DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
+        {
+            normal_flag = - 1.0;
+            N = -N;
+        }
+        normalize(N); 
+     
+        //Calculate distance:
+      
+        DistPToB = 0.0;
+      
+        for (unsigned int i = 0; i<3; i++)
+        {
+            DistPToB += N[i]*PC[i];
+        }
+
+        if (DistPToB < rad )
+        {
+            array_1d <double,3> IntersectionCoord;
+        
+            for (unsigned int i = 0; i<3; i++)
+            {
+                IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+            }
+        
+            std::vector<double> Area;
+            Area.resize(facet_size);
+        
+            for (int i = 0; i<facet_size; i++)
+            {
+                double this_area = 0.0;
+                if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false)
+                {
+                    current_edge_index = i;
+                    return false;
+                }
+                else
+                {
+                    Area[i] = this_area; //the area adjacent to vertex[ID] is assigned as Area[ID] so further treatment shall be done for the Weight calculation
+                }
+
+            }//for every vertex
+  
+            double auxiliar_unit_vector[3];
+            CrossProduct( N,A,auxiliar_unit_vector );
+            normalize( auxiliar_unit_vector );
+            normalize( A );
+            for (unsigned int j = 0; j<3; j++)
+            {
+                LocalCoordSystem[0][j] = A[j];
+                LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
+                LocalCoordSystem[2][j] = N[j];
+            }
+                        
+            WeightsCalculation(Area,Weight);
+            return true;
+
+        }//if DistPToB < rad
+       
+        return false;
+
+    } //FacetCheck   
+    
+    static inline bool FastEdgeVertexCheck(array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius)
+    {
+        double IntersectionCoordEdge[3];
+        double normal_unit_vector[3];
+        double edge_unit_vector[3];
+        double module_edge_vector = 0.0;
+        double particle_vector1[3];
+        double particle_vector2[3];
+
         for (unsigned int j = 0; j<3; j++)
         {
-          LocalCoordSystem[0][j] = A[j];
-          LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
-          LocalCoordSystem[2][j] = N[j];
+            edge_unit_vector[j] = Coord2[j] - Coord1[j];
+            particle_vector1[j]  = Particle_Coord[j] - Coord1[j];
+            particle_vector2[j]  = Particle_Coord[j] - Coord2[j];
         }
-                        
-        WeightsCalculation(Area,Weight);
-        return true;
 
-      }//if DistPToB < rad
-       
-      return false;
+        normalize( edge_unit_vector, module_edge_vector);
+        double projection_on_edge = DotProduct(particle_vector1,edge_unit_vector);
 
-    } //FacetCheck
-    
-    
-    static inline bool FastEdgeVertexCheck( array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius )
-    {
+        double eta = projection_on_edge/module_edge_vector;
       
-      double IntersectionCoordEdge[3];
-      double normal_unit_vector[3];
-      double edge_unit_vector[3];
-      double module_edge_vector = 0.0;
-      double particle_vector1[3];
-      double particle_vector2[3];
+        if ((eta>=0.0) && (eta<=1.0)) //can only be edge, no vertex
+        {
+            for (unsigned int j = 0; j<3; j++)
+            {
+                IntersectionCoordEdge[j] = Coord1[j] + projection_on_edge*edge_unit_vector[j];
+                normal_unit_vector[j]   = Particle_Coord[j] - IntersectionCoordEdge[j];
+            }
 
-      for (unsigned int j = 0; j<3; j++)
-      {
-          edge_unit_vector[j] = Coord2[j] - Coord1[j];
-          particle_vector1[j]  = Particle_Coord[j] - Coord1[j];
-          particle_vector2[j]  = Particle_Coord[j] - Coord2[j];
-      }
+            double DistParticleToEdge;
+            normalize( normal_unit_vector, DistParticleToEdge);
 
-      normalize( edge_unit_vector, module_edge_vector);
-      double projection_on_edge = DotProduct(particle_vector1,edge_unit_vector);
-
-      double eta = projection_on_edge/module_edge_vector;
-      
-      if( (eta>=0.0) && (eta<=1.0) ) //can only be edge, no vertex
-      {
+            if (DistParticleToEdge < Radius)
+            {
+                return true;   
+            }
+        }
+ 
+        if (eta < 0.0)  //1rst Vertex
+        {
+            double dist_to_vertex_sq = 0.0;
+            double Rad_sq = Radius*Radius;
         
-          for (unsigned int j = 0; j<3; j++)
-          {
+            for (unsigned int j = 0; j<3; j++)
+            {
+                dist_to_vertex_sq +=particle_vector1[j]*particle_vector1[j];
+            }
+      
+            if (dist_to_vertex_sq < Rad_sq)
+            {
+                return true;
+            } 
+        }
+      
+        if (eta > 1.0)  //2n vertex
+        {
+            double dist_to_vertex_sq = 0.0;
+            double Rad_sq = Radius*Radius;
+            for (unsigned int j = 0; j<3; j++)
+            {
+                dist_to_vertex_sq +=particle_vector2[j]*particle_vector2[j];
+            }
+        
+            if (dist_to_vertex_sq < Rad_sq)
+            {
+                return true;
+            } 
+        }
+      
+        return false;
+      
+    }//FastEdgeVertexCheck;     
+    
+    static inline bool EdgeCheck(array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius,
+                                  double LocalCoordSystem[3][3], double& DistParticleToEdge, double& eta) 
+    {
+        double IntersectionCoordEdge[3];
+        double normal_unit_vector[3];
+        double edge_unit_vector[3];
+        double module_edge_vector = 0.0;
+        double particle_vector[3];
 
+        for (unsigned int j = 0; j<3; j++)
+        {
+            edge_unit_vector[j] = Coord2[j] - Coord1[j];
+            particle_vector[j]  = Particle_Coord[j] - Coord1[j];
+        }
+
+        normalize(edge_unit_vector, module_edge_vector);
+        double projection_on_edge = DotProduct(particle_vector,edge_unit_vector);
+
+        for (unsigned int j = 0; j<3; j++)
+        {
             IntersectionCoordEdge[j] = Coord1[j] + projection_on_edge*edge_unit_vector[j];
             normal_unit_vector[j]   = Particle_Coord[j] - IntersectionCoordEdge[j];
-          }
-
-          double DistParticleToEdge;
-          normalize( normal_unit_vector, DistParticleToEdge);
-
-          if ( DistParticleToEdge < Radius)
-          {
-            return true;   
-          }
-      }
- 
-      if( eta < 0.0)  //1rst Vertex
-      {
-        double dist_to_vertex_sq = 0.0;
-        double Rad_sq = Radius*Radius;
-        
-        for (unsigned int j = 0; j<3; j++)
-        {
-          dist_to_vertex_sq +=particle_vector1[j]*particle_vector1[j];
-          
-        }
-      
-        if(dist_to_vertex_sq < Rad_sq)
-        {
-          return true;
-          
-        } 
-      }
-      
-      if( eta > 1.0)  //2n vertex
-      {
-        double dist_to_vertex_sq = 0.0;
-        double Rad_sq = Radius*Radius;
-        for (unsigned int j = 0; j<3; j++)
-        {
-          dist_to_vertex_sq +=particle_vector2[j]*particle_vector2[j];
-          
-        }
-        
-        if(dist_to_vertex_sq < Rad_sq)
-        {
-          return true;
-        } 
-      }
-      
-      return false;
-      
-    }//FastEdgeVertexCheck;
-      
-    
-    static inline bool EdgeCheck( array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius,
-                                  double LocalCoordSystem[3][3], double &DistParticleToEdge, double& eta) 
-    {
-      double IntersectionCoordEdge[3];
-      double normal_unit_vector[3];
-      double edge_unit_vector[3];
-      double module_edge_vector = 0.0;
-      double particle_vector[3];
-
-      for (unsigned int j = 0; j<3; j++)
-      {
-          edge_unit_vector[j] = Coord2[j] - Coord1[j];
-          particle_vector[j]  = Particle_Coord[j] - Coord1[j];
-      }
-
-      normalize( edge_unit_vector, module_edge_vector);
-      double projection_on_edge = DotProduct(particle_vector,edge_unit_vector);
-
-      for (unsigned int j = 0; j<3; j++)
-      {
-
-        IntersectionCoordEdge[j] = Coord1[j] + projection_on_edge*edge_unit_vector[j];
-        normal_unit_vector[j]   = Particle_Coord[j] - IntersectionCoordEdge[j];
-      }
-
-      normalize( normal_unit_vector, DistParticleToEdge);
-
-      if ( DistParticleToEdge < Radius)
-      {
-
-        eta = projection_on_edge/module_edge_vector;
-
-        if( (eta>=0.0) && (eta<=1.0) )
-        {
-
-          double dummy_length = 0.0;
-          double auxiliar_unit_vector[3];
-          CrossProduct(normal_unit_vector,edge_unit_vector,auxiliar_unit_vector);
-          normalize( auxiliar_unit_vector, dummy_length);
-          for (unsigned int j = 0; j<3; j++)
-          {
-            LocalCoordSystem[0][j] = edge_unit_vector[j];
-            LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
-            LocalCoordSystem[2][j] = normal_unit_vector[j];
-          }
-          return true;
         }
 
-      } //if distance to edge < radius
+        normalize( normal_unit_vector, DistParticleToEdge);
 
-      return false;
+        if (DistParticleToEdge < Radius)
+        {
+            eta = projection_on_edge/module_edge_vector;
+
+            if ((eta>=0.0) && (eta<=1.0))
+            {
+                double dummy_length = 0.0;
+                double auxiliar_unit_vector[3];
+                CrossProduct(normal_unit_vector,edge_unit_vector,auxiliar_unit_vector);
+                normalize(auxiliar_unit_vector, dummy_length);
+            
+                for (unsigned int j = 0; j<3; j++)
+                {
+                    LocalCoordSystem[0][j] = edge_unit_vector[j];
+                    LocalCoordSystem[1][j] = auxiliar_unit_vector[j];
+                    LocalCoordSystem[2][j] = normal_unit_vector[j];
+                }
+                
+                return true;
+            }
+        } //if distance to edge < radius
+
+        return false;
 
     }//EdgeCheck
 
@@ -1076,12 +1035,10 @@ namespace Kratos {
         }
         return false;
     }//VertexCheck
-
-    
   
-     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-     ///////////////******The four Functions BELOW are used to calculate the weight coefficient for quadrilateral*******///////////
-     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////******The four Functions BELOW are used to calculate the weight coefficient for quadrilateral*******///////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     static inline void Coord_transform(double origin[3],double coordsystem[3][3],double Coord[3],double TransCoord[3])
     {
       	TransCoord[0]=0.0;
@@ -1094,12 +1051,12 @@ namespace Kratos {
       	TransCoord[0]=DotProduct(coordsystem[0],vector);
       	TransCoord[1]=DotProduct(coordsystem[1],vector);
       	TransCoord[2]=DotProduct(coordsystem[2],vector);
-
     }
+    
     static inline void N44(double xp,double yp,double xy[4][2],double& N1,double& N2,double& N3,double& N4)
     {
     	double xc=(xy[0][0]+xy[1][0]+xy[2][0]+xy[3][0])/4.0;
-            double yc=(xy[0][1]+xy[1][1]+xy[2][1]+xy[3][1])/4.0;
+        double yc=(xy[0][1]+xy[1][1]+xy[2][1]+xy[3][1])/4.0;
 
     	double elelength_x=2.0*fabs(xy[0][0]-xc);
     	double elelength_y=2.0*fabs(xy[0][1]-yc);
@@ -1114,17 +1071,17 @@ namespace Kratos {
     }
 
     //Cfeng: irregular quadrilateral transfer to regular quadrilateral
-    static inline void gl_to_iso(double x0,double y0, double xy[4][2],double &x_exisp,double &y_etasp)
+    static inline void gl_to_iso(double x0, double y0, double xy[4][2], double& x_exisp, double& y_etasp)
     {
       	double exisp=0.0;
       	double etasp=0.0;
-      	double  tolerance=1.0e-8;
-      	double  x,y,x1,x2,x3,x4,y1,y2,y3,y4,a1,a2,a3,a4,b1,b2,b3,b4,s1,t1,d1,g1,g2,g0;
+      	double tolerance=1.0e-8;
+      	double x,y,x1,x2,x3,x4,y1,y2,y3,y4,a1,a2,a3,a4,b1,b2,b3,b4,s1,t1,d1,g1,g2,g0;
       	x1 = xy[0][0];
       	x2 = xy[1][0];
       	x3 = xy[2][0];
       	x4 = xy[3][0];
-              y1 = xy[0][1];
+        y1 = xy[0][1];
       	y2 = xy[1][1];
       	y3 = xy[2][1];
       	y4 = xy[3][1];
@@ -1140,41 +1097,41 @@ namespace Kratos {
       	x = x0 - a4;
       	y = y0 - b4;
       	s1 = a2*b3 - a3*b2;
-              t1 = b2*x - a2*y + a1*b3 - a3*b1;
-              d1 = b1*x - a1*y;
+        t1 = b2*x - a2*y + a1*b3 - a3*b1;
+        d1 = b1*x - a1*y;
 
-              if (fabs(s1) < tolerance)
+        if (fabs(s1) < tolerance)
       	{
-                  etasp = -d1/t1;
-                  exisp = (x-a3*etasp) / (a1+a2*etasp);
+            etasp = -d1/t1;
+            exisp = (x-a3*etasp) / (a1+a2*etasp);
       	}
       	else
       	{
-                  g1 = (-t1 + sqrt(t1*t1-4*s1*d1)) / (2*s1);
-                  g2 = (-t1 - sqrt(t1*t1-4*s1*d1)) / (2*s1);
-                  if (fabs(g1) < 1.0+tolerance)
-                  {
-                      g0 = (x-a3*g1) / (a1+a2*g1);
-                      if (fabs(g0) < 1.0+tolerance)
-                      {
-                          etasp = g1;
-                          exisp = g0;
-                      }
-                  }
-                  if(fabs(g2) < 1.0+tolerance)
-                  {
-                      g0 = (x-a3*g2) / (a1+a2*g2);
-                      if(fabs(g0) < 1.0+tolerance)
-                      {
-                         etasp = g2;
-                         exisp = g0;
-                      }
-                  }
+            g1 = (-t1 + sqrt(t1*t1-4*s1*d1)) / (2*s1);
+            g2 = (-t1 - sqrt(t1*t1-4*s1*d1)) / (2*s1);
+            if (fabs(g1) < 1.0+tolerance)
+            {
+                g0 = (x-a3*g1) / (a1+a2*g1);
+                if (fabs(g0) < 1.0+tolerance)
+                {
+                    etasp = g1;
+                    exisp = g0;
+                }
+            }
+            if(fabs(g2) < 1.0+tolerance)
+            {
+                g0 = (x-a3*g2) / (a1+a2*g2);
+                if(fabs(g0) < 1.0+tolerance)
+                {
+                    etasp = g2;
+                    exisp = g0;
+                }
+            }
 
       	}
       	x_exisp=exisp;
       	y_etasp=etasp;
-          }
+    }
 
     /*static void CalQuadWeightCoefficient(double Coord[4][3], double LocalCoordSystem[3][3], double IntersectionCoord[3], double Weight[4])
     {
@@ -1253,119 +1210,119 @@ namespace Kratos {
     }*/
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-     ///////////////******The four Functions ABOVE are used to calculate the weight coefficient for quadrilateral*******///////////
-     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////******The four Functions ABOVE are used to calculate the weight coefficient for quadrilateral*******///////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    static inline void GetRotationMatrix(const array_1d<double, 3>& EulerAngles, double rotation_matrix[3][3]) {
 
-     static inline void GetRotationMatrix(const array_1d<double, 3 > & EulerAngles, double rotation_matrix[3][3]){
+        double cosA=cos(EulerAngles[0]);
+        double sinA=sin(EulerAngles[0]);
+        double cosB=cos(EulerAngles[1]);
+        double sinB=sin(EulerAngles[1]);
+        double cosC=cos(EulerAngles[2]);
+        double sinC=sin(EulerAngles[2]);
 
-            double cosA=cos(EulerAngles[0]);
-            double sinA=sin(EulerAngles[0]);
-            double cosB=cos(EulerAngles[1]);
-            double sinB=sin(EulerAngles[1]);
-            double cosC=cos(EulerAngles[2]);
-            double sinC=sin(EulerAngles[2]);
+        rotation_matrix[0][0] = cosC*cosA - cosB*sinA*sinC;
+        rotation_matrix[0][1] = -sinC*cosA - cosB*sinA*cosC;
+        rotation_matrix[0][2] = sinB*sinA;
+        rotation_matrix[1][0] = cosC*sinA + cosB*cosA*sinC;
+        rotation_matrix[1][1] = -sinC*sinA + cosB*cosA*cosC;
+        rotation_matrix[1][2] = -sinB*cosA;
+        rotation_matrix[2][0] = sinC*sinB;
+        rotation_matrix[2][1] = cosC*sinB;
+        rotation_matrix[2][2] = cosB;
 
-            rotation_matrix[0][0] = cosC*cosA - cosB*sinA*sinC;
-            rotation_matrix[0][1] = -sinC*cosA - cosB*sinA*cosC;
-            rotation_matrix[0][2] = sinB*sinA;
-            rotation_matrix[1][0] = cosC*sinA + cosB*cosA*sinC;
-            rotation_matrix[1][1] = -sinC*sinA + cosB*cosA*cosC;
-            rotation_matrix[1][2] = -sinB*cosA;
-            rotation_matrix[2][0] = sinC*sinB;
-            rotation_matrix[2][1] = cosC*sinB;
-            rotation_matrix[2][2] = cosB;
-
-            return;
-      }
-
-      static inline void GetEulerAngles(const double rotation_matrix[3][3], array_1d<double, 3 > & EulerAngles){
-
-            if (rotation_matrix[2][2] < 1.0) {
-                if (rotation_matrix[2][2] > -1.0) {
-                    EulerAngles[0] = atan2(rotation_matrix[0][2], -rotation_matrix[1][2]);
-                    EulerAngles[1] = acos(rotation_matrix[2][2]);
-                    EulerAngles[2] = atan2(rotation_matrix[2][0], rotation_matrix[2][1]);
-                } else // r22 = -1
-                {
-                    // Not a unique solution: thetaZ1 - thetaZ0 = atan2(-r01,r00)
-                    EulerAngles[0] = -atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
-                    EulerAngles[1] = KRATOS_M_PI;
-                    EulerAngles[2] = 0;
-                }
-            } else // r22 = +1
-            {
-                // Not a unique solution: thetaZ1 + thetaZ0 = atan2(-r01,r00)
-                EulerAngles[0] = atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
-                EulerAngles[1] = 0;
-                EulerAngles[2] = 0;
-            }
-
-            return;
-      }
-  
-
-     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-     ///////////////****************************TRIANGLE - SPHERE INTERSECTION AREA CALCULATION**************************///////////
-     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      static inline void  TriAngleArea(double Coord1[3],double Coord2[3],double Coord3[3],double &area)
-    {
-      int k;
-      double Vector1[3],Vector2[3],Vector0[3];
-      for(k = 0;k < 3; k++)
-      {
-                Vector1[k] = Coord3[k] - Coord1[k];
-          Vector2[k] = Coord2[k] - Coord1[k];
-      }
-
-      CrossProduct(Vector1, Vector2, Vector0);
-      area= sqrt(Vector0[0] * Vector0[0] + Vector0[1] * Vector0[1] + Vector0[2] * Vector0[2]) / 2.0;
+        return;
     }
 
-     //TriAngle Weight, coord1,coord2,coord3,testcoord,weight
-     static inline void TriAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double JudgeCoord[3], double Weight[3])
-     {
-         double area[3], s;
-         TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
-         TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
-         TriAngleArea(Coord3, Coord1, JudgeCoord, area[2]);
+    static inline void GetEulerAngles(const double rotation_matrix[3][3], array_1d<double, 3 > & EulerAngles)
+    {
+        if (rotation_matrix[2][2] < 1.0)
+        {
+            if (rotation_matrix[2][2] > -1.0) {
+                EulerAngles[0] = atan2(rotation_matrix[0][2], -rotation_matrix[1][2]);
+                EulerAngles[1] = acos(rotation_matrix[2][2]);
+                EulerAngles[2] = atan2(rotation_matrix[2][0], rotation_matrix[2][1]);
+            }
+            else // r22 = -1
+            {
+                // Not a unique solution: thetaZ1 - thetaZ0 = atan2(-r01,r00)
+                EulerAngles[0] = -atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
+                EulerAngles[1] = KRATOS_M_PI;
+                EulerAngles[2] = 0;
+            }
+        }
+        else // r22 = +1
+        {
+            // Not a unique solution: thetaZ1 + thetaZ0 = atan2(-r01,r00)
+            EulerAngles[0] = atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
+            EulerAngles[1] = 0;
+            EulerAngles[2] = 0;
+        }
 
-         TriAngleArea(Coord1, Coord2, Coord3, s);
-         /////s = area[0] + area[1] + area[2];
+        return;
+    }
 
-         Weight[0] = area[1] / s;
-         Weight[1] = area[2] / s;
-         Weight[2] = area[0] / s;
-     }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////****************************TRIANGLE - SPHERE INTERSECTION AREA CALCULATION**************************///////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static inline void TriAngleArea(double Coord1[3], double Coord2[3], double Coord3[3], double& area)
+    {
+        int k;
+        double Vector1[3],Vector2[3],Vector0[3];
+        for (k = 0;k < 3; k++)
+        {
+            Vector1[k] = Coord3[k] - Coord1[k];
+            Vector2[k] = Coord2[k] - Coord1[k];
+        }
+
+        CrossProduct(Vector1, Vector2, Vector0);
+        area = sqrt(Vector0[0] * Vector0[0] + Vector0[1] * Vector0[1] + Vector0[2] * Vector0[2]) / 2.0;
+    }
+
+    //TriAngle Weight, coord1,coord2,coord3,testcoord,weight
+    static inline void TriAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double JudgeCoord[3], double Weight[3])
+    {
+        double area[3], s;
+        TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
+        TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
+        TriAngleArea(Coord3, Coord1, JudgeCoord, area[2]);
+
+        TriAngleArea(Coord1, Coord2, Coord3, s);
+        /////s = area[0] + area[1] + area[2];
+
+        Weight[0] = area[1] / s;
+        Weight[1] = area[2] / s;
+        Weight[2] = area[0] / s;
+    }
      
-     
-     //Quadrilatera Weight, coord1,coord2,coord3,testcoord,weight (Paper Zhang)
-     static inline void QuadAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double Coord4[3], double JudgeCoord[3], double Weight[4])
-     {
-         double area[4], s1, s2, s;
-         TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
-         TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
-         TriAngleArea(Coord3, Coord4, JudgeCoord, area[2]);
-         TriAngleArea(Coord4, Coord1, JudgeCoord, area[3]);
+    //Quadrilatera Weight, coord1,coord2,coord3,testcoord,weight (Paper Zhang)
+    static inline void QuadAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double Coord4[3], double JudgeCoord[3], double Weight[4])
+    {
+        double area[4], s1, s2, s;
+        TriAngleArea(Coord1, Coord2, JudgeCoord, area[0]);
+        TriAngleArea(Coord2, Coord3, JudgeCoord, area[1]);
+        TriAngleArea(Coord3, Coord4, JudgeCoord, area[2]);
+        TriAngleArea(Coord4, Coord1, JudgeCoord, area[3]);
          
-         TriAngleArea(Coord1, Coord2, Coord3, s1);//msimsi
-         TriAngleArea(Coord1, Coord3, Coord4, s2);//msimsi
+        TriAngleArea(Coord1, Coord2, Coord3, s1);//msimsi
+        TriAngleArea(Coord1, Coord3, Coord4, s2);//msimsi
          
-         s = s1 + s2;
+        s = s1 + s2;
 
-         if( fabs(area[0] + area[1] + area[2] + area[3] - s) < 1.0e-15 ) //msimsi
-         {
-             double QuadNormArea = 1 / ((area[0] + area[2]) * (area[1] + area[3]));
+        if (fabs(area[0] + area[1] + area[2] + area[3] - s) < 1.0e-15) //msimsi
+        {
+            double QuadNormArea = 1 / ((area[0] + area[2]) * (area[1] + area[3]));
 
-             Weight[0] = (area[1] * area[2]) * QuadNormArea;
-             Weight[1] = (area[2] * area[3]) * QuadNormArea;
-             Weight[2] = (area[3] * area[0]) * QuadNormArea;
-             Weight[3] = (area[0] * area[1]) * QuadNormArea;
-         }
-     }
+            Weight[0] = (area[1] * area[2]) * QuadNormArea;
+            Weight[1] = (area[2] * area[3]) * QuadNormArea;
+            Weight[2] = (area[3] * area[0]) * QuadNormArea;
+            Weight[3] = (area[0] * area[1]) * QuadNormArea;
+        }
+    }
      
-     static inline void AreaAndCentroidCircularSector(double C[3], double Radius, double P1[3], double P2[3], double Normal[3], double& Area, double CoMSC[3])
+    static inline void AreaAndCentroidCircularSector(double C[3], double Radius, double P1[3], double P2[3], double Normal[3], double& Area, double CoMSC[3])
     {
 
         double a[3]           = {0.0};
@@ -1373,7 +1330,7 @@ namespace Kratos {
         double bisection[3]   = {0.0};
         double norm_a         = 0.0;
 
-        for (unsigned int index = 0;index<3;index++){
+        for (unsigned int index = 0;index<3;index++) {
 
             a[index] = P1[index]-C[index];
             c[index] = P2[index]-P1[index];
@@ -1384,9 +1341,9 @@ namespace Kratos {
         normalize(bisection);
         double dot_product = DotProduct(bisection,a);
 
-        if(dot_product<0.0){
+        if (dot_product<0.0) {
 
-            for (unsigned int index = 0;index<3;index++){
+            for (unsigned int index = 0;index<3;index++) {
 
                 bisection[index] = -bisection[index];
             }
@@ -1394,7 +1351,7 @@ namespace Kratos {
             dot_product = -dot_product;
         }
 
-        module(a,norm_a);
+        module(a, norm_a);
 
         double cos_alpha = dot_product/norm_a;
         double alpha = acos(cos_alpha);
@@ -1402,7 +1359,7 @@ namespace Kratos {
 
         Area = Radius*Radius*alpha;
         double dist = 0.66666666666666*(Radius*sin_alpha/alpha);
-        for (unsigned int index = 0;index<3;index++){
+        for (unsigned int index = 0;index<3;index++) {
             CoMSC[index] = C[index]+dist*bisection[index];
         }
 
@@ -1415,21 +1372,18 @@ namespace Kratos {
         flag = false;
         AreaSC = 0.0;
 
-        CrossProduct(V0V1,Normal,normal_outwards);
+        CrossProduct(V0V1, Normal, normal_outwards);
         normalize(normal_outwards);
 
-        double dist   = DotProduct(normal_outwards,V0CC);
-        double delta_circle  = Radius + dist; //dist can be positive or negative, depending on the side where the circle is
+        double dist = DotProduct(normal_outwards,V0CC);
+        double delta_circle = Radius + dist; //distance can be positive or negative, depending on the side where the circle is
 
-        if ( (delta_circle > tol_Radius) && ( delta_circle - 2*Radius < -tol_Radius ) ){//check for intersection
-
+        if ((delta_circle > tol_Radius) && (delta_circle - 2*Radius < -tol_Radius)) {//check for intersection
 
             flag = true;
-            double b        = sqrt(delta_circle*(2*Radius-delta_circle));
+            double b = sqrt(delta_circle*(2*Radius-delta_circle));
             AreaSC   = 2.0*Radius*Radius*atan(delta_circle/b)-b*(Radius-delta_circle);
-
         }
-
     }//AreaAndCentroidCircularSector1
 
     static inline void AreaAndCentroidCircularSegment(double Centre[3], double Radius, double tol_Radius, double V0[3], double V1[3], double Normal[3], double& AreaSegC, double CoMSegC[3], bool& flag)
@@ -1438,17 +1392,16 @@ namespace Kratos {
         double V0CC[3]            = {0.0};
         double a[3]               = {0.0};
         double normal_outwards[3] = {0.0};
-        double Radius_SQ = 0.0;
+        double Radius_SQ          = 0.0;
         double distance_V0V1      = 0.0;
         double dist_CoM           = 0.0;
-        AreaSegC                  =  0.0 ;
+        AreaSegC                  = 0.0;
         flag = false;
 
-        for (unsigned int index = 0; index<3; index++){
+        for (unsigned int index = 0; index<3; index++) {
 
             V0V1[index]     = V1[index] - V0[index];
             V0CC[index]     = Centre[index] - V0[index];
-
         }
 
         GeometryFunctions::CrossProduct(V0V1,Normal,normal_outwards);
@@ -1456,22 +1409,21 @@ namespace Kratos {
 
         double distV0 =  GeometryFunctions::DotProduct(V0CC,V0V1);
 
-        if( (distV0 > 0.0) && (distV0 < distance_V0V1)){
+        if ((distV0 > 0.0) && (distV0 < distance_V0V1)) {
 
             GeometryFunctions::normalize(normal_outwards);
             double dist_normal   = GeometryFunctions::DotProduct(normal_outwards,V0CC);
-            double delta_circle  = Radius + dist_normal; //dist can be positive or negative, depending on the side where the circle is
+            double delta_circle  = Radius + dist_normal; //distance can be positive or negative, depending on the side where the circle is
 
-            if ( (delta_circle > tol_Radius) && ( delta_circle - 2.0*Radius < -tol_Radius ) ){//check for intersection
+            if ((delta_circle > tol_Radius) && ( delta_circle - 2.0*Radius < -tol_Radius)) {//check for intersection
 
                 Radius_SQ = Radius*Radius;
                 double semi_dist = sqrt(Radius_SQ - dist_normal*dist_normal);
                 flag = true;
 
-                for (unsigned int index = 0;index<3;index++){
+                for (unsigned int index = 0;index<3;index++) {
 
-                    a[index] = V0[index] + (distV0 - semi_dist)*V0V1[index] - Centre[index]; //Vector from Centre to first intersection point
-
+                    a[index] = V0[index] + (distV0 - semi_dist)*V0V1[index] - Centre[index]; //Vector from Center to first intersection point
                 }
 
                 double cos_alpha = GeometryFunctions::DotProduct(a,normal_outwards)/(GeometryFunctions::module(a)*GeometryFunctions::module(normal_outwards));
@@ -1480,11 +1432,12 @@ namespace Kratos {
 
                 AreaSegC = Radius_SQ*(alpha-sin_alpha*cos_alpha);
 
-                if(fabs(sin_alpha)<tol_Radius){dist_CoM=0.0;}
-                else{ dist_CoM = 0.6666666666666*(Radius*sin_alpha*sin_alpha*sin_alpha/(alpha-sin_alpha*cos_alpha));}
+                if (fabs(sin_alpha) < tol_Radius) {dist_CoM=0.0;}
+                
+                else {dist_CoM = 0.6666666666666 * (Radius*sin_alpha*sin_alpha*sin_alpha/(alpha-sin_alpha*cos_alpha));}
 
-                for (unsigned int index = 0;index<3;index++){
-                        CoMSegC[index] = Centre[index] + dist_CoM*normal_outwards[index];
+                for (unsigned int index = 0; index<3; index++) {
+                    CoMSegC[index] = Centre[index] + dist_CoM*normal_outwards[index];
                 }
             } //if normal dist is okay
 
@@ -1492,20 +1445,16 @@ namespace Kratos {
 
     }//AreaAndCentroidCircularSegment
 
-    static inline void  AreaAndCentroidTriangle(double Coord1[3],double Coord2[3],double Coord3[3],double &area,double CoMTri[3])
-    {
+    static inline void AreaAndCentroidTriangle(double Coord1[3], double Coord2[3], double Coord3[3], double& area, double CoMTri[3]) {
 
-       TriAngleArea(Coord1,Coord2,Coord3,area);
+        TriAngleArea(Coord1,Coord2,Coord3,area);
 
-       for (unsigned int index =0; index<3; index++)
-       {
-           CoMTri[index] = 0.3333333333*(Coord1[index]+Coord2[index]+Coord3[index]);
+        for (unsigned int index =0; index<3; index++) {
+            
+            CoMTri[index] = 0.3333333333*(Coord1[index]+Coord2[index]+Coord3[index]);
+            }
 
-       }
-
-    }//AreaAndCentroidTriangle
-
-
+        } //AreaAndCentroidTriangle
 
     } //namespace GeometryFunctions
 
