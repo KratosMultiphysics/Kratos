@@ -132,10 +132,10 @@ public:
     {
         KRATOS_TRY
 
-        const int NumNodes = 4;
-        const int Dim = 3;
+        const unsigned int NumNodes = 4;
+        const unsigned int Dim = 3;
         const int ndofs = Dim + 1;
-        const int MatrixSize = NumNodes*ndofs;
+        const unsigned int MatrixSize = NumNodes*ndofs;
         
         if (rLeftHandSideMatrix.size1() != MatrixSize)
             rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
@@ -226,10 +226,10 @@ public:
     {
         KRATOS_TRY
         
-        const int NumNodes = 4;
-        const int Dim = 3;
+        const unsigned int NumNodes = 4;
+        const unsigned int Dim = 3;
         const int ndofs = Dim + 1;
-        const int MatrixSize = NumNodes*ndofs;
+        const unsigned int MatrixSize = NumNodes*ndofs;
         
         if (rRightHandSideVector.size() != MatrixSize)
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
@@ -305,7 +305,7 @@ public:
     {
         KRATOS_TRY
 
-        const int NumNodes = 4;
+        const unsigned int NumNodes = 4;
         const int Dim = 3;
         
         if (rResult.size() != NumNodes*(Dim+1))
@@ -332,7 +332,7 @@ public:
     {
         KRATOS_TRY
 
-        const int NumNodes = 4;
+        const unsigned int NumNodes = 4;
         const int Dim = 3;
 
         if (ElementalDofList.size() != NumNodes*(Dim+1))
@@ -409,9 +409,9 @@ public:
         
         if(rVariable == HEAT_FLUX) //compute the heat flux per unit volume induced by the shearing
         {
-            const int NumNodes = 4;
-            const int Dim = 3;
-            const int strain_size = 6;
+            const unsigned int NumNodes = 4;
+            const unsigned int Dim = 3;
+            const unsigned int strain_size = 6;
 
             //struct to pass around the data
             element_data<NumNodes,Dim> data;
@@ -431,7 +431,7 @@ public:
                 }
             }
             
-            if(data.stress.size() != strain_size)
+            if (data.stress.size() != strain_size)
             data.stress.resize(strain_size,false);
         
             const bounded_matrix<double,NumNodes,Dim>& v = data.v;
@@ -570,9 +570,9 @@ protected:
 
     virtual void ComputeConstitutiveResponse(element_data<4,3>& data, ProcessInfo& rCurrentProcessInfo)
     {
-        const int nnodes = 4;
-        const int dim = 3;
-        const int strain_size = 6;
+        const unsigned int nnodes = 4;
+        const unsigned int dim = 3;
+        const unsigned int strain_size = 6;
         
         if(data.C.size1() != strain_size)
             data.C.resize(strain_size,strain_size,false);
