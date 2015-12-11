@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import time as timer
 import os
 import sys
-#mport math
+#import math
 
 # Kratos
 from KratosMultiphysics import *
@@ -259,7 +259,20 @@ mesh_motion = DEMFEMUtilities()
 # creating a Post Utils object that executes several post-related tasks
 post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
-step = 0  
+step = 0
+
+import plot_variables #Related to debugging
+
+nodeplotter = 0 #Related to debugging
+
+list_of_nodes_ids = []
+
+for node in spheres_model_part.Nodes:
+    list_of_nodes_ids.append(node.Id)
+
+if nodeplotter: #Related to debugging
+    os.chdir(main_path)
+    plotter = plot_variables.variable_plotter(spheres_model_part, list_of_nodes_ids) #Related to debugging
 
 while (time < DEM_parameters.FinalTime):
     
@@ -350,6 +363,9 @@ while (time < DEM_parameters.FinalTime):
         
         demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
         os.chdir(main_path)
+        
+        if nodeplotter:
+            plotter.plot_variables(time) #Related to debugging
 
         time_old_print = time
 
