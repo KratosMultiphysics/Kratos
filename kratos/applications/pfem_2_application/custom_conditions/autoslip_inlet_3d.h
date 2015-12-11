@@ -53,6 +53,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/process_info.h"
+#include "includes/deprecated_variables.h"
+
 
 // Application includes
 
