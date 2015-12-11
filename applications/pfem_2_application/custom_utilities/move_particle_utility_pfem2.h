@@ -1132,7 +1132,7 @@ namespace Kratos
 								//for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
 								//double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
 								
-								double weight=N(j)*N(j)*N(j)*N(j);
+								double weight=N(j);
 								//weight=N(j)*N(j)*N(j);
 								if (weight<threshold) weight=1e-10;
 								if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
@@ -1741,7 +1741,7 @@ namespace Kratos
 									is_water_particle[j]=true;
 							}
 						}
-						else //it has diluted particles. we attemp to conserve the concentration
+						else if (has_air_node)
 						{
 							double water_fraction = 0.5 - 0.5*(mean_element_distance);
 							if (water_fraction>0.9 && mass_correction_factor<0.0) //to avoid seeding air particles when we are in a pure water element
@@ -1763,6 +1763,11 @@ namespace Kratos
 								else
 									is_water_particle[array_position]=false;
 							}
+						}
+						else //only water particles
+						{
+							for (unsigned int j = 0; j < number_of_reseeded_particles ; j++) //first we order particles
+								is_water_particle[j]=true;
 						}
 
 						bool fix_distance = false;
