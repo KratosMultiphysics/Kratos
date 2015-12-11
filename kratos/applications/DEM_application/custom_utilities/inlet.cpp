@@ -13,7 +13,7 @@
 
 namespace Kratos {
     
-    inline double CalculateNormalizedIndentation(SphericParticle& elem_it_1, SphericParticle& elem_it_2){
+    inline double CalculateNormalizedIndentation(SphericParticle& elem_it_1, SphericParticle& elem_it_2) {
         const array_1d<double,3>& coordinates_1 = elem_it_1.GetGeometry()[0].Coordinates();
         const array_1d<double,3>& coordinates_2 = elem_it_2.GetGeometry()[0].Coordinates();
         const double distance = sqrt((coordinates_1[0]- coordinates_2[0]) * (coordinates_1[0] - coordinates_2[0]) +
@@ -32,7 +32,6 @@ namespace Kratos {
     
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {                
-        
         mPartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(), false);
         mLastInjectionTimes.resize(inlet_modelpart.NumberOfMeshes(), false);
         mTotalNumberOfDetachedParticles.resize(inlet_modelpart.NumberOfMeshes(), false);
@@ -41,12 +40,12 @@ namespace Kratos {
         int mesh_iterator_number = 0;   
         
         for (ModelPart::MeshesContainerType::iterator mesh_it  = inlet_modelpart.GetMeshes().begin();
-                                                      mesh_it != inlet_modelpart.GetMeshes().end()  ;    ++mesh_it)
+                                                      mesh_it != inlet_modelpart.GetMeshes().end()  ; ++mesh_it)
         {
-         mPartialParticleToInsert[mesh_iterator_number] = 0.0;
-         mLastInjectionTimes[mesh_iterator_number] = 0.0;
-         mLayerRemoved[mesh_iterator_number] = false;
-         mesh_iterator_number++;
+            mPartialParticleToInsert[mesh_iterator_number] = 0.0;
+            mLastInjectionTimes[mesh_iterator_number] = 0.0;
+            mLayerRemoved[mesh_iterator_number] = false;
+            mesh_iterator_number++;
         }                
         
         mFirstTime = true;
@@ -64,8 +63,8 @@ namespace Kratos {
         CreatePropertiesProxies(mFastProperties, mInletModelPart);      
                
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
-        if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        
-        if(r_modelpart.GetProcessInfo()[ROTATION_OPTION] ) {
+        if (r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        
+        if (r_modelpart.GetProcessInfo()[ROTATION_OPTION] ) {
             mBallsModelPartHasRotation   = true;
             mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = true;            
         }
@@ -73,10 +72,10 @@ namespace Kratos {
             mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = false;             
         }
                
-        int mesh_number=0;
+        int mesh_number = 0;
         
         // For the next loop, take into account that the set of meshes of the modelpart is a full array with no gaps. If mesh i is not defined in mdpa, then it is created empty!
-        for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin()+1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {      
+        for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin() + 1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {      
             
             mesh_number++;
             int mesh_size=mesh_it->NumberOfNodes();
@@ -85,7 +84,7 @@ namespace Kratos {
             std::string& identifier = mInletModelPart.GetProperties(mesh_number)[IDENTIFIER];
             mInletModelPart.GetProperties(mesh_number)[INLET_INITIAL_VELOCITY] = mInletModelPart.GetProperties(mesh_number)[VELOCITY];
             
-            array_1d<double, 3 >& inlet_velocity = mInletModelPart.GetProperties(mesh_number)[VELOCITY];
+            array_1d<double, 3>& inlet_velocity = mInletModelPart.GetProperties(mesh_number)[VELOCITY];
             
             if ((inlet_velocity[0] == 0.0) &&
                 (inlet_velocity[1] == 0.0) &&
@@ -95,11 +94,10 @@ namespace Kratos {
             }
             
             double max_rand_dev_angle = mInletModelPart.GetProperties(mesh_number)[MAX_RAND_DEVIATION_ANGLE];
-            if ( max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
+            if (max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
                 
                 KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ",identifier);
             }
-            
             
             int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
             PropertiesProxy* p_fast_properties = NULL;
@@ -110,9 +108,7 @@ namespace Kratos {
                     p_fast_properties = &(mFastProperties[i]);
                     break;
                 }
-
-            mLastInjectionTimes[mesh_number - 1] = mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME];
-
+                mLastInjectionTimes[mesh_number - 1] = mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME];
             }
             
             Element::Pointer dummy_element_pointer;
@@ -212,7 +208,7 @@ namespace Kratos {
 
             for (ElementIterator elem_it = it_begin; elem_it != it_end; ++elem_it) {
                             
-                if(elem_it->IsNot(NEW_ENTITY)) continue;
+                if (elem_it->IsNot(NEW_ENTITY)) continue;
 
                 Kratos::Cluster3D& r_cluster = dynamic_cast<Kratos::Cluster3D&>(*elem_it); 
                 Node<3>& cluster_central_node = r_cluster.GetGeometry()[0];
@@ -275,8 +271,8 @@ namespace Kratos {
             if (r_modelpart.GetProcessInfo()[TIME] > mInletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]) {
                 if (mLayerRemoved[mesh_number]) continue;
                 for (int i = 0; i < mesh_size_elements; i++) {                   
-                     all_elements[i]->Set(TO_ERASE);
-                     all_elements[i]->GetGeometry()[0].Set(TO_ERASE);
+                    all_elements[i]->Set(TO_ERASE);
+                    all_elements[i]->GetGeometry()[0].Set(TO_ERASE);
                 }
                 mLayerRemoved[mesh_number] = true;
                 continue;
@@ -312,8 +308,8 @@ namespace Kratos {
                 }
                
                 for (int i = 0; i < number_of_particles_to_insert; i++) {
-            int pos = rand() % valid_elements_length;
-            //int pos = i;
+                    int pos = rand() % valid_elements_length;
+                    //int pos = i;
                     inserting_elements[i] = valid_elements[pos]; //This only works for pos as real position in the vector if 
                     //we use ModelPart::NodesContainerType::ContainerType instead of ModelPart::NodesContainerType
                     valid_elements[pos] = valid_elements[valid_elements_length - 1];
