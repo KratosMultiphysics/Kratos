@@ -167,7 +167,7 @@ class PFEM2Solver:
         t2= timer.time()
 
         #streamline integration:
-        discriminate_streamlines=False
+        discriminate_streamlines=True
         (self.moveparticles).MoveParticles(discriminate_streamlines);        
         t3 = timer.time()
         self.streamlineintegration = self.streamlineintegration + t3-t2
@@ -218,8 +218,8 @@ class PFEM2Solver:
         if (self.water_initial_volume==0.0): 
                 self.water_initial_volume=self.water_volume
         water_fraction= self.water_volume/(self.water_initial_volume)
-        if mass_correction_factor==0.0:
-             self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.0
+        if mass_correction_factor<1.0e-5 and mass_correction_factor> -1.0e-5 :
+             self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1
         else:
              self.mass_correction_factor = mass_correction_factor
 
