@@ -10,7 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "pastix.h"
-#include "omp.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define MPI_COMM_WORLD 0
 
@@ -136,7 +139,12 @@ int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, siz
 	double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
 	pastix_int_t   *perm        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t)); /* Permutation tabular                                       */
 	pastix_int_t   *invp        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t)); /* Reverse permutation tabular                               */
+#ifdef _OPENMP
 	pastix_int_t             nbthread = omp_get_max_threads();           /* Number of thread wanted by user                           */
+#else
+        pastix_int_t             nbthread = 1;           /* Number of thread wanted by user                           */
+#endif
+        
 	pastix_int_t             verbosemode = verbosity;        /* Level of verbose mode (0, 1, 2)                           */
  	int             ordering = API_ORDER_SCOTCH;           /* Ordering to use                                           */
 	pastix_int_t             nbrhs = 1;
