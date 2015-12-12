@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if defined(KRATOS_PYTHON)
 // External includes
 #include <boost/python.hpp>
-
+#include "boost/python/detail/wrap_python.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 
 namespace Kratos
@@ -83,6 +84,7 @@ BOOST_PYTHON_MODULE(KratosFluidDynamicsApplication)
            bases<KratosApplication>, boost::noncopyable >("KratosFluidDynamicsApplication")
            ;
 
+    AddCustomConstitutiveLawsToPython();
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
     AddCustomProcessesToPython();
