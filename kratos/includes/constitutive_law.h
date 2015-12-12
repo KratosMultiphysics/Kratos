@@ -136,6 +136,7 @@ public:
 
     struct Parameters
     {
+        KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
     /**
      * Structure "Parameters" to be used by the element to pass the parameters into the constitutive law *
