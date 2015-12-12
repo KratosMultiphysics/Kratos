@@ -24,12 +24,12 @@ class aux_object:
         return eval(self.compiled_function)
 
 class aux_object_cpp_callback:
-    def __init__(self, compiled_function, variable ):
+    def __init__(self, compiled_function ):
         self.compiled_function = compiled_function
-        self.variable = variable
 
     def f(self,x,y,z,t):
         return eval(self.compiled_function)
+        #return 0
         
 ##all the processes python processes should be derived from "python_process"
 class ApplyCustomFunctionProcess(python_process.PythonProcess):
@@ -46,12 +46,12 @@ class ApplyCustomFunctionProcess(python_process.PythonProcess):
         self.function_string = function_string
         
         ##compile function function_string
-        self.compiled_function = compile(self.function_string, '', 'eval') #here we precompile the expression so that then it is much faster to execute it
+        self.compiled_function = compile(self.function_string, '', 'eval', optimize=2) #here we precompile the expression so that then it is much faster to execute it
         
         #construct a variable_utils object to speedup fixing
         self.variable_utils = VariableUtils()
         
-        self.tmp = aux_object_cpp_callback(self.compiled_function, self.variable)
+        self.tmp = aux_object_cpp_callback(self.compiled_function)
         self.cpp_apply_function_utility = PythonGenericFunctionUtility(self.variable, self.mesh.Nodes, self.tmp ) 
             
         print("finished construction of ApplyCustomFunctionProcess Process")
@@ -72,7 +72,7 @@ class ApplyCustomFunctionProcess(python_process.PythonProcess):
             
             #create and pass around a list
             #tmp = aux_object(current_time, self.compiled_function, self.variable)   
-            #self.variable_utils.ApplyVector(self.variable, list(map(tmp.freturn, self.mesh.Nodes)),  self.mesh.Nodes)
+            #self.variable_utils.ApplyVector(self.variable, Vector( list(map(tmp.freturn, self.mesh.Nodes)) ),  self.mesh.Nodes)
                 
             #other option - also faster than the first for larger examples
             #tmp = aux_object(current_time, self.compiled_function, self.variable)   
