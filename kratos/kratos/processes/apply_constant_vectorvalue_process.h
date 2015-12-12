@@ -249,7 +249,7 @@ private:
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-            ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
 
             //check if the dofs are there (on the first node)
             if(to_be_fixed && (it_begin->HasDofFor(rVar) == false) )

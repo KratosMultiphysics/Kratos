@@ -338,7 +338,7 @@ private:
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-            ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
             
              #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -361,7 +361,7 @@ private:
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
-            ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+//             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
             
              #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
