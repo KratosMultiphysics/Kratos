@@ -1263,12 +1263,10 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     KRATOS_TRY
 
     if (r_process_info[STRESS_STRAIN_OPTION]) {
-        
-        //Divide Stress Tensor by the total volume
-
+        //Divide Stress Tensor by the total volume:
         double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
 
-        const double sphere_volume = 1.33333333333333333 * KRATOS_M_PI * GetRadius() * GetRadius() * GetRadius();
+        const double sphere_volume = 4 *KRATOS_M_PI_3 * GetRadius() * GetRadius() * GetRadius();
         if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
             rRepresentative_Volume = sphere_volume;
         } 
@@ -1280,7 +1278,12 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             for (int j = i; j < 3; j++) {
                 (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
             }
-        }        
+        }  
+              
+        //Update sphere mass and inertia taking into acount the real volume of the represented volume:
+        mRealMass = rRepresentative_Volume * GetDensity();
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mRealMass;  
+        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = 0.4 * mRealMass * GetRadius() * GetRadius();                    
     }
     KRATOS_CATCH("")
 }
