@@ -82,13 +82,17 @@ public:
     {
         KRATOS_TRY
         
+        if(mesh_id >= model_part.NumberOfMeshes())
+            KRATOS_THROW_ERROR(std::runtime_error,"mesh does not exist in model_part: mesh id is --> ",mesh_id)
+            
         //get mesh to ensure it exists
         ModelPart::MeshType::Pointer pmesh = model_part.pGetMesh(mesh_id);
-                
+        
         if(this->IsDefined(X_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","")
         if(this->IsDefined(Y_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","")
         if(this->IsDefined(Z_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","")
-            
+           
+        
         if(direction.size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
             
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
@@ -99,12 +103,12 @@ public:
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
 
-             
          if( model_part.GetNodalSolutionStepVariablesList().Has(   KratosComponents<Variable<array_1d<double, 3> > >::Get(mvariable_name)) == false )
          {
              std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
              KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
          }
+         
         KRATOS_CATCH("")
     }
     
@@ -145,7 +149,6 @@ public:
         component_type vary = KratosComponents< component_type >::Get(mvariable_name+std::string("_Y"));
         component_type varz = KratosComponents< component_type >::Get(mvariable_name+std::string("_Z"));
 
-        
         InternalApplyValue<component_type >(varx, this->Is(X_COMPONENT_FIXED),  value[0]);
         InternalApplyValue<component_type >(vary, this->Is(Y_COMPONENT_FIXED),  value[1]);
         InternalApplyValue<component_type >(varz, this->Is(Z_COMPONENT_FIXED),  value[2]);
@@ -247,6 +250,10 @@ private:
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
+
+            //check if the dofs are there (on the first node)
+            if(to_be_fixed && (it_begin->HasDofFor(rVar) == false) )
+                KRATOS_THROW_ERROR(std::runtime_error, " trying to fix a dofs which was not allocated. Variable is --> ",rVar.Name() );
             
              #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
