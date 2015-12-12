@@ -496,7 +496,7 @@ namespace Kratos
 		double solidification_time_chorinov=0.0;
 		//const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
 		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
-		solidification_time_chorinov=pow(density*LL/abs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
+		solidification_time_chorinov=pow(density*LL/std::abs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		solidification_time_chorinov*=1+(cc*pow((initial_temperature-stop_temperature)/LL,2));
 		solidification_time_chorinov*=pow(tot_vol/tot_area,1.5);
 		return std::max(solidification_time,solidification_time_chorinov);
@@ -657,7 +657,7 @@ namespace Kratos
 			double tarea=rGeom.DomainSize();
 			tot_area+=tarea;
 			
-			const double condition_area=pow(abs(rGeom.DomainSize()),1.0);
+			const double condition_area=pow(std::abs(rGeom.DomainSize()),1.0);
 			// dE2 - Second Term
 			//dE_2/dT=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))
 			double aux =condition_area*mould_thickness*mould_vfact*mould_density*mould_specific_heat;
@@ -685,11 +685,11 @@ namespace Kratos
 		//const double htc= ThisModelPart.GetProcessInfo()[HTC];
 		const double solid_temp= ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
 		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
-		cooling_time_chorinov=pow(density*LL/abs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
+		cooling_time_chorinov=pow(density*LL/std::abs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		cooling_time_chorinov*=1+(cc*pow((initial_temperature-solid_temp)/LL,2));
 		cooling_time_chorinov*=pow(tot_vol/tot_area,2);
 		// Now we compute the time from solidification to cooling
-		double time_to_cool=(tot_vol*cc*density*abs(solid_temp-stop_temperature))/(avg_env_htc*tot_area*(0.5*initial_temperature+0.5*stop_temperature-ambient_temperature));
+		double time_to_cool=(tot_vol*cc*density*std::abs(solid_temp-stop_temperature))/(avg_env_htc*tot_area*(0.5*initial_temperature+0.5*stop_temperature-ambient_temperature));
 		cooling_time_chorinov+=time_to_cool;
 
 		return std::max(CoolingTime,cooling_time_chorinov);
