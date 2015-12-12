@@ -55,6 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 
 #include "includes/define.h"
+#include "includes/c2c_variables.h"
+#include "includes/deprecated_variables.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
@@ -102,8 +104,8 @@ namespace Kratos
                 KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
                 KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
-            if (mrModelPart.NodesBegin()->SolutionStepsDataHas(SOLID_FRACTION) == false)
-                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add SOLID_FRACTION variable!!!!!!", "");
+            if (mrModelPart.NodesBegin()->SolutionStepsDataHas(SOLIDFRACTION) == false)
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add SOLIDFRACTION variable!!!!!!", "");
 
 			return 0;
 		}
@@ -247,7 +249,7 @@ namespace Kratos
 			    ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
 
 				i_node->FastGetSolutionStepValue(TEMPERATURES_US) = (1.8 * i_node->FastGetSolutionStepValue(TEMPERATURE) + 32.0);
-				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLIDFRACTION);
 
 				 // SOLIDIF_MODULUS is already written en CM take care to convert it to inch
 				 double si_sdf_mod = i_node->FastGetSolutionStepValue(SOLIDIF_MODULUS); 
