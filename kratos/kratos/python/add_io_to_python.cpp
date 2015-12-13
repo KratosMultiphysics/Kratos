@@ -151,6 +151,12 @@ void (GidIO<>::*local_axes_write_nodal_results)( Variable<array_1d<double, 3> > 
 //               ModelPart& r_model_part, double SolutionTag)
 //                 = &GidIO<>::PrintOnGaussPoints;
 
+void ReadInitialValues1(IO& IO, IO::NodesContainerType& rThisNodes, IO::ElementsContainerType& rThisElements, IO::ConditionsContainerType& rThisConditions){ IO.ReadInitialValues(rThisNodes, rThisElements, rThisConditions);}
+void ReadInitialValues2(IO& IO, ModelPart& rThisModelPart){ IO.ReadInitialValues(rThisModelPart);}
+
+
+        
+        
 void  AddIOToPython()
 {
     using namespace boost::python;
@@ -164,7 +170,8 @@ void  AddIOToPython()
     .def("ReadElements",&IO::ReadElements)
     .def("WriteElements",&IO::WriteElements)
     .def("ReadConditions",&IO::ReadConditions)
-    .def("ReadInitialValues",&IO::ReadInitialValues)
+    .def("ReadInitialValues",&ReadInitialValues1)
+    .def("ReadInitialValues",&ReadInitialValues2)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
 	;

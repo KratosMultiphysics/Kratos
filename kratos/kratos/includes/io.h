@@ -209,6 +209,11 @@ public:
         KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
     }
 
+    virtual void ReadInitialValues(ModelPart& rThisModelPart)
+    {
+        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+    }    
+    
     virtual void ReadInitialValues(NodesContainerType& rThisNodes, ElementsContainerType& rThisElements, ConditionsContainerType& rThisConditions)
     {
         KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
