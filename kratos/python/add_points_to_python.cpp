@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "geometries/point.h"
-#include "python/add_geometries_to_python.h"
+#include "python/add_points_to_python.h"
 #include "python/bounded_vector_python_interface.h"
 #include "python/vector_scalar_operator_python.h"
 #include "python/vector_vector_operator_python.h"

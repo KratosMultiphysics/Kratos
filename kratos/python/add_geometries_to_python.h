@@ -66,7 +66,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddPointsToPython();
+void  AddGeometriesToPython();
 
 }  // namespace Python.
 

@@ -94,7 +94,7 @@ void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& this_constitutive_la
 
 Vector& GetStrainVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStrainVector();}
 Vector& GetStrainVector2(ConstitutiveLaw::Parameters& this_params, Vector& strain){ return this_params.GetStrainVector(strain);}
-Vector& GetStressVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStrainVector();}
+Vector& GetStressVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStressVector();}
 Vector& GetStressVector2(ConstitutiveLaw::Parameters& this_params, Vector& stress){ return this_params.GetStressVector(stress);}
 Matrix& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetConstitutiveMatrix();}
 Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& this_params, Matrix& C){ return this_params.GetConstitutiveMatrix(C);}
@@ -140,10 +140,10 @@ void  AddConstitutiveLawToPython()
         .def("SetStrainVector",&ConstitutiveLaw::Parameters::SetStrainVector)
         .def("SetStressVector",&ConstitutiveLaw::Parameters::SetStressVector)
         .def("SetConstitutiveMatrix",&ConstitutiveLaw::Parameters::SetConstitutiveMatrix)
-        .def("SetShapeFunctionsValues",&ConstitutiveLaw::Parameters::SetShapeFunctionsValues)
         .def("SetProcessInfo",&ConstitutiveLaw::Parameters::SetProcessInfo)
         .def("SetMaterialProperties",&ConstitutiveLaw::Parameters::SetMaterialProperties)
         .def("SetElementGeometry",&ConstitutiveLaw::Parameters::SetElementGeometry)
+        .def("SetDeformationGradientF",&ConstitutiveLaw::Parameters::SetDeformationGradientF)
 //         .def("GetDeterminantF" , &ConstitutiveLaw::Parameters::GetDeterminantF)
 //         .def("GetShapeFunctionsValues",&ConstitutiveLaw::Parameters::GetShapeFunctionsValues)
 //         .def("GetShapeFunctionsDerivatives",&ConstitutiveLaw::Parameters::GetShapeFunctionsDerivatives)
@@ -169,6 +169,8 @@ void  AddConstitutiveLawToPython()
     .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
     .def("GetStressMeasure",&ConstitutiveLaw::GetStressMeasure)
     .def("IsIncremental",&ConstitutiveLaw::IsIncremental)
+    .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
+    .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)   
     .def("Has", &ConstitutiveLawHas< Variable<int> >)
     .def("Has", &ConstitutiveLawHas< Variable<double> >)
     .def("Has", &ConstitutiveLawHas< Variable<array_1d<double,3> > >)
@@ -194,6 +196,9 @@ void  AddConstitutiveLawToPython()
     .def("FinalizeMaterialResponsePK2",&ConstitutiveLaw::FinalizeMaterialResponsePK2)
     .def("FinalizeMaterialResponseKirchhoff",&ConstitutiveLaw::FinalizeMaterialResponseKirchhoff)
     .def("FinalizeMaterialResponseCauchy",&ConstitutiveLaw::FinalizeMaterialResponseCauchy)
+    .def("FinalizeSolutionStep",&ConstitutiveLaw::FinalizeSolutionStep)
+    .def("InitializeSolutionStep",&ConstitutiveLaw::InitializeSolutionStep)
+    .def("InitializeMaterial",&ConstitutiveLaw::InitializeMaterial)
     .def("ResetMaterial",&ConstitutiveLaw::ResetMaterial)
     .def("TransformStrains",&ConstitutiveLaw::TransformStrains, return_internal_reference<>())
 //     .def("TransformStresses",&ConstitutiveLaw::TransformStresses)
@@ -204,6 +209,7 @@ void  AddConstitutiveLawToPython()
     .def("TransformCauchyStresses",&ConstitutiveLaw::TransformCauchyStresses, return_internal_reference<>())
     .def("PullBackConstitutiveMatrix",&ConstitutiveLaw::PullBackConstitutiveMatrix)
     .def("PushForwardConstitutiveMatrix",&ConstitutiveLaw::PushForwardConstitutiveMatrix)
+    .def("Check",&ConstitutiveLaw::Check)
 //     .def("GetLawFeatures",&ConstitutiveLaw::GetLawFeatures)
     .def_readonly("COMPUTE_STRAIN", &ConstitutiveLaw::COMPUTE_STRAIN)
     .def_readonly("COMPUTE_STRESS", &ConstitutiveLaw::COMPUTE_STRESS)
