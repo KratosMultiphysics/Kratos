@@ -255,7 +255,7 @@ class MechanicalSolver:
           if(self.solution_type == "Static"):
               if(self.scheme_type == "Linear"):
                   self.mechanical_scheme = ResidualBasedStaticScheme()
-              if(self.scheme_type == "Newmark" or self.scheme_type == "Bossak"):
+              if(self.scheme_type == "Newmark" or self.scheme_type == "Bossak" or self.scheme_type == "NonLinear"):
                   # definition of time scheme
                   self.damp_factor_f = 0.00;
                   self.damp_factor_m = 0.00;

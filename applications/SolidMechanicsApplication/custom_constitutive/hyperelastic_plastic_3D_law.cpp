@@ -366,7 +366,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     Matrix IsochoricStressMatrix = ZeroMatrix(3);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-      this->CalculateIsochoricStress( ElasticVariables, ReturnMappingVariables, StressMeasure_Kirchhoff, IsochoricStressMatrix, SplitStressVector.Isochoric );
+      this->CalculatePlasticIsochoricStress( ElasticVariables, ReturnMappingVariables, StressMeasure_Kirchhoff, IsochoricStressMatrix, SplitStressVector.Isochoric );
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
@@ -457,7 +457,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 //******************************* COMPUTE ISOCHORIC STRESS  **************************
 //************************************************************************************
 
-void HyperElasticPlastic3DLaw::CalculateIsochoricStress( MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlastic3DLaw::CalculatePlasticIsochoricStress( MaterialResponseVariables & rElasticVariables,
 							 FlowRule::RadialReturnVariables & rReturnMappingVariables,
 							 StressMeasure rStressMeasure,
 							 Matrix& rIsoStressMatrix, 

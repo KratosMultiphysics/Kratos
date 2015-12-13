@@ -731,12 +731,6 @@ protected:
     void CalculateVelocityGradient(const Matrix& rDN_DX,
                                    Matrix& rDF );
 
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX);
 
     /**
      * Calculation of the Integration Weight

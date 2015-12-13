@@ -1563,21 +1563,6 @@ void LargeDisplacementElement::CalculateVelocityGradient(const Matrix& rDN_DX,
 }
 
 
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default function for a large displacement 3D element ... illegal operation!!", "" )
-
-    KRATOS_CATCH( "" )
-}
-
-
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
