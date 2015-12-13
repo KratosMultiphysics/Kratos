@@ -729,7 +729,7 @@ public:
             for(ParticleWeakIteratorType neighbour_iterator =neighbours.begin(); neighbour_iterator != neighbours.end(); neighbour_iterator++)
             {
 
-                if ( (neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0) ){
+                if ( neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0 ){
 
 
                     double neighbour_pressure=neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE) ;
