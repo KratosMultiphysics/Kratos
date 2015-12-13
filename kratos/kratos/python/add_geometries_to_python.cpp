@@ -54,6 +54,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "geometries/point.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
+#include "geometries/triangle_2d_3.h"
 #include "python/add_geometries_to_python.h"
 #include "python/bounded_vector_python_interface.h"
 #include "python/vector_scalar_operator_python.h"
@@ -66,47 +69,20 @@ namespace Python
 {
 void  AddGeometriesToPython()
 {
-    BoundedVectorPythonInterface<Point<1>, 1>::CreateInterface("Point1D")
-    .def(init<double>())
-    .def(init<vector_expression<vector<double> > >())
-    .def(VectorScalarOperatorPython<Point<1>, double, Point<1> >())
-    .def(VectorVectorOperatorPython<Point<1>, zero_vector<double>, Point<1> >())
-    .def(VectorVectorOperatorPython<Point<1>, unit_vector<double>, Point<1> >())
-    .def(VectorVectorOperatorPython<Point<1>, scalar_vector<double>, Point<1> >())
-    .def(VectorVectorOperatorPython<Point<1>, vector<double>, Point<1> >())
-    //      .def(VectorVectorOperatorPython<Point<1>, mapped_vector<double>, Point<1> >())
-    //.def(VectorVectorOperatorPython<Point<1>, compressed_vector<double>, Point<1> >())
-    //.def(VectorVectorOperatorPython<Point<1>, coordinate_vector<double>, Point<1> >())
+  
+    typedef Geometry<Node<3> > GeometryType;
+    class_<GeometryType, GeometryType::Pointer >("Geometry", init<>())
+    .def(init< GeometryType::PointsArrayType& >())
     ;
-
-    BoundedVectorPythonInterface<Point<2>, 2>::CreateInterface("Point2D")
-    .def(init<double>())
-    .def(init<double, double>())
-    .def(init<vector_expression<vector<double> > >())
-    .def(VectorScalarOperatorPython<Point<2>, double, Point<2> >())
-    .def(VectorVectorOperatorPython<Point<2>, zero_vector<double>, Point<2> >())
-    .def(VectorVectorOperatorPython<Point<2>, unit_vector<double>, Point<2> >())
-    .def(VectorVectorOperatorPython<Point<2>, scalar_vector<double>, Point<2> >())
-    .def(VectorVectorOperatorPython<Point<2>, vector<double>, Point<2> >())
-    //.def(VectorVectorOperatorPython<Point<2>, mapped_vector<double>, Point<2> >())
-    //.def(VectorVectorOperatorPython<Point<2>, compressed_vector<double>, Point<2> >())
-    //.def(VectorVectorOperatorPython<Point<2>, coordinate_vector<double>, Point<2> >())
-    ;
-
-    BoundedVectorPythonInterface<Point<3>, 3>::CreateInterface("Point3D")
-    .def(init<double>())
-    .def(init<double, double>())
-    .def(init<double, double, double>())
-    .def(init<vector_expression<vector<double> > >())
-    .def(VectorScalarOperatorPython<Point<3>, double, Point<3> >())
-    .def(VectorVectorOperatorPython<Point<3>, zero_vector<double>, Point<3> >())
-    .def(VectorVectorOperatorPython<Point<3>, unit_vector<double>, Point<3> >())
-    .def(VectorVectorOperatorPython<Point<3>, scalar_vector<double>, Point<3> >())
-    .def(VectorVectorOperatorPython<Point<3>, vector<double>, Point<3> >())
-    //.def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
-    //.def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
-    //.def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
-    ;
+    
+    class_<Triangle2D3<Node<3> >, Triangle2D3<Node<3> >::Pointer, bases< GeometryType > >("Triangle2D3", init<Node<3>::Pointer, Node<3>::Pointer, Node<3>::Pointer>())
+    ;    
+    
+    
+//     class_<GeometryType, GeometryType::Pointer, bases<PointerVector< Node<3> > > >("Geometry", init<>())
+//      .def(init< GeometryType::PointsArrayType& >())
+//      ;
+     
 }
 
 }  // namespace Python.
