@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_vector_to_python.h"
 //#include "add_mapped_vector_to_python.h"
 #include "add_matrix_to_python.h"
+#include "add_points_to_python.h"
 #include "add_geometries_to_python.h"
 //#include "add_quadratures_to_python.h"
 #include "add_containers_to_python.h"
@@ -74,7 +75,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_constitutive_law_to_python.h"
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
-
 //#include "add_sparse_vector_to_python.h"
 #include "pointer_vector_set_python_interface.h"
 #include "solution_step_variable_indexing_python.h"
@@ -145,7 +145,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddConstitutiveLawToPython();
     AddSerializerToPython();
     AddTableToPython();
-
+    AddGeometriesToPython();
     AddParallelStrategiesToPython();
     AddParallelLinearSolversToPython();
     AddMatrixMarketInterfaceToPython();
