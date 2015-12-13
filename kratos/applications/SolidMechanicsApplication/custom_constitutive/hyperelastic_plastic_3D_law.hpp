@@ -271,13 +271,14 @@ protected:
      * @param rElasticVariables
      * matrix is to be generated for
      * @param rStressMeasure measure of stress to be calculated
+     * @param rIsoStressMatrix matrix where the stress result is stored
      * @param rIsoStressVector vector where the stress result is stored
      */
-    virtual void CalculateIsochoricStress( MaterialResponseVariables & rElasticVariables,
-					   FlowRule::RadialReturnVariables & rReturnMappingVariables,
-                                           StressMeasure rStressMeasure,
-					   Matrix& rIsoStressMatrix,
-                                           Vector& rIsoStressVector);
+    virtual void CalculatePlasticIsochoricStress( MaterialResponseVariables & rElasticVariables,
+						  FlowRule::RadialReturnVariables & rReturnMappingVariables,
+						  StressMeasure rStressMeasure,
+						  Matrix& rIsoStressMatrix,
+						  Vector& rIsoStressVector);
 
 
 

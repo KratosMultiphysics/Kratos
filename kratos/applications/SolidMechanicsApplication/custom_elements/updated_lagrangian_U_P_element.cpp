@@ -346,7 +346,7 @@ void UpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariable
     rVariables.N=row( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
 
 
     KRATOS_CATCH( "" )

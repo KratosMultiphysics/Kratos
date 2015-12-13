@@ -237,9 +237,9 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX);
+    void CalculateDeformationMatrix(Matrix& rB,
+				    Matrix& rF,
+				    Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
