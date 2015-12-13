@@ -180,7 +180,7 @@ public:
         mN[2] = Nz;
 
         double delta[Dimension];
-        double mult_delta = 1.00;
+//         double mult_delta = 1.00;
         SizeType index = 0;
         for(SizeType i = 0 ; i < Dimension ; i++)
         {

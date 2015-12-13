@@ -1543,7 +1543,7 @@ void AddBoundaryTerm(boost::numeric::ublas::bounded_matrix<double, 16, 16 >& rDa
 	//pressrue terms (three gauss points)
 	array_1d<double,3> node_normal = this->GetGeometry()[j].FastGetSolutionStepValue(NORMAL);
 	node_normal /= norm_2(node_normal);	
-	double dot_prod = MathUtils<double>::Dot(node_normal,nn);
+// 	double dot_prod = MathUtils<double>::Dot(node_normal,nn);
 
 // 	rDampingMatrix(FirstRow,FirstRow+3) = Weight *  OneThird * (nn[0]);// - dot_prod * node_normal[0]);//nn[0];
 // 	rDampingMatrix(FirstRow+1,FirstRow+3) = Weight *  OneThird * (nn[1]);// - dot_prod * node_normal[1]);//nn[1];      
