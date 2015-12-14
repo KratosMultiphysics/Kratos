@@ -905,20 +905,23 @@ void UpdateLoopForMassAndArea(ProcessInfo& CurrentProcessInfo)
   }
   
   //SPECIFIC FUNCTIONS FOR MY APPLICATION
-void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void InitializeSolutionStep()
 {
 	KRATOS_TRY
+	
+	ModelPart& r_model_part  = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
 		case 0: 
 		{
-			SetToZeroVariablesInViscousIterations(CurrentProcessInfo);
+			SetToZeroVariablesInViscousIterations();
 			break;
 		}
 		case 3: 
 		{
-			SetToZeroVariablesInPresureIterations(CurrentProcessInfo);
+			SetToZeroVariablesInPresureIterations();
 			break;
 		}
 		
@@ -930,19 +933,23 @@ void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	KRATOS_CATCH("")
 }
 
-void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void FinalizeSolutionStep()
 {
 	KRATOS_TRY
+	
+	ModelPart& r_model_part  = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
 		case 0: 
 		{
-			UpdateLoopForViscousIterationsWithNormalization(CurrentProcessInfo);
+			UpdateLoopForViscousIterationsWithNormalization();
 			break;
 		}
 		case 3: 
 		{
-			UpdateLoopForPressureIterationsWithNormalization(CurrentProcessInfo);
+			UpdateLoopForPressureIterationsWithNormalization();
 			break;
 		}
 		
@@ -959,11 +966,12 @@ void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 
 //VISCOUS ITERATIONS
 
-void SetToZeroVariablesInViscousIterations(ProcessInfo& CurrentProcessInfo)
+void SetToZeroVariablesInViscousIterations()
 {
       KRATOS_TRY
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
+	  //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
       
       //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
@@ -994,11 +1002,12 @@ void SetToZeroVariablesInViscousIterations(ProcessInfo& CurrentProcessInfo)
 	  KRATOS_CATCH("")
 }
 
-void UpdateLoopForViscousIterationsWithNormalization(ProcessInfo& CurrentProcessInfo)
+void UpdateLoopForViscousIterationsWithNormalization()
 {
       KRATOS_TRY
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
+	  //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
 
       #ifdef _OPENMP
@@ -1033,11 +1042,12 @@ void UpdateLoopForViscousIterationsWithNormalization(ProcessInfo& CurrentProcess
 
 //PRESSURE ITERATIONS
 
-void SetToZeroVariablesInPresureIterations(ProcessInfo& CurrentProcessInfo)
+void SetToZeroVariablesInPresureIterations()
 {
       KRATOS_TRY
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
+	  ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
       
       //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
@@ -1083,11 +1093,12 @@ void SetToZeroVariablesInPresureIterations(ProcessInfo& CurrentProcessInfo)
 	  KRATOS_CATCH("")
 }
 
-void UpdateLoopForPressureIterationsWithNormalization(ProcessInfo& CurrentProcessInfo)
+void UpdateLoopForPressureIterationsWithNormalization()
 {
       KRATOS_TRY
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
+	  //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
 	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
