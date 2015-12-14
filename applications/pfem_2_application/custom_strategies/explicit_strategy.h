@@ -185,9 +185,12 @@ namespace Kratos
   }
   
   //SPECIFIC FUNCTIONS FOR MY APPLICATION
-void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void InitializeSolutionStep()
 {
 	KRATOS_TRY
+	
+	ModelPart& r_model_part  = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
@@ -237,9 +240,13 @@ void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	KRATOS_CATCH("")
 }
 
-void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void FinalizeSolutionStep()
 {
 	KRATOS_TRY
+	
+	ModelPart& r_model_part  = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	
 	switch ( CurrentProcessInfo[FRACTIONAL_STEP] )
 	{
 		case 0: 
