@@ -236,7 +236,7 @@ public:
             if ( (in->FastGetSolutionStepValue(IS_WET)== 1.0) && (in->FastGetSolutionStepValue(IS_STRUCTURE)== 0.0) ){
                 inter_node_counter += 1;
             }
-            if ( (in->FastGetSolutionStepValue(IS_WET)== 1.0)) {
+            if ( in->FastGetSolutionStepValue(IS_WET)== 1.0) {
                 if (in->X0()>max_x){max_x=in->X0();}
 
                 if (in->Y0()>max_y){max_y=in->Y0();}
