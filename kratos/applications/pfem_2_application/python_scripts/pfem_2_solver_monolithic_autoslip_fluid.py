@@ -252,10 +252,10 @@ class PFEM2Solver:
     #######################################################################   
     def CalculatePressureProjection(self):
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
-        (self.ExplicitStrategy).InitializeSolutionStep(self.model_part.ProcessInfo);
-        (self.ExplicitStrategy).AssembleLoop(self.model_part.ProcessInfo);
+        (self.ExplicitStrategy).InitializeSolutionStep();
+        (self.ExplicitStrategy).AssembleLoop();
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
-        (self.ExplicitStrategy).FinalizeSolutionStep(self.model_part.ProcessInfo);
+        (self.ExplicitStrategy).FinalizeSolutionStep();
 
 
     def SetEchoLevel(self,level):
