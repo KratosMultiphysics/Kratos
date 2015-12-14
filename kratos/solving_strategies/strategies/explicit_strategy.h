@@ -164,12 +164,12 @@ namespace Kratos
 //***************************************************************************
 //***************************************************************************
 
-void AssembleLoop(ProcessInfo& CurrentProcessInfo)
+void AssembleLoop()
 {
 
 	KRATOS_TRY
 	ModelPart& r_model_part = BaseType::GetModelPart();
-	//ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	ElementsArrayType& pElements = r_model_part.Elements();
   
 
@@ -286,12 +286,12 @@ inline void CreatePartition(unsigned int number_of_threads, const int number_of_
   
   //********************************************
   //********************************************
-void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void InitializeSolutionStep()
 {
 	KRATOS_TRY
 
 	ModelPart& r_model_part = BaseType::GetModelPart();
-	//ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	ElementsArrayType& pElements = r_model_part.Elements();
   
 
@@ -305,12 +305,12 @@ void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	KRATOS_CATCH("")
 }
 
-void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void FinalizeSolutionStep()
 {
 	KRATOS_TRY
 
 	ModelPart& r_model_part = BaseType::GetModelPart();
-	//ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 	ElementsArrayType& pElements = r_model_part.Elements();
   
 
