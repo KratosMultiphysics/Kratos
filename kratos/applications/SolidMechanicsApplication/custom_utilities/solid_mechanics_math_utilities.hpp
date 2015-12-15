@@ -16,10 +16,15 @@
 
 #define FIND_MAX(a, b) ((a)>(b)?(a):(b))
 
+// System includes
+#include <cmath>
 
+// External includes
+
+// Project includes
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
-#include <cmath>
+
 
 namespace Kratos
 {

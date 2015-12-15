@@ -14,14 +14,9 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
@@ -387,7 +382,8 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
       * @param rCurrentProcessInfo: the current process info instance
      */      
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, 
+    virtual void AddExplicitContribution(const VectorType& rRHS, 
+					 const Variable<VectorType>& rRHSVariable, 
 					 Variable<array_1d<double,3> >& rDestinationVariable, 
 					 const ProcessInfo& rCurrentProcessInfo);
 

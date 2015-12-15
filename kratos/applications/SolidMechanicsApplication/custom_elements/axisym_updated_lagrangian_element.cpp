@@ -11,10 +11,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/axisym_updated_lagrangian_element.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
 
 

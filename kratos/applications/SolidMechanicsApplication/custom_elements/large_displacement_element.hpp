@@ -12,15 +12,9 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
 #include "custom_utilities/comparison_utilities.hpp"
 
 

@@ -11,9 +11,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
-#include "utilities/math_utils.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "solid_mechanics_application.h"
