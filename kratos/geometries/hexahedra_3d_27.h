@@ -853,10 +853,8 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual double DeterminantOfJacobian( const PointType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
         Matrix jacobian = ZeroMatrix( 3, 3 );
         jacobian = Jacobian( jacobian, rPoint );

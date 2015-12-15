@@ -410,7 +410,9 @@ public:
      */
     virtual double Length() const
     {
-        return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
+        array_1d<double,3> point;
+        point[0] = 1.0/3.0; point[1] = 1.0/3.0; point[2] = 1.0/3.0;
+        return sqrt( fabs( DeterminantOfJacobian( point ) ) );
     }
 
     /**
@@ -672,7 +674,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, const PointType& rPoint ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
         rResult.resize( 2, 2 );
@@ -775,11 +777,8 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
-     *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual double DeterminantOfJacobian( const /*Point<3>*/PointType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
         Matrix jacobian = ZeroMatrix( 2, 2 );
         jacobian = Jacobian( jacobian, rPoint );
@@ -892,14 +891,13 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      *
-     * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult, /*const CoordinatesArrayType&*/ const PointType& rPoint ) const
+    virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //current jacobian
         Matrix tempMatrix;
         tempMatrix.resize( 2, 2, false );
-        tempMatrix = Jacobian( tempMatrix, rPoint );
+        tempMatrix = this->Jacobian( tempMatrix, rPoint );
         //deteminant of Jacobian
         double det_j = DeterminantOfJacobian( rPoint );
         //checking for singularity
