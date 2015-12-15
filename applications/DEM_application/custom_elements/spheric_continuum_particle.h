@@ -115,7 +115,7 @@ namespace Kratos
         virtual void CustomInitialize();	
         virtual double GetInitialDeltaWithFEM(int index);      
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
-        void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce, 
+        virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                            array_1d<double, 3>& rContactForce, 
                                            array_1d<double, 3>& InitialRotaMoment, 
                                            ProcessInfo& rCurrentProcessInfo, 
