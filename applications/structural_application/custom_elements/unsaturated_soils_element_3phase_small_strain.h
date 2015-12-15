@@ -524,7 +524,7 @@ private:
 
     void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
 
-    Matrix GetValueOnIntegrationPoints( const Matrix& rVariable, int PointNumber );
+//    Matrix GetValueOnIntegrationPoints( const Matrix& rVariable, int PointNumber );
 //                Matrix CalculateDeformationTensor(const Matrix& DN_DX, unsigned int TimePoints);
 
     //************************************************************************************
