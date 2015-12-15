@@ -895,7 +895,7 @@ private:
 	  if( mGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
 	    rRHS_GlobalElementComponents.resize(mGlobalSystem.GetRHS_Element_Variables().size());
 
-	  this->ResizeAndInitializeVectors(r_model_part, rRHS_GlobalElementComponents);
+	  this->ResizeAndInitializeVectorsByComponents(r_model_part, rRHS_GlobalElementComponents);
 
 	}
 
@@ -928,7 +928,7 @@ private:
 	  if( mGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
 	    rRHS_GlobalConditionComponents.resize(mGlobalSystem.GetRHS_Condition_Variables().size());
 	  
-	  this->ResizeAndInitializeVectors(r_model_part, rRHS_GlobalConditionComponents);
+	  this->ResizeAndInitializeVectorsByComponents(r_model_part, rRHS_GlobalConditionComponents);
 	}
 
     }
@@ -968,7 +968,7 @@ private:
     //**************************************************************************
     //**************************************************************************
 
-    void ResizeAndInitializeVectors(ModelPart& r_model_part, std::vector<TSystemVectorType>& rGlobalSystemVectors)
+    void ResizeAndInitializeVectorsByComponents(ModelPart& r_model_part, std::vector<TSystemVectorType>& rGlobalSystemVectors)
     {
       
       for( unsigned int i=0; i< rGlobalSystemVectors.size(); i++ )
