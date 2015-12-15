@@ -128,14 +128,14 @@ namespace Kratos
       
       void Initialize();
       virtual void ContactAreaWeighting();
-      void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
-                                                array_1d<double,3> &other_to_me_vect,
-                                                const double &distance,
-                                                const double &radius_sum,
-                                                const double &calculation_area,
-                                                ParticleWeakIteratorType neighbour_iterator, 
-                                                ProcessInfo& rCurrentProcessInfo, 
-                                                double &rRepresentative_Volume);
+//      void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
+//                                                array_1d<double,3> &other_to_me_vect,
+//                                                const double &distance,
+//                                                const double &radius_sum,
+//                                                const double &calculation_area,
+//                                                ParticleWeakIteratorType neighbour_iterator,
+//                                                ProcessInfo& rCurrentProcessInfo,
+//                                                double &rRepresentative_Volume);
       void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                          array_1d<double, 3>& rContactForce,
                                          array_1d<double, 3>& InitialRotaMoment,
