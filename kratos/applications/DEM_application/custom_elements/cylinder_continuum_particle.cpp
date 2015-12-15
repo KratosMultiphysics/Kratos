@@ -354,10 +354,12 @@ namespace Kratos
 
               if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {
                   AddNeighbourContributionToStressTensor(GlobalElasticContactForce,
-                                                          LocalCoordSystem[2],
-                                                          distance,
-                                                          radius_sum,
-                                                          calculation_area);}
+                                                          LocalCoordSystem[2],distance, radius_sum);}
+
+              AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
+
+
+
           } //for each neighbor
 
           KRATOS_CATCH("")
@@ -366,66 +368,30 @@ namespace Kratos
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
-                                                                            array_1d<double,3> &other_to_me_vect,
-                                                                            const double &distance,
-                                                                            const double &radius_sum,
-                                                                            const double &calculation_area,
-                                                                            ParticleWeakIteratorType neighbour_iterator, 
-                                                                            ProcessInfo& rCurrentProcessInfo, 
-                                                                            double &rRepresentative_Volume)
-      {
-
-        double gap                  = distance - radius_sum;
-      
-        array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
-      
-        double Dummy_Dummy = 0.0;
-        GeometryFunctions::normalize(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
-
-        array_1d<double,3> x_centroid      = (GetRadius() + 0.5*gap) * normal_vector_on_contact;
-      
-        array_1d<double,3> surface_baricenter = x_centroid;
+//      void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
+//                                                                            array_1d<double,3> &other_to_me_vect,
+//                                                                            const double &distance,
+//                                                                            const double &radius_sum,
+//                                                                            const double &calculation_area,
+//                                                                            ParticleWeakIteratorType neighbour_iterator,
+//                                                                            ProcessInfo& rCurrentProcessInfo,
+//                                                                            double &rRepresentative_Volume){
+//        double gap  = distance - radius_sum;
+//        array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
+//        double value = 0.0;
+//        GeometryFunctions::normalize(normal_vector_on_contact,value); // Normalize to unitary module
+//        array_1d<double,3> x_centroid      = (GetRadius() + 0.5*gap) * normal_vector_on_contact;
+//        array_1d<double,3> surface_baricenter = x_centroid;
+//        double result_product = GeometryFunctions::DotProduct(surface_baricenter,normal_vector_on_contact);
+//        //Aproximation with error: surface_baricenter should be the baricenter of each surface, which can no be calculated because the surfaces are imaginary.
+//        rRepresentative_Volume = rRepresentative_Volume + 0.5 * (result_product * calculation_area);
         
-        double result_product = GeometryFunctions::DotProduct(surface_baricenter,normal_vector_on_contact); 
-        
-        //Aproximation with error: surface_baricenter should be the baricenter of each surface, which can no be calculated because the surfaces are imaginary.
-      
-        rRepresentative_Volume = rRepresentative_Volume + 0.5 * (result_product * calculation_area);
-        
-        for (int i=0; i<3; i++)
-        {
-            for (int j=0; j<3; j++)
-            {   
-                (*mStressTensor)(i,j) += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
-            
-              
-            }
-        }
-
-          
-      } //AddNeighbourContributionToStressTensor
-
-
-
-
+//        for (int i=0; i<3; i++){
+//            for (int j=0; j<3; j++){
+//                (*mStressTensor)(i,j) += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor
+//            }
+//        }
+//      } //AddNeighbourContributionToStressTensor
 
 
 
