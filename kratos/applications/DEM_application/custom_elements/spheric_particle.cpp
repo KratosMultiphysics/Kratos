@@ -789,7 +789,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         }
         
         if (r_process_info[STRESS_STRAIN_OPTION]) {
-                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum, 0.0);
+                AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum);
         }    
         
     }// for each neighbor
@@ -1206,15 +1206,14 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[3],
                                                             const double other_to_me_vect[3],
                                                             const double distance,
-                                                            const double radius_sum,
-                                                            const double contact_area) {
+                                                            const double radius_sum) {
 
         KRATOS_TRY
 
         double gap = distance - radius_sum;
         double real_distance = GetRadius() + 0.5 * gap;
-        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-        rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
+//        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+//        rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
 
         array_1d<double, 3> normal_vector_on_contact;
         normal_vector_on_contact[0] = -1 * other_to_me_vect[0]; //outwards
@@ -1227,8 +1226,21 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
             for (int j = 0; j < 3; j++) {
                 (*mStressTensor)(i,j) += (x_centroid[j]) * Force[i]; //ref: Katalin Bagi 1995 Mean stress tensor                                     
             }
-        }
-        
+        }        
+        KRATOS_CATCH("")
+}
+
+void SphericParticle::AddContributionToRepresentativeVolume(const double distance,
+                                            const double radius_sum,
+                                            const double contact_area) {
+
+        KRATOS_TRY
+
+        double gap = distance - radius_sum;
+        double real_distance = GetRadius() + 0.5 * gap;
+        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+        rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
+
         KRATOS_CATCH("")
 }
 
@@ -1262,15 +1274,19 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     
     KRATOS_TRY
 
+    double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+    const double sphere_volume = 4 *KRATOS_M_PI_3 * GetRadius() * GetRadius() * GetRadius();
+    if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
+        rRepresentative_Volume = sphere_volume;
+    }
+
+    //Update sphere mass and inertia taking into acount the real volume of the represented volume:
+    mRealMass = rRepresentative_Volume * GetDensity();
+    GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mRealMass;
+    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = 0.4 * mRealMass * GetRadius() * GetRadius();
+
     if (r_process_info[STRESS_STRAIN_OPTION]) {
         //Divide Stress Tensor by the total volume:
-        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-
-        const double sphere_volume = 4 *KRATOS_M_PI_3 * GetRadius() * GetRadius() * GetRadius();
-        if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
-            rRepresentative_Volume = sphere_volume;
-        } 
-
         for (int i = 0; i < 3; i++) {  for (int j = 0; j < 3; j++) {  (*mStressTensor)(i,j) /= rRepresentative_Volume;   }  }
 
         //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
@@ -1278,13 +1294,8 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             for (int j = i; j < 3; j++) {
                 (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
             }
-        }  
-              
-        //Update sphere mass and inertia taking into acount the real volume of the represented volume:
-        mRealMass = rRepresentative_Volume * GetDensity();
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mRealMass;  
-        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = 0.4 * mRealMass * GetRadius() * GetRadius();                    
-    }
+        }                           
+    }      
     KRATOS_CATCH("")
 }
 
