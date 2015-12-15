@@ -804,7 +804,12 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
-
+    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+					     std::vector<int>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+    
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -843,6 +848,12 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
+    virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+					     std::vector<int>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+    
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
