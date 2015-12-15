@@ -330,7 +330,7 @@ public:
                 bool element_is_active = true;
                 if( (*it)->IsDefined(ACTIVE) )
                     element_is_active = (*it)->Is(ACTIVE);
-                
+
                 if(element_is_active)
                 {
                     //calculate elemental contribution
@@ -674,10 +674,10 @@ public:
         KRATOS_TRY
 
         BuildRHSNoDirichlet(pScheme,r_model_part,b);
-        
+
         //set to zero the positions of the RHS which correspond to Dirichlet conditions
         int i=0;
-        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)           
+        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
             if(dof_iterator->IsFixed()) b[i++] = 0;
             else i++;
 
@@ -871,7 +871,7 @@ public:
         TSystemVectorType& b)
     {
         TSparseSpace::SetToZero(b);
-        
+
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, r_model_part, b);
 
@@ -942,10 +942,10 @@ public:
                 A(k,k) = 1.0;
                 b[k] = 0.0;
             }
-        } 
+        }
 
         #pragma omp parallel for
-        for (unsigned int k = 0; k < (unsigned int)system_size; ++k)
+        for (int k = 0; k < static_cast<int>(system_size); ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
@@ -1283,7 +1283,7 @@ private:
         }
 
     }
-    
+
     void BuildRHSNoDirichlet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
@@ -1315,7 +1315,7 @@ private:
                 bool element_is_active = true;
                 if( (*it)->IsDefined(ACTIVE) )
                     element_is_active = (*it)->Is(ACTIVE);
-                
+
                 if(element_is_active)
                 {
                     //calculate elemental Right Hand Side Contribution
@@ -1337,10 +1337,10 @@ private:
             bool condition_is_active = true;
             if( (*it)->IsDefined(ACTIVE) )
                 condition_is_active = (*it)->Is(ACTIVE);
-            
+
             if(condition_is_active)
             {
-                        
+
                 //calculate elemental contribution
                 pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1484,4 +1484,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */
-
