@@ -11,7 +11,6 @@
 
 
 /* System includes */
-#include <cmath>
 
 /* Project includes */
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"

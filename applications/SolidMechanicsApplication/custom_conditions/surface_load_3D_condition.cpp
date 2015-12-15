@@ -217,6 +217,10 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
     {
       if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) && GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) //temporary, will be checked once at the beginning only
 	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
+      else if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
+	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
+      else if( GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
+	rVariables.Pressure -= rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
       
     }
     

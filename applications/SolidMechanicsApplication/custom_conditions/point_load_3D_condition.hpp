@@ -119,6 +119,30 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Point Load 3D Condition #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Point Load 3D Condition #" << Id();
+    }
+
+    /// Print object's data.
+
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{

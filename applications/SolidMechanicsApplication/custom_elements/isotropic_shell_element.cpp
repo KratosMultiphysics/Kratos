@@ -10,11 +10,8 @@
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "utilities/math_utils.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "solid_mechanics_application.h"
 

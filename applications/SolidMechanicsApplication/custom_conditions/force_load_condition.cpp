@@ -250,7 +250,7 @@ void ForceLoadCondition::ClearNodalForces()
 //***********************************************************************************
 
 void ForceLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
-						 const Variable<VectorType>& rRHSVariable, 
+						 const Variable<VectorType>& rRHSVariable,
 						 Variable<array_1d<double,3> >& rDestinationVariable, 
 						 const ProcessInfo& rCurrentProcessInfo)
 {
@@ -803,6 +803,7 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
 
 {
     KRATOS_TRY
+
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 

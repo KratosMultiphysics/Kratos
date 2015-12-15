@@ -14,9 +14,7 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/membrane_element.hpp"
-#include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
 
 
