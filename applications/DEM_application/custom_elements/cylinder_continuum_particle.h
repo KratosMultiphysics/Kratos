@@ -136,6 +136,14 @@ namespace Kratos
                                                 ParticleWeakIteratorType neighbour_iterator, 
                                                 ProcessInfo& rCurrentProcessInfo, 
                                                 double &rRepresentative_Volume);
+      void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
+                                         array_1d<double, 3>& rContactForce,
+                                         array_1d<double, 3>& InitialRotaMoment,
+                                         ProcessInfo& rCurrentProcessInfo,
+                                         double dt,
+                                         const bool multi_stage_RHS);
+
+
 
       //ParticleWeakVectorType mrNeighbours;
 
