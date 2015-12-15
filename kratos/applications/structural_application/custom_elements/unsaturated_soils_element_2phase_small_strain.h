@@ -155,7 +155,7 @@ public:
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
     //************************************************************************************
-    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
                                        std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
