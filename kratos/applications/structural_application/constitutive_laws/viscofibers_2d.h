@@ -135,9 +135,9 @@ public:
     bool Has( const Variable<Matrix>& rThisVariable );
 
 // NEW
-    double GetValue( const Variable<double>& rThisVariable );
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix GetValue( const Variable<Matrix>& rThisVariable );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 // NEW
 
 // 			double GetValue( const Variable<double>& rThisVariable );

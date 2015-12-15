@@ -358,7 +358,7 @@ private:
 
     void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
 
-    Matrix GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
+//     Matrix GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
 
     void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
 

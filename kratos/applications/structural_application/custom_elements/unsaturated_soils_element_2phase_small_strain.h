@@ -489,7 +489,7 @@ private:
 //                Matrix CalculateElasticNonlinearStrainTensorTrial(const Matrix& DN_DX_DISP,
 //                        int PointNumber);
 
-    Matrix GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
+//    Matrix GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
 //                Matrix CalculateDeformationTensor(const Matrix& DN_DX, unsigned int TimePoints);
 
     //************************************************************************************

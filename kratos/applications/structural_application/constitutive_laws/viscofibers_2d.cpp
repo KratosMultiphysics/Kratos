@@ -143,7 +143,7 @@ void Viscofibers2D::Calculate(const Variable<Matrix >& rVariable, Matrix& rResul
 }
 
 // NEW GET VALUE !!!!!!!!!
-double Viscofibers2D::GetValue( const Variable<double>& rThisVariable )
+double& Viscofibers2D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 }
@@ -159,7 +159,7 @@ Vector& Viscofibers2D::GetValue( const Variable<Vector>& rThisVariable, Vector& 
     KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 }
 
-Matrix Viscofibers2D::GetValue( const Variable<Matrix>& rThisVariable )
+Matrix& Viscofibers2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
     KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 }
