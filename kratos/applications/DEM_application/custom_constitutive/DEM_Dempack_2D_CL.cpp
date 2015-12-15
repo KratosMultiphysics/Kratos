@@ -344,7 +344,7 @@ namespace Kratos {
             if (mHistoryShearFlag == 0.0) {
 
                 LocalElasticContactForce[0] += -degradation * kt_el * LocalDeltDisp[0]; // 0: first tangential
-                LocalElasticContactForce[1] += -degradation * kt_el * LocalDeltDisp[1]; // 1: second tangential  
+                LocalElasticContactForce[1] += -degradation * kt_el * LocalDeltDisp[1]; // 1: second tangential
             }
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                     + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
