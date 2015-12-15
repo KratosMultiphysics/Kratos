@@ -505,10 +505,12 @@ namespace Kratos {
 
             if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, 
-                                                        LocalCoordSystem[2], 
-                                                        distance, 
-                                                        radius_sum, 
-                                                        calculation_area);}            
+                                                        LocalCoordSystem[2],distance, radius_sum);}
+
+            AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
+
+
+
         } //for each neighbor
 
         KRATOS_CATCH("")
