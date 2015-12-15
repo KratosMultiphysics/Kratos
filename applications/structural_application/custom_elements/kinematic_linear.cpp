@@ -229,7 +229,7 @@ namespace Kratos
      * @param output Vector to store the values on the qudrature points, output of the method
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( Output.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
             Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );

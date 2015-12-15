@@ -181,7 +181,7 @@ public:
 
     void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateOnIntegrationPoints( const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
 
