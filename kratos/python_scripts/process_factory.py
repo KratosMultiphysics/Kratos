@@ -39,14 +39,15 @@ def Factory(settings, Model):
         params = settings["parameters"]
         model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
         mesh_id = int(params["mesh_id"])
-        variable_name = params["variable_name"] 
+        variable = globals().get( params["variable_name"] )
         value = params["value"] 
         is_fixed = params["is_fixed"]
     
         options = Flags()
         options.Set(ApplyConstantScalarValueProcess.VARIABLE_IS_FIXED,  is_fixed)
 
-        return ApplyConstantScalarValueProcess(model_part, variable_name, value,mesh_id,options)
+        print(variable, value)
+        return ApplyConstantScalarValueProcess(model_part, variable, value, mesh_id, options)
     
     elif(settings["process_name"] == "ApplyConstantVectorValueProcess"):
         params = settings["parameters"]
