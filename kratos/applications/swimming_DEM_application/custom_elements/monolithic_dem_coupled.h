@@ -338,6 +338,7 @@ public:
         std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
         this->AddMassRHS(rRightHandSideVector, Density, N, Area, SchemeWeights, DeltaTime);
         // Shape functions and integration points
+
 /*
         MatrixType NContainer;
         ShapeFunctionDerivativesArrayType DN_DXContainer;
@@ -351,6 +352,7 @@ public:
             this->AddMomentumRHS(rRightHandSideVector, Density, Ng, GaussWeight);
             this->AddMassRHS(rRightHandSideVector, Density, Ng, GaussWeight, SchemeWeights, DeltaTime);
           }
+
 */
 
 //Z
@@ -553,6 +555,7 @@ public:
 //G
         this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
 /*
+
         MatrixType NContainer;
         ShapeFunctionDerivativesArrayType DN_DXContainer;
         VectorType GaussWeights;
@@ -566,6 +569,7 @@ public:
             this->GetAdvectiveVel(AdvVel, Ng);
             this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, Ng, DN_DX, GaussWeight);
         }
+
 */
 
 //Z
@@ -686,6 +690,7 @@ public:
 //G
             this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
 
+
 /*
                 MatrixType NContainer;
                 ShapeFunctionDerivativesArrayType DN_DXContainer;
@@ -699,6 +704,7 @@ public:
                     this->GetAdvectiveVel(AdvVel, Ng);
                     this->ASGSMomResidual(AdvVel, Density, ElementalMomRes, Ng, DN_DX, GaussWeight);
                   }
+
 */
 //Z
                 ElementalMomRes *= TauOne;
@@ -1530,8 +1536,15 @@ protected:
         }
 
         this->EvaluateInPoint(FluidFractionRate,FLUID_FRACTION_RATE,rShapeFunc);
-//Z
 
+        const double EpsilonInside = false;
+
+        if (EpsilonInside){
+            array_1d<double,3> rGradEpsOverEps;
+            rGradEpsOverEps = 1.0 / FluidFraction * FluidFractionGradient ;
+        }
+
+//Z
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
@@ -2055,6 +2068,7 @@ protected:
     {
         // Compute the weighted value of the nodal variable in the (Gauss) Point
         rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
+
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
             rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
     }
@@ -2086,7 +2100,7 @@ protected:
       if (rVariable == FLUID_FRACTION_RATE){
           rResult = 0.0;
 //          int index = 0;
-          double delta_time_inv = 1 / DeltaTime;
+          double delta_time_inv = 1.0 / DeltaTime;
 
 //          for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
 
