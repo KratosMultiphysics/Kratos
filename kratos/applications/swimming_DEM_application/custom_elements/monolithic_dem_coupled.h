@@ -1313,7 +1313,7 @@ protected:
     {
       double FluidFractionRate = 0.0;
       this->EvaluateTimeDerivativeInPoint(FluidFractionRate, FLUID_FRACTION_RATE, rShapeFunc, DeltaTime, TimeSchemeWeights);
-      this->EvaluateInPoint(FluidFractionRate, FLUID_FRACTION_RATE, rShapeFunc);
+      //this->EvaluateInPoint(FluidFractionRate, FLUID_FRACTION_RATE, rShapeFunc);
       // Add the results to the pressure components (Local Dofs are vx, vy, [vz,] p for each node)
       int LocalIndex = TDim;
 
@@ -1484,7 +1484,7 @@ protected:
                     // Delta(u) * TauOne * Grad(q) in q * Div(u) block
 //G
     //                rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
-                      rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * FluidFraction * rShapeDeriv(i, d) * rShapeFunc[j];
+                      rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * FluidFraction * rShapeDeriv(i, d) * rShapeFunc[j]; // Delta(u) * TauOne * alpha * Grad(q)
 //Z
                 }
                 // Update column index
@@ -1583,7 +1583,7 @@ protected:
                     // Use symmetry to write the q * Div(u) component
 //G
     //              rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
-                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (GAlpha + PAlphaDivV);
+                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (GAlpha + PAlphaDivV); // note that here PAlphaDivV includes G; do not look for it in GAlpha!
 
     //              q-p stabilization block
     //              L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
@@ -1617,9 +1617,10 @@ protected:
 
             for (unsigned int d = 0; d < TDim; ++d)
             {
-                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                //rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
 //G
-                //rDampRHS[FirstRow + d] += Weight * (TauOne * Density * AGradNMod[i] * BodyForce[d] - TauTwo * rShapeDeriv(i, d) * FluidFractionRate); // ( a * Grad(v) ) * TauOne * (Density * BodyForce) + Div(v) * TauTwo * (- DAlphaDt)
+//GG                rDampRHS[FirstRow + d] += Weight * (TauOne * Density * AGradNMod[i] * BodyForce[d] - TauTwo * rShapeDeriv(i, d) * FluidFractionRate); // ( a * Grad(v) ) * TauOne * (Density * BodyForce) + Div(v) * TauTwo * (- DAlphaDt)
+                rDampRHS[FirstRow + d] += Weight * (TauOne * Density * AGradN[i] * BodyForce[d] - TauTwo * rShapeDeriv(i, d) * FluidFractionRate); // ( a * Grad(v) ) * TauOne * (Density * BodyForce) + Div(v) * TauTwo * (- DAlphaDt)
 
     //          qF += rShapeDeriv(i, d) * BodyForce[d];
                 qF += (FluidFraction * rShapeDeriv(i, d)) * BodyForce[d];
@@ -2098,7 +2099,6 @@ protected:
         // Compute the time derivative of a nodal variable as a liner contribution of weighted value of the nodal variable in the (Gauss) Point
 
       if (rVariable == FLUID_FRACTION_RATE){
-          rResult = 0.0;
 //          int index = 0;
           double delta_time_inv = 1.0 / DeltaTime;
 
