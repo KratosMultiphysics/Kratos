@@ -93,7 +93,10 @@ This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )*
 with the restriction that "distance" is a finite elment function
 */
 
-template< unsigned int TDim >
+template< unsigned int TDim,
+          class TSparseSpace,
+          class TDenseSpace,
+          class TLinearSolver >
 class VariationalDistanceCalculationProcess
     : public Process
 {
@@ -104,11 +107,9 @@ public:
     
     ///@name Type Definitions
     ///@{
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef Scheme< SparseSpaceType,  LocalSpaceType > SchemeType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
+
+    typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
+    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
 ///@}
     ///@name Pointer Definitions
@@ -150,7 +151,7 @@ public:
      distance_calculator.Execute()
      */
     VariationalDistanceCalculationProcess(ModelPart& base_model_part,
-                                          typename LinearSolverType::Pointer plinear_solver,
+                                          typename TLinearSolver::Pointer plinear_solver,
                                           unsigned int max_iterations = 10
                                          )
         :mr_base_model_part(base_model_part)
@@ -183,15 +184,15 @@ public:
         //generate a linear strategy
 
 
-        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType,LocalSpaceType >() );
-        typedef typename BuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer BuilderSolverTypePointer;
+        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
+        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
 
-        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType>(plinear_solver) );
-        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType >(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mp_solving_strategy->Check();
@@ -298,6 +299,14 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    /// Minimal constructor for derived classes
+    VariationalDistanceCalculationProcess(ModelPart &base_model_part, unsigned int max_iterations):
+        mr_base_model_part(base_model_part)
+    {
+        mdistance_part_is_initialized = false;
+        mmax_iterations = max_iterations;
+    }
+
 
     ///@}
     ///@name Protected member Variables
@@ -307,13 +316,13 @@ protected:
     ModelPart::Pointer mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
-    SolvingStrategyType::Pointer mp_solving_strategy;
+    typename SolvingStrategyType::Pointer mp_solving_strategy;
 
 
     ///@}
     ///@name Protected Operators
     ///@{
-    void ReGenerateDistanceModelPart(ModelPart& base_model_part)
+    virtual void ReGenerateDistanceModelPart(ModelPart& base_model_part)
     {
         KRATOS_TRY
 
@@ -412,6 +421,11 @@ protected:
 //             min_grad = std::min(min_grad, grad_norm);
 //             max_grad = std::max(max_grad, grad_norm);
         }
+
+        // For MPI: assemble results across partitions
+        mp_distance_model_part->GetCommunicator().SumAll(avg_grad);
+        mp_distance_model_part->GetCommunicator().SumAll(tot_vol);
+
         avg_grad /= tot_vol;
 
 
@@ -499,8 +513,11 @@ private:
 }; // Class VariationalDistanceCalculationProcess
 
 //avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim > const Kratos::Flags VariationalDistanceCalculationProcess<TDim>::PERFORM_STEP1(Kratos::Flags::Create(0));
-template< unsigned int TDim > const Kratos::Flags VariationalDistanceCalculationProcess<TDim>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::PERFORM_STEP1(Kratos::Flags::Create(0));
+
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
 
 
 
@@ -516,14 +533,14 @@ template< unsigned int TDim > const Kratos::Flags VariationalDistanceCalculation
 
 
 /// input stream function
-template< unsigned int TDim>
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  VariationalDistanceCalculationProcess<TDim>& rThis);
+                                  VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>& rThis);
 
 /// output stream function
-template< unsigned int TDim>
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const VariationalDistanceCalculationProcess<TDim>& rThis)
+                                  const VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
