@@ -193,27 +193,18 @@ public:
     {
         KRATOS_TRY;
 
-        // Mesh has to be regenerated in each solving step
-       // ReGenerateMeshPart();
-
-        //ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
-
-        // Updating the time
-        //rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
-        //rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
         // Setting mesh to initial configuration
-//        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd() ; ++i)
-//          {
-//            (i)->X() = (i)->X0();
-//            (i)->Y() = (i)->Y0();
-//            (i)->Z() = (i)->Z0();
-//          }
+        for(ModelPart::NodeIterator i = (*mpMeshModelPart ).NodesBegin();
+            i != (*mpMeshModelPart ).NodesEnd(); ++i) {
+
+          (i)->X() = (i)->X0();
+          (i)->Y() = (i)->Y0();
+          (i)->Z() = (i)->Z0();
+        }
+
 
         // Solve for the mesh movement
         mstrategy->Solve();
-
-
 
         //copy back
 

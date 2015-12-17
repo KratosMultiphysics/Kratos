@@ -42,13 +42,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-/* *********************************************************
-*
-*   Last Modified by:    $Author: AMini $
-*   Date:                $Date: Mai 2015 $
-*   Revision:            $Revision: 1.3 $
-*
-* ***********************************************************/
+/* ****************************************************************************
+ *  Projectname:         $KratosALEApplication
+ *  Last Modified by:    $Author: Andreas.Mini@tum.de $
+ *  Date:                $Date: November 2015 $
+ *  Revision:            $Revision: 1.4 $
+ * ***************************************************************************/
 
 
 #if !defined( KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED )
@@ -60,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -142,12 +141,12 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
     ///Bulid up system matrices
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo);
 
-    ///Get equation Id Vector
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    ///Get the degrees of freedom
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
     ///@{
 
@@ -164,15 +163,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.(Deactivated)
-    //      virtual String Info() const;
-
-    /// Print information about this object.(Deactivated)
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.(Deactivated)
-    //      virtual void PrintData(std::ostream& rOStream) const;
     ///@}
 
     ///@name Friends
@@ -254,20 +244,6 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function (Deactivated)
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                    LaplacianMeshMovingElement& rThis);
-*/
-/// output stream function (Deactivated)
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                    const LaplacianMeshMovingElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 

@@ -28,10 +28,6 @@
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_elements/structural_meshmoving_element_nonlinear.h"
 
-
-
-
-
 #include "includes/variables.h"
 
 
@@ -197,13 +193,10 @@ private:
     ///@{
     const LaplacianMeshMovingElement<2>   mLaplacianMeshMovingElement2D;
     const LaplacianMeshMovingElement<3>   mLaplacianMeshMovingElement3D;
-    const StructuralMeshMovingElement<2> mStructuralMeshMovingElement2D;
-    const StructuralMeshMovingElement<3> mStructuralMeshMovingElement3D;
+    const StructuralMeshMovingElement mStructuralMeshMovingElement2D3N;
+    const StructuralMeshMovingElement mStructuralMeshMovingElement3D4N;
     const StructuralMeshMovingElementNonlinear<2>  mStructuralMeshMovingElement2DNonlinear;
     const StructuralMeshMovingElementNonlinear<3>  mStructuralMeshMovingElement3DNonlinear;
-
-
-
     ///@}
     ///@name Private Operators
     ///@{
