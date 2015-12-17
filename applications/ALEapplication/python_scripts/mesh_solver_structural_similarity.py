@@ -23,12 +23,11 @@ def AddDofs(model_part):
 
 class MeshSolverStructuralSimilarity:
 
-    def __init__(self, model_part, domain_size, reform_dof_at_every_step):
+    def __init__(self, model_part, reform_dof_at_every_step):
 
         # set parameters
         self.time_order = 2
         self.model_part = model_part
-        self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
 
         # neighbour search
@@ -51,7 +50,7 @@ class MeshSolverStructuralSimilarity:
     def Initialize(self):
         (self.neighbour_search).Execute()
 
-        self.solver = StructuralMeshMovingStrategy(self.model_part, self.linear_solver, self.domain_size, self.time_order, self.reform_dof_at_every_step)
+        self.solver = StructuralMeshMovingStrategy(self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print("Finished moving the mesh")
 

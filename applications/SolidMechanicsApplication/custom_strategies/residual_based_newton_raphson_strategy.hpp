@@ -238,7 +238,7 @@ public:
 
         mInitializeWasPerformed = false;
 
-	mFinalizeSolutionStep = true;
+        mFinalizeSolutionStep = true;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);

@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/structural_meshmoving_strategy.h"
 #include "custom_strategies/strategies/structural_meshmoving_strategy_nonlinear.h"
+//#include "custom_strategies/strategies/structural_meshmoving_strategy_2.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -90,8 +91,11 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+
+    //typedef StructuralMeshMovingStrategy_2< SparseSpaceType, LocalSpaceType, LinearSolverType > StructuralMeshMovingStrategy_2Type;
 
     //********************************************************************
     //********************************************************************
@@ -105,10 +109,17 @@ void  AddCustomStrategiesToPython()
     class_< StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             ("StructuralMeshMovingStrategy",
-             init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+             init<ModelPart&, LinearSolverType::Pointer, int, bool >() )
             .def("MoveNodes",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
             ;
 
+/*
+    class_< StructuralMeshMovingStrategy_2Type,
+            bases< BaseSolvingStrategyType >,  boost::noncopyable >
+            ("StructuralMeshMovingStrategy_2",
+             init<ModelPart&, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, int, bool, bool>() )
+            ;
+*/
     class_< StructuralMeshMovingStrategyNonlinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             ("StructuralMeshMovingStrategyNonlinear",
