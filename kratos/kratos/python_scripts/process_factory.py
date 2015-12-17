@@ -53,7 +53,7 @@ def Factory(settings, Model):
         params = settings["parameters"]
         model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
         mesh_id = int(params["mesh_id"])
-        variable_name = params["variable_name"]  
+        variable = globals().get( params["variable_name"] ) 
         value = params["value"]
         factor = params["factor"]  
         
@@ -66,6 +66,6 @@ def Factory(settings, Model):
         options.Set(ApplyConstantVectorValueProcess.Y_COMPONENT_FIXED,  is_fixed_y)
         options.Set(ApplyConstantVectorValueProcess.Z_COMPONENT_FIXED,  is_fixed_z)
             
-        new_process = ApplyConstantVectorValueProcess(model_part, variable_name, factor, value,mesh_id, options)
+        new_process = ApplyConstantVectorValueProcess(model_part, variable, factor, value,mesh_id, options)
         
         return new_process

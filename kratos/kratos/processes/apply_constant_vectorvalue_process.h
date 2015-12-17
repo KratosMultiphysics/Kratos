@@ -73,25 +73,29 @@ public:
 
     /// Default constructor.
     ApplyConstantVectorValueProcess(ModelPart& model_part, 
-                              std::string variable_name, 
+                              const Variable< array_1d<double, 3 > >& rVariable, 
                               const double factor,
                               const Vector direction, 
                               std::size_t mesh_id,
                               Flags options
-                                   ) : Process(options) , mr_model_part(model_part),mvariable_name(variable_name), mfactor(factor),mdirection(direction),mmesh_id(mesh_id)
+                                   ) : Process(options) , mr_model_part(model_part), mfactor(factor),mdirection(direction),mmesh_id(mesh_id)
     {
         KRATOS_TRY
         
         if(mesh_id >= model_part.NumberOfMeshes())
             KRATOS_THROW_ERROR(std::runtime_error,"mesh does not exist in model_part: mesh id is --> ",mesh_id)
-            
-        //get mesh to ensure it exists
-        ModelPart::MeshType::Pointer pmesh = model_part.pGetMesh(mesh_id);
-        
+                    
         if(this->IsDefined(X_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","")
         if(this->IsDefined(Y_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","")
         if(this->IsDefined(Z_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","")
-           
+  
+        mvariable_name = rVariable.Name();
+        
+        if( model_part.GetNodalSolutionStepVariablesList().Has(rVariable) == false )
+         {
+             std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
+             KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
+         }
         
         if(direction.size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
             
@@ -103,11 +107,7 @@ public:
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
 
-         if( model_part.GetNodalSolutionStepVariablesList().Has(   KratosComponents<Variable<array_1d<double, 3> > >::Get(mvariable_name)) == false )
-         {
-             std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
-             KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
-         }
+         
          
         KRATOS_CATCH("")
     }

@@ -71,7 +71,7 @@ public:
 
     /// Default constructor.
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              Variable<double>& rVariable, 
+                              const Variable<double>& rVariable, 
                               const double double_value, 
                               std::size_t mesh_id,
                               Flags options
@@ -90,7 +90,7 @@ public:
     }
     
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, 
+                              const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, 
                               const double double_value, 
                               std::size_t mesh_id,
                               Flags options
@@ -109,7 +109,7 @@ public:
     }
    
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              Variable< int >& rVariable, 
+                              const Variable< int >& rVariable, 
                               const int int_value, 
                               std::size_t mesh_id,
                               Flags options
@@ -130,7 +130,7 @@ public:
     }
     
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              Variable< bool >& rVariable, 
+                              const Variable< bool >& rVariable, 
                               const bool bool_value, 
                               std::size_t mesh_id,
                               Flags options
