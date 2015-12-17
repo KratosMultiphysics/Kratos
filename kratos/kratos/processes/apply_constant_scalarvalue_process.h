@@ -179,10 +179,7 @@ public:
     virtual void ExecuteInitialize()
     {
         KRATOS_TRY
-        const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
-        
-                KRATOS_WATCH(is_fixed)
-        KRATOS_WATCH(mdouble_value);
+        const bool is_fixed = this->Is(VARIABLE_IS_FIXED);        
         
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
@@ -192,8 +189,7 @@ public:
         {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
             component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-//            KRATOS_WATCH( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get(mvariable_name) )
-           InternalApplyValue< component_type, double>(var_component , is_fixed,  mdouble_value);
+            InternalApplyValue< component_type, double>(var_component , is_fixed,  mdouble_value);
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
         {
@@ -298,8 +294,6 @@ private:
     void InternalApplyValue(TVarType& rVar, const bool to_be_fixed, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-        KRATOS_WATCH(rVar)
-        KRATOS_WATCH(value);
         
         if(nnodes != 0)
         {
