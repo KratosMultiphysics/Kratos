@@ -28,6 +28,7 @@
 
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
 #include "custom_processes/trilinos_stokes_initialization_process.h"
+#include "custom_processes/trilinos_variational_distance_calculation_process.h"
 #include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
 #include "../FluidDynamicsApplication/custom_processes/stokes_initialization_process.h"
 #include "linear_solvers/linear_solver.h"
@@ -67,6 +68,18 @@ void AddProcesses()
     class_< TrilinosStokesInitializationProcess< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, bases<BaseStokesInitializationType>, boost::noncopyable >
             ("TrilinosStokesInitializationProcess",init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
             ;
+
+    typedef VariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType2D;
+    typedef VariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType3D;
+
+    class_< BaseDistanceCalculationType2D, bases< Process >, boost::noncopyable >("BaseDistanceCalculation2D",no_init);
+    class_< BaseDistanceCalculationType3D, bases< Process >, boost::noncopyable >("BaseDistanceCalculation3D",no_init);
+
+    class_< TrilinosVariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>,
+            bases< BaseDistanceCalculationType2D >, boost::noncopyable >("TrilinosVariationalDistanceCalculationProcess2D",init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
+
+    class_< TrilinosVariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>,
+            bases< BaseDistanceCalculationType3D >, boost::noncopyable >("TrilinosVariationalDistanceCalculationProcess3D",init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
 }
 
 }

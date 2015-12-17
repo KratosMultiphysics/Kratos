@@ -1068,7 +1068,7 @@ public:
 //            }
 //        }
 
-        std::cout << "finished modifying A for dirichlet" << std::endl;
+        //std::cout << "finished modifying A for dirichlet" << std::endl;
 
         /*
                 int NumEntries;    // number of nonzero entries extracted

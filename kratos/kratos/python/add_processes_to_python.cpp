@@ -176,10 +176,10 @@ void  AddProcessesToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    class_<VariationalDistanceCalculationProcess<2> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess2D",
+    class_<VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType > , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess2D",
             init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;
-    class_<VariationalDistanceCalculationProcess<3> , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess3D",
+    class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType > , bases<Process>, boost::noncopyable >("VariationalDistanceCalculationProcess3D",
             init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;    
     

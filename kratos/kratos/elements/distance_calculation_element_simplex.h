@@ -45,6 +45,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 
 // Application includes
 #include "includes/variables.h"
