@@ -41,7 +41,7 @@ import variables_management as vars_man
 import embedded
 
 # listing project parameters (to be put in problem type)
-pp.swim                                   = swimming_dem_parameters
+pp.CFD_DEM                                   = DEM_parameters
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
@@ -65,10 +65,10 @@ else:
 
 import sphere_strategy as SolverStrategy
 
-pp.swim.coupling_level_type = DEM_parameters.coupling_level_type
-#pp.swim.lift_force_type = DEM_parameters.lift_force_option
-pp.swim.drag_modifier_type = DEM_parameters.drag_modifier_type
-pp.swim.fluid_domain_volume                    = 2 * math.pi # write down the volume you know it has
+pp.CFD_DEM.coupling_level_type = DEM_parameters.coupling_level_type
+#pp.CFD_DEM.lift_force_type = DEM_parameters.lift_force_option
+pp.CFD_DEM.drag_modifier_type = DEM_parameters.drag_modifier_type
+DEM_parameters.fluid_domain_volume                    = 2 * math.pi # write down the volume you know it has
 
 ##############################################################################
 #                                                                            #
@@ -221,7 +221,7 @@ model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
 # Setting up the buffer size
-if pp.swim.virtual_mass_force_type  > 0:
+if DEM_parameters.virtual_mass_force_type  > 0:
     buffer_size = 2
 else:
     buffer_size = 1
@@ -402,7 +402,7 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
     #domain_size)
 
 # setting fluid's body force to the same as DEM's
-if pp.swim.body_force_on_fluid_option:
+if DEM_parameters.body_force_on_fluid_option:
 
     for node in fluid_model_part.Nodes:
         node.SetSolutionStepValue(BODY_FORCE_X, 0, DEM_parameters.GravityX)
@@ -411,7 +411,7 @@ if pp.swim.body_force_on_fluid_option:
 
 # coarse-graining: applying changes to the physical properties of the model to adjust for
 # the similarity transformation if required (fluid effects only).
-swim_proc.ApplySimilarityTransformations(fluid_model_part, pp.swim.similarity_transformation_type , pp.swim.model_over_real_diameter_factor )
+swim_proc.ApplySimilarityTransformations(fluid_model_part, DEM_parameters.similarity_transformation_type , DEM_parameters.model_over_real_diameter_factor )
 
 # creating a Post Utils object that executes several post-related tasks
 post_utils = swim_proc.PostUtils(swimming_DEM_gid_io,
@@ -429,18 +429,18 @@ io_tools = swim_proc.IOTools(pp)
 h_min = 0.01
 n_balls = 1
 fluid_volume = 10
-pp.swim.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
+DEM_parameters.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant in 2D problems
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_part)
 
-if pp.swim.projection_module_option:
+if DEM_parameters.coupling_level_type:
 
-    if pp.swim.meso_scale_length  <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
+    if DEM_parameters.meso_scale_length  <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
-        pp.swim.meso_scale_length  = 20 * biggest_size
+        DEM_parameters.meso_scale_length  = 20 * biggest_size
 
     elif spheres_model_part.NumberOfElements(0) == 0:
-        pp.swim.meso_scale_length  = 1.0
+        DEM_parameters.meso_scale_length  = 1.0
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, spheres_model_part, rigid_face_model_part, domain_size, pp)
     projection_module.UpdateDatabase(h_min)
@@ -449,14 +449,14 @@ if pp.swim.projection_module_option:
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
 
 # creating a stationarity assessment tool
-stationarity_tool = swim_proc.StationarityAssessmentTool(pp.swim.max_pressure_variation_rate_tol , custom_functions_tool)
+stationarity_tool = swim_proc.StationarityAssessmentTool(DEM_parameters.max_pressure_variation_rate_tol , custom_functions_tool)
 
 # creating a debug tool
-dem_volume_tool = swim_proc.ProjectionDebugUtils(pp.swim.fluid_domain_volume, fluid_model_part, spheres_model_part, custom_functions_tool)
+dem_volume_tool = swim_proc.ProjectionDebugUtils(DEM_parameters.fluid_domain_volume, fluid_model_part, spheres_model_part, custom_functions_tool)
 
 # creating a distance calculation process for the embedded technology
 # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
-if (pp.swim.embedded_option):
+if (DEM_parameters.embedded_option):
     calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(rigid_face_model_part, fluid_model_part)
     calculate_distance_process.Execute()
 
@@ -502,15 +502,15 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     else:
         KRATOSprint("Activate Contact Mesh for ModelData information")
 
-if pp.swim.flow_in_porous_medium_option:
-    fluid_frac_util = swim_proc.FluidFractionFieldUtility(fluid_model_part, pp.swim.min_fluid_fraction )
+if DEM_parameters.flow_in_porous_medium_option:
+    fluid_frac_util = swim_proc.FluidFractionFieldUtility(fluid_model_part, DEM_parameters.min_fluid_fraction )
 
     for field in pp.fluid_fraction_fields:
         fluid_frac_util.AppendLinearField(field)
 
     fluid_frac_util.AddFluidFractionField()
 
-if pp.swim.flow_in_porous_DEM_medium_option:
+if DEM_parameters.flow_in_porous_DEM_medium_option:
     swim_proc.FixModelPart(spheres_model_part)
 
 # choosing the directory in which we want to work (print to)
@@ -535,13 +535,13 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 ######################################################################################################################################
 
 # setting up loop counters
-embedded_counter          = swim_proc.Counter(1, 3, pp.swim.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
-DEM_to_fluid_counter      = swim_proc.Counter(1, 1, pp.swim.coupling_level_type  == 1)
-pressure_gradient_counter = swim_proc.Counter(1, 1, pp.swim.projection_module_option)
-stationarity_counter      = swim_proc.Counter(pp.swim.time_steps_per_stationarity_step , 1, pp.swim.stationary_problem_option)
+embedded_counter          = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+DEM_to_fluid_counter      = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type  == 1)
+pressure_gradient_counter = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
+stationarity_counter      = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
 print_counter             = swim_proc.Counter(1, 1, out >= output_time)
-debug_info_counter        = swim_proc.Counter(pp.swim.debug_tool_cycle, 1, pp.swim.print_debug_info_option)
-particles_results_counter = swim_proc.Counter(pp.swim.print_particles_results_cycle , 1, pp.swim.print_particles_results_option)
+debug_info_counter        = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
+particles_results_counter = swim_proc.Counter(DEM_parameters.print_particles_results_cycle , 1, DEM_parameters.print_particles_results_option)
 
 #G
 #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
@@ -588,14 +588,14 @@ while (time <= final_time):
     print("\n", "TIME = ", time)
     sys.stdout.flush()
 
-    if pp.swim.coupling_scheme_type  == "UpdatedDEM":
+    if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
         time_final_DEM_substepping = time + Dt
 
     else:
         time_final_DEM_substepping = time
 
     # calculating elemental distances defining the structure embedded in the fluid mesh
-    if pp.swim.embedded_option:
+    if DEM_parameters.embedded_option:
         calculate_distance_process.Execute()
 
     if embedded_counter.Tick():
@@ -630,16 +630,16 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if output_time <= out and pp.swim.coupling_scheme_type == "UpdatedDEM":
+    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedDEM":
 
-        if pp.swim.projection_module_option:
+        if DEM_parameters.coupling_level_type > 0:
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
         out = 0
 
     # solving the DEM part
-    pressure_gradient_counter.Deactivate(time < pp.swim.interaction_start_time)
+    pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
     if pressure_gradient_counter.Tick():
         custom_functions_tool.CalculatePressureGradient(fluid_model_part)
@@ -658,9 +658,9 @@ while (time <= final_time):
 
         # applying fluid-to-DEM coupling if required
 
-        if time >= pp.swim.interaction_start_time and pp.swim.projection_module_option and (pp.swim.project_at_every_substep_option or first_dem_iter):
+        if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
-            if pp.swim.coupling_scheme_type == "UpdatedDEM":
+            if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
             else:
@@ -672,7 +672,7 @@ while (time <= final_time):
         rigid_face_model_part.ProcessInfo[TIME] = time_dem
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-        if not pp.swim.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
+        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
             solver.Solve()
 
         # Walls movement:
@@ -698,7 +698,7 @@ while (time <= final_time):
 
     # applying DEM-to-fluid coupling
 
-    if DEM_to_fluid_counter.Tick() and time >= pp.swim.interaction_start_time:
+    if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
         projection_module.ProjectFromParticles()
@@ -706,7 +706,7 @@ while (time <= final_time):
     # coupling checks (debugging)
 
     if debug_info_counter.Tick():
-        dem_volume_tool.UpdateDataAndPrint(pp.swim.fluid_domain_volume)
+        dem_volume_tool.UpdateDataAndPrint(DEM_parameters.fluid_domain_volume)
 
     # printing if required
 
@@ -721,9 +721,9 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if output_time <= out and pp.swim.coupling_scheme_type == "UpdatedFluid":
+    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
 
-        if pp.swim.projection_module_option:
+        if DEM_parameters.coupling_level_type:
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
