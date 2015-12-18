@@ -65,8 +65,8 @@ else:
 
 import sphere_strategy as SolverStrategy
 
-pp.swim.coupling_level_type = DEM_parameters.project_from_particles_option
-pp.swim.lift_force_type = DEM_parameters.consider_lift_force_option
+pp.swim.coupling_level_type = DEM_parameters.coupling_level_type
+#pp.swim.lift_force_type = DEM_parameters.lift_force_option
 pp.swim.drag_modifier_type = DEM_parameters.drag_modifier_type
 pp.swim.fluid_domain_volume                    = 2 * math.pi # write down the volume you know it has
 
