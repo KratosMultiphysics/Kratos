@@ -1353,7 +1353,7 @@ namespace Kratos
               for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){                                                  
                     Condition* p_neighbour_condition = (*neighbour_it).get();
                     DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
-                    RigidFaceGeometricalConfigureType::DoubleHierarchyMethod3D(mListOfSphericParticles[i], p_wall); 
+                    RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(mListOfSphericParticles[i], p_wall); 
                 }
               
                 std::vector<double>& RF_Param = mListOfSphericParticles[i]->mNeighbourRigidFacesPram;
