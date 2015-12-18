@@ -377,7 +377,7 @@ void ComputePostProcessResults(
 {
     if (IsDEMVariable(REYNOLDS_NUMBER)){
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
             ElementIteratorType ielem = r_dem_model_part.ElementsBegin() + i;
             Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -388,7 +388,7 @@ void ComputePostProcessResults(
 
     if (IsFluidVariable(AVERAGED_FLUID_VELOCITY)){
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
             NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
             double fluid_fraction                         = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
@@ -400,7 +400,7 @@ void ComputePostProcessResults(
 
     if (IsFluidVariable(SOLID_FRACTION)){
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
             NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
             double& solid_fraction = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
@@ -541,7 +541,7 @@ void InterpolateFluidFraction(
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-    #pragma omp parallel for firstprivate(results, N)
+    //#pragma omp parallel for firstprivate(results, N)
     for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
         Node<3>::Pointer p_particle = *(i_particle.base());
@@ -577,21 +577,23 @@ void InterpolateOtherFluidVariables(
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-    #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
-        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_particle = *(i_particle.base());
-        Element::Pointer p_element;
+    //#pragma omp parallel
+    {
+        for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+            NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+            Node<3>::Pointer p_particle = *(i_particle.base());
+            Element::Pointer p_element;
 
-        // looking for the fluid element in which the DEM node falls
-        bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
+            // looking for the fluid element in which the DEM node falls
+            bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
 
-        // interpolating variables
+            // interpolating variables
 
-        if (is_found) {
-
-            for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
-                Distribute(p_element, N, p_particle, mFluidCouplingVariables[j]);
+            if (is_found) {
+                //#pragma omp parallel for firstprivate(N)
+                for (int j = 0; j < (int)mFluidCouplingVariables.size(); ++j){
+                    Distribute(p_element, N, p_particle, mFluidCouplingVariables[j]);
+                }
             }
         }
     }
@@ -1201,10 +1203,13 @@ void TransferWithLinearWeighing(
 
         for (unsigned int i = 0; i < TDim + 1; i++){
             array_1d<double, 3>& hydrodynamic_reaction = geom[i].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& body_force            = geom[i].FastGetSolutionStepValue(BODY_FORCE);
             const double& fluid_fraction               = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
             const double& nodal_volume                 = geom[i].FastGetSolutionStepValue(NODAL_AREA);
             const double& density                      = geom[i].FastGetSolutionStepValue(DENSITY);
             hydrodynamic_reaction -= mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume) * origin_data;
+            body_force = hydrodynamic_reaction;
+            body_force[2] -= 9.81;
         }
     }
 
