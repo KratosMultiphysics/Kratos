@@ -51,7 +51,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class SphericSwimmingParticle : public SphericParticle
+  class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericSwimmingParticle : public SphericParticle
     {
     public:
 
