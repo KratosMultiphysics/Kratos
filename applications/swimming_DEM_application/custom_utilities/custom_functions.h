@@ -258,16 +258,11 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
-            double density;
-            double fluid_fraction;
             double element_volume;
             array_1d <double, 3> element_force;
 
             if (geom[0].SolutionStepsDataHas(HYDRODYNAMIC_REACTION) && geom[0].SolutionStepsDataHas(FLUID_FRACTION)){
-                element_force  = CalculateVectorIntegralOfLinearInterpolation(geom, HYDRODYNAMIC_REACTION, element_volume);
-                density        = CalculateScalarIntegralOfLinearInterpolation(geom, DENSITY, element_volume) / element_volume;
-                fluid_fraction = CalculateScalarIntegralOfLinearInterpolation(geom, FLUID_FRACTION, element_volume) / element_volume;
-                element_force *= density * fluid_fraction;
+                element_force  = CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(geom, HYDRODYNAMIC_REACTION, element_volume);
             }
 
             else {
@@ -350,10 +345,10 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
     double z30 = z3 - z0;
 
     double detJ = x10 * y20 * z30 - x10 * y30 * z20 +
-              y10 * z20 * x30 - y10 * x20 * z30 +
-              z10 * x20 * y30 - z10 * y20 * x30;
+                  y10 * z20 * x30 - y10 * x20 * z30 +
+                  z10 * x20 * y30 - z10 * y20 * x30;
 
-    return  detJ * 0.1666666666666666666667;
+    return  detJ * 0.1666666666666666666666667;
 }
 
 //***************************************************************************************************************
@@ -408,20 +403,14 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    double inv_vol = 0.0;
-
     if (vol == 0.0){
         KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
     }
 
-    else {
-        inv_vol = 1.0 / vol;
-    }
-
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
+    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
+    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
+    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
+    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
 
     double value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var);
 
@@ -429,7 +418,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
         value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var, 0);
     }
 
-    return vol * value_at_gauss_point;
+    return value_at_gauss_point;
 }
 
 //**************************************************************************************************************************************************
@@ -457,20 +446,14 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 
     vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-    double inv_vol = 0.0;
-
     if (vol == 0.0){
         KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
     }
 
-    else {
-        inv_vol = 1.0 / vol;
-    }
-
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
+    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
+    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
+    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
+    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
 
     array_1d <double, 3> value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var);
 
@@ -478,11 +461,55 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
         value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var);
     }
 
-    return vol * value_at_gauss_point;
+    return value_at_gauss_point;
 }
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+{
+    array_1d<double, 4> N;
+    double x0 = geom[0].X();
+    double y0 = geom[0].Y();
+    double z0 = geom[0].Z();
+    double x1 = geom[1].X();
+    double y1 = geom[1].Y();
+    double z1 = geom[1].Z();
+    double x2 = geom[2].X();
+    double y2 = geom[2].Y();
+    double z2 = geom[2].Z();
+    double x3 = geom[3].X();
+    double y3 = geom[3].Y();
+    double z3 = geom[3].Z();
+
+    double xc = 0.25 * (x0 + x1 + x2 + x3);
+    double yc = 0.25 * (y0 + y1 + y2 + y3);
+    double zc = 0.25 * (z0 + z1 + z2 + z3);
+
+    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+
+    if (vol == 0.0){
+        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
+    }
+
+    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
+    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
+    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
+    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+
+    array_1d <double, 3> value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var) * geom[0].FastGetSolutionStepValue(DENSITY) * geom[0].FastGetSolutionStepValue(FLUID_FRACTION);
+
+    for (unsigned int i = 1; i != 4; ++i){
+        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var) * geom[i].FastGetSolutionStepValue(DENSITY) * geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
+    }
+
+    return value_at_gauss_point;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 
 void PerformFirstStepComputations(ModelPart& r_model_part)
 {
