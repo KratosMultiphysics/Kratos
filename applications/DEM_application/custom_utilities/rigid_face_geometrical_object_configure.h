@@ -424,6 +424,27 @@ public:
         return true;
    }//DistanceHierarchy
 
+
+      static inline void DoubleHierarchyMethod(SphericParticle* rObj_1, DEMWall* rObj_2)
+      {
+
+        const GeometryType& FE_Geom = rObj_2->GetGeometry();
+        unsigned int FE_size = FE_Geom.size();
+
+        if(FE_size==2)
+        {
+          DoubleHierarchyMethod2D(rObj_1,rObj_2);
+
+        }
+        else{
+          DoubleHierarchyMethod3D(rObj_1,rObj_2);
+        }
+
+     }
+
+
+
+
     static inline void DoubleHierarchyMethod3D(SphericParticle* rObj_1, DEMWall* rObj_2) 
     {
           
