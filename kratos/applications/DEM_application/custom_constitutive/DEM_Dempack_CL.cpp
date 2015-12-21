@@ -34,7 +34,7 @@ namespace Kratos {
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
+    void DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
         
         KRATOS_TRY
         double rmin = radius;

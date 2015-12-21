@@ -37,7 +37,7 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
-        void CalculateContactArea(double radius, double other_radius, double &calculation_area);
+        void CalculateContactArea(double radius, double other_radius, double& calculation_area);
         void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
