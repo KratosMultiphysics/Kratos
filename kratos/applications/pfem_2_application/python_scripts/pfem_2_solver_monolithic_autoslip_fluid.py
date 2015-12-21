@@ -15,7 +15,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
     model_part.AddNodalSolutionStepVariable(RHS);
     model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY);
-    model_part.AddNodalSolutionStepVariable(NORMAL);        
+    model_part.AddNodalSolutionStepVariable(NORMAL);
     model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE);
     model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY) 
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO) 
@@ -124,7 +124,6 @@ class PFEM2Solver:
         for condition in self.model_part.Conditions:
             if condition.GetValue(IS_STRUCTURE) == 1.0:
                 for node in condition.GetNodes():
-                  if node.IsFixed(PRESSURE)==False:
                     node.SetSolutionStepValue(IS_STRUCTURE, 0, 1.0)
                     node.SetValue(IS_STRUCTURE, 1.0)
         for condition in self.model_part.Conditions:
@@ -136,8 +135,13 @@ class PFEM2Solver:
                     node.Fix(VELOCITY_Y)
                     node.Fix(VELOCITY_Z)
                     print("inlet node : ", node.Id)
+            if condition.GetValue(IS_AIR_EXIT) > 0.5:
+                for node in condition.GetNodes():
+                    node.SetSolutionStepValue(IS_STRUCTURE, 0, 0.0)
+                    node.SetValue(IS_STRUCTURE, 0.0)
+                    node.Fix(PRESSURE)
         for node in self.model_part.Nodes:
-            if node.GetSolutionStepValue(IS_STRUCTURE, 0) != 0.0:
+            if node.GetSolutionStepValue(IS_STRUCTURE, 0) != 0.0 and node.IsFixed(PRESSURE)==False:
                   node.Fix(VELOCITY_X)
  
         import strategy_python #implicit solver
@@ -157,8 +161,12 @@ class PFEM2Solver:
 
         self.print_times=False
 
+        self.model_part.ProcessInfo.SetValue(USE_PRESS_PROJ, 1) #true or false
 
-                 
+    def AssignNodalVelocityUsingInletConditions(self,inlet_vel):
+        self.moveparticles.AssignNodalVelocityUsingInletConditions(inlet_vel)
+
+
     #######################################################################   
     def Solve(self,mass_correction_factor):
         t1 = timer.time()
