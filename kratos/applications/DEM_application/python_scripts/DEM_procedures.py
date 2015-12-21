@@ -1193,7 +1193,7 @@ class DEMIo(object):
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
 
-            if (self.contact_mesh_option == "ON"):
+            if (self.contact_mesh_option == "ON"):                
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
@@ -1217,6 +1217,8 @@ class DEMIo(object):
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
+                #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
+                contact_model_part.GetProperties(0)[0].Id = 9999
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MIQUEL MAPPING
@@ -1255,7 +1257,7 @@ class DEMIo(object):
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
     def PrintingContactElementsVariables(self, export_model_part, time):
-        if (self.contact_mesh_option == "ON"):
+        if (self.contact_mesh_option == "ON"):            
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
@@ -1282,7 +1284,7 @@ class DEMIo(object):
         self.PrintingSpheresVariables(spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)
-        self.PrintingContactElementsVariables(contact_model_part, time)
+        self.PrintingContactElementsVariables(contact_model_part, time)  
         self.PrintingMappingVariables(mapping_model_part, time)
         #self.PrintingArlequinVariables(rigid_face_model_part, time)
 
@@ -1329,20 +1331,21 @@ class DEMIo(object):
         node6 = bounding_box_model_part.CreateNewNode(max_node_Id + 6, BBMaxX, BBMinY, BBMaxZ)
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
-           
+        
+        props = Properties(10000)
         # BB Elements:                        
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  3, [node8.Id, node5.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  4, [node5.Id, node1.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  5, [node1.Id, node2.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  6, [node3.Id, node4.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  7, [node7.Id, node8.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  8, [node5.Id, node6.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  9, [node6.Id, node2.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], Properties(0))
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  3, [node8.Id, node5.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  4, [node5.Id, node1.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  5, [node1.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  6, [node3.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  7, [node7.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  8, [node5.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  9, [node6.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
             
         self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
         
@@ -1407,19 +1410,20 @@ class DEMIo(object):
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
     
-        # BB Elements:                        
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  3, [node8.Id, node5.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  4, [node5.Id, node1.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  5, [node1.Id, node2.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  6, [node3.Id, node4.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  7, [node7.Id, node8.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  8, [node5.Id, node6.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  9, [node6.Id, node2.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], Properties(0))
-        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], Properties(0))
+        # BB Elements:   
+        props = Properties(10000)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  3, [node8.Id, node5.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  4, [node5.Id, node1.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  5, [node1.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  6, [node3.Id, node4.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  7, [node7.Id, node8.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  8, [node5.Id, node6.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  9, [node6.Id, node2.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
+        bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
     
         self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
         
