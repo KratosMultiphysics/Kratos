@@ -31,13 +31,16 @@ void MonolithicAutoSlipInlet3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 			 array_1d<double,3> normal =  ZeroVector(3);
 			 CalculateNormal(normal);
 			 
-			 double added_RHS_boundary_term = 0.0;
+			 double area = 0.0;
 			 for (unsigned int i=0; i!=3 ; i++)  //or 2 in 2d
-			 	 added_RHS_boundary_term+=velocity*normal(i);
-			 	 
+			 	 area+=pow(normal(i),2);
+			 
+			 area = sqrt(area);
+			 
+			 const double added_RHS_boundary_term = - velocity * area; //inlet!
 			 	 
 			 for (unsigned int i=0; i!=3 ; i++)  //3 nodes of the triangle
-			     rRightHandSideVector(i) = - factor * added_RHS_boundary_term;
+			     rRightHandSideVector(i) = factor * added_RHS_boundary_term;
 				 
 			 
 		}
