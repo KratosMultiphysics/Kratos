@@ -65,7 +65,7 @@ namespace Kratos {
             double kt_el) {
         
         KRATOS_TRY 
-        double aux_norm_to_tang = 0.0;
+        double aux_norm_to_tang = 0.0               // sqrt(kt_el / kn_el);
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
         const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
