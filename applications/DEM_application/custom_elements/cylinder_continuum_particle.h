@@ -67,7 +67,7 @@ namespace Kratos
       /// Destructor.
       virtual ~CylinderContinuumParticle();
 
-      /// Turn back information as a string.
+
       virtual std::string Info() const
       {
           std::stringstream buffer;
@@ -87,7 +87,7 @@ namespace Kratos
 
       CylinderContinuumParticle();
       
-      void Initialize();      
+      void Initialize();
 //      void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
 //                                                array_1d<double,3> &other_to_me_vect,
 //                                                const double &distance,
