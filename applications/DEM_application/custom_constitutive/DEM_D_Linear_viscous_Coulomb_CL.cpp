@@ -207,18 +207,15 @@ namespace Kratos {
                     const double fraction = MaximumAdmisibleShearForce / ActualElasticShearForce;
                     LocalElasticContactForce[0]  = LocalElasticContactForce[0] * fraction;
                     LocalElasticContactForce[1]  = LocalElasticContactForce[1] * fraction;
-                ViscoDampingLocalContactForce[0] = 0.0;
-                ViscoDampingLocalContactForce[1] = 0.0;
-            }
-            
-            else {
-                
-                const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
+                    ViscoDampingLocalContactForce[0] = 0.0;
+                    ViscoDampingLocalContactForce[1] = 0.0;
+                }
+                else {
+                    const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
                     const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
                     ViscoDampingLocalContactForce[0]    *= fraction;
                     ViscoDampingLocalContactForce[1]    *= fraction;
-            }
-                    
+                }                    
             }
             else {
                 if (ViscoDampingLocalContactForceModule >= ActualElasticShearForce) {

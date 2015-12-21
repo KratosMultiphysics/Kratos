@@ -93,7 +93,7 @@ namespace Kratos {
         mIniNeighbourToIniContinuum.resize(neighbours_size);
         mIniNeighbourDelta.resize(neighbours_size);
         mIniNeighbourFailureId.resize(neighbours_size);
-        mMapping_New_Ini.resize(neighbours_size);
+        mMappingNewIni.resize(neighbours_size);
 
         //SAVING THE INITIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
@@ -113,7 +113,7 @@ namespace Kratos {
             ini_size++;
             mIniNeighbourIds[ini_size - 1] = neighbour_iterator->Id();
             mIniNeighbourFailureId[ini_size - 1] = 1;
-            mMapping_New_Ini[ini_size - 1] = ini_size - 1;
+            mMappingNewIni[ini_size - 1] = ini_size - 1;
             mIniNeighbourToIniContinuum[ini_size - 1] = -1; //-1 is initial but not continuum.             
             mIniNeighbourDelta[ini_size - 1] = initial_delta;
 
@@ -123,7 +123,7 @@ namespace Kratos {
                 continuum_ini_size++;
                 cont_ini_mapping_index++;
                 mContinuumIniNeighbourElements.push_back(neighbour_iterator);
-                mMapping_New_Cont.push_back(-1);
+                mMappingNewCont.push_back(-1);
             }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
         } //end for: ParticleWeakIteratorType ineighbour        
     }//SetInitialSphereContacts
@@ -254,8 +254,7 @@ namespace Kratos {
             double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
             bool sliding = false;
 
-            //const int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
-            const int mapping_new_cont = mMapping_New_Cont[i_neighbour_count];
+            const int mapping_new_cont = mMappingNewCont[i_neighbour_count];
 
             double contact_tau = 0.0;
             double contact_sigma = 0.0;
@@ -595,8 +594,8 @@ namespace Kratos {
         mTempNeighboursMapping.resize(final_size);
         mTempContNeighboursMapping.resize(final_size);
 
-        mMapping_New_Ini.swap(mTempNeighboursMapping);
-        mMapping_New_Cont.swap(mTempContNeighboursMapping);
+        mMappingNewIni.swap(mTempNeighboursMapping);
+        mMappingNewCont.swap(mTempContNeighboursMapping);
         mOldNeighbourIds.swap(mTempNeighboursIds);
         mNeighbourDelta.swap(mTempNeighboursDelta);
         mNeighbourFailureId.swap(mTempNeighboursFailureId);
@@ -717,10 +716,10 @@ namespace Kratos {
         
            TempNeighbours.erase(TempNeighbours.begin()+neighbour_counter, TempNeighbours.end());
      
-         //  if(mMapping_New_Ini.size() != neighbour_counter)   //si en comptes de fer tot aixo fes un resize del mMapping_New_... etc... no quedaria tallada la part ke no minteressa i hagues pogut ferlo servir ampliat i ja sta. fer resize i quedarme amb lo bo.
+         //  if(mMappingNewIni.size() != neighbour_counter)   //si en comptes de fer tot aixo fes un resize del mMapping_New_... etc... no quedaria tallada la part ke no minteressa i hagues pogut ferlo servir ampliat i ja sta. fer resize i quedarme amb lo bo.
            {
-               mMapping_New_Ini.resize(neighbour_counter);
-               mMapping_New_Cont.resize(neighbour_counter);
+               mMappingNewIni.resize(neighbour_counter);
+               mMappingNewCont.resize(neighbour_counter);
                mOldNeighbourIds.resize(neighbour_counter);
                mNeighbourDelta.resize(neighbour_counter);
                mNeighbourFailureId.resize(neighbour_counter);
@@ -729,8 +728,8 @@ namespace Kratos {
         
            for(unsigned int w=0; w<neighbour_counter; w++)
            {
-             mMapping_New_Ini[w]           = temp_neighbours_mapping[w];
-             mMapping_New_Cont[w]          = temp_cont_neighbours_mapping[w];
+             mMappingNewIni[w]           = temp_neighbours_mapping[w];
+             mMappingNewCont[w]          = temp_cont_neighbours_mapping[w];
              mOldNeighbourIds[w]           = temp_neighbours_ids[w];
              mNeighbourDelta[w]            = temp_neighbours_delta[w];
              mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];

@@ -137,7 +137,7 @@ namespace Kratos {
         
         KRATOS_TRY 
 
-        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
+        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
         int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
         int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
@@ -296,8 +296,8 @@ namespace Kratos {
         
         KRATOS_TRY
 
-        int &mapping_new_ini = element1->mMapping_New_Ini[i_neighbour_count];
-        int &mapping_new_cont = element1->mMapping_New_Cont[i_neighbour_count];
+        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
 
         int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
         int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
