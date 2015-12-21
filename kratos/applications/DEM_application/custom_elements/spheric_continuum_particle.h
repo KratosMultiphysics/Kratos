@@ -101,8 +101,8 @@ namespace Kratos
       std::vector<int> mNeighbourFailureId;
       std::vector<int> mIniNeighbourFailureId;
       std::vector<double> mNeighbourDelta;
-      std::vector<int> mMapping_New_Cont;
-      std::vector<int> mMapping_New_Ini;
+      std::vector<int> mMappingNewCont;
+      std::vector<int> mMappingNewIni;
 
       ///@}
       

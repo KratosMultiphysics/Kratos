@@ -162,7 +162,7 @@ namespace Kratos
               double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
               bool sliding = false;
 
-              const int mapping_new_cont = mMapping_New_Cont[i_neighbour_count];
+              const int mapping_new_cont = mMappingNewCont[i_neighbour_count];
 
               double contact_tau = 0.0;
               double contact_sigma = 0.0;
