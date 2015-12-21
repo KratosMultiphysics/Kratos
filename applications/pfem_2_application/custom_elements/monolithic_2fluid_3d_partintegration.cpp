@@ -84,9 +84,11 @@ namespace Kratos
 		
 		const unsigned int TDim=3;
 
-	    double delta_t = rCurrentProcessInfo[DELTA_TIME];	
+	    const double delta_t = rCurrentProcessInfo[DELTA_TIME];	
 	    
 	    double volume_correction = rCurrentProcessInfo[VOLUME_CORRECTION];
+	    
+	    const bool use_press_proj= rCurrentProcessInfo[USE_PRESS_PROJ] != 0;
 
 		array_1d<double,TDim*(TDim+1)>  previous_vel;
 		array_1d<double,(TDim+1)*(TDim+1)>  previous_vel_and_press;
@@ -272,7 +274,7 @@ namespace Kratos
 					rhs_stab[j] += node_press_proj(j)*factor;
 			}
 			
-			const bool use_press_proj=false;
+			//const bool use_press_proj=true;
 			
 			for (unsigned int i = 0; i < (TDim+1); i++)
 			{
