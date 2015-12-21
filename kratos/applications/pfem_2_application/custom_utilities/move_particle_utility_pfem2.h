@@ -2058,12 +2058,55 @@ namespace Kratos
 
 		}
 					
+		void AssignNodalVelocityUsingInletConditions(const double inlet_vel)
+		{
+			KRATOS_TRY
+			
+			//first we are going to delete all the velocities!
+			ModelPart::ConditionsContainerType::iterator iconditionbegin = mr_model_part.ConditionsBegin();
+			vector<unsigned int> condition_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Conditions().size(), condition_partition);
+			
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=condition_partition[kkk]; ii<condition_partition[kkk+1]; ii++)
+				{
+						ModelPart::ConditionsContainerType::iterator icondition = iconditionbegin+ii;
+						if ( icondition->GetValue(IS_INLET) > 0.5 ) 
+						{
+							Geometry<Node<3> >& geom = icondition->GetGeometry();
+							array_1d<double,3> normal = ZeroVector(3);
+							this->CalculateNormal(geom,normal);
+							const double normal_lenght = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+							const array_1d<double,3> velocity = - inlet_vel/normal_lenght * normal;
+							for (unsigned int l = 0; l < (TDim); l++)
+							{
+								geom[l].SetLock();
+								geom[l].FastGetSolutionStepValue(VELOCITY) = velocity;
+								geom[l].UnSetLock();
+							}
+						}
+				}
+			}
 
+
+			KRATOS_CATCH("")
+		}
+		
+		
 	protected:
 
 
 	private:
 	
+
 
 	///this function moves a particle according to the "velocity" given
 	///by "rVariable". The movement is performed in nsubsteps, during a total time
@@ -3365,6 +3408,7 @@ namespace Kratos
 			return true;
 		}
 		
+	
 	ModelPart& mr_model_part;
 	ModelPart::Pointer mtopographic_model_part_pointer;
 	array_1d<double, 3 > mcalculation_domain_complete_displacement;
@@ -3394,7 +3438,66 @@ namespace Kratos
 	typename BinsObjectDynamic<Configure>::Pointer  mpBinsObjectDynamic;
 	typename BinsObjectDynamic<Configure>::Pointer  mpTopographicBinsObjectDynamic;
 
+
+	void CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An );
+	
 	};
+	
+	template<>
+	void MoveParticleUtilityPFEM2<2>::CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An )
+	{		
+		array_1d<double,2> v1;
+		v1[0] = pGeometry[1].X() - pGeometry[0].X();
+		v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+
+		An[0] = -v1[1];
+		An[1] =  v1[0];
+		An[2] =  0.0;
+		
+		//now checking orientation using the normal:
+		const unsigned int NumNodes = 2;
+		array_1d<double,3> nodal_normal =  ZeroVector(3);
+		for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+			nodal_normal += pGeometry[iNode].FastGetSolutionStepValue(NORMAL);
+		
+		double dot_prod = nodal_normal[0]*An[0] + nodal_normal[1]*An[1];
+		if (dot_prod<0.0)
+		{
+			//std::cout << "inverting the normal" << std::endl;
+			An *= -1.0; // inverting the direction of the normal!!!
+		}
+		
+	}
+	
+	template<>
+	void MoveParticleUtilityPFEM2<3>::CalculateNormal(Geometry<Node<3> >& pGeometry, array_1d<double,3>& An )
+	{
+		array_1d<double,3> v1,v2;
+		v1[0] = pGeometry[1].X() - pGeometry[0].X();
+		v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+		v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+		v2[0] = pGeometry[2].X() - pGeometry[0].X();
+		v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+		v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+		MathUtils<double>::CrossProduct(An,v1,v2);
+		An *= 0.5;
+		
+		//now checking orientation using the normal:
+		const unsigned int NumNodes = 3;
+		array_1d<double,3> nodal_normal =  ZeroVector(3);
+		for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+			nodal_normal += pGeometry[iNode].FastGetSolutionStepValue(NORMAL);
+		
+		double dot_prod = nodal_normal[0]*An[0] + nodal_normal[1]*An[1] + nodal_normal[2]*An[2];
+		if (dot_prod<0.0)
+		{
+			//std::cout << "inverting the normal!!" << std::endl;
+			An *= -1.0; // inverting the direction of the normal!!!
+		}
+		
+	}
 	
 }  // namespace Kratos.
 
