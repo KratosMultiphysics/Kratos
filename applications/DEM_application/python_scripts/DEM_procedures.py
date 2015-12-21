@@ -163,7 +163,6 @@ class PostUtils(object):
                                 id_found = True
                                 break
                         if id_found == False: #This only happens if None of the previous nodes were capable of setting id_found = True.
-                            #print(node.Id)
                             crossing_spheres = crossing_spheres + 1
                             radius = node.GetSolutionStepValue(RADIUS)
                             crossing_volume = crossing_volume + 4.0/3.0 * math.pi * radius*radius*radius
@@ -635,37 +634,12 @@ class DEMFEMProcedures(object):
             open_balls_graph_files(self,spheres_model_part)   
 
         # SIMULATION SETTINGS
-
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
+        
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
-
-        # PRINTING VARIABLES
-        self.print_radius           = Var_Translator(self.DEM_parameters.PostRadius)
-        self.print_velocity         = Var_Translator(self.DEM_parameters.PostVelocity)
-        self.print_angular_velocity = Var_Translator(self.DEM_parameters.PostAngularVelocity)
-        self.print_displacement     = Var_Translator(self.DEM_parameters.PostDisplacement)
-        self.print_total_forces     = Var_Translator(self.DEM_parameters.PostTotalForces)
-        self.print_damp_forces      = Var_Translator(self.DEM_parameters.PostDampForces)
-        self.print_applied_forces   = Var_Translator(self.DEM_parameters.PostAppliedForces)
-        self.print_particle_moment  = Var_Translator(self.DEM_parameters.PostParticleMoment)
-        self.print_euler_angles     = Var_Translator(self.DEM_parameters.PostEulerAngles)
-        self.print_export_id        = Var_Translator(self.DEM_parameters.PostExportId)
-        self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)
-
-        if ((self.DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D")):
-            self.print_export_skin_sphere = Var_Translator(self.DEM_parameters.PostExportSkinSphere)
-            self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
-            if (self.contact_mesh_OPTION):
-                self.print_local_contact_force = Var_Translator(self.DEM_parameters.PostLocalContactForce)
-                self.print_failure_criterion_state = Var_Translator(self.DEM_parameters.PostFailureCriterionState)
-                #self.print_unidimensional_damage = Var_Translator(self.DEM_parameters.PostUnidimensionalDamage)
-                self.print_contact_failure = Var_Translator(self.DEM_parameters.PostContactFailureId)
-                self.print_contact_tau = Var_Translator(self.DEM_parameters.PostContactTau)
-                self.print_contact_sigma = Var_Translator(self.DEM_parameters.PostContactSigma)
-                self.print_mean_contact_area = Var_Translator(self.DEM_parameters.PostMeanContactArea)
-        else:
-            self.print_export_skin_sphere = Var_Translator(self.DEM_parameters.PostExportSkinSphere)
+        self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)        
+        self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
                        
     def close_graph_files(self,RigidFace_model_part):
         for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
@@ -1029,6 +1003,8 @@ class DEMIo(object):
         self.VelTrapGraphExportFreq       = getattr(self.DEM_parameters, "VelTrapGraphExportFreq", 0 )
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0 )
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0 )
+        
+        self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
   
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
@@ -1104,8 +1080,8 @@ class DEMIo(object):
         pass
     
     def AddContactVariables(self):
-        # Contact Elements Variables
-        if ((self.DEM_parameters.ElementType == "SphericContPartDEMElement3D") or (self.DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
+        # Contact Elements Variables        
+        if (self.DEM_parameters.ElementType in self.continuum_element_types):
             if (Var_Translator(self.DEM_parameters.ContactMeshOption)):
                 self.PushPrintVar(self.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
                 self.PushPrintVar(self.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
@@ -1220,6 +1196,7 @@ class DEMIo(object):
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9999
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
+                
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MIQUEL MAPPING
             #Compute and print the graphical bounding box if active in time
@@ -1257,7 +1234,7 @@ class DEMIo(object):
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
     def PrintingContactElementsVariables(self, export_model_part, time):
-        if (self.contact_mesh_option == "ON"):            
+        if (self.contact_mesh_option == "ON"):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
