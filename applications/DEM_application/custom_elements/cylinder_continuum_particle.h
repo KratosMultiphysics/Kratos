@@ -52,21 +52,11 @@ namespace Kratos
     {
     public:
 
-      ///@name Type Definitions
-      ///@{
-
-      /// Pointer definition of cylinder particle
       KRATOS_CLASS_POINTER_DEFINITION(CylinderContinuumParticle);
 
       typedef WeakPointerVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be aquesta?
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
       typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-
-      ///@}
-      ///@name Life Cycle
-      ///@{
-
-      /// Default constructor.
 
       CylinderContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       CylinderContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
@@ -76,32 +66,6 @@ namespace Kratos
 
       /// Destructor.
       virtual ~CylinderContinuumParticle();
-
-
-      ///@}
-      ///@name Operations
-      ///@{
-      
-   
-//       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-//       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
-//       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-//       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
-
-
-      ///@}
-      ///@name Access
-      ///@{
-
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Input and output
-      ///@{
 
       /// Turn back information as a string.
       virtual std::string Info() const
@@ -117,17 +81,13 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
 
-
-      ///@}
-      ///@name Friends
-      ///@{
+      void ContactAreaWeighting();
 
     protected:
 
       CylinderContinuumParticle();
       
-      void Initialize();
-      virtual void ContactAreaWeighting();
+      void Initialize();      
 //      void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
 //                                                array_1d<double,3> &other_to_me_vect,
 //                                                const double &distance,

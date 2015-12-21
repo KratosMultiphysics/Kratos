@@ -75,6 +75,7 @@ namespace Kratos
                                               double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            
       virtual void AddPoissonContribution( const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
+      virtual void ContactAreaWeighting();
 
       /// Turn back information as a string.
       virtual std::string Info() const
@@ -109,8 +110,7 @@ namespace Kratos
 
         SphericContinuumParticle();
         
-        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
-        virtual void ContactAreaWeighting();
+        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG                
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         virtual void CustomInitialize();	
         virtual double GetInitialDeltaWithFEM(int index);      
@@ -137,7 +137,7 @@ namespace Kratos
 
         //sphere neighbour information
         
-        std::vector<double>         mcont_ini_neigh_area;        
+        std::vector<double>         mContIniNeighArea;        
         std::vector<int>            mIniNeighbourToIniContinuum;        
         std::vector<double>         mIniNeighbourDelta;
                   

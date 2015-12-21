@@ -42,6 +42,12 @@ namespace Kratos {
         calculation_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
+    double DEM_KDEM::CalculateContactArea(double radius, double other_radius, std::vector<double> & v) {            
+            double a = 0.0;
+            CalculateContactArea(radius, other_radius, a);
+            v.push_back(a);
+            return a;
+    };
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area) {

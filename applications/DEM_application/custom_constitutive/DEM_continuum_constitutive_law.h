@@ -55,7 +55,14 @@ namespace Kratos {
 
         virtual void CalculateContactArea(double radius,
                 double other_radius,
-                double &calculation_area) {
+                double& calculation_area) {
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateContactArea) should not be called.","")
+        };
+        
+        virtual double CalculateContactArea(double radius,
+                double other_radius,
+                std::vector<double> & v) {            
+            return 0.0;
         };
 
         virtual void CalculateElasticConstants(double &kn_el,
@@ -64,6 +71,7 @@ namespace Kratos {
                 double equiv_young,
                 double equiv_poisson,
                 double calculation_area) {
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) should not be called.","")
         };
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -72,6 +80,7 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 double kn_el,
                 double kt_el) {
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
 
         virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
@@ -91,6 +100,7 @@ namespace Kratos {
                 bool& sliding,
                 int search_control,
                 vector<int>& search_control_vector) {
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateForces) should not be called.","")
         };
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -103,7 +113,7 @@ namespace Kratos {
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
                 int time_steps) {
-            std::cout << "error this base class should be overloaded" << std::endl;
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateNormalForces) should not be called.","")
         }
 
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
@@ -118,6 +128,7 @@ namespace Kratos {
                 bool& sliding,
                 int search_control,
                 vector<int>& search_control_vector) {
+            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) should not be called.","")
         };
 
     private:

@@ -110,7 +110,6 @@ namespace Kratos {
             double initial_delta = radius_sum - distance;
 
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup;
-
             ini_size++;
             mIniNeighbourIds[ini_size - 1] = neighbour_iterator->Id();
             mIniNeighbourFailureId[ini_size - 1] = 1;
@@ -118,49 +117,28 @@ namespace Kratos {
             mIniNeighbourToIniContinuum[ini_size - 1] = -1; //-1 is initial but not continuum.             
             mIniNeighbourDelta[ini_size - 1] = initial_delta;
 
-
             if ((r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0)) {
-
                 mIniNeighbourToIniContinuum[ini_size - 1] = cont_ini_mapping_index;
-
                 mIniNeighbourFailureId[ini_size - 1] = 0;
-
                 continuum_ini_size++;
                 cont_ini_mapping_index++;
-
                 mContinuumIniNeighbourElements.push_back(neighbour_iterator);
-
                 mMapping_New_Cont.push_back(-1);
-
-
             }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
-
-        } //end for: ParticleWeakIteratorType ineighbour
-
-        ContactAreaWeighting();
-
+        } //end for: ParticleWeakIteratorType ineighbour        
     }//SetInitialSphereContacts
 
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
+    
     void SphericContinuumParticle::CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo) {
         unsigned int cont_neigh_size = mContinuumIniNeighbourElements.size();
-
         mContinuumConstitutiveLawArray.resize(cont_neigh_size);
 
         for (unsigned int i = 0; i < cont_neigh_size; i++) {
-
             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
             mContinuumConstitutiveLawArray[i]->Initialize(rCurrentProcessInfo);
-
         }
     }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
 
     void SphericContinuumParticle::SetInitialFemContacts() {
         const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
@@ -194,75 +172,32 @@ namespace Kratos {
 
         int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
 
-        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
-
         //computing the total equivalent area
-
-        size_t index = 0;
-
         for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
             SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
+            double other_radius = ini_cont_neighbour_iterator->GetRadius();            
+            double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.
+            total_equiv_area += area;
+        } //for every neighbour
 
-            double other_radius = ini_cont_neighbour_iterator->GetRadius();
-            double equiv_radius = 2 * GetRadius() * other_radius / (GetRadius() + other_radius);
-            double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the effective radius.
-            total_equiv_area += equiv_area;
-
-            mcont_ini_neigh_area[index] = equiv_area; //*
-            index++; //*
-
-            //RECAREY
-            //array_1d<double,3> other_to_me_vect   = this->GetGeometry()[0].Coordinates() - ini_cont_neighbour_iterator->GetGeometry()[0].Coordinates();
-            //double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-            //                                              other_to_me_vect[1] * other_to_me_vect[1] +
-            //                                              other_to_me_vect[2] * other_to_me_vect[2]);
-            //do this in pragma omp critical!!
-            //rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES] +=  0.5*distance*distance;
-
-        } //for every neighbor
-
-        if (cont_ini_neighbours_size >= 4) //more than 3 neighbors. 
-        {
+        if (cont_ini_neighbours_size >= 4) { //more than 3 neighbors.         
             if (!*mSkinSphere) {
-
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
-
-                size_t not_skin_index = 0;
-
-                for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
-
-                    mcont_ini_neigh_area[not_skin_index] = alpha * mcont_ini_neigh_area[not_skin_index];
-                    not_skin_index++;
-
-                } //for every neighbor
-
+                for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                    mContIniNeighArea[i] = alpha * mContIniNeighArea[i];                   
+                } //for every neighbour
             }//if(!*mSkinSphere)
 
-            else //skin sphere 
-            {
-
-                size_t skin_index = 0;
-
-                for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
-
-                    alpha = 1.00 * (1.40727)*(external_sphere_area / total_equiv_area)*((double(cont_ini_neighbours_size)) / 11);
-                    mcont_ini_neigh_area[skin_index] = alpha * mcont_ini_neigh_area[skin_index];
-
-                    skin_index++;
-                } //for every neighbor
-
+            else {//skin sphere             
+                for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                    alpha = 1.00 * (1.40727)*(external_sphere_area / total_equiv_area)*((double(cont_ini_neighbours_size)) / 11.0);
+                    mContIniNeighArea[i] = alpha * mContIniNeighArea[i];
+                } //for every neighbour
             }//skin particles.
-
         }//if more than 3 neighbors
-
     } //Contact Area Weighting           
+    
 
-    /**
-     * Calculates all particle's ball-to-ball forces based on its neighbors
-     * @param rContactForce
-     * @param rContactMoment
-     * @param rCurrentProcessInfo
-     **/
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
             array_1d<double, 3 > & rContactForce,
             array_1d<double, 3>& rInitialRotaMoment,
@@ -276,8 +211,6 @@ namespace Kratos {
 
         int& search_control = rCurrentProcessInfo[SEARCH_CONTROL];
         vector<int>& search_control_vector = rCurrentProcessInfo[SEARCH_CONTROL_VECTOR];
-
-        /* Initializations */
 
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -357,7 +290,7 @@ namespace Kratos {
             //            bool equivalent_area_method = false; //  Miquel - should be moved out of SphericcontinuumParticle
             //            if (equivalent_area_method) {
             //                if (mapping_new_cont != -1) {
-            //                    calculation_area = mcont_ini_neigh_area[mapping_new_cont];}
+            //                    calculation_area = mContIniNeighArea[mapping_new_cont];}
             //                kn_el = equiv_young * calculation_area * radius_sum_i; //0.9237*equiv_young * calculation_area; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
             //                kt_el = kn_el / (2.0 + equiv_poisson + equiv_poisson); //0.0*...
             //                aux_norm_to_tang = sqrt(kt_el / kn_el);}
@@ -490,6 +423,7 @@ namespace Kratos {
             
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
+                
             }
 
             if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
@@ -923,27 +857,31 @@ namespace Kratos {
                 bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
 
                 int neigh_id = r_continuum_ini_neighbours[i]->Id();
+                
+                double calculation_area = 0.0;
+                const double other_radius = r_continuum_ini_neighbours[i]->GetRadius();
+                mContinuumConstitutiveLawArray[i]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);
 
                 if ((im_skin && neigh_is_skin) || (!im_skin && !neigh_is_skin)) {
                     if (my_id < neigh_id) {
-                        bond_i->mLocalContactAreaLow = mcont_ini_neigh_area[i];
+                        bond_i->mLocalContactAreaLow = calculation_area;
                     }// if my id < neigh id                        
                     else {
-                        if (!has_mpi) bond_i->mLocalContactAreaHigh = mcont_ini_neigh_area[i];
+                        if (!has_mpi) bond_i->mLocalContactAreaHigh = calculation_area;
                         else {
-                            if (other_partition_index == my_partition_index) bond_i->mLocalContactAreaHigh = mcont_ini_neigh_area[i];
+                            if (other_partition_index == my_partition_index) bond_i->mLocalContactAreaHigh = calculation_area;
                         }
                     }
                 }//both skin or both inner.
 
                 else if (!im_skin && neigh_is_skin) {//we will store both the same only coming from the inner to the skin.                    
                     if (!has_mpi) {
-                        bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
-                        bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];
+                        bond_i -> mLocalContactAreaHigh = calculation_area;
+                        bond_i -> mLocalContactAreaLow = calculation_area;
                     } else {
                         if (other_partition_index == my_partition_index) {
-                            bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
-                            bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];
+                            bond_i -> mLocalContactAreaHigh = calculation_area;
+                            bond_i -> mLocalContactAreaLow = calculation_area;
                         }
                     }
                 } //neigh skin
@@ -951,7 +889,7 @@ namespace Kratos {
             }//if(first_time)
 
             else {//last operation                                  
-                if (!has_mpi) mcont_ini_neigh_area[i] = bond_i->mMeanContactArea;
+                if ( !has_mpi && mContIniNeighArea.size() ) mContIniNeighArea[i] = bond_i->mMeanContactArea;
             }
 
         }//loop neigh.

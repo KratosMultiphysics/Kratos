@@ -76,62 +76,31 @@ namespace Kratos
         double alpha = 1.0;
         double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
         double total_equiv_perimeter = 0.0;
-
         int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
 
-        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
-
-        //computing the total equivalent area
-        
-        size_t index = 0;
-        
+        //computing the total equivalent area                
         for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
             SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
-
             double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-            double equiv_radius     = 2*GetRadius() * other_radius / (GetRadius() + other_radius);        
-            total_equiv_perimeter  += equiv_radius;
-        
-            mcont_ini_neigh_area[index] = equiv_radius; //*  //this is consistent since in 2D, we work with cylinders of depth unit 1.0.
-            index++; //*            
-            
+            double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.         
+            total_equiv_perimeter += area;
         } //for every neighbour
       
-        if (cont_ini_neighbours_size >= 3)
-        {
-            if(!*mSkinSphere) {
-                          
-              AuxiliaryFunctions::CalculateAlphaFactor2D(cont_ini_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
-              
-              size_t not_skin_index = 0;
-          
-                for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
-
-                      mcont_ini_neigh_area[not_skin_index] = alpha*mcont_ini_neigh_area[not_skin_index];
-                      not_skin_index++;  
-                      
-                  } //for every neighbour
-
-            }
-            
-            else //skin sphere 
-            {
- 
-                size_t skin_index = 0; 
-                
-                for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
-
-                          alpha            = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
-                          mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
-                         
-                  skin_index++;                  
-                  }     //loop on cont neighs
-                  
-            }           //skin particles.
-            
-        }               //if 3 neighbours or more.
-   
-      }                 //Contact Area Weighting
+        if (cont_ini_neighbours_size >= 3) {
+            if(!*mSkinSphere) {                          
+                AuxiliaryFunctions::CalculateAlphaFactor2D(cont_ini_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha);                         
+                for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                    mContIniNeighArea[i] = alpha*mContIniNeighArea[i];                      
+                } //for every neighbour
+            }            
+            else { //skin sphere                              
+                for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                    alpha = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
+                    mContIniNeighArea[i] = alpha*mContIniNeighArea[i];
+                }//loop on cont neighs                  
+            }//skin particles.            
+        }//if 3 neighbours or more.   
+      }//Contact Area Weighting
       
       
 
