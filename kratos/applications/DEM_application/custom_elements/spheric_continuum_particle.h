@@ -110,7 +110,7 @@ namespace Kratos
 
         SphericContinuumParticle();
         
-        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG                
+        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         virtual void CustomInitialize();	
         virtual double GetInitialDeltaWithFEM(int index);      
