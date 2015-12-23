@@ -205,15 +205,15 @@ class simple {
 
                 // Find the diagonal of App (we need to update it):
                 size_t pp_dia = App->ptr[i];
-                for(; pp_dia < App->ptr[i+1]; ++pp_dia)
-                    if (App->col[pp_dia] == i) break;
+                for(; pp_dia < (size_t)App->ptr[i+1]; ++pp_dia)
+                    if ((size_t)App->col[pp_dia] == i) break;
                 assert(App->col[pp_dia] == i && "No diagonal in App?");
 
                 // Compute i-th diagonal of Aps * Asp:
                 value_type apsp = 0;
                 for(row_iterator a = backend::row_begin(*Aps, i); a; ++a)
                     for(row_iterator b = backend::row_begin(*Asp, a.col()); b; ++b)
-                        if (b.col() == i) apsp += a.value() * b.value();
+                        if ((size_t)b.col() == i) apsp += a.value() * b.value();
 
                 App->val[pp_dia] -= apsp;
             }
