@@ -419,7 +419,7 @@ private:
                     i_node->Set(BOUNDARY, bool(recv_buffer[i++]) || i_node->Is(BOUNDARY) ); // OR with received value
                 }
 
-                if (i > recv_sizes[i_color])
+                if ((int)i > recv_sizes[i_color])
                     std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
 
                 delete[] recv_buffer;
@@ -490,7 +490,7 @@ private:
                     i_node->Set(BOUNDARY, bool(recv_buffer[i++]) );
                 }
 
-                if (i > recv_sizes[i_color])
+                if ((int)i > recv_sizes[i_color])
                     std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
 
                 delete[] recv_buffer;
