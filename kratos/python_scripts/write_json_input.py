@@ -14,7 +14,11 @@ class JsonWriter:
     
         model_part_root["PartName"] = self.model_part.Name 
         
-        print(element_name)
+        model_part_root["Nodes"] = []
+        json_nodes = model_part_root["Nodes"]
+        for node in self.model_part.Nodes:
+            json_nodes.append([ int(node.Id), float(node.X), float(node.Y), float(node.Z) ] ) 
+        
         model_part_root["Elements"] = {element_name : {"connectivity" : [] } }
         connectivity = model_part_root["Elements"][element_name]["connectivity"]
         for elem in self.model_part.Elements:
