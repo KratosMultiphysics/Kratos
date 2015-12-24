@@ -57,13 +57,18 @@ class JsonWriter:
             for node in self.model_part.Nodes:
                 aux.append([node.Id, int(node.IsFixed(var)), float(node.GetSolutionStepValue(var, stepindex))])
                             
-    def DumpMeshes(self,meshname_list):
+    def DumpMeshes(self):
         model_part_root = self.json_root["model_part"]
         model_part_root["Meshes"] = {}
-        for meshname in meshname_list:
+        
+        counter = 0
+        for mesh in self.model_part.GetListOfMeshes():
+            counter += 1
+            meshname = str(counter) #TODO: change this to get the name of the mesh when available
+            
             model_part_root["Meshes"][meshname] = {"NodePointers":[], "ElementPointers":[], "ConditionPointers":[]}
             
-            mesh = self.model_part.GetMesh(meshname)
+            #mesh = self.model_part.GetMesh(meshname)
                
             nodepointers = model_part_root["Meshes"][meshname]["NodePointers"]
             for node in mesh.Nodes:
