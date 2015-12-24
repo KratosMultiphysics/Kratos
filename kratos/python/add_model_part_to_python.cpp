@@ -94,6 +94,19 @@ ModelPart::MeshType::Pointer ModelPartGetMesh(ModelPart& rModelPart)
     return rModelPart.pGetMesh();
 }
 
+boost::python::list GetMeshesFromModelPart( ModelPart& rModelPart )
+{
+    boost::python::list  meshes_list;
+    
+    ModelPart::MeshesContainerType& meshes = rModelPart.GetMeshes();
+    unsigned int number_of_meshes = meshes.size();
+    
+    for(unsigned int i=0; i<number_of_meshes; i++)
+        meshes_list.append( rModelPart.pGetMesh(i) );
+    
+    return( meshes_list );
+}
+
 ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart::IndexType MeshIndex)
 {
     ModelPart::IndexType number_of_meshes = rModelPart.NumberOfMeshes();
@@ -350,6 +363,7 @@ void AddModelPartToPython()
     .def("NumberOfProperties", &ModelPart::NumberOfProperties)
     .def("GetMesh", ModelPartGetMesh)
     .def("GetMesh", ModelPartGetMesh2)
+    .def("GetListOfMeshes", GetMeshesFromModelPart)    
     .add_property("Nodes", ModelPartGetNodes1, ModelPartSetNodes1)
     .def("GetNodes", ModelPartGetNodes1)
     .def("SetNodes", ModelPartSetNodes1)
