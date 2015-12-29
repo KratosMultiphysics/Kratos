@@ -512,6 +512,7 @@ private:
     const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D2N;
     const LineLoadAxisym2DCondition  mAxisymLineLoadCondition2D3N;
     const LineLoad3DCondition              mLineLoadCondition3D2N;
+    const LineLoad3DCondition              mLineLoadCondition3D3N;
 
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D4N;
