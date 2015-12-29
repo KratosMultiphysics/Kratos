@@ -1,67 +1,21 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2008-05-06 13:42:56 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author:   JMCarbonell $
+//   Date:                $Date:   December 2015 $
+//   Revision:            $Revision:         1.7 $
 //
 //
-
 
 #if !defined(KRATOS_LINE_3D_2_H_INCLUDED )
 #define  KRATOS_LINE_3D_2_H_INCLUDED
 
-
-
 // System includes
 
-
 // External includes
-#include <boost/array.hpp>
-
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/geometry.h"
-#include "integration/quadrature.h"
-#include "integration/gauss_legendre_integration_points.h"
+#include "integration/line_gauss_legendre_integration_points.h"
 
 
 namespace Kratos
@@ -398,11 +352,6 @@ public:
         return sqrt( length );
     }
 
-//      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//              {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
 
     ///@}
     ///@name Jacobian
@@ -685,12 +634,10 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        //setting up result matrix
-        rResult.resize( 2, 1 );
-        noalias( rResult ) = ZeroMatrix( 2, 1 );
+        rResult = ZeroMatrix( 2, 1 ); 
         rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) = 0.5;
-        return( rResult );
+        rResult( 1, 0 ) =  0.5; 
+        return( rResult ); 
     }
 
 
@@ -860,11 +807,11 @@ private:
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points = {{
-                Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<GaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<GaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<GaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<GaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -951,30 +898,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
-//   template<class TPointType>
-//   const typename Line3D2<TPointType>::IntegrationPointsContainerType Line3D2<TPointType>::msIntegrationPoints = {
-//    Quadrature<TriangleGaussianIntegrationPoints<1>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<TriangleGaussianIntegrationPoints<2>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<TriangleGaussianIntegrationPoints<3>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//   };
-
-
-//   template<class TPointType>
-//   const typename Line3D2<TPointType>::ShapeFunctionsValuesContainerType
-//   Line3D2<TPointType>::msShapeFunctionsValues = {
-//    Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1),
-//    Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_2),
-//    Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3)
-//   };
-
-
-//template<class TPointType>
-//const typename GeometryData::ShapeFunctionsLocalGradientsContainerType
-//Line3D2<TPointType>::msShapeFunctionsLocalGradients = {
-// Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_1),
-// Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_2),
-// Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3)
-//};
 
 template<class TPointType>
 const GeometryData Line3D2<TPointType>::msGeometryData( 3,

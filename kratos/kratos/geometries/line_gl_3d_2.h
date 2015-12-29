@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_LINE_2D_2_H_INCLUDED )
-#define  KRATOS_LINE_2D_2_H_INCLUDED
+#if !defined(KRATOS_LINE_GL_3D_2_H_INCLUDED )
+#define  KRATOS_LINE_GL_3D_2_H_INCLUDED
 
 // System includes
 
@@ -15,7 +15,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
-#include "integration/line_gauss_legendre_integration_points.h"
+#include "integration/line_gauss_lobatto_integration_points.h"
 
 
 namespace Kratos
@@ -44,8 +44,9 @@ namespace Kratos
 */
 template<class TPointType>
 
-class Line2D2 : public Geometry<TPointType>
+class LineGL3D2 : public Geometry<TPointType>
 {
+
 public:
     ///@}
     ///@name Type Definitions
@@ -54,8 +55,8 @@ public:
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
 
-    /// Pointer definition of Line2D2
-    KRATOS_CLASS_POINTER_DEFINITION( Line2D2 );
+    /// Pointer definition of LineGL3D2
+    KRATOS_CLASS_POINTER_DEFINITION( LineGL3D2 );
 
     /** Integration methods implemented in geometry.
     */
@@ -142,21 +143,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Line2D2( const PointType& FirstPoint, const PointType& SecondPoint )
+    LineGL3D2( const PointType& FirstPoint, const PointType& SecondPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
         BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
     }
 
-    Line2D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
+    LineGL3D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         BaseType::Points().push_back( pFirstPoint );
         BaseType::Points().push_back( pSecondPoint );
     }
 
-    Line2D2( const PointsArrayType& ThisPoints )
+    LineGL3D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 2 )
@@ -172,7 +173,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    Line2D2( Line2D2 const& rOther )
+    LineGL3D2( LineGL3D2 const& rOther )
         : BaseType( rOther )
     {
     }
@@ -189,13 +190,13 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Line2D2( Line2D2<TOtherPointType> const& rOther )
+    template<class TOtherPointType> LineGL3D2( LineGL3D2<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }
 
     /// Destructor. Do nothing!!!
-    virtual ~Line2D2() {}
+    virtual ~LineGL3D2() {}
 
     GeometryData::KratosGeometryFamily GetGeometryFamily()
     {
@@ -204,7 +205,7 @@ public:
 
     GeometryData::KratosGeometryType GetGeometryType()
     {
-        return GeometryData::Kratos_Line2D2;
+        return GeometryData::Kratos_Line3D2;
     }
 
     ///@}
@@ -221,7 +222,7 @@ public:
     @see Clone
     @see ClonePoints
     */
-    Line2D2& operator=( const Line2D2& rOther )
+    LineGL3D2& operator=( const LineGL3D2& rOther )
     {
         BaseType::operator=( rOther );
 
@@ -239,7 +240,7 @@ public:
     @see ClonePoints
     */
     template<class TOtherPointType>
-    Line2D2& operator=( Line2D2<TOtherPointType> const & rOther )
+    LineGL3D2& operator=( LineGL3D2<TOtherPointType> const & rOther )
     {
         BaseType::operator=( rOther );
 
@@ -252,7 +253,7 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
     {
-        return typename BaseType::Pointer( new Line2D2( ThisPoints ) );
+        return typename BaseType::Pointer( new LineGL3D2( ThisPoints ) );
     }
 
     virtual Geometry< Point<3> >::Pointer Clone() const
@@ -265,7 +266,7 @@ public:
             NewPoints.push_back( BaseType::Points()[i] );
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new Line2D2< Point<3> >( NewPoints ) );
+       Geometry< Point<3> >::Pointer p_clone( new LineGL3D2< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();
 
@@ -277,7 +278,6 @@ public:
     {
 	if(rResult.size() != 2)
            rResult.resize( 2, false );
-
         rResult[0] = 0.5;
         rResult[1] = 0.5;
         return rResult;
@@ -305,8 +305,9 @@ public:
         const TPointType& point1 = BaseType::GetPoint(1);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
+        const double lz = point0.Z() - point1.Z();
         
-        const double length = lx * lx + ly * ly;
+        const double length = lx * lx + ly * ly + lz * lz;
         
         return sqrt( length );
     }
@@ -344,23 +345,12 @@ public:
         const TPointType& point1 = BaseType::GetPoint(1);
         const double lx = point0.X() - point1.X();
         const double ly = point0.Y() - point1.Y();
+        const double lz = point0.Z() - point1.Z();
         
-        const double length = lx * lx + ly * ly;
+        const double length = lx * lx + ly * ly + lz * lz;
         
         return sqrt( length );
     }
-
-
-
-
-//      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-//              {
-//                 //rResult.Geometry() = *(this);
-//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());
-//              }
-
-
-
 
 
     ///@}
@@ -384,9 +374,10 @@ public:
     */
     virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
     {
-        Matrix jacobian( 2, 1 );
-        jacobian( 0, 0 ) = ( BaseType::GetPoint( 1 ).X() - BaseType::GetPoint( 0 ).X() ) * 0.5; //on the Gauss points (J is constant at each element)
-        jacobian( 1, 0 ) = ( BaseType::GetPoint( 1 ).Y() - BaseType::GetPoint( 0 ).Y() ) * 0.5;
+        Matrix jacobian( 3, 1 );
+        jacobian( 0, 0 ) = ( this->GetPoint( 1 ).X() - this->GetPoint( 0 ).X() ) * 0.5; //on the Gauss points (J is constant at each element)
+        jacobian( 1, 0 ) = ( this->GetPoint( 1 ).Y() - this->GetPoint( 0 ).Y() ) * 0.5;
+        jacobian( 2, 0 ) = ( this->GetPoint( 1 ).Z() - this->GetPoint( 0 ).Z() ) * 0.5;
 
         if ( rResult.size() != BaseType::IntegrationPointsNumber( ThisMethod ) )
         {
@@ -410,7 +401,7 @@ public:
     @return JacobiansType a Vector of jacobian
     matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
     point index of given integration method.
-
+    
     @param DeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.     
 
@@ -419,9 +410,10 @@ public:
     */
     virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
     {
-        Matrix jacobian( 2, 1 );
-        jacobian( 0, 0 ) = ( (BaseType::GetPoint( 1 ).X() - DeltaPosition(1,0)) - (BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0)) ) * 0.5; //on the Gauss points (J is constant at each element)
-	jacobian( 1, 0 ) = ( (BaseType::GetPoint( 1 ).Y() - DeltaPosition(1,1)) - (BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1)) ) * 0.5;
+        Matrix jacobian( 3, 1 );
+        jacobian( 0, 0 ) = ( (this->GetPoint( 1 ).X() - DeltaPosition(1,0)) - (this->GetPoint( 0 ).X() - DeltaPosition(0,0)) ) * 0.5; //on the Gauss points (J is constant at each element)
+	jacobian( 1, 0 ) = ( (this->GetPoint( 1 ).Y() - DeltaPosition(1,1)) - (this->GetPoint( 0 ).Y() - DeltaPosition(0,1)) ) * 0.5;
+        jacobian( 2, 0 ) = ( (this->GetPoint( 1 ).Z() - DeltaPosition(1,2)) - (this->GetPoint( 0 ).Z() - DeltaPosition(0,2)) ) * 0.5;
 
         if ( rResult.size() != BaseType::IntegrationPointsNumber( ThisMethod ) )
         {
@@ -454,10 +446,11 @@ public:
     */
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        rResult.resize( 2, 1, false );
+        rResult.resize( 3, 1, false );
         //on the Gauss points (J is constant at each element)
-        rResult( 0, 0 ) = ( BaseType::GetPoint( 1 ).X() - BaseType::GetPoint( 0 ).X() ) * 0.5;
-        rResult( 1, 0 ) = ( BaseType::GetPoint( 1 ).Y() - BaseType::GetPoint( 0 ).Y() ) * 0.5;
+        rResult( 0, 0 ) = ( this->GetPoint( 1 ).X() - this->GetPoint( 0 ).X() ) * 0.5;
+        rResult( 1, 0 ) = ( this->GetPoint( 1 ).Y() - this->GetPoint( 0 ).Y() ) * 0.5;
+        rResult( 2, 0 ) = ( this->GetPoint( 1 ).Z() - this->GetPoint( 0 ).Z() ) * 0.5;
         return rResult;
     }
 
@@ -474,10 +467,11 @@ public:
     */
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 2, 1, false );
+        rResult.resize( 3, 1, false );
         //on the Gauss points (J is constant at each element)
-        rResult( 0, 0 ) = ( BaseType::GetPoint( 1 ).X() - BaseType::GetPoint( 0 ).X() ) * 0.5;
-        rResult( 1, 0 ) = ( BaseType::GetPoint( 1 ).Y() - BaseType::GetPoint( 0 ).Y() ) * 0.5;
+        rResult( 0, 0 ) = ( this->GetPoint( 1 ).X() - this->GetPoint( 0 ).X() ) * 0.5;
+        rResult( 1, 0 ) = ( this->GetPoint( 1 ).Y() - this->GetPoint( 0 ).Y() ) * 0.5;
+        rResult( 2, 0 ) = ( this->GetPoint( 1 ).Z() - this->GetPoint( 0 ).Z() ) * 0.5;
         return rResult;
     }
 
@@ -494,7 +488,8 @@ public:
     */
     virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        rResult = ZeroVector( 1 );
+        rResult[0] = 0.5 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return rResult;
     }
 
@@ -518,8 +513,7 @@ public:
     */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
-        return 0.0;
+        return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -536,8 +530,7 @@ public:
     */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
-        return 0.0;
+        return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
     }
 
 
@@ -557,7 +550,8 @@ public:
     */
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        rResult[0] = ZeroMatrix( 1, 1 );
+        rResult[0]( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return rResult;
     }
 
@@ -580,8 +574,9 @@ public:
     */
     virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
-        return rResult;
+        rResult = ZeroMatrix( 1, 1 );
+        rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        return( rResult );
     }
 
     /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -597,9 +592,11 @@ public:
     */
     virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
-        return rResult;
+        rResult = ZeroMatrix( 1, 1 );
+        rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        return( rResult );
     }
+
 
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
@@ -618,10 +615,13 @@ public:
     {
         switch ( ShapeFunctionIndex )
         {
+
         case 0:
             return( 0.5*( 1.0 - rPoint[0] ) );
+
         case 1:
             return( 0.5*( 1.0 + rPoint[0] ) );
+
         default:
             KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
@@ -631,18 +631,22 @@ public:
         return 0;
     }
 
+    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
+            const CoordinatesArrayType& rPoint ) const
+    {
+        rResult = ZeroMatrix( 2, 1 ); 
+        rResult( 0, 0 ) = -0.5;
+        rResult( 1, 0 ) =  0.5; 
+        return( rResult ); 
+    }
+
 
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const
     {
         KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
-        return rResult;
     }
 
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /** Turn back information as a string.
 
@@ -652,7 +656,7 @@ public:
     */
     virtual std::string Info() const
     {
-        return "1 dimensional line in 2D space";
+        return "1 dimensional line with 2 nodes in 3D space";
     }
 
     /** Print information about this object.
@@ -663,7 +667,7 @@ public:
     */
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
-        rOStream << "1 dimensional line in 2D space";
+        rOStream << "1 dimensional line with 2 nodes in 3D space";
     }
 
     /** Print geometry's data into given stream. Prints it's points
@@ -682,81 +686,6 @@ public:
         Jacobian( jacobian, PointType() );
         rOStream << "    Jacobian\t : " << jacobian;
     }
-
-    /**
-     * Calculates the local gradients for all integration points for the
-     * default integration method
-     */
-    virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
-    {
-        IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
-
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Result[pnt] = localGradients[pnt];
-        }
-
-        return Result;
-    }
-
-
-    /**
-     * Calculates the gradients in terms of local coordinates
-     * of all shape functions in a given point.
-     *
-     * @param rPoint the current point at which the gradients are calculated
-     * @return the gradients of all shape functions
-     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
-     */
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
-            const CoordinatesArrayType& rPoint ) const
-    {
-        //setting up result matrix
-        rResult.resize( 2, 1 );
-        noalias( rResult ) = ZeroMatrix( 2, 1 );
-        rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) =  0.5;
-        return( rResult );
-    }
-
-    /**
-     * returns the local coordinates of all nodes of the current geometry
-     * @param rResult a Matrix object that will be overwritten by the result
-     * @return the local coordinates of all nodes
-     */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
-    {
-        rResult.resize( 2, 1 );
-        noalias( rResult ) = ZeroMatrix( 2, 1 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 1, 0 ) =  1.0;
-        return rResult;
-    }
-
-    /**
-     * returns the shape function gradients in an arbitrary point,
-     * given in local coordinates
-     * @param rResult the matrix of gradients, will be overwritten
-     * with the gradients for all
-     * shape functions in given point
-     * @param rPoint the given point the gradients are calculated in
-     */
-    virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
-    {
-        rResult.resize( 2, 1 );
-        noalias( rResult ) = ZeroMatrix( 2, 1 );
-
-        rResult( 0, 0 ) = -0.5;
-        rResult( 1, 0 ) = 0.5;
-        return rResult;
-    }
-
-
 
     ///@}
     ///@name Friends
@@ -828,7 +757,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointsArrayType );
     }
 
-    Line2D2(): BaseType( PointsArrayType(), &msGeometryData ) {}
+    LineGL3D2(): BaseType( PointsArrayType(), &msGeometryData ) {}
+
 
     ///@}
     ///@name Private Operators
@@ -877,11 +807,11 @@ private:
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points = {{
-                Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<LineGaussLobattoIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -890,11 +820,11 @@ private:
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values = {{
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -903,11 +833,12 @@ private:
     static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 )
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                LineGL3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
+
             }
         };
         return shape_functions_local_gradients;
@@ -927,13 +858,11 @@ private:
     ///@name Private Friends
     ///@{
 
-    template<class TOtherPointType> friend class Line2D2;
+    template<class TOtherPointType> friend class LineGL3D2;
 
     ///@}
     ///@name Un accessible methods
     ///@{
-
-
 
     ///@}
 
@@ -953,12 +882,12 @@ private:
 /// input stream function
 template<class TPointType>
 inline std::istream& operator >> ( std::istream& rIStream,
-                                   Line2D2<TPointType>& rThis );
+                                   LineGL3D2<TPointType>& rThis );
 
 /// output stream function
 template<class TPointType>
 inline std::ostream& operator << ( std::ostream& rOStream,
-                                   const Line2D2<TPointType>& rThis )
+                                   const LineGL3D2<TPointType>& rThis )
 {
     rThis.PrintInfo( rOStream );
     rOStream << std::endl;
@@ -969,113 +898,17 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 ///@}
 
-//   template<class TPointType>
-//   const typename Line2D2<TPointType>::IntegrationPointsContainerType Line2D2<TPointType>::msIntegrationPoints = {
-//    Quadrature<LineGaussLegendreIntegrationPoints<1>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<LineGaussLegendreIntegrationPoints<2>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//    Quadrature<LineGaussLegendreIntegrationPoints<3>, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//   };
-
-
-//   template<class TPointType>
-//   const typename Line2D2<TPointType>::ShapeFunctionsValuesContainerType
-//   Line2D2<TPointType>::msShapeFunctionsValues = {
-//    Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1),
-//    Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_2),
-//    Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3)
-//   };
-
-
-//template<class TPointType>
-//const typename GeometryData::ShapeFunctionsLocalGradientsContainerType
-//Line2D2<TPointType>::msShapeFunctionsLocalGradients = {
-// Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_1),
-// Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_2),
-// Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3)
-//};
 
 template<class TPointType>
-const GeometryData Line2D2<TPointType>::msGeometryData( 2,
-        2,
+const GeometryData LineGL3D2<TPointType>::msGeometryData( 3,
+        3,
         1,
         GeometryData::GI_GAUSS_1,
-        Line2D2<TPointType>::AllIntegrationPoints(),
-        Line2D2<TPointType>::AllShapeFunctionsValues(),
+        LineGL3D2<TPointType>::AllIntegrationPoints(),
+        LineGL3D2<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_2D_H_INCLUDED  defined 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif // KRATOS_LINE_GL_3D_2_H_INCLUDED  defined 
 
