@@ -194,10 +194,10 @@ void PointTorque3DCondition::AddExplicitContribution(const VectorType& rRHS,
 
 	    GetGeometry()[i].SetLock();
 
-	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+	    array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 	    for(unsigned int j=0; j<dimension; j++)
 	      {
-		ForceResidual[j] += rRHS[index + j];
+		MomentResidual[j] += rRHS[index + j];
 	      }
 
 	    GetGeometry()[i].UnSetLock();
