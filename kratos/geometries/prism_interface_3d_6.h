@@ -1,31 +1,22 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: stefano $
-//   Date:                $Date: 2009-01-21 09:56:09 $
-//   Revision:            $Revision: 1.14 $
+//   Last Modified by:    $Author:   JMCarbonell $
+//   Date:                $Date:   December 2015 $
+//   Revision:            $Revision:         1.6 $
 //
 //
 
 #if !defined(KRATOS_PRISM_INTERFACE_3D_6_H_INCLUDED )
 #define  KRATOS_PRISM_INTERFACE_3D_6_H_INCLUDED
 
-
-
 // System includes
-#include <iostream>
 
 // External includes
-#include <boost/array.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "utilities/math_utils.h"
-#include "geometries/geometry.h"
-#include "integration/quadrature.h"
-#include "integration/interface_integration_points.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
-#include "geometries/line_3d_2.h"
+#include "integration/prism_gauss_lobatto_integration_points.h"
 
 
 namespace Kratos
@@ -1585,7 +1576,7 @@ private:
         {
             {
                 IntegrationPointsArrayType(),
-                Quadrature<PrismInterfaceLobattoIntegrationPoints2, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<PrismGaussLobattoIntegrationPoints2, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }

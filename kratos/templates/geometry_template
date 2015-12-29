@@ -748,8 +748,8 @@ namespace Kratos
 
   template<class TPointType>  
   typename Triangle2D<TPointType>::IntegrationPointsContainerType Triangle2D<TPointType>::msIntegrationPoints = {
-	  Quadrature<TriangleGaussianIntegrationPoints<1>, 2, IntegrationPoint<3> >::IntegrationPoints(),
-	  Quadrature<TriangleGaussianIntegrationPoints<2>, 2, IntegrationPoint<3> >::IntegrationPoints()
+	  Quadrature<TriangleGaussLegendreIntegrationPoints<1>, 2, IntegrationPoint<3> >::IntegrationPoints(),
+	  Quadrature<TriangleGaussLegendreIntegrationPoints<2>, 2, IntegrationPoint<3> >::IntegrationPoints()
   };
 	
 

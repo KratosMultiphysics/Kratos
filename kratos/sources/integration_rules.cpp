@@ -1,72 +1,41 @@
-/*
-==============================================================================
-Kratos
-A General Purpose SoftKRATOS_TRI_G4_ware for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  softKRATOS_TRI_G4_ware  and  associated  documentation files  (the
-"SoftKRATOS_TRI_G4_ware"), to  deal in  the SoftKRATOS_TRI_G4_ware without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  SoftKRATOS_TRI_G4_ware,  and to
-permit persons to whom the SoftKRATOS_TRI_G4_ware  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the SoftKRATOS_TRI_G4_ware.
-
-THE  SOFTKRATOS_TRI_G4_waRE IS  PROVIDED  "AS  IS", WITHOUT  KRATOS_TRI_G4_waRRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  KRATOS_TRI_G4_waRRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTKRATOS_TRI_G4_waRE OR THE USE OR OTHER DEALINGS IN THE SOFTKRATOS_TRI_G4_waRE.
-
-==============================================================================
-*/
-
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2008-10-23 11:35:13 $
-//   Revision:            $Revision: 1.6 $
+//   Last Modified by:    $Author:   JMCarbonell $
+//   Date:                $Date:   December 2015 $
+//   Revision:            $Revision:         1.7 $
 //
 //
 
+#include "integration/line_gauss_legendre_integration_points.h"
+#include "integration/triangle_gauss_legendre_integration_points.h"
+#include "integration/quadrilateral_gauss_legendre_integration_points.h"
+#include "integration/tetrahedron_gauss_legendre_integration_points.h"
+#include "integration/hexahedron_gauss_legendre_integration_points.h"
+#include "integration/prism_gauss_legendre_integration_points.h"
 
-#include "integration/gauss_legendre_integration_points.h"
-#include "integration/triangle_gaussian_integration_points.h"
-#include "integration/tetrahedra_gaussian_integration_points.h"
-#include "integration/hexahedra_gaussian_integration_points.h"
-#include "integration/quadrilateral_gaussian_integration_points.h"
-#include "integration/prism_gaussian_integration_points.h"
-#include "integration/interface_integration_points.h"
+#include "integration/line_gauss_lobatto_integration_points.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
+#include "integration/hexahedron_gauss_lobatto_integration_points.h"
+#include "integration/prism_gauss_lobatto_integration_points.h"
 
 #define tet10_a 0.108103018168070
 #define tet10_b 0.445948490915965
 #define tet10_c 0.816847572980459
 
+//LINE:
+
+//Gauss-Legendre
+
 namespace Kratos
 {
-GaussLegendreIntegrationPoints1::IntegrationPointsArrayType GaussLegendreIntegrationPoints1::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints1::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints1::msIntegrationPoints =
 {
     {
         IntegrationPointType(0.00, 2.00)
     }
 };
 
-GaussLegendreIntegrationPoints2::IntegrationPointsArrayType GaussLegendreIntegrationPoints2::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints2::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints2::msIntegrationPoints =
 {
     {
         IntegrationPointType(-std::sqrt(1.00 / 3.00), 1.00),
@@ -74,7 +43,7 @@ GaussLegendreIntegrationPoints2::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints3::IntegrationPointsArrayType GaussLegendreIntegrationPoints3::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints3::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints3::msIntegrationPoints =
 {
     {
         IntegrationPointType(-std::sqrt(3.00 / 5.00), 5.00 / 9.00),
@@ -83,7 +52,7 @@ GaussLegendreIntegrationPoints3::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints4::IntegrationPointsArrayType GaussLegendreIntegrationPoints4::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints4::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints4::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.861136311594053, 0.347854845137454),
@@ -93,7 +62,7 @@ GaussLegendreIntegrationPoints4::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints5::IntegrationPointsArrayType GaussLegendreIntegrationPoints5::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints5::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints5::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.906179845938664, 0.236926885056189),
@@ -104,7 +73,7 @@ GaussLegendreIntegrationPoints5::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints6::IntegrationPointsArrayType GaussLegendreIntegrationPoints6::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints6::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints6::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.9324695142031521, 0.1713244923791704),
@@ -116,7 +85,7 @@ GaussLegendreIntegrationPoints6::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints7::IntegrationPointsArrayType GaussLegendreIntegrationPoints7::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints7::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints7::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.9491079123427585, 0.1294849661688697),
@@ -129,7 +98,7 @@ GaussLegendreIntegrationPoints7::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints8::IntegrationPointsArrayType GaussLegendreIntegrationPoints8::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints8::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints8::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.9602898564975363, 0.1012285362903763),
@@ -143,7 +112,7 @@ GaussLegendreIntegrationPoints8::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints9::IntegrationPointsArrayType GaussLegendreIntegrationPoints9::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints9::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints9::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.9681602395076261, 0.0812743883615744),
@@ -158,7 +127,7 @@ GaussLegendreIntegrationPoints9::IntegrationPointsArrayType GaussLegendreIntegra
     }
 };
 
-GaussLegendreIntegrationPoints10::IntegrationPointsArrayType GaussLegendreIntegrationPoints10::msIntegrationPoints =
+LineGaussLegendreIntegrationPoints10::IntegrationPointsArrayType LineGaussLegendreIntegrationPoints10::msIntegrationPoints =
 {
     {
         IntegrationPointType(-0.9739065285171717, 0.0666713443086881),
@@ -174,14 +143,77 @@ GaussLegendreIntegrationPoints10::IntegrationPointsArrayType GaussLegendreIntegr
     }
 };
 
-TriangleGaussianIntegrationPoints1::IntegrationPointsArrayType TriangleGaussianIntegrationPoints1::msIntegrationPoints =
+//Gauss-Lobatto
+
+LineGaussLobattoIntegrationPoints1::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints1::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(0.00, 2.00)
+    }
+};
+
+LineGaussLobattoIntegrationPoints2::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints2::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00, 1.00),
+        IntegrationPointType( 1.00, 1.00)
+    }
+};
+
+LineGaussLobattoIntegrationPoints3::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints3::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00, 1.00 / 3.00),
+        IntegrationPointType( 0.00, 4.00 / 3.00),
+        IntegrationPointType( 1.00, 1.00 / 3.00)
+    }
+};
+
+LineGaussLobattoIntegrationPoints4::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints4::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00, 1.00 / 6.00),
+        IntegrationPointType(-std::sqrt(5.00) / 5.00, 5.00 / 6.00),
+        IntegrationPointType( std::sqrt(5.00) / 5.00, 5.00 / 6.00),
+        IntegrationPointType( 1.00, 1.00 / 6.00)
+    }
+};
+
+LineGaussLobattoIntegrationPoints5::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints5::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00, 0.10),
+        IntegrationPointType(-std::sqrt(21.00) / 7.00, 49.00 / 90.00),
+        IntegrationPointType( 0.00, 32.00 / 45.00),
+        IntegrationPointType( std::sqrt(21.00) / 7.00, 49.00 / 90.00),
+        IntegrationPointType( 1.00, 0.10)
+    }
+};
+
+LineGaussLobattoIntegrationPoints6::IntegrationPointsArrayType LineGaussLobattoIntegrationPoints6::msIntegrationPoints =
+{
+    {
+        IntegrationPointType(-1.00, 1.00 / 15.00),
+        IntegrationPointType(-std::sqrt((7.00+2.00*std::sqrt(7)) / 21.00), (14.00-std::sqrt(7)) / 30.00),
+        IntegrationPointType(-std::sqrt((7.00-2.00*std::sqrt(7)) / 21.00), (14.00+std::sqrt(7)) / 30.0),
+        IntegrationPointType( std::sqrt((7.00-2.00*std::sqrt(7)) / 21.00), (14.00+std::sqrt(7)) / 30.00),
+        IntegrationPointType( std::sqrt((7.00+2.00*std::sqrt(7)) / 21.00), (14.00-std::sqrt(7)) / 30.00),
+        IntegrationPointType( 1.00, 1.00 / 15.00)
+    }
+};
+
+//TRIANGLE:
+
+//Gauss-Legendre
+
+TriangleGaussLegendreIntegrationPoints1::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints1::msIntegrationPoints =
 {
     {
         IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 )
     }
 };
 
-TriangleGaussianIntegrationPoints2::IntegrationPointsArrayType TriangleGaussianIntegrationPoints2::msIntegrationPoints =
+TriangleGaussLegendreIntegrationPoints2::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints2::msIntegrationPoints =
 {
 
     {
@@ -191,7 +223,7 @@ TriangleGaussianIntegrationPoints2::IntegrationPointsArrayType TriangleGaussianI
     }
 };
 
-TriangleGaussianIntegrationPoints3::IntegrationPointsArrayType TriangleGaussianIntegrationPoints3::msIntegrationPoints =
+TriangleGaussLegendreIntegrationPoints3::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints3::msIntegrationPoints =
 {
     {
         IntegrationPointType( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
@@ -207,7 +239,7 @@ TriangleGaussianIntegrationPoints3::IntegrationPointsArrayType TriangleGaussianI
 #define KRATOS_TRI_G4_Nb1 0.108103018168070
 #define KRATOS_TRI_G4_Na2 0.091576213509771
 #define KRATOS_TRI_G4_Nb2 0.445948490915965
-TriangleGaussianIntegrationPoints4::IntegrationPointsArrayType TriangleGaussianIntegrationPoints4::msIntegrationPoints =
+TriangleGaussLegendreIntegrationPoints4::IntegrationPointsArrayType TriangleGaussLegendreIntegrationPoints4::msIntegrationPoints =
 {
     {
         IntegrationPointType( KRATOS_TRI_G4_Na2, KRATOS_TRI_G4_Na2, KRATOS_TRI_G4_wa ),
@@ -225,145 +257,21 @@ TriangleGaussianIntegrationPoints4::IntegrationPointsArrayType TriangleGaussianI
 #undef KRATOS_TRI_G4_Nb1
 #undef KRATOS_TRI_G4_Nb2
 
-//tetrahedra 1 GP
-TetrahedraGaussianIntegrationPoints1::IntegrationPointsArrayType
-TetrahedraGaussianIntegrationPoints1::msIntegrationPoints =
-{
-    {
-        IntegrationPointType( 0.25,0.25,0.25 , 1.00 / 6.00 )
-    }
-};
 
-//tetrahedra 4 GP
-TetrahedraGaussianIntegrationPoints2::IntegrationPointsArrayType
-TetrahedraGaussianIntegrationPoints2::msIntegrationPoints =
-{
-    {
-        IntegrationPointType( 0.58541020,0.13819660,0.13819660 , 1.00 / 24.00 ),
-        IntegrationPointType( 0.13819660,0.58541020,0.13819660 , 1.00 / 24.00 ),
-        IntegrationPointType( 0.13819660,0.13819660,0.58541020 , 1.00 / 24.00 ),
-        IntegrationPointType( 0.13819660,0.13819660,0.13819660 , 1.00 / 24.00 )
-    }
-};
+//QUADRILATERAL:
 
-//tetrahedra 5 GP
-TetrahedraGaussianIntegrationPoints3::IntegrationPointsArrayType
-TetrahedraGaussianIntegrationPoints3::msIntegrationPoints =
-{
-    {
-        IntegrationPointType( 0.25,0.25,0.25 , -0.1333333333333333333333333333333 ),
-        IntegrationPointType( 0.5,0.1666666666666667,0.1666666666666667	, 0.075 ),
-        IntegrationPointType( 0.1666666666666667,0.5,0.1666666666666667 , 0.075 ),
-        IntegrationPointType( 0.1666666666666667,0.1666666666666667,0.5, 0.075 ),
-        IntegrationPointType( 0.1666666666666667,0.1666666666666667,0.1666666666666667, 0.075 )
-    }
-};
+//Gauss-Legendre
 
-// 	TetrahedraGaussianIntegrationPoints4::IntegrationPointsArrayType
-// 			TetrahedraGaussianIntegrationPoints4::msIntegrationPoints=
-// 	{
-// 		{
-// 			IntegrationPointType( 1.0/4.0,  1.0/4.0,  1.0/4.0, -4.0/30.0 ),
-// 			IntegrationPointType( 1.0/6.0,  1.0/6.0,  1.0/6.0, 9.0/120.0 ),
-// 			IntegrationPointType( 1.0/2.0,  1.0/6.0,  1.0/6.0, 9.0/120.0 ),
-// 			IntegrationPointType( 1.0/6.0,  1.0/2.0,  1.0/6.0, 9.0/120.0 ),
-// 			IntegrationPointType( 1.0/6.0,  1.0/6.0,  1.0/2.0, 9.0/120.0 )
-// 		}
-// 	};
-
-//tetrahedra 10 GP
-TetrahedraGaussianIntegrationPoints4::IntegrationPointsArrayType
-TetrahedraGaussianIntegrationPoints4::msIntegrationPoints=
-{
-    {
-        IntegrationPointType( tet10_a,  tet10_a,  tet10_a, -1.0/60.0 ),
-        IntegrationPointType( tet10_c,  tet10_a,  tet10_a, -1.0/60.0 ),
-        IntegrationPointType( tet10_a,  tet10_c,  tet10_a, -1.0/60.0 ),
-        IntegrationPointType( tet10_a,  tet10_a,  tet10_c, -1.0/60.0 ),
-        IntegrationPointType( tet10_b,  tet10_a,  tet10_a, -1.0/60.0 ),
-        IntegrationPointType( tet10_b,  tet10_b,  tet10_a, -1.0/60.0 ),
-        IntegrationPointType( tet10_a,  tet10_b,  tet10_a, -1.0/60.0 ),
-        IntegrationPointType( tet10_a,  tet10_a,  tet10_b, -1.0/60.0 ),
-        IntegrationPointType( tet10_b,  tet10_a,  tet10_b, -1.0/60.0 ),
-        IntegrationPointType( tet10_a,  tet10_b,  tet10_b, -1.0/60.0 ),
-    }
-};
-
-//tetrahedra 11 GP
-TetrahedraGaussianIntegrationPoints5::IntegrationPointsArrayType
-TetrahedraGaussianIntegrationPoints5::msIntegrationPoints=
-{
-    {
-        IntegrationPointType(1.0/4.0, 1.0/4.0, 1.0/4.0,-74.0/5625.0 ),
-        IntegrationPointType(1.0/14.0, 1.0/14.0, 1.0/14.0,343.0/45000.0 ),
-        IntegrationPointType(11.0/14.0, 1.0/14.0, 1.0/14.0,343.0/45000.0 ),
-        IntegrationPointType(1.0/14.0, 11.0/14.0, 1.0/14.0,343.0/45000.0 ),
-        IntegrationPointType(1.0/14.0, 1.0/14.0, 11.0/14.0,343.0/45000.0 ),
-        IntegrationPointType((1.0+std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/
-        4.0, (1.0-std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
-        IntegrationPointType((1.0+std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/
-        4.0, (1.0-std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
-        IntegrationPointType((1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/
-        4.0, (1.0-std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
-        IntegrationPointType((1.0-std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/
-        4.0, (1.0+std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
-        IntegrationPointType((1.0+std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/
-        4.0, (1.0+std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
-        IntegrationPointType((1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/
-        4.0, (1.0+std::sqrt(5.0/14.0))/4.0,56.0/2250.0 )
-    }
-};
-
-//Prism
-PrismGaussianIntegrationPoints1::IntegrationPointsArrayType
-PrismGaussianIntegrationPoints1::msIntegrationPoints=
-{
-    {
-        IntegrationPointType(0.25,0.25,0.5,1.0)
-    }
-};
-
-PrismGaussianIntegrationPoints2::IntegrationPointsArrayType
-PrismGaussianIntegrationPoints2::msIntegrationPoints=
-{
-    {
-        IntegrationPointType(1.0/6.0,1.0/6.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-        IntegrationPointType(2.0/3.0,1.0/6.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-        IntegrationPointType(1.0/6.0,2.0/3.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-        IntegrationPointType(1.0/6.0,1.0/6.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-        IntegrationPointType(2.0/3.0,1.0/6.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-        IntegrationPointType(1.0/6.0,2.0/3.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0)
-    }
-};
-
-PrismGaussianIntegrationPoints3::IntegrationPointsArrayType
-PrismGaussianIntegrationPoints3::msIntegrationPoints=
-{
-    {
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.0, 4.00 / 27.00),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.0, 4.00 / 27.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.0, 4.00 / 27.00),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00)
-    }
-};
-
-
-//quadrilateral!
-QuadrilateralGaussianIntegrationPoints1::IntegrationPointsArrayType
-QuadrilateralGaussianIntegrationPoints1::msIntegrationPoints =
+QuadrilateralGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
+QuadrilateralGaussLegendreIntegrationPoints1::msIntegrationPoints =
 {
     {
         IntegrationPointType( 0.00 , 0.00 , 4.00 )
     }
 };
 
-QuadrilateralGaussianIntegrationPoints2::IntegrationPointsArrayType
-QuadrilateralGaussianIntegrationPoints2::msIntegrationPoints =
+QuadrilateralGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
+QuadrilateralGaussLegendreIntegrationPoints2::msIntegrationPoints =
 {
     {
         IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 ),
@@ -373,8 +281,8 @@ QuadrilateralGaussianIntegrationPoints2::msIntegrationPoints =
     }
 };
 
-QuadrilateralGaussianIntegrationPoints3::IntegrationPointsArrayType
-QuadrilateralGaussianIntegrationPoints3::msIntegrationPoints =
+QuadrilateralGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
+QuadrilateralGaussLegendreIntegrationPoints3::msIntegrationPoints =
 {
     {
         IntegrationPointType( -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00), 25.00/81.00 ),
@@ -392,8 +300,8 @@ QuadrilateralGaussianIntegrationPoints3::msIntegrationPoints =
 };
 
 
-QuadrilateralGaussianIntegrationPoints4::IntegrationPointsArrayType
-QuadrilateralGaussianIntegrationPoints4::msIntegrationPoints =
+QuadrilateralGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
+QuadrilateralGaussLegendreIntegrationPoints4::msIntegrationPoints =
 {
     {
         IntegrationPointType( -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0)),
@@ -419,8 +327,8 @@ QuadrilateralGaussianIntegrationPoints4::msIntegrationPoints =
 };
 
 
-QuadrilateralGaussianIntegrationPoints5::IntegrationPointsArrayType
-QuadrilateralGaussianIntegrationPoints5::msIntegrationPoints =
+QuadrilateralGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
+QuadrilateralGaussLegendreIntegrationPoints5::msIntegrationPoints =
 {
     {
         IntegrationPointType( -0.906179845938664, -0.906179845938664, 0.236926885056189 * 0.236926885056189),
@@ -455,18 +363,179 @@ QuadrilateralGaussianIntegrationPoints5::msIntegrationPoints =
     }
 };
 
+//Gauss-Lobatto
 
-//hexahedra!
-HexahedraGaussianIntegrationPoints1::IntegrationPointsArrayType
-HexahedraGaussianIntegrationPoints1::msIntegrationPoints =
+QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
+QuadrilateralGaussLobattoIntegrationPoints2::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( -1.00 , -1.00, 0.50 ),
+		IntegrationPointType(  1.00 , -1.00, 0.50 ),
+		IntegrationPointType(  1.00 ,  1.00, 0.50 ),
+		IntegrationPointType( -1.00 ,  1.00, 0.50 )
+	}
+};
+
+//TETRAHEDRON:
+
+//Gauss-Legendre
+
+TetrahedronGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
+TetrahedronGaussLegendreIntegrationPoints1::msIntegrationPoints =
+{
+    {
+        IntegrationPointType( 0.25,0.25,0.25 , 1.00 / 6.00 )
+    }
+};
+
+TetrahedronGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
+TetrahedronGaussLegendreIntegrationPoints2::msIntegrationPoints =
+{
+    {
+        IntegrationPointType( 0.58541020,0.13819660,0.13819660 , 1.00 / 24.00 ),
+        IntegrationPointType( 0.13819660,0.58541020,0.13819660 , 1.00 / 24.00 ),
+        IntegrationPointType( 0.13819660,0.13819660,0.58541020 , 1.00 / 24.00 ),
+        IntegrationPointType( 0.13819660,0.13819660,0.13819660 , 1.00 / 24.00 )
+    }
+};
+
+TetrahedronGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
+TetrahedronGaussLegendreIntegrationPoints3::msIntegrationPoints =
+{
+    {
+        IntegrationPointType( 0.25,0.25,0.25 , -0.1333333333333333333333333333333 ),
+        IntegrationPointType( 0.5,0.1666666666666667,0.1666666666666667	, 0.075 ),
+        IntegrationPointType( 0.1666666666666667,0.5,0.1666666666666667 , 0.075 ),
+        IntegrationPointType( 0.1666666666666667,0.1666666666666667,0.5, 0.075 ),
+        IntegrationPointType( 0.1666666666666667,0.1666666666666667,0.1666666666666667, 0.075 )
+    }
+};
+
+// 	TetrahedronGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
+// 			TetrahedronGaussLegendreIntegrationPoints4::msIntegrationPoints=
+// 	{
+// 		{
+// 			IntegrationPointType( 1.0/4.0,  1.0/4.0,  1.0/4.0, -4.0/30.0 ),
+// 			IntegrationPointType( 1.0/6.0,  1.0/6.0,  1.0/6.0, 9.0/120.0 ),
+// 			IntegrationPointType( 1.0/2.0,  1.0/6.0,  1.0/6.0, 9.0/120.0 ),
+// 			IntegrationPointType( 1.0/6.0,  1.0/2.0,  1.0/6.0, 9.0/120.0 ),
+// 			IntegrationPointType( 1.0/6.0,  1.0/6.0,  1.0/2.0, 9.0/120.0 )
+// 		}
+// 	};
+
+
+TetrahedronGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
+TetrahedronGaussLegendreIntegrationPoints4::msIntegrationPoints=
+{
+    {
+        IntegrationPointType( tet10_a,  tet10_a,  tet10_a, -1.0/60.0 ),
+        IntegrationPointType( tet10_c,  tet10_a,  tet10_a, -1.0/60.0 ),
+        IntegrationPointType( tet10_a,  tet10_c,  tet10_a, -1.0/60.0 ),
+        IntegrationPointType( tet10_a,  tet10_a,  tet10_c, -1.0/60.0 ),
+        IntegrationPointType( tet10_b,  tet10_a,  tet10_a, -1.0/60.0 ),
+        IntegrationPointType( tet10_b,  tet10_b,  tet10_a, -1.0/60.0 ),
+        IntegrationPointType( tet10_a,  tet10_b,  tet10_a, -1.0/60.0 ),
+        IntegrationPointType( tet10_a,  tet10_a,  tet10_b, -1.0/60.0 ),
+        IntegrationPointType( tet10_b,  tet10_a,  tet10_b, -1.0/60.0 ),
+        IntegrationPointType( tet10_a,  tet10_b,  tet10_b, -1.0/60.0 ),
+    }
+};
+
+
+TetrahedronGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
+TetrahedronGaussLegendreIntegrationPoints5::msIntegrationPoints=
+{
+    {
+        IntegrationPointType(1.0/4.0, 1.0/4.0, 1.0/4.0,-74.0/5625.0 ),
+        IntegrationPointType(1.0/14.0, 1.0/14.0, 1.0/14.0,343.0/45000.0 ),
+        IntegrationPointType(11.0/14.0, 1.0/14.0, 1.0/14.0,343.0/45000.0 ),
+        IntegrationPointType(1.0/14.0, 11.0/14.0, 1.0/14.0,343.0/45000.0 ),
+        IntegrationPointType(1.0/14.0, 1.0/14.0, 11.0/14.0,343.0/45000.0 ),
+        IntegrationPointType((1.0+std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/
+        4.0, (1.0-std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
+        IntegrationPointType((1.0+std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/
+        4.0, (1.0-std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
+        IntegrationPointType((1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/
+        4.0, (1.0-std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
+        IntegrationPointType((1.0-std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/
+        4.0, (1.0+std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
+        IntegrationPointType((1.0+std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/
+        4.0, (1.0+std::sqrt(5.0/14.0))/4.0,56.0/2250.0 ),
+        IntegrationPointType((1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/
+        4.0, (1.0+std::sqrt(5.0/14.0))/4.0,56.0/2250.0 )
+    }
+};
+
+//PRISM:
+
+//Gauss-Legendre
+
+PrismGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
+PrismGaussLegendreIntegrationPoints1::msIntegrationPoints=
+{
+    {
+        IntegrationPointType(0.25,0.25,0.5,1.0)
+    }
+};
+
+PrismGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
+PrismGaussLegendreIntegrationPoints2::msIntegrationPoints=
+{
+    {
+        IntegrationPointType(1.0/6.0,1.0/6.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
+        IntegrationPointType(2.0/3.0,1.0/6.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
+        IntegrationPointType(1.0/6.0,2.0/3.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
+        IntegrationPointType(1.0/6.0,1.0/6.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
+        IntegrationPointType(2.0/3.0,1.0/6.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
+        IntegrationPointType(1.0/6.0,2.0/3.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0)
+    }
+};
+
+PrismGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
+PrismGaussLegendreIntegrationPoints3::msIntegrationPoints=
+{
+    {
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.0, 4.00 / 27.00),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.0, 4.00 / 27.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.0, 4.00 / 27.00),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00)
+    }
+};
+
+//Gauss-Lobatto
+
+PrismGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
+PrismGaussLobattoIntegrationPoints2::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 )
+	}
+};
+
+//HEXAHEDRON:
+
+//Gauss-Legendre
+
+HexahedronGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
+HexahedronGaussLegendreIntegrationPoints1::msIntegrationPoints =
 {
     {
         IntegrationPointType( 0.00 , 0.00, 0.00 , 8.00 )
     }
 };
 
-HexahedraGaussianIntegrationPoints2::IntegrationPointsArrayType
-HexahedraGaussianIntegrationPoints2::msIntegrationPoints =
+HexahedronGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
+HexahedronGaussLegendreIntegrationPoints2::msIntegrationPoints =
 {
     {
         IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 ),
@@ -480,8 +549,8 @@ HexahedraGaussianIntegrationPoints2::msIntegrationPoints =
     }
 };
 
-HexahedraGaussianIntegrationPoints3::IntegrationPointsArrayType
-HexahedraGaussianIntegrationPoints3::msIntegrationPoints =
+HexahedronGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
+HexahedronGaussLegendreIntegrationPoints3::msIntegrationPoints =
 {
     {
         IntegrationPointType( -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00), -std::sqrt(3.00/5.00), 125.00/729.00 ),
@@ -522,20 +591,10 @@ HexahedraGaussianIntegrationPoints3::msIntegrationPoints =
     }
 };
 
-// interface geometries
-QuadrilateralInterfaceLobattoIntegrationPoints2::IntegrationPointsArrayType
-QuadrilateralInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
-{
-	{
-		IntegrationPointType( -1.00 , -1.00, 0.50 ),
-		IntegrationPointType(  1.00 , -1.00, 0.50 ),
-		IntegrationPointType(  1.00 ,  1.00, 0.50 ),
-		IntegrationPointType( -1.00 ,  1.00, 0.50 )
-	}
-};
+//Gauss-Lobatto
 
-HexaedralInterfaceLobattoIntegrationPoints2::IntegrationPointsArrayType
-HexaedralInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
+HexahedronGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
+HexahedronGaussLobattoIntegrationPoints2::msIntegrationPoints =
 {
 	{
 		IntegrationPointType( -1.00 , -1.00, -1.00, 0.50 ),
@@ -549,17 +608,5 @@ HexaedralInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
 	}
 };
 
-PrismInterfaceLobattoIntegrationPoints2::IntegrationPointsArrayType
-PrismInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
-{
-	{
-		IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
-		IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
-		IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 ),
-		IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
-		IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
-		IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 )
-	}
-};
 
 }

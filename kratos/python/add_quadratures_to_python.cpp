@@ -49,16 +49,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // System includes
-#include <cstddef>
-#include <iostream>
-#include <sstream>
 
 // Project includes
-#include "includes/define.h"
-#include "integration/quadrature.h" // to bo changed to the new version below.
-#include "integration/gauss_legendre_integration_points.h"
-//#include "quadratures/gauss_legendre_integration_points.h"
-//#include "quadratures/quadrature.h"
+#include "integration/line_gauss_legendre_integration_points.h"
+
 #include "python/container_from_python.h"
 
 namespace Kratos
@@ -95,20 +89,20 @@ void AddIntegrationPointsArray(std::string const& rArrayName, TArrayType const &
 
 void  AddQuadraturesToPython()
 {
-    AddIntegrationPointsArray("IntegrationPointsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
-    //AddIntegrationPointsArray("IntegrationPoint2DsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints<1>,2,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
-    //AddIntegrationPointsArray("IntegrationPoint3DsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints<1>,3,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
-    //AddIntegrationPointsArray("IntegrationPoint4DsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints<1>,4,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
+    AddIntegrationPointsArray("IntegrationPointsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
+    //AddIntegrationPointsArray("IntegrationPoint2DsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints<1>,2,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
+    //AddIntegrationPointsArray("IntegrationPoint3DsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints<1>,3,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
+    //AddIntegrationPointsArray("IntegrationPoint4DsArray", Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints<1>,4,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
 
-    scope().attr("GaussLegendreQuadrature1D1") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature1D2") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints2,1,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature1D3") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints3,1,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature2D1") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints1,2,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature2D2") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints2,2,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature2D3") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints3,2,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature3D1") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints1,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature3D2") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints2,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-    scope().attr("GaussLegendreQuadrature3D3") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints3,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature1D1") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature1D2") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints2,1,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature1D3") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints3,1,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature2D1") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,2,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature2D2") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints2,2,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature2D3") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints3,2,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature3D1") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints1,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature3D2") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints2,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
+    scope().attr("GaussLegendreQuadrature3D3") = Kratos::Quadrature<Kratos::LineGaussLegendreIntegrationPoints3,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
 }
 
 }  // namespace Python.

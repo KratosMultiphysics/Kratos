@@ -1,27 +1,21 @@
-//
+
 //   Project Name:        Kratos
-//   Last Modified by:    $Authors: Massimo Petracca $
-//   Date:                $Date: 2009-01-21 09:56:09 $
-//   Revision:            $Revision: 1.15 $
+//   Last Modified by:    $Author:   JMCarbonell $
+//   Date:                $Date:   December 2015 $
+//   Revision:            $Revision:         1.4 $
 //
 //
+
 #if !defined(KRATOS_QUADRILATERAL_INTERFACE_2D_4_H_INCLUDED )
 #define  KRATOS_QUADRILATERAL_INTERFACE_2D_4_H_INCLUDED
 
-
-
 // System includes
 
-
 // External includes
-#include <boost/array.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "geometries/geometry.h"
 #include "geometries/line_2d_2.h"
-#include "integration/quadrature.h"
-#include "integration/interface_integration_points.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 
 
 namespace Kratos
@@ -1391,7 +1385,7 @@ private:
         {
             {
                 IntegrationPointsArrayType(),
-                Quadrature < QuadrilateralInterfaceLobattoIntegrationPoints2,  2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,  2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }
