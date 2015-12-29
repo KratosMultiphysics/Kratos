@@ -1,78 +1,30 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2007-03-19 10:49:46 $
-//   Revision:            $Revision: 1.4 $
+//   Last Modified by:    $Author:   JMCarbonell $
+//   Date:                $Date:   December 2015 $
+//   Revision:            $Revision:         1.6 $
 //
 //
 
-
-#if !defined(KRATOS_QUADRILATERAL_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED
-
+#if !defined(KRATOS_QUADRILATERAL_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED )
+#define  KRATOS_QUADRILATERAL_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <numeric>
-#include <cstddef>
-
 
 // External includes
-#include <boost/array.hpp>
-
 
 // Project includes
-#include "includes/define.h"
-#include "integration/integration_point.h"
+#include "integration/quadrature.h"
 
 
 namespace Kratos
 {
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints1
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints1
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints1);
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints1);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 2;
@@ -90,7 +42,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
         msIntegrationPoints[0] = IntegrationPointType( 0.00 , 0.00 , 4.00 );
         return msIntegrationPoints;
     }
@@ -98,7 +49,7 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Quadrilateral gaussian quadrature 1 ";
+        buffer << "Quadrilateral Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
 protected:
@@ -107,12 +58,12 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; // Class QuadrilateralGaussianIntegrationPoints1
+}; // Class QuadrilateralGaussLegendreIntegrationPoints1
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints2
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints2
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints2);
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints2);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 2;
@@ -130,7 +81,6 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        // This is added to solve the problem of static initialization. Pooyan.
         msIntegrationPoints[0] = IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 );
         msIntegrationPoints[1] = IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 );
         msIntegrationPoints[2] = IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), 1.00 );
@@ -141,7 +91,7 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Quadrilateral gaussian quadrature 2 ";
+        buffer << "Quadrilateral Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
 protected:
@@ -150,12 +100,12 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; // Class QuadrilateralGaussianIntegrationPoints2
+}; // Class QuadrilateralGaussLegendreIntegrationPoints2
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints3
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints3
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints3);
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints3);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 2;
@@ -190,7 +140,7 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Quadrilateral gaussian quadrature 3 ";
+        buffer << "Quadrilateral Gauss-Legendre quadrature 3 ";
         return buffer.str();
     }
 protected:
@@ -199,12 +149,12 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; // Class QuadrilateralGaussianIntegrationPoints3
+}; // Class QuadrilateralGaussLegendreIntegrationPoints3
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints4
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints4
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints4);
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints4);
     typedef std::size_t SizeType;
 
     static const unsigned int Dimension = 2;
@@ -244,7 +194,7 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Quadrilateral gaussian quadrature 4 ";
+        buffer << "Quadrilateral Gauss-Legendre quadrature 4 ";
         return buffer.str();
     }
 protected:
@@ -253,11 +203,11 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; // Class QuadrilateralGaussianIntegrationPoints4
+}; // Class QuadrilateralGaussLegendreIntegrationPoints4
 
-class KRATOS_API(KRATOS_CORE) QuadrilateralGaussianIntegrationPoints5 {
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLegendreIntegrationPoints5 {
 public:
-	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints5);
+	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLegendreIntegrationPoints5);
 	typedef std::size_t SizeType;
 
 	static const unsigned int Dimension = 2;
@@ -285,7 +235,7 @@ public:
 	std::string Info() const
 	{
 		std::stringstream buffer;
-		buffer << "Quadrilateral gaussian quadrature 5 ";
+		buffer << "Quadrilateral Gauss-Legendre quadrature 5 ";
 		return buffer.str();
 	}
 protected:
@@ -294,7 +244,7 @@ private:
 
 	static IntegrationPointsArrayType msIntegrationPoints;
 
-}; // Class QuadrilateralGaussianIntegrationPoints5
+}; // Class QuadrilateralGaussLegendreIntegrationPoints5
 
 
 ///@name Type Definitions
@@ -311,6 +261,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGLE_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
 
 
