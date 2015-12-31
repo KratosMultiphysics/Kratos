@@ -937,9 +937,12 @@ protected:
 
     void MaxIterationsExceeded()
     {
-        std::cout << "***************************************************" << std::endl;
-        std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        std::cout << "***************************************************" << std::endl;
+         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+         {
+            std::cout << "***************************************************" << std::endl;
+            std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+            std::cout << "***************************************************" << std::endl;
+         }
 
     }
 
