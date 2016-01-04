@@ -586,7 +586,7 @@ public:
         ShapeFunctionsGradientsType shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint =  row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex);
+        boost::numeric::ublas::vector<double> ShapeFunctionValuesInIntegrationPoint =  row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex);
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
@@ -1352,7 +1352,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
+            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
