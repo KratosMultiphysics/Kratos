@@ -18,7 +18,7 @@ Text = "Status of Kratos examples:\n\n"
 try:
     os.chdir(KratosRoot + "kratos/test_examples")
     import kratos_run_all_benchmarks
-    Text += solid_mechanics_run_all_benchmarks.Run()
+    Text += kratos_run_all_benchmarks.Run()
 except:
     pass
 
