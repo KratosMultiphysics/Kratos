@@ -339,20 +339,29 @@ void BeamElement::CalculateSectionProperties()
         mArea = GetProperties()[CROSS_AREA];
     else
         mArea = GetValue(AREA);
+    
+    Matrix* inertia;
     if( GetProperties().Has(LOCAL_INERTIA) )
     {
-        Matrix& inertia = GetProperties()[LOCAL_INERTIA];
-        mInertia_x = inertia(0,0);
-        mInertia_y = inertia(1,1);
-        mInertia_Polar = inertia(0,1);
+        inertia = &(GetProperties()[LOCAL_INERTIA]);
+    }
+    else if( GetProperties().Has(INERTIA) )
+    {
+        inertia = &(GetProperties()[INERTIA]);
+    }
+    else if( Has(LOCAL_INERTIA) )
+    {
+        inertia = &(GetValue(LOCAL_INERTIA));
+    }
+    else if( Has(INERTIA) )
+    {
+        inertia = &(GetValue(INERTIA));
     }
     else
-    {
-        Matrix& inertia = GetValue(LOCAL_INERTIA);
-        mInertia_x = inertia(0,0);
-        mInertia_y = inertia(1,1);
-        mInertia_Polar = inertia(0,1);
-    }
+        KRATOS_THROW_ERROR(std::logic_error, "The Inertia is not fully defined for the element", "")
+    mInertia_x = (*inertia)(0,0);
+    mInertia_y = (*inertia)(1,1);
+    mInertia_Polar = (*inertia)(0,1);
 
 //        mInertia_x     = b * h * h * h / 12.0;
 //        mInertia_y     = b * b * b * h / 12.0;
@@ -1194,10 +1203,17 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //verify that the inertia is given by properties
-    if (this->GetProperties().Has(LOCAL_INERTIA)==false)
+//    if (this->GetProperties().Has(LOCAL_INERTIA)==false)
+//    {
+//        if( GetValue(INERTIA)(0,0) == 0.0 )
+//            KRATOS_THROW_ERROR(std::logic_error,"INERTIA not provided for this element ",this->Id());
+//    }
+    if (this->GetProperties().Has(LOCAL_INERTIA)==false
+        || this->GetProperties().Has(INERTIA)==false
+        || Has(LOCAL_INERTIA)==false
+        || Has(INERTIA)==false )
     {
-        if( GetValue(INERTIA)(0,0) == 0.0 )
-            KRATOS_THROW_ERROR(std::logic_error,"INERTIA not provided for this element ",this->Id());
+        KRATOS_THROW_ERROR(std::logic_error,"INERTIA|LOCAL_INERTIA not provided for this element ",this->Id());
     }
 
     //Verify that the body force is defined
