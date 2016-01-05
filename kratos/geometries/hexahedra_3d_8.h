@@ -555,24 +555,24 @@ public:
 
     {
         //getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
+        const ShapeFunctionsGradientsType& shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
 
         //workaround by riccardo...
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
             rResult.resize( this->IntegrationPointsNumber( ThisMethod ) );
-//             // KLUDGE: While there is a bug in ublas
-//             // vector resize, I have to put this beside resizing!!
-//             JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-//             rResult.swap( temp );
         }
 
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 3, 3 );
+            if(rResult[pnt].size1() != 3 || rResult[pnt].size2()!=3)
+                rResult[pnt].resize(3,3,false);
+            Matrix& jacobian = rResult[pnt];
+            noalias(jacobian) = ZeroMatrix(3,3); //set matrix to zero
+            
             //loop over all nodes
 
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
@@ -588,7 +588,6 @@ public:
                 jacobian( 2, 2 ) += ( this->GetPoint( i ).Z() - DeltaPosition(i,2) ) * ( shape_functions_gradients[pnt]( i, 2 ) );
             }
 
-            rResult[pnt] = jacobian;
         }//end of loop over all integration points
 
         return rResult;
@@ -618,12 +617,13 @@ public:
                               IndexType IntegrationPointIndex,
                               IntegrationMethod ThisMethod ) const
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 3 );
+        if(rResult.size1() != 3 || rResult.size2()!=3)
+                rResult.resize(3,3,false);
+        rResult.clear();
+        
         //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-                CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix& ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
+        const ShapeFunctionsGradientsType& shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        const Matrix& ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
@@ -850,9 +850,9 @@ public:
                                        IntegrationMethod ThisMethod ) const
     {
         //current jacobian
-        MatrixType tempMatrix = ZeroMatrix( 3, 3 );
-        tempMatrix = Jacobian( tempMatrix, IntegrationPointIndex, ThisMethod );
-        double det = 0.0;
+        MatrixType tempMatrix;
+        Jacobian( tempMatrix, IntegrationPointIndex, ThisMethod );
+        double det;
         //inverse of jacobian
         MathUtils<double>::InvertMatrix3( tempMatrix, rResult, det );
 
@@ -1117,7 +1117,6 @@ public:
      * KLUDGE: method call only works with explicit JacobiansType rather than creating
      * JacobiansType within argument list
      *
-     * :TODO: TESTING!!!
      */
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
@@ -1134,37 +1133,22 @@ public:
         if ( rResult.size() != integration_points_number )
         {
             rResult.resize(  this->IntegrationPointsNumber( ThisMethod )  );
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-//             ShapeFunctionsGradientsType temp( integration_points_number );
-//             rResult.swap( temp );
         }
 
         //calculating the local gradients
-        ShapeFunctionsGradientsType locG =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-
-        //getting the inverse jacobian matrices
-        JacobiansType temp( integration_points_number );
-
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+        const ShapeFunctionsGradientsType& DN_De = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
 
         //loop over all integration points
+        Matrix J(3,3),Jinv(3,3);
+        double DetJ;
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 8, 3 );
-
-            for ( int i = 0; i < 8; i++ )
-            {
-                for ( int j = 0; j < 3; j++ )
-                {
-                    rResult[pnt]( i, j ) =
-                        ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                        + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) )
-                        + ( locG[pnt]( i, 2 ) * invJ[pnt]( j, 2 ) );
-                }
-            }
-        }//end of loop over integration points
+            if(rResult[pnt].size1() != 8 || rResult[pnt].size2() != 3)
+                rResult[pnt].resize( 8, 3, false );
+            Jacobian(J,pnt, ThisMethod);
+            MathUtils<double>::InvertMatrix3( J, Jinv, DetJ );
+            noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
+        }
 
         return rResult;
     }
@@ -1194,7 +1178,7 @@ public:
             determinants_of_jacobian.resize(integration_points_number,false);
 
         //calculating the local gradients
-        ShapeFunctionsGradientsType locG =
+        const ShapeFunctionsGradientsType& locG =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
 
         JacobiansType J( integration_points_number );

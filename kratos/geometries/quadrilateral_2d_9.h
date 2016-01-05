@@ -521,11 +521,11 @@ public:
 				     Matrix & DeltaPosition ) const
     {
         //getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
+        const ShapeFunctionsGradientsType& shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
+//         Matrix shape_functions_values =
+//             CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
         //workaround by riccardo...
 
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
@@ -581,16 +581,14 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2, false );
         //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
-        //values of shape functions in integration points
-        boost::numeric::ublas::vector<double> ShapeFunctionValuesInIntegrationPoint =  row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex);
+        const ShapeFunctionsGradientsType& shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        const Matrix& ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
-
+        noalias(rResult) = ZeroMatrix(2,2);
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
@@ -962,9 +960,7 @@ public:
     }
 
     /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
+     *
      * Calculates the Gradients of the shape functions.
      * Calculates the gradients of the shape functions with
      * regard to the global coordinates in all
@@ -975,15 +971,13 @@ public:
      * @return the gradients of all shape functions with regard to the
      * global coordinates
      *
-     * KLUDGE: method call only works with explicit JacobiansType rather than creating
-     * JacobiansType within argument list
      */
-    virtual ShapeFunctionsGradientsType&
-    ShapeFunctionsIntegrationPointsGradients(
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const
     {
-        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        const unsigned int integration_points_number =
+            msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
             KRATOS_THROW_ERROR( std::logic_error,
@@ -992,35 +986,25 @@ public:
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( integration_points_number );
-            rResult.swap( temp );
+            rResult.resize(  this->IntegrationPointsNumber( ThisMethod )  );
         }
 
         //calculating the local gradients
-        ShapeFunctionsGradientsType locG =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-
-        //getting the inverse jacobian matrices
-        JacobiansType temp( integration_points_number );
-
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+        const ShapeFunctionsGradientsType& DN_De = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
 
         //loop over all integration points
+        Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
+        Matrix J(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
+        double DetJ;
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            if(rResult[pnt].size1() != this->WorkingSpaceDimension() || rResult[pnt].size2() != this->WorkingSpaceDimension())
+                rResult[pnt].resize( this->PointsNumber(), this->WorkingSpaceDimension() );
+            Jacobian(J,pnt, ThisMethod);
+            MathUtils<double>::InvertMatrix2( J, Jinv, DetJ );
+            noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv ); 
 
-            for ( int i = 0; i < 4; i++ )
-            {
-                for ( int j = 0; j < 2; j++ )
-                {
-                    rResult[pnt]( i, j ) = ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                                         + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
-                }
-            }
-        }//end of loop over integration points
+        }
 
         return rResult;
     }
