@@ -36,6 +36,7 @@
 #include "geometries/quadrilateral_2d_9.h"
 
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_27.h"
 
@@ -108,6 +109,7 @@ public:
         if(TestQuadrilateral2D9N( error_msg ) == false) succesful=false;
 
         if(TestTetrahedra3D4N( error_msg ) == false) succesful=false;
+        if(TestTetrahedra3D10N( error_msg ) == false) succesful=false;
         if(TestHexahedra3D8N( error_msg ) == false) succesful=false;
         if(TestHexahedra3D27N( error_msg ) == false) succesful=false;
 
@@ -241,7 +243,42 @@ protected:
         return succesful;
 
     }
+    
+    bool TestTetrahedra3D10N( std::stringstream& error_msg )
+    {
+        Tetrahedra3D10<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(7), mModelPart.pGetNode(19),
+                                        mModelPart.pGetNode(2), mModelPart.pGetNode(5), mModelPart.pGetNode(4), mModelPart.pGetNode(10),
+                                        mModelPart.pGetNode(11), mModelPart.pGetNode(13)
+                                    );
 
+        bool succesful = true;
+
+        //compute area by the method area
+        const double area_base = 0.5*pow(2.0/3.0,2);
+        const double expected_area = area_base*(2.0/3.0) /3.0;
+
+        if(std::abs(geom.Area() - expected_area) > 1e-14)
+            error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
+
+        //now let's verify that all integration methods give the same
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_area, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_area, error_msg) ) succesful=false;
+//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_area, error_msg) ) succesful=false;
+
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
+//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+
+        error_msg << std::endl;
+
+        return succesful;
+
+    }
+    
     bool TestTriangle2D3N( std::stringstream& error_msg )
     {
         Triangle2D3<Node<3> > geom( mModelPart.pGetNode(4), mModelPart.pGetNode(3), mModelPart.pGetNode(8) );
@@ -499,17 +536,26 @@ private:
 
         //resizing jacobian inverses containers
         Matrix InvJ0(geom.WorkingSpaceDimension(), geom.WorkingSpaceDimension());
-        double DetJ0;
 
         Element::GeometryType::JacobiansType J0;
         J0= geom.Jacobian( J0, ThisMethod );
+        
+        Vector determinants;
+        geom.DeterminantOfJacobian(determinants, ThisMethod);
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             const double IntegrationWeight = integration_points[PointNumber].Weight();
 
             //calculating and storing inverse of the jacobian and the parameters needed
-            MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+            double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
+            
+            if( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-14)
+            {
+                error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
+                return true;
+            }
+            
 
             //calculating the total area
             area += DetJ0 * IntegrationWeight;
