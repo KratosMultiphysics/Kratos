@@ -1,10 +1,20 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
+
+
 
 #if !defined(KRATOS_TRIANGLE_2D_3_H_INCLUDED )
 #define  KRATOS_TRIANGLE_2D_3_H_INCLUDED
@@ -211,7 +221,7 @@ public:
     {
         if ( this->PointsNumber() != 3 )
             KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 3, given " , this->PointsNumber() );
+                                "Invalid points number. Expected 3, given " , this->PointsNumber() );
     }
 
     /**
@@ -318,7 +328,7 @@ public:
             NewPoints.push_back( this->Points()[i] );
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new Triangle2D3< Point<3> >( NewPoints ) );
+        Geometry< Point<3> >::Pointer p_clone( new Triangle2D3< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();
 
@@ -345,8 +355,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 3)
-           rResult.resize( 3, false );	
+        if(rResult.size() != 3)
+            rResult.resize( 3, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 3.00 );
         return rResult;
     }
@@ -418,41 +428,41 @@ public:
     /// detect if two triangle are intersected
     virtual bool HasIntersection( const BaseType& rThisGeometry )
     {
-	    const BaseType& geom_1 = *this;
-	    const BaseType& geom_2 = rThisGeometry;      
-	    return  NoDivTriTriIsect(geom_1[0].Coordinates(), geom_1[1].Coordinates() , geom_1[2].Coordinates(), 
-				     geom_2[0].Coordinates(), geom_2[1].Coordinates(),  geom_2[2].Coordinates()); 
+        const BaseType& geom_1 = *this;
+        const BaseType& geom_2 = rThisGeometry;
+        return  NoDivTriTriIsect(geom_1[0].Coordinates(), geom_1[1].Coordinates() , geom_1[2].Coordinates(),
+                                 geom_2[0].Coordinates(), geom_2[1].Coordinates(),  geom_2[2].Coordinates());
     }
 
 
     /// detect if  triangle and box are intersected
     virtual bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint )
     {
-	//return true;
-	const BaseType& geom_1 = *this;
-	//std::size_t dim        =  geom_1.WorkingSpaceDimension();
-	
-	Point<3, double> boxcenter;
-	Point<3, double> boxhalfsize;
+        //return true;
+        const BaseType& geom_1 = *this;
+        //std::size_t dim        =  geom_1.WorkingSpaceDimension();
 
-	boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]); 
-	boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
-	boxcenter[2]   = 0.00;
+        Point<3, double> boxcenter;
+        Point<3, double> boxhalfsize;
+
+        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+        boxcenter[2]   = 0.00;
 
 
-	boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]); 
-	boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
-	boxhalfsize[2] = 0.00;
+        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
+        boxhalfsize[2] = 0.00;
 
-	std::size_t size = geom_1.size();
-	std::vector<Point<3, double> > triverts;
-	triverts.resize(size); 
-	for(unsigned int i = 0; i< size; i++ )
-	  triverts[i] =  geom_1.GetPoint(i);
-	
+        std::size_t size = geom_1.size();
+        std::vector<Point<3, double> > triverts;
+        triverts.resize(size);
+        for(unsigned int i = 0; i< size; i++ )
+            triverts[i] =  geom_1.GetPoint(i);
+
         bool result = false;
-	result      = TriBoxOverlap(boxcenter, boxhalfsize, triverts);
-	return result;
+        result      = TriBoxOverlap(boxcenter, boxhalfsize, triverts);
+        return result;
     }
 
 
@@ -479,552 +489,18 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry
      */
-     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
-		{
-		        const double zero = 1E-14;
-			this->PointLocalCoordinates( rResult, rPoint );			
-			if( ( rResult[0] >= (0.0-zero) ) && ( rResult[0] <= 1.0 + zero ) ) 
-				if( ( rResult[1] >= 0.0-zero ) && (rResult[1] <= 1.0 + zero ) )
-					if(((1.0-(rResult[0] + rResult[1])) >= 0.0-zero) &&  ((1.0-(rResult[0] + rResult[1])) <= 1.0 + zero))
-				             return true;
-			
-			return false;
-		}
-
-    ///@}
-    ///@name Jacobian
-    ///@{
-    /**
-     * Jacobians for given method.
-     * This method calculates jacobians matrices in all
-     * integrations points of given integration method.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return JacobiansType a Vector of jacobian
-     * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
     {
-        Matrix jacobian( 2, 2 );
-        jacobian( 0, 0 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 1 ).X() );
-        jacobian( 1, 0 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 1 ).Y() );
-        jacobian( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
-        jacobian( 1, 1 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 2 ).Y() );
+        const double zero = 1E-14;
+        this->PointLocalCoordinates( rResult, rPoint );
+        if( ( rResult[0] >= (0.0-zero) ) && ( rResult[0] <= 1.0 + zero ) )
+            if( ( rResult[1] >= 0.0-zero ) && (rResult[1] <= 1.0 + zero ) )
+                if(((1.0-(rResult[0] + rResult[1])) >= 0.0-zero) &&  ((1.0-(rResult[0] + rResult[1])) <= 1.0 + zero))
+                    return true;
 
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        std::fill( rResult.begin(), rResult.end(), jacobian );
-
-        return rResult;
-
-        /* ShapeFunctionsGradientsType shape_functions_gradients = */
-        /*     CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod ); */
-        /* //getting values of shape functions */
-        /* Matrix shape_functions_values = */
-        /*     CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ); */
-        /* //workaround by riccardo... */
-
-        /* if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) ) */
-        /* { */
-        /*     // KLUDGE: While there is a bug in ublas */
-        /*     // vector resize, I have to put this beside resizing!! */
-        /*     JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) ); */
-        /*     rResult.swap( temp ); */
-        /* } */
-
-        /* //loop over all integration points */
-        /* for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) */
-        /* { */
-        /*     //defining single jacobian matrix */
-        /*     Matrix jacobian = ZeroMatrix( 2, 2 ); */
-        /*     //loop over all nodes */
-
-        /*     for ( unsigned int i = 0; i < this->PointsNumber(); i++ ) */
-        /*     { */
-        /*         jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) ); */
-        /*         jacobian( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 1 ) ); */
-        /*         jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) ); */
-        /*         jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 1 ) ); */
-        /*     } */
-
-        /*     rResult[pnt] = jacobian; */
-        /* }//end of loop over all integration points */
-
-        /* return rResult; */
+        return false;
     }
 
-    /**
-     * Jacobians for given method.
-     * This method calculates jacobians matrices in all
-     * integrations points of given integration method.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return JacobiansType a Vector of jacobian
-     * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
-    {
-        Matrix jacobian( 2, 2 );
-        jacobian( 0, 0 ) = -( this->GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( this->GetPoint( 1 ).X() - DeltaPosition(1,0) );
-        jacobian( 1, 0 ) = -( this->GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( this->GetPoint( 1 ).Y() - DeltaPosition(1,1) );
-        jacobian( 0, 1 ) = -( this->GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( this->GetPoint( 2 ).X() - DeltaPosition(2,0) );
-        jacobian( 1, 1 ) = -( this->GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( this->GetPoint( 2 ).Y() - DeltaPosition(2,1) );
-
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        std::fill( rResult.begin(), rResult.end(), jacobian );
-
-        return rResult;
-
-        /*ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
-        //workaround by riccardo...
-
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 2, 2 );
-            //loop over all nodes
-
-            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-            {
-                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 0, 1 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-            }
-
-            rResult[pnt] = jacobian;
-        }//end of loop over all integration points
-
-        return rResult;*/
-    }
-
-    /**
-     * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
-    {
-        if(rResult.size1() != 2 || rResult.size2() != 2 )
-	  rResult.resize( 2, 2 );
-
-        rResult( 0, 0 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 1 ).X() );
-        rResult( 1, 0 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 1 ).Y() );
-        rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
-        rResult( 1, 1 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 2 ).Y() );
-        return rResult;
-
-
-       /* //setting up size of jacobian matrix */
-       /*  rResult.resize( 2, 2 ); */
-       /*  //derivatives of shape functions */
-       /*  ShapeFunctionsGradientsType shape_functions_gradients = */
-       /*      CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod ); */
-       /*  Matrix ShapeFunctionsGradientInIntegrationPoint = */
-       /*      shape_functions_gradients( IntegrationPointIndex ); */
-       /*  //values of shape functions in integration points */
-       /*  vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 3 ); */
-       /*  /\*vector<double>*\/ */
-       /*  ShapeFunctionValuesInIntegrationPoint = */
-       /*      row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex ); */
-
-       /*  //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1) */
-       /*  //loop over all nodes */
-
-       /*  for ( unsigned int i = 0; i < this->PointsNumber(); i++ ) */
-       /*  { */
-       /* 	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) ); */
-       /*      rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) ); */
-       /*      rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) ); */
-       /*      rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) ); */
-       /*  } */
-
-       /*  return rResult; */
-    }
-
-    /**
-     * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.
-     *
-     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
-    {
-        //setting up size of jacobian matrix
-        if(rResult.size1() != 2  || rResult.size2() != 2 )
-           rResult.resize( 2, 2 );
-        //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
-            shape_functions_gradients( IntegrationPointIndex );
-        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
-
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-	  {
-	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-	    rResult( 0, 1 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-	    rResult( 1, 0 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-	    rResult( 1, 1 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-	  }
-
-        return rResult;
-
-    }
-
-    /**
-     * Jacobian in given point. This method calculate jacobian
-     * matrix in given point.
-     *
-     * @param rPoint point which jacobians has to
-     * be calculated in it.
-     *
-     * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
-    {
-        if(rResult.size1() != 2 || rResult.size2() !=2 ) 
-	  rResult.resize( 2, 2, false);
-
-        rResult( 0, 0 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 1 ).X() );
-        rResult( 1, 0 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 1 ).Y() );
-        rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
-        rResult( 1, 1 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 2 ).Y() );
-        return rResult;
-
-       /* //setting up size of jacobian matrix */
-       /*  rResult.resize( 2, 2 ); */
-       /*  //derivatives of shape functions */
-       /*  Matrix shape_functions_gradients; */
-       /*  shape_functions_gradients = ShapeFunctionsLocalGradients( */
-       /*                                  shape_functions_gradients, rPoint ); */
-       /*  //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1) */
-       /*  //loop over all nodes */
-
-       /*  for ( unsigned int i = 0; i < this->PointsNumber(); i++ ) */
-       /*  { */
-       /*      rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) ); */
-       /*      rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) ); */
-       /*      rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) ); */
-       /*      rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) ); */
-       /*  } */
-
-       /*  return rResult; */
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobians for given integration method.
-     * This method calculates determinant of jacobian in all
-     * integrations points of given integration method.
-     *
-     * @return Vector of double which is vector of determinants of
-     * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
-     * integration point index of given integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const
-    {
-        //workaround by riccardo
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            Vector temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //for all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            rResult[pnt] = DeterminantOfJacobian( pnt, ThisMethod );
-        }
-
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
-     * of jacobian in given integration point of given integration
-     * method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which determinant of jacobians has to be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see InverseOfJacobian
-     */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const
-    {
-        Matrix jacobian = ZeroMatrix( 2, 2 );
-        jacobian = Jacobian( jacobian, IntegrationPointIndex, ThisMethod );
-        return(( jacobian( 0, 0 )*jacobian( 1, 1 ) ) - ( jacobian( 0, 1 )*jacobian( 1, 0 ) ) );
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Determinant of jacobian in given point.
-     * This method calculate determinant of jacobian
-     * matrix in given point.
-     * @param rPoint point which determinant of jacobians has to
-     * be calculated in it.
-     *
-     * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-     * point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    /**
-     * :TODO: needs to be changed to Point<3> again. As PointType can
-     * be a Node with unique ID or an IntegrationPoint or any arbitrary
-     * point in space this needs to be reviewed
-     * (comment by janosch)
-     */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
-    {
-        Matrix jacobian = ZeroMatrix( 2, 2 );
-        jacobian = Jacobian( jacobian, rPoint );
-        return(( jacobian( 0, 0 )*jacobian( 1, 1 ) ) - ( jacobian( 0, 1 )*jacobian( 1, 0 ) ) );
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobians for given integration method.
-     * This method calculates inverse of jacobians matrices
-     * in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const
-    {
-        //workaround by riccardo
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            Matrix tempMatrix( 2, 2 );
-            rResult[pnt] = InverseOfJacobian( tempMatrix, pnt, ThisMethod );
-        }
-
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which inverse of jacobians has to
-     * be calculated in it.
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult,
-                                       IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const
-    {
-        //current jacobian
-        Matrix tempMatrix = ZeroMatrix( 2, 2 );
-        tempMatrix = Jacobian( tempMatrix, IntegrationPointIndex, ThisMethod );
-        //determinant of jacobian
-        double det_j = DeterminantOfJacobian( IntegrationPointIndex, ThisMethod );
-        //checking for singularity
-
-        if ( det_j == 0.00 )
-            KRATOS_THROW_ERROR( std::runtime_error,
-                          "Zero determinant of jacobian during inversion of matrix!" ,
-                          *this );
-
-        //setting up result matrix
-	if(rResult.size1() != 2 || rResult.size2() != 2 )
-	  rResult.resize( 2, 2 );
-
-        //filling matrix
-        rResult( 0, 0 ) =  ( tempMatrix( 1, 1 ) ) / ( det_j );
-
-        rResult( 1, 0 ) = -( tempMatrix( 1, 0 ) ) / ( det_j );
-
-        rResult( 0, 1 ) = -( tempMatrix( 0, 1 ) ) / ( det_j );
-
-        rResult( 1, 1 ) =  ( tempMatrix( 0, 0 ) ) / ( det_j );
-
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in given point.
-     * This method calculates inverse of jacobian
-     * matrix in given point.
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const
-    {
-        //current jacobian
-        Matrix tempMatrix = ZeroMatrix( 2, 2 );
-        tempMatrix = Jacobian( tempMatrix, rPoint );
-        //deteminant of Jacobian
-        double det_j = DeterminantOfJacobian( rPoint );
-        //checking for singularity
-
-        if ( det_j == 0.00 )
-            KRATOS_THROW_ERROR( std::runtime_error,
-                          "Zero determinant of jacobian during inversion of matrix!",
-                          *this );
-
-        //setting up result matrix
-	if(rResult.size1() != 2 || rResult.size2() != 2 )
-	  rResult.resize( 2, 2 );
-
-        //filling matrix
-        rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
-
-        rResult( 1, 0 ) = -( tempMatrix( 1, 0 ) ) / ( det_j );
-
-        rResult( 0, 1 ) = -( tempMatrix( 0, 1 ) ) / ( det_j );
-
-        rResult( 1, 1 ) = ( tempMatrix( 0, 0 ) ) / ( det_j );
-
-        return rResult;
-    }
 
     /** This method gives you number of all edges of this
     geometry. This method will gives you number of all the edges
@@ -1042,11 +518,11 @@ public:
     }
 
 
-   virtual SizeType FacesNumber() const
+    virtual SizeType FacesNumber() const
     {
         return 3;
     }
-   
+
 
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
@@ -1074,32 +550,32 @@ public:
     //Connectivities of faces required
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
-      if(NumberNodesInFaces.size() != 3 )
-	NumberNodesInFaces.resize(3);
-      // Linear Triangles have elements of 2 nodes as faces
-      NumberNodesInFaces[0]=2; 
-      NumberNodesInFaces[1]=2; 
-      NumberNodesInFaces[2]=2;
+        if(NumberNodesInFaces.size() != 3 )
+            NumberNodesInFaces.resize(3);
+        // Linear Triangles have elements of 2 nodes as faces
+        NumberNodesInFaces[0]=2;
+        NumberNodesInFaces[1]=2;
+        NumberNodesInFaces[2]=2;
 
     }
-    
+
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
-      if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
-	NodesInFaces.resize(3,3);
+        if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
+            NodesInFaces.resize(3,3);
 
-      NodesInFaces(0,0)=0;
-      NodesInFaces(1,0)=1;
-      NodesInFaces(2,0)=2;//other node
-  
-      NodesInFaces(0,1)=1;
-      NodesInFaces(1,1)=2;
-      NodesInFaces(2,1)=0;//other node
-  
-      NodesInFaces(0,2)=2;
-      NodesInFaces(1,2)=0;
-      NodesInFaces(2,2)=1;//other node
- 
+        NodesInFaces(0,0)=0;
+        NodesInFaces(1,0)=1;
+        NodesInFaces(2,0)=2;//other node
+
+        NodesInFaces(0,1)=1;
+        NodesInFaces(1,1)=2;
+        NodesInFaces(2,1)=0;//other node
+
+        NodesInFaces(0,2)=2;
+        NodesInFaces(1,2)=0;
+        NodesInFaces(2,2)=1;//other node
+
     }
 
 
@@ -1133,16 +609,14 @@ public:
             return( rPoint[1] );
         default:
             KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" ,
-                          *this );
+                                "Wrong index of shape function!" ,
+                                *this );
         }
 
         return 0;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
+
     /**
      * Calculates the Gradients of the shape functions.
      * Calculates the gradients of the shape functions with regard to
@@ -1153,8 +627,7 @@ public:
      * @param ThisMethod the given IntegrationMethod
      *
      * @return the gradients of all shape functions with regard to the global coordinates
-     * KLUDGE: method call only works with explicit JacobiansType rather than creating
-     * JacobiansType within argument list
+
     */
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
@@ -1164,7 +637,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-		double x10 = this->Points()[1].X() - this->Points()[0].X();
+        double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
         double x20 = this->Points()[2].X() - this->Points()[0].X();
@@ -1186,41 +659,28 @@ public:
         DN_DX(2,1) =  x10;
 
         DN_DX /= detJ;
-		
-/*		if(determinants_of_jacobian.size() != integration_points_number )
-			determinants_of_jacobian.resize(integration_points_number,false);
-			
-		for(unsigned int i=0; i<integration_points_number; i++)
-			determinants_of_jacobian[i] = detJ;*/
 
-//        Volume = detJ*0.1666666666666666666667;
-				
         //workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp(integration_points_number,DN_DX);
-            rResult.swap(temp);
+            rResult.resize(integration_points_number,false);
         }
-		else
-		{
-			for(unsigned int i=0; i<integration_points_number; i++)
-				noalias(rResult[i]) = DN_DX;
-		}
+        for(unsigned int i=0; i<integration_points_number; i++)
+            rResult[i] = DN_DX;
+
         return rResult;
     }
 
-	virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult
-		, Vector& determinants_of_jacobian
-		, IntegrationMethod ThisMethod) const
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType& rResult,
+        Vector& determinants_of_jacobian,
+        IntegrationMethod ThisMethod ) const
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-		double x10 = this->Points()[1].X() - this->Points()[0].X();
+        double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
         double x20 = this->Points()[2].X() - this->Points()[0].X();
@@ -1235,38 +695,32 @@ public:
         double detJ = x10 * y20-y10 * x20;
 
         DN_DX(0,0) = -y20 + y10;
-        DN_DX(0,1) = x20 - x10;
-        DN_DX(1,0) =  y20	   ;
-        DN_DX(1,1) = -x20     ;
-        DN_DX(2,0) = -y10	   ;
-        DN_DX(2,1) = x10	   ;
+        DN_DX(0,1) =  x20 - x10;
+        DN_DX(1,0) =  y20;
+        DN_DX(1,1) = -x20;
+        DN_DX(2,0) = -y10;
+        DN_DX(2,1) =  x10;
 
         DN_DX /= detJ;
-		
-		if(determinants_of_jacobian.size() != integration_points_number )
-			determinants_of_jacobian.resize(integration_points_number,false);
-			
-		for(unsigned int i=0; i<integration_points_number; i++)
-			determinants_of_jacobian[i] = detJ;
 
-//        Volume = detJ*0.1666666666666666666667;
-				
         //workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp(integration_points_number,DN_DX);
-            rResult.swap(temp);
+            rResult.resize(integration_points_number,false);
         }
-		else
-		{
-			for(unsigned int i=0; i<integration_points_number; i++)
-				noalias(rResult[i]) = DN_DX;
-		}
+        for(unsigned int i=0; i<integration_points_number; i++)
+            rResult[i] = DN_DX;
+
+        if(determinants_of_jacobian.size() != integration_points_number )
+            determinants_of_jacobian.resize(integration_points_number,false);
+
+        for(unsigned int i=0; i<integration_points_number; i++)
+            determinants_of_jacobian[i] = detJ;
+
         return rResult;
     }
-	
+
+
     ///@}
     ///@name Input and output
     ///@{
@@ -1314,7 +768,7 @@ public:
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
         Matrix jacobian;
-        Jacobian( jacobian, PointType() );
+        this->Jacobian( jacobian, PointType() );
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
@@ -1326,9 +780,9 @@ public:
         IntegrationMethod ThisMethod )
     {
         ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+            = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
+            = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
@@ -1347,9 +801,9 @@ public:
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+            = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
+            = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
@@ -1421,14 +875,14 @@ public:
             rResult.swap( temp );
         }
 
-	if(rResult[0].size1() != 2 || rResult[0].size2() != 2 )
-	  rResult[0].resize( 2, 2 );
+        if(rResult[0].size1() != 2 || rResult[0].size2() != 2 )
+            rResult[0].resize( 2, 2 );
 
-	if(rResult[1].size1() != 2 || rResult[1].size2() != 2 )
-	  rResult[1].resize( 2, 2 );
+        if(rResult[1].size1() != 2 || rResult[1].size2() != 2 )
+            rResult[1].resize( 2, 2 );
 
-	if(rResult[2].size1() != 2 || rResult[2].size2() != 2 )
-	  rResult[2].resize( 2, 2 );
+        if(rResult[2].size1() != 2 || rResult[2].size2() != 2 )
+            rResult[2].resize( 2, 2 );
 
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.0;
@@ -1680,146 +1134,152 @@ private:
 //*************************************************************************************
 //*************************************************************************************
 
- /* Triangle/triangle intersection test routine,
- * by Tomas Moller, 1997.
- * See article "A Fast Triangle-Triangle Intersection Test",
- * Journal of Graphics Tools, 2(2), 1997
- *
- * Updated June 1999: removed the divisions -- a little faster now!
- * Updated October 1999: added {} to CROSS and SUB macros 
- *
- * int NoDivTriTriIsect(float V0[3],float V1[3],float V2[3],
- *                      float U0[3],float U1[3],float U2[3])
- *
- * parameters: vertices of triangle 1: V0,V1,V2
- *             vertices of triangle 2: U0,U1,U2
- * result    : returns 1 if the triangles intersect, otherwise 0
- *
- */
+    /* Triangle/triangle intersection test routine,
+    * by Tomas Moller, 1997.
+    * See article "A Fast Triangle-Triangle Intersection Test",
+    * Journal of Graphics Tools, 2(2), 1997
+    *
+    * Updated June 1999: removed the divisions -- a little faster now!
+    * Updated October 1999: added {} to CROSS and SUB macros
+    *
+    * int NoDivTriTriIsect(float V0[3],float V1[3],float V2[3],
+    *                      float U0[3],float U1[3],float U2[3])
+    *
+    * parameters: vertices of triangle 1: V0,V1,V2
+    *             vertices of triangle 2: U0,U1,U2
+    * result    : returns 1 if the triangles intersect, otherwise 0
+    *
+    */
 
-bool NoDivTriTriIsect( const Point<3,double>& V0,
-                       const Point<3,double>& V1,
-                       const Point<3,double>& V2,
-                       const Point<3,double>& U0,
-                       const Point<3,double>& U1,
-                       const Point<3,double>& U2) 
-{
-  short index;
-  double d1,d2;
-  double du0,du1,du2,dv0,dv1,dv2;
-  double du0du1,du0du2,dv0dv1,dv0dv2;
-  double vp0,vp1,vp2;
-  double up0,up1,up2;
-  double bb,cc,max;
-  array_1d<double,2> isect1, isect2;
-  array_1d<double,3> D;
-  array_1d<double,3> E1,E2;
-  array_1d<double,3> N1,N2;
-  
-  
-  const double epsilon =  1E-6;
-
- // compute plane equation of triangle(V0,V1,V2) //
-  noalias(E1) = V1-V0;
-  noalias(E2) = V2-V0;
-  MathUtils<double>::CrossProduct(N1, E1, E2);
-  d1=-inner_prod(N1,V0);
- // plane equation 1: N1.X+d1=0 //
-
- // put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
-  du0=inner_prod(N1,U0)+d1;
-  du1=inner_prod(N1,U1)+d1;
-  du2=inner_prod(N1,U2)+d1;
-
- // coplanarity robustness check //
-  if(fabs(du0)<epsilon) du0=0.0;
-  if(fabs(du1)<epsilon) du1=0.0;
-  if(fabs(du2)<epsilon) du2=0.0;
-
-  du0du1=du0*du1;
-  du0du2=du0*du2;
-
-  if(du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
-    return false;                   // no intersection occurs //
-
- // compute plane of triangle (U0,U1,U2) //
-  noalias(E1) = U1 - U0;
-  noalias(E2) = U2 - U0;
-  MathUtils<double>::CrossProduct(N2, E1, E2);
-  d2=-inner_prod(N2,U0);
- // plane equation 2: N2.X+d2=0 //
-
- // put V0,V1,V2 into plane equation 2 //
-  dv0=inner_prod(N2,V0)+d2;
-  dv1=inner_prod(N2,V1)+d2;
-  dv2=inner_prod(N2,V2)+d2;
-
-  if(fabs(dv0)<epsilon) dv0=0.0;
-  if(fabs(dv1)<epsilon) dv1=0.0;
-  if(fabs(dv2)<epsilon) dv2=0.0;
-
-  dv0dv1=dv0*dv1;
-  dv0dv2=dv0*dv2;
-
-  if(dv0dv1>0.00 && dv0dv2>0.00)// same sign on all of them + not equal 0 ? //
-    return false;                   // no intersection occurs //
-
- // compute direction of intersection line //
-  MathUtils<double>::CrossProduct(D, N1, N2);
-
- // compute and index to the largest component of D //
-  max=(double)fabs(D[0]);
-  index=0;
-  bb=(double)fabs(D[1]);
-  cc=(double)fabs(D[2]);
-  if(bb>max) {max=bb,index=1;}
-  if(cc>max) {max=cc,index=2;}
-
- // this is the simplified projection onto L//
-  vp0=V0[index];
-  vp1=V1[index];
-  vp2=V2[index];
-
-  up0=U0[index];
-  up1=U1[index];
-  up2=U2[index];
-
- 
- // compute interval for triangle 1 // 
-  double a,b,c,x0,x1;
-  if( New_Compute_Intervals(vp0,vp1,vp2,dv0, dv1,dv2,dv0dv1,dv0dv2, a,b,c,x0,x1)==true )
+    bool NoDivTriTriIsect( const Point<3,double>& V0,
+                           const Point<3,double>& V1,
+                           const Point<3,double>& V2,
+                           const Point<3,double>& U0,
+                           const Point<3,double>& U1,
+                           const Point<3,double>& U2)
     {
-      return coplanar_tri_tri(N1,V0,V1,V2,U0,U1,U2); 
+        short index;
+        double d1,d2;
+        double du0,du1,du2,dv0,dv1,dv2;
+        double du0du1,du0du2,dv0dv1,dv0dv2;
+        double vp0,vp1,vp2;
+        double up0,up1,up2;
+        double bb,cc,max;
+        array_1d<double,2> isect1, isect2;
+        array_1d<double,3> D;
+        array_1d<double,3> E1,E2;
+        array_1d<double,3> N1,N2;
+
+
+        const double epsilon =  1E-6;
+
+// compute plane equation of triangle(V0,V1,V2) //
+        noalias(E1) = V1-V0;
+        noalias(E2) = V2-V0;
+        MathUtils<double>::CrossProduct(N1, E1, E2);
+        d1=-inner_prod(N1,V0);
+// plane equation 1: N1.X+d1=0 //
+
+// put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
+        du0=inner_prod(N1,U0)+d1;
+        du1=inner_prod(N1,U1)+d1;
+        du2=inner_prod(N1,U2)+d1;
+
+// coplanarity robustness check //
+        if(fabs(du0)<epsilon) du0=0.0;
+        if(fabs(du1)<epsilon) du1=0.0;
+        if(fabs(du2)<epsilon) du2=0.0;
+
+        du0du1=du0*du1;
+        du0du2=du0*du2;
+
+        if(du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
+            return false;                   // no intersection occurs //
+
+// compute plane of triangle (U0,U1,U2) //
+        noalias(E1) = U1 - U0;
+        noalias(E2) = U2 - U0;
+        MathUtils<double>::CrossProduct(N2, E1, E2);
+        d2=-inner_prod(N2,U0);
+// plane equation 2: N2.X+d2=0 //
+
+// put V0,V1,V2 into plane equation 2 //
+        dv0=inner_prod(N2,V0)+d2;
+        dv1=inner_prod(N2,V1)+d2;
+        dv2=inner_prod(N2,V2)+d2;
+
+        if(fabs(dv0)<epsilon) dv0=0.0;
+        if(fabs(dv1)<epsilon) dv1=0.0;
+        if(fabs(dv2)<epsilon) dv2=0.0;
+
+        dv0dv1=dv0*dv1;
+        dv0dv2=dv0*dv2;
+
+        if(dv0dv1>0.00 && dv0dv2>0.00)// same sign on all of them + not equal 0 ? //
+            return false;                   // no intersection occurs //
+
+// compute direction of intersection line //
+        MathUtils<double>::CrossProduct(D, N1, N2);
+
+// compute and index to the largest component of D //
+        max=(double)fabs(D[0]);
+        index=0;
+        bb=(double)fabs(D[1]);
+        cc=(double)fabs(D[2]);
+        if(bb>max)
+        {
+            max=bb,index=1;
+        }
+        if(cc>max)
+        {
+            max=cc,index=2;
+        }
+
+// this is the simplified projection onto L//
+        vp0=V0[index];
+        vp1=V1[index];
+        vp2=V2[index];
+
+        up0=U0[index];
+        up1=U1[index];
+        up2=U2[index];
+
+
+// compute interval for triangle 1 //
+        double a,b,c,x0,x1;
+        if( New_Compute_Intervals(vp0,vp1,vp2,dv0, dv1,dv2,dv0dv1,dv0dv2, a,b,c,x0,x1)==true )
+        {
+            return coplanar_tri_tri(N1,V0,V1,V2,U0,U1,U2);
+        }
+
+// compute interval for triangle 2 //
+        double d,e,f,y0,y1;
+        if( New_Compute_Intervals(up0, up1, up2, du0, du1, du2, du0du1, du0du2, d, e, f, y0, y1)==true )
+        {
+            return coplanar_tri_tri(N1,V0,V1,V2,U0,U1,U2);
+        }
+
+
+        double xx,yy,xxyy,tmp;
+        xx=x0*x1;
+        yy=y0*y1;
+        xxyy=xx*yy;
+
+        tmp=a*xxyy;
+        isect1[0]=tmp+b*x1*yy;
+        isect1[1]=tmp+c*x0*yy;
+
+        tmp=d*xxyy;
+        isect2[0]=tmp+e*xx*y1;
+        isect2[1]=tmp+f*xx*y0;
+
+
+        Sort(isect1[0],isect1[1]);
+        Sort(isect2[0],isect2[1]);
+
+        if(isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
+        return true;
     }
-
- // compute interval for triangle 2 //
-  double d,e,f,y0,y1;
-  if( New_Compute_Intervals(up0, up1, up2, du0, du1, du2, du0du1, du0du2, d, e, f, y0, y1)==true )
-    {
-       return coplanar_tri_tri(N1,V0,V1,V2,U0,U1,U2); 
-    }
-
-  
-  double xx,yy,xxyy,tmp;
-  xx=x0*x1;
-  yy=y0*y1;
-  xxyy=xx*yy;
-
-  tmp=a*xxyy;
-  isect1[0]=tmp+b*x1*yy;
-  isect1[1]=tmp+c*x0*yy;
-
-  tmp=d*xxyy;
-  isect2[0]=tmp+e*xx*y1;
-  isect2[1]=tmp+f*xx*y0;
-
-  
-  Sort(isect1[0],isect1[1]);
-  Sort(isect2[0],isect2[1]);
-
-  if(isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
-  return true;
-}
 
 
 //*************************************************************************************
@@ -1827,159 +1287,179 @@ bool NoDivTriTriIsect( const Point<3,double>& V0,
 
 
 // sort so that a<=b //
-void Sort(double& a, double& b) 
-  {
-    if(a>b)    
-    {          
-      double c; 
-      c=a;     
-      a=b;     
-      b=c;     
-    }
-  }
-
-//*************************************************************************************
-//*************************************************************************************
-
-bool New_Compute_Intervals( double& VV0,
-		                   double& VV1,
-		                   double& VV2,
-		                   double& D0,
-		                   double& D1,
-			           double& D2,
-		                   double& D0D1,
-			           double& D0D2,
-			           double& A,
-			           double& B,
-			           double& C,
-			           double& X0,
-			           double& X1
-				   ) 
-{ 
-    if(D0D1>0.00)    
-    { 
-      // here we know that D0D2<=0.0 // 
-      // that is D0, D1 are on the same side, D2 on the other or on the plane // 
-      A=VV2; B=(VV0-VV2)*D2; C=(VV1-VV2)*D2; X0=D2-D0; X1=D2-D1; 
-    } 
-    else if(D0D2>0.00)
-    { 
-      // here we know that d0d1<=0.0 // 
-      A=VV1; B=(VV0-VV1)*D1; C=(VV2-VV1)*D1; X0=D1-D0; X1=D1-D2; 
-    } 
-    else if(D1*D2>0.00 || D0!=0.00) 
-    { 
-      // here we know that d0d1<=0.0 or that D0!=0.0 // 
-      A=VV0; B=(VV1-VV0)*D0; C=(VV2-VV0)*D0; X0=D0-D1; X1=D0-D2; 
-    } 
-    else if(D1!=0.00) 
-    { 
-      A=VV1; B=(VV0-VV1)*D1; C=(VV2-VV1)*D1; X0=D1-D0; X1=D1-D2; 
-    } 
-    else if(D2!=0.00) 
-    { 
-      A=VV2; B=(VV0-VV2)*D2; C=(VV1-VV2)*D2; X0=D2-D0; X1=D2-D1; 
-    } 
-    else 
-    { 
-      ///Triangles are coplanar     
-      return true;
-    }
-    
-    return false;
-      
-}
-
-//*************************************************************************************
-//*************************************************************************************
-
-bool coplanar_tri_tri( const array_1d<double, 3>& N,
-		              const Point<3,double>& V0,
-		              const Point<3,double>& V1,
-		              const Point<3,double>& V2,
-		              const Point<3,double>& U0,
-		              const Point<3,double>& U1,
-		              const Point<3,double>& U2) 
-{
-   array_1d<double, 3 > A;
-   short i0,i1;
-   
-   // first project onto an axis-aligned plane, that maximizes the area //
-   // of the triangles, compute indices: i0,i1. //
-   A[0]=fabs(N[0]);
-   A[1]=fabs(N[1]);
-   A[2]=fabs(N[2]);
-   if(A[0]>A[1])
-   {
-      if(A[0]>A[2])
-      {
-          i0=1;      // A[0] is greatest //
-          i1=2;
-      }
-      else
-      {
-          i0=0;      // A[2] is greatest //
-          i1=1;
-      }
-   }
-   else   // A[0]<=A[1] //
-   {
-      if(A[2]>A[1])
-      {
-          i0=0;      // A[2] is greatest //
-          i1=1;
-      }
-      else
-      {
-          i0=0;      // A[1] is greatest //
-          i1=2;
-      }
+    void Sort(double& a, double& b)
+    {
+        if(a>b)
+        {
+            double c;
+            c=a;
+            a=b;
+            b=c;
+        }
     }
 
-    // test all edges of triangle 1 against the edges of triangle 2 //
-    //std::cout<< "Proof One " << std::endl;
-    if ( Edge_Against_Tri_Edges(i0, i1, V0,V1,U0,U1,U2)==true) return true;
-    
-    //std::cout<< "Proof Two " << std::endl;
-    if ( Edge_Against_Tri_Edges(i0, i1, V1,V2,U0,U1,U2)==true) return true;
-    
-    //std::cout<< "Proof Three " << std::endl;
-    if ( Edge_Against_Tri_Edges(i0, i1, V2,V0,U0,U1,U2)==true) return true;
+//*************************************************************************************
+//*************************************************************************************
 
-    // finally, test if tri1 is totally contained in tri2 or vice versa //
-    if (Point_In_Tri( i0, i1, V0, U0, U1, U2)==true) return true;  
-    if (Point_In_Tri( i0, i1, U0, V0, V1, V2)==true) return true;
+    bool New_Compute_Intervals( double& VV0,
+                                double& VV1,
+                                double& VV2,
+                                double& D0,
+                                double& D1,
+                                double& D2,
+                                double& D0D1,
+                                double& D0D2,
+                                double& A,
+                                double& B,
+                                double& C,
+                                double& X0,
+                                double& X1
+                              )
+    {
+        if(D0D1>0.00)
+        {
+            // here we know that D0D2<=0.0 //
+            // that is D0, D1 are on the same side, D2 on the other or on the plane //
+            A=VV2;
+            B=(VV0-VV2)*D2;
+            C=(VV1-VV2)*D2;
+            X0=D2-D0;
+            X1=D2-D1;
+        }
+        else if(D0D2>0.00)
+        {
+            // here we know that d0d1<=0.0 //
+            A=VV1;
+            B=(VV0-VV1)*D1;
+            C=(VV2-VV1)*D1;
+            X0=D1-D0;
+            X1=D1-D2;
+        }
+        else if(D1*D2>0.00 || D0!=0.00)
+        {
+            // here we know that d0d1<=0.0 or that D0!=0.0 //
+            A=VV0;
+            B=(VV1-VV0)*D0;
+            C=(VV2-VV0)*D0;
+            X0=D0-D1;
+            X1=D0-D2;
+        }
+        else if(D1!=0.00)
+        {
+            A=VV1;
+            B=(VV0-VV1)*D1;
+            C=(VV2-VV1)*D1;
+            X0=D1-D0;
+            X1=D1-D2;
+        }
+        else if(D2!=0.00)
+        {
+            A=VV2;
+            B=(VV0-VV2)*D2;
+            C=(VV1-VV2)*D2;
+            X0=D2-D0;
+            X1=D2-D1;
+        }
+        else
+        {
+            ///Triangles are coplanar
+            return true;
+        }
 
-    return false;
-}
+        return false;
+
+    }
 
 //*************************************************************************************
 //*************************************************************************************
 
-bool Edge_Against_Tri_Edges(const short& i0,
-			    const short& i1,
-			    const Point<3,double>& V0,
-			    const Point<3,double>& V1,
-			    const Point<3,double>&U0,
-			    const Point<3,double>&U1,
-			    const Point<3,double>&U2) 
-{      
+    bool coplanar_tri_tri( const array_1d<double, 3>& N,
+                           const Point<3,double>& V0,
+                           const Point<3,double>& V1,
+                           const Point<3,double>& V2,
+                           const Point<3,double>& U0,
+                           const Point<3,double>& U1,
+                           const Point<3,double>& U2)
+    {
+        array_1d<double, 3 > A;
+        short i0,i1;
 
-  double Ax,Ay,Bx,By,Cx,Cy,e,d,f;            
-  Ax=V1[i0]-V0[i0];                            
-  Ay=V1[i1]-V0[i1];                            
-  // test edge U0,U1 against V0,V1 //   
-  
-  //std::cout<< "Proof One B " << std::endl;
-  if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U0, U1)==true) return true;                    
-  // test edge U1,U2 against V0,V1 //          
-  //std::cout<< "Proof Two B " << std::endl;
-  if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U1, U2)==true) return true;                    
-  // test edge U2,U1 against V0,V1 //          
-  if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U2, U0)==true) return true;     
-  
-  return false;
-}
+        // first project onto an axis-aligned plane, that maximizes the area //
+        // of the triangles, compute indices: i0,i1. //
+        A[0]=fabs(N[0]);
+        A[1]=fabs(N[1]);
+        A[2]=fabs(N[2]);
+        if(A[0]>A[1])
+        {
+            if(A[0]>A[2])
+            {
+                i0=1;      // A[0] is greatest //
+                i1=2;
+            }
+            else
+            {
+                i0=0;      // A[2] is greatest //
+                i1=1;
+            }
+        }
+        else   // A[0]<=A[1] //
+        {
+            if(A[2]>A[1])
+            {
+                i0=0;      // A[2] is greatest //
+                i1=1;
+            }
+            else
+            {
+                i0=0;      // A[1] is greatest //
+                i1=2;
+            }
+        }
+
+        // test all edges of triangle 1 against the edges of triangle 2 //
+        //std::cout<< "Proof One " << std::endl;
+        if ( Edge_Against_Tri_Edges(i0, i1, V0,V1,U0,U1,U2)==true) return true;
+
+        //std::cout<< "Proof Two " << std::endl;
+        if ( Edge_Against_Tri_Edges(i0, i1, V1,V2,U0,U1,U2)==true) return true;
+
+        //std::cout<< "Proof Three " << std::endl;
+        if ( Edge_Against_Tri_Edges(i0, i1, V2,V0,U0,U1,U2)==true) return true;
+
+        // finally, test if tri1 is totally contained in tri2 or vice versa //
+        if (Point_In_Tri( i0, i1, V0, U0, U1, U2)==true) return true;
+        if (Point_In_Tri( i0, i1, U0, V0, V1, V2)==true) return true;
+
+        return false;
+    }
+
+//*************************************************************************************
+//*************************************************************************************
+
+    bool Edge_Against_Tri_Edges(const short& i0,
+                                const short& i1,
+                                const Point<3,double>& V0,
+                                const Point<3,double>& V1,
+                                const Point<3,double>&U0,
+                                const Point<3,double>&U1,
+                                const Point<3,double>&U2)
+    {
+
+        double Ax,Ay,Bx,By,Cx,Cy,e,d,f;
+        Ax=V1[i0]-V0[i0];
+        Ay=V1[i1]-V0[i1];
+        // test edge U0,U1 against V0,V1 //
+
+        //std::cout<< "Proof One B " << std::endl;
+        if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U0, U1)==true) return true;
+        // test edge U1,U2 against V0,V1 //
+        //std::cout<< "Proof Two B " << std::endl;
+        if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U1, U2)==true) return true;
+        // test edge U2,U1 against V0,V1 //
+        if(Edge_Edge_Test(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U2, U0)==true) return true;
+
+        return false;
+    }
 
 
 //*************************************************************************************
@@ -1987,299 +1467,335 @@ bool Edge_Against_Tri_Edges(const short& i0,
 
 //   this edge to edge test is based on Franlin Antonio's gem:
 //   "Faster Line Segment Intersection", in Graphics Gems III,
-//   pp. 199-202 
-bool Edge_Edge_Test(double& Ax,
-		    double& Ay,
-		    double& Bx,
-		    double& By,
-		    double& Cx,
-		    double& Cy,
-		    double& e,
-		    double& d,
-		    double& f,
-		    const short& i0,
-		    const short& i1,
-		    const Point<3,double>&V0,
-		    const Point<3,double>&U0,
-		    const Point<3,double>&U1)      
-{
-  Bx=U0[i0]-U1[i0];                                   
-  By=U0[i1]-U1[i1];                                   
-  Cx=V0[i0]-U0[i0];                                   
-  Cy=V0[i1]-U0[i1];                                   
-  f=Ay*Bx-Ax*By;                                      
-  d=By*Cx-Bx*Cy;          
-    
-  if(std::fabs(f)<1E-10) f = 0.00;
-  if(std::fabs(d)<1E-10) d = 0.00;
-  
-  
-  if((f>0.00 && d>=0.00 && d<=f) || (f<0.00 && d<=0.00 && d>=f))  
-  {                                                   
-    e=Ax*Cy-Ay*Cx;
-    //std::cout<< "e =  "<< e << std::endl;
-    if(f>0.00)                                           
-    {                                                 
-      if(e>=0.00 && e<=f) return true;                      
-    }                                                 
-    else                                              
-    {                                                 
-      if(e<=0.00 && e>=f) return true;                      
-    }                                                 
-  }
-  return false;
-}
+//   pp. 199-202
+    bool Edge_Edge_Test(double& Ax,
+                        double& Ay,
+                        double& Bx,
+                        double& By,
+                        double& Cx,
+                        double& Cy,
+                        double& e,
+                        double& d,
+                        double& f,
+                        const short& i0,
+                        const short& i1,
+                        const Point<3,double>&V0,
+                        const Point<3,double>&U0,
+                        const Point<3,double>&U1)
+    {
+        Bx=U0[i0]-U1[i0];
+        By=U0[i1]-U1[i1];
+        Cx=V0[i0]-U0[i0];
+        Cy=V0[i1]-U0[i1];
+        f=Ay*Bx-Ax*By;
+        d=By*Cx-Bx*Cy;
+
+        if(std::fabs(f)<1E-10) f = 0.00;
+        if(std::fabs(d)<1E-10) d = 0.00;
+
+
+        if((f>0.00 && d>=0.00 && d<=f) || (f<0.00 && d<=0.00 && d>=f))
+        {
+            e=Ax*Cy-Ay*Cx;
+            //std::cout<< "e =  "<< e << std::endl;
+            if(f>0.00)
+            {
+                if(e>=0.00 && e<=f) return true;
+            }
+            else
+            {
+                if(e<=0.00 && e>=f) return true;
+            }
+        }
+        return false;
+    }
 
 //*************************************************************************************
 //*************************************************************************************
 
 
-bool Point_In_Tri(const short& i0,
-		         const short& i1,
-                         const Point<3,double>& V0,
-			 const Point<3,double>& U0,
-			 const Point<3,double>& U1,
-			 const Point<3,double>& U2)         
-{                                           
-  double a,b,c,d0,d1,d2;                     
-  // is T1 completly inside T2? //          
-  // check if V0 is inside tri(U0,U1,U2) // 
-  a=U1[i1]-U0[i1];                          
-  b=-(U1[i0]-U0[i0]);                       
-  c=-a*U0[i0]-b*U0[i1];                     
-  d0=a*V0[i0]+b*V0[i1]+c;                   
-                                            
-  a=U2[i1]-U1[i1];                          
-  b=-(U2[i0]-U1[i0]);                       
-  c=-a*U1[i0]-b*U1[i1];                     
-  d1=a*V0[i0]+b*V0[i1]+c;                   
-                                            
-  a=U0[i1]-U2[i1];                          
-  b=-(U0[i0]-U2[i0]);                       
-  c=-a*U2[i0]-b*U2[i1];                     
-  d2=a*V0[i0]+b*V0[i1]+c;                   
-  if(d0*d1>0.0)                             
-  {                                         
-    if(d0*d2>0.0) return true;                 
-  }
-  
-  return false;
-}
+    bool Point_In_Tri(const short& i0,
+                      const short& i1,
+                      const Point<3,double>& V0,
+                      const Point<3,double>& U0,
+                      const Point<3,double>& U1,
+                      const Point<3,double>& U2)
+    {
+        double a,b,c,d0,d1,d2;
+        // is T1 completly inside T2? //
+        // check if V0 is inside tri(U0,U1,U2) //
+        a=U1[i1]-U0[i1];
+        b=-(U1[i0]-U0[i0]);
+        c=-a*U0[i0]-b*U0[i1];
+        d0=a*V0[i0]+b*V0[i1]+c;
+
+        a=U2[i1]-U1[i1];
+        b=-(U2[i0]-U1[i0]);
+        c=-a*U1[i0]-b*U1[i1];
+        d1=a*V0[i0]+b*V0[i1]+c;
+
+        a=U0[i1]-U2[i1];
+        b=-(U0[i0]-U2[i0]);
+        c=-a*U2[i0]-b*U2[i1];
+        d2=a*V0[i0]+b*V0[i1]+c;
+        if(d0*d1>0.0)
+        {
+            if(d0*d2>0.0) return true;
+        }
+
+        return false;
+    }
 
 //*************************************************************************************
 //*************************************************************************************
 
 
-inline bool TriBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts)
-	      {
+    inline bool TriBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts)
+    {
 
-		  /*    use separating axis theorem to test overlap between triangle and box */
-		  /*    need to test for overlap in these directions: */
-		  /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
-		  /*       we do not even need to test these) */
-		  /*    2) normal of the triangle */
-		  /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
-		  /*       this gives 3x3=9 more tests */
-		  
-		  double min,max,d,p0,p1,p2,rad,fex,fey,fez;  
- 		  array_1d<double,3 > v0,v1,v2;
- 		  array_1d<double,3 > axis;
- 		  array_1d<double,3 > normal, e0, e1 ,e2;
-// 
+        /*    use separating axis theorem to test overlap between triangle and box */
+        /*    need to test for overlap in these directions: */
+        /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
+        /*       we do not even need to test these) */
+        /*    2) normal of the triangle */
+        /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
+        /*       this gives 3x3=9 more tests */
+
+        double min,max,d,p0,p1,p2,rad,fex,fey,fez;
+        array_1d<double,3 > v0,v1,v2;
+        array_1d<double,3 > axis;
+        array_1d<double,3 > normal, e0, e1 ,e2;
+//
 // 		  /* This is the fastest branch on Sun */
 // 		  /* move everything so that the boxcenter is in (0,0,0) */
- 		  noalias(v0) = triverts[0]- boxcenter;
- 		  noalias(v1) = triverts[1]- boxcenter;
- 		  noalias(v2) = triverts[2]- boxcenter;
-// 
+        noalias(v0) = triverts[0]- boxcenter;
+        noalias(v1) = triverts[1]- boxcenter;
+        noalias(v2) = triverts[2]- boxcenter;
+//
 // 		  /* compute triangle edges */
- 		  noalias(e0) = v1 - v0;      /* tri edge 0 */
- 		  noalias(e1) = v2 - v1;      /* tri edge 1 */
- 		  noalias(e2) = v0 - v2;      /* tri edge 2 */
-// 
+        noalias(e0) = v1 - v0;      /* tri edge 0 */
+        noalias(e1) = v2 - v1;      /* tri edge 1 */
+        noalias(e2) = v0 - v2;      /* tri edge 2 */
+//
 // 		  /* Bullet 3:  */
 // 		  /*  test the 9 tests first (this was faster) */
- 		  fex = fabs(e0[0]);
- 		  fey = fabs(e0[1]);
- 		  fez = fabs(e0[2]);		  
-		  //AXISTEST_X01(e0[2], e0[1], fez, fey);
-		  if (AxisTest_X01(e0[2], e0[1], fez, fey, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false; 
-		  //AXISTEST_Y02(e0[2], e0[0], fez, fex);
-		  if(AxisTest_Y02( e0[2], e0[0], fez, fex, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
- 		  //AXISTEST_Z12(e0[1], e0[0], fey, fex);
-                  //if(AxisTest_Z12(e0[1], e0[0], fey, fex, p1, p2, min, max, rad, v1,v2, boxhalfsize )==0) return false;
-			   
-		  
-		  
-		  fex = fabs(e1[0]);
-		  fey = fabs(e1[1]);
-		  fez = fabs(e1[2]);
-		  //AXISTEST_X01(e1[2], e1[1], fez, fey);
-		  if( AxisTest_X01(e1[2], e1[1], fez, fey, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false; 
-		  //AXISTEST_Y02(e1[2], e1[0], fez, fex);
-		  if(AxisTest_Y02( e1[2], e1[0], fez, fex, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
-		  //AXISTEST_Z0(e1[1], e1[0], fey, fex);
-		  //if( AxisTest_Z0(e1[1], e1[0], fey, fex, p0,  p1, min, max, rad, v0, v1,boxhalfsize)==0) return false; 
-		  
-
-		  fex = fabs(e2[0]);
-		  fey = fabs(e2[1]);
-		  fez = fabs(e2[2]);
-		  //AXISTEST_X2(e2[2], e2[1], fez, fey);
-		  if (AxisTest_X2(e2[2], e2[1], fez, fey, p0, p1, min, max, rad, v0, v1, boxhalfsize )==0) return false;
-		  //AXISTEST_Y1(e2[2], e2[0], fez, fex);
-		  if (AxisTest_Y1(e2[2], e2[0], fez, fex, p0, p1, min, max, rad, v0, v1, boxhalfsize )==0) return false; 
-		  //AXISTEST_Z12(e2[1], e2[0], fey, fex);
-		  //if(AxisTest_Z12(e2[1], e2[0], fey, fex, p1, p2, min, max, rad, v1,v2, boxhalfsize ) ==0) return false;
-		  
-
-		  /* Bullet 1: */
-		  /*  first test overlap in the {x,y,z}-directions */
-		  /*  find min, max of the triangle each direction, and test for overlap in */
-		  /*  that direction -- this is equivalent to testing a minimal AABB around */
-		  /*  the triangle against the AABB */
-
-		  /* test in X-direction */
-		  FindMinMax(v0[0],v1[0],v2[0],min,max);
-		  if(min>boxhalfsize[0] || max<-boxhalfsize[0]) return false;
-
-		  /* test in Y-direction */
-		  FindMinMax(v0[1],v1[1],v2[1],min,max);
-		  if(min>boxhalfsize[1] || max<-boxhalfsize[1]) return false;
-
-		  /* test in Z-direction */
-		  FindMinMax(v0[2],v1[2],v2[2],min,max);
-		  if(min>boxhalfsize[2] || max<-boxhalfsize[2]) return false;
-
-		  /* Bullet 2: */
-		  /*  test if the box intersects the plane of the triangle */
-		  /*  compute plane equation of triangle: normal*x+d=0 */
-		  MathUtils<double>::CrossProduct(normal, e0, e1);
-		  d=-inner_prod(normal,v0);  /* plane eq: normal.x+d=0 */
-		  if(!planeBoxOverlap(normal,d,boxhalfsize)) return false;
-
-		  return true;   /* box and triangle overlaps */
- 	      }
+        fex = fabs(e0[0]);
+        fey = fabs(e0[1]);
+        fez = fabs(e0[2]);
+        //AXISTEST_X01(e0[2], e0[1], fez, fey);
+        if (AxisTest_X01(e0[2], e0[1], fez, fey, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
+        //AXISTEST_Y02(e0[2], e0[0], fez, fex);
+        if(AxisTest_Y02( e0[2], e0[0], fez, fex, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
+        //AXISTEST_Z12(e0[1], e0[0], fey, fex);
+        //if(AxisTest_Z12(e0[1], e0[0], fey, fex, p1, p2, min, max, rad, v1,v2, boxhalfsize )==0) return false;
 
 
 
-//*************************************************************************************
-//*************************************************************************************
+        fex = fabs(e1[0]);
+        fey = fabs(e1[1]);
+        fez = fabs(e1[2]);
+        //AXISTEST_X01(e1[2], e1[1], fez, fey);
+        if( AxisTest_X01(e1[2], e1[1], fez, fey, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
+        //AXISTEST_Y02(e1[2], e1[0], fez, fex);
+        if(AxisTest_Y02( e1[2], e1[0], fez, fex, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
+        //AXISTEST_Z0(e1[1], e1[0], fey, fex);
+        //if( AxisTest_Z0(e1[1], e1[0], fey, fex, p0,  p1, min, max, rad, v0, v1,boxhalfsize)==0) return false;
 
-void FindMinMax(const double& x0, 
-		       const double& x1,
-		       const double& x2,
-		       double& min,
-		       double& max) 
- {
-  min = max = x0;   
-  if(x1<min) min=x1;
-  if(x1>max) max=x1;
-  if(x2<min) min=x2;
-  if(x2>max) max=x2;
- }
- 
-//*************************************************************************************
-//*************************************************************************************
 
-bool planeBoxOverlap(const array_1d<double,3 >& normal,  const double& d, const array_1d<double,3 >& maxbox)
-{
-  int q;
-  array_1d<double,3 >  vmin,vmax;
-  for(q=0;q<=2;q++)
-  {
-    if(normal[q]>0.00)
-    {
-      vmin[q]=-maxbox[q];
-      vmax[q]= maxbox[q];
+        fex = fabs(e2[0]);
+        fey = fabs(e2[1]);
+        fez = fabs(e2[2]);
+        //AXISTEST_X2(e2[2], e2[1], fez, fey);
+        if (AxisTest_X2(e2[2], e2[1], fez, fey, p0, p1, min, max, rad, v0, v1, boxhalfsize )==0) return false;
+        //AXISTEST_Y1(e2[2], e2[0], fez, fex);
+        if (AxisTest_Y1(e2[2], e2[0], fez, fex, p0, p1, min, max, rad, v0, v1, boxhalfsize )==0) return false;
+        //AXISTEST_Z12(e2[1], e2[0], fey, fex);
+        //if(AxisTest_Z12(e2[1], e2[0], fey, fex, p1, p2, min, max, rad, v1,v2, boxhalfsize ) ==0) return false;
+
+
+        /* Bullet 1: */
+        /*  first test overlap in the {x,y,z}-directions */
+        /*  find min, max of the triangle each direction, and test for overlap in */
+        /*  that direction -- this is equivalent to testing a minimal AABB around */
+        /*  the triangle against the AABB */
+
+        /* test in X-direction */
+        FindMinMax(v0[0],v1[0],v2[0],min,max);
+        if(min>boxhalfsize[0] || max<-boxhalfsize[0]) return false;
+
+        /* test in Y-direction */
+        FindMinMax(v0[1],v1[1],v2[1],min,max);
+        if(min>boxhalfsize[1] || max<-boxhalfsize[1]) return false;
+
+        /* test in Z-direction */
+        FindMinMax(v0[2],v1[2],v2[2],min,max);
+        if(min>boxhalfsize[2] || max<-boxhalfsize[2]) return false;
+
+        /* Bullet 2: */
+        /*  test if the box intersects the plane of the triangle */
+        /*  compute plane equation of triangle: normal*x+d=0 */
+        MathUtils<double>::CrossProduct(normal, e0, e1);
+        d=-inner_prod(normal,v0);  /* plane eq: normal.x+d=0 */
+        if(!planeBoxOverlap(normal,d,boxhalfsize)) return false;
+
+        return true;   /* box and triangle overlaps */
     }
-    else
+
+
+
+//*************************************************************************************
+//*************************************************************************************
+
+    void FindMinMax(const double& x0,
+                    const double& x1,
+                    const double& x2,
+                    double& min,
+                    double& max)
     {
-      vmin[q]=maxbox[q];
-      vmax[q]=-maxbox[q];
+        min = max = x0;
+        if(x1<min) min=x1;
+        if(x1>max) max=x1;
+        if(x2<min) min=x2;
+        if(x2>max) max=x2;
     }
-  }
-  if(inner_prod(normal,vmin)+d>0.00) return false;
-  if(inner_prod(normal,vmax)+d>=0.00) return true;
-  
-  return false;
-}
+
 //*************************************************************************************
 //*************************************************************************************
 
-/*======================== X-tests ========================*/
-unsigned int  AxisTest_X01(double& a,   double& b, 
-			   double& fa,  double& fb,
-			   double& p0,  double& p2,
-			   double& min, double& max, double& rad, 
-			   array_1d<double,3 >& v0,
-			   array_1d<double,3 >& v2,
-			   Point<3, double>& boxhalfsize
-			   )
-	{
-	  p0 = a*v0[1] - b*v0[2];			       	   
-	  p2 = a*v2[1] - b*v2[2];			       	   
-          if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} 
-	  rad = fa * boxhalfsize[1] + fb * boxhalfsize[2];   
-	  if(min>rad || max<-rad) return 0; 
-	  else return 1;
-	}
-
-unsigned int  AxisTest_X2(double& a,   double& b, 
-			   double& fa,  double& fb,
-			   double& p0,  double& p1,
-			   double& min, double& max, double& rad, 
-			   array_1d<double,3 >& v0,
-			   array_1d<double,3 >& v1,
-			   Point<3, double>& boxhalfsize
-			   )
-	{
-	p0 = a*v0[1] - b*v0[2];			           
-	p1 = a*v1[1] - b*v1[2];			       	   
-        if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} 
-	rad = fa * boxhalfsize[1] + fb * boxhalfsize[2];   
-	if(min>rad || max<-rad) return 0;
-        else return 1;
-	}
-//*************************************************************************************
-//*************************************************************************************
-
-/*======================== Y-tests ========================*/
-unsigned int  AxisTest_Y02(double& a, double& b, 
-			   double& fa,  double& fb,
-			   double& p0,  double& p2,
-			   double& min, double& max, double& rad, 
-			   array_1d<double,3 >& v0,
-			   array_1d<double,3 >& v2,
-			   Point<3, double>& boxhalfsize
-			   )
-	{
-	  
-	p0 = -a*v0[0] + b*v0[2];		      	   
-	p2 = -a*v2[0] + b*v2[2];	       	       	   
-        if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} 
-	rad = fa * boxhalfsize[0] + fb * boxhalfsize[2];   
-	if(min>rad || max<-rad) return 0;
-	else return 1;
+    bool planeBoxOverlap(const array_1d<double,3 >& normal,  const double& d, const array_1d<double,3 >& maxbox)
+    {
+        int q;
+        array_1d<double,3 >  vmin,vmax;
+        for(q=0; q<=2; q++)
+        {
+            if(normal[q]>0.00)
+            {
+                vmin[q]=-maxbox[q];
+                vmax[q]= maxbox[q];
+            }
+            else
+            {
+                vmin[q]=maxbox[q];
+                vmax[q]=-maxbox[q];
+            }
         }
-        
-unsigned int  AxisTest_Y1(double& a,   double& b, 
-			   double& fa,  double& fb,
-			   double& p0,  double& p1,
-			   double& min, double& max, double& rad, 
-			   array_1d<double,3 >& v0,
-			   array_1d<double,3 >& v1,
-			   Point<3, double>& boxhalfsize
-			   )
-			   
-	 {
-	    p0 = -a*v0[0] + b*v0[2];
-	    p1 = -a*v1[0] + b*v1[2];
-            if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} 
-	    rad = fa * boxhalfsize[0] + fb * boxhalfsize[2];   
-	    if(min>rad || max<-rad) return 0;
-	    else return 1;
-	 }
+        if(inner_prod(normal,vmin)+d>0.00) return false;
+        if(inner_prod(normal,vmax)+d>=0.00) return true;
+
+        return false;
+    }
+//*************************************************************************************
+//*************************************************************************************
+
+    /*======================== X-tests ========================*/
+    unsigned int  AxisTest_X01(double& a,   double& b,
+                               double& fa,  double& fb,
+                               double& p0,  double& p2,
+                               double& min, double& max, double& rad,
+                               array_1d<double,3 >& v0,
+                               array_1d<double,3 >& v2,
+                               Point<3, double>& boxhalfsize
+                              )
+    {
+        p0 = a*v0[1] - b*v0[2];
+        p2 = a*v2[1] - b*v2[2];
+        if(p0<p2)
+        {
+            min=p0;
+            max=p2;
+        }
+        else
+        {
+            min=p2;
+            max=p0;
+        }
+        rad = fa * boxhalfsize[1] + fb * boxhalfsize[2];
+        if(min>rad || max<-rad) return 0;
+        else return 1;
+    }
+
+    unsigned int  AxisTest_X2(double& a,   double& b,
+                              double& fa,  double& fb,
+                              double& p0,  double& p1,
+                              double& min, double& max, double& rad,
+                              array_1d<double,3 >& v0,
+                              array_1d<double,3 >& v1,
+                              Point<3, double>& boxhalfsize
+                             )
+    {
+        p0 = a*v0[1] - b*v0[2];
+        p1 = a*v1[1] - b*v1[2];
+        if(p0<p1)
+        {
+            min=p0;
+            max=p1;
+        }
+        else
+        {
+            min=p1;
+            max=p0;
+        }
+        rad = fa * boxhalfsize[1] + fb * boxhalfsize[2];
+        if(min>rad || max<-rad) return 0;
+        else return 1;
+    }
+//*************************************************************************************
+//*************************************************************************************
+
+    /*======================== Y-tests ========================*/
+    unsigned int  AxisTest_Y02(double& a, double& b,
+                               double& fa,  double& fb,
+                               double& p0,  double& p2,
+                               double& min, double& max, double& rad,
+                               array_1d<double,3 >& v0,
+                               array_1d<double,3 >& v2,
+                               Point<3, double>& boxhalfsize
+                              )
+    {
+
+        p0 = -a*v0[0] + b*v0[2];
+        p2 = -a*v2[0] + b*v2[2];
+        if(p0<p2)
+        {
+            min=p0;
+            max=p2;
+        }
+        else
+        {
+            min=p2;
+            max=p0;
+        }
+        rad = fa * boxhalfsize[0] + fb * boxhalfsize[2];
+        if(min>rad || max<-rad) return 0;
+        else return 1;
+    }
+
+    unsigned int  AxisTest_Y1(double& a,   double& b,
+                              double& fa,  double& fb,
+                              double& p0,  double& p1,
+                              double& min, double& max, double& rad,
+                              array_1d<double,3 >& v0,
+                              array_1d<double,3 >& v1,
+                              Point<3, double>& boxhalfsize
+                             )
+
+    {
+        p0 = -a*v0[0] + b*v0[2];
+        p1 = -a*v1[0] + b*v1[2];
+        if(p0<p1)
+        {
+            min=p0;
+            max=p1;
+        }
+        else
+        {
+            min=p1;
+            max=p0;
+        }
+        rad = fa * boxhalfsize[0] + fb * boxhalfsize[2];
+        if(min>rad || max<-rad) return 0;
+        else return 1;
+    }
 
     ///@}
     ///@name Private  Access

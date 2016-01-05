@@ -221,7 +221,7 @@ public:
     {
         if ( this->PointsNumber() != 6 )
             KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 6, given " , this->PointsNumber() );
+                                "Invalid points number. Expected 6, given " , this->PointsNumber() );
     }
 
     /**
@@ -328,7 +328,7 @@ public:
             NewPoints.push_back( this->Points()[i] );
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new Triangle3D6< Point<3> >( NewPoints ) );
+        Geometry< Point<3> >::Pointer p_clone( new Triangle3D6< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();
 
@@ -362,8 +362,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 6)
-           rResult.resize( 6, false );
+        if(rResult.size() != 6)
+            rResult.resize( 6, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 6.00 );
         return rResult;
     }
@@ -526,7 +526,7 @@ public:
      * point index of given integration method.
      *
      * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.     
+     * the configuration where the jacobian has to be calculated.
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
@@ -638,15 +638,10 @@ public:
         //setting up size of jacobian matrix
         rResult.resize( 3, 2 );
         //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
+        const ShapeFunctionsGradientsType& shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
+        const Matrix& ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
-        //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 6 );
-        /*vector<double>*/
-        ShapeFunctionValuesInIntegrationPoint =
-            row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
@@ -939,8 +934,8 @@ public:
 
         default:
             KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" ,
-                          *this );
+                                "Wrong index of shape function!" ,
+                                *this );
         }
 
         return 0;
@@ -971,7 +966,7 @@ public:
 
         if ( integration_points_number == 0 )
             KRATOS_THROW_ERROR( std::logic_error,
-                          "This integration method is not supported" , *this );
+                                "This integration method is not supported" , *this );
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
@@ -1105,9 +1100,9 @@ public:
         IntegrationMethod ThisMethod )
     {
         ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+            = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
+            = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
@@ -1126,9 +1121,9 @@ public:
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
         ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+            = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
+            = msGeometryData.IntegrationPointsNumber( ThisMethod );
         ShapeFunctionsGradientsType Result( integration_points_number );
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
@@ -1267,17 +1262,12 @@ public:
     {
         if ( rResult.size() != this->PointsNumber() )
         {
-            // KLUDGE: While there is a bug in
-            // ublas vector resize, I have to put this beside resizing!!
-//                 ShapeFunctionsGradientsType
-            ShapeFunctionsThirdDerivativesType temp( this->PointsNumber() );
-            rResult.swap( temp );
+            rResult.resize( this->PointsNumber() );
         }
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
-            rResult[i].swap( temp );
+            rResult[i].resize( this->PointsNumber() );
         }
 
         rResult[0][0].resize( 2, 2 );
