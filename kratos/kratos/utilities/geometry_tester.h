@@ -496,7 +496,7 @@ protected:
 
         //compute analytical volume
 
-        const double expected_vol = 1.0/36.0;
+        const double expected_vol = 1.0/54.0;
 
         if(std::abs(geom.Volume() - expected_vol) > 1e-14)
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
