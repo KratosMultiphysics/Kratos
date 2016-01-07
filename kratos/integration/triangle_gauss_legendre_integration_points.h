@@ -163,8 +163,8 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
-        const double wa = 0.109951743655322;
-        const double wb = 0.223381589678011;
+        const double wa = 0.054975871827661;
+        const double wb = 0.1116907948390055;
         const double Na1 = 0.816847572980459;
         const double Nb1 = 0.108103018168070;
         const double Na2 = 0.091576213509771;
