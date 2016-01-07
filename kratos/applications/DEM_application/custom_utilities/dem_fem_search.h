@@ -170,7 +170,7 @@ class DEM_FEM_Search : public SpatialSearch
       typedef ConditionsContainerType::ContainerType::iterator Cond_iter;
 
       //2. CALCULATE THE DEM BBX
-      //#pragma omp parallel for
+      #pragma omp parallel for
       for (int k = 0; k < num_of_threads; k++) {
         Elem_iter it_begin = elements_sear.begin() + total_dem_partition_index[k];
         Elem_iter it_end   = elements_sear.begin() + total_dem_partition_index[k + 1];
@@ -213,7 +213,7 @@ class DEM_FEM_Search : public SpatialSearch
       }
 
       //4. FIND THE FE INSIDE DEM_BB TO BUILD THE BINS AND CONSTRUCT THE GLOBAL BBX
-      //#pragma omp parallel for
+      #pragma omp parallel for
       for(int k = 0; k < num_of_threads; k++){
         Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].reserve(total_fem_partition_index[k+1]);
 
@@ -283,21 +283,18 @@ class DEM_FEM_Search : public SpatialSearch
       if(BinsConditionPointerToGeometricalObjecPointerTemporalVector.size() >0 ) {
 
       //6. CREATE THE BINS
-      //if(mBins)
-     // {
-        //free(mBins);
-      //}
+      //if (mBins) free(mBins);
       delete mBins;
       mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());       
            
       //7. PERFORM THE SEARCH ON THE SPHERES
-      //#pragma omp parallel
+      #pragma omp parallel
       {
         GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
         DistanceType                          localResultsDistances(MaxNumberOfElements);
         std::size_t                           NumberOfResults = 0;
 
-        //#pragma omp for
+        #pragma omp for
         for (int k = 0; k < num_of_threads; k++) {
           Elem_iter it_begin = elements_sear.begin() + total_dem_partition_index[k];
           Elem_iter it_end   = elements_sear.begin() + total_dem_partition_index[k + 1];
