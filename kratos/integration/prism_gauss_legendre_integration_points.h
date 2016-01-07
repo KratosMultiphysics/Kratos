@@ -1,8 +1,8 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.3 $
+//   Last Modified by:    $Author: JMCarbonell/VMataix $
+//   Date:                $Date:          January 2016 $
+//   Revision:            $Revision:               1.4 $
 //
 //
 
@@ -41,6 +41,8 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+
+        msIntegrationPoints[0] = IntegrationPointType( 0.33333333333333333333  , 0.33333333333333333333 , 0.00 , 0.5 );
         return msIntegrationPoints;
     }
 
@@ -79,6 +81,13 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+        msIntegrationPoints[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , -0.57735026918962576451 , 0.08333333333333333333 );
+        msIntegrationPoints[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , -0.57735026918962576451 , 0.08333333333333333333 );
+        msIntegrationPoints[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , -0.57735026918962576451 , 0.08333333333333333333 );
+        msIntegrationPoints[3] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 ,  0.57735026918962576451 , 0.08333333333333333333 );
+        msIntegrationPoints[4] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 ,  0.57735026918962576451 , 0.08333333333333333333 );
+        msIntegrationPoints[5] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 ,  0.57735026918962576451 , 0.08333333333333333333 );
+
         return msIntegrationPoints;
     }
 
@@ -117,6 +126,16 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+        msIntegrationPoints[0] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 , -0.77459666924148337704 , 0.04629629629629629630 );
+        msIntegrationPoints[1] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 , -0.77459666924148337704 , 0.04629629629629629630 );
+        msIntegrationPoints[2] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 , -0.77459666924148337704 , 0.04629629629629629630 );
+        msIntegrationPoints[3] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 ,  0.00000000000000000000 , 0.07407407407407407408 );
+        msIntegrationPoints[4] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 ,  0.00000000000000000000 , 0.07407407407407407408 );
+        msIntegrationPoints[5] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 ,  0.00000000000000000000 , 0.07407407407407407408 );
+        msIntegrationPoints[6] = IntegrationPointType( 0.66666666666666666667 , 0.16666666666666666667 ,  0.77459666924148337704 , 0.04629629629629629630 );
+        msIntegrationPoints[7] = IntegrationPointType( 0.16666666666666666667 , 0.66666666666666666667 ,  0.77459666924148337704 , 0.04629629629629629630 );
+        msIntegrationPoints[8] = IntegrationPointType( 0.16666666666666666667 , 0.16666666666666666667 ,  0.77459666924148337704 , 0.04629629629629629630 );
+
         return msIntegrationPoints;
     }
 
@@ -133,8 +152,6 @@ private:
     static IntegrationPointsArrayType msIntegrationPoints;
 
 }; // Class PrismGaussLegendreIntegrationPoints3
-
-
 
 ///@name Type Definitions
 ///@{
