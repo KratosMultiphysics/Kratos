@@ -903,7 +903,7 @@ public:
         TSystemVectorType& b)
     {
         std::size_t system_size = A.size1();
-        std::vector<double> scaling_factors (system_size, 0);
+        std::vector<double> scaling_factors (system_size, 0.0f);
 //!!!POTENTIAL BUGS: it only works if the dofs are numberred consecutively
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
         {
@@ -911,9 +911,9 @@ public:
             if(i < system_size)
             {
                 if(dof_iterator->IsFixed())
-                    scaling_factors[i] = 0;
+                    scaling_factors[i] = 0.0f;
                 else
-                    scaling_factors[i] = 1;
+                    scaling_factors[i] = 1.0f;
             }
         }
 
@@ -923,7 +923,7 @@ public:
 
         //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel for
-        for(int k = 0; k < (int)system_size; ++k)
+        for(int k = 0; k < static_cast<int>(system_size); ++k)
         {
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
@@ -954,7 +954,7 @@ public:
             {
                 // zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (Acol_indices[j] != k )
+                    if (static_cast<int>(Acol_indices[j]) != k )
                         Avalues[j] = 0.0;
 
                 // zero out the RHS
