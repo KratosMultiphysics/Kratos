@@ -198,6 +198,16 @@ namespace Kratos {
             }
         }
     }
+    
+    static inline void VectorLocal2Global(const double LocalCoordSystem[3][3], const double LocalVector[3], array_1d<double, 3>& GlobalVector)
+    {
+        for (int i=0; i<3; i++) {
+            GlobalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+            }
+        }
+    }
 
     static inline double DotProduct(double Vector1[3], double Vector2[3])
     {
