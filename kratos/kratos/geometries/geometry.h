@@ -1195,7 +1195,7 @@ public:
         if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
             rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
 
-        Matrix shape_functions_gradients;
+        Matrix shape_functions_gradients(this->PointsNumber(), this->LocalSpaceDimension());
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
 
         rResult.clear();

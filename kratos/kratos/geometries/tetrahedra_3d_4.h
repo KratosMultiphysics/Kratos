@@ -591,6 +591,24 @@ public:
         }
         return 0;
     }
+    
+    /**
+     * Calculates the gradients in terms of local coordinateds
+     * of all shape functions in a given point.
+     *
+     * @param rPoint the current point at which the gradients are calculated
+     * @return the gradients of all shape functions
+     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+     */
+    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    {
+        if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
+        
+        CalculateShapeFunctionsLocalGradients(rResult, rPoint);
+        
+        return rResult;
+    }
 
     /**
      * Calculates the Gradients of the shape functions.
@@ -646,22 +664,14 @@ public:
         DN_DX(3,2) = x10 * y20 - y10 * x20;
 
         DN_DX /= detJ;
-
-//        Volume = detJ*0.1666666666666666666667;
-
-        //workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp(integration_points_number,DN_DX);
-            rResult.swap(temp);
+            rResult.resize(integration_points_number,false);
         }
-        else
-        {
-            for(unsigned int i=0; i<integration_points_number; i++)
-                noalias(rResult[i]) = DN_DX;
-        }
+
+        for(unsigned int i=0; i<integration_points_number; i++)
+                rResult[i] = DN_DX;
+        
 
         return rResult;
     }
@@ -718,16 +728,11 @@ public:
         //workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp(integration_points_number,DN_DX);
-            rResult.swap(temp);
+            rResult.resize(integration_points_number,false);
         }
-        else
-        {
-            for(unsigned int i=0; i<integration_points_number; i++)
-                noalias(rResult[i]) = DN_DX;
-        }
+        for(unsigned int i=0; i<integration_points_number; i++)
+                rResult[i] = DN_DX;
+        
 
         return rResult;
     }
@@ -996,6 +1001,7 @@ public:
     {
         BaseType::PrintData(rOStream);
         std::cout << std::endl;
+        rOStream << "    in Tetrahedra3D4 PrintData\t : " << std::endl;
         Matrix jacobian(3,3);
         this->Jacobian(jacobian, PointType());
         rOStream << "    Jacobian in the origin\t : " << jacobian;
