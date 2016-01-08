@@ -79,7 +79,7 @@ namespace Kratos {
         }
         
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                        sliding, element1,  element2, indentation, previous_indentation);
+                                              sliding, element1, element2, indentation, previous_indentation);
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
