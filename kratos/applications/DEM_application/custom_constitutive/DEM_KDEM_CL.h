@@ -89,6 +89,13 @@ namespace Kratos {
                 int search_control,
                 vector<int>& search_control_vector);
 
+        void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                              SphericContinuumParticle* neighbor,
+                                              double equiv_young,
+                                              double distance,
+                                              double calculation_area,
+                                              double LocalCoordSystem[3][3],
+                                              array_1d<double, 3>& mContactMoment);
 
     private:
 
