@@ -61,11 +61,12 @@ namespace Kratos {
         
         unsigned int& max_Id=creator.mMaxNodeId;       
         CreatePropertiesProxies(mFastProperties, mInletModelPart);      
-               
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
-        if (r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        
-        if (r_modelpart.GetProcessInfo()[ROTATION_OPTION] ) {
-            mBallsModelPartHasRotation   = true;
+        
+        if (r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY)) mBallsModelPartHasSphericity = true;        
+        
+        if (r_modelpart.GetProcessInfo()[ROTATION_OPTION]) {
+            mBallsModelPartHasRotation = true;
             mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = true;            
         }
         else {
@@ -78,7 +79,7 @@ namespace Kratos {
         for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin() + 1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {      
             
             mesh_number++;
-            int mesh_size=mesh_it->NumberOfNodes();
+            int mesh_size = mesh_it->NumberOfNodes();
             if (!mesh_size) continue;
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
             std::string& identifier = mInletModelPart.GetProperties(mesh_number)[IDENTIFIER];
@@ -96,7 +97,7 @@ namespace Kratos {
             double max_rand_dev_angle = mInletModelPart.GetProperties(mesh_number)[MAX_RAND_DEVIATION_ANGLE];
             if (max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
                 
-                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ",identifier);
+                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ", identifier);
             }
             
             int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
@@ -126,7 +127,7 @@ namespace Kratos {
                                                              mBallsModelPartHasSphericity,
                                                              mBallsModelPartHasRotation,
                                                              true,
-                                                             mesh_it->Elements()); 
+                                                             mesh_it->Elements());
 		max_Id++;
             }                 
         } //for mesh_it                                               
@@ -257,8 +258,8 @@ namespace Kratos {
         DettachClusters(r_clusters_modelpart, max_Id);
                 
         int mesh_number = 0;
-        for (ModelPart::MeshesContainerType::iterator mesh_it  = mInletModelPart.GetMeshes().begin()+1;
-                                                      mesh_it != mInletModelPart.GetMeshes().end()    ; ++mesh_it)
+        for (ModelPart::MeshesContainerType::iterator mesh_it  = mInletModelPart.GetMeshes().begin() + 1;
+                                                      mesh_it != mInletModelPart.GetMeshes().end()      ; ++mesh_it)
         {            
             mesh_number++;
 
@@ -280,7 +281,7 @@ namespace Kratos {
                         
             double num_part_surface_time = mInletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES];
             double delta_t = current_time - mLastInjectionTimes[mesh_number - 1]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
-            double surface = 1.0;//inlet_surface; // this should probably be projected to velocity vector
+            double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
             
             //calculate number of particles to insert from input data
             double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[mesh_number - 1];
@@ -289,17 +290,17 @@ namespace Kratos {
             
             if (number_of_particles_to_insert) {
                 //randomizing mesh
-                srand( /*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS] );
+                srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
                 
                 ModelPart::ElementsContainerType::ContainerType inserting_elements(number_of_particles_to_insert);               
                 ModelPart::ElementsContainerType::ContainerType valid_elements = mesh_it->ElementsArray();
                 int valid_elements_length = 0;
                
                 for (int i = 0; i < mesh_size_elements; i++) {                    
-                    if( all_elements[i]->IsNot(ACTIVE) ) { 
-		        valid_elements[valid_elements_length]=all_elements[i];   
+                    if (all_elements[i]->IsNot(ACTIVE)) { 
+		        valid_elements[valid_elements_length] = all_elements[i];   
 		        valid_elements_length++; 
-            } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
+                    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.
                 }
 
                 if (valid_elements_length < number_of_particles_to_insert) {
@@ -367,12 +368,12 @@ namespace Kratos {
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id++;
                     }        
-               }
+                }
                
-               else {
+                else {
                
                     for (int i = 0; i < number_of_particles_to_insert; i++) {
-                        int number_of_added_spheres=0;
+                        int number_of_added_spheres = 0;
                         creator.ClusterCreatorWithPhysicalParameters(r_modelpart, 
                                                                      r_clusters_modelpart,
                                                                      max_Id+1, 
@@ -390,11 +391,11 @@ namespace Kratos {
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id += number_of_added_spheres;
                     }        
-               }
+                }
                
-           } //if (number_of_particles_to_insert)
+            } //if (number_of_particles_to_insert)
 
-           mLastInjectionTimes[mesh_number - 1] = current_time;
+            mLastInjectionTimes[mesh_number - 1] = current_time;
 
         } // for mesh_it
 
