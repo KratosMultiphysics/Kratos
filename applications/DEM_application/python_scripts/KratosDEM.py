@@ -240,7 +240,6 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     else:
         KRATOSprint("Activate Contact Mesh for ModelData information")
 
-
 materialTest.PrintChart()
 materialTest.PrepareDataForGraph()
  
