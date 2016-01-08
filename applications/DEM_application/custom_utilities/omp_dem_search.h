@@ -189,7 +189,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               DistanceType                  localResultsDistances(MaxNumberOfElements);
               std::size_t                   NumberOfResults = 0;
               
-              #pragma omp for
+              #pragma omp for schedule(guided)
               for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
@@ -202,6 +202,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               }
           }
           
+          //MAJOR TODO: creating and destroying (when leaving the function) this BINS is not parallel and takes a significant time if we search at every time step. Can we re-use a bins and avoid allocation and deallocation?? MA
           KRATOS_CATCH("")      
       }
       

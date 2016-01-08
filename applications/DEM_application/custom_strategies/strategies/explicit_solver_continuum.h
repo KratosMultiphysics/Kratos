@@ -50,7 +50,6 @@ namespace Kratos
                              const double max_delta_time,
                              const double n_step_search,
                              const double safety_factor,
-                             const bool move_mesh_flag,//TODO: is this variable used??
                              const int delta_option,
                              const double search_tolerance,
                              const double coordination_number,
@@ -58,7 +57,7 @@ namespace Kratos
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
-      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
+      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {                    
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;                            
       }
@@ -461,7 +460,7 @@ namespace Kratos
       
         } //for all Spheric Continuum Particles
         
-        //#pragma omp parallel for  //TODO
+        #pragma omp parallel for
         for ( int i = 0; i<number_of_particles; i++) {
             
             std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;

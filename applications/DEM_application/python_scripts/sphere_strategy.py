@@ -72,7 +72,6 @@ class ExplicitStrategy:
             self.coordination_number = Param.CoordinationNumber
             self.search_tolerance = 0.01 * Param.MeanRadius
             
-        self.move_mesh_flag = True
         self.deactivate_search = 0
         self.case_option = 3
 
@@ -202,10 +201,10 @@ class ExplicitStrategy:
         self.settings.inlet_model_part = self.inlet_model_part   
         self.settings.cluster_model_part = self.cluster_model_part   
                 
-        self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
+        self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                              self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
        
-        #self.cplusplus_strategy = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
+        #self.cplusplus_strategy = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor,
         #                                     self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)

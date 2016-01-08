@@ -104,7 +104,7 @@ public:
 /////Cfeng: For Particle DEM
   static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
+        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
 
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -191,7 +191,7 @@ public:
 
   static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
-        array_1d<double, 3> center_of_particle = rObject->GetGeometry().GetPoint(0);
+        array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
         bool intersect = (
@@ -308,8 +308,8 @@ public:
   //needed for bins
   static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
-        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry().GetPoint(0);
-        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry().GetPoint(0);
+        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry()[0];
+        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry()[0];
 
 
         distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
