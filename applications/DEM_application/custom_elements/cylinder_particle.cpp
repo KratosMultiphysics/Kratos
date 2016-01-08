@@ -37,11 +37,10 @@ namespace Kratos
       Element::Pointer CylinderParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
            return SphericParticle::Pointer(new CylinderParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
-
       }
 
       /// Destructor.
-      CylinderParticle::~CylinderParticle(){}
+      CylinderParticle::~CylinderParticle() {}
 
       void CylinderParticle::Initialize()
       {
@@ -50,7 +49,7 @@ namespace Kratos
           mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
           double density            = GetDensity();          
           double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-          mass                      = KRATOS_M_PI_3 * density * GetRadius() * GetRadius() * 1.0;
+          mass                      = KRATOS_M_PI * density * GetRadius() * GetRadius() * 1.0;
           mRealMass                 = mass;
 
           //if (mRotationOption){
