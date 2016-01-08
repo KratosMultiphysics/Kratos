@@ -42,6 +42,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, BOTTOM)
   KRATOS_CREATE_VARIABLE(int, BOUNDING_BOX_OPTION)
   KRATOS_CREATE_VARIABLE(int, ROTATION_OPTION)
+  KRATOS_CREATE_VARIABLE(int, ROTATION_SPRING_OPTION)        
   KRATOS_CREATE_VARIABLE(int, CRITICAL_TIME_OPTION)
   KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
   KRATOS_CREATE_VARIABLE(int, SEARCH_CONTROL)
@@ -284,7 +285,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(Vector,   NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
 
 
-  // DUMMIES INT AND DOUBLE VARIABLES
+  // DUMMY INT AND DOUBLE VARIABLES
 
   KRATOS_CREATE_VARIABLE(int, DUMMY_SWITCH)
   KRATOS_CREATE_VARIABLE(double, DUMMY_FORCES)
@@ -347,33 +348,33 @@ namespace Kratos
   //OPTIMIZATION
  
   //FLAGS
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROTATION, 0);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROTATION_SPRING, 1);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROLLING_FRICTION, 2);
-  //KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_INITIALIZED_VARIABLES, 3);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_CRITICAL_TIME, 4);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_VEL_X, 5);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_VEL_Y, 6);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_VEL_Z, 7);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_X, 8);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_Y, 9);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_Z, 10);
-  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,BELONGS_TO_A_CLUSTER, 11);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROTATION, 0);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROTATION_SPRING, 1);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROLLING_FRICTION, 2);
+  //KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_INITIALIZED_VARIABLES, 3);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_CRITICAL_TIME, 4);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_X, 5);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_Y, 6);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_Z, 7);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_X, 8);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_Y, 9);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_Z, 10);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags, BELONGS_TO_A_CLUSTER, 11);
 
   KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
 
   //MSI DEM-FEM
-  KRATOS_CREATE_VARIABLE( Vector, CAUCHY_STRESS_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, PK2_STRESS_VECTOR )
+  KRATOS_CREATE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR )
+  KRATOS_CREATE_VARIABLE(Vector, PK2_STRESS_VECTOR )
 
-  KRATOS_CREATE_VARIABLE( Matrix, ALMANSI_STRAIN_TENSOR )
-  KRATOS_CREATE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, ALMANSI_STRAIN_VECTOR )
+  KRATOS_CREATE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR )
+  KRATOS_CREATE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR )
+  KRATOS_CREATE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR )
 
-  KRATOS_CREATE_VARIABLE( Matrix, MATERIAL_STIFFNESS_MATRIX )
-  KRATOS_CREATE_VARIABLE( Matrix, GEOMETRIC_STIFFNESS_MATRIX )
+  KRATOS_CREATE_VARIABLE(Matrix, MATERIAL_STIFFNESS_MATRIX )
+  KRATOS_CREATE_VARIABLE(Matrix, GEOMETRIC_STIFFNESS_MATRIX )
 
-  KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS )
+  KRATOS_CREATE_VARIABLE(double, VON_MISES_STRESS )
   
   
   // *************** Thermal only BEGIN *************
@@ -388,33 +389,33 @@ namespace Kratos
   //ELEMENTS
     
   KratosDEMApplication::KratosDEMApplication():
-  mCylinderParticle2D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mCylinderContinuumParticle2D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mSphericParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mThermalSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-  mRigidFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-  mRigidFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-  mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-  mCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mLineCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mCubeCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mPillCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mEllipsoidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mRingCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mCuboidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mCornKernelCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mCorn3Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mSoyBeanCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mRock1Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mRock2Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ), 
-  mWheat5Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mBallast1Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mBallast2Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mBallast3Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mBallast4Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mMapCon3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+  mCylinderParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mCylinderContinuumParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+  mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+  mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+  mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+  mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mLineCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mCubeCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mRingCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mCuboidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mCornKernelCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mCorn3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mSoyBeanCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mRock1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mRock2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))), 
+  mWheat5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mBallast1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mBallast2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mBallast3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mBallast4Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
   {}
     
 
@@ -452,6 +453,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(FORCE_INTEGRATION_GROUP)
     KRATOS_REGISTER_VARIABLE(BOUNDING_BOX_OPTION)
     KRATOS_REGISTER_VARIABLE(ROTATION_OPTION)
+    KRATOS_REGISTER_VARIABLE(ROTATION_SPRING_OPTION)
     KRATOS_REGISTER_VARIABLE(CRITICAL_TIME_OPTION)
     KRATOS_REGISTER_VARIABLE(VIRTUAL_MASS_OPTION)
     KRATOS_REGISTER_VARIABLE(SEARCH_CONTROL)
