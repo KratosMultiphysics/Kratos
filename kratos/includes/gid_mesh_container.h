@@ -170,7 +170,7 @@ public:
                     }
                     //printing elements
                     GiD_fBeginElements(MeshFile);
-                    int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size() ];
+                    int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size() + 1];
                     for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                             it != mMeshElements.end(); ++it )
                     {
@@ -184,17 +184,18 @@ public:
                             nodes_id[1] = (it)->GetGeometry() [2].Id();
                             nodes_id[2] = (it)->GetGeometry() [1].Id();
                         }
+                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
                         if ( it->Has ( IS_INACTIVE ) )
                         {
                             if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
                             {
-                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                             }
                         }
                         else
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                         }
                     }
                     delete [] nodes_id;
@@ -265,7 +266,7 @@ public:
                     }
                     //printing elements
                     GiD_fBeginElements(MeshFile);
-                    int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() ];
+                    int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() + 1];
                     for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
                             it != mMeshConditions.end(); ++it )
                     {
@@ -283,18 +284,19 @@ public:
                             nodes_id[18] = (it)->GetGeometry() [14].Id();
                             nodes_id[19] = (it)->GetGeometry() [15].Id();
                         }
-                        //nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                        
                         if ( it->Has ( IS_INACTIVE ) )
                         {
                             if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
                             {
-                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                             }
                         }
                         else
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
+                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
                         }
                     }
                     delete [] nodes_id;
