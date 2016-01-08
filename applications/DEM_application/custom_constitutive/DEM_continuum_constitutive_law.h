@@ -130,6 +130,14 @@ namespace Kratos {
                 vector<int>& search_control_vector) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) should not be called.","")
         };
+        
+        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                      SphericContinuumParticle* neighbor,
+                                                      double equiv_young,
+                                                      double distance,
+                                                      double calculation_area,
+                                                      double LocalCoordSystem[3][3],
+                                                      array_1d<double, 3>& mContactMoment);
 
     private:
 
