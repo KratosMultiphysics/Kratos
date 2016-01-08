@@ -464,7 +464,7 @@ namespace Kratos
             
             mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part);
             
-            #pragma omp parallel for schedule(guided)
+            #pragma omp for schedule(dynamic, 100) //schedule(guided)
             for (int k = 0; k < number_of_clusters; k++) {
 
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -489,7 +489,7 @@ namespace Kratos
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();  
             const int number_of_clusters = pElements.size();
             
-            #pragma omp parallel for schedule(guided)
+            #pragma omp for schedule(dynamic, 100) //schedule(guided)
             for (int k = 0; k < number_of_clusters; k++) {
                 
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -648,7 +648,7 @@ namespace Kratos
           {
             Vector rhs_elem;
             rhs_elem.resize(6);
-            #pragma omp for schedule(guided)
+            #pragma omp for schedule(dynamic, 100) //schedule(guided)
             
             for (int i = 0; i < number_of_particles; i++){
                               
@@ -1280,7 +1280,7 @@ namespace Kratos
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
         const int number_of_particles = (int)mListOfSphericParticles.size();
         
-        #pragma omp parallel for schedule(guided)
+        #pragma omp for schedule(dynamic, 100) //schedule(guided)
         for (int i=0; i<number_of_particles; i++){
             mListOfSphericParticles[i]->mNeighbourElements.clear();
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it){
@@ -1537,7 +1537,7 @@ namespace Kratos
           {
             Vector rhs_elem;
             rhs_elem.resize(6);
-            #pragma omp for schedule(guided)
+            #pragma omp for schedule(dynamic, 100) //schedule(guided)
             
             for (int i = 0; i < number_of_particles; i++){
                 //double total_normal_elastic_energy_on_particle = 0.0;
