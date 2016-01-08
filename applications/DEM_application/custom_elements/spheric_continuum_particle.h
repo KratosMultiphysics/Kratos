@@ -42,7 +42,7 @@ namespace Kratos
       /// Default constructor. 
       SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       SphericContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
-      SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+      SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
       
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
          
@@ -91,7 +91,7 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
 
-      
+      //static int counter;
       
       //member variables DEM_CONTINUUM
       int mContinuumGroup;
@@ -126,10 +126,8 @@ namespace Kratos
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );                
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
-        void ComputeParticleRotationSpring();
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
-        void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional                
-                
+
         //double mFinalPressureTime;
         //double mFinalSimulationTime;
      
@@ -156,7 +154,6 @@ namespace Kratos
         void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);       
 
         double distances_squared;
-      
         
     private:
 
@@ -179,9 +176,7 @@ namespace Kratos
           //rSerializer.load("mSymmStressTensor",mSymmStressTensor);
           mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
       }
-      
-      
-      
+            
       /*
       /// Assignment operator.
       SphericContinuumParticle& operator=(SphericContinuumParticle const& rOther)
