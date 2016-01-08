@@ -1392,7 +1392,8 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
     if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);
     else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
-                                                 this->Set(DEMFlags::HAS_ROTATION_SPRING, false);
+    if (r_process_info[ROTATION_SPRING_OPTION])  this->Set(DEMFlags::HAS_ROTATION_SPRING, true);
+    else                                         this->Set(DEMFlags::HAS_ROTATION_SPRING, false);
                                                  
     if (r_process_info[STRESS_STRAIN_OPTION]){        
         mStressTensor = new Matrix(3,3);
