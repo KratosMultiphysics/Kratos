@@ -2,14 +2,10 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-
 // System includes
 #include <string>
 #include <iostream>
 #include <iomanip> // to improve std::cout precision
-
-// External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -163,7 +159,7 @@ namespace Kratos {
 
     }//SetInitialFemContacts              
 
-    void SphericContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+    void SphericContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbors of my neighbors.
     {
 
         double alpha = 1.0;
@@ -206,7 +202,7 @@ namespace Kratos {
             const bool multi_stage_RHS) {
         KRATOS_TRY
 
-        const double dt_i = 1 / dt;
+        const double dt_i = 1.0 / dt;
         const int time_steps = rCurrentProcessInfo[TIME_STEPS];
 
         int& search_control = rCurrentProcessInfo[SEARCH_CONTROL];
@@ -236,9 +232,13 @@ namespace Kratos {
             
             array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             const double &other_radius = neighbour_iterator->GetRadius();
+            array_1d<double, 3> other_ang_vel = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            /*
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                     other_to_me_vect[1] * other_to_me_vect[1] +
                     other_to_me_vect[2] * other_to_me_vect[2]);
+            */
+            double distance = DEM_MODULUS_3(other_to_me_vect);
             double radius_sum = GetRadius() + other_radius;
             double initial_delta = mNeighbourDelta[i_neighbour_count];
             double initial_dist = (radius_sum - initial_delta);
@@ -273,9 +273,6 @@ namespace Kratos {
 
             double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
             double calculation_area = 0.0;
-
-
-            //KRATOS_WATCH(mapping_new_cont)
 
             if (mapping_new_cont != -1) {
                 mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);
@@ -394,6 +391,15 @@ namespace Kratos {
             
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
+                if (mapping_new_cont != -1 && this->Is(DEMFlags::HAS_ROTATION_SPRING)) {
+                    mContinuumConstitutiveLawArray[mapping_new_cont]->ComputeParticleRotationalMoments(this,
+                                                                                                       neighbour_iterator,
+                                                                                                       equiv_young,
+                                                                                                       distance,
+                                                                                                       calculation_area,
+                                                                                                       LocalCoordSystem,
+                                                                                                       mContactMoment);
+                }
             }
 
             if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
@@ -494,8 +500,8 @@ namespace Kratos {
         mTempNeighboursMapping.resize(temp_size);
         mTempContNeighboursMapping.resize(temp_size);
 
-        array_1d<double, 3> vector_of_zeros;
-        vector_of_zeros[0] = vector_of_zeros[1] = vector_of_zeros[2] = 0.0;
+        array_1d<double, 3> vector_of_zeros = ZeroVector(3);
+        //vector_of_zeros[0] = vector_of_zeros[1] = vector_of_zeros[2] = 0.0;
 
         unsigned int neighbour_counter = 0; //Not increased at every iteration!! only if found as a real neighbor.
 
@@ -738,10 +744,10 @@ namespace Kratos {
         fem_temp_neighbours_elastic_contact_forces.resize(fem_temp_size);
         fem_temp_neighbours_mapping.resize(fem_temp_size);
 
-        array_1d<double, 3> vector_of_zeros;
-        vector_of_zeros[0] = 0.0;
-        vector_of_zeros[1] = 0.0;
-        vector_of_zeros[2] = 0.0;
+        array_1d<double, 3> vector_of_zeros = ZeroVector(3);
+        //vector_of_zeros[0] = 0.0;
+        //vector_of_zeros[1] = 0.0;
+        //vector_of_zeros[2] = 0.0;
 
         const std::vector<double>& RF_Pram = mNeighbourRigidFacesPram;
 
@@ -934,13 +940,13 @@ namespace Kratos {
 
     }//Calculate
 
-    void SphericContinuumParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) {
     }//calculate Output vector
 
-    void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo) {
     }
 
-    void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) {
     }
 
     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
@@ -952,16 +958,9 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if (rCurrentProcessInfo[TRIAXIAL_TEST_OPTION] && *mSkinSphere) //could be applied to selected particles.
-        {
+        if (rCurrentProcessInfo[TRIAXIAL_TEST_OPTION] && *mSkinSphere) { //could be applied to selected particles.
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
         }
-
-        //if( mRotationOption != 0 && mRotationSpringOption != 0 )
-        /*if( this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROTATION_SPRING)  )             
-        {
-            //ComputeParticleRotationSpring(); MSI: #C2
-        }*/
 
         double mass = mRealMass;
         additionally_applied_force[0] += mass * gravity[0];
@@ -973,6 +972,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::CustomInitialize() {
         distances_squared = 0.0;           
+        //counter = 0;
     }
 
     double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {
@@ -1067,170 +1067,12 @@ namespace Kratos {
         mSkinSphere                     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup                 = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
         
+        KRATOS_WATCH(mContinuumGroup)
+        //KRATOS_WATCH(++counter)        
         KRATOS_CATCH("")
 
     } //ContinuumSphereMemberDeclarationFirstStep
 
-} // namespace Kratos.
-
-
-//NOTE::
-/*
- * #1: Here, Initial_delta is expected to be positive if it is embedding and negative if there's a separation.
- * #2: 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
- * #3: For detached particles we enter only if the indentation is > 0. For attached particles we enter only if the particle is still attached.
- * #4: we use incremental calculation. YADE develops a complicated "absolute method"
- * #5: We only store in the initial neighbors array the ones that are cohesive or the ones that have positive or negative initial indentation. In other words,
- *     the non-cohesive ones with 0 indentation (<some tolerance) don't have to be stored since we can treat it indistinctly from other new neighbours that the particle in stury would meet.
- */
-
-//#C2: ComputeParticleRotationSpring;
-
-//           void SphericContinuumParticle::ComputeParticleRotationSpring() // shan de corregir areees etc etc etc...
-//       {
-//         //double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: new
-//         /*
-//                     c=objecte_contacte(particula,vei)
-// 
-//             força=(c.RADI)*3;  //M: idea: to create a class contact, create objects of contacts with all the parameters. easier...
-//                                 /no puc amb MPI oi? pk hauria de passar punters...
-//           */
-//           ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
-// 
-//           array_1d<double, 3 > & mRota_Moment = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-// 
-// 
-//           Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
-// 
-//           size_t i_neighbour_count = 0;
-// 
-//           for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin(); ineighbour != mrNeighbours.end(); ineighbour++)
-//           {
-// 
-//               //if(mIfInitalContact[i_neighbour_count] == 1 && mRotaSpringFailureType[i_neighbour_count] == 0) ///M.S:NEWWWW,  if THE SPRING BRAKES... NO MORE CONTRIBUION.
-//               //if( mRotaSpringFailureType[i_neighbour_count] == 0) //M.S: CAL FICAR A INITIALIZE QUE SIGUI 1 I DESPRES INITIAL CONTACTS POSAR 0 SI NECESITEN, IGUAL QUE FAILURE NORMAL.
-//               //mmm.. what about the other failure types? if a contact is broken due to shear or tensile, it cant be a bending
-//               {
-//                 
-//                 
-//                   array_1d<double, 3 > & mRotaSpringMoment  = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[ i_neighbour_count ];
-// 
-//                   double other_radius    = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-//                   double other_young     = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
-//                   double other_poisson   = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
-//                   double other_tension   = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_TENSION); //MSI: these variables are eliminated.
-//                   double other_cohesion  = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COHESION);
-//                   double other_inertia   = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_INERTIA);
-// 
-//                   double equiv_tension  = (mTension  + other_tension ) * 0.5;
-//                   double equiv_cohesion = (mCohesion + other_cohesion) * 0.5;
-// 
-//                   double equiv_radius     = (GetRadius() + other_radius) * 0.5 ;
-//                   double equiv_area       = KRATOS_M_PI * equiv_radius * equiv_radius;
-//                   double equiv_poisson    = (mPoisson + other_poisson) * 0.5 ;
-//                   double equiv_young      = (mYoung  + other_young)  * 0.5;
-// 
-//                   double kn_el               = equiv_young * equiv_area / (2.0 * equiv_radius);
-//                   double ks               = kn_el / (2.0 * (1.0 + equiv_poisson));
-// 
-//                   array_1d<double,3> other_to_me_vect = GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
-// 
-//                   /////Cfeng: Forming the Local Contact Coordinate system
-//                   double NormalDir[3]           = {0.0};
-//                   double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-//                   NormalDir[0] = other_to_me_vect[0];
-//                   NormalDir[1] = other_to_me_vect[1];
-//                   NormalDir[2] = other_to_me_vect[2];
-//                   GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);
-// 
-//                   double LocalRotaSpringMoment[3]     = {0.0};
-//                   double GlobalRotaSpringMoment[3]    = {0.0};
-//                   double GlobalRotaSpringMomentOld[3] = {0.0};
-// 
-//                   double DeltRotaDisp[3] = {0.0};
-//                   //double DeltRotaDisp2[3] = {0.0};
-// 
-//                   double LocalDeltRotaDisp[3] = {0.0};
-// 
-//                   double TargetDeltRotaDist[3] = {0.0};
-//                   double NeighbourDeltRotaDist[3] = {0.0};
-//                 
-//                   for (int i=0;i<3;i++)
-//                   {
-//                       TargetDeltRotaDist[i] = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[i];
-//                       NeighbourDeltRotaDist[i] = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[i];
-//                       DeltRotaDisp[i] =  - ( TargetDeltRotaDist[i] - NeighbourDeltRotaDist[i] );
-//                   }
-//               
-//                   GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
-// 
-//                   GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];
-// 
-//                   GlobalRotaSpringMomentOld[1] = mRotaSpringMoment[ 1 ];
-// 
-//                   GlobalRotaSpringMomentOld[2] = mRotaSpringMoment[ 2 ];
-// 
-//                   GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalRotaSpringMomentOld, LocalRotaSpringMoment);
-// 
-// 
-//                   double Inertia_I = (mSectionalInertia + other_inertia) * 0.5;
-// 
-//                   double Inertia_J = Inertia_I * 2.0;
-// 
-// 
-//                   LocalRotaSpringMoment[0] +=  - Inertia_I * LocalDeltRotaDisp[0] * kn_el / equiv_area;
-// 
-//                   LocalRotaSpringMoment[1] +=  - Inertia_I * LocalDeltRotaDisp[1] * kn_el / equiv_area;
-// 
-//                   LocalRotaSpringMoment[2] +=  - Inertia_J * LocalDeltRotaDisp[2] * ks / equiv_area;
-// 
-// 
-//                   ////Judge if the rotate spring is broken or not
-//                   double GlobalElasticContactForce[3]  = {0.0};
-//                   double LocalElasticContactForce [3]  = {0.0};
-// 
-//                   GlobalElasticContactForce[0] = this->GetValue(PARTICLE_CONTACT_FORCES)[ i_neighbour_count ][ 0 ];
-//                   GlobalElasticContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[ i_neighbour_count ][ 1 ];
-//                   GlobalElasticContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[ i_neighbour_count ][ 2 ]; //GlobalElasticContactForce[2] = mContactForces[3 * i_neighbour_count  + 2 ];
-//                   GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
-// 
-//                   double ForceN  = LocalElasticContactForce[2];
-//                   double ForceS  = sqrt( LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-//                   double MomentS = sqrt(LocalRotaSpringMoment[0] * LocalRotaSpringMoment[0] + LocalRotaSpringMoment[1] * LocalRotaSpringMoment[1]);
-//                   double MomentN = LocalRotaSpringMoment[2];
-// 
-//                   //////bending stress and axial stress add together, use edge of the bar will failure first
-//                   double TensiMax = -ForceN / equiv_area + MomentS        / Inertia_I * equiv_radius;
-//                   double ShearMax = ForceS  / equiv_area + fabs(MomentN)  / Inertia_J * equiv_radius;
-// 
-//                   if(TensiMax > equiv_tension || ShearMax > equiv_cohesion)
-//                   {
-//                       mRotaSpringFailureType[i_neighbour_count] = 1;
-// 
-//                       LocalRotaSpringMoment[0] = 0.0;
-//                       LocalRotaSpringMoment[1] = 0.0;
-//                       LocalRotaSpringMoment[2] = 0.0;
-//                   }
-// 
-//                   GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotaSpringMoment, GlobalRotaSpringMoment);
-// 
-//                   mRotaSpringMoment[ 0 ] = GlobalRotaSpringMoment[0];
-//                   mRotaSpringMoment[ 1 ] = GlobalRotaSpringMoment[1];
-//                   mRotaSpringMoment[ 2 ] = GlobalRotaSpringMoment[2];
-// 
-//                   ////feedback, contact moment----induce by rotation spring
-//                   mRota_Moment[0] -= GlobalRotaSpringMoment[0];
-//                   mRota_Moment[1] -= GlobalRotaSpringMoment[1];
-//                   mRota_Moment[2] -= GlobalRotaSpringMoment[2];
-//               }
-// 
-//               i_neighbour_count++;
-//           }
-//       }//ComputeParticleRotationSpring
-//      
-/*         
- * 
- * 
- */
+} // namespace Kratos
 
 // #C3: InitializeContactElements : aquesta funcio començava abans de evaluatedeltadisplacement per poisson etc pero no crec ke faci falta ara.
