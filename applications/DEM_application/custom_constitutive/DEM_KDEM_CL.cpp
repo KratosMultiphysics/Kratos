@@ -1,9 +1,7 @@
 // System includes
 #include <string>
 #include <iostream>
-
-// External includes
-
+#include <cmath>
 
 // Project includes
 #include "DEM_application.h"
@@ -38,8 +36,8 @@ namespace Kratos {
 
         KRATOS_TRY
         double radius_sum = radius + other_radius;
-        double equiv_radius = 2.0 * radius * other_radius / radius_sum;
-        calculation_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius;
+        double equiv_radius = radius * other_radius / radius_sum;
+        calculation_area = KRATOS_M_PI * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
     double DEM_KDEM::CalculateContactArea(double radius, double other_radius, std::vector<double> & v) {            
@@ -53,7 +51,7 @@ namespace Kratos {
                                              double equiv_poisson, double calculation_area) {
         
         KRATOS_TRY
-        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
+        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); /////////////////// Is this correct??????????????? SLS
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
         KRATOS_CATCH("")  
@@ -67,6 +65,16 @@ namespace Kratos {
             double kt_el) {
 
         KRATOS_TRY 
+        /*
+        double aux_norm_to_tang = 0.0; // Dempack does not use tangential damping
+        const double mRealMass = element1->GetMass();
+        const double &other_real_mass = element2->GetMass();
+        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
+        equiv_visco_damp_coeff_normal = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack does not use tangential damping
+        */
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);        
@@ -78,7 +86,7 @@ namespace Kratos {
         double epsilon = log(equiv_coeff_rest) / sqrt(KRATOS_M_PI * KRATOS_M_PI + log(equiv_coeff_rest) * log(equiv_coeff_rest));
               
         equiv_visco_damp_coeff_normal     = -2.0 * epsilon * sqrt(equiv_mass * kn_el);
-        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal;
+        equiv_visco_damp_coeff_tangential = -2.0 * epsilon * sqrt(equiv_mass * kt_el);
 
     KRATOS_CATCH("")      
     }
@@ -142,9 +150,9 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
-        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        int& mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        int& mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int& mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -228,8 +236,8 @@ namespace Kratos {
             } else { //Per sota del màxim.
                 if (mHistoryMaxForce > 0.0) { //Màxim en compressió. 
 
-                    double u_plas; //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
-                    if (Yields_el <= Ncstr1_el) { //si el punt de plastificació està en la primera rama elastica.
+                    double u_plas; //MSIMSI 2 aquesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
+                    if (Yields_el <= Ncstr1_el) { //si el punt de plastificació està en la primera rama elàstica.
 
                         u_plas = Yields_el / kn_el;
                     } else {
@@ -301,11 +309,10 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
-
-        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
-        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        int& mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        int& mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
+        int& mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
+        int& mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -437,5 +444,71 @@ namespace Kratos {
 	*/
     KRATOS_CATCH("")      
     }
+    void DEM_KDEM::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                    SphericContinuumParticle* neighbor,
+                                                    double equiv_young,
+                                                    double distance,
+                                                    double calculation_area,
+                                                    double LocalCoordSystem[3][3],
+                                                    array_1d<double, 3>& mContactMoment) {
+
+        double LocalRotationalMoment[3]      = {0.0};
+        double GlobalDeltaRotatedAngle[3]    = {0.0};
+        double LocalDeltaRotatedAngle[3]     = {0.0};
+        double TargetTotalRotatedAngle[3]    = {0.0};
+        double NeighborTotalRotatedAngle[3]  = {0.0};
+        double TargetAngularVelocity[3]      = {0.0};
+        double NeighborAngularVelocity[3]    = {0.0};
+        double GlobalDeltaAngularVelocity[3] = {0.0};
+        double LocalDeltaAngularVelocity[3]  = {0.0};
+        
+        for (int i = 0; i < 3; i++) { //VectorGlobal2Local arrays
+            TargetTotalRotatedAngle[i]    = element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE)[i];
+            NeighborTotalRotatedAngle[i]  = neighbor->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE)[i];
+            GlobalDeltaRotatedAngle[i]    = TargetTotalRotatedAngle[i] - NeighborTotalRotatedAngle[i];
+            TargetAngularVelocity[i]      = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[i];
+            NeighborAngularVelocity[i]    = neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[i];
+            GlobalDeltaAngularVelocity[i] = TargetAngularVelocity[i] - NeighborAngularVelocity[i];
+        }
+
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaRotatedAngle, LocalDeltaRotatedAngle);
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
+        
+        double equivalent_radius = sqrt(calculation_area / KRATOS_M_PI);
+        double Inertia_I = 0.25 * KRATOS_M_PI * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
+        double Inertia_J = 2.0 * Inertia_I;
+        double rot_k = 0.002;
+        double visc_param = 0.0;
+        
+        //equiv_young or G in torsor??        
+        LocalRotationalMoment[0] -= (rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance + visc_param * LocalDeltaAngularVelocity[0]);
+        LocalRotationalMoment[1] -= (rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance + visc_param * LocalDeltaAngularVelocity[1]);
+        LocalRotationalMoment[2] -= (rot_k * equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance + visc_param * LocalDeltaAngularVelocity[2]);
+                
+        /*
+        LocalRotationalMoment[0] -= equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
+        LocalRotationalMoment[1] -= equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
+        LocalRotationalMoment[2] -= equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance; //equiv_young o la G??
+        */
+        ////Judge if the rotate spring is broken or not
+        /*
+        double ForceN  = LocalElasticContactForce[2];
+        double ForceS  = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        double MomentS = sqrt(LocalRotaSpringMoment[0] * LocalRotaSpringMoment[0] + LocalRotaSpringMoment[1] * LocalRotaSpringMoment[1]);
+        double MomentN = LocalRotaSpringMoment[2];
+        //////bending stress and axial stress add together, use edge of the bar will failure first
+        double TensiMax = -ForceN / calculation_area + MomentS        / Inertia_I * equiv_radius;
+        double ShearMax =  ForceS  / calculation_area + fabs(MomentN)  / Inertia_J * equiv_radius;
+        if (TensiMax > equiv_tension || ShearMax > equiv_cohesion) {
+            mRotaSpringFailureType[i_neighbor_count] = 1;
+            LocalRotaSpringMoment[0] = LocalRotaSpringMoment[1] = LocalRotaSpringMoment[2] = 0.0;
+            //LocalRotaSpringMoment[1] = 0.0;
+            //LocalRotaSpringMoment[2] = 0.0;
+        }
+        */
+        GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
+        
+    }//ComputeParticleRotationalMoments
 
 } /* namespace Kratos.*/
