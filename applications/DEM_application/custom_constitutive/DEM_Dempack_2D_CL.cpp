@@ -14,14 +14,16 @@ namespace Kratos {
 
     void DEM_Dempack2D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
         
-        KRATOS_TRY  
+    KRATOS_TRY  
+    
     mHistoryMaxInd              = 0.0; //maximum indentation achieved
     mHistoryMaxForce            = 0.0; //maximum force achieved
     mHistoryDamage              = 0.0; //cumulated_damage
     mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
     mHistoryDisp                = 0.0; //displacement;
     mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
-        KRATOS_CATCH("")  
+    
+    KRATOS_CATCH("")  
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEM_Dempack2D::Clone() const {
@@ -44,11 +46,11 @@ namespace Kratos {
     }
 
     void DEM_Dempack2D::CalculateElasticConstants(double &kn_el,
-            double &kt_el,
-            double initial_dist,
-            double equiv_young,
-            double equiv_poisson,
-            double calculation_area) {
+            double& kt_el,
+            double  initial_dist,
+            double  equiv_young,
+            double  equiv_poisson,
+            double  calculation_area) {
         
         KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
@@ -154,7 +156,7 @@ namespace Kratos {
         double mDamageMaxDisplacementFactor;
         double mTensionLimit;
 
-        if(&element1_props == &element2_props ){
+        if (&element1_props == &element2_props ){
 
              mN1 = element1_props[SLOPE_FRACTION_N1];
              mN2 = element1_props[SLOPE_FRACTION_N2];
@@ -168,7 +170,7 @@ namespace Kratos {
              mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6; //N/m2
         }
 
-        else{
+        else {
 
             mN1 = 0.5*(element1_props[SLOPE_FRACTION_N1] + element2_props[SLOPE_FRACTION_N1] );
             mN2 = 0.5*(element1_props[SLOPE_FRACTION_N2] + element2_props[SLOPE_FRACTION_N2] );
@@ -313,21 +315,19 @@ namespace Kratos {
         double mShearEnergyCoef;
 
 
-        if(&element1_props == &element2_props ){
+        if (&element1_props == &element2_props) {
 
             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
             mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
             mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
             mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
-
         }
-        else{
+        else {
 
             mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
             mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
             mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
-
         }
 
         double degradation = 1.0; //Tangential. With degradation:
