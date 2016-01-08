@@ -35,42 +35,34 @@ class MdpaCreator(object):
     def WriteMdpa(self, model_part):
         os.chdir(self.post_mdpas)
         time = model_part.ProcessInfo.GetValue(TIME)
-        mdpa = open(str(self.DEM_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w')
-        mdpa.write('\n')
-        mdpa.write('Begin ModelPartData')
-        mdpa.write('\n')
-        mdpa.write('//  VARIABLE_NAME value')
-        mdpa.write('\n')
-        mdpa.write('End ModelPartData')
-        mdpa.write('\n')
-        mdpa.write('\n')
-        mdpa.write('\n')
-        mdpa.write('\n')
-        mdpa.write('Begin Nodes')
-        mdpa.write('\n')
+        mdpa = open(str(self.DEM_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w'+'\n')
+        mdpa.write('Begin ModelPartData'+'\n')
+        mdpa.write('//  VARIABLE_NAME value'+'\n')
+        mdpa.write('End ModelPartData'+'\n'+'\n'+'\n'+'\n')
+        mdpa.write('Begin Nodes'+'\n')
+
+        for node in model_part.Nodes:
+            mdpa.write(str(node.Id) + ' ' + str(node.X) + ' ' + str(node.Y) + ' ' + str(node.Z)+'\n')
+        mdpa.write('End Nodes'+'\n'+'\n')
         
-        for node in model_part.Nodes:
-            mdpa.write(str(node.Id).rjust(12) + ' ' + str(node.X).rjust(8) + ' ' + str(node.Y).rjust(8) + ' ' + str(node.Z).rjust(8))
-            mdpa.write('\n')
-
-        mdpa.write('End Nodes')
-        mdpa.write('\n')
-        mdpa.write('Begin Elements SphericParticle3D')
+        mdpa.write('Begin Elements SphericParticle3D'+'\n')
         for element in model_part.Elements:
-            mdpa.write(str(element.Id) + ' ' +'1'+' ' + str(element.GetNode(0).Id ))
-            mdpa.write('\n')
-
-        mdpa.write('End Elements')
-        mdpa.write('\n')
-        mdpa.write('Begin NodalData RADIUS')
-        mdpa.write('\n')
-
+            mdpa.write(str(element.Id) + ' ' +'1'+' ' + str(element.GetNode(0).Id )+'\n')
+        mdpa.write('End Elements'+'\n'+'\n')
+        
+        fixed = 0; #how to read fixed? it can be either a flag or a nodal variable property
+        self.WriteVariableData(RADIUS, mdpa, model_part)
+        #self.WriteVariableData(VELOCITY_X, mdpa, model_part)
+        #self.WriteVariableData(VELOCITY_Y, mdpa, model_part)
+        #self.WriteVariableData(VELOCITY_Z, mdpa, model_part)
+     
+        
+    def WriteVariableData(self, variable_name, mdpa, model_part):
+        
+        mdpa.write('Begin NodalData '+str(variable_name)+'\n')
         for node in model_part.Nodes:
-            mdpa.write(str(node.Id) + ' ' + str(0) + ' ' + str(node.GetSolutionStepValue(RADIUS)))
-            mdpa.write('\n')
-
-        mdpa.write('End NodalData')
-        mdpa.write('\n')
+            mdpa.write(str(node.Id) + ' ' + str(0) + ' ' + str(node.GetSolutionStepValue(variable_name))+'\n')
+        mdpa.write('End NodalData'+'\n'+'\n')
 
 
 class GranulometryUtils(object):
@@ -1202,7 +1194,7 @@ class DEMIo(object):
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
-#            self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)
+            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)
 
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
