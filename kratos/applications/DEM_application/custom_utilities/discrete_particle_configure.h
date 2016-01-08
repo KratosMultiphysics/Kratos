@@ -122,7 +122,7 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {    
-        rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
+        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
         double radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
         for(std::size_t i = 0; i < 3; i++)
@@ -134,7 +134,7 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
+        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
         
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -145,14 +145,14 @@ public:
         
     static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
     {
-        rCenter  = rObject->GetGeometry().GetPoint(0);
+        rCenter  = rObject->GetGeometry()[0];
     }
 
     //******************************************************************************************************************
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
+        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         const double& radius_1 = rObj_1->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
@@ -162,14 +162,12 @@ public:
         return intersect;
     }
 
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
-        double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
+        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);  
         
-        const double& radius_1 = Radius;
-        const double& radius_2 = rObj_2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-        double radius_sum      = radius_1 + radius_2;
+        double radius_sum      = radius_1 + rObj_2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
 
         return intersect;
@@ -182,7 +180,7 @@ public:
  
 //        double separation_from_particle_radius_ratio = 0.1;
 
-        array_1d<double, 3> center_of_particle = rObject->GetGeometry().GetPoint(0);
+        array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
  
         const double& radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
@@ -201,7 +199,7 @@ public:
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
 //        double separation_from_particle_radius_ratio = 0.1;
-        array_1d<double, 3> center_of_particle = rObject->GetGeometry().GetPoint(0);
+        array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
         bool intersect = (
@@ -216,8 +214,8 @@ public:
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
-        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry().GetPoint(0);
-        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry().GetPoint(0);
+        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry()[0];
+        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry()[0];
 
         distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
                         (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +

@@ -106,7 +106,7 @@ namespace Kratos
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareElementsForPrinting)
@@ -114,7 +114,7 @@ namespace Kratos
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  

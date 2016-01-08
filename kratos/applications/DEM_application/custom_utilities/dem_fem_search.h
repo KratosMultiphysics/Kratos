@@ -230,13 +230,13 @@ class DEM_FEM_Search : public SpatialSearch
 
         for(ConditionsContainerType::ContainerType::iterator it = it_begin; it != it_end; it++){
           GeometryType pGeometry = (*it)->GetGeometry();
-          rLowPoint  = pGeometry.GetPoint(0);
-          rHighPoint = pGeometry.GetPoint(0);
+          rLowPoint  = pGeometry[0];
+          rHighPoint = pGeometry[0];
 
           for(unsigned int point = 1; point < pGeometry.size(); point++ ) {
             for(unsigned int i = 0; i < 3; i++ ) {
-              rHighPoint[i] = ( rHighPoint[i] < pGeometry.GetPoint( point )[i] ) ? pGeometry.GetPoint( point )[i] : rHighPoint[i];
-              rLowPoint[i]  = ( rLowPoint[i]  > pGeometry.GetPoint( point )[i] ) ? pGeometry.GetPoint( point )[i] : rLowPoint[i];
+              rHighPoint[i] = ( rHighPoint[i] < pGeometry[point][i] ) ? pGeometry[point][i] : rHighPoint[i];
+              rLowPoint[i]  = ( rLowPoint[i]  > pGeometry[point][i] ) ? pGeometry[point][i] : rLowPoint[i];
             }
           }
 
@@ -327,6 +327,7 @@ class DEM_FEM_Search : public SpatialSearch
                 rResults[gResultIndex].push_back(elem);
               }
 
+              //TODO: check this insert (shouldn't it be outside?)
               rResultsDistance[gResultIndex].insert(rResultsDistance[gResultIndex].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
             }
 

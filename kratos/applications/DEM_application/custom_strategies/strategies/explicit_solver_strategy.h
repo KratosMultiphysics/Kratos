@@ -170,7 +170,6 @@ namespace Kratos
                              const double max_delta_time,
                              const int n_step_search,
                              const double safety_factor,
-                             const bool move_mesh_flag,
                              const int delta_option,
                              const double search_tolerance,
                              const double coordination_number,
@@ -179,7 +178,7 @@ namespace Kratos
                              typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
       :
-      BaseType( *(settings.r_model_part),move_mesh_flag)
+      BaseType( *(settings.r_model_part), true)
       {
 
           mDeltaOption                   = delta_option;
@@ -339,7 +338,7 @@ namespace Kratos
           
           bool found = false; 
           const int number_of_particles = (int)rCustomListOfSphericParticles.size();
-          //#pragma omp parallel for //TODO
+          #pragma omp parallel for
           for (int i=0; i<number_of_particles; i++){
                             
               int own_properties_id = rCustomListOfSphericParticles[i]->GetProperties().Id();  
@@ -1253,6 +1252,7 @@ namespace Kratos
         
         this->GetOriginalRadius().resize(number_of_elements);
 
+        //TODO: parallelize this
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
 
             this->GetOriginalRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);

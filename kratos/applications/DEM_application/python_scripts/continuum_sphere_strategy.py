@@ -41,7 +41,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.fix_velocities_flag            = 0       
 
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
-        self.MoveMeshFlag = True
         
         self.virtual_mass_option            = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
@@ -230,7 +229,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.cluster_model_part = self.cluster_model_part
                 
         self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                      self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+                                                self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
                                                 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)
 
