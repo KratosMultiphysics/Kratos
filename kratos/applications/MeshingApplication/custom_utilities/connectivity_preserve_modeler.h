@@ -96,9 +96,6 @@ public:
         //assigning Properties
         DestinationModelPart.SetProperties(OriginModelPart.pProperties());
 
-        KRATOS_WATCH(rReferenceElement);
-        KRATOS_WATCH(rReferenceBoundaryCondition);
-
         //assigning the nodes to the new model part
 
         DestinationModelPart.Nodes() = OriginModelPart.Nodes();
