@@ -59,6 +59,11 @@ namespace Python
 
 void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
 {
+    if( !KratosComponents< Element >::Has( ElementName ) )
+        KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", ElementName);
+    if( !KratosComponents< Condition >::Has( ConditionName ) )
+        KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
+
     GM.GenerateModelPart(origin_model_part, destination_model_part,
                          KratosComponents<Element>::Get(ElementName),
                          KratosComponents<Condition>::Get(ConditionName));
