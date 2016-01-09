@@ -17,7 +17,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE)
     model_part.AddNodalSolutionStepVariable(NORMAL)
-    model_part.AddNodalSolutionStepVariable(Y_WALL)
+    model_part.AddNodalSolutionStepVariable(Y_WALL) #TODO: remove, only needed for the wall law, and should be passed in Properties insteead
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE) #TODO: remove as deprecated!!
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY) #TODO: include in the model
     model_part.AddNodalSolutionStepVariable(ACCELERATION) #TODO: remove! needed because of the face
@@ -61,15 +61,15 @@ class MonolithicSolver:
 
         # default settings
         self.echo_level = 0
-        self.compute_reactions = True
-        self.ReformDofSetAtEachStep = True
-        self.CalculateNormDxFlag = True
+        self.compute_reactions = False
+        self.ReformDofSetAtEachStep = False
+        self.CalculateNormDxFlag = False
         self.MoveMeshFlag = False
         self.use_slip_conditions = False
 
         self.divergence_clearance_steps = 0
         
-        self.bdf_process =ComputeBDFCoefficientsProcess(model_part,2)
+        self.bdf_process = ComputeBDFCoefficientsProcess(model_part,2)
 
         print("Construction monolithic solver finished")
 
@@ -99,6 +99,7 @@ class MonolithicSolver:
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
+        #self.conv_criteria.SetEchoLevel(self.echo_level)
             
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme() 
         

@@ -65,7 +65,7 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
-    
+
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
 
     Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
@@ -77,7 +77,7 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     const double mu          = MaterialProperties[DYNAMIC_VISCOSITY];
     const double trS = S[0]+S[1]+S[2];
     const double eps_vol = trS/3.0;
-    
+
     //computation of stress
     StressVector[0] = 2.0*mu*(S[0] - eps_vol);
     StressVector[1] = 2.0*mu*(S[1] - eps_vol);

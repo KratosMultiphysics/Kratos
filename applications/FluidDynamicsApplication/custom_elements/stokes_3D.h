@@ -1,24 +1,14 @@
-// Kratos Multi-Physics
-// 
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 
 
@@ -64,6 +54,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**this element is a 3D stokes element, stabilized by employing an ASGS stabilization
+* formulation is described in the file: 
+*    https://drive.google.com/file/d/0B_gRLnSH5vCwZ2Zxd09YUmlPZ28/view?usp=sharing
+* symbolic implementation is defined in the file: 
+*    https://drive.google.com/file/d/0B_gRLnSH5vCwaXRKRUpDbmx4VXM/view?usp=sharing
+*/
 class Stokes3D
     : public Element
 {
@@ -431,9 +427,8 @@ public:
                 }
             }
             
-            if (data.stress.size() != strain_size)
-            data.stress.resize(strain_size,false);
-        
+            if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
+            
             const bounded_matrix<double,NumNodes,Dim>& v = data.v;
             const bounded_matrix<double,NumNodes,Dim>& DN = data.DN_DX;
              
@@ -454,14 +449,18 @@ public:
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
             
+            //this is to pass the shape functions. Unfortunately it is needed to make a copy to a flexible size vector
+            const Vector Nvec(data.N);
+            Values.SetShapeFunctionsValues(Nvec);
+        
             Values.SetStrainVector(strain); //this is the input parameter
             Values.SetStressVector(data.stress); //this is an ouput parameter
-            Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
-            
+//             Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
+         
             //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element. 
             //this is ok under the hypothesis that no history dependent behaviour is employed
             mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
-            
+     
             Output = inner_prod(data.stress, strain);
         }
         
@@ -609,7 +608,9 @@ protected:
         
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
+        
+        const Vector Nvec(data.N);
+        Values.SetShapeFunctionsValues(Nvec);
         //set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -618,7 +619,7 @@ protected:
         Values.SetStrainVector(strain); //this is the input parameter
         Values.SetStressVector(data.stress); //this is an ouput parameter
         Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
-        
+
         //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element. 
         //this is ok under the hypothesis that no history dependent behaviour is employed
         mp_constitutive_law->CalculateMaterialResponseCauchy(Values);

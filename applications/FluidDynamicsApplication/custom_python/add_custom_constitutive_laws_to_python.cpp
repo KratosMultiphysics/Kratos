@@ -35,6 +35,7 @@
 
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/herschel_bulkey_3d_law.h"
 
 namespace Kratos
 {
@@ -51,7 +52,9 @@ void  AddCustomConstitutiveLawsToPython()
     class_< Bingham3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Bingham3DLaw",init<>() );
      
     class_< Newtonian3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian3DLaw",  init<>() );
-    
+  
+    class_< HerschelBulkey3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkey3DLaw",  init<>() );
+
 }
 
 }  // namespace Python.
