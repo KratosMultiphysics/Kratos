@@ -1,22 +1,22 @@
 // Kratos Multi-Physics
-// 
+//
 // Copyright (c) 2016, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
+//
 // 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
+// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
 // 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
+// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
 // 			This product includes Kratos Multi-Physics technology.
 // 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // This define must be HERE
@@ -86,7 +86,7 @@ namespace Kratos
 
   //ints
 
-  //for General kratos application: 
+  //for General kratos application:
   KRATOS_CREATE_VARIABLE( int, LOAD_RESTART )
   KRATOS_CREATE_VARIABLE( int, TIME_STEPS )
   KRATOS_CREATE_VARIABLE( int, RIGID_BODY_ID )
@@ -102,7 +102,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( int, STATIONARY )
   KRATOS_CREATE_VARIABLE( int, ACTIVATION_LEVEL )
 
-  
+
 
   //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( int, SCALE )
@@ -112,7 +112,7 @@ namespace Kratos
 
   //doubles
 
-  //for General kratos application: 
+  //for General kratos application:
   KRATOS_CREATE_VARIABLE( double, TIME )
   KRATOS_CREATE_VARIABLE( double, START_TIME )
   KRATOS_CREATE_VARIABLE( double, END_TIME )
@@ -192,28 +192,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, NORMAL_SENSITIVITY )
 
   //for Electric application
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_DT )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_DT2 )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_NULL )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_EINS )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_NULL_DT )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_EINS_DT )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_NULL_DT2 )
-  KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_EINS_DT2 )
-  KRATOS_CREATE_VARIABLE( double, LAGRANGE_ELECTRIC_POTENTIAL )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_DT )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_DT2 )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_NULL )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_EINS )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_NULL_DT )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_EINS_DT )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_NULL_DT2 )
-  KRATOS_CREATE_VARIABLE( double, CONCENTRATION_EINS_DT2 )
-  KRATOS_CREATE_VARIABLE( double, LAGRANGE_CONCENTRATION )
 
-  //for PFEM fluids application: 
+
+  //for PFEM fluids application:
   KRATOS_CREATE_VARIABLE( double, NODAL_AREA )
 
   KRATOS_CREATE_VARIABLE( double, BULK_MODULUS )
@@ -244,8 +225,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, AUX_INDEX )
   KRATOS_CREATE_VARIABLE( double, EXTERNAL_PRESSURE )
   KRATOS_CREATE_VARIABLE( double, VELOCITY_PERIOD )
-  KRATOS_CREATE_VARIABLE( double, ANGULAR_VELOCITY_PERIOD )        
-  KRATOS_CREATE_VARIABLE( std::string, IDENTIFIER)   
+  KRATOS_CREATE_VARIABLE( double, ANGULAR_VELOCITY_PERIOD )
+  KRATOS_CREATE_VARIABLE( std::string, IDENTIFIER)
 
   //for Other applications:
   KRATOS_CREATE_VARIABLE( double, ARRHENIUS )
@@ -288,7 +269,7 @@ namespace Kratos
 
   KRATOS_CREATE_VARIABLE( double, SWITCH_TEMPERATURE )
   KRATOS_CREATE_VARIABLE( double, NODAL_SWITCH )
-      
+
   //for Xfem application:
   KRATOS_CREATE_VARIABLE( double, CRACK_OPENING )
   KRATOS_CREATE_VARIABLE( double, CRACK_TRANSLATION )
@@ -297,7 +278,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, MIN_DT )
   KRATOS_CREATE_VARIABLE( double, MAX_DT )
   KRATOS_CREATE_VARIABLE( double, VEL_ART_VISC )
-  KRATOS_CREATE_VARIABLE( double, PR_ART_VISC ) 
+  KRATOS_CREATE_VARIABLE( double, PR_ART_VISC )
 
   //for Vulcan application
   KRATOS_CREATE_VARIABLE( double, LATENT_HEAT )
@@ -306,7 +287,7 @@ namespace Kratos
 
   //vectors
 
-  //for General kratos application: 
+  //for General kratos application:
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ROTATION )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DELTA_ROTATION )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TORQUE )
@@ -329,7 +310,7 @@ namespace Kratos
 
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTERNAL_FORCE )
-  
+
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
 
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LINEAR_MOMENTUM )
@@ -344,7 +325,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Vector, LOAD_LABELS )
   KRATOS_CREATE_VARIABLE( Vector, LOAD_MESHES )
 
-  //for Structural application: 
+  //for Structural application:
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MOMENTUM )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LAGRANGE_DISPLACEMENT )
 
@@ -394,7 +375,7 @@ namespace Kratos
 
   //matrices
 
-  //for General kratos application: 
+  //for General kratos application:
   KRATOS_CREATE_VARIABLE( Matrix, GREEN_LAGRANGE_STRAIN_TENSOR )
   KRATOS_CREATE_VARIABLE( Matrix, PK2_STRESS_TENSOR )
   KRATOS_CREATE_VARIABLE( Matrix, CAUCHY_STRESS_TENSOR )
@@ -404,10 +385,10 @@ namespace Kratos
   //for Structural application
   KRATOS_CREATE_VARIABLE( Matrix, INERTIA )
 
-  //for General kratos application: 
+  //for General kratos application:
   KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW )
   //NEIGHBOUR_NODES defined in node.h
-  KRATOS_CREATE_VARIABLE( WeakPointerVector<Node<3> >, NEIGHBOUR_NODES )     
+  KRATOS_CREATE_VARIABLE( WeakPointerVector<Node<3> >, NEIGHBOUR_NODES )
   //FATHER_NODES defined in node.h
   KRATOS_CREATE_VARIABLE( WeakPointerVector<Node<3> >, FATHER_NODES )
   //NEIGHBOR_ELEMENTS defined in element.h
@@ -441,15 +422,15 @@ namespace Kratos
 //   /*const*/
 //   Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
 //   VELOCITIES_X( "X-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 0 ) );
-// 
+//
 //   /*const*/
 //   Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
 //   VELOCITIES_Y( "Y-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 1 ) );
-// 
+//
 //   /*const*/
 //   Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
 //   VELOCITIES_Z( "Z-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 2 ) );
-// 
+//
 //   // for Vulcan application virtual mould properties
 //   KRATOS_CREATE_VARIABLE(double,  MOULD_DENSITY)
 //   KRATOS_CREATE_VARIABLE(double,  MOULD_SPECIFIC_HEAT)
@@ -484,8 +465,8 @@ namespace Kratos
 //   Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS (in)" );
 //   Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES (F)" );
 //   KRATOS_CREATE_VARIABLE(double,FRONT_MEETING)
-//   KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE ) 
-  
+//   KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE )
+
 
   //------------------------------------------------------------------------------//
   //------------------------------------------------------------------------------//
@@ -515,7 +496,7 @@ namespace Kratos
 
   void KratosApplication::RegisterVariables()
   {
-      
+
       KratosApplication::RegisterDeprecatedVariables();
       KratosApplication::RegisterC2CVariables(); //TODO: move to application
       KratosApplication::RegisterCFDVariables(); //TODO: move to application
@@ -562,7 +543,7 @@ namespace Kratos
       //movement
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT )
       //reaction
-      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( REACTION )   
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( REACTION )
       //movement time derivatives
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITY )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ACCELERATION )
@@ -573,7 +554,7 @@ namespace Kratos
 
       //PRESSURE DOFS
       KRATOS_REGISTER_VARIABLE( PRESSURE )
-  
+
       //EXTERNAL CONDITIONS
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VOLUME_ACCELERATION )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FORCE )
@@ -605,9 +586,9 @@ namespace Kratos
 
       KRATOS_REGISTER_VARIABLE( FACE_HEAT_FLUX )
 
-  
+
       //CONSTITUTIVE LAW AND PROPERTIES
-      KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW )    
+      KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW )
       KRATOS_REGISTER_VARIABLE( DENSITY )
       KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS )
       KRATOS_REGISTER_VARIABLE( POISSON_RATIO )
@@ -659,7 +640,7 @@ namespace Kratos
 
       KRATOS_REGISTER_VARIABLE( PARTITION_INDEX )
       KRATOS_REGISTER_VARIABLE( TEMPERATURE_OLD_IT )
-      KRATOS_REGISTER_VARIABLE( VISCOSITY )  
+      KRATOS_REGISTER_VARIABLE( VISCOSITY )
       KRATOS_REGISTER_VARIABLE( ERROR_RATIO )
       KRATOS_REGISTER_VARIABLE( RHS_WATER )
       KRATOS_REGISTER_VARIABLE( RHS_AIR )
@@ -690,7 +671,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( ELEMENTAL_DISTANCES )
       KRATOS_REGISTER_VARIABLE( MATERIAL_PARAMETERS )
       KRATOS_REGISTER_VARIABLE( INTERNAL_VARIABLES )
-      KRATOS_REGISTER_VARIABLE( INSITU_STRESS )  
+      KRATOS_REGISTER_VARIABLE( INSITU_STRESS )
 
       KRATOS_REGISTER_VARIABLE( PENALTY )
       KRATOS_REGISTER_VARIABLE( NORMAL_STRESS )
@@ -700,7 +681,7 @@ namespace Kratos
 
       KRATOS_REGISTER_VARIABLE( NEIGHBOURS_INDICES )
 
-      KRATOS_REGISTER_VARIABLE( INERTIA ) 
+      KRATOS_REGISTER_VARIABLE( INERTIA )
 
       KRATOS_REGISTER_VARIABLE( NEIGHBOUR_EMBEDDED_FACES )
       KRATOS_REGISTER_VARIABLE( CONVECTION_DIFFUSION_SETTINGS )
@@ -709,13 +690,10 @@ namespace Kratos
       //--------------- STRUCTURAL Application -------------------//
 
       //--------------- MULTISCALE Application -------------------//
-    
+
       KRATOS_REGISTER_VARIABLE( INITIAL_STRAIN )
       KRATOS_REGISTER_VARIABLE( COEFFICIENT_THERMAL_EXPANSION )
       KRATOS_REGISTER_VARIABLE( CHARACTERISTIC_LENGTH_MULTIPLIER )
-      
-      //--------------- Incompressible Fluid Application ---------//
-
 
       //--------------- Incompressible Fluid Application ---------//
 
@@ -726,7 +704,7 @@ namespace Kratos
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ELEMENTSHAPE )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY )
       KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
-      
+
 
       //--------------- ALE Application -------------------//
 
@@ -737,31 +715,9 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( PRIMAL_PRESSURE )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY )
       KRATOS_REGISTER_VARIABLE( NORMAL_SENSITIVITY )
-          
+
       //--------------- Adjoint Fluid Application -------------------//
 
-      //--------------- FOTOELECTRIC Application -------------------//
-
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_DT )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_DT2 )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_NULL )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_EINS )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_NULL_DT )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_EINS_DT )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_NULL_DT2 )
-      KRATOS_REGISTER_VARIABLE( ELECTRIC_POTENTIAL_EINS_DT2 )
-      KRATOS_REGISTER_VARIABLE( LAGRANGE_ELECTRIC_POTENTIAL )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_DT )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_DT2 )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_NULL )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_EINS )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_NULL_DT )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_EINS_DT )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_NULL_DT2 )
-      KRATOS_REGISTER_VARIABLE( CONCENTRATION_EINS_DT2 )
-      KRATOS_REGISTER_VARIABLE( LAGRANGE_CONCENTRATION )
 
       //--------------- FOTOELECTRIC Application -------------------//
 
@@ -769,7 +725,7 @@ namespace Kratos
       //--------------- PFEM fluids Application -------------------//
 
       KRATOS_REGISTER_VARIABLE( NODAL_AREA )
- 
+
       KRATOS_REGISTER_VARIABLE( BULK_MODULUS )
       KRATOS_REGISTER_VARIABLE( SATURATION )
       KRATOS_REGISTER_VARIABLE( DENSITY_WATER )
@@ -792,7 +748,7 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( CONVECTION_COEFFICIENT )
 
       KRATOS_REGISTER_VARIABLE( SCALE )
-      KRATOS_REGISTER_VARIABLE( IS_JACK_LINK ) 
+      KRATOS_REGISTER_VARIABLE( IS_JACK_LINK )
       KRATOS_REGISTER_VARIABLE( IMPOSED_PRESSURE )
 
       KRATOS_REGISTER_VARIABLE( SOUND_VELOCITY )
@@ -803,9 +759,9 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( AUX_INDEX )
       KRATOS_REGISTER_VARIABLE( EXTERNAL_PRESSURE )
       KRATOS_REGISTER_VARIABLE( BDF_COEFFICIENTS )
-      KRATOS_REGISTER_VARIABLE( VELOCITY_PERIOD )      
+      KRATOS_REGISTER_VARIABLE( VELOCITY_PERIOD )
       KRATOS_REGISTER_VARIABLE( ANGULAR_VELOCITY_PERIOD )
-      KRATOS_REGISTER_VARIABLE( IDENTIFIER )        
+      KRATOS_REGISTER_VARIABLE( IDENTIFIER )
 
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( GRAVITY )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_TO_WALL )
@@ -813,7 +769,7 @@ namespace Kratos
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DRAG_FORCE )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EMBEDDED_VELOCITY )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FRACT_VEL )
-      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_CENTER )      
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_CENTER )
 
       //--------------- PFEM fluids Application -------------------//
 
@@ -877,7 +833,7 @@ namespace Kratos
 
 
       //--------------- XFEM Set Application -------------------//
- 
+
       KRATOS_REGISTER_VARIABLE( CRACK_OPENING )
       KRATOS_REGISTER_VARIABLE( CRACK_TRANSLATION )
 
@@ -896,9 +852,9 @@ namespace Kratos
       //--------------- Level Set Application -------------------//
 
 
-      
+
       KRATOS_REGISTER_VARIABLE( PERIODIC_VARIABLES )
-                                       
+
 
       //--------------- Vulcan Application -------------------//
       KRATOS_REGISTER_VARIABLE( LATENT_HEAT )
@@ -909,7 +865,7 @@ namespace Kratos
        KRATOS_REGISTER_VARIABLE( AMBIENT_TEMPERATURE )
 //       KRATOS_REGISTER_VARIABLE( COUNTER )
 //       KRATOS_REGISTER_VARIABLE( DISTANCE_CORRECTION )
-//       KRATOS_REGISTER_VARIABLE( COMPUTED_DISTANCE ) 
+//       KRATOS_REGISTER_VARIABLE( COMPUTED_DISTANCE )
 //       KRATOS_REGISTER_VARIABLE( MATERIAL )
 
       KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURES )
@@ -939,9 +895,9 @@ namespace Kratos
 //       KRATOS_REGISTER_VARIABLE(REF_ID)
 //       KRATOS_REGISTER_VARIABLE(PARTICLE_RADIUS)
 //       KRATOS_REGISTER_VARIABLE(POSETIVE_DISTANCE)
-//       KRATOS_REGISTER_VARIABLE(NAGATIVE_DISTANCE)    
-//       KRATOS_REGISTER_VARIABLE(IS_ESCAPED)  
-//       KRATOS_REGISTER_VARIABLE(IS_SOLIDIFIED) 
+//       KRATOS_REGISTER_VARIABLE(NAGATIVE_DISTANCE)
+//       KRATOS_REGISTER_VARIABLE(IS_ESCAPED)
+//       KRATOS_REGISTER_VARIABLE(IS_SOLIDIFIED)
 //       KRATOS_REGISTER_VARIABLE(SOLIDFRACTION)
 //       KRATOS_REGISTER_VARIABLE(SOLIDIF_TIME)
 //       KRATOS_REGISTER_VARIABLE(SOLIDIF_MODULUS)
@@ -950,28 +906,28 @@ namespace Kratos
 //       KRATOS_REGISTER_VARIABLE(FILLTIME)
 //       KRATOS_REGISTER_VARIABLE(MAX_VEL)
 //       KRATOS_REGISTER_VARIABLE(IS_GRAVITY_FILLING)
-//       KRATOS_REGISTER_VARIABLE(VOLUME_FRACTION ) 
-//       KRATOS_REGISTER_VARIABLE(KAPPA ) 
-//       KRATOS_REGISTER_VARIABLE(EPSILON )    
+//       KRATOS_REGISTER_VARIABLE(VOLUME_FRACTION )
+//       KRATOS_REGISTER_VARIABLE(KAPPA )
+//       KRATOS_REGISTER_VARIABLE(EPSILON )
 //       KRATOS_REGISTER_VARIABLE(SHRINKAGE_POROSITY_US)
 //       KRATOS_REGISTER_VARIABLE(SOLIDIF_MODULUS_US)
 //       KRATOS_REGISTER_VARIABLE(TEMPERATURES_US)
 //       KRATOS_REGISTER_VARIABLE(FRONT_MEETING)
 //     KRATOS_REGISTER_VARIABLE(  MOULD_AVERAGE_TEMPERATURE )
-  
+
 
       //Register objects with general definition
       Serializer::Register( "Node", Node<3>() );
       Serializer::Register( "Dof", Dof<double>() );
       Serializer::Register( "Element", Element() );
-      Serializer::Register( "Condition", Condition() );  
+      Serializer::Register( "Condition", Condition() );
       Serializer::Register( "Properties", Properties() );
       Serializer::Register( "GeometricalObject", GeometricalObject() );
 
       //Register objects with specific definition ( non essential, must be deleted in future )
       Serializer::Register( "Node3D", Node<3>() );
       Serializer::Register( "DofDouble", Dof<double>() );
-      
+
       //Register specific conditions ( must be completed : conditions defined in kratos_appliction.h)
       KRATOS_REGISTER_CONDITION( "Condition3D", mCondition3D )
       KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D )
@@ -984,7 +940,7 @@ namespace Kratos
       KRATOS_REGISTER_ELEMENT( "Element2D3N", mElement2D3N )
 
       //Register general geometries:
-      
+
       //Points:
       Serializer::Register( "Point", Point<3>() );
 
@@ -993,7 +949,7 @@ namespace Kratos
 
       Point3D<Node<3> > Point3DPrototype( Element::GeometryType::PointsArrayType( 1, Node<3>() ) );
       Serializer::Register( "Point3D", Point3DPrototype );
-      
+
       //Sphere
       Sphere3D1<Node<3> > Sphere3D1Prototype( Element::GeometryType::PointsArrayType( 1, Node<3>() ) );
       Serializer::Register( "Sphere3D1", Sphere3D1Prototype );
@@ -1001,7 +957,7 @@ namespace Kratos
       //Lines:
       Line2D<Node<3> > Line2DPrototype( Element::GeometryType::PointsArrayType( 2, Node<3>() ) );
       Serializer::Register( "Line2D", Line2DPrototype );
-      
+
       Line2D2<Node<3> > Line2D2Prototype( Element::GeometryType::PointsArrayType( 2, Node<3>() ) );
       Serializer::Register( "Line2D2", Line2D2Prototype );
 
@@ -1044,7 +1000,7 @@ namespace Kratos
 
       Quadrilateral3D8<Node<3> > Quadrilateral3D8Prototype( Element::GeometryType::PointsArrayType( 8, Node<3>() ) );
       Serializer::Register( "Quadrilateral3D8", Quadrilateral3D8Prototype );
-    
+
       Quadrilateral3D9<Node<3> > Quadrilateral3D9Prototype( Element::GeometryType::PointsArrayType( 9, Node<3>() ) );
       Serializer::Register( "Quadrilateral3D9", Quadrilateral3D9Prototype );
 
@@ -1075,7 +1031,7 @@ namespace Kratos
       Hexahedra3D27<Node<3> > Hexahedra3D27Prototype( Element::GeometryType::PointsArrayType( 27, Node<3>() ) );
       Serializer::Register( "Hexahedra3D27", Hexahedra3D27Prototype );
 
-    
+
 
       // Register flags:
       KRATOS_REGISTER_FLAG(STRUCTURE);
@@ -1116,5 +1072,3 @@ namespace Kratos
 
 // This define must be HERE
 #undef DKRATOS_EXPORT_INTERFACE_2
-
-
