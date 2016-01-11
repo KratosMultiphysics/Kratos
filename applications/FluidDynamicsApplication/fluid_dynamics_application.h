@@ -59,6 +59,7 @@
 #include "custom_conditions/fs_generalized_wall_condition.h"
 #include "custom_conditions/wall_condition_discontinuous.h"
 #include "custom_conditions/monolithic_wall_condition.h"
+#include "custom_conditions/stokes_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
 
@@ -269,6 +270,8 @@ private:
     const  MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
     const  MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
+    /// stokes condition(monolithic version)
+    const  StokesWallCondition<3,3> mStokesWallCondition3D;
 
     /// Periodic Condition 
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
