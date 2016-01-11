@@ -108,6 +108,14 @@ public:
     void CalculateMaterialResponseKirchhoff (Parameters & rValues);
 
     /**
+     * Computes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues);
+
+    /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
