@@ -1,36 +1,35 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+import KratosMultiphysics as kratoscore
+import KratosMultiphysics.IncompressibleFluidApplication as incompressibleapp
+import KratosMultiphysics.FluidDynamicsApplication as cfd
 # Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+kratoscore.CheckForPreviousImport()
 
 
 def AddVariables(model_part, settings=None):
-    model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(DENSITY)
-    model_part.AddNodalSolutionStepVariable(BODY_FORCE)
-    model_part.AddNodalSolutionStepVariable(REACTION)
-    model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(NORMAL)
-    model_part.AddNodalSolutionStepVariable(Y_WALL) #TODO: remove, only needed for the wall law, and should be passed in Properties insteead
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE) #TODO: remove as deprecated!!
-    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY) #TODO: include in the model
-    model_part.AddNodalSolutionStepVariable(ACCELERATION) #TODO: remove! needed because of the face
+    model_part.AddNodalSolutionStepVariable(kratoscore.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(kratoscore.PRESSURE)
+    model_part.AddNodalSolutionStepVariable(kratoscore.VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(kratoscore.DENSITY)
+    model_part.AddNodalSolutionStepVariable(kratoscore.BODY_FORCE)
+    #model_part.AddNodalSolutionStepVariable(kratoscore.REACTION) #in case this variable could be removed if no reactions must be computed
+    #model_part.AddNodalSolutionStepVariable(kratoscore.REACTION_WATER_PRESSURE) #in case this variable could be removed if no reactions must be computed
+    model_part.AddNodalSolutionStepVariable(kratoscore.EXTERNAL_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(kratoscore.NORMAL) #TODO: this variable is not strictly needed by the solver - may be needed by other utilities
+    model_part.AddNodalSolutionStepVariable(kratoscore.IS_STRUCTURE) #TODO: remove as deprecated!!
+    model_part.AddNodalSolutionStepVariable(kratoscore.MESH_VELOCITY) #TODO: remove. needed because of the Condition used
+    model_part.AddNodalSolutionStepVariable(kratoscore.ACCELERATION) #TODO: remove! needed because of the Condition used
     print("variables for the  monolithic solver symbolic added correctly")
 
 
 def AddDofs(model_part, settings=None):
     for node in model_part.Nodes:
         # adding dofs
-        node.AddDof(VELOCITY_X, REACTION_X)
-        node.AddDof(VELOCITY_Y, REACTION_Y)
-        node.AddDof(VELOCITY_Z, REACTION_Z)
-        node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
+        node.AddDof(kratoscore.VELOCITY_X, kratoscore.REACTION_X)
+        node.AddDof(kratoscore.VELOCITY_Y, kratoscore.REACTION_Y)
+        node.AddDof(kratoscore.VELOCITY_Z, kratoscore.REACTION_Z)
+        node.AddDof(kratoscore.PRESSURE, kratoscore.REACTION_WATER_PRESSURE)
 
 
     print("dofs for the vms monolithic solver added correctly")
@@ -60,23 +59,23 @@ class StokesSolver:
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
         
-        self.bdf_process = ComputeBDFCoefficientsProcess(model_part,2)
+        self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(model_part,2)
         
-        self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
+        self.conv_criteria = incompressibleapp.VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
             
-        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme() 
+        self.time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme() 
         
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        builder_and_solver = kratoscore.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         
         move_mesh_flag = False #user should NOT configure this
-        self.fluid_solver = ResidualBasedNewtonRaphsonStrategy(
+        self.fluid_solver = kratoscore.ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
             builder_and_solver, self.max_iter, self.compute_reactions, self.reform_dofs_at_each_step, move_mesh_flag)
         (self.fluid_solver).SetEchoLevel(self.echo_level)
         self.fluid_solver.Check()
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
+        self.model_part.ProcessInfo.SetValue(kratoscore.DYNAMIC_TAU, self.dynamic_tau)
 
         print("Construction stokes solver finished")
 
