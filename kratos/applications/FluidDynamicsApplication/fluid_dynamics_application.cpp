@@ -52,6 +52,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mWallConditionDiscontinuous3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mMonolithicWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mMonolithicWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mStokesWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mFSPeriodicCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mFSPeriodicCondition3D(0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mFSPeriodicConditionEdge2D(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
@@ -142,6 +143,7 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D",mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D",mMonolithicWallCondition2D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D",mMonolithicWallCondition3D);
+    KRATOS_REGISTER_CONDITION("StokesWallCondition3D",mStokesWallCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D",mFSPeriodicCondition2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D",mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D",mFSPeriodicConditionEdge2D);
