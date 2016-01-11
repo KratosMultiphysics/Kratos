@@ -650,11 +650,19 @@ public:
     }
 
     /**
-    function to clean up "elemental" scratch space after each element is built.
+    function to clean up "element" scratch space after each element is built.
      */
     virtual void CleanMemory(Element::Pointer rCurrentElement)
     {
         rCurrentElement->CleanMemory();
+    }
+
+    /**
+    function to clean up "condition" scratch space after each condition is built.
+     */
+    virtual void CleanMemory(Condition::Pointer rCurrentCondition)
+    {
+        rCurrentCondition->CleanMemory();
     }
 
     /**
