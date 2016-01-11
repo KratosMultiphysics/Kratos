@@ -15,6 +15,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "solid_mechanics_application.h"
 
@@ -391,10 +392,6 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
     }
     
-
-    
-    
-
     //std::cout<<" Strain "<<StrainVector<<std::endl;
     //std::cout<<" Stress "<<StressVector<<std::endl;
     //Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
@@ -402,7 +399,134 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
 }
 
+//************************************************************************************
+//************************************************************************************
 
+void  LinearElastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    //a.-Check if the constitutive parameters are passed correctly to the law calculation
+    //CheckParameters(rValues);
+
+    //b.- Get Values to compute the constitutive law:
+    Flags &Options=rValues.GetOptions();
+
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+
+    Vector& StrainVector                  = rValues.GetStrainVector();
+    Vector& StressVector                  = rValues.GetStressVector();
+
+    //-----------------------------//
+
+    //1.- Lame constants
+    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
+
+    // //1.1- Thermal constants
+    // double ThermalExpansionCoefficient = 0;
+    // if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+    //   ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+
+    // double ReferenceTemperature = 0;
+    // if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+    //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+
+
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) // Large strains
+    {
+        //1.-Compute total deformation gradient
+        const Matrix& DeformationGradientF      = rValues.GetDeformationGradientF();
+
+        //2.-Left Cauchy-Green tensor b
+        Matrix LeftCauchyGreenMatrix = prod(DeformationGradientF,trans(DeformationGradientF));
+
+        //3.-Almansi Strain:
+
+        //e= 0.5*(1-invFT*invF)
+        this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
+
+        //LARGE STRAINS OBJECTIVE MESURE KIRCHHOFF MATERIAL:
+
+        // Kirchhoff model is set with S = CE
+        this->CalculateMaterialResponsePK2 (rValues);
+
+        //1.- Obtain parameters
+        const double& DeterminantF         = rValues.GetDeterminantF();
+
+        //2.-Almansi Strain:
+        // if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+        //   {
+        //     TransformStrains (StrainVector, DeformationGradientF, StrainMeasure_GreenLagrange, StrainMeasure_Almansi);
+        //   }
+
+        //3.-Calculate Total Cauchy stress
+        if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+        {
+            TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_PK2, StressMeasure_Cauchy);
+        }
+
+        // COMMENTED BECAUSE THE CONVERGENCE IS NOT IMPROVED AND IS TIME CONSUMING:
+        //4.-Calculate Cauchy constitutive tensor
+        // if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+        //   {
+        //     Matrix& ConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
+        //     PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeformationGradientF);
+        //   }
+
+
+        if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+        {
+          mStrainEnergy *= DeterminantF;
+        }
+
+    }
+    else // Small strains
+    {
+
+      // 7.-Calculate total Kirchhoff stress
+
+      if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+      {
+          if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+          {
+              Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+              this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+              this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+          }
+          else
+          {
+              Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+              this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+              this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+          }
+
+      }
+      else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+      {
+          Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+          this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+      }
+
+      if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+      {
+          if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) )
+          {
+              if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
+              {
+                  Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+                  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+                  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+              }
+              else
+              {
+                  Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+                  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+              }
+          }
+
+          mStrainEnergy = 0.5 * inner_prod(StrainVector,StressVector); //Belytschko Nonlinear Finite Elements pag 226 (5.4.3) : w = 0.5*E:C:E
+      }
+    }
+}
 
 //***********************COMPUTE TOTAL STRESS PK2*************************************
 //************************************************************************************
