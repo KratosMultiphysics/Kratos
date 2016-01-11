@@ -184,7 +184,7 @@ public:
                             nodes_id[1] = (it)->GetGeometry() [2].Id();
                             nodes_id[2] = (it)->GetGeometry() [1].Id();
                         }
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
                         if ( it->Has ( IS_INACTIVE ) )
                         {
                             if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
@@ -284,7 +284,7 @@ public:
                             nodes_id[18] = (it)->GetGeometry() [14].Id();
                             nodes_id[19] = (it)->GetGeometry() [15].Id();
                         }
-                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                        nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
                         
                         if ( it->Has ( IS_INACTIVE ) )
                         {
