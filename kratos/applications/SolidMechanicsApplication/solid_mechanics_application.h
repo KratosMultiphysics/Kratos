@@ -7,7 +7,7 @@
                          \__ \  (   | |   | | , )          
                          ____/ \___/ ___|_| ___/ MECHANICS 
 			   
-     License:		      SolidMechanicsApplication/license.txt
+     License:		  SolidMechanicsApplication/license.txt
      Main authors:        Josep Maria Carbonell i Puigbo
                           ..                                        */
 //--------------------------------------------------------------------
