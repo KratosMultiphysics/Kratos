@@ -353,7 +353,7 @@ public:
      * if the condition needs to perform any operation before any calculation is done
      * reset material and constitutive parameters
      * or clean memory deleting obsolete variables
-     * this methods are: OPTIONAL
+     * these methods are: OPTIONAL
      */
 
     /**
@@ -386,7 +386,7 @@ public:
      * InitializeNonLinearIteration, FinalizeNonLinearIteration
      * if the condition needs to perform any operation before and after the solution step
      * if the condition needs to perform any operation before and after the solution iteration
-     * this methods are: OPTIONAL
+     * these methods are: OPTIONAL
      */
 
     /**
@@ -700,6 +700,10 @@ public:
          KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
 
+    virtual void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, Variable<Matrix>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
+         KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rLHS to the desired variable. destination variable is ",rDestinationVariable)
+    }
     /**
      * Calculate a Condition variable usually associated to a integration point
      * the Output is given on integration points and characterizes the condition
