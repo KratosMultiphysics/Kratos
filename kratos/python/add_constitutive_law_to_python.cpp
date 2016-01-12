@@ -68,6 +68,9 @@ template<class TDataType> void ConstitutiveLawSetValue(ConstitutiveLaw& this_con
 void NewInterfaceCalculateMaterialResponse(ConstitutiveLaw& this_constitutive_law, ConstitutiveLaw::Parameters& rValues,const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {this_constitutive_law.CalculateMaterialResponse (rValues,rStressMeasure);}
 
+
+double GetDeterminantF1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetDeterminantF();}
+
 Vector& GetStrainVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStrainVector();}
 Vector& GetStrainVector2(ConstitutiveLaw::Parameters& this_params, Vector& strain){ return this_params.GetStrainVector(strain);}
 Vector& GetStressVector1(ConstitutiveLaw::Parameters& this_params){ return this_params.GetStressVector();}
@@ -120,7 +123,7 @@ void  AddConstitutiveLawToPython()
         .def("SetMaterialProperties",&ConstitutiveLaw::Parameters::SetMaterialProperties)
         .def("SetElementGeometry",&ConstitutiveLaw::Parameters::SetElementGeometry)
         .def("SetDeformationGradientF",&ConstitutiveLaw::Parameters::SetDeformationGradientF)
-//         .def("GetDeterminantF" , &ConstitutiveLaw::Parameters::GetDeterminantF)
+        .def("GetDeterminantF",GetDeterminantF1)
 //         .def("GetShapeFunctionsValues",&ConstitutiveLaw::Parameters::GetShapeFunctionsValues)
 //         .def("GetShapeFunctionsDerivatives",&ConstitutiveLaw::Parameters::GetShapeFunctionsDerivatives)
         .def("GetDeformationGradientF",&GetDeformationGradientF1, return_internal_reference<>())
