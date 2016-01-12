@@ -130,7 +130,7 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
     typedef Dof<double> TDofType;
-    typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+    typedef PointerVectorSet<TDofType, SetIdentityFunction<TDofType> > DofsArrayType;
     /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
 
     /** Counted pointer of ConvergenceCriteria */
