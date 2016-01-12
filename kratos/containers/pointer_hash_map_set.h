@@ -103,7 +103,7 @@ private:
 	{
 		ptr_iterator map_iterator;
 	public:
-		iterator_adaptor(ptr_iterator& it) :map_iterator(it) {}
+		iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
 		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		iterator_adaptor& operator++() { map_iterator++; return *this; }
 		iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
@@ -119,7 +119,7 @@ private:
 	{
 		ptr_const_iterator map_iterator;
 	public:
-		const_iterator_adaptor(ptr_const_iterator& it) :map_iterator(it) {}
+		const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
 		const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
 		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
@@ -151,7 +151,6 @@ public:
     template <class TInputIteratorType>
 
     PointerHashMapSet(TInputIteratorType First, TInputIteratorType Last, size_type NewMaxBufferSize = 1)
-        : mMaxBufferSize(NewMaxBufferSize)
     {
         for(; First != Last; ++First)
             insert(begin(), *First);
@@ -288,8 +287,8 @@ public:
     iterator insert(TPointerType pData)
     {
 		std::string key=KeyOf(*pData);
-		ContainerType::value_type item(key, pData);
-		std::pair<ContainerType::iterator, bool> result = mData.insert(item);
+		typename ContainerType::value_type item(key, pData);
+		std::pair<typename ContainerType::iterator, bool> result = mData.insert(item);
 	// TODO: I should enable this after adding the KRATOS_ERROR to define.h. Pooyan.
 	//if(result.second != true)
 	//	KRATOS_ERROR << "Error in adding the new item" << std::endl
