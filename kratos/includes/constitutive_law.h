@@ -186,7 +186,7 @@ public:
       /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
 
       Flags                mOptions;
-      const double*        mDeterminantF;
+      double               mDeterminantF;
 
       Vector*              mpStrainVector;
       Vector*              mpStressVector;
@@ -211,7 +211,7 @@ public:
       Parameters ()
       {
 	//Initialize pointers to NULL
-	mDeterminantF=NULL;
+	mDeterminantF=0;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
@@ -235,7 +235,7 @@ public:
       ,mpElementGeometry(&rElementGeometry)
       {
 	//Initialize pointers to NULL
-	mDeterminantF=NULL;
+	mDeterminantF=0;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
@@ -323,8 +323,8 @@ public:
 
       bool CheckMechanicalVariables ()
       {
-	if(!mDeterminantF)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"DeterminantF NOT SET","");
+	if(mDeterminantF<=0)
+	  KRATOS_THROW_ERROR(std::invalid_argument,"DeterminantF NOT SET, value <= 0", "");
 
 	if(!mpDeformationGradientF)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
@@ -354,7 +354,8 @@ public:
       void Reset                           (Flags ThisFlag)                           {mOptions.Reset(ThisFlag);};
 
       void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
-      void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=&rDeterminantF;};
+      void SetDeterminantF                 (const double DeterminantF)                {mDeterminantF=DeterminantF;};
+      //void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=&rDeterminantF;};
 
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
@@ -375,7 +376,7 @@ public:
        */
       Flags& GetOptions () {return mOptions;};
 
-      const double& GetDeterminantF              () {return *mDeterminantF;};
+      const double& GetDeterminantF              () {return mDeterminantF;};
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
@@ -396,7 +397,7 @@ public:
        * returns the reference to the value of a specified variable with not constant access
        */
 
-      double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=*mDeterminantF; return rDeterminantF;};
+      double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
       Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
       Vector& GetStressVector                  (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
