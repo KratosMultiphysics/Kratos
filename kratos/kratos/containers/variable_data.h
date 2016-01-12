@@ -1,48 +1,16 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                    
 //
+	           
 
 
 #if !defined(KRATOS_VARIABLE_DATA_H_INCLUDED )
@@ -67,30 +35,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-///@name Kratos Globals
+///@addtogroup Kratos
 ///@{
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
 /// This class is the base of variables and variable's components which contains their common data.
 /** This class hold variables name and key and also adaptor type for variables components.
-    It also has a counter to generate automatically key numbers for new variables.
+    It also has static method for generating a key based on the name of the variable
 */
-class VariableData
+class KRATOS_API(KRATOS_CORE) VariableData
 {
 public:
     ///@name Type Definitions
@@ -106,8 +61,7 @@ public:
     ///@{
 
     /// Copy constructor
-    VariableData(const VariableData& rOtherVariable)
-        : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize), mIsComponent(rOtherVariable.mIsComponent) {}
+    VariableData(const VariableData& rOtherVariable);
 
     /// Destructor.
     virtual ~VariableData() {}
@@ -128,37 +82,25 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void* Clone(const void* pSource) const
-    {
-        return 0;
-    }
+    virtual void* Clone(const void* pSource) const;
 
-    virtual void* Copy(const void* pSource, void* pDestination) const
-    {
-        return 0;
-    }
+    virtual void* Copy(const void* pSource, void* pDestination) const;
 
-    virtual void Assign(const void* pSource, void* pDestination) const {}
+    virtual void Assign(const void* pSource, void* pDestination) const;
 
-    virtual void AssignZero(void* pDestination) const {}
+    virtual void AssignZero(void* pDestination) const;
 
-    virtual void Destruct(void* pSource) const {}
+    virtual void Destruct(void* pSource) const;
 
-    virtual void Delete(void* pSource) const {}
+    virtual void Delete(void* pSource) const;
 
-    virtual void Print(const void* pSource, std::ostream& rOStream) const {}
+    virtual void Print(const void* pSource, std::ostream& rOStream) const;
 
-    virtual void Allocate(void** pData) const
-    {
-    }
+    virtual void Allocate(void** pData) const;
 
-    virtual void Save(Serializer& rSerializer, void* pData) const
-    {
-    }
+    virtual void Save(Serializer& rSerializer, void* pData) const;
 
-    virtual void Load(Serializer& rSerializer, void* pData) const
-    {
-    }
+    virtual void Load(Serializer& rSerializer, void* pData) const;
 
 
     ///@}
@@ -172,10 +114,7 @@ public:
 
     /// NOTE: This function is for internal use and not
     /// to change arbitrary any variable's key
-    void SetKey(KeyType NewKey)
-    {
-        mKey = NewKey;
-    }
+   void SetKey(KeyType NewKey);
 
     const std::string& Name() const
     {
@@ -208,25 +147,30 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << mName << " variable data";
-        return buffer.str();
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << mName << " variable data";
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        rOStream <<" #" << static_cast<unsigned int>(mKey);
-    }
+    virtual void PrintData(std::ostream& rOStream) const;
 
+    ///@}
+    ///@name Statics
+    ///@{
+
+	/// This static method generates a uinque key for given name and flags.
+	/** The generated key contains a 32-bit uique hash and following information:
+		- Copyable : if the is a value type and can be copied by memcopy
+		- Component: for component of another variables
+		- Component index: The index if is component
+		- Size: size of the variable in number of double. 
+		The order is as follow:
+
+		64           size         32-bit hash                comp. index 0
+		 |-----------|----|---------------------------------------------|-|
+		*/
+	static KeyType GenerateKey(const std::string& Name, std::size_t Size, std::size_t ComponentIndex);
 
     ///@}
     ///@name Friends
@@ -245,11 +189,6 @@ protected:
 
 
     ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected Operators
     ///@{
 
@@ -264,28 +203,11 @@ protected:
     }
 
     ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Protected LifeCycle
     ///@{
 
     /// Constructor.
-    /*       VariableData(const std::string& NewName) : mName(NewName), mKey(gCounter++){} */
-    //VariableData(const std::string& NewName) : mName(NewName), mKey(Counter<VariableData>::Increment()){}
-	VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false) : mName(NewName), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {}
+	VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false);
 
 
     /** default constructor is to be used only with serialization due to the fact that
@@ -295,10 +217,6 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -313,52 +231,18 @@ private:
 	bool mIsComponent;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("Name",mName);
-        rSerializer.save("Key",mKey);
-		rSerializer.save("IsComponent", mIsComponent);
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("Name",mName);
-        rSerializer.load("Key",mKey);
-		rSerializer.load("IsComponent", mIsComponent);
-    }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+    virtual void load(Serializer& rSerializer);
 
     ///@}
 
 }; // Class VariableData
-
-///@}
-
-///@name Type Definitions
-///@{
 
 
 ///@}
@@ -380,6 +264,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
+
+///@} addtogroup block
 
 
 }  // namespace Kratos.
