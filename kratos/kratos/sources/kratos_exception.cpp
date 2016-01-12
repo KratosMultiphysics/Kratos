@@ -113,7 +113,7 @@ namespace Kratos
 	}
 
 	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream,
+  /*	inline std::ostream& operator << (std::ostream& rOStream,
 		const KratosException& rThis)
 	{
 		rThis.PrintInfo(rOStream);
@@ -122,16 +122,16 @@ namespace Kratos
 
 		return rOStream;
 	}
-
+  */
 	/// char stream function
-	KratosException& operator << (KratosException& rThis, const char * rString)
+	KratosException operator << (KratosException& rThis, const char * rString)
 	{
 		rThis.append_message(rString);
 
 		return rThis;
 	}
 
-	KratosException& operator << (KratosException& rThis, std::ostream& (*pf)(std::ostream&))
+	KratosException operator << (KratosException& rThis, std::ostream& (*pf)(std::ostream&))
 	{
 		std::stringstream buffer;
 		pf(buffer);

@@ -133,8 +133,9 @@ namespace Kratos
 	ModelPart::IndexType ModelPart::CloneSolutionStep()
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the CloneSolutionStep method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+		  KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+		  //Todo KRATOS_ERROR << "Calling the CloneSolutionStep method of the sub model part " << Name()
+		    //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
 			node_iterator->CloneSolutionStepData();
@@ -149,8 +150,9 @@ namespace Kratos
 	ModelPart::IndexType ModelPart::CloneTimeStep()
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the CloneTimeStep method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+		  //KRATOS_ERROR << "Calling the CloneTimeStep method of the sub model part " << Name()
+		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		IndexType new_index = CloneSolutionStep();
 		mpProcessInfo->SetAsTimeStepInfo();
@@ -162,8 +164,9 @@ namespace Kratos
 	ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the CreateTimeStep method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+		  //KRATOS_ERROR << "Calling the CreateTimeStep method of the sub model part " << Name()
+		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		IndexType new_index = CreateSolutionStep();
 		mpProcessInfo->SetAsTimeStepInfo(NewTime);
@@ -174,8 +177,9 @@ namespace Kratos
 	ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the CloneTimeStep method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+		KRATOS_THROW_ERROR(std::logic_error, "Calling the CloneSolutionStep method of the sub model part ", Name())
+		  //	KRATOS_ERROR << "Calling the CloneTimeStep method of the sub model part " << Name()
+		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		IndexType new_index = CloneSolutionStep();
 		mpProcessInfo->SetAsTimeStepInfo(NewTime);
@@ -186,8 +190,9 @@ namespace Kratos
 	void ModelPart::OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+		  //KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
+		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
 			node_iterator->OverwriteSolutionStepData(SourceSolutionStepIndex, DestinationSourceSolutionStepIndex);
@@ -202,8 +207,9 @@ namespace Kratos
 			//It just resets the database values to the values at the beginning of the time step
 			
 			if (IsSubModelPart())
-				KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
-				<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+  //	KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
+  //				<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 			rModelPart.OverwriteSolutionStepData(1, 0);
 			rModelPart.GetProcessInfo().SetCurrentTime(NewTime);
@@ -414,8 +420,9 @@ namespace Kratos
 	void ModelPart::SetNodalSolutionStepVariablesList()
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the SetNodalSolutionStepVariablesList method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+  //KRATOS_ERROR << "Calling the SetNodalSolutionStepVariablesList method of the sub model part " << Name()
+  //			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
 			i_node->SetSolutionStepVariablesList(&mVariablesList);
@@ -784,8 +791,9 @@ namespace Kratos
 			return *(mSubModelParts.insert(p_model_part));
 		}
 		else
+KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
 			// Here a warning would be enough. To be disscussed. Pooyan.
-			KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
+			//KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
 	}
 
 	/** Remove a sub modelpart with given name.
@@ -814,7 +822,8 @@ namespace Kratos
 		SubModelPartIterator i_sub_model_part = mSubModelParts.find(name);
 
 		if (i_sub_model_part == mSubModelParts.end())
-			KRATOS_ERROR << "The sub modelpart  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
+KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
+  //KRATOS_ERROR << "The sub modelpart  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
 					// deallocate the sub model part
 		delete i_sub_model_part.base()->second;
@@ -825,8 +834,9 @@ namespace Kratos
 	void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 	{
 		if (IsSubModelPart())
-			KRATOS_ERROR << "Calling the SetBufferSize method of the sub model part " << Name()
-			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+		  //	KRATOS_ERROR << "Calling the SetBufferSize method of the sub model part " << Name()
+		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		mBufferSize = NewBufferSize;
 
