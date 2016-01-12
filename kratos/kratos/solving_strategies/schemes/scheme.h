@@ -140,7 +140,7 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
     typedef Dof<double> TDofType;
 
-    typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+    typedef PointerVectorSet<TDofType, SetIdentityFunction<TDofType> > DofsArrayType;
     typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
     typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
 
