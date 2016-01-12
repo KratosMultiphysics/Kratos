@@ -1461,7 +1461,7 @@ protected:
 //G
         double AdvVelDiv = 0.0;
         this->GetAdvectiveVelDivergence(AdvVelDiv, rShapeDeriv);
-        this->GetModifiedConvectionOperator(AGradNMod, rAdvVel, AdvVelDiv, rShapeFunc, rShapeDeriv); // Get a * grad(Ni) + div(a) * Ni
+        //this->GetModifiedConvectionOperator(AGradNMod, rAdvVel, AdvVelDiv, rShapeFunc, rShapeDeriv); // Get a * grad(Ni) + div(a) * Ni
         double FluidFraction;
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
 //Z
