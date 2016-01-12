@@ -30,6 +30,12 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/utilities/logger.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
+	#${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_smoothing_process.cpp;
+	#${CMAKE_CURRENT_SOURCE_DIR}/processes/measure_mesh_quality_process.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES
@@ -83,6 +89,8 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
+	#${CMAKE_CURRENT_SOURCE_DIR}/utilities/logger.cpp;
+	# ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
 
      )
 
