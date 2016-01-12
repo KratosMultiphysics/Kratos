@@ -534,9 +534,9 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
 ######################################################################################################################################
 
-# setting up loop counters
+# setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
 embedded_counter          = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
-DEM_to_fluid_counter      = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type  == 1)
+DEM_to_fluid_counter      = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
 pressure_gradient_counter = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
 stationarity_counter      = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
 print_counter             = swim_proc.Counter(1, 1, out >= output_time)
@@ -578,7 +578,7 @@ mesh_motion = DEMFEMUtilities()
 # creating a Post Utils object that executes several post-related tasks
 post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
-swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part) # all variables are set to 0 by default
+swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # all variables are set to 0 by default
 
 while (time <= final_time):
 
