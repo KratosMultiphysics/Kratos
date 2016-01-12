@@ -283,10 +283,11 @@ class DEM_FEM_Search : public SpatialSearch
       if(BinsConditionPointerToGeometricalObjecPointerTemporalVector.size() >0 ) {
 
       //6. CREATE THE BINS
+
       //if (mBins) free(mBins);
       delete mBins;
       mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());       
-           
+      
       //7. PERFORM THE SEARCH ON THE SPHERES
       #pragma omp parallel
       {
@@ -295,15 +296,11 @@ class DEM_FEM_Search : public SpatialSearch
         std::size_t                           NumberOfResults = 0;
 
         #pragma omp for
-        for (int k = 0; k < num_of_threads; k++) {
-          Elem_iter it_begin = elements_sear.begin() + total_dem_partition_index[k];
-          Elem_iter it_end   = elements_sear.begin() + total_dem_partition_index[k + 1];
-
-          int gResultIndex = total_dem_partition_index[k];
-
-          for(Elem_iter it = it_begin; it != it_end; it++) {
-
-            GeometricalObject::Pointer go_it((*it));
+        for (int p = 0; p < elements_sear.size(); p++) {
+         
+          Elem_iter it = elements_sear.begin() + p;
+                  
+            GeometricalObject::Pointer go_it(*it);
             bool search_particle = true;
 
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
@@ -314,28 +311,26 @@ class DEM_FEM_Search : public SpatialSearch
             }
 
             if(search_particle) {
+              
               GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
               DistanceType::iterator                           ResultsDistancesPointer = localResultsDistances.begin();
 
-              //double Rad = go_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
               NumberOfResults = (*mBins).SearchObjectsInRadiusExclusive(go_it,Rad,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
 
-              rResults[gResultIndex].reserve(NumberOfResults);
-
+              rResults[p].reserve(NumberOfResults);
+              
               for(GeometricalObjectType::ContainerType::iterator c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
-                Condition::Pointer elem = boost::dynamic_pointer_cast<Condition>(*c_it);
-                rResults[gResultIndex].push_back(elem);
+                  Condition::Pointer condition = boost::dynamic_pointer_cast<Condition>(*c_it);
+                  rResults[p].push_back(condition);
               }
+              
+              rResultsDistance[p].insert(rResultsDistance[p].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
 
-              //TODO: check this insert (shouldn't it be outside?)
-              rResultsDistance[gResultIndex].insert(rResultsDistance[gResultIndex].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
             }
-
-            gResultIndex++;
-          }
-        }
-      }
-
+          
+          } //loop elements
+        } //parallel
+        
     }//if Bins is not empty--> search
 
     KRATOS_CATCH("")
