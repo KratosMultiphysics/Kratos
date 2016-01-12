@@ -151,7 +151,7 @@ public:
     template <class TInputIteratorType>
 
     PointerHashMapSet(TInputIteratorType First, TInputIteratorType Last, size_type NewMaxBufferSize = 1)
-        : mSortedPartSize(size_type()), mMaxBufferSize(NewMaxBufferSize)
+        : mMaxBufferSize(NewMaxBufferSize)
     {
         for(; First != Last; ++First)
             insert(begin(), *First);
