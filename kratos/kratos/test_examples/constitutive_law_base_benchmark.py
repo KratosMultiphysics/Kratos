@@ -25,8 +25,8 @@ properties.SetValue(POISSON_RATIO, 0.3)
 geom = Triangle2D3(node1,node2,node3)
 print(geom)
 
-N = Vector(4)
-DN_DX = Matrix(4,3)
+N = Vector(3)
+DN_DX = Matrix(3,2)
 
 ######################################## here we choose the constitutive law #########################
 #construct a constitutive law 
@@ -61,13 +61,15 @@ cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 from math import sqrt
 
 F = Matrix(3,3)
-F[0,0] = 1.0; F[0,1] = 0.0001; F[0,2] = 0.0;
+F[0,0] = 1.0; F[0,1] = 0.0; F[0,2] = 0.0;
 F[1,0] = 0.0; F[1,1] = 1.0; F[1,2] = 0.0;
 F[2,0] = 0.0; F[2,1] = 0.0; F[2,2] = 1.0;
 detF = 1.0
 
 stress_vector = Vector(cl.GetStrainSize() )
 strain_vector = Vector(cl.GetStrainSize())
+
+
 constitutive_matrix = Matrix(cl.GetStrainSize(),cl.GetStrainSize())
 
 #setting the parameters - note that a constitutive law may not need them all!
@@ -96,7 +98,7 @@ print( "strain = ", cl_params.GetStrainVector() )
 print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponsePK2( cl_params )
-cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
+#cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
 
 print("\n The Material Response Kirchhoff")
 cl.CalculateMaterialResponseKirchhoff( cl_params )
