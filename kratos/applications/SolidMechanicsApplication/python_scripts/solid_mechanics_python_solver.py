@@ -174,7 +174,10 @@ class MechanicalSolver:
               if(self.line_search):
                   self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
               else:
-                  self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+                  if(self.solution_type == "Static" and self.scheme_type == "Linear"):
+                      self.mechanical_solver = ResidualBasedLinearStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.builder_and_solver, self.compute_reactions, self.reform_step_dofs, False, self.move_mesh_flag)
+                  else:
+                      self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
 
         if(self.time_integration_method == "Explicit"):
             self.mechanical_solver = ExplicitStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
