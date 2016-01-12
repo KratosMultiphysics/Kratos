@@ -210,7 +210,7 @@ void SphericSwimmingParticle::ComputeDragForce(array_1d<double, 3>& drag_force, 
             drag_coeff = ComputeHaiderDragCoefficient();
         }
 
-        else if (mDragForceType == 8){ // Intermediate regimes (Re ~ 0 - 1000), formulation of Beetsra et al. obtained using lattice-Boltzmann (2007)
+        else if (mDragForceType == 8){ // Intermediate regimes (Re ~ 0 - 1000), formulation of Beetstra et al. obtained using lattice-Boltzmann (2007)
             drag_coeff = ComputeBeetstraDragCoefficient();
         }
 
@@ -740,18 +740,17 @@ double SphericSwimmingParticle::ComputeBeetstraDragCoefficient()
 
     else {
         double eps = GetGeometry()[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
-        if (eps > 0.999){
-            eps = 0.9;
-        }
-        const double eps_s = 1.0 - eps;
-        const double diameter = 2 * mRadius;
 
+        if (eps > 0.99){
+            eps = 0.99;
+        }
+
+        const double eps_s = 1.0 - eps;
         particle_reynolds *= eps;
-        double particle_volume = 4.0 / 3.0 * KRATOS_M_PI * mRadius * mRadius * mRadius;
 
         double A = 180 + 18 * std::pow(eps, 4) / eps_s * (1 + 1.5 * std::sqrt(eps_s));
-        double B = 0.31 * (1.0 / eps + 3 * eps_s * eps + 8.4 * std::pow(particle_reynolds, - 0.343)) / (1. + std::pow(10.0, 3 * eps_s) * std::pow(particle_reynolds, 2 * eps - 2.5));
-        drag_coeff = mKinematicViscosity * mFluidDensity * particle_volume / (diameter * diameter) * (A * eps_s / eps + B * particle_reynolds);
+        double B = 0.31 * (1.0 / eps + 3 * eps_s * eps + 8.4 * std::pow(particle_reynolds, - 0.343)) / (1.0 + std::pow(10.0, 3 * eps_s) * std::pow(particle_reynolds, 2 * eps - 2.5));
+        drag_coeff = KRATOS_M_PI / 3.0 * mKinematicViscosity * mFluidDensity * mRadius * (A * eps_s / eps + B * particle_reynolds);
     }
 
     return drag_coeff;
