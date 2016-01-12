@@ -294,8 +294,8 @@ namespace Kratos
           return;          
           KRATOS_CATCH("")
           
-      }                        
-      
+      }
+ 
       void RebuildPropertiesProxyPointers(std::vector<SphericParticle*>& rCustomListOfSphericParticles){
           //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
           KRATOS_TRY         
@@ -515,19 +515,9 @@ namespace Kratos
           
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-
-          int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-
-          this->GetResults().resize(number_of_elements);
-          this->GetResultsDistances().resize(number_of_elements);
-          this->GetRadius().resize(number_of_elements);    
           
           int time_step = rCurrentProcessInfo[TIME_STEPS];
-                    
-          //Cfeng
-          this->GetRigidFaceResults().resize(number_of_elements);
-          this->GetRigidFaceResultsDistances().resize(number_of_elements);
-
+  
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo          
           InitializeSolutionStep();
           
@@ -578,9 +568,9 @@ namespace Kratos
           
           GetClustersForce();
           
-          Calculate_Conditions_RHS_and_Add();
+          Calculate_Conditions_RHS_and_Add(); //TODO: flag to disable this part
           
-          Calculate_Nodal_Pressures_and_Stresses();
+          Calculate_Nodal_Pressures_and_Stresses(); //TODO: flag to disable this part
           
           CalculateEnergies();
           
@@ -1233,8 +1223,12 @@ namespace Kratos
         
         this->GetRadius().resize(number_of_elements);
 
-        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-
+                
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_elements; i++ ){
+        
+            SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin() + i;
+            
             this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
 
         }
@@ -1242,6 +1236,8 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
+       
+      
     void SetOriginalRadius(ModelPart& r_model_part)
     {
         KRATOS_TRY
@@ -1252,9 +1248,11 @@ namespace Kratos
         
         this->GetOriginalRadius().resize(number_of_elements);
 
-        //TODO: parallelize this
-        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_elements; i++ ){
+        
+            SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin() + i;
+ 
             this->GetOriginalRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
         }
@@ -1274,8 +1272,6 @@ namespace Kratos
         
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);                              
-        GetRigidFaceResults().resize(number_of_elements);
-        GetRigidFaceResultsDistances().resize(number_of_elements);
         
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
         const int number_of_particles = (int)mListOfSphericParticles.size();
@@ -1333,20 +1329,23 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        ElementsArrayType&   pTElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
-        ConditionsArrayType& pTConditions       = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        ElementsArrayType&   pElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
+        ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
 
         if (pTConditions.size() > 0) {
         
             const int number_of_particles = (int)mListOfSphericParticles.size();
             
+            this->GetRigidFaceResults().resize(number_of_particles);
+            this->GetRigidFaceResultsDistances().resize(number_of_particles);
+             
             #pragma omp parallel for 
             for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
                 mListOfSphericParticles[i]->mNeighbourRigidFacesPram.resize(0);
             }
-            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pTElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
-
+            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
+            
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
               std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
@@ -1387,7 +1386,7 @@ namespace Kratos
                                      
             //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             const int number_of_conditions = (int)pTConditions.size();
-            
+           
             #pragma omp parallel 
             {              
                 #pragma omp for
@@ -1410,11 +1409,14 @@ namespace Kratos
                     }
                  }
               
-              }//end parallel                         
+              }//end parallel      
+              
         }
+       
                     
         KRATOS_CATCH("")
     }
+    
                    
     /* This should work only with one iteration, but it with mpi does not */
     void CalculateInitialMaxIndentations()
