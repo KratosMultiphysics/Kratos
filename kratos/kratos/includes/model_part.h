@@ -1,24 +1,15 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                    
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 
 
@@ -35,10 +26,6 @@
 
 
 // External includes
-/* #include <boost/serialization/base_object.hpp> */
-/* #include <boost/serialization/utility.hpp> */
-/* #include <boost/serialization/list.hpp> */
-
 
 
 // Project includes
@@ -46,13 +33,14 @@
 #include "includes/serializer.h"
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
-//#include "containers/fix_data_value_container.h"
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
 #include "includes/table.h"
 #include "containers/pointer_vector_map.h"
+#include "containers/pointer_hash_map_set.h"
+#include "utilities/logger.h"
 
 
 namespace Kratos
@@ -81,12 +69,16 @@ namespace Kratos
 
 /** Detail class definition.
  */
-class ModelPart : public DataValueContainer, public Flags
+class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-
-    struct GlobalIndex
-    {
-    };
+	class GetModelPartName : public std::unary_function<const ModelPart* const, std::string> 
+	{
+	public:
+		std::string const& operator()(const ModelPart& rModelPart) const
+		{
+			return rModelPart.Name();
+		}
+	};
 public:
     ///@name  Enum's
     ///@{
@@ -111,7 +103,7 @@ public:
     typedef unsigned int SizeType;
 
     typedef Dof<double> DofType;
-    typedef PointerVectorSet<DofType, IdentityFunction<DofType> > DofsArrayType;
+    typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
 
     typedef Node < 3 > NodeType;
     typedef Properties PropertiesType;
@@ -192,10 +184,10 @@ public:
         usage. */
     typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
 
-    // Defining a table with double argument and result type as table type.
+    /// Defining a table with double argument and result type as table type.
     typedef Table<double,double> TableType;
 
-    // The container of the tables. A vector map of the tables.
+    /// The container of the tables. A vector map of the tables.
     typedef PointerVectorMap<SizeType, TableType> TablesContainerType;
 
     /** Iterator over the Tables. This iterator is an indirect
@@ -210,90 +202,46 @@ public:
     usage. */
     typedef TablesContainerType::const_iterator TableConstantIterator;
 
+    /// The container of the sub model parts. A hash table is used. 
+	/**  
+	*/
+    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart*>  SubModelPartsContainerType;
+
+    /// Iterator over the sub model parts of this model part.
+	/**	Note that this iterator only iterates over the next level of
+		sub model parts and does not go through the hierarchy of the
+		sub model parts
+	*/
+    typedef SubModelPartsContainerType::iterator SubModelPartIterator;
+
+    /// Constant iterator over the sub model parts of this model part.
+	/**	Note that this iterator only iterates over the next level of
+		sub model parts and does not go through the hierarchy of the
+		sub model parts
+	*/
+    typedef SubModelPartsContainerType::const_iterator SubModelPartConstantIterator;
+
+	
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
+	ModelPart();
 
-    ModelPart()
-        : DataValueContainer()
-        , Flags()
-        , mBufferSize(1)
-        , mCurrentIndex(0)
-        , mpProcessInfo(new ProcessInfo())
-        , mIndices(1, 0)
-        , mpCommunicator(new Communicator)
-    {
-        mName = "Default";
-        MeshType mesh;
-        for (IndexType i = 0; i < mBufferSize; i++)
-            mMeshes.push_back(mesh.Clone());
-		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-    }
+	/// Constructor with name
+	ModelPart(std::string const& NewName);
 
-    ModelPart(std::string const& NewName)
-        : DataValueContainer()
-        , Flags()
-        , mBufferSize(1)
-        , mCurrentIndex(0)
-        , mpProcessInfo(new ProcessInfo())
-        , mIndices(1, 0)
-        , mpCommunicator(new Communicator)
-    {
-        mName = NewName;
-        MeshType mesh;
-        for (IndexType i = 0; i < mBufferSize; i++)
-            mMeshes.push_back(mesh.Clone());
-		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-    }
-
-    ModelPart(std::string const& NewName, IndexType NewBufferSize)
-        : DataValueContainer()
-        , Flags()
-        , mBufferSize(NewBufferSize)
-        , mCurrentIndex(0)
-        , mpProcessInfo(new ProcessInfo())
-        , mIndices(NewBufferSize, 0)
-        , mpCommunicator(new Communicator)
-    {
-        mName = NewName;
-        MeshType mesh;
-        // TODO: I have to remove this. Pooyan.
-        for (IndexType i = 0; i < mBufferSize; i++)
-            mMeshes.push_back(mesh.Clone());
- 		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-   }
+	/// Constructor with name and bufferSize
+	ModelPart(std::string const& NewName, IndexType NewBufferSize);
 
     /// Copy constructor.
-
-    ModelPart(ModelPart const& rOther)
-        : DataValueContainer(rOther)
-        , Flags(rOther)
-        , mName(rOther.mName)
-        , mBufferSize(rOther.mBufferSize)
-        , mCurrentIndex(rOther.mCurrentIndex)
-        , mpProcessInfo(rOther.mpProcessInfo)
-        , mIndices(rOther.mIndices)
-        , mMeshes(rOther.mMeshes)
-        , mVariablesList(rOther.mVariablesList)
-        , mpCommunicator(rOther.mpCommunicator)
-    {
-    }
+	ModelPart(ModelPart const& rOther);
 
 
     /// Destructor.
-
-    virtual ~ModelPart()
-    {
-        for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
-        {
-            if (i_node->pGetVariablesList() == &mVariablesList)
-                i_node->ClearSolutionStepsData();
-        }
-        // 	  for(IndexType i = 0 ; i < mBufferSize ; ++i)
-        // 	    RemoveSolutionStepData(mIndices[i], mMeshes[i]);
-    }
+	virtual ~ModelPart();
 
 
     ///@}
@@ -301,116 +249,16 @@ public:
     ///@{
 
     /// Assignment operator.
-
-    ModelPart & operator=(ModelPart const& rOther)
-    {
-        mName = rOther.mName;
-        mBufferSize = rOther.mBufferSize;
-        mCurrentIndex = rOther.mCurrentIndex;
-        mpProcessInfo = rOther.mpProcessInfo;
-        mIndices = rOther.mIndices;
-        mMeshes = rOther.mMeshes;
-
-        return *this;
-    }
+	ModelPart & operator=(ModelPart const& rOther);
 
     ///@}
     ///@name Solution Steps
     ///@{
 
-    //       IndexType CreateSolutionStep()
-    // 	{
-    // 	  IndexType new_index = Counter<GlobalIndex>::Increment();
-    // 	  mCurrentIndex++;
 
-    // 	  if(mCurrentIndex >= mBufferSize)
-    // 	    mCurrentIndex = 0;
+	IndexType CreateSolutionStep();
 
-    // 	  RemoveSolutionStepData(mIndices[mCurrentIndex], mMeshes[mCurrentIndex]);
-
-    // 	  mMeshes(mCurrentIndex) = MeshType::Pointer(new MeshType);
-    // 	  mIndices[mCurrentIndex] = new_index;
-
-    // 	  mProcessInfo.CreateSolutionStepInfo(new_index);
-    // 	  mProcessInfo.ClearHistory(mBufferSize);
-
-    // 	  return new_index;
-    // 	}
-
-    IndexType CreateSolutionStep()
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
-        IndexType new_index = Counter<GlobalIndex>::Increment();
-        mCurrentIndex++;
-
-        if (mCurrentIndex >= mBufferSize)
-            mCurrentIndex = 0;
-
-
-        // TODO: I have to delete this!!! Pooyan.
-        mMeshes(mCurrentIndex) = MeshType::Pointer(new MeshType);
-        mIndices[mCurrentIndex] = new_index;
-
-        mpProcessInfo->CreateSolutionStepInfo(new_index);
-        mpProcessInfo->ReIndexBuffer(mBufferSize);
-        mpProcessInfo->ClearHistory(mBufferSize);
-
-        return new_index;
-    }
-
-    IndexType CloneSolutionStep()
-    {
-        // 	  IndexType new_index = Counter<GlobalIndex>::Increment();
-        //new_index = 0; //CHAPUZA!!!! TODO!! controlar!!
-
-        // 	  IndexType old_index = mIndices[mCurrentIndex];
-        // 	  IndexType current_index = mCurrentIndex + 1;
-        // 	  if(current_index >= mBufferSize)
-        // 	    current_index = 0;
-
-        for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
-            node_iterator->CloneSolutionStepData();
-        /* 	  CopySolutionStepData(new_index, old_index); */
-
-        // 	  mMeshes(current_index) = mMeshes(mCurrentIndex);
-        // 	  mIndices[current_index] = new_index;
-        mCurrentIndex++;
-        mpProcessInfo->CloneSolutionStepInfo();
-        // //	  mProcessInfo.ReIndexBuffer(mBufferSize);
-
-        mpProcessInfo->ClearHistory(mBufferSize);
-
-
-        // 	  mCurrentIndex = current_index;
-
-        return 0;
-    }
-
-    // This method works better than clone but just for unchanged mesh.
-    //       IndexType OverwriteSolutionStep()
-    // 	{
-    // 	  IndexType new_index = Counter<GlobalIndex>::Increment();
-    // 	  IndexType old_index = mIndices[mCurrentIndex];
-    // 	  IndexType current_index = mCurrentIndex + 1;
-
-    // 	  if(current_index >= mBufferSize)
-    // 	    current_index = 0;
-
-    // 	  if(!mMeshes[current_index].Nodes().empty())
-    // 	    OverwriteSolutionStepData(new_index, old_index, mIndices[current_index]);
-    // 	  else
-    // 	    CopySolutionStepData(new_index, old_index);
-
-    // 	  mMeshes[current_index] = mMeshes[mCurrentIndex];
-    // 	  mIndices[current_index] = new_index;
-
-    // 	  mProcessInfo.CloneSolutionStepInfo(new_index);
-    // 	  mProcessInfo.ClearHistory(mBufferSize);
-
-    // 	  mCurrentIndex = current_index;
-
-    // 	  return new_index;
-    // 	}
+	IndexType CloneSolutionStep();
 
     // commented due to a bug, Pooyan.
     //       IndexType CreateTimeStep()
@@ -421,72 +269,17 @@ public:
     // 	  return new_index;
     // 	}
 
-    IndexType CloneTimeStep()
-    {
-        IndexType new_index = CloneSolutionStep();
-        mpProcessInfo->SetAsTimeStepInfo();
+	IndexType CloneTimeStep();
+ 
+	IndexType CreateTimeStep(double NewTime);
 
-        return new_index;
-    }
+	IndexType CloneTimeStep(double NewTime);
 
-    //       IndexType OverwriteTimeStep()
-    // 	{
-    // 	  IndexType new_index = OverwriteSolutionStep();
-    // 	  mProcessInfo.SetAsTimeStepInfo();
+	void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
 
-    // 	  return new_index;
-    // 	}
-
-    IndexType CreateTimeStep(double NewTime)
-    {
-        IndexType new_index = CreateSolutionStep();
-        mpProcessInfo->SetAsTimeStepInfo(NewTime);
-
-        return new_index;
-    }
-
-    IndexType CloneTimeStep(double NewTime)
-    {
-        IndexType new_index = CloneSolutionStep();
-        mpProcessInfo->SetAsTimeStepInfo(NewTime);
-
-
-        return new_index;
-    }
-
-    //       IndexType OverwriteTimeStep(double NewTime)
-    // 	{
-    // 	  IndexType new_index = OverwriteSolutionStep();
-    // 	  mProcessInfo.SetAsTimeStepInfo(NewTime);
-
-    // 	  return new_index;
-    // 	}
-
-
-    //       void CopySolutionStepData(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex)
-    //       {
-    // 	  for(NodeIterator node_iterator = NodesBegin() ; node_iterator != NodesEnd() ; node_iterator++)
-    // 	    node_iterator->CloneSolutionStepData(SourceSolutionStepIndex);
-    //       }
-
-    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
-    {
-        for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
-            node_iterator->OverwriteSolutionStepData(SourceSolutionStepIndex, DestinationSourceSolutionStepIndex);
-    }
-
-    void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
-    {
-        KRATOS_TRY
-
-        //ATTENTION: this function does not touch the coordinates of the nodes.
-        //It just resets the database values to the values at the beginning of the time step
-        rModelPart.OverwriteSolutionStepData(1, 0);
-        rModelPart.GetProcessInfo().SetCurrentTime(NewTime);
-
-        KRATOS_CATCH("error in reducing the time step")
-
-    }
+	///ATTENTION: this function does not touch the coordinates of the nodes.
+	///It just resets the database values to the values at the beginning of the time step
+	void ReduceTimeStep(ModelPart& rModelPart, double NewTime);
 
     ///@}
     ///@name Nodes
@@ -499,89 +292,19 @@ public:
 
     /** Inserts a node in the current mesh.
      */
-    void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).AddNode(pNewNode);
-    }
+	void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0);
 
     /** Inserts a node in the current mesh.
      */
-    NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0)
-    {
-        //create a new node
-        NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
+	NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList* pNewVariablesList, IndexType ThisIndex = 0);
 
-        // Giving model part's variables list to the node
-        p_new_node->SetSolutionStepVariablesList(pNewVariablesList);
+	NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0);
 
-        //set buffer size
-        p_new_node->SetBufferSize(mBufferSize);
+	NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, double* pThisData, IndexType ThisIndex = 0);
 
-        //add the new node to the list of nodes
-        GetMesh(ThisIndex).AddNode(p_new_node);
+	NodeType::Pointer CreateNewNode(IndexType NodeId, NodeType const& rSourceNode, IndexType ThisIndex = 0);
 
-        return p_new_node;
-    }
-
-    NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, IndexType ThisIndex = 0)
-    {
-        //create a new node
-        NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
-
-        // Giving model part's variables list to the node
-        p_new_node->SetSolutionStepVariablesList(&mVariablesList);
-
-        //set buffer size
-        p_new_node->SetBufferSize(mBufferSize);
-
-        //add the new node to the list of nodes
-        GetMesh(ThisIndex).AddNode(p_new_node);
-
-        return p_new_node;
-    }
-
-    NodeType::Pointer CreateNewNode(IndexType Id, double x, double y, double z, double* pThisData, IndexType ThisIndex = 0)
-    {
-        //create a new node
-        NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z, &mVariablesList, pThisData, mBufferSize));
-
-        //add the new node to the list of nodes
-        GetMesh(ThisIndex).AddNode(p_new_node);
-
-        return p_new_node;
-
-    }
-
-    NodeType::Pointer CreateNewNode(IndexType NodeId, NodeType const& rSourceNode, IndexType ThisIndex = 0)
-    {
-        //create a new node
-        NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z()));
-
-        // Giving model part's variables list to the node
-        p_new_node->SetSolutionStepVariablesList(&mVariablesList);
-
-        //set buffer size
-        p_new_node->SetBufferSize(mBufferSize);
-
-        //add the new node to the list of nodes
-        GetMesh(ThisIndex).AddNode(p_new_node);
-
-        return p_new_node;
-
-    }
-
-    void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0)
-    {
-        // Giving model part's variables list to the node
-        pThisNode->SetSolutionStepVariablesList(&mVariablesList);
-
-        //set buffer size
-        pThisNode->SetBufferSize(mBufferSize);
-
-        //add the new node to the list of nodes
-        GetMesh(ThisIndex).AddNode(pThisNode);
-
-    }
+	void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
     /** Returns the Node::Pointer  corresponding to it's identifier */
     NodeType::Pointer pGetNode(IndexType NodeId, IndexType ThisIndex = 0)
@@ -595,26 +318,29 @@ public:
         return GetMesh(ThisIndex).GetNode(NodeId);
     }
 
-    /** Remove the node with given Id from current mesh.
-     */
-    void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveNode(NodeId);
-    }
+	/** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0);
 
-    /** Remove given node from current mesh.
-     */
-    void RemoveNode(NodeType& ThisNode, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveNode(ThisNode);
-    }
+	/** Remove given node from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveNode(NodeType& ThisNode, IndexType ThisIndex = 0);
 
-    /** Remove given node from current mesh.
-     */
-    void RemoveNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveNode(pThisNode);
-    }
+	/** Remove given node from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
+
+	/** Remove the node with given Id from mesh with ThisIndex in parents and children.
+	*/
+	void RemoveNodeFromAllLevels(IndexType NodeId, IndexType ThisIndex = 0);
+
+	/** Remove given node from current mesh with ThisIndex in parents and children.
+	*/
+	void RemoveNodeFromAllLevels(NodeType& ThisNode, IndexType ThisIndex = 0);
+
+	/** Remove given node from current mesh with ThisIndex in parents and children.
+	*/
+	void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
@@ -657,7 +383,7 @@ public:
     }
 
     template<class TDataType>
-    void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+	void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
         mVariablesList.Add(ThisVariable);
     }
@@ -667,11 +393,7 @@ public:
         return mVariablesList;
     }
 
-    void SetNodalSolutionStepVariablesList()
-    {
-        for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-            i_node->SetSolutionStepVariablesList(&mVariablesList);
-    }
+	void SetNodalSolutionStepVariablesList();
 
     SizeType GetNodalSolutionStepDataSize()
     {
@@ -695,10 +417,7 @@ public:
 
     /** Inserts a Table
      */
-    void AddTable(IndexType TableId, TableType::Pointer pNewTable)
-    {
-        mTables.insert(TableId, pNewTable);
-    }
+	void AddTable(IndexType TableId, TableType::Pointer pNewTable);
 
     /** Returns the Table::Pointer  corresponding to it's identifier */
     TableType::Pointer pGetTable(IndexType TableId)
@@ -712,12 +431,13 @@ public:
         return mTables[TableId];
     }
 
-    /** Remove the Table with given Id from current mesh.
-     */
-    void RemoveTable(IndexType TableId)
-    {
-        mTables.erase(TableId);
-    }
+	/** Remove the Table with given Id from current mesh in this modelpart and all its subs.
+	*/
+	void RemoveTable(IndexType TableId);
+
+	/** Remove the Table with given Id from current mesh in parents, itself and all children.
+	*/
+	void RemoveTableFromAllLevels(IndexType TableId);
 
 
     TableIterator TablesBegin()
@@ -763,10 +483,7 @@ public:
 
     /** Inserts a properties in the current mesh.
      */
-    void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).AddProperties(pNewProperties);
-    }
+	void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
 
     /** Returns the Properties::Pointer  corresponding to it's identifier */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
@@ -780,26 +497,29 @@ public:
         return GetMesh(ThisIndex).GetProperties(PropertiesId);
     }
 
-    /** Remove the Properties with given Id from current mesh.
-     */
-    void RemoveProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveProperties(PropertiesId);
-    }
+	/** Remove the Properties with given Id from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveProperties(IndexType PropertiesId, IndexType ThisIndex = 0);
 
-    /** Remove given Properties from current mesh.
-     */
-    void RemoveProperties(PropertiesType& ThisProperties, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveProperties(ThisProperties);
-    }
+	/** Remove given Properties from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveProperties(PropertiesType& ThisProperties, IndexType ThisIndex = 0);
 
-    /** Remove given Properties from current mesh.
-     */
-    void RemoveProperties(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveProperties(pThisProperties);
-    }
+	/** Remove given Properties from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveProperties(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0);
+
+	/** Remove the Properties with given Id from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemovePropertiesFromAllLevels(IndexType PropertiesId, IndexType ThisIndex = 0);
+
+	/** Remove given Properties from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemovePropertiesFromAllLevels(PropertiesType& ThisProperties, IndexType ThisIndex = 0);
+
+	/** Remove given Properties from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemovePropertiesFromAllLevels(PropertiesType::Pointer pThisProperties, IndexType ThisIndex = 0);
 
     PropertiesIterator PropertiesBegin(IndexType ThisIndex = 0)
     {
@@ -857,37 +577,15 @@ public:
 
     /** Inserts a element in the current mesh.
      */
-    void AddElement(ElementType::Pointer pNewElement, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).AddElement(pNewElement);
-    }
+    void AddElement(ElementType::Pointer pNewElement, IndexType ThisIndex = 0);
     
     /** Inserts an element in the current mesh.
      */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
-    {
-        Geometry< Node < 3 > >::PointsArrayType pElementNodes;
-    
-        for(unsigned int i = 0; i < ElementNodeIds.size(); i++) {
-            pElementNodes.push_back(pGetNode(ElementNodeIds[i]));
-        }
-        
-        return CreateNewElement(ElementName,Id,pElementNodes,pProperties,ThisIndex);
-    }
+    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
     
     /** Inserts an element in the current mesh.
      */
-    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
-    {
-        //create the new element
-        ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
-        Element::Pointer p_element = r_clone_element.Create(Id, pElementNodes, pProperties);
-
-        //add the new element
-        GetMesh(ThisIndex).AddElement(p_element);
-
-        return p_element;
-    }
+    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
@@ -901,26 +599,29 @@ public:
         return GetMesh(ThisIndex).GetElement(ElementId);
     }
 
-    /** Remove the element with given Id from current mesh.
-     */
-    void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveElement(ElementId);
-    }
+	/** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0);
 
-    /** Remove given element from current mesh.
-     */
-    void RemoveElement(ElementType& ThisElement, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveElement(ThisElement);
-    }
+	/** Remove given element from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveElement(ElementType& ThisElement, IndexType ThisIndex = 0);
 
-    /** Remove given element from current mesh.
-     */
-    void RemoveElement(ElementType::Pointer pThisElement, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveElement(pThisElement);
-    }
+	/** Remove given element from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveElement(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
+
+	/** Remove the element with given Id from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemoveElementFromAllLevels(IndexType ElementId, IndexType ThisIndex = 0);
+
+	/** Remove given element from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemoveElementFromAllLevels(ElementType& ThisElement, IndexType ThisIndex = 0);
+
+	/** Remove given element from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemoveElementFromAllLevels(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
 
     ElementIterator ElementsBegin(IndexType ThisIndex = 0)
     {
@@ -974,37 +675,19 @@ public:
 
     /** Inserts a condition in the current mesh.
      */
-    void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).AddCondition(pNewCondition);
-    }
+    void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0);
     
     /** Inserts a condition in the current mesh.
      */
-    ConditionType::Pointer CreateNewCondition(std::string ConditionName, IndexType Id, std::vector<IndexType> ConditionNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
-    {
-        Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
-    
-        for(unsigned int i = 0; i < ConditionNodeIds.size(); i++) {
-            pConditionNodes.push_back(pGetNode(ConditionNodeIds[i]));
-        }
-        
-        return CreateNewCondition(ConditionName,Id,pConditionNodes,pProperties,ThisIndex);
-    }
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName, 
+		IndexType Id, std::vector<IndexType> ConditionNodeIds, 
+		PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
     
     /** Inserts a condition in the current mesh.
      */
-    ConditionType::Pointer CreateNewCondition(std::string ConditionName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
-    {
-        //get the element
-        ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
-        ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pConditionNodes, pProperties);
-
-        //add the new element
-        GetMesh(ThisIndex).AddCondition(p_condition);
-
-        return p_condition;
-    }
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName, 
+		IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes, 
+		PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
@@ -1018,26 +701,29 @@ public:
         return GetMesh(ThisIndex).GetCondition(ConditionId);
     }
 
-    /** Remove the condition with given Id from current mesh.
-     */
-    void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveCondition(ConditionId);
-    }
+	/**  Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0);
 
-    /** Remove given condition from current mesh.
-     */
-    void RemoveCondition(ConditionType& ThisCondition, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveCondition(ThisCondition);
-    }
+	/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveCondition(ConditionType& ThisCondition, IndexType ThisIndex = 0);
 
-    /** Remove given condition from current mesh.
-     */
-    void RemoveCondition(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0)
-    {
-        GetMesh(ThisIndex).RemoveCondition(pThisCondition);
-    }
+	/** Remove given condition from mesh with ThisIndex in this modelpart and all its subs.
+	*/
+	void RemoveCondition(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
+
+	/**  Remove the condition with given Id from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemoveConditionFromAllLevels(IndexType ConditionId, IndexType ThisIndex = 0);
+
+	/** Remove given condition from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemoveConditionFromAllLevels(ConditionType& ThisCondition, IndexType ThisIndex = 0);
+
+	/** Remove given condition from mesh with ThisIndex in parents, itself and children.
+	*/
+	void RemoveConditionFromAllLevels(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
 
     ConditionIterator ConditionsBegin(IndexType ThisIndex = 0)
     {
@@ -1079,7 +765,79 @@ public:
         return GetMesh(ThisIndex).ConditionsArray();
     }
 
-    ///@}
+
+	///@}
+	///@name Sub model parts
+	///@{
+
+	SizeType NumberOfSubModelParts() const
+	{
+		return mSubModelParts.size();
+	}
+
+	/** Creates a new sub model part with given name.
+		Does nothing if a sub model part with the same name exist.
+	*/
+	ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
+
+	/** Returns a reference to the sub_model part with given string name
+		In debug gives an error if does not exist.
+	*/
+	ModelPart& GetSubModelPart(std::string const& SubModelPartName)
+	{	
+		SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+		if(i == mSubModelParts.end())
+			KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part" << std::endl;
+
+		return *i;
+	}
+	
+	/** Remove a sub modelpart with given name.
+	*/
+	void RemoveSubModelPart(std::string const& ThisSubModelPartName);
+
+	/** Remove given sub model part.
+	*/
+	void RemoveSubModelPart(ModelPart& ThisSubModelPart);
+
+	SubModelPartIterator SubModelPartsBegin()
+	{
+		return mSubModelParts.begin();
+	}
+
+	SubModelPartConstantIterator SubModelPartsBegin() const
+	{
+		return mSubModelParts.begin();
+	}
+
+	SubModelPartIterator SubModelPartsEnd()
+	{
+		return mSubModelParts.end();
+	}
+
+	SubModelPartConstantIterator SubModelPartsEnd() const
+	{
+		return mSubModelParts.end();
+	}
+
+	SubModelPartsContainerType& SubModelParts()
+	{
+		return mSubModelParts;
+	}
+
+
+	ModelPart* GetParentModelPart() const
+	{
+		return mpParentModelPart;
+	}
+
+	bool HasSubModelPart(std::string const& ThisSubModelPartName)
+	{
+		return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
+	}
+
+
+	///@}
     ///@name Access
     ///@{
 
@@ -1178,24 +936,19 @@ public:
         mpCommunicator = pNewCommunicator;
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+	///@}
+	///@name Operations
+	///@{
 
-    void SetBufferSize(IndexType NewBufferSize)
-    {
-        mBufferSize = NewBufferSize;
-
-        for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
-            node_iterator->SetBufferSize(mBufferSize);
-
-    }
+	void SetBufferSize(IndexType NewBufferSize);
 
     IndexType GetBufferSize()
     {
         return mBufferSize;
     }
 
+    /// run input validation
+    virtual int Check( ProcessInfo& rCurrentProcessInfo ) const;
 
     ///@}
     ///@name Access
@@ -1206,93 +959,27 @@ public:
     ///@name Inquiry
     ///@{
 
+	bool IsSubModelPart() const
+	{
+		return (mpParentModelPart != NULL);
+	}
 
     ///@}
     ///@name Input and output
     ///@{
 
-    /// run input validation
-    virtual int Check( ProcessInfo& rCurrentProcessInfo ) const
-    {
-        KRATOS_TRY
-        int err = 0;
-        for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
-            err = elem_iterator->Check(rCurrentProcessInfo);
-        for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
-            err = condition_iterator->Check(rCurrentProcessInfo);
-        return err;
-        KRATOS_CATCH("");
-    }
-
     /// Turn back information as a string.
-
-    virtual std::string Info() const
-    {
-        return mName + " model part";
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << Info();
-    }
+    virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString="") const;
 
     /// Print object's data.
-
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        rOStream << "    Buffer Size : " << mBufferSize << std::endl;
-        rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
-        mpProcessInfo->PrintData(rOStream);
-        rOStream << std::endl;
-        for (IndexType i = 0; i < mMeshes.size(); i++)
-        {
-            rOStream << "    Mesh " << i << " : " << std::endl;
-            GetMesh(i).PrintData(rOStream);
-        }
-    }
+    virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString = "") const;
 
 
     ///@}
     ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
 
@@ -1311,8 +998,6 @@ private:
 
     IndexType mBufferSize;
 
-    IndexType mCurrentIndex;
-
     ProcessInfo::Pointer mpProcessInfo;
 
     TablesContainerType mTables;
@@ -1325,6 +1010,10 @@ private:
 
     Communicator::Pointer mpCommunicator;
 
+	ModelPart* mpParentModelPart;
+
+	SubModelPartsContainerType mSubModelParts;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -1334,36 +1023,20 @@ private:
     ///@name Private Operations
     ///@{
 
+	void SetParentModelPart(ModelPart* pParentModelPart)
+	{
+		mpParentModelPart = pParentModelPart;
+	}
+
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
-        rSerializer.save("Name",mName);
-        rSerializer.save("Buffer Size",mBufferSize);
-        rSerializer.save("Current Index",mCurrentIndex);
-        rSerializer.save("ProcessInfo", mpProcessInfo);
-        const VariablesList* p_list = &mVariablesList;
-        // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
-        rSerializer.save("Variables List", p_list);
-        rSerializer.save("Meshes", mMeshes);
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
-        rSerializer.load("Name",mName);
-        rSerializer.load("Buffer Size",mBufferSize);
-        rSerializer.load("Current Index",mCurrentIndex);
-        rSerializer.load("ProcessInfo", mpProcessInfo);
-        VariablesList* p_list = &mVariablesList;
-        rSerializer.load("Variables List", p_list);
-        rSerializer.load("Meshes", mMeshes);
-    }
+    virtual void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private  Access
@@ -1396,20 +1069,12 @@ private:
 
 
 /// input stream function
-inline std::istream & operator >>(std::istream& rIStream,
+KRATOS_API(KRATOS_CORE) inline std::istream & operator >>(std::istream& rIStream,
                                   ModelPart& rThis);
 
 /// output stream function
-
-inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const ModelPart& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
+KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream,
+                                  const ModelPart& rThis);
 ///@}
 
 
