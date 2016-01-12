@@ -1,28 +1,17 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand 
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-
-#if !defined(KRATOS_DEFINE )
-#define  KRATOS_DEFINE
+#if !defined(KRATOS_DEFINE_H_INCLUDED )
+#define  KRATOS_DEFINE_H_INCLUDED
 
 /* System includes */
 #include <stdexcept>
@@ -38,8 +27,9 @@
 #include "includes/constant.h"
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
+#include "includes/kratos_exception.h"
 
-#define KRATOS_BOOST_SERIALIZATION_DEFINED
+
 
 #define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
 typedef boost::shared_ptr<a > SharedPointer; \
@@ -124,22 +114,31 @@ KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
 #define KRATOS_CATCH_LEVEL_4(MoreInfo) }
 #endif
 
+#ifndef KRATOS_CURRENT_FUNCTION
+#define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
+#endif
+
+#ifndef KRATOS_HERE
+#define KRATOS_HERE  __FILE__ << ":" << __LINE__ << ":" << KRATOS_CURRENT_FUNCTION
+#endif
+
+
 #define KRATOS_CATCH_AND_THROW(ExceptionType, MoreInfo, Block) \
 catch(ExceptionType& e)                                        \
 {                                                              \
 Block                                                          \
 std::stringstream buffer;                                      \
-buffer << e.what() << std::endl;                               \
-buffer << "\nwhile executing : " << BOOST_CURRENT_FUNCTION << " [ " << __FILE__ << " , Line " << __LINE__ << " ] " << MoreInfo ; \
-throw ExceptionType(buffer.str());                             \
+buffer << "\nwhile executing : " << KRATOS_HERE << MoreInfo ; \
+throw KratosException(e.what(), buffer.str());                             \
 }
 
 #define KRATOS_THROW_ERROR(ExceptionType, ErrorMessage, MoreInfo)    \
 {                                                              \
-std::stringstream kratos_error_buffer_12345;                                      \
-kratos_error_buffer_12345 << "in " << BOOST_CURRENT_FUNCTION << " [ " << __FILE__ << " , Line " << __LINE__ << " ]" << std::endl; \
-kratos_error_buffer_12345 << "\nwith subject    :  " << ErrorMessage << " " << MoreInfo; \
-throw ExceptionType(kratos_error_buffer_12345.str());                             \
+std::stringstream kratos_error_buffer_where_12345;                                      \
+std::stringstream kratos_error_buffer_what_12345;                                      \
+kratos_error_buffer_where_12345 << KRATOS_HERE << std::endl; \
+kratos_error_buffer_what_12345 << ErrorMessage << " " << MoreInfo; \
+throw KratosException(kratos_error_buffer_what_12345.str(), kratos_error_buffer_where_12345.str());                             \
 }
 
 #define KRATOS_CATCH_WITH_BLOCK(MoreInfo,Block) \
@@ -173,6 +172,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 //
 // variables
 //
+
 //-----------------------------------------------------------------
 
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
@@ -431,4 +431,4 @@ typedef const char* PointerToConstCharType;
 	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
 
 
-#endif /* KRATOS_DEFINE  defined */
+#endif /* KRATOS_DEFINE_H_INCLUDED  defined */
