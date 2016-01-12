@@ -39,7 +39,7 @@ if(cl.WorkingSpaceDimension() != dim):
 ##set the parameters to be employed
 #note that here i am adding them all to check that this does not fail
 cl_options = Flags()
-cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN, True)
+cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN, False)
 cl_options.Set(ConstitutiveLaw.COMPUTE_STRESS, True)
 cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)
@@ -75,8 +75,8 @@ constitutive_matrix = Matrix(cl.GetStrainSize(),cl.GetStrainSize())
 #setting the parameters - note that a constitutive law may not need them all!
 cl_params = ConstitutiveLawParameters()
 cl_params.SetOptions( cl_options )
-cl_params.SetDeformationGradientF(F)
-cl_params.SetDeterminantF(detF)
+cl_params.SetDeformationGradientF( F )
+cl_params.SetDeterminantF( detF )
 cl_params.SetStrainVector( strain_vector )
 cl_params.SetStressVector( stress_vector )
 cl_params.SetConstitutiveMatrix( constitutive_matrix )
