@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics 
 //
@@ -787,7 +787,8 @@ public:
 	{	
 		SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
 		if(i == mSubModelParts.end())
-			KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part" << std::endl;
+		  KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
+		  //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
 		return *i;
 	}

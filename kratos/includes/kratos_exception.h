@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics 
 //
@@ -74,9 +74,9 @@ namespace Kratos
       /// Default constructor.
 	  KratosException();
 
-	  KratosException::KratosException(const std::string& rWhat );
+	  KratosException(const std::string& rWhat );
 
-      KratosException::KratosException(const std::string& rWhat, const std::string& rWhere);
+      KratosException(const std::string& rWhat, const std::string& rWhere);
 	  
 	  /// Copy constructor.
       KratosException(KratosException const& rOther);
@@ -108,9 +108,9 @@ namespace Kratos
 	  */
 	  const char* what() const noexcept;
 
-	  const std::string& KratosException::message() const;
+	  const std::string& message() const;
 
-	  const std::string& KratosException::where() const;
+	  const std::string& where() const;
 
       
       ///@}
@@ -235,15 +235,15 @@ namespace Kratos
  
   /// input stream function
   std::istream& operator >> (std::istream& rIStream, 
-				    KratosException& rThis);
+  				    KratosException& rThis);
 
   /// output stream function
-  std::ostream& operator << (std::ostream& rOStream,
-	  const KratosException& rThis);
+  //std::ostream& operator << (std::ostream& rOStream,
+  //	  const KratosException& rThis);
 
   /// string stream function
   template<class StreamValueType>
-  KratosException& operator << (KratosException& rThis, StreamValueType const& rValue)
+  KratosException operator << (KratosException& rThis, StreamValueType const& rValue)
   {
 	  std::stringstream buffer;
 	  buffer << rValue;
@@ -255,9 +255,9 @@ namespace Kratos
 
   /// Manipulator stream function
 //  template<class StreamValueType>
-  KRATOS_API(KRATOS_CORE) KratosException& operator << (KratosException& rThis, std::ostream& (*pf)(std::ostream&));
+  KRATOS_API(KRATOS_CORE) KratosException operator << (KratosException& rThis, std::ostream& (*pf)(std::ostream&));
   /// char stream function
-  KRATOS_API(KRATOS_CORE) KratosException& operator << (KratosException& rThis, const char * rString);
+  KRATOS_API(KRATOS_CORE) KratosException operator << (KratosException& rThis, const char * rString);
 
   ///@}
 
