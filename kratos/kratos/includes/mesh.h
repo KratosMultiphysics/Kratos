@@ -1,9 +1,14 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                    
 //
 // 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 // 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
@@ -636,18 +641,18 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString = "") const
     {
-        rOStream << Info();
+        rOStream << PrefixString << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString = "") const
     {
-        rOStream << "    Number of Nodes      : " << mpNodes->size() << std::endl;
-        rOStream << "    Number of Properties : " << mpProperties->size() << std::endl;
-        rOStream << "    Number of Elements   : " << mpElements->size() << std::endl;
-        rOStream << "    Number of Conditions : " << mpConditions->size() << std::endl;
+        rOStream << PrefixString << "    Number of Nodes      : " << mpNodes->size() << std::endl;
+        rOStream << PrefixString << "    Number of Properties : " << mpProperties->size() << std::endl;
+        rOStream << PrefixString << "    Number of Elements   : " << mpElements->size() << std::endl;
+        rOStream << PrefixString << "    Number of Conditions : " << mpConditions->size() << std::endl;
     }
 
 
