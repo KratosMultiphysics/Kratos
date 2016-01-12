@@ -273,6 +273,16 @@ public:
     )
     {
     }
+    
+    virtual void InitializeNonLinearIteration(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+    }
 
     virtual void FinalizeSolutionStep(
         ModelPart& r_model_part,
@@ -284,6 +294,16 @@ public:
     {
     }
 
+    virtual void FinalizeNonLinearIteration(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+    }
+    
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
