@@ -1238,7 +1238,7 @@ public:
         KRATOS_TRY
 
         typedef Dof<double> TDofType;
-        typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+        typedef PointerVectorSet<TDofType, SetIdentityFunction<TDofType> > DofsArrayType;
         typedef std::vector<std::size_t> EquationIdVectorType;
         ModelPart& r_model_part  = BaseType::GetModelPart();
         NodesArrayType& pNodes   = r_model_part.Nodes();
