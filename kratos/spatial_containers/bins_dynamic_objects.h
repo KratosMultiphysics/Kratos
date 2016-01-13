@@ -287,7 +287,7 @@ public:
         SearchInRadius(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -302,7 +302,7 @@ public:
         SearchInRadiusExclusive(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -317,7 +317,7 @@ public:
         SearchInRadius(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -332,101 +332,101 @@ public:
         SearchInRadiusExclusive(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
-    
+
 //************************************************************************
 //************************************************************************
-    
+
     void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
                                std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {   
+    {
         PointType Low, High;
         SearchStructureType Box;
 
         #pragma omp parallel for private(Low,High,Box)
-        for(size_t i = 0; i < NumberOfObjects; i++)
-        {   
+        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
+        {
             ResultIteratorType ResultsPointer            = Results[i].begin();
 
             NumberOfResults[i] = 0;
-            
+
             TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-            
-            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+
+            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
         }
 
     }
-    
+
 //************************************************************************
 //************************************************************************
-    
+
     void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
                                     std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {  
+    {
         PointType Low, High;
         SearchStructureType Box;
 
         #pragma omp parallel for private(Low,High,Box)
-        for(size_t i = 0; i < NumberOfObjects; i++)
-        {   
+        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
+        {
             ResultIteratorType ResultsPointer            = Results[i].begin();
 
             NumberOfResults[i] = 0;
-            
+
             TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-            
-            SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+
+            SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
         }
 
     }
-    
+
 //************************************************************************
 //************************************************************************
-    
+
     void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
                                std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {   
+    {
         PointType Low, High;
         SearchStructureType Box;
 
         #pragma omp parallel for private(Low,High,Box)
-        for(size_t i = 0; i < NumberOfObjects; i++)
-        {   
+        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
+        {
             ResultIteratorType ResultsPointer            = Results[i].begin();
             DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
 
             NumberOfResults[i] = 0;
-            
+
             TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-            
-            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+
+            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
         }
 
     }
-    
+
 //************************************************************************
 //************************************************************************
-    
+
     void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
                                     std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {  
+    {
         PointType Low, High;
         SearchStructureType Box;
 
         #pragma omp parallel for private(Low,High,Box)
-        for(size_t i = 0; i < NumberOfObjects; i++)
-        {   
+        for(int i = 0; i < static_cast<int>(NumberOfObjects); i++)
+        {
             ResultIteratorType ResultsPointer            = Results[i].begin();
             DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
 
             NumberOfResults[i] = 0;
-            
+
             TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-            
-            SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+
+            SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
         }
 
     }
@@ -634,10 +634,10 @@ private:
                 mMinPoint[i] = (mMinPoint[i]  > Low[i])  ? Low[i]  : mMinPoint[i];
             }
         }
-        
+
         PointType Epsilon = mMaxPoint - mMinPoint;
-      
-        for(SizeType i = 0 ; i < Dimension ; i++) 
+
+        for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMaxPoint[i] += Epsilon[i] * 0.01;
             mMinPoint[i] -= Epsilon[i] * 0.01;
@@ -836,7 +836,7 @@ private:
             }
         }
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -1083,7 +1083,7 @@ private:
             }
         }
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -1249,7 +1249,7 @@ private:
             }
         }
     }
-    
+
 //************************************************************************
 //************************************************************************
 
@@ -1670,7 +1670,7 @@ private:
     SizeArray        mN;
 
     CellContainerType mCells;  ///The bin
-        
+
 
     ///@}
     ///@name Private Operators
@@ -1729,7 +1729,7 @@ public:
     {
         *this =  rOther;
     }
-    
+
     /// Copy constructor.
     template<class T>
     BinsObjectDynamic(const BinsObjectDynamic<T>& rOther)
@@ -1775,5 +1775,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
-
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
