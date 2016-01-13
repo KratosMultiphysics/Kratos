@@ -83,13 +83,13 @@ template<class TDataType>
   }
 
 template<int TDim>
-void AddDEMCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionModule, const VariableData& rThisVariable)
+void AddDEMCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, const VariableData& rThisVariable)
 {
     rProjectionModule.AddDEMCouplingVariable(rThisVariable);
 }
 
 template<int TDim>
-void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionModule, const VariableData& rThisVariable)
+void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticle>& rProjectionModule, const VariableData& rThisVariable)
 {
     rProjectionModule.AddFluidCouplingVariable(rThisVariable);
 }
@@ -230,25 +230,25 @@ using namespace boost::python;
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <3>::CalculateGlobalFluidVolume)
         ;
     
-    class_<BinBasedDEMFluidCoupledMapping <2> >
+    class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int>())
-        .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2> ::InterpolateFromFluidMesh)
-        .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2> ::InterpolateFromDEMMesh)
-        .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2> ::HomogenizeFromDEMMesh)
-        .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2> ::ComputePostProcessResults)
-        .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2> ::AddDEMCouplingVariable)
-        .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2> ::AddFluidCouplingVariable)
+        .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
+        .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromDEMMesh)
+        .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::HomogenizeFromDEMMesh)
+        .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ComputePostProcessResults)
+        .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMCouplingVariable)
+        .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping <3> >
+    class_<BinBasedDEMFluidCoupledMapping <3,SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping3D", init<double, int>())
-        .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3> ::InterpolateFromFluidMesh)
-        .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3> ::InterpolateFromNewestFluidMesh)
-        .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3> ::InterpolateFromDEMMesh)
-        .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3> ::HomogenizeFromDEMMesh)
-        .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3> ::ComputePostProcessResults)
-        .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3> ::AddDEMCouplingVariable)
-        .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3> ::AddFluidCouplingVariable)
+        .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
+        .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
+        .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromDEMMesh)
+        .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::HomogenizeFromDEMMesh)
+        .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::ComputePostProcessResults)
+        .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddDEMCouplingVariable)
+        .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidCouplingVariable)
         ;
 
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())

@@ -23,39 +23,27 @@
 // Project includes
 #include "includes/define.h"
 #include "../../applications/DEM_application/custom_elements/spheric_particle.h" 
+#include "../../applications/DEM_application/custom_elements/nanoparticle.h"
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
 
-  ///@name Kratos Globals
-  ///@{
-
-  ///@}
-  ///@name Type Definitions
-  ///@{
-
-  ///@}
-  ///@name  Enum's
-  ///@{
-
-  ///@}
-  ///@name  Functions
-  ///@{
-
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericSwimmingParticle : public SphericParticle
+  template< class TBaseElement >
+  class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericSwimmingParticle : public TBaseElement
     {
     public:
 
-
+      typedef std::size_t IndexType;
+      typedef Node <3> NodeType;
+      typedef Geometry<NodeType> GeometryType;
+      typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+      typedef Properties PropertiesType;
+      
+      using TBaseElement::GetGeometry;
+      using TBaseElement::GetDensity;
+      using TBaseElement::mRealMass;
+      using TBaseElement::mRadius;
+      
       ///@name Type Definitions
       ///@{
 
@@ -67,40 +55,23 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
+      SphericSwimmingParticle():TBaseElement(){};
+      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry):TBaseElement(NewId, pGeometry){};
+      SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){};
+      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){};
 
-      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry);
-      SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes);
-      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
-
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
+        return Element::Pointer(new SphericSwimmingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+      };
 
       /// Destructor.
-      virtual ~SphericSwimmingParticle();
+      virtual ~SphericSwimmingParticle(){};
 
-
-      ///@}
-      ///@name Operators
-      ///@{
+      
       void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
-      ///@}
-      ///@name Operations
-      ///@{
-
-      ///@}
-      ///@name Access
-      ///@{
       std::vector<Node<3>::Pointer> mNeighbourNodes;
       std::vector<double>   mNeighbourNodesDistances;
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Input and output
-      ///@{
 
       /// Turn back information as a string.
       virtual std::string Info() const
@@ -116,17 +87,8 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
 
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
-      ///@}
-
     protected:
-
-        SphericSwimmingParticle();
+        
         void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, ProcessInfo& r_current_process_info);
         void ComputeDragForce(array_1d<double, 3>& drag_force, ProcessInfo& r_current_process_info);
         void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, ProcessInfo& r_current_process_info);
@@ -285,11 +247,10 @@ namespace Kratos
 
 
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-                    SphericSwimmingParticle& rThis){ return rIStream;}
+  /*inline std::istream& operator >> (std::istream& rIStream, SphericSwimmingParticle& rThis){ return rIStream;}*/
 
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
+  /*inline std::ostream& operator << (std::ostream& rOStream,
                     const SphericSwimmingParticle& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -297,7 +258,7 @@ namespace Kratos
       rThis.PrintData(rOStream);
 
       return rOStream;
-    }
+    }*/
   ///@}
 
   ///@} addtogroup block

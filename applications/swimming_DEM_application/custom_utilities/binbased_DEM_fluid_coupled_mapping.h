@@ -70,8 +70,7 @@ namespace Kratos
 * For a more general tool that allows the mapping between 2 and 3D non-matching meshes, please see /kratos/applications/MeshingApplication/custom_utilities/projection.h
 */
 
-//class BinBasedDEMFluidCoupledMapping
-template <std::size_t TDim>
+template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 class BinBasedDEMFluidCoupledMapping
 {
 public:
@@ -95,7 +94,8 @@ typedef SpatialSearch::DistanceType                  DistanceType;
 typedef SpatialSearch::VectorDistanceType            VectorDistanceType;
 
 /// Pointer definition of BinBasedDEMFluidCoupledMapping
-KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
+typedef BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle> BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfSwimmingParticle;
+KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfSwimmingParticle);
 
 ///@}
 ///@name Life Cycle
@@ -476,45 +476,10 @@ NodesArrayType::iterator GetNodePartitionEnd(ModelPart& r_model_part, unsigned i
 
 protected:
 
-///@name Protected static Member rVariables
-///@{
-
-///@}
-///@name Protected member rVariables
-///@{ template<class T, std::size_t dim>
-
-///@}
-///@name Protected Operators
-///@{
-
-///@}
-///@name Protected Operations
-///@{
-
-///@}
-///@name Protected  Access
-///@{
 vector<unsigned int> mElementsPartition;
 vector<unsigned int> mNodesPartition;
 
-///@}
-///@name Protected Inquiry
-///@{
-
-///@}
-///@name Protected LifeCycle
-///@{
-
-///@}
-
 private:
-
-///@name Static Member rVariables
-///@{
-
-///@}
-///@name Member rVariables
-///@{
 
 double mMinFluidFraction;
 int mCouplingType;
@@ -525,7 +490,7 @@ PointPointSearch::Pointer mpPointPointSearch;
 
 // neighbour lists (for mCouplingType = 3)
 std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-std::vector<SphericSwimmingParticle*> mSwimmingSphereElementPointers;
+std::vector<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* > mSwimmingSphereElementPointers;
 VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
 VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
 
@@ -627,7 +592,7 @@ void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part,
 
     for (int i = 0; i < (int)n_nodes; i++){
         ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
-        SphericSwimmingParticle* p_particle = dynamic_cast<SphericSwimmingParticle*>(&(*i_particle));
+        SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = dynamic_cast<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* >(&(*i_particle));
 
         if (mVectorsOfNeighNodes[i].size()){
             p_particle->Set(INSIDE, true);
@@ -648,7 +613,7 @@ void RecalculateDistances(ModelPart& r_dem_model_part){
     mVectorsOfDistances.resize(n_particles);
 
     for (int i = 0; i != n_particles; ++i){
-        SphericSwimmingParticle* p_particle = mSwimmingSphereElementPointers[i];
+        SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = mSwimmingSphereElementPointers[i];
         int n_neighbours = (int)p_particle->mNeighbourNodes.size();
         mVectorsOfDistances[i].resize(n_neighbours);
 
@@ -1505,7 +1470,7 @@ void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part){
     unsigned int i = 0;
 
     for (ElementsArrayType::iterator i_elem = r_dem_model_part.ElementsBegin(); i_elem != r_dem_model_part.ElementsEnd(); ++i_elem){
-        mSwimmingSphereElementPointers[i] = &(dynamic_cast<Kratos::SphericSwimmingParticle&>(*i_elem));
+        mSwimmingSphereElementPointers[i] = &(dynamic_cast<Kratos::SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>&>(*i_elem));
         ++i;
     }
 }
@@ -1513,7 +1478,7 @@ void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part){
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle* b){
+double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b){
     array_1d<double, 3> coor_a = a->Coordinates();
     array_1d<double, 3> coor_b = b->GetGeometry()[0].Coordinates();
     return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));
@@ -1560,9 +1525,9 @@ BinBasedDEMFluidCoupledMapping& operator=(BinBasedDEMFluidCoupledMapping const& 
 ///@{
 
 /// output stream function
-template<std::size_t TDim>
+template<std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const BinBasedDEMFluidCoupledMapping<TDim>& rThis)
+                                  const BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

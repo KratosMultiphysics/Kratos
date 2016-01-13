@@ -20,6 +20,7 @@
 #include "swimming_DEM_application.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
+#include "geometries/sphere_3d_1.h"
 #include "../DEM_application/DEM_application.h"
 #include "../FluidDynamicsApplication/fluid_dynamics_application.h"
 
@@ -34,7 +35,8 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
   mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
   mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-  mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >(Element::GeometryType::PointsArrayType( 1, Node<3>()))))
+  mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType( 1, Node<3>())))),
+  mSwimmingNanoParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType( 1, Node<3>()))))
 {}
 
 void KratosSwimmingDEMApplication::Register()
@@ -53,6 +55,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak2D", mMonolithicDEMCoupledWeak2D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak3D", mMonolithicDEMCoupledWeak3D)
   KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
+  KRATOS_REGISTER_ELEMENT("SwimmingNanoParticle3D", mSwimmingNanoParticle3D)
 
   Serializer::Register( "VariablesList", mVariablesList );
  }
