@@ -70,7 +70,6 @@ namespace Kratos
 * For a more general tool that allows the mapping between 2 and 3D non-matching meshes, please see /kratos/applications/MeshingApplication/custom_utilities/projection.h
 */
 
-<<<<<<< .mine
 //class BinBasedDEMFluidCoupledMapping
 
 // Some function definitions
@@ -91,10 +90,8 @@ void ModifyViscosityLikeLiu(double & viscosity, const double solid_fraction)
 //***************************************************************************************************************
 
 
-template <std::size_t TDim>
-=======
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
->>>>>>> .r13259
+
 class BinBasedDEMFluidCoupledMapping
 {
 public:
