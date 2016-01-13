@@ -786,7 +786,7 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			  //	ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				
 			std::cout << "projecting info to mesh (semi implicit)" << std::endl;
 
