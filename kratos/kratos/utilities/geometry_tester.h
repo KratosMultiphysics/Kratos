@@ -117,6 +117,9 @@ public:
 
         if(TestPrism3D6N( error_msg ) == false) succesful=false;
 
+        if(succesful == false)
+            std::cout << "*** some errors were detected in the GeometryTester Utility ***" << std::endl;
+
         return error_msg.str();
     }
 
