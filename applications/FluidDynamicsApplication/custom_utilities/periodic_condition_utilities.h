@@ -161,7 +161,7 @@ public:
     PeriodicConditionUtilities(ModelPart& ThisModelPart,
                                SizeType ThisDomainSize):
         mrModelPart(ThisModelPart),
-        mDomainSize(ThisDomainSize),
+	  /*mDomainSize(ThisDomainSize),*/
         mpSearchStrategy()
     {}
 
@@ -419,7 +419,7 @@ private:
     ModelPart& mrModelPart;
 
     /// Number of spatial dimensions
-    SizeType mDomainSize;
+    //SizeType mDomainSize;
 
     /// Nodes in mrModelPart identified as candidates for the periodic condition
     PointVector mCandidateNodes;
