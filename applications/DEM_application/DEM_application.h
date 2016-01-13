@@ -27,6 +27,7 @@
 #include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/nanoparticle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/custom_clusters/linecluster3D.h"
@@ -198,6 +199,7 @@ private:
     const CylinderParticle mCylinderParticle2D;
     const CylinderContinuumParticle mCylinderContinuumParticle2D;
     const SphericParticle mSphericParticle3D;
+    const SphericParticle mNanoParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D; 
     const ThermalSphericParticle mThermalSphericContinuumParticle3D;  
     const Particle_Contact_Element mParticleContactElement;

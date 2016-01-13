@@ -382,6 +382,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
   // *************** Thermal only END ***************   
   
+  //NANO PARTICLES
+  KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 
   /************************************************************************************************************************************************************/
   /************************************************************************************************************************************************************/
@@ -392,6 +394,7 @@ namespace Kratos
   mCylinderParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mCylinderContinuumParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+  mNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
@@ -689,7 +692,10 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(HEATFLUX)
     KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)        
     // *************** Thermal only END ***************       
-            
+    
+    // NANO PARTICLES
+    KRATOS_REGISTER_VARIABLE(SEARCH_RADIUS)
+    
     // Possible future blocks (no FEM) interaction
 
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
@@ -778,6 +784,7 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("CylinderParticle2D", mCylinderParticle2D)
     KRATOS_REGISTER_ELEMENT("CylinderContinuumParticle2D", mCylinderContinuumParticle2D)
     KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
+    KRATOS_REGISTER_ELEMENT("NanoParticle3D", mSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)

@@ -1320,7 +1320,7 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
                                               array_1d<double, 3>& externally_applied_moment,
                                               ProcessInfo& r_process_info, const array_1d<double,3>& gravity)
 {
-    externally_applied_force = mRealMass * gravity;
+    noalias(externally_applied_force) += mRealMass * gravity;
 }
 
 void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
@@ -1483,22 +1483,23 @@ void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Outp
 void SphericParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info){}
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
-int    SphericParticle::GetClusterId()                                                   { return mClusterId;                                                               }
-void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;                                                                 }
-double SphericParticle::GetRadius()                                                      { return mRadius;                                                                  }
-void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;                                                                }
-double SphericParticle::GetMass()                                                        { return mRealMass;                                                                }
-void   SphericParticle::SetMass(double real_mass)                                        { mRealMass = real_mass;                                                           }
+int    SphericParticle::GetClusterId()                                                   { return mClusterId;      }
+void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;   }
+double SphericParticle::GetRadius()                                                      { return mRadius;         }
+void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
+double SphericParticle::GetSearchRadius()                                                { return GetRadius();     }
+double SphericParticle::GetMass()                                                        { return mRealMass;       }
+void   SphericParticle::SetMass(double real_mass)                                        { mRealMass = real_mass;  }
 
-double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                          }
-double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                }
-double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                                        }
-double SphericParticle::GetTgOfFrictionAngle()                                           { return GetFastProperties()->GetTgOfFrictionAngle() ;                             }
-double SphericParticle::GetCoefficientOfRestitution()                                    { return GetFastProperties()->GetCoefficientOfRestitution();                                }
-double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                }
-double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                                        }
-int    SphericParticle::GetParticleMaterial()                                            { return GetFastProperties()->GetParticleMaterial();                               }
-double SphericParticle::GetParticleCohesion()                                            { return GetFastProperties()->GetParticleCohesion();                               }
+double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                     }
+double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();           }
+double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                   }
+double SphericParticle::GetTgOfFrictionAngle()                                           { return GetFastProperties()->GetTgOfFrictionAngle() ;        }
+double SphericParticle::GetCoefficientOfRestitution()                                    { return GetFastProperties()->GetCoefficientOfRestitution();  }
+double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();           }
+double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                   }
+int    SphericParticle::GetParticleMaterial()                                            { return GetFastProperties()->GetParticleMaterial();          }
+double SphericParticle::GetParticleCohesion()                                            { return GetFastProperties()->GetParticleCohesion();          }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                             }
 void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);        }
@@ -1525,7 +1526,7 @@ double SphericParticle::SlowGetYoung()                                          
 double SphericParticle::SlowGetRollingFriction()                                         { return GetProperties()[ROLLING_FRICTION_OPTION];                                 }
 double SphericParticle::SlowGetPoisson()                                                 { return GetProperties()[POISSON_RATIO];                                           }
 double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                       }
-double SphericParticle::SlowGetCoefficientOfRestitution()                                { return GetProperties()[COEFFICIENT_OF_RESTITUTION];                                 }
+double SphericParticle::SlowGetCoefficientOfRestitution()                                { return GetProperties()[COEFFICIENT_OF_RESTITUTION];                              }
 double SphericParticle::SlowGetLnOfRestitCoeff()                                         { return GetProperties()[LN_OF_RESTITUTION_COEFF];                                 }
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }

@@ -954,18 +954,12 @@ namespace Kratos {
             ProcessInfo& rCurrentProcessInfo,
             const array_1d<double, 3>& gravity) {
 
-        //const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
-
         KRATOS_TRY
-
+        SphericParticle::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);
+        
         if (rCurrentProcessInfo[TRIAXIAL_TEST_OPTION] && *mSkinSphere) { //could be applied to selected particles.
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
-        }
-
-        double mass = mRealMass;
-        additionally_applied_force[0] += mass * gravity[0];
-        additionally_applied_force[1] += mass * gravity[1];
-        additionally_applied_force[2] += mass * gravity[2];
+        }        
 
         KRATOS_CATCH("")
     }
@@ -1030,7 +1024,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo) {
 
-        externally_applied_force = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+        noalias(externally_applied_force) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
 
         /*
          double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
