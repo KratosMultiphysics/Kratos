@@ -108,7 +108,7 @@ public:
 
     void Initialize(ModelPart& ThisModelPart)
     {
-        const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+      //const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
 
         //need to compute neighbours
         NeighboursCalculatorType().Search_Neighbours(ThisModelPart);
@@ -183,7 +183,7 @@ public:
 
                 //const array_1d<double, 3 >& old_vel = i->FastGetSolutionStepValue(VELOCITY,1) ;
                 array_1d<double, 3 >& vel = (i->FastGetSolutionStepValue(VELOCITY)) ;
-                array_1d<double, 3 >& disp = (i->FastGetSolutionStepValue(DISPLACEMENT)) ;
+                //array_1d<double, 3 >& disp = (i->FastGetSolutionStepValue(DISPLACEMENT)) ;
                 const array_1d<double, 3 >& rhs = (i->FastGetSolutionStepValue(RHS)) ;
 
                 noalias(vel) += dt*rhs;
