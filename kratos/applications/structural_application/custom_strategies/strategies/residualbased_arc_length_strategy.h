@@ -773,7 +773,7 @@ public:
 		//Finalisation of the solution step,
 		//operations to be done after achieving convergence, for example the
 		//Final Residual Vector (mb) has to be saved in there
-		FinalizeSolutionStep(iteration_number,reduce_arc_lenght);
+		FinalizeSolutionStep_ArcLenght(iteration_number,reduce_arc_lenght);
 		
 		///Cleaning memory after the solution
 		pScheme->Clean();
@@ -1223,7 +1223,7 @@ private:
 
 
 
-    void FinalizeSolutionStep( unsigned int& iteration_number, bool &reduce_arc_lenght)
+    void FinalizeSolutionStep_ArcLenght( unsigned int& iteration_number, bool &reduce_arc_lenght)
     {
         KRATOS_TRY
 
