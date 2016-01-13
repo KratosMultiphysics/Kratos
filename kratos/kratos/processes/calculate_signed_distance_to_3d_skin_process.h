@@ -612,7 +612,10 @@ public:
             Vector Nlocal(3);
 
             //form a triangle with the edge nodes
-            Triangle3D3< Point<3> > triangle(edge_points[0], edge_points[1], edge_points[2]);
+            Triangle3D3< Point<3> > triangle(Point<3>::Pointer(new Point<3>(edge_points[0])), 
+					     Point<3>::Pointer(new Point<3>(edge_points[1])), 
+					     Point<3>::Pointer(new Point<3>(edge_points[2]))
+					     );
 
             array_1d<double,3> local_coords;
             local_coords = triangle.PointLocalCoordinates(local_coords, pNode);
@@ -684,7 +687,12 @@ public:
             }
 
             //form a quadrilateral with the edge nodes
-            Quadrilateral3D4< Point<3> > quad = Quadrilateral3D4< Point<3> >(edge_points[0], edge_points[min_pos], edge_points[center_pos], edge_points[max_pos] );
+            Quadrilateral3D4< Point<3> > quad = Quadrilateral3D4< Point<3> >(
+			Point<3>::Pointer(new Point<3>(edge_points[0])),
+			Point<3>::Pointer(new Point<3>(edge_points[min_pos])),
+			Point<3>::Pointer(new Point<3>(edge_points[center_pos])), 
+			Point<3>::Pointer(new Point<3>(edge_points[max_pos]))
+			);
 
             array_1d<double,3> local_coords;
             local_coords = quad.PointLocalCoordinates(local_coords, pNode);
