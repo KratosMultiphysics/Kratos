@@ -378,7 +378,7 @@ public:
             y[i] = 0.0;
 
         //Pragma atomic does not work with MSVC 19.0.23506 ( aka Visual Studio 2015 Update1 )
-#if(_MSC_FULL_VERSION == 190023506)
+#if(_MSC_FULL_VER == 190023506)
         for(int i=0; i<static_cast<int>(w.size()); i++)
         {
             y[w[i]] += x[i];
