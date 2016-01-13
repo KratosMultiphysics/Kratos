@@ -1214,24 +1214,20 @@ namespace Kratos
     void SetSearchRadius(ModelPart& r_model_part, double amplification)
     {
         KRATOS_TRY
-     
-        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-        
+            
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         
         mNumberOfElementsOldRadiusList = number_of_elements;
         
         this->GetRadius().resize(number_of_elements);
-
                 
         #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++ ){
-        
-            SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin() + i;
-            
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
-
+        for (int i=0; i<number_of_elements; i++){
+            this->GetRadius()[i] = amplification*(mSearchTolerance + mListOfSphericParticles[i]->GetSearchRadius());
         }
+        /*for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + p_spheric_particle->GetSearchRadius());//GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
+        }*/
 
         KRATOS_CATCH("")
     }

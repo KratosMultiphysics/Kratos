@@ -67,6 +67,7 @@ namespace Kratos
            
         virtual void AddPoissonContribution( const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
         virtual void ContactAreaWeighting();
+        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
         /// Turn back information as a string.
         virtual std::string Info() const
@@ -104,8 +105,7 @@ namespace Kratos
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         virtual void CustomInitialize();	
-        virtual double GetInitialDeltaWithFEM(int index);      
-        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
+        virtual double GetInitialDeltaWithFEM(int index);              
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                            array_1d<double, 3>& rContactForce, 
                                            array_1d<double, 3>& InitialRotaMoment, 

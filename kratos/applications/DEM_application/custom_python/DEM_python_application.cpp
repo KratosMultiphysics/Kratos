@@ -339,8 +339,9 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(HEATFLUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(THERMAL_CONDUCTIVITY)        
     // *************** Thermal only END ***************  
-                     
     
+    //NANO PARTICLES
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SEARCH_RADIUS)
 }
 
 
