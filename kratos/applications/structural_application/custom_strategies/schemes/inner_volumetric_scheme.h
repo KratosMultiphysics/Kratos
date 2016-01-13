@@ -670,7 +670,7 @@ private:
             double lambda = ielem->GetProperties()[LAMBDA];
             miu = miu*DT/DetF;
             lambda= lambda*DT/DetF;
-            double Ehypo = miu*(3*lambda+2*miu)/(lambda+miu);
+            //double Ehypo = miu*(3*lambda+2*miu)/(lambda+miu);
             double NUhypo = lambda/(2*(lambda+miu));
             //factor = Ehypo/(3*(1-2*NUhypo));
             factor= lambda + 2.0/3.0*miu;
