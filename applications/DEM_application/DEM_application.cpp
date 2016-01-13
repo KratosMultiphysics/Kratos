@@ -381,7 +381,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, HEATFLUX)
   KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
   // *************** Thermal only END ***************   
-  
   //NANO PARTICLES
   KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 
@@ -692,10 +691,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(HEATFLUX)
     KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)        
     // *************** Thermal only END ***************       
-    
-    // NANO PARTICLES
-    KRATOS_REGISTER_VARIABLE(SEARCH_RADIUS)
-    
+
     // Possible future blocks (no FEM) interaction
 
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
