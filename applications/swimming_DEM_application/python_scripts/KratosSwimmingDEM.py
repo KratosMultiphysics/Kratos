@@ -107,6 +107,9 @@ field1 = swim_proc.FluidFractionFieldUtility.LinearField(0.0,
 pp.fluid_fraction_fields.append(field1)
 
 # building lists of variables for which memory is to be allocated
+# TEMPORARY, HORRIBLE !!!
+pp.viscosity_modification_type = 0.0
+
 vars_man.ConstructListsOfVariables(pp)
 #_____________________________________________________________________________________________________________________________________
 #
@@ -167,9 +170,6 @@ dem_fem_search = DEM_FEM_Search()
 # Creating a solver object and set the search strategy
 
 solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
-
-# TEMPORARY, HORRIBLE !!!
-pp.viscosity_modification_type = 0
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
