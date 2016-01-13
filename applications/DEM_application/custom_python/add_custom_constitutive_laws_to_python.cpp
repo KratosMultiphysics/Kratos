@@ -12,6 +12,7 @@
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h" 
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
+#include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
 #include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
@@ -51,6 +52,9 @@ namespace Kratos {
 
             class_<DEM_D_Linear_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb",init<>())
                     ;          
+
+            class_<DEM_Bentonite_Colloid, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_Bentonite_Colloid",init<>())
+                    ;
             
             class_<DEM_D_Linear_viscous_Coulomb2D, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb2D",init<>())
                     ;  
