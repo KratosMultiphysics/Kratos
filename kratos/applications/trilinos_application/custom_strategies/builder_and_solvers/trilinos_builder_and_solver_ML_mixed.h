@@ -594,7 +594,7 @@ protected:
                     if (dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
                     {
 
-                        ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(dof_it->Id());
+		      //ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(dof_it->Id());
 
                         //							double xx = inode->X();
                         //							double yy = inode->Y();
@@ -698,7 +698,7 @@ protected:
                     if (dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
                     {
 
-                        ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(dof_it->Id());
+		      //ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(dof_it->Id());
 
                         //							double xx = inode->X();
                         //							double yy = inode->Y();
