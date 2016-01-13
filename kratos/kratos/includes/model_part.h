@@ -41,6 +41,7 @@
 #include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
 #include "utilities/logger.h"
+#include "includes/model_part.h"
 
 
 namespace Kratos
@@ -1071,11 +1072,22 @@ private:
 
 /// input stream function
 KRATOS_API(KRATOS_CORE) inline std::istream & operator >>(std::istream& rIStream,
-                                  ModelPart& rThis);
-
+                                  ModelPart& rThis)
+{
+    return rIStream;
+}
 /// output stream function
 KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const ModelPart& rThis);
+                                  const ModelPart& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+
 ///@}
 
 
