@@ -113,7 +113,7 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
     typedef Dof<TDataType> TDofType;
-    typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+    typedef PointerVectorSet<TDofType, SetIdentityFunction<TDofType> > DofsArrayType;
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
