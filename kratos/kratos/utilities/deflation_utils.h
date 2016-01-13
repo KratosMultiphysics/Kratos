@@ -377,6 +377,13 @@ public:
         for(int i=0; i<static_cast<int>(y.size()); i++)
             y[i] = 0.0;
 
+        //Pragma atomic does not work with MSVC 19.0.23506 ( aka Visual Studio 2015 Update1 )
+#if(_MSC_FULL_VERSION == 190023506)
+        for(int i=0; i<static_cast<int>(w.size()); i++)
+        {
+            y[w[i]] += x[i];
+        }
+#else
         //now apply the Wtranspose
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(w.size()); i++)
@@ -385,7 +392,7 @@ public:
             y[w[i]] += x[i];
         }
     }
-
+#endif
 
     //*******************************************************************************
     //*******************************************************************************
@@ -708,4 +715,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* DEFLATION_UTILS  defined */
-
