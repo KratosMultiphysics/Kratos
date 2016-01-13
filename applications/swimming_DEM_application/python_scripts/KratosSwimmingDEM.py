@@ -168,6 +168,9 @@ dem_fem_search = DEM_FEM_Search()
 
 solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
 
+# TEMPORARY, HORRIBLE !!!
+pp.viscosity_modification_type = 0
+
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
 procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
