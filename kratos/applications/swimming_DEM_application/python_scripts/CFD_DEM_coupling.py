@@ -10,22 +10,23 @@ class ProjectionModule:
 
     def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, pp):
 
-        self.fluid_model_part     = fluid_model_part
-        self.particles_model_part = balls_model_part
-        self.FEM_DEM_model_part   = FEM_DEM_model_part
-        self.dimension            = dimension
-        self.min_fluid_fraction   = pp.CFD_DEM.min_fluid_fraction
-        self.coupling_type        = pp.CFD_DEM.coupling_weighing_type
-        self.n_particles_in_depth = pp.CFD_DEM.n_particles_in_depth
-        self.meso_scale_length    = pp.CFD_DEM.meso_scale_length
-        self.shape_factor         = pp.CFD_DEM.shape_factor
+        self.fluid_model_part            = fluid_model_part
+        self.particles_model_part        = balls_model_part
+        self.FEM_DEM_model_part          = FEM_DEM_model_part
+        self.dimension                   = dimension
+        self.min_fluid_fraction          = pp.CFD_DEM.min_fluid_fraction
+        self.coupling_type               = pp.CFD_DEM.coupling_weighing_type
+        self.viscosity_modification_type = pp.CFD_DEM.viscosity_modification_type
+        self.n_particles_in_depth        = pp.CFD_DEM.n_particles_in_depth
+        self.meso_scale_length           = pp.CFD_DEM.meso_scale_length
+        self.shape_factor                = pp.CFD_DEM.shape_factor
 
         if (self.dimension == 3):
-            self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type)
+            self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.n_particles_in_depth)
+            self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type, self.n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
