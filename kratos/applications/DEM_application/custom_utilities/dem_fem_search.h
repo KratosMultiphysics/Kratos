@@ -296,7 +296,7 @@ class DEM_FEM_Search : public SpatialSearch
         std::size_t                           NumberOfResults = 0;
 
         #pragma omp for
-        for (int p = 0; p < elements_sear.size(); p++) {
+        for (int p = 0; p < (int)elements_sear.size(); p++) {
          
           Elem_iter it = elements_sear.begin() + p;
                   
