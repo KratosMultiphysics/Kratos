@@ -70,7 +70,31 @@ namespace Kratos
 * For a more general tool that allows the mapping between 2 and 3D non-matching meshes, please see /kratos/applications/MeshingApplication/custom_utilities/projection.h
 */
 
+<<<<<<< .mine
+//class BinBasedDEMFluidCoupledMapping
+
+// Some function definitions
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void ModifyViscosityLikeEinstein(double & viscosity, const double solid_fraction)
+{
+    viscosity *= (1.0 + 2.5 * solid_fraction);
+}
+
+void ModifyViscosityLikeLiu(double & viscosity, const double solid_fraction)
+{
+    viscosity *= (1.0 + 1.022 * solid_fraction + 1.358 * solid_fraction * solid_fraction * solid_fraction);
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+
+template <std::size_t TDim>
+=======
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
+>>>>>>> .r13259
 class BinBasedDEMFluidCoupledMapping
 {
 public:
@@ -116,10 +140,13 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 
 BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                const int coupling_type,
+                               const int viscosity_modification_type,
                                const int n_particles_per_depth_distance = 1)
                              : mMinFluidFraction(min_fluid_fraction),
                                mCouplingType(coupling_type),
+                               mViscosityModificationType(viscosity_modification_type),
                                mParticlesPerDepthDistance(n_particles_per_depth_distance)
+
 {
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
@@ -375,6 +402,29 @@ void ComputePostProcessResults(
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
     const ProcessInfo& r_current_process_info)
 {
+
+    if (IsFluidVariable(FLUID_FRACTION) && mViscosityModificationType){
+
+        void (*modify_viscosity)(double&, const double);
+        modify_viscosity = &ModifyViscosityLikeEinstein;
+
+        if (mViscosityModificationType == 2){
+            modify_viscosity = &ModifyViscosityLikeLiu;
+        }
+
+        else {
+            std::cout << "The viscosity modification type " << mViscosityModificationType << " is not supported";
+        }
+
+        //#pragma omp parallel for
+        for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
+            NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+            const double solid_fraction = 1.0 - i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+            double& viscosity           = i_node->FastGetSolutionStepValue(VISCOSITY);
+            modify_viscosity(viscosity, solid_fraction);
+        }
+    }
+
     if (IsDEMVariable(REYNOLDS_NUMBER)){
 
         //#pragma omp parallel for
@@ -411,6 +461,8 @@ void ComputePostProcessResults(
 
 //***************************************************************************************************************
 //***************************************************************************************************************
+
+
 
 ///@}
 ///@name Access
@@ -483,6 +535,7 @@ private:
 
 double mMinFluidFraction;
 int mCouplingType;
+int mViscosityModificationType;
 int mParticlesPerDepthDistance;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
