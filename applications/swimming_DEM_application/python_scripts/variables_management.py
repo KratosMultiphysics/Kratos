@@ -227,6 +227,9 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_fluid_vars += [GEL_STRENGTH]
         pp.coupling_fluid_vars += [YIELD_STRESS]
 
+    if (pp.viscosity_modification_type):
+        pp.coupling_fluid_vars += [VISCOSITY]
+
     # dem coupling variables
     pp.coupling_dem_vars = []
 
