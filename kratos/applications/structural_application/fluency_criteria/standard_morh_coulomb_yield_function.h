@@ -120,8 +120,8 @@ private:
     double mcohesion;
     double mpressure;
     double mcurrent_cohesion;
-    double mdilatancy_angle;
-    double minternal_friction_angle;
+    //double mdilatancy_angle;
+    //double minternal_friction_angle;
     double mmorh_coulomb_maccumulated_plastic_strain_old;
     double mmorh_coulomb_maccumulated_plastic_strain_current;
     Vector mElastic_strain;
