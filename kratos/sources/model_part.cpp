@@ -921,22 +921,22 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
 
 
 	/// input stream function
-	inline std::istream & operator >>(std::istream& rIStream,
-		ModelPart& rThis)
-	{
-		return rIStream;
-	}
+//	inline std::istream & operator >>(std::istream& rIStream,
+//		ModelPart& rThis)
+//	{
+//		return rIStream;
+//	}
 
-	/// output stream function
-	inline std::ostream & operator <<(std::ostream& rOStream,
-		const ModelPart& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+//	/// output stream function
+//	inline std::ostream & operator <<(std::ostream& rOStream,
+//		const ModelPart& rThis)
+//	{
+//		rThis.PrintInfo(rOStream);
+//		rOStream << std::endl;
+//		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
+//		return rOStream;
+//	}
 
 
 }  // namespace Kratos.
