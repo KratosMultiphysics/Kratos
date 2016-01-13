@@ -247,16 +247,16 @@ public:
 
         //info from the original model part
         ConditionsArrayType& rConditions = this_model_part.Conditions();
-        ConditionsArrayType::iterator cond_it_begin = rConditions.ptr_begin();
-        ConditionsArrayType::iterator cond_it_end = rConditions.ptr_end();
+        //ConditionsArrayType::iterator cond_it_begin = rConditions.ptr_begin();
+	// ConditionsArrayType::iterator cond_it_end = rConditions.ptr_end();
 
         ConditionsArrayType& rConditions_new = new_model_part.Conditions();
-        ConditionsArrayType::iterator cond_it_end_new = rConditions_new.ptr_end();
-        ConditionsArrayType::iterator cond_it_begin_new = rConditions_new.ptr_begin();
+        //ConditionsArrayType::iterator cond_it_end_new = rConditions_new.ptr_end();
+	//        ConditionsArrayType::iterator cond_it_begin_new = rConditions_new.ptr_begin();
 
         NodesArrayType& rNodes_new = new_model_part.Nodes();        //i need the model part just to check the id of the new nodes.
-        NodesArrayType::iterator it_end_node_new = rNodes_new.ptr_end();
-        NodesArrayType::iterator it_begin_node_new = rNodes_new.ptr_begin();
+        //NodesArrayType::iterator it_end_node_new = rNodes_new.ptr_end();
+        //NodesArrayType::iterator it_begin_node_new = rNodes_new.ptr_begin();
 
 
         boost::shared_ptr<Epetra_FEVector > IDs_non_overlapping_graph(new Epetra_FEVector(*pmy_map,1,false)); //name self explaining
