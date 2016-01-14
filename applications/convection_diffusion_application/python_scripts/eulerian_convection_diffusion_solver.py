@@ -80,22 +80,16 @@ class EulerianConvectionDiffusionSolver:
         #if(hasattr(config, "convection_linear_solver_config")):
         #    self.linear_solver = linear_solver_factory.ConstructSolver(
         #        config.convection_linear_solver_config)
+        
+        model_part.ProcessInfo[THETA] = 0.5 #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        
     def Initialize(self):
         # convection diffusion tool
         self.convection_solver = ResidualBasedEulerianConvectionDiffusionStrategy(self.model_part,self.linear_solver,self.ReformDofAtEachIteration,self.domain_size)
         print("Finished Initialize")
 
+    def SetEchoLevel(self, level):
+        self.convection_solver.SetEchoLevel(level)
+
     def Solve(self):
         self.convection_solver.Solve()
-
-
-def CreateSolver(model_part, config):
-    convection_solver = EulerianConvectionDiffusionSolver(model_part, config.domain_size)
-    # linear solver settings
-    import linear_solver_factory
-    if(hasattr(config, "convection_linear_solver_config")):
-        self.linear_solver = linear_solver_factory.ConstructSolver(
-            config.convection_linear_solver_config)
-
-    return convection_solver
-
