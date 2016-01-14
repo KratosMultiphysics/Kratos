@@ -774,11 +774,10 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("CylinderParticle2D", mCylinderParticle2D)
     KRATOS_REGISTER_ELEMENT("CylinderContinuumParticle2D", mCylinderContinuumParticle2D)
     KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
-    KRATOS_REGISTER_ELEMENT("NanoParticle3D", mSphericParticle3D)
+    KRATOS_REGISTER_ELEMENT("NanoParticle3D", mNanoParticle3D)
     KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
-		
+    KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)		
 	
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
