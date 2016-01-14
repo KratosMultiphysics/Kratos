@@ -23,15 +23,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(NanoParticle);
 
     /// Default constructor.
-    NanoParticle(){}
+    /*NanoParticle(){}
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ){}
     NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes){}
-    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ){}
+    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ){}*/
 
-    /*NanoParticle():SphericParticle(){}
+    NanoParticle():SphericParticle(){}
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ):SphericParticle(NewId, pGeometry){}
     NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){}
-    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):SphericParticle(NewId, pGeometry, pProperties){}*/
+    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):SphericParticle(NewId, pGeometry, pProperties){}
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
@@ -43,8 +43,8 @@ public:
 
 
     double GetSearchRadius(){
-        return GetRadius();
-        //return GetGeometry()[0].GetSolutionStepValue(SEARCH_RADIUS);
+        //return GetRadius();
+        return GetGeometry()[0].GetSolutionStepValue(SEARCH_RADIUS);
     }
 
 
