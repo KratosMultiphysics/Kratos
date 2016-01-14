@@ -316,6 +316,8 @@ namespace Kratos {
                             LocalDeltDisp,
                             kn_el,
                             kt_el,
+                            contact_sigma,
+                            contact_tau,
                             failure_criterion_state,
                             equiv_young,
                             indentation,
@@ -403,7 +405,8 @@ namespace Kratos {
             }
 
             if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
-                CalculateOnContactElements(neighbour_iterator_id, 
+
+                CalculateOnContactElements(neighbour_iterator_id,
                                             i_neighbour_count, 
                                             mapping_new_cont, 
                                             LocalElasticContactForce, 
