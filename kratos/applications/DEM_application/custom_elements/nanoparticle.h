@@ -22,12 +22,6 @@ public:
     /// Pointer definition of NanoParticle
     KRATOS_CLASS_POINTER_DEFINITION(NanoParticle);
 
-    /// Default constructor.
-    /*NanoParticle(){}
-    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ){}
-    NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes){}
-    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ){}*/
-
     NanoParticle():SphericParticle(){}
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ):SphericParticle(NewId, pGeometry){}
     NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){}
@@ -39,13 +33,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~NanoParticle(){};
-
-
-    double GetSearchRadius(){
-        //return GetRadius();
-        return GetGeometry()[0].GetSolutionStepValue(SEARCH_RADIUS);
-    }
+    virtual ~NanoParticle(){};    
 
 
     /// Turn back information as a string.
