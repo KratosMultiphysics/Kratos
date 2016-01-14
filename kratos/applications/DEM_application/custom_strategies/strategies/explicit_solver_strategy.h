@@ -1555,7 +1555,7 @@ namespace Kratos
      }
 
 
-     void GlobalDamping() {
+     void GlobalDamping() {   // flagged for deletion
 
          KRATOS_TRY
 
@@ -1575,7 +1575,7 @@ namespace Kratos
                  array_1d<double, 3>& total_force = pNode.FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
                  array_1d<double, 3>& velocity = pNode.FastGetSolutionStepValue(VELOCITY);
 
-                 const double global_damping         = it->GetProperties()[DEMPACK_GLOBAL_DAMPING];
+                 const double global_damping         = 0.0;
 
                  if (pNode.IsNot(DEMFlags::FIXED_VEL_X)) {
                      total_force[0] = total_force[0] - global_damping * fabs(total_force[0]) * GeometryFunctions::sign(velocity[0]);
