@@ -1278,7 +1278,7 @@ void CalculateNodalFluidFractionWithConstantWeighing(
     unsigned int i_nearest_node = GetNearestNode(N);
 
     // Geometry of the element of the destination model part
-    const double particle_volume         = particle.GetVolume();
+    const double particle_volume = particle.GetVolume();
     p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
 }
 
