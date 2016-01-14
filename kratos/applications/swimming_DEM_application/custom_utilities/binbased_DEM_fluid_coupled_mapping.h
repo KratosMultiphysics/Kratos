@@ -97,22 +97,23 @@ class BinBasedDEMFluidCoupledMapping
 public:
 ///@name Type Definitions
 ///@{
-typedef ModelPart::ElementsContainerType             ElementsArrayType;
-typedef ElementsArrayType::ContainerType             ResultElementsContainerType;
-typedef std::vector<ResultElementsContainerType>     VectorResultElementsContainerType;
-typedef ModelPart::ElementsContainerType::iterator   ElementIteratorType;
+typedef ModelPart::ElementsContainerType                      ElementsArrayType;
+typedef ElementsArrayType::ContainerType                      ResultElementsContainerType;
+typedef std::vector<ResultElementsContainerType>              VectorResultElementsContainerType;
+typedef ModelPart::ElementsContainerType::iterator            ElementIteratorType;
+typedef SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>  ParticleType;
 
 
-typedef ModelPart::NodesContainerType                NodesArrayType;
-typedef NodesArrayType::ContainerType                ResultNodesContainerType;
-typedef std::vector<ResultNodesContainerType>        VectorResultNodesContainerType;
-typedef std::vector<Node<3>::Pointer>                NodalPointersContainerType;
-typedef ModelPart::NodesContainerType::iterator      NodeIteratorType;
+typedef ModelPart::NodesContainerType                         NodesArrayType;
+typedef NodesArrayType::ContainerType                         ResultNodesContainerType;
+typedef std::vector<ResultNodesContainerType>                 VectorResultNodesContainerType;
+typedef std::vector<Node<3>::Pointer>                         NodalPointersContainerType;
+typedef ModelPart::NodesContainerType::iterator               NodeIteratorType;
 
 
-typedef std::size_t                                  ListIndexType;
-typedef SpatialSearch::DistanceType                  DistanceType;
-typedef SpatialSearch::VectorDistanceType            VectorDistanceType;
+typedef std::size_t                                           ListIndexType;
+typedef SpatialSearch::DistanceType                           DistanceType;
+typedef SpatialSearch::VectorDistanceType                     VectorDistanceType;
 
 /// Pointer definition of BinBasedDEMFluidCoupledMapping
 typedef BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle> BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfSwimmingParticle;
@@ -557,18 +558,33 @@ void InterpolateFluidFraction(
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
     //#pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
-        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_particle = *(i_particle.base());
+//    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+//        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+//        Node<3>::Pointer p_particle = *(i_particle.base());
+//        Element::Pointer p_element;
+
+//        // looking for the fluid element in which the DEM node falls
+//        bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
+
+//        // interpolating variables
+
+//        if (is_found) {
+//            DistributeDimensionalContributionToFluidFraction(p_element, N, p_particle);
+//        }
+//    }
+
+    for (int i = 0; i < (int)r_dem_model_part.Elements().size(); i++){
+        ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
+        ParticleType& particle = dynamic_cast<ParticleType&> (*i_particle);
         Element::Pointer p_element;
 
         // looking for the fluid element in which the DEM node falls
-        bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
+        bool is_found = bin_of_objects_fluid.FindPointOnMesh(particle.GetGeometry()[0].Coordinates(), N, p_element, results.begin(), max_results);
 
         // interpolating variables
 
         if (is_found) {
-            DistributeDimensionalContributionToFluidFraction(p_element, N, p_particle);
+            DistributeDimensionalContributionToFluidFraction(p_element, N, particle);
         }
     }
 
@@ -904,22 +920,40 @@ void Project(Element::Pointer p_elem,
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+//void DistributeDimensionalContributionToFluidFraction(
+//    Element::Pointer p_elem,
+//    const array_1d<double, TDim + 1>& N,
+//    Node<3>::Pointer p_node)
+//{
+//    if (mCouplingType == 0 || mCouplingType == 1){
+//        CalculateNodalFluidFractionWithConstantWeighing(p_elem, N, p_node);
+//    }
+
+//    else if (mCouplingType == 2){
+//        CalculateNodalFluidFractionWithLinearWeighing(p_elem, N, p_node);
+//    }
+
+//    else if (mCouplingType == 4){
+//        CalculateNodalFluidFractionByLumpedL2Projection(p_elem, N, p_node);
+//    }
+//}
+
 void DistributeDimensionalContributionToFluidFraction(
     Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer p_node)
+    ParticleType& particle)
 {
     if (mCouplingType == 0 || mCouplingType == 1){
-        CalculateNodalFluidFractionWithConstantWeighing(p_elem, N, p_node);
+        CalculateNodalFluidFractionWithConstantWeighing(p_elem, N, particle);
     }
 
     else if (mCouplingType == 2){
-        CalculateNodalFluidFractionWithLinearWeighing(p_elem, N, p_node);
+        CalculateNodalFluidFractionWithLinearWeighing(p_elem, N, particle);
     }
 
-    else if (mCouplingType == 4){
-        CalculateNodalFluidFractionByLumpedL2Projection(p_elem, N, p_node);
-    }
+//    else if (mCouplingType == 4){
+//        CalculateNodalFluidFractionByLumpedL2Projection(p_elem, N, p_particle);
+//    }
 }
 
 //***************************************************************************************************************
@@ -1239,33 +1273,43 @@ void TransferWithLinearWeighing(
 void CalculateNodalFluidFractionWithConstantWeighing(
     Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer p_node)
+    ParticleType& particle)
 {
     unsigned int i_nearest_node = GetNearestNode(N);
 
     // Geometry of the element of the destination model part
-    const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
-    const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
-
+    const double particle_volume         = particle.GetVolume();
     p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+//void CalculateNodalFluidFractionWithLinearWeighing(
+//    Element::Pointer p_elem,
+//    const array_1d<double, TDim + 1>& N,
+//    Node<3>::Pointer p_node)
+//{
+//    // Geometry of the element of the origin model part
+//    Geometry<Node<3> >& geom = p_elem->GetGeometry();
+
+//    const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
+//    const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
+
+//    for (unsigned int i = 0; i < TDim + 1; i++){
+//        geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+//    }
+//}
+
 void CalculateNodalFluidFractionWithLinearWeighing(
     Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer p_node)
+    ParticleType& particle)
 {
-    // Geometry of the element of the origin model part
-    Geometry<Node<3> >& geom = p_elem->GetGeometry();
-
-    const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
-    const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
+    const double particle_volume = particle.GetVolume();
 
     for (unsigned int i = 0; i < TDim + 1; i++){
-        geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
     }
 }
 
