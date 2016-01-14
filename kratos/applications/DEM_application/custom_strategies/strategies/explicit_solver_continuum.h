@@ -313,11 +313,7 @@ namespace Kratos
           BaseType::GetForce();
           //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes          
           BaseType::Clear_forces_FEM();
-          BaseType::Calculate_Conditions_RHS_and_Add();
-
-          BaseType::GlobalDamping();
-
-          
+          BaseType::Calculate_Conditions_RHS_and_Add();         
            
           // 3. Move particles   /////////////////////////////////  
           BaseType::SynchronizeSolidMesh(r_model_part); // Should be... just TOTAL_FORCES (and ELASTIC_FORCES) and PARTICLE_MOMENT
