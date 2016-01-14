@@ -106,7 +106,7 @@ class RestartUtility:
         self.CleanPreviousFileType(file_ending_type)
 
         # remove previous data files:
-        file_ending_type = ".post.cvs"
+        file_ending_type = ".post.csv"
         self.CleanPreviousFileType(file_ending_type)
 
         # remove previous restart files:

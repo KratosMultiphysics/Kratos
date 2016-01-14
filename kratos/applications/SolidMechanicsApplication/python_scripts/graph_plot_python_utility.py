@@ -51,14 +51,14 @@ class GraphPlotUtility:
 
         self.SetPlotVariables(x_variable, y_variable, mesh_id)
 
-        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.cvs")
+        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.csv")
 
         if(os.path.exists(figure_path) == False):
             # print file headers
             figure_file = open(figure_path, "w")
-            line_header  = "Time " + str(self.x_var) + " " + str(self.y_var) + " " +str(self.x_var)+"_X "+str(self.x_var)+"_Y "+str(self.x_var)+"_Z "+str(self.y_var)+"_X "+str(self.y_var)+"_Y "+str(self.y_var)+"_Z "+"\n"
+            line_header  = "Time," + str(self.x_var) + "," + str(self.y_var) + "," +str(self.x_var)+"_X,"+str(self.x_var)+"_Y,"+str(self.x_var)+"_Z,"+str(self.y_var)+"_X,"+str(self.y_var)+"_Y,"+str(self.y_var)+"_Z"+"\n"
             figure_file.write(line_header)
-            line_header  = "0 0 0 0 0 0 0 0 0\n"
+            line_header  = "0,0,0,0,0,0,0,0,0\n"
             figure_file.write(line_header)
             figure_file.close()
 
@@ -164,9 +164,9 @@ class GraphPlotUtility:
         self.Y_y.append(Y_value[1])
         self.Y_z.append(Y_value[2])
 
-        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.cvs")
+        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.csv")
         figure_file = open(figure_path, "a")
-        line_value = str(time) + " " + str(X_value_norm) + " " + str(Y_value_norm) + " " + str(X_value[0]) + " " + str(X_value[1]) + " " + str(X_value[2]) + " " + str(Y_value[0]) + " " + str(Y_value[1]) + " " + str(Y_value[2]) + "\n"
+        line_value = str(time) + "," + str(X_value_norm) + "," + str(Y_value_norm) + "," + str(X_value[0]) + "," + str(X_value[1]) + "," + str(X_value[2]) + "," + str(Y_value[0]) + "," + str(Y_value[1]) + "," + str(Y_value[2]) + "\n"
         figure_file.write(line_value)
         figure_file.close()
 

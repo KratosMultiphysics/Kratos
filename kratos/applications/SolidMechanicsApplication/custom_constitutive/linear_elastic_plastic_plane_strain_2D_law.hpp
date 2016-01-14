@@ -122,6 +122,22 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Calculates the GreenLagrange strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+            Vector& rStrainVector );
+
+
+    /**
+     * Calculates the Almansi strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+                                         Vector& rStrainVector );
 
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
