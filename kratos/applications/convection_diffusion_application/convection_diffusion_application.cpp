@@ -37,8 +37,10 @@ KRATOS_CREATE_VARIABLE(double, PROJECTED_SCALAR1)
 KRATOS_CREATE_VARIABLE(double, DELTA_SCALAR1)//
 KRATOS_CREATE_VARIABLE(double, MEAN_VEL_OVER_ELEM_SIZE)
 
+KRATOS_CREATE_VARIABLE(double, THETA)
 
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
+
 
 KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication():
     mEulerianConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -70,6 +72,7 @@ void KratosConvectionDiffusionApplication::Register()
     KRATOS_REGISTER_VARIABLE(DELTA_SCALAR1)
     KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)
 
+    KRATOS_REGISTER_VARIABLE(THETA)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
