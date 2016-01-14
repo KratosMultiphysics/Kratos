@@ -83,7 +83,7 @@ void SphericParticle::Initialize()
     mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
     double density            = GetDensity();
     double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-    mass                      = 4 *KRATOS_M_PI_3 * density * GetRadius() * GetRadius() * GetRadius();
+    mass                      = density * GetVolume();
     mRealMass                 = mass;
     
     if (this->IsNot(BLOCKED)) GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
@@ -1275,7 +1275,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     KRATOS_TRY
 
     double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-    const double sphere_volume = 4 *KRATOS_M_PI_3 * GetRadius() * GetRadius() * GetRadius();
+    const double sphere_volume = 4 * KRATOS_M_PI_3 * GetRadius() * GetRadius() * GetRadius();
     if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
         rRepresentative_Volume = sphere_volume;
     }
@@ -1486,7 +1486,7 @@ void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, dou
 int    SphericParticle::GetClusterId()                                                   { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                      { return mRadius;         }
-double SphericParticle::GetVolume()                                                      { return 1.333333333333333333333 * mRadius * mRadius * mRadius;         }
+double SphericParticle::GetVolume()                                                      { return 4 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
 double SphericParticle::GetSearchRadius()                                                { return GetRadius();     }
 double SphericParticle::GetMass()                                                        { return mRealMass;       }
