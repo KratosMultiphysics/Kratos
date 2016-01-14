@@ -82,7 +82,7 @@ namespace Kratos
       KratosException(KratosException const& rOther);
 
       /// Destructor.
-      virtual ~KratosException();
+      virtual ~KratosException() noexcept;
       
 
       ///@}
