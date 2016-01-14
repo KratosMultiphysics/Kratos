@@ -22,11 +22,20 @@ class ProjectionModule:
         self.shape_factor                = pp.CFD_DEM.shape_factor
 
         if (self.dimension == 3):
-            self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type)
+
+            if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+                self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type)
+
+            else:
+                self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type, self.n_particles_in_depth)
+            if pp.CFD_DEM.ElementType == "SwimmingNanoParticle":
+                self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type, self.n_particles_in_depth)
+
+            else:
+                self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.viscosity_modification_type, self.n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
