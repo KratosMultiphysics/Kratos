@@ -84,10 +84,12 @@ namespace Kratos {
         };
 
         virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
-                                     double LocalElasticContactForce[3],
+                double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,
                 double kt_el,
+                double& contact_sigma,
+                double& contact_tau,
                 double& failure_criterion_state,
                 double equiv_young,
                 double indentation,
@@ -119,6 +121,8 @@ namespace Kratos {
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 double kt_el,
+                double& contact_sigma,
+                double& contact_tau,
                 double indentation,
                 double calculation_area,
                 double& failure_criterion_state,
