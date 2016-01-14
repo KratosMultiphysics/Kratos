@@ -348,6 +348,9 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, HEATFLUX)
   KRATOS_DEFINE_VARIABLE(double, THERMAL_CONDUCTIVITY)
   // *************** Thermal only END ***************  
+  //NANO PARTICLES
+  KRATOS_DEFINE_VARIABLE(double, SEARCH_RADIUS)
+
   
 class DEMFlags
   {
