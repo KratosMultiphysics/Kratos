@@ -22,7 +22,11 @@ public:
     /// Pointer definition of NanoParticle
     KRATOS_CLASS_POINTER_DEFINITION(NanoParticle);
 
-    NanoParticle():SphericParticle(){}
+    NanoParticle():SphericParticle()
+    {
+        mThickness = 1.0e-9; // Hard-coded but should go into node
+    }
+
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ):SphericParticle(NewId, pGeometry){}
     NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){}
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):SphericParticle(NewId, pGeometry, pProperties){}
@@ -73,6 +77,8 @@ public:
         KRATOS_CATCH( "" )
     }
 
+    double GetVolume() {return KRATOS_M_PI * mRadius * mRadius * mThickness;}
+
 protected:
 
     void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info){};
@@ -81,6 +87,8 @@ protected:
 
 
 private:
+
+    double mThickness;
 
     friend class Serializer;
 
