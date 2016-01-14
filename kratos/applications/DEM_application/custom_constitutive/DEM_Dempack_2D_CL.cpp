@@ -84,6 +84,8 @@ namespace Kratos {
             double LocalDeltDisp[3],
             const double kn_el,
             double kt_el,
+            double& contact_sigma,
+            double& contact_tau,
             double& failure_criterion_state,
             double equiv_young,
             double indentation,
@@ -113,6 +115,8 @@ namespace Kratos {
         CalculateTangentialForces(LocalElasticContactForce,
                 LocalDeltDisp,
                 kt_el,
+                contact_sigma,
+                contact_tau,
                 indentation,
                 calculation_area,
                 failure_criterion_state,
@@ -286,6 +290,8 @@ namespace Kratos {
     void DEM_Dempack2D::CalculateTangentialForces(double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             double kt_el,
+            double& contact_sigma,
+            double& contact_tau,
             double indentation,
             double calculation_area,
             double& failure_criterion_state,
@@ -307,8 +313,6 @@ namespace Kratos {
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
 
-        double contact_tau = 0.0;
-        double contact_sigma = 0.0;
         double mTensionLimit;
         double mTauZero;
         double mInternalFriccion;
