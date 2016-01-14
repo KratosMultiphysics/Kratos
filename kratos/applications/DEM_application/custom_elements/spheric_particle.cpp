@@ -1486,6 +1486,7 @@ void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, dou
 int    SphericParticle::GetClusterId()                                                   { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                      { return mRadius;         }
+double SphericParticle::GetVolume()                                                      { return 1.333333333333333333333 * mRadius * mRadius * mRadius;         }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
 double SphericParticle::GetSearchRadius()                                                { return GetRadius();     }
 double SphericParticle::GetMass()                                                        { return mRealMass;       }
