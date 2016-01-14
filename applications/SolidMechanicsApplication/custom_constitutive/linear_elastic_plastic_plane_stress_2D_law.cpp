@@ -70,6 +70,41 @@ LinearElasticPlasticPlaneStress2DLaw::~LinearElasticPlasticPlaneStress2DLaw()
 //************************************************************************************
 //************************************************************************************
 
+//***********************COMPUTE TOTAL STRAIN*****************************************
+//************************************************************************************
+
+void LinearElasticPlasticPlaneStress2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+        Vector& rStrainVector )
+{
+
+    //E= 0.5*(FT*F-1)
+    rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
+    rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
+    rStrainVector[2] = rRightCauchyGreen( 0, 1 );
+
+}
+
+
+//***********************COMPUTE TOTAL STRAIN*****************************************
+//************************************************************************************
+
+void LinearElasticPlasticPlaneStress2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+        Vector& rStrainVector )
+{
+
+    // e= 0.5*(1-invbT*invb)
+    Matrix InverseLeftCauchyGreen ( rLeftCauchyGreen.size1() , rLeftCauchyGreen.size2() );
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+
+    rStrainVector.clear();
+    rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
+    rStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
+    rStrainVector[2] = -InverseLeftCauchyGreen( 0, 1 );
+
+
+}
+
 
 //********************* COMPUTE LINEAR ELASTIC CONSTITUTIVE MATRIX *******************
 //************************************************************************************

@@ -146,8 +146,6 @@ public:
 		std::cout<<"   Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
 	    }
 	
-
-
 	  // For MPI: correct values on partition boundaries
 	  rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 	  rModelPart.GetCommunicator().AssembleCurrentData(SHRINK_FACTOR);
@@ -161,9 +159,6 @@ public:
 	  KRATOS_TRY
 
 	  mEchoLevel = EchoLevel;
-
-	  //Reset Body Normal Variables:
-	  this->ResetBodyNormals(rModelPart,MeshId);
 		
 	  const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
 
@@ -171,15 +166,35 @@ public:
 	    	
 	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);
 	    
-	    if( rConditions.size() > 0 )
+	    if( rConditions.size() > 0 ){
+	      //Reset Body Normal Variables:
+	      //this->ResetBodyNormals(rModelPart,MeshId);
+	      //Compute New Normals
 	      this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
+	    }
 	    
 	  }
 	  else if ( dimension == 3 ){
 	    
 	    MeshType& rMesh = rModelPart.GetMesh(MeshId);
 	    
-	    this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
+	    //check which type of element is in the 3D mesh, a surface (false) or volumetric (true) element
+	    if( this->CheckVolumetricElements(rMesh, EchoLevel) ){
+	      //Reset Body Normal Variables:
+	      //this->ResetBodyNormals(rModelPart,MeshId);
+	      //Compute New Normals
+	      this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
+	    }
+	    else{
+	      //std::cout<<" Surface Elements Boundary Calculation "<<std::endl;
+	      ElementsContainerType& rElements = rModelPart.Elements(MeshId);
+	      if( rElements.size() > 0 ){
+		//Reset Body Normal Variables:
+		//this->ResetBodyNormals(rModelPart,MeshId);
+		//Compute New Normals		
+		this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
+	      }
+	    }
 	    
 	  }
 	  
@@ -199,19 +214,20 @@ public:
 	  KRATOS_TRY
 
 	  mEchoLevel = EchoLevel;
-	    
-	  //Reset Body Normal Variables:
-	  this->ResetBodyNormals(rModelPart,MeshId);
-		
+	    		
 	  const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
 
 	  if( dimension == 2 ) {
 	    	
 	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);
 	    
-	    if( rConditions.size() > 0 )
+	    if( rConditions.size() > 0 ){
+	      //Reset Body Normal Variables:
+	      //this->ResetBodyNormals(rModelPart,MeshId);
+	      //Compute New Normals
 	      this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
-	    
+	    }
+
 	  }
 	  else if ( dimension == 3 ){
 	    
@@ -219,18 +235,25 @@ public:
 	    
 	    //check which type of element is in the 3D mesh, a surface (false) or volumetric (true) element
 	    if( this->CheckVolumetricElements(rMesh, EchoLevel) ){
+	      //Reset Body Normal Variables:
+	      //this->ResetBodyNormals(rModelPart,MeshId);
+	      //Compute New Normals
 	      this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
 	    }
 	    else{
 	      //std::cout<<" Surface Elements Boundary Calculation "<<std::endl;
 	      ElementsContainerType& rElements = rModelPart.Elements(MeshId);
-	      if( rElements.size() > 0 )
+	      if( rElements.size() > 0 ){
+		//Reset Body Normal Variables:
+		//this->ResetBodyNormals(rModelPart,MeshId);
+		//Compute New Normals		
 		this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
+	      }
 	    }
 	  }
 	  
 	  //solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
-	  AddNormalsAndShrink(rModelPart,dimension,MeshId);
+	  AddNormalsAndShrink(rModelPart,dimension,MeshId);    
 
 	  KRATOS_CATCH( "" )
 
@@ -368,6 +391,20 @@ private:
 		KRATOS_CATCH( "" )
 	}
 
+	void CheckBodyNormals(ModelPart& rModelPart, ModelPart::IndexType MeshId=0)
+				      
+	{
+		KRATOS_TRY
+		  
+		//resetting the normals
+		for(NodesArrayType::iterator in =  rModelPart.NodesBegin(MeshId);
+		    in !=rModelPart.NodesEnd(MeshId); in++)
+		{
+		  std::cout<<" ID: "<<in->Id()<<" normal: "<<(in->GetSolutionStepValue(NORMAL))<<std::endl;
+		}
+
+		KRATOS_CATCH( "" )
+	}
 
        /// Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
        /** This is done on the base of the Conditions provided which should be
@@ -1067,14 +1104,14 @@ private:
 
 		      if(shrink_factor!=0)
 			{
-			  if( mEchoLevel > 2 )
-			    std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<std::endl;
+			  if( mEchoLevel > 1 )
+			    std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;
 			  Normal/=shrink_factor;
 
 			}
 		      else{
 
-			if( mEchoLevel > 2 )
+			if( mEchoLevel > 1 )
 			  std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
 			
 			Normal.clear();
