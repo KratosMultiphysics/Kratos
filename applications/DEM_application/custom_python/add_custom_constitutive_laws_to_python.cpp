@@ -53,7 +53,7 @@ namespace Kratos {
             class_<DEM_D_Linear_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb",init<>())
                     ;          
 
-            class_<DEM_Bentonite_Colloid, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_Bentonite_Colloid",init<>())
+            class_<DEM_D_Bentonite_Colloid, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Bentonite_Colloid",init<>())
                     ;
             
             class_<DEM_D_Linear_viscous_Coulomb2D, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb2D",init<>())
