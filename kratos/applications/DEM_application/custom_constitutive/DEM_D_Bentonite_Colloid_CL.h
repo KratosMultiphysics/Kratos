@@ -13,12 +13,12 @@
 
 namespace Kratos {
 
-    class DEM_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
+    class DEM_D_Bentonite_Colloid : public DEMDiscontinuumConstitutiveLaw {
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_Bentonite_Colloid);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Bentonite_Colloid);
 
-        DEM_Bentonite_Colloid();
+        DEM_D_Bentonite_Colloid();
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
@@ -26,7 +26,7 @@ namespace Kratos {
         
         std::string GetTypeOfLaw();
 
-        ~DEM_Bentonite_Colloid() {
+        ~DEM_D_Bentonite_Colloid() {
         }
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
@@ -104,6 +104,7 @@ namespace Kratos {
         double mThickness;
         double mDDLCoefficient;
         double mDebyeLengthInv;
+        double mEquivRadius;
         
         friend class Serializer;
 

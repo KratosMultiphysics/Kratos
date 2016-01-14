@@ -1,36 +1,37 @@
 //Authors: M.A. Celigueta and G. Casas (CIMNE)
-//   Date: January 2016
+//Date: January 2016
 
 #include "DEM_D_Bentonite_Colloid_CL.h"
 
 namespace Kratos {
 //G Hard-coded values for the moment, some should probably be nodal
-    DEM_Bentonite_Colloid::DEM_Bentonite_Colloid(){
+    DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
         mA_H = - 0.1;
         double d_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
         mA_p = 0.25 * KRATOS_M_PI_3 * d_p * d_p;
         mThickness = 1.0e-9;
         mDDLCoefficient = 640.0;
         mDebyeLengthInv = 103808961.2;
+        mEquivRadius = d_p / KRATOS_M_PI_3; // this is the "coin" equivalent radius
     }
 //Z
     double mA_p;
     double mThickness;
     double mDDLCoefficient;
 
-    void DEM_Bentonite_Colloid::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
+    void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
 
-    DEMDiscontinuumConstitutiveLaw::Pointer DEM_Bentonite_Colloid::Clone() const {
-        DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_Bentonite_Colloid(*this));
+    DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Bentonite_Colloid::Clone() const {
+        DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Bentonite_Colloid(*this));
         return p_clone;
     }
 
-    void DEM_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_Bentonite_Colloid to properties " << pProp->Id() << std::endl;
+    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+        std::cout << "Assigning DEM_D_Bentonite_Colloid to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    std::string DEM_Bentonite_Colloid::GetTypeOfLaw() {
+    std::string DEM_D_Bentonite_Colloid::GetTypeOfLaw() {
         std::string type_of_law = "Linear";
         return type_of_law;
     }
@@ -39,7 +40,7 @@ namespace Kratos {
     // DEM-DEM INTERACTION //
     /////////////////////////
     
-    void DEM_Bentonite_Colloid::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+    void DEM_D_Bentonite_Colloid::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
         //Get equivalent Radius
         const double my_radius     = element1->GetRadius();
         const double other_radius  = element2->GetRadius();
@@ -64,7 +65,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
     
-    void DEM_Bentonite_Colloid::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Bentonite_Colloid::CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                                        const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
@@ -99,7 +100,7 @@ namespace Kratos {
         
     }
     
-    void DEM_Bentonite_Colloid::CalculateViscoDampingForce(double LocalRelVel[3],
+    void DEM_D_Bentonite_Colloid::CalculateViscoDampingForce(double LocalRelVel[3],
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 SphericParticle* const element1,
                                                                 SphericParticle* const element2) {
@@ -124,7 +125,7 @@ namespace Kratos {
     // DEM-FEM INTERACTION //
     /////////////////////////
     
-    void DEM_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
+    void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
                 
         const double my_radius        = element->GetRadius(); // Get equivalent Radius
         const double effective_radius = my_radius - ini_delta;
@@ -145,7 +146,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }    
     
-    void DEM_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
                                                               const double OldLocalContactForce[3],
                                                               double LocalElasticContactForce[3],
                                                               double LocalDeltDisp[3],
@@ -179,7 +180,7 @@ namespace Kratos {
     }
         
     template<class NeighbourClassType>
-    void DEM_Bentonite_Colloid::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
+    void DEM_D_Bentonite_Colloid::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
                                                                       const double OldLocalContactForce[3],
                                                                       double LocalElasticContactForce[3],
                                                                       double ViscoDampingLocalContactForce[3],
@@ -196,7 +197,7 @@ namespace Kratos {
         ViscoDampingLocalContactForce[1] = 0.0;
     }
     
-    void DEM_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
+    void DEM_D_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 SphericParticle* const element,
                                                                 DEMWall* const wall) {                                        
@@ -212,27 +213,27 @@ namespace Kratos {
 
     }
     
-    double DEM_Bentonite_Colloid::CalculateNormalForce(const double distance){
+    double DEM_D_Bentonite_Colloid::CalculateNormalForce(const double distance){
         double F_vdW = CalculateVanDerWaalsForce(distance);
 
         return F_vdW;
     }
 
-    double DEM_Bentonite_Colloid::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
+    double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
         return 0.0;
     }
     
     
-    double DEM_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
+    double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
         return 0.0;
     }
 
-    double DEM_Bentonite_Colloid::CalculateVanDerWaalsForce(const double distance)
+    double DEM_D_Bentonite_Colloid::CalculateVanDerWaalsForce(const double distance)
     {
         return - mA_p * mA_H / (6 * KRATOS_M_PI_3) * 12 * mThickness * mThickness / (distance * distance * distance * distance * distance);
     }
 
-    double DEM_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance)
+    double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance)
     {
         return mDDLCoefficient * exp(- mDebyeLengthInv * distance);
     }
