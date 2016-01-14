@@ -241,7 +241,7 @@ using namespace boost::python;
         ;
     
     class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> >
-            ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int, int>())
+            ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromDEMMesh)
         .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::HomogenizeFromDEMMesh)
@@ -262,7 +262,7 @@ using namespace boost::python;
         ;
     
     class_<BinBasedDEMFluidCoupledMapping <3,NanoParticle> >
-            ("BinBasedDEMFluidCoupledMapping3D", init<double, int, int>())
+            ("BinBasedNanoDEMFluidCoupledMapping3D", init<double, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromDEMMesh)
