@@ -199,7 +199,7 @@ private:
     const CylinderParticle mCylinderParticle2D;
     const CylinderContinuumParticle mCylinderContinuumParticle2D;
     const SphericParticle mSphericParticle3D;
-    const SphericParticle mNanoParticle3D;
+    const NanoParticle mNanoParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D; 
     const ThermalSphericParticle mThermalSphericContinuumParticle3D;  
     const Particle_Contact_Element mParticleContactElement;
