@@ -509,13 +509,13 @@ protected:
         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
