@@ -53,9 +53,9 @@ namespace Kratos
 	}
 
 
-	KratosException::~KratosException()
-	{
-	}
+// 	KratosException::~KratosException()
+// 	{
+// 	}
 
 	void KratosException::append_message(std::string const& rMessage)
 	{
