@@ -163,11 +163,12 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-
+      
       bool mHasHydroMomentNodalVar;
       bool mHasDragForceNodalVar;
       bool mHasVirtualMassForceNodalVar;
       bool mHasLiftForceNodalVar;
+      int mCouplingType;
       int mBuoyancyForceType;
       int mDragForceType;
       int mVirtualMassForceType;
