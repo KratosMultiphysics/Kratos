@@ -14,6 +14,7 @@ def AddNodalVariables(model_part, variable_list):
 
 def AddingDEMProcessInfoVariables(pp, dem_model_part):
 
+    dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
     dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.CFD_DEM.virtual_mass_force_type)

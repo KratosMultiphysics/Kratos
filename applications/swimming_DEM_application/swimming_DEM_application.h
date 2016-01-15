@@ -34,22 +34,15 @@
 namespace Kratos
 {
   //KRATOS_DEFINE_VARIABLE(int,TRACK_SUBSCALES)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY) 
+  
 
 class KratosSwimmingDEMApplication : public KratosApplication
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
 
     /// Pointer definition of KratosSwimmingDEMApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosSwimmingDEMApplication);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
 
     /// Default constructor.
     KratosSwimmingDEMApplication();
@@ -58,32 +51,7 @@ public:
     virtual ~KratosSwimmingDEMApplication() {}
 
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
     virtual void Register();
-
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const
@@ -113,50 +81,7 @@ public:
         KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
     ///@name Static Member Variables
@@ -186,55 +111,13 @@ private:
 // 		const Elem2D   mElem2D;
 // 		const Elem3D   mElem3D;
 
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
     /// Assignment operator.
     KratosSwimmingDEMApplication& operator=(KratosSwimmingDEMApplication const& rOther);
 
     /// Copy constructor.
     KratosSwimmingDEMApplication(KratosSwimmingDEMApplication const& rOther);
 
-
-    ///@}
-
 }; // Class KratosSwimmingDEMApplication
-
-///@}
-
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
 
 }  // namespace Kratos.
 

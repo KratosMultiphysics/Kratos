@@ -50,7 +50,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 {
     KRATOS_TRY
 
-    //const array_1d<double, 3>& gravity = r_current_process_info[GRAVITY];
+    if(!mCouplingType) {
+        TBaseElement::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_current_process_info, gravity);
+        return;
+    }
+
     NodeType& node = GetGeometry()[0];
     mFluidDensity                           = node.FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
     mKinematicViscosity                     = node.FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
@@ -869,6 +873,7 @@ void SphericSwimmingParticle<TBaseElement>::CustomInitialize()
 template< class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info)
 {
+    mCouplingType           = r_process_info[COUPLING_TYPE];
     mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
     mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
     mVirtualMassForceType   = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
