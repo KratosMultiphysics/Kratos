@@ -350,13 +350,18 @@ void SphericParticle::CalculateBalltoBallElasticEnergy(double& total_normal_elas
 
 void SphericParticle::CalculateKinematicEnergy(double& r_kinematic_energy)
 {
-    const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-    const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    const double moment_of_inertia    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+    const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);    
     double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
-    double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
-
-    r_kinematic_energy = 0.5 * (mRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
+    
+    r_kinematic_energy = 0.5 * (mRealMass * square_of_celerity); 
+    
+    if (this->Is(DEMFlags::HAS_ROTATION)){
+        const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const double moment_of_inertia    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+        double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
+        
+        r_kinematic_energy += 0.5 * moment_of_inertia * square_of_angular_celerity;
+    }
 }
 
 void SphericParticle::CalculateGravitationalEnergy(const array_1d<double,3>& gravity, double& r_gravitational_energy)
@@ -1283,7 +1288,9 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     //Update sphere mass and inertia taking into acount the real volume of the represented volume:
     mRealMass = rRepresentative_Volume * GetDensity();
     GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mRealMass;
-    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = 0.4 * mRealMass * GetRadius() * GetRadius();
+    if (this->Is(DEMFlags::HAS_ROTATION) ){
+        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = 0.4 * mRealMass * GetRadius() * GetRadius();
+    }
 
     if (r_process_info[STRESS_STRAIN_OPTION]) {
         //Divide Stress Tensor by the total volume:
