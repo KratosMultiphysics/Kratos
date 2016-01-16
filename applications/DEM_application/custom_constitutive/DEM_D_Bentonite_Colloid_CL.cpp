@@ -90,10 +90,10 @@ namespace Kratos {
         
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
                 
-        if (normal_contact_force < 0.0) {
+        /*if (normal_contact_force < 0.0) {
             normal_contact_force = 0.0;
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
-        }
+	    }*/
         
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element1, element2, indentation, previous_indentation);
@@ -214,9 +214,11 @@ namespace Kratos {
     }
     
     double DEM_D_Bentonite_Colloid::CalculateNormalForce(const double distance){
+        
         double F_vdW = CalculateVanDerWaalsForce(distance);
+        double F_DDL = CalculateDiffuseDoubleLayerForce(distance);
 
-        return F_vdW;
+        return F_vdW - F_DDL;
     }
 
     double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
@@ -230,7 +232,7 @@ namespace Kratos {
 
     double DEM_D_Bentonite_Colloid::CalculateVanDerWaalsForce(const double distance)
     {
-        return - mA_p * mA_H / (6 * KRATOS_M_PI_3) * 12 * mThickness * mThickness / (distance * distance * distance * distance * distance);
+        return -mA_p * mA_H / (6 * KRATOS_M_PI_3) * 12 * mThickness * mThickness / (distance * distance * distance * distance * distance);
     }
 
     double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance)
