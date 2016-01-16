@@ -8,11 +8,11 @@ namespace Kratos {
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
         mA_H = - 0.1;
         double d_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
-        mA_p = 0.25 * KRATOS_M_PI_3 * d_p * d_p;
+        mA_p = 0.25 * KRATOS_M_PI * d_p * d_p;
         mThickness = 1.0e-9;
-        mDDLCoefficient = 640.0;
+        mDDLCoefficient = 1.56e6;
         mDebyeLengthInv = 103808961.2;
-        mEquivRadius = d_p / KRATOS_M_PI_3; // this is the "coin" equivalent radius
+        mEquivRadius = d_p / KRATOS_M_PI; // this is the "coin" equivalent radius
     }
 //Z
     double mA_p;
