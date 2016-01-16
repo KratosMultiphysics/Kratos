@@ -111,7 +111,16 @@ def ConstructListsOfResultsToPrint(pp):
 
     if (DEM_parameters.PostAngularVelocity):
         pp.dem_nodal_results += ["ANGULAR_VELOCITY"]
-
+        
+    if (DEM_parameters.PostElasticForces):
+        pp.dem_nodal_results += ["ELASTIC_FORCES"]
+        
+    if (DEM_parameters.PostContactForces):
+        pp.dem_nodal_results += ["CONTACT_FORCES"]
+        
+    if (DEM_parameters.PostTotalForces):
+        pp.dem_nodal_results += ["TOTAL_FORCES"]
+        
     if (pp.CFD_DEM.coupling_level_type > 0):
 
         if (pp.CFD_DEM.print_REYNOLDS_NUMBER_option):
