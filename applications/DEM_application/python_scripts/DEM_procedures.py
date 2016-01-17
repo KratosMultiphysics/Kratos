@@ -1025,6 +1025,9 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
+        # NANO
+        self.PushPrintVar(self.PostHeatFlux,         CATION_CONCENTRATION,        self.spheres_variables)
+
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
         # Spheres Rotation
