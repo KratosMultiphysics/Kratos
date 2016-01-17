@@ -120,6 +120,9 @@ def ConstructListsOfResultsToPrint(pp):
         
     if (DEM_parameters.PostTotalForces):
         pp.dem_nodal_results += ["TOTAL_FORCES"]
+
+    if (DEM_parameters.PostCationConcentration):
+        pp.dem_nodal_results += ["CATION_CONCENTRATION"]
         
     if (pp.CFD_DEM.coupling_level_type > 0):
 

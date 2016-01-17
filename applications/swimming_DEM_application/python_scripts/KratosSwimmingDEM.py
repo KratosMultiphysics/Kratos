@@ -76,6 +76,13 @@ DEM_parameters.fluid_domain_volume                    = 2 * math.pi # write down
 #                                                                            #
 ##############################################################################
 
+# NANO BEGIN
+pp.CFD_DEM.PostCationConcentration = True
+pp.initial_concentration = 1.0
+pp.final_concentration = 0.01
+pp.cation_concentration_frequence = 100
+# NANO END
+
 # Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 demio         = DEM_procedures.DEMIo(DEM_parameters)
@@ -538,15 +545,19 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 ######################################################################################################################################
 
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
-embedded_counter          = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
-DEM_to_fluid_counter      = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-pressure_gradient_counter = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-stationarity_counter      = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
-print_counter             = swim_proc.Counter(1, 1, out >= output_time)
-debug_info_counter        = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
-particles_results_counter = swim_proc.Counter(DEM_parameters.print_particles_results_cycle , 1, DEM_parameters.print_particles_results_option)
-
+embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
+pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
+stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
+print_counter                = swim_proc.Counter(1, 1, out >= output_time)
+debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
+particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_results_cycle , 1, DEM_parameters.print_particles_results_option)
 #G
+
+# NANO BEGIN
+cation_concentration_counter = swim_proc.Counter(1, pp.cation_concentration_frequence, 1)
+# NANO END
+
 #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
 
 #for node in fluid_model_part.Nodes:
@@ -600,6 +611,13 @@ while (time <= final_time):
     # calculating elemental distances defining the structure embedded in the fluid mesh
     if DEM_parameters.embedded_option:
         calculate_distance_process.Execute()
+
+# NANO BEGIN
+    if cation_concentration_counter.Tick():
+        concentration = time / pp.max_time * pp.final_concentration + (1 - time / pp.max_time) * pp.initial_concentration
+        for node in spheres_model_part.Nodes:
+            node.SetSolutionStepValue(CATION_CONCENTRATION, 0, concentration)
+# NANO END
 
     if embedded_counter.Tick():
         embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
