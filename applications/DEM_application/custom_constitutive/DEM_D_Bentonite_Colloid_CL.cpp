@@ -16,6 +16,11 @@ double ToThePower(double base, unsigned int n)
     return  x;
 }
 
+double GetDebyeLength(double cation_concentration)
+{
+    return 1.04e8 / sqrt(cation_concentration);
+}
+
 namespace Kratos {
 //G Hard-coded values for the moment, some should probably be nodal
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
@@ -95,7 +100,8 @@ namespace Kratos {
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
         double distance = element1->GetRadius() + element2->GetRadius() - indentation;
-        LocalElasticContactForce[2]  = CalculateNormalForce(distance);
+        double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);//Z
+        LocalElasticContactForce[2]  = CalculateNormalForce(distance, cation_concentration);
 //Z
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);                                                      
         
@@ -178,7 +184,9 @@ namespace Kratos {
         InitializeContactWithFEM(element, wall, indentation);
 //G
         double distance = element->GetRadius() - indentation;
-        LocalElasticContactForce[2]  = CalculateNormalForce(distance);
+        double cation_concentration = element->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
+
+        LocalElasticContactForce[2]  = CalculateNormalForce(distance, cation_concentration);
 //Z
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
         
@@ -229,10 +237,10 @@ namespace Kratos {
 
     }
     
-    double DEM_D_Bentonite_Colloid::CalculateNormalForce(const double distance){
+    double DEM_D_Bentonite_Colloid::CalculateNormalForce(const double distance, const double cation_concentration){
         
         double F_vdW = CalculateVanDerWaalsForce(distance);
-        double F_DDL = CalculateDiffuseDoubleLayerForce(distance);
+        double F_DDL = CalculateDiffuseDoubleLayerForce(distance, cation_concentration);
 
         return F_vdW + F_DDL;
     }
@@ -251,9 +259,10 @@ namespace Kratos {
         return - mA_p * mA_H / (6.0 * KRATOS_M_PI) * (1.0 / ToThePower(distance, 3) - 2.0 / ToThePower(distance + mThickness, 3) + 1.0 / ToThePower(distance + 2 * mThickness, 3));
     }
 
-    double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance)
+    double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration)
     {
-        return mA_p * mDDLCoefficient * exp(- mDebyeLengthInv * distance);
+
+        return mA_p * mDDLCoefficient * exp(- GetDebyeLength(cation_concentration) * distance);
     }
 
 } // namespace Kratos
