@@ -118,6 +118,11 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(LN_OF_RESTITUTION_COEFF)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DAMPING_GAMMA)
 
+    // *************** Nano-particle only BEGIN *************
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CATION_CONCENTRATION)
+    // *************** Nano-particle only END *************
+
+
     // *************** Continuum only BEGIN *************
     // *************** Dempack Constitutive Law only BEGIN *************            
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(SLOPE_FRACTION_N1)
