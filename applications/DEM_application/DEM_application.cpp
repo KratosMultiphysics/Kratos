@@ -112,6 +112,10 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, LN_OF_RESTITUTION_COEFF)
   KRATOS_CREATE_VARIABLE(double, DAMPING_GAMMA)  
 
+  // *************** Nano-particle only BEGIN *************
+  KRATOS_CREATE_VARIABLE(double, CATION_CONCENTRATION)
+  // *************** Nano-particle only END *************
+
   // *************** Continuum only BEGIN *************
   KRATOS_CREATE_VARIABLE(double, SLOPE_FRACTION_N1)
   KRATOS_CREATE_VARIABLE(double, SLOPE_FRACTION_N2)
@@ -519,6 +523,10 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(SQRT_OF_MASS)
     KRATOS_REGISTER_VARIABLE(LN_OF_RESTITUTION_COEFF)
     KRATOS_REGISTER_VARIABLE(DAMPING_GAMMA)
+
+    // *************** Nano-particle only BEGIN *************
+    KRATOS_REGISTER_VARIABLE(CATION_CONCENTRATION)
+    // *************** Nano-particle only END *************
 
     // *************** Continuum only BEGIN *************
     KRATOS_REGISTER_VARIABLE(SLOPE_FRACTION_N1)
