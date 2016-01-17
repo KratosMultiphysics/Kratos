@@ -62,9 +62,9 @@ namespace Kratos {
                                     bool& sliding);
 
 
-        double CalculateNormalForce(const double indentation);
+        double CalculateNormalForce(const double distance, const double cation_concentration);
         double CalculateVanDerWaalsForce(const double);
-        double CalculateDiffuseDoubleLayerForce(const double);
+        double CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration);
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
