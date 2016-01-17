@@ -102,6 +102,10 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, LN_OF_RESTITUTION_COEFF)
   KRATOS_DEFINE_VARIABLE(double, DAMPING_GAMMA)
 
+  // *************** Nano-particle only BEGIN *************
+  KRATOS_DEFINE_VARIABLE(double, CATION_CONCENTRATION)
+  // *************** Nano-particle only END *************
+
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N1)
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N2)
