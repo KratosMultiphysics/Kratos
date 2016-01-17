@@ -259,11 +259,16 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+
+        # Nano Particle
+        model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION)
+
                     
         # ONLY VISUALIZATION
         if (Var_Translator(self.DEM_parameters.PostExportId)):
             model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-                
+
+
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
