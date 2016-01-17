@@ -3,15 +3,28 @@
 
 #include "DEM_D_Bentonite_Colloid_CL.h"
 
+double ToThePower(double base, unsigned int n)
+{
+    if (n == 0) return 1.0;
+    double x = base;
+
+    while (n > 1){
+        x *= base;
+        n -= 1;
+    }
+
+    return  x;
+}
+
 namespace Kratos {
 //G Hard-coded values for the moment, some should probably be nodal
     DEM_D_Bentonite_Colloid::DEM_D_Bentonite_Colloid(){
-        mA_H = - 0.1;
+        mA_H = 10e-19;
         double d_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
         mA_p = 0.25 * KRATOS_M_PI * d_p * d_p;
         mThickness = 1.0e-9;
         mDDLCoefficient = 1.56e6;
-        mDebyeLengthInv = 103808961.2;
+        mDebyeLengthInv = 1.04e8;
         mEquivRadius = d_p / KRATOS_M_PI; // this is the "coin" equivalent radius
     }
 //Z
@@ -105,20 +118,24 @@ namespace Kratos {
                                                                 SphericParticle* const element1,
                                                                 SphericParticle* const element2) {
         
-        const double my_mass    = element1->GetMass();
-        const double other_mass = element2->GetMass();
+//        const double my_mass    = element1->GetMass();
+//        const double other_mass = element2->GetMass();
                 
-        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);        
+//        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
         
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);                
+//        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
+//        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
+//        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+//        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
+//        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
               
-        ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-        ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];  
+//        ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+//        ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+//        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
+
+        ViscoDampingLocalContactForce[0] = 0.0;
+        ViscoDampingLocalContactForce[1] = 0.0;
+        ViscoDampingLocalContactForce[2] = 0.0;
     }
     
     ///////////////////////// 
@@ -162,7 +179,6 @@ namespace Kratos {
 //G
         double distance = element->GetRadius() - indentation;
         LocalElasticContactForce[2]  = CalculateNormalForce(distance);
-       //LocalElasticContactForce[2] = CalculateNormalForce(distance);
 //Z
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
         
@@ -218,7 +234,7 @@ namespace Kratos {
         double F_vdW = CalculateVanDerWaalsForce(distance);
         double F_DDL = CalculateDiffuseDoubleLayerForce(distance);
 
-        return F_vdW - F_DDL;
+        return F_vdW + F_DDL;
     }
 
     double DEM_D_Bentonite_Colloid::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
@@ -232,12 +248,12 @@ namespace Kratos {
 
     double DEM_D_Bentonite_Colloid::CalculateVanDerWaalsForce(const double distance)
     {
-        return -mA_p * mA_H / (6 * KRATOS_M_PI_3) * 12 * mThickness * mThickness / (distance * distance * distance * distance * distance);
+        return - mA_p * mA_H / (6.0 * KRATOS_M_PI) * (1.0 / ToThePower(distance, 3) - 2.0 / ToThePower(distance + mThickness, 3) + 1.0 / ToThePower(distance + 2 * mThickness, 3));
     }
 
     double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance)
     {
-        return mDDLCoefficient * exp(- mDebyeLengthInv * distance);
+        return mA_p * mDDLCoefficient * exp(- mDebyeLengthInv * distance);
     }
 
 } // namespace Kratos
