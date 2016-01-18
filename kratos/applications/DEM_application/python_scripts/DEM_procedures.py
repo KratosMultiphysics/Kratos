@@ -218,10 +218,10 @@ class Procedures(object):
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
         # KINEMATIC        
-        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
-        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-        
+        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that noone accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that noone accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that noone accesses them in c++ without checking the rotation option
+         
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
