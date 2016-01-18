@@ -590,13 +590,24 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
 
-            consistent=1;
-            if(i==j)
-                consistent=2;
-
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-            //rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ;
-            rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D
+
+	    consistent=1;
+	    if(i==j)
+	      consistent=2;
+
+	    if( dimension == 2 ){ //consistent 2D
+
+	      rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D
+
+	    }
+	    else{
+	      
+	      rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/20.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //3D
+	    }
+
+	    //rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
+
             //std::cout<<" Pressure ["<<j<<"] : "<<Pressure<<" rhs "<<std::endl;
 
         }
@@ -637,8 +648,8 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     // VectorType Fh=rRightHandSideVector;
     // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
-    //use of this variable for the complete parameter: (deffault: 4)
-    double AlphaStabilization  = 4.0; 
+    //use of this variable for the complete parameter:
+    double AlphaStabilization  = 1.0; 
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
 
@@ -651,10 +662,6 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
-    //use of this variable for the complete parameter:
-    AlphaStabilization=(AlphaStabilization/(18.0*LameMu));
-
-
     double consistent = 1;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -662,12 +669,27 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
 
-            consistent=(-1)*AlphaStabilization;
-            if(i==j)
-                consistent=2*AlphaStabilization;
-
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-            rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+
+	    if( dimension == 2 ){ //consistent 2D
+
+	      AlphaStabilization *= 8.0; //JMR deffault value
+
+	      consistent=(-1)*AlphaStabilization/(36.0*LameMu);
+	      if(i==j)
+                consistent=2*AlphaStabilization/(36.0*LameMu);
+
+	      rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+	    }
+	    else{
+
+	      consistent=(-1)*AlphaStabilization/(40.0*LameMu);
+	      if(i==j)
+                consistent=3*AlphaStabilization/(40.0*LameMu);
+
+	      rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //3D
+
+	    }
 
 	    // std::cout<<" Pressure "<<Pressure<<std::endl;
         }
@@ -891,16 +913,28 @@ void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMa
     {
         unsigned int indexpj = dimension;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            consistent=1;
-            if(indexpi==indexpj)
-                consistent=2;
+	  {
+	     
+	    consistent=1;
+	    if(indexpi==indexpj)
+	      consistent=2;
 
-            //rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(BulkModulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
-            rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+	    if( dimension == 2 ){ //consistent 2D
+	      
+	      rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+
+	    }
+	    else{
+
+	      rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/20.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
+
+	      
+	    }
+
+	    //rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(BulkModulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D-3D
 
             indexpj += (dimension + 1);
-        }
+	  }
 
         indexpi += (dimension + 1);
     }
@@ -933,7 +967,7 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
     unsigned int indexpi = dimension;
     double consistent = 1.0;
 
-    double AlphaStabilization  = 4.0; 
+    double AlphaStabilization  = 1.0; 
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
 
@@ -946,26 +980,39 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
-
-    //use of this variable for the complete parameter:
-    AlphaStabilization=(AlphaStabilization/(18.0*LameMu));
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
+      {
         unsigned int indexpj = dimension;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            consistent=(-1)*AlphaStabilization;
-            if(indexpi==indexpj)
-                consistent=2*AlphaStabilization;
+	  {
 
-            rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF);     //2D
+	    if( dimension == 2 ){ //consistent 2D
+	      
+	      AlphaStabilization *= 8.0; //JMR deffault value
+	      
+	      consistent=(-1)*AlphaStabilization/(36.0*LameMu);
+	      if(indexpi==indexpj)
+                consistent=2*AlphaStabilization/(36.0*LameMu);
+
+	      rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+	    
+	    }
+	    else{
+
+	      consistent=(-1)*AlphaStabilization/(40.0*LameMu);
+	      if(indexpi==indexpj)
+                consistent=3*AlphaStabilization/(40.0*LameMu);
+	      
+	      rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
+
+	    }
+
 
             indexpj += (dimension + 1);
-        }
+	  }
 
         indexpi += (dimension + 1);
-    }
+      }
 
     // std::cout<<std::endl;
     // std::cout<<" KppStab "<<rLeftHandSideMatrix-Kh<<std::endl;

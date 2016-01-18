@@ -496,6 +496,7 @@ private:
 
     const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement2D3N;
     const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
+    const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement3D4N;
 	
     const MembraneElement mMembraneElement3D3N;
     
