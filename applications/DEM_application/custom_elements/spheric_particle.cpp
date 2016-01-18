@@ -99,19 +99,21 @@ void SphericParticle::Initialize()
         array_1d<double, 3>& angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         angular_velocity = ZeroVector(3);
     }
+    
+    NodeType& node = GetGeometry()[0];
 
-    if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,true);
-    else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,false);
-    if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,true);
-    else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,false);
-    if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,true);
-    else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,false);
-    if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,true);
-    else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,false);
-    if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,true);
-    else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,false);
-    if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
-    else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,false);
+    if (node.GetDof(VELOCITY_X).IsFixed())         node.Set(DEMFlags::FIXED_VEL_X,true);
+    else                                           node.Set(DEMFlags::FIXED_VEL_X,false);
+    if (node.GetDof(VELOCITY_Y).IsFixed())         node.Set(DEMFlags::FIXED_VEL_Y,true);
+    else                                           node.Set(DEMFlags::FIXED_VEL_Y,false);
+    if (node.GetDof(VELOCITY_Z).IsFixed())         node.Set(DEMFlags::FIXED_VEL_Z,true);
+    else                                           node.Set(DEMFlags::FIXED_VEL_Z,false);
+    if (node.GetDof(ANGULAR_VELOCITY_X).IsFixed()) node.Set(DEMFlags::FIXED_ANG_VEL_X,true);
+    else                                           node.Set(DEMFlags::FIXED_ANG_VEL_X,false);
+    if (node.GetDof(ANGULAR_VELOCITY_Y).IsFixed()) node.Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+    else                                           node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);
+    if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+    else                                           node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 
     CustomInitialize();
 
