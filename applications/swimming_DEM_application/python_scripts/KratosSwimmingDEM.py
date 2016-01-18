@@ -80,7 +80,7 @@ DEM_parameters.fluid_domain_volume                    = 2 * math.pi # write down
 pp.CFD_DEM.PostCationConcentration = True
 pp.initial_concentration = 1.0
 pp.final_concentration = 0.01
-pp.cation_concentration_frequence = 100
+pp.cation_concentration_frequence = 1
 # NANO END
 
 # Import utilities from models
@@ -594,6 +594,12 @@ post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # all variables are set to 0 by default
 
+
+# NANO BEGIN
+for node in spheres_model_part.Nodes:
+    node.SetSolutionStepValue(CATION_CONCENTRATION, pp.initial_concentration)
+# NANO END
+
 while (time <= final_time):
 
     time = time + Dt
@@ -616,7 +622,7 @@ while (time <= final_time):
     if cation_concentration_counter.Tick():
         concentration = time / pp.max_time * pp.final_concentration + (1 - time / pp.max_time) * pp.initial_concentration
         for node in spheres_model_part.Nodes:
-            node.SetSolutionStepValue(CATION_CONCENTRATION, 0, concentration)
+            node.SetSolutionStepValue(CATION_CONCENTRATION, concentration)
 # NANO END
 
     if embedded_counter.Tick():
@@ -706,7 +712,6 @@ while (time <= final_time):
         # adding DEM elements by the inlet:
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
-
         #first_dem_iter = False
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
