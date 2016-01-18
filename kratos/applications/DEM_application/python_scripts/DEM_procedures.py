@@ -261,7 +261,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
 
         # Nano Particle
-        model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION) //TODO: add this variable only if the nanoparticle is used
+        model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION) #TODO: add this variable only if the nanoparticle is used
 
                     
         # ONLY VISUALIZATION
