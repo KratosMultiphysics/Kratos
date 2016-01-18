@@ -53,9 +53,9 @@ namespace Kratos
 	}
 
 
-// 	KratosException::~KratosException()
-// 	{
-// 	}
+    KratosException::~KratosException() throw()
+    {
+    }
 
 	void KratosException::append_message(std::string const& rMessage)
 	{
@@ -73,7 +73,7 @@ namespace Kratos
 		mWhat.append(rWhere);
 	}
 
-	const char* KratosException::what() const noexcept
+    const char* KratosException::what() const throw() //noexcept
 	{
 		return mWhat.c_str();
 	}
