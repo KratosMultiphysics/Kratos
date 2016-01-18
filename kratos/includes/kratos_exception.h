@@ -82,7 +82,7 @@ namespace Kratos
       KratosException(KratosException const& rOther);
 
       /// Destructor.
-//       virtual ~KratosException() noexcept; // noexcept(true);
+      virtual ~KratosException() throw(); //noexcept; // noexcept(true);
       
 
       ///@}
@@ -106,7 +106,7 @@ namespace Kratos
 	  /// The overide of the base class what method
 	  /** This method returns the entire message with where information
 	  */
-	  const char* what() const noexcept;
+      const char* what() const throw () /*noexcept*/; // Todo: I should change this after switching to c++11. Pooyan.
 
 	  const std::string& message() const;
 
