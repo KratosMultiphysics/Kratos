@@ -245,6 +245,7 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
 
     mUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAxisymUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mUpdatedLagrangianUPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     
     mPointLoadCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -353,6 +354,8 @@ void KratosSolidMechanicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPElement2D3N", mAxisymUpdatedLagrangianUPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPElement3D4N", mUpdatedLagrangianUPElement3D4N )
+
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
     //Register Conditions
