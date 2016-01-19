@@ -722,7 +722,7 @@ void HyperElastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariable
     //1.-Identity build
     Matrix IsoStressMatrix ( 3, 3 );
 
-    //note.- rElasticVariables.traceCG is "traceCG_bar"
+    //note.- rElasticVariables.traceCG is "traceCG"
 
     if(rStressMeasure == StressMeasure_PK2)
     {
