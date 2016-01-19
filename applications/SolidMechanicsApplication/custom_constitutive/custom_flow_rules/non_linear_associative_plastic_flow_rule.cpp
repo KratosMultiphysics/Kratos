@@ -81,11 +81,11 @@ NonLinearAssociativePlasticFlowRule::~NonLinearAssociativePlasticFlowRule()
 
 double& NonLinearAssociativePlasticFlowRule::CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
 {
-	  
-	rStressNorm = sqrt(rStressMatrix( 0 , 0 )*rStressMatrix( 0 , 0 )+
-			   rStressMatrix( 1 , 1 )*rStressMatrix( 1 , 1 )+
-			   rStressMatrix( 2 , 2 )*rStressMatrix( 2 , 2 )+
-			   2.0 * rStressMatrix( 0 , 1 )*rStressMatrix( 0 , 1 ) );
+
+        rStressNorm =  sqrt((rStressMatrix(0,0)*rStressMatrix(0,0))+(rStressMatrix(1,1)*rStressMatrix(1,1))+(rStressMatrix(2,2)*rStressMatrix(2,2))+
+		           (rStressMatrix(0,1)*rStressMatrix(0,1))+(rStressMatrix(0,2)*rStressMatrix(0,2))+(rStressMatrix(1,2)*rStressMatrix(1,2))+
+		           (rStressMatrix(1,0)*rStressMatrix(1,0))+(rStressMatrix(2,0)*rStressMatrix(2,0))+(rStressMatrix(2,1)*rStressMatrix(2,1)));
+
 
 	return rStressNorm;
 }
