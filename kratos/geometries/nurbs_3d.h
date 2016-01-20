@@ -17,6 +17,7 @@
 #include "includes/node.h"
 #include "geometries/nurbs_base_geometry.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "geometries/line_3d_2.h"
 
 // #include "opennurbs.h"
 
