@@ -94,7 +94,7 @@ void  SetClusterId(const int Id);
 
 double GetRadius();
 void   SetRadius(double radius);
-double GetVolume();
+virtual double GetVolume();
 virtual double GetSearchRadius();
 double GetMass();
 void   SetMass(double real_mass);

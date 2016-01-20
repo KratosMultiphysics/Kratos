@@ -24,7 +24,11 @@ public:
 
     NanoParticle():SphericParticle()
     {
-        mThickness = 1.0e-9; // Hard-coded but should go into node
+        mThicknessOverRadius = 0.01; // Hard-coded but should go into node
+        SetMass(1.57e-12);
+        //mSearchRadius = 5e-6;//10 * mRadius;
+        mRadius = 1e-7;
+
     }
 
     NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ):SphericParticle(NewId, pGeometry){}
@@ -65,8 +69,6 @@ public:
         array_1d<double, 3> double_layer_force; double_layer_force.clear();
 
         this->ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-        this->ComputeVanDerWaalsForce(van_der_waals_force, r_current_process_info);
-        this->ComputeDoubleLayerForce(double_layer_force, r_current_process_info);
 
         additionally_applied_force += brownian_motion_force + van_der_waals_force + double_layer_force;
 
@@ -77,18 +79,23 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    double GetVolume() {return KRATOS_M_PI * mRadius * mRadius * mThickness;}
+    double GetSearchRadius()
+    {
+        return mSearchRadius;
+    }
+
+    double GetVolume()
+    {
+        return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
+    }
 
 protected:
 
     void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info){};
-    void ComputeVanDerWaalsForce(array_1d<double, 3>& van_der_waals_force, ProcessInfo& r_current_process_info){};
-    void ComputeDoubleLayerForce(array_1d<double, 3>& double_layer_force, ProcessInfo& r_current_process_info){};
-
+    double mThicknessOverRadius;
+    double mSearchRadius;
 
 private:
-
-    double mThickness;
 
     friend class Serializer;
 
