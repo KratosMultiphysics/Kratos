@@ -1439,7 +1439,7 @@ namespace Kratos
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
         for( int i=0; i<number_of_particles; i++ ){
             mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
-            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - indentations_list[i]);
+            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetSearchRadius() - indentations_list[i]);
         }
 
         SynchronizeSolidMesh(BaseType::GetModelPart());
@@ -1448,7 +1448,7 @@ namespace Kratos
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
         for( int i=0; i<number_of_ghost_particles; i++ ){
             mListOfGhostSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list_ghost[i];
-            mListOfGhostSphericParticles[i]->SetRadius(mListOfGhostSphericParticles[i]->GetRadius() - indentations_list_ghost[i]);
+            mListOfGhostSphericParticles[i]->SetRadius(mListOfGhostSphericParticles[i]->GetSearchRadius() - indentations_list_ghost[i]);
         }
        
         #pragma omp parallel for
