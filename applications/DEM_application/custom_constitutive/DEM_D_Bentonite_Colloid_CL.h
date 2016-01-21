@@ -101,6 +101,7 @@ namespace Kratos {
 
         double mA_H;
         double mA_p;
+        double mD_p;
         double mThickness;
         double mDDLCoefficient;
         double mDebyeLengthInv;
