@@ -25,15 +25,11 @@ public:
     NanoParticle():SphericParticle()
     {
         mThicknessOverRadius = 0.01; // Hard-coded but should go into node
-        SetMass(1.57e-12);
-        //mSearchRadius = 5e-6;//10 * mRadius;
-        mRadius = 1e-7;
-
     }
 
-    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ):SphericParticle(NewId, pGeometry){}
-    NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){}
-    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):SphericParticle(NewId, pGeometry, pProperties){}
+    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry ):SphericParticle(NewId, pGeometry){mThicknessOverRadius = 0.01;}
+    NanoParticle( IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){mThicknessOverRadius = 0.01;}
+    NanoParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):SphericParticle(NewId, pGeometry, pProperties){mThicknessOverRadius = 0.01;}
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
@@ -57,43 +53,19 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
+    void CustomInitialize();
 
     void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                  array_1d<double, 3>& additionally_applied_moment,
                                  ProcessInfo& r_current_process_info,
-                                 const array_1d<double,3>& gravity){
-        KRATOS_TRY
+                                 const array_1d<double,3>& gravity);
 
-        array_1d<double, 3> brownian_motion_force; brownian_motion_force.clear();
-        array_1d<double, 3> van_der_waals_force; van_der_waals_force.clear();
-        array_1d<double, 3> double_layer_force; double_layer_force.clear();
-
-        this->ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-
-        additionally_applied_force += brownian_motion_force + van_der_waals_force + double_layer_force;
-
-
-        //Now add the contribution of base class function (gravity or other forces added in upper levels):
-        SphericParticle::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_current_process_info, gravity);
-
-        KRATOS_CATCH( "" )
-    }
-
-    double GetSearchRadius()
-    {
-        return mSearchRadius;
-    }
-
-    double GetVolume()
-    {
-        return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
-    }
+    double GetVolume();
 
 protected:
 
     void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info){};
     double mThicknessOverRadius;
-    double mSearchRadius;
 
 private:
 
