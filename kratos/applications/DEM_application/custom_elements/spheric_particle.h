@@ -96,7 +96,7 @@ double GetRadius();
 void   SetRadius(double radius);
 virtual double GetVolume();
 virtual double GetSearchRadius();
-double GetMass();
+virtual double GetMass();
 void   SetMass(double real_mass);
 double GetYoung();
 void   SetYoungFromProperties(double* young);
