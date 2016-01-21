@@ -1,8 +1,8 @@
 domain_size = 2
 
 SolverType = "FractionalStep"
-
-MeshSolverType = "StructuralSimilarityNonlinear" #StructuralSimilarity	#StructuralSimilarityNonlinear  #Laplacian
+NumberofThreads = 1
+MeshSolverType = "StructuralSimilarity" #StructuralSimilarity	#StructuralSimilarityNonlinear  #Laplacian
 
 # Fluid solver configuration
 class FluidSolverConfiguration:
@@ -32,7 +32,7 @@ class FluidSolverConfiguration:
     #convergence criteria settings
     vel_toll = 1E-6
     press_toll = 1E-6
-    divergence_cleareance_step = 50
+    #divergence_cleareance_steps = 0
     
     #other solver settings
     oss_switch = 1
@@ -46,7 +46,7 @@ class FluidSolverConfiguration:
 
 #general problem settings
 AutomaticDeltaTime = "Fixed"
-Dt = 0.001
+Dt = 0.1
 Start_time = 0.0
 max_time = 1
 nsteps = 1000
@@ -56,7 +56,7 @@ groups_dictionary = {
         "Fluid" : 1,
                    }
 #output settings
-output_time = 0.001
+output_time = 0.1
 output_step = 1
 VolumeOutput = True
 nodal_results=["VELOCITY","PRESSURE","REACTION","DISPLACEMENT"]
