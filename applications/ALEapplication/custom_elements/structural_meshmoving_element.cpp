@@ -121,6 +121,8 @@ void StructuralMeshMovingElement::Initialize() {
   this->GetGeometry().Jacobian(mJ0, mThisIntegrationMethod);
   this->GetGeometry().InverseOfJacobian(mInvJ0, mThisIntegrationMethod);
   this->GetGeometry().DeterminantOfJacobian(mDetJ0);
+
+
 }
 
 StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
@@ -152,6 +154,7 @@ StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::SetAndModif
     ConstitutiveMatrix(2, 2) = Mue;
     ConstitutiveMatrix(0, 1) = Lambda;
     ConstitutiveMatrix(1, 0) = Lambda;
+
   }
 
   else if (dimension == 3) {

@@ -48,6 +48,15 @@ def ApplyDisplacementConditions(model_part):
       node.Fix(DISPLACEMENT_Y)
       node.Fix(DISPLACEMENT_Z)
 
+# --SET NUMBER OF THREADS --#################
+
+
+def SetParallelSize(num_threads):
+    parallel = OpenMPUtils()
+    print("Num Threads = ", num_threads)
+    parallel.SetNumThreads(int(num_threads))
+# --SET NUMBER OF THREADS --#################
+
 	  
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -89,6 +98,8 @@ if "MESH_VELOCITY" in ProjectParameters.nodal_results:
 
 SolverType = ProjectParameters.SolverType		#Parameters coming from ProjectParameters.mdpa
 
+num_threads = ProjectParameters.NumberofThreads
+SetParallelSize(num_threads)
 MeshSolverType = ProjectParameters.MeshSolverType	#Parameters coming from ProjectParameters.mdpa
 
 
@@ -205,7 +216,7 @@ if(MeshSolverType == "Laplacian"):
   mesh_sol.time_order = fluid_solver.time_order
   mesh_sol.Initialize()
 elif(MeshSolverType == "StructuralSimilarity"):
-  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(fluid_model_part,domain_size,reform_dofs_at_each_step)
+  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(fluid_model_part,reform_dofs_at_each_step)
   mesh_sol.time_order = fluid_solver.time_order
   mesh_sol.Initialize()
 elif(MeshSolverType == "StructuralSimilarityNonlinear"):
@@ -328,15 +339,15 @@ while(time <= final_time):
     print ("STEP = ", step)
     print ("TIME = ", round(time,6))
 
-    if(step >= 3 and step < 50):
-      fluid_solver.Solve()
-      graph_printer.PrintGraphs(time)
-      PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
-    if (step >= 50):
+    #if(step >= 3 and step < 50):
+      #fluid_solver.Solve()
+      #graph_printer.PrintGraphs(time)
+      #PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
+    if (step >= 3):
       MoveNodes(fluid_model_part,time)
       mesh_sol.Solve()
       mesh_sol.MoveNodes()
-      fluid_solver.Solve()
+      #fluid_solver.Solve()
       graph_printer.PrintGraphs(time)
       PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
       

@@ -206,7 +206,7 @@ if(MeshSolverType == "Laplacian"):
   mesh_sol.time_order = fluid_solver.time_order
   mesh_sol.Initialize()
 elif(MeshSolverType == "StructuralSimilarity"):
-  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(fluid_model_part,domain_size,reform_dofs_at_each_step)
+  mesh_sol = mesh_solver.MeshSolverStructuralSimilarity(fluid_model_part,reform_dofs_at_each_step)
   mesh_sol.time_order = fluid_solver.time_order
   mesh_sol.Initialize()
 elif(MeshSolverType == "StructuralSimilarityNonlinear"):

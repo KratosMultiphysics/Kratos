@@ -40,7 +40,7 @@ class MeshSolverStructuralSimilarity:
         max_it = 1000
         verbosity = 1
         m = 100
-        self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI, AMGCLIterativeSolverType.BICGSTAB, tol, max_it, verbosity, m)
+        self.linear_solver = AMGCLSolver(AMGCLSmoother.SPAI0, AMGCLIterativeSolverType.BICGSTAB, tol, max_it, verbosity, m)
         # pILUPrecond = ILU0Preconditioner()
         # self.linear_solver =  BICGSTABSolver(1e-9, 300)
         # self.linear_solver =  DeflatedCGSolver(1e-6, 3000, True,1000)
