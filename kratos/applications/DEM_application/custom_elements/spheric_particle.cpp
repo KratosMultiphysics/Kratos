@@ -79,42 +79,41 @@ SphericParticle::~SphericParticle(){
 void SphericParticle::Initialize()
 {
     KRATOS_TRY
+    NodeType& node = GetGeometry()[0];
 
-    mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+    mRadius                   = node.GetSolutionStepValue(RADIUS);
     double density            = GetDensity();
-    double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+    double& mass              = node.GetSolutionStepValue(NODAL_MASS);
     mass                      = density * GetVolume();
     mRealMass                 = mass;
-    
-    if (this->IsNot(BLOCKED)) GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
+
+    if (this->IsNot(BLOCKED)) node.GetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
     
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION) ){
         double moment_of_inertia = 0.4 * mass * GetRadius() * GetRadius();
-        GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+        node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
     }
 
     else {
-        array_1d<double, 3>& angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY);
         angular_velocity = ZeroVector(3);
     }
     
-    NodeType& node = GetGeometry()[0];
 
-    if (node.GetDof(VELOCITY_X).IsFixed())         node.Set(DEMFlags::FIXED_VEL_X,true);
-    else                                           node.Set(DEMFlags::FIXED_VEL_X,false);
-    if (node.GetDof(VELOCITY_Y).IsFixed())         node.Set(DEMFlags::FIXED_VEL_Y,true);
-    else                                           node.Set(DEMFlags::FIXED_VEL_Y,false);
-    if (node.GetDof(VELOCITY_Z).IsFixed())         node.Set(DEMFlags::FIXED_VEL_Z,true);
-    else                                           node.Set(DEMFlags::FIXED_VEL_Z,false);
-    if (node.GetDof(ANGULAR_VELOCITY_X).IsFixed()) node.Set(DEMFlags::FIXED_ANG_VEL_X,true);
-    else                                           node.Set(DEMFlags::FIXED_ANG_VEL_X,false);
-    if (node.GetDof(ANGULAR_VELOCITY_Y).IsFixed()) node.Set(DEMFlags::FIXED_ANG_VEL_Y,true);
-    else                                           node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);
-    if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);
-    else                                           node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);
-
+    if (node.GetDof(VELOCITY_X).IsFixed())         {node.Set(DEMFlags::FIXED_VEL_X,true);}
+    else                                           {node.Set(DEMFlags::FIXED_VEL_X,false);}
+    if (node.GetDof(VELOCITY_Y).IsFixed())         {node.Set(DEMFlags::FIXED_VEL_Y,true);}
+    else                                           {node.Set(DEMFlags::FIXED_VEL_Y,false);}
+    if (node.GetDof(VELOCITY_Z).IsFixed())         {node.Set(DEMFlags::FIXED_VEL_Z,true);}
+    else                                           {node.Set(DEMFlags::FIXED_VEL_Z,false);}
+    if (node.GetDof(ANGULAR_VELOCITY_X).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_X,true);}
+    else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_X,false);}
+    if (node.GetDof(ANGULAR_VELOCITY_Y).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Y,true);}
+    else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);}
+    if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
+    else                                          {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}
     CustomInitialize();
 
     KRATOS_CATCH( "" )
