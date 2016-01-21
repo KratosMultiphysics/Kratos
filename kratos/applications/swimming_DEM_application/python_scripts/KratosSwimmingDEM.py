@@ -78,9 +78,9 @@ DEM_parameters.fluid_domain_volume                    = 2 * math.pi # write down
 
 # NANO BEGIN
 pp.CFD_DEM.PostCationConcentration = True
-pp.initial_concentration = 1.0
-pp.final_concentration = 0.01
-pp.cation_concentration_frequence = 1
+pp.initial_concentration = 0.5
+pp.final_concentration = 0.5
+pp.cation_concentration_frequence = 1000
 # NANO END
 
 # Import utilities from models
@@ -555,7 +555,7 @@ particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_
 #G
 
 # NANO BEGIN
-cation_concentration_counter = swim_proc.Counter(1, pp.cation_concentration_frequence, 1)
+cation_concentration_counter = swim_proc.Counter(pp.cation_concentration_frequence,1, 1)
 # NANO END
 
 #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
@@ -596,6 +596,8 @@ swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_p
 
 
 # NANO BEGIN
+alpha = 1.0
+print(alpha)
 for node in spheres_model_part.Nodes:
     node.SetSolutionStepValue(CATION_CONCENTRATION, pp.initial_concentration)
 # NANO END
@@ -617,13 +619,6 @@ while (time <= final_time):
     # calculating elemental distances defining the structure embedded in the fluid mesh
     if DEM_parameters.embedded_option:
         calculate_distance_process.Execute()
-
-# NANO BEGIN
-    if cation_concentration_counter.Tick():
-        concentration = time / pp.max_time * pp.final_concentration + (1 - time / pp.max_time) * pp.initial_concentration
-        for node in spheres_model_part.Nodes:
-            node.SetSolutionStepValue(CATION_CONCENTRATION, concentration)
-# NANO END
 
     if embedded_counter.Tick():
         embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
@@ -676,13 +671,18 @@ while (time <= final_time):
     first_dem_iter = True
 
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
-
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
 
         spheres_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
         rigid_face_model_part.ProcessInfo[TIME_STEPS] = DEM_step
         cluster_model_part.ProcessInfo[TIME_STEPS]    = DEM_step
+        # NANO BEGIN
+        if cation_concentration_counter.Tick():
+            concentration = pp.final_concentration + (pp.initial_concentration - pp.final_concentration) * math.exp(- alpha * time_dem)
 
+            for node in spheres_model_part.Nodes:
+                node.SetSolutionStepValue(CATION_CONCENTRATION, concentration)
+        # NANO END
         # applying fluid-to-DEM coupling if required
 
         if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
@@ -713,6 +713,7 @@ while (time <= final_time):
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
         #first_dem_iter = False
+    print("concentration: " + str(concentration))
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
