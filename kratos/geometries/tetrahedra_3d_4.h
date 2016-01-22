@@ -528,7 +528,7 @@ public:
         NumberNodesInFaces[0]=3;
         NumberNodesInFaces[1]=3;
         NumberNodesInFaces[2]=3;
-        NumberNodesInFaces[4]=3;
+        NumberNodesInFaces[3]=3;
 
     }
 
