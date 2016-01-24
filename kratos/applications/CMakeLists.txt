@@ -36,6 +36,7 @@ message("PFEM_FLUID_DYNAMIC_APPLICATION...... ${PFEM_FLUID_DYNAMIC_APPLICATION}"
 message("PFEM2_APPLICATION................... ${PFEM2_APPLICATION}")
 message("FREEZING_SOIL_APPLICATION............${FREEZING_SOIL_APPLICATION}")
 message("ADJOINT_FLUID_APPLICATION........... ${ADJOINT_FLUID_APPLICATION}")
+message("POROMECHANICS_APPLICATION............${POROMECHANICS_APPLICATION}")
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -190,6 +191,10 @@ endif(${PFEM2_APPLICATION} MATCHES ON)
 if(${FREEZING_SOIL_APPLICATION} MATCHES ON)
   add_subdirectory(freezing_soil_application)
 endif(${FREEZING_SOIL_APPLICATION} MATCHES ON)
+
+if(${POROMECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(PoromechanicsApplication)
+endif(${POROMECHANICS_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
