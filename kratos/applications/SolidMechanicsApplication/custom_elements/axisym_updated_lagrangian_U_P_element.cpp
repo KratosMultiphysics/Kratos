@@ -206,7 +206,7 @@ void AxisymUpdatedLagrangianUPElement::Initialize()
 {
     KRATOS_TRY
 
-    LargeDisplacementUPElement::Initialize();
+    LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
@@ -240,6 +240,8 @@ void AxisymUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
 
     rVariables.detFT = 1;
 
+    rVariables.detJ = 1;
+
     rVariables.B.resize( 4 , number_of_nodes * 2 );
 
     rVariables.F.resize( 3, 3 );
@@ -269,7 +271,7 @@ void AxisymUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
 
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -647,7 +649,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddPressureForces(VectorType&
 
     unsigned int indexp = dimension;
 
-    VectorType Fh=rRightHandSideVector;
+    //VectorType Fh=rRightHandSideVector;
 
     double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
@@ -666,17 +668,16 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddPressureForces(VectorType&
             //     consistent=2;
 
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-            rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight/ rVariables.detF0;
+            rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight/ (rVariables.detF0/rVariables.detF);
 
-            //rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / rVariables.detF0 ; //2D
+            //rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
 
             //std::cout<<" Pressure ["<<j<<"] : "<<Pressure<<" rhs "<<std::endl;
 
         }
 
-        //rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF;
 
-        rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF0;
+        rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
         //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
 
@@ -706,14 +707,13 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     unsigned int indexp = dimension;
-    double consistent = 1;
 
     // VectorType Fh=rRightHandSideVector;
     // if( this->Id() <= 4)
     //   std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
     //use of this variable for the complete parameter: (deffault: 4)
-    double AlphaStabilization  = 4.0; 
+    double AlphaStabilization  = 1.0; 
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
 
@@ -726,10 +726,13 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
-    
+    double consistent = 1;
+
+    double FactorValue = 8.0; //JMR deffault value
+
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
-        AlphaStabilization *= 1.0/18.0;
+        AlphaStabilization *= FactorValue/36.0;
 
     //use of this variable for the complete parameter:
     AlphaStabilization=(AlphaStabilization/LameMu);
@@ -748,12 +751,12 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
                 if(i==j)
                     consistent=2*AlphaStabilization;
 
-                rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / rVariables.detF0;
+                rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
             }
             else
             {
                 //AXISYM
-                consistent = AlphaStabilization * rIntegrationWeight / rVariables.detF0;
+                consistent = AlphaStabilization * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
                 // if(i==j){
                 //   consistent *= ( rVariables.N[i] * rVariables.N[j] + (1.0/9.0) );
                 // }
@@ -871,7 +874,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rK;
+    //MatrixType Kh=rK;
     //contributions to stiffness matrix calculated on the reference configuration
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -882,10 +885,10 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
 
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rK(indexup+k,indexp) +=  rVariables.DN_DX ( i , k ) *  rVariables.N[j] * rIntegrationWeight;
+                rK(indexup+k,indexp) +=  rVariables.DN_DX ( i , k ) *  rVariables.N[j] * rIntegrationWeight * rVariables.detF;
 
                 if(k==0) //axysimmetric term
-                    rK(indexup+k,indexp) +=  rVariables.N[i] * rVariables.N[j] * (1.0/rVariables.CurrentRadius) * rIntegrationWeight;
+                    rK(indexup+k,indexp) +=  rVariables.N[i] * rVariables.N[j] * (1.0/rVariables.CurrentRadius) * rIntegrationWeight * rVariables.detF;
 
             }
             indexp += (dimension + 1);
@@ -911,7 +914,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rK;
+    //MatrixType Kh=rK;
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexp = dimension;
@@ -926,11 +929,11 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
             int indexup= dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight;
+                rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight * rVariables.detF;
 
                 //std::cout<<" value ("<<indexp<<","<<indexup+k<<") "<<(2*detF) * rN[i] * rDN_DX ( j , k ) * rIntegrationWeight<<std::endl;
                 if(k==0) //axysimmetric term
-                    rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.N[j] * (1.0/rVariables.CurrentRadius) * rIntegrationWeight;
+                    rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.N[j] * (1.0/rVariables.CurrentRadius) * rIntegrationWeight * rVariables.detF;
 
             }
         }
@@ -976,8 +979,8 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
             // if(indexpi==indexpj)
             //     consistent=2;
 
-            rK(indexpi,indexpj)  -= ((1.0)/(BulkModulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight / rVariables.detF0;
-            //rK(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/12.0) * rIntegrationWeight / rVariables.detF0; //2D
+            rK(indexpi,indexpj)  -= ((1.0)/(BulkModulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+            //rK(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
 
             indexpj += (dimension + 1);
         }
@@ -1010,10 +1013,9 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
-    double consistent = 1.0;
 
     //use of this variable for the complete parameter: (deffault: 4)    
-    double AlphaStabilization  = 4.0; 
+    double AlphaStabilization  = 1.0; 
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
 
@@ -1026,9 +1028,13 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
+    double consistent = 1.0;
+
+    double FactorValue = 8.0; //JMR deffault value
+
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
-        AlphaStabilization *= 1.0/18.0;
+        AlphaStabilization *= FactorValue/36.0;
 
     //use of this variable for the complete parameter:
     AlphaStabilization=(AlphaStabilization/LameMu);
@@ -1047,13 +1053,13 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
                 if(indexpi==indexpj)
                     consistent=2*AlphaStabilization;
 
-                rK(indexpi,indexpj)  -= consistent * rIntegrationWeight / rVariables.detF0;
+                rK(indexpi,indexpj)  -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
             }
             else
             {
 
-	        consistent  = AlphaStabilization * rIntegrationWeight / rVariables.detF0;
+	        consistent  = AlphaStabilization * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
                 // if(indexpi==indexpj){
                 //   consistent *= ( rVariables.N[i] * rVariables.N[j] + (1.0/9.0) );
                 // }

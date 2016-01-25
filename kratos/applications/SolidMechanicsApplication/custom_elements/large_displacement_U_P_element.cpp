@@ -440,7 +440,7 @@ void LargeDisplacementUPElement::CalculateAndAddInternalForces(VectorType& rRigh
     }
 
     // std::cout<<std::endl;
-    // std::cout<<" Stress "<<rVariables.StressVector<<std::endl;
+    // std::cout<<"["<<this->Id()<<"] StressVector "<<rVariables.StressVector<<std::endl;
     // std::cout<<" Fint "<<rRightHandSideVector-Fh<<std::endl;
 
     KRATOS_CATCH( "" )
@@ -566,8 +566,8 @@ double& LargeDisplacementUPElement::CalculatePUDeltaCoefficient(double &rDeltaCo
 //************************************************************************************
 
 void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        double& rIntegrationWeight)
+							       GeneralVariables & rVariables,
+							       double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -580,7 +580,7 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
 
     double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
-    double consistent=1;
+    //double consistent=1;
 
     double Coefficient = 0;
     Coefficient = this->CalculatePUCoefficient( Coefficient, rVariables ); 
@@ -592,31 +592,26 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
 
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
-	    consistent=1;
-	    if(i==j)
-	      consistent=2;
+	    // consistent=1;
+	    // if(i==j)
+	    //   consistent=2;
 
-	    if( dimension == 2 ){ //consistent 2D
+	    // if( dimension == 2 ){ //consistent 2D
 
-	      rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D
+	    //   rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D
 
-	    }
-	    else{
+	    // }
+	    // else{
 	      
-	      rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/20.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //3D
-	    }
+	    //   rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/20.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //3D
+	    // }
 
-	    //rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
+	    rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
 
-            //std::cout<<" Pressure ["<<j<<"] : "<<Pressure<<" rhs "<<std::endl;
-
+ 
         }
 
-        //rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF;
-
         rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
-
-        //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
 
         indexp += (dimension + 1);
     }
@@ -664,6 +659,10 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
 
     double consistent = 1;
 
+    double FactorValue = 8.0; //JMR deffault value	 
+    if( dimension == 3 )
+      FactorValue = 10.0; //JMC deffault value
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
@@ -673,21 +672,19 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
 
 	    if( dimension == 2 ){ //consistent 2D
 
-	      AlphaStabilization *= 8.0; //JMR deffault value
-
-	      consistent=(-1)*AlphaStabilization/(36.0*LameMu);
+	      consistent=(-1)*AlphaStabilization*FactorValue/(36.0*LameMu);
 	      if(i==j)
-                consistent=2*AlphaStabilization/(36.0*LameMu);
+                consistent=2*AlphaStabilization*FactorValue/(36.0*LameMu);
 
 	      rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
 	    }
 	    else{
 
-	      consistent=(-1)*AlphaStabilization/(40.0*LameMu);
+	      consistent=(-1)*AlphaStabilization*FactorValue/(80.0*LameMu);
 	      if(i==j)
-                consistent=3*AlphaStabilization/(40.0*LameMu);
+                consistent=3*AlphaStabilization*FactorValue/(80.0*LameMu);
 
-	      rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //3D
+	      rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
 
 	    }
 
@@ -871,7 +868,7 @@ void LargeDisplacementUPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMa
             int indexup= dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(indexp,indexup+k) +=  DeltaCoefficient  * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight * rVariables.detF;
+	      rLeftHandSideMatrix(indexp,indexup+k) +=  DeltaCoefficient  * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight * rVariables.detF;
 
                 //std::cout<<" value ("<<indexp<<","<<indexup+k<<") "<<(2*detF) * rN[i] * rDN_DX ( j , k ) * rIntegrationWeight<<std::endl;
             }
@@ -907,7 +904,7 @@ void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMa
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
-    double consistent = 1.0;
+    //double consistent = 1.0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -915,23 +912,22 @@ void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMa
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	  {
 	     
-	    consistent=1;
-	    if(indexpi==indexpj)
-	      consistent=2;
+	    // consistent=1;
+	    // if(indexpi==indexpj)
+	    //   consistent=2;
 
-	    if( dimension == 2 ){ //consistent 2D
+	    // if( dimension == 2 ){ //consistent 2D
 	      
-	      rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+	    //   rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
 
-	    }
-	    else{
+	    // }
+	    // else{
 
-	      rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/20.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
-
+	    //   rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * ((1.0)/(BulkModulus)) * (1.0/20.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
 	      
-	    }
+	    // }
 
-	    //rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(BulkModulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D-3D
+	    rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(BulkModulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D-3D
 
             indexpj += (dimension + 1);
 	  }
@@ -965,8 +961,7 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
-    double consistent = 1.0;
-
+    
     double AlphaStabilization  = 1.0; 
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
@@ -980,6 +975,12 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
+    double consistent = 1.0;
+
+    double FactorValue = 8.0; //JMR deffault value	
+    if( dimension == 3 )
+      FactorValue = 10.0; //JMC deffault value
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
         unsigned int indexpj = dimension;
@@ -988,22 +989,20 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
 
 	    if( dimension == 2 ){ //consistent 2D
 	      
-	      AlphaStabilization *= 8.0; //JMR deffault value
-	      
-	      consistent=(-1)*AlphaStabilization/(36.0*LameMu);
+	      consistent=(-1)*AlphaStabilization*FactorValue/(36.0*LameMu);
 	      if(indexpi==indexpj)
-                consistent=2*AlphaStabilization/(36.0*LameMu);
+                consistent=2*AlphaStabilization*FactorValue/(36.0*LameMu);
 
 	      rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
 	    
 	    }
 	    else{
 
-	      consistent=(-1)*AlphaStabilization/(40.0*LameMu);
+	      consistent=(-1)*AlphaStabilization*FactorValue/(80.0*LameMu);
 	      if(indexpi==indexpj)
-                consistent=3*AlphaStabilization/(40.0*LameMu);
+                consistent=3*AlphaStabilization*FactorValue/(80.0*LameMu);
 	      
-	      rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
+	      rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //3D
 
 	    }
 
@@ -1044,26 +1043,73 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 
     rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
-    double TotalMass = 0;
-    this->CalculateTotalMass( TotalMass, rCurrentProcessInfo );
+    // Not Lumped Mass Matrix (numerical integration):
 
-    if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+    //reading integration points
+    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
 
-    Vector LumpFact = ZeroVector(number_of_nodes);
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-    LumpFact = GetGeometry().LumpingFactors( LumpFact );
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        double temp = LumpFact[i] * TotalMass;
+      //compute element kinematics
+      this->CalculateKinematics( Variables, PointNumber );
 
-        unsigned int indexup = dimension * i + i;
+      //getting informations for integration
+      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+      
+      IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rMassMatrix( indexup+j , indexup+j ) = temp;
-        }
+      //compute point volume change
+      double PointVolumeChange = 0;
+      PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
+	
+      double CurrentDensity = PointVolumeChange * GetProperties()[DENSITY];
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      	{
+      	  unsigned int indexupi = dimension * i + i;
+
+      	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      	    {
+      	      unsigned int indexupj = dimension * j + j;
+
+      	      for ( unsigned int k = 0; k < dimension; k++ )
+      		{
+      		  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
+      		}
+      	    }
+      	}
+
     }
+
+    // Lumped Mass Matrix:
+
+    // double TotalMass = 0;
+
+    // this->CalculateTotalMass( TotalMass, rCurrentProcessInfo );
+
+    // if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+
+    // Vector LumpFact = ZeroVector(number_of_nodes);
+
+    // LumpFact = GetGeometry().LumpingFactors( LumpFact );
+
+    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // {
+    //     double temp = LumpFact[i] * TotalMass;
+
+    //     unsigned int indexup = i * dimension + i;
+
+    //     for ( unsigned int j = 0; j < dimension; j++ )
+    //     {
+    //         rMassMatrix( indexup+j , indexup+j ) = temp;
+    //     }
+    // }
 
     //std::cout<<std::endl;
     //std::cout<<" Mass Matrix "<<rMassMatrix<<std::endl;
@@ -1092,9 +1138,26 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
 
     //1.-Calculate StiffnessMatrix:
 
+    MatrixType LHSMatrix  = Matrix();
+
+    this->CalculateLeftHandSide( LHSMatrix, rCurrentProcessInfo );
+
     MatrixType StiffnessMatrix  = Matrix();
 
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+    if ( StiffnessMatrix.size1() != MatSize )
+        StiffnessMatrix.resize( MatSize, MatSize, false );
+
+    StiffnessMatrix = ZeroMatrix( MatSize, MatSize );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int indexup = i * dimension + i;
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+	  StiffnessMatrix( indexup+j , indexup+j ) = LHSMatrix( indexup+j , indexup+j );
+        }
+    }
 
     //2.-Calculate MassMatrix:
 

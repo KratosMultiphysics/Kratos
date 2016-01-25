@@ -321,7 +321,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
       ElasticVariables.ReferenceTemperature = 0;
 
 
-    //2.-Determinant of the Total Deformation Gradient
+    //2.-Determinant of the Total DeformationGradientF
     ElasticVariables.DeterminantF = DeterminantF;
 
     //3.-Compute Incremental DeformationGradientF_bar
