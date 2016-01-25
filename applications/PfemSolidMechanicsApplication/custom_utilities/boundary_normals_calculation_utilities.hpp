@@ -114,7 +114,7 @@ public:
 	      this->CalculateMeshUnitBoundaryNormals(rModelPart, MeshId, EchoLevel);
 		
 	      if(mEchoLevel > 1) 
-		std::cout<<"   Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
+		std::cout<<"   Unit Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
 	    }
 	    
 
@@ -231,24 +231,40 @@ public:
 	  }
 	  else if ( dimension == 3 ){
 	    
-	    MeshType& rMesh = rModelPart.GetMesh(MeshId);
-	    
-	    //check which type of element is in the 3D mesh, a surface (false) or volumetric (true) element
-	    if( this->CheckVolumetricElements(rMesh, EchoLevel) ){
+
+	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);	    
+	    ElementsContainerType& rElements = rModelPart.Elements(MeshId);
+
+	    if( rConditions.size() > 0 ){
+	      //std::cout<<"    Conditions: Surface Elements Boundary Calculation "<<std::endl;
 	      //Reset Body Normal Variables:
 	      //this->ResetBodyNormals(rModelPart,MeshId);
 	      //Compute New Normals
-	      this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
+	      this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
 	    }
-	    else{
-	      //std::cout<<" Surface Elements Boundary Calculation "<<std::endl;
-	      ElementsContainerType& rElements = rModelPart.Elements(MeshId);
-	      if( rElements.size() > 0 ){
+	    else if ( rElements.size() > 0 ){
+
+	      MeshType& rMesh = rModelPart.GetMesh(MeshId);
+	    
+	      //check which type of element is in the 3D mesh, a surface (false) or volumetric (true) element
+	      if( this->CheckVolumetricElements(rMesh, EchoLevel) ){
+		//std::cout<<"    Volumetric Elements Boundary Calculation "<<std::endl;
 		//Reset Body Normal Variables:
 		//this->ResetBodyNormals(rModelPart,MeshId);
-		//Compute New Normals		
-		this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
+		//Compute New Normals
+		this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
 	      }
+	      else{
+		//std::cout<<"    Surface Elements Boundary Calculation "<<std::endl;
+		ElementsContainerType& rElements = rModelPart.Elements(MeshId);
+		if( rElements.size() > 0 ){
+		  //Reset Body Normal Variables:
+		  //this->ResetBodyNormals(rModelPart,MeshId);
+		  //Compute New Normals		
+		  this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
+		}
+	      }
+
 	    }
 	  }
 	  
@@ -333,7 +349,7 @@ private:
 		array_1d<double,3>& normal = (it)->GetValue(NORMAL);
 
 		noalias(normal) = An/norm_2(An);
-		// 				noalias((it)->GetValue(NORMAL)) = An;
+		//noalias((it)->GetValue(NORMAL)) = An;
 	}
 
 
@@ -451,7 +467,7 @@ private:
 			for(ConditionsContainerType::iterator it =  rConditions.begin();
 			    it !=rConditions.end(); it++)
 			{
-				//calculate the normal on the given condition
+			  //calculate the normal on the given condition
 			  if(it->IsNot(CONTACT) && it->Is(BOUNDARY))
 			    CalculateUnityNormal3D(it,An,v1,v2);
 			}
@@ -507,7 +523,7 @@ private:
 			for(ElementsContainerType::iterator it =  rElements.begin();
 			    it !=rElements.end(); it++)
 			{
-				//calculate the normal on the given condition
+			  //calculate the normal on the given condition
 			  if(it->IsNot(CONTACT)){
 			    it->Set(BOUNDARY);
 			    CalculateUnityNormal3D(it,An,v1,v2);
@@ -529,8 +545,7 @@ private:
 	 
 	  ElementsContainerType::iterator it =  rElements.begin();
 	  
-	  if( (it)->GetGeometry().Dimension() == 3 ){
-	    
+	  if( (it)->GetGeometry().WorkingSpaceDimension() == 3 ){    
 	    return true;
 	  }
 	  else{
@@ -553,13 +568,20 @@ private:
 	  ModelPart::NodesContainerType&    rNodes = rMesh.Nodes();
 	  ModelPart::ElementsContainerType& rElems = rMesh.Elements();
 	  
-	  
 	  bool neighsearch=true;
+
+	  //Check if the neigbours search is already done and set
+	  unsigned int number_of_nodes = rElems.begin()->GetGeometry().PointsNumber();
+	  for(unsigned int i=0; i<number_of_nodes; i++)
+	    if( (rElems.begin()->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS)).size() > 1 )
+	      neighsearch=false;
+	  
+	  std::cout<<" Neighbour Search "<<neighsearch<<std::endl;
 	  
 	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	    {
 	      (in->GetSolutionStepValue(NORMAL)).clear();
-	      
+
 	      if(neighsearch){
 		//*************  Neigbours of nodes search  ************//
 		WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
@@ -649,7 +671,6 @@ private:
 
 		  }
 
-	      
 		  if(norm_2(An)>1e-12){
 		    noalias(in->FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
 		    if(neighsearch){
@@ -1104,7 +1125,7 @@ private:
 
 		      if(shrink_factor!=0)
 			{
-			  if( mEchoLevel > 1 )
+			  if( mEchoLevel > 2 )
 			    std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;
 			  Normal/=shrink_factor;
 
