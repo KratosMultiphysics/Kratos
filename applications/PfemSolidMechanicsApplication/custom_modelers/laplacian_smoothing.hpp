@@ -779,6 +779,45 @@ namespace Kratos
 	      i_node->X0() = i_node->X() - disp[0];
 	      i_node->Y0() = i_node->Y() - disp[1];
 	      i_node->Z0() = i_node->Z() - disp[2];
+
+    }
+    // Set the position of boundary laplacian 
+    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+    {
+       i_node->Set(VISITED, false);
+
+       //recover the original position of the node
+       id = i_node->Id();
+
+       // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
+
+       i_node->SolutionStepData() = VariablesList[id];
+
+       // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
+       // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+
+       const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+       bool MoveFixedNodes = false; 
+       if (MoveFixedNodes)
+       {
+          i_node->X0() = i_node->X() - disp[0];
+          i_node->Y0() = i_node->Y() - disp[1];
+          i_node->Z0() = i_node->Z() - disp[2];
+       }
+       else {
+          if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
+             i_node->X0() = i_node->X() - disp[0];
+          }
+          if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
+             i_node->Y0() = i_node->Y() - disp[1];
+          }
+
+          if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
+             i_node->Z0() = i_node->Z() - disp[2];
+          }
+       }
+
 	    }
 	  }
 
@@ -824,6 +863,11 @@ namespace Kratos
 	      i_node->Y0() = i_node->Y() - disp[1];
 	      i_node->Z0() = i_node->Z() - disp[2];
 	    }
+       //Set the position of boundary laplacian (Reset the flag)
+       if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+       {
+            i_node->Set(VISITED, false); //LMV.
+       }
 
 	  }
 	    
@@ -1197,7 +1241,7 @@ namespace Kratos
       //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
 	 
       double convergence_tol =0.001;
-      double smoothing_factor=2; //0.1
+      double smoothing_factor=0.1; //0.1
       double smoothing_iters =4; //3
       double iters=0;
 
@@ -1298,7 +1342,7 @@ namespace Kratos
 
 	      }
 
-	    rNodes[in+1].Set(VISITED,false);
+	    //rNodes[in+1].Set(VISITED,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes plae
 	  }
 	  
 

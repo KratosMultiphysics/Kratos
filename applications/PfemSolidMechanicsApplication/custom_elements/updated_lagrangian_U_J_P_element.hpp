@@ -1,8 +1,8 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Last modified by:    $Author:              LMonforte $
+//   Date:                $Date:                July 2015 $
+//   Revision:            $Revision:                 -0.1 $
 //
 //
 
@@ -15,7 +15,7 @@
 
 // Project includes
 #include "solid_mechanics_application.h"
-#include "custom_elements/large_displacement_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_element.hpp"
 
 
 namespace Kratos
@@ -40,7 +40,7 @@ namespace Kratos
 
 
    class UpdatedLagrangianUJPElement
-      : public LargeDisplacementElement
+      : public UpdatedLagrangianUJElement
    {
 
       protected:
@@ -60,7 +60,7 @@ namespace Kratos
             Vector StressVectorEC;
 
          } UJPGeneralVariables;
-      
+
       public:
 
          ///@name Type Definitions
@@ -131,13 +131,7 @@ namespace Kratos
 
          //************* GETTING METHODS
 
-         //SET
-
-         /**
-          * Set a double  Value on the Element Constitutive Law
-          */
-         void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
+         //SET:
 
          //GET:
 
@@ -152,11 +146,6 @@ namespace Kratos
 
          //************* STARTING - ENDING  METHODS
 
-         /**
-          * Called to initialize the element.
-          * Must be called before any calculation is done
-          */
-         void Initialize();
 
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -183,10 +172,6 @@ namespace Kratos
           */
          void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
-         /**
-          * Called at the end of eahc solution step
-          */
-         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
          //************************************************************************************
          //************************************************************************************
@@ -199,26 +184,6 @@ namespace Kratos
           */
          int Check(const ProcessInfo& rCurrentProcessInfo);
 
-         /**
-          * Calculate Element Kinematics
-          */
-         virtual void CalculateKinematics(GeneralVariables& rVariables,
-               const double& rPointNumber);
-
-
-         /**
-          * Calculation of the Deformation Gradient F
-          */
-         void CalculateDeformationGradient(const Matrix& rDN_DX,
-               Matrix& rF,
-               Matrix& rDeltaPosition);
-
-         /**
-          * Calculation of the Deformation Matrix  BL
-          */
-         virtual void CalculateDeformationMatrix(Matrix& rB,
-               Matrix& rF,
-               Matrix& rDN_DX);
 
          ///@}
          ///@name Access
@@ -242,42 +207,25 @@ namespace Kratos
          ///@{
 
          /**
-           * Variables to scale some equations (maybe)
-           */
+          * Variables to scale some equations (maybe)
+          */
          double ScalingConstant1;
          double ScalingConstant2;
 
          /**
           * Container for historical total elastic deformation measure F0 = dx/dX
           */
-         std::vector< Matrix > mDeformationGradientF0;
+         //std::vector< Matrix > mDeformationGradientF0; // LMV: Crec que no cal
 
          /**
           * Container for the total deformation gradient determinants
           */
-         Vector mDeterminantF0;
+         //Vector mDeterminantF0; // LMV: Crec que no cal
 
-         /**** 
-           the time step (requiered). It shall be somewhere else.
-          ****/    
-         double mTimeStep;
-
-         /*** 
-           Just to check a few things
-          ***/
-         //bool mCompressibleWater;
 
          ///@}
          ///@name Protected Operators
          ///@{
-
-         /**
-          * Calculates the elemental contributions
-          * \f$ K^e = w\,B^T\,D\,B \f$ and
-          * \f$ r^e \f$
-          */
-         virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-               ProcessInfo& rCurrentProcessInfo);
 
          ///@}
          ///@name Protected Operations
@@ -292,6 +240,11 @@ namespace Kratos
                double& rIntegrationWeight);
 
          /**
+          * Initialize Element General Variables
+          */
+         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+         /**
           * Calculation and addition of the vectors of the RHS
           */
 
@@ -299,17 +252,6 @@ namespace Kratos
                GeneralVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight);
-
-         /**
-          * Initialize Element General Variables
-          */
-         virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-         /**
-          * Finalize Element Internal Variables
-          */
-         virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
-
 
 
          /**
@@ -408,23 +350,14 @@ namespace Kratos
                double& rIntegrationWeight
                );
          /**
-           * Calculation of the KJJ Stabilization Term matrix
-           */
+          * Calculation of the KJJ Stabilization Term matrix
+          */
          virtual void CalculateAndAddKJJStab(MatrixType& rK,
                GeneralVariables & rVariables,
                UJPGeneralVariables& rElementVariables,
                double& rIntegrationWeight
                );
 
-
-         /**
-          * Calculation of the External Forces Vector. Fe = N * t + N * b
-          */
-         void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-               GeneralVariables& rVariables,
-               Vector& rVolumeForce,
-               double& rIntegrationWeight
-               );
 
          /**
           * Calculation of the Internal Forces due to Jacobian-Balance
@@ -458,8 +391,8 @@ namespace Kratos
 
 
          /**
-           * Calculation of the Stabilization for the Jacobian
-           */
+          * Calculation of the Stabilization for the Jacobian
+          */
          virtual void CalculateAndAddStabilizedJacobian( VectorType& rRightHandSideVector,
                GeneralVariables & rVariables,
                UJPGeneralVariables& rElementVariables,
@@ -493,20 +426,9 @@ namespace Kratos
          void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
 
-         virtual double GetElementSize( const Matrix& rDN_DX);
-
-         /**
-          * Get the Historical Deformation Gradient to calculate after finalize the step
-          */
-         virtual void GetHistoricalVariables( GeneralVariables& rVariables, 
-               const double& rPointNumber );
-
-         /**
-          * Calculation of the Volume Change of the Element
-          */
-         virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
-
+         /*
+          * Compute Some integration point variables only once
+          */ 
          virtual void CalculateThisElementGeneralVariables( UJPGeneralVariables& rElementVariables, const GeneralVariables& rVariables);
          ///@}
          ///@name Protected  Access

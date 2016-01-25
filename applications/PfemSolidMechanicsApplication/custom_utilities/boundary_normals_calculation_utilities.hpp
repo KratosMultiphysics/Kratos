@@ -223,7 +223,7 @@ public:
 	    
 	    if( rConditions.size() > 0 ){
 	      //Reset Body Normal Variables:
-	      //this->ResetBodyNormals(rModelPart,MeshId);
+	      this->ResetBodyNormals(rModelPart,MeshId); //Otherwise, some spurious normal appear in the interior of the domain due to interpolation
 	      //Compute New Normals
 	      this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
 	    }

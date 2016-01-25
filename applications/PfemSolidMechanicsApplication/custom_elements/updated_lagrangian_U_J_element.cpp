@@ -311,10 +311,10 @@ namespace Kratos
       {
          std::vector<double> Values;
          GetValueOnIntegrationPoints( SIMILAR_SHEAR_MODULUS, Values, rCurrentProcessInfo);
-         mElementDouble = 1.0 / Values[0];
+         mElementStabilizationNumber = 1.0 / Values[0];
 
          GetValueOnIntegrationPoints( SIMILAR_BULK_MODULUS, Values, rCurrentProcessInfo);
-         mElementDouble *= Values[0];
+         mElementStabilizationNumber *= Values[0];
 
 
       }
@@ -450,16 +450,18 @@ namespace Kratos
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double NodalJacobian = 0;
-            for (int i = 0; i < 3; i++)
-               NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
+            double ElementalDetFT = Variables.detFT;
+            Matrix ElementalFT = Variables.FT;
 
-            double detFT = Variables.detFT;
+            // AND NOW IN THE OTHER WAY
+            Matrix m; double d; 
+            ComputeConstitutiveVariables( Variables, m, d);
 
-            Variables.FT /= pow( Variables.detFT, 1.0/2.0);
-            Variables.FT *= pow( ( NodalJacobian), 1.0/2.0);
+            Variables.FT = m;
+            Variables.detFT = d; 
+            Values.SetDeformationGradientF( Variables.FT);
+            Values.SetDeterminantF( Variables.detFT );
 
-            Variables.detFT = (NodalJacobian);
 
 
             //call the constitutive law to update material variables
@@ -468,8 +470,8 @@ namespace Kratos
             else
                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
 
-            Variables.FT *=  pow(  detFT / ( NodalJacobian), 1.0/2.0);
-            Variables.detFT = detFT;
+            Variables.FT = ElementalFT;
+            Variables.detFT = ElementalDetFT;
 
             if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
                rOutput[PointNumber].resize( Variables.StressVector.size(), false );
@@ -514,23 +516,25 @@ namespace Kratos
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double NodalJacobian = 0;
-            for (int i = 0; i < 3; i++)
-               NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
+            double ElementalDetFT = Variables.detFT;
+            Matrix ElementalFT = Variables.FT;
 
-            double detFT = Variables.detFT;
+            // AND NOW IN THE OTHER WAY
+            Matrix m; double d; 
+            ComputeConstitutiveVariables( Variables, m, d);
 
-            Variables.FT /= pow( Variables.detFT, 1.0/2.0);
-            Variables.FT *= pow( ( NodalJacobian), 1.0/2.0);
-
-            Variables.detFT = (NodalJacobian);
+            Variables.FT = m;
+            Variables.detFT = d; 
+            Values.SetDeformationGradientF( Variables.FT);
+            Values.SetDeterminantF( Variables.detFT );
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
+            Variables.FT = ElementalFT;
+            Variables.detFT = ElementalDetFT;
 
-            Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/2.0);
-            Variables.detFT = detFT;
+
             if( rOutput[PointNumber].size2() != Variables.ConstitutiveMatrix.size2() )
                rOutput[PointNumber].resize( Variables.ConstitutiveMatrix.size1() , Variables.ConstitutiveMatrix.size2() , false );
 
@@ -571,22 +575,22 @@ namespace Kratos
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             // OBS, now changing Variables I change Values because they are pointers ( I hope);
-            double NodalJacobian = 0;
-            for (int i = 0; i < 3; i++)
-               NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
+            double ElementalDetFT = Variables.detFT;
+            Matrix ElementalFT = Variables.FT;
 
-            double detFT = Variables.detFT;
+            // AND NOW IN THE OTHER WAY
+            Matrix m; double d; 
+            ComputeConstitutiveVariables( Variables, m, d);
 
-            Variables.FT /= pow( Variables.detFT, 1.0/2.0);
-            Variables.FT *= pow( ( NodalJacobian), 1.0/2.0);
-
-            Variables.detFT = (NodalJacobian);
-
+            Variables.FT = m;
+            Variables.detFT = d; 
+            Values.SetDeformationGradientF( Variables.FT);
+            Values.SetDeterminantF( Variables.detFT );
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-            Variables.FT *=  pow(  detFT / ( NodalJacobian), 1.0/2.0);
-            Variables.detFT = detFT;
+            Variables.FT = ElementalFT;
+            Variables.detFT = ElementalDetFT;
 
             if ( ( rOutput[PointNumber].size1() != 3 ) |
                   ( rOutput[PointNumber].size2() != 3 ) )
@@ -639,6 +643,9 @@ namespace Kratos
    {
       if ( rVariable == EQ_CAUCHY_STRESS) {
          CalculateOnIntegrationPoints(rVariable, rValue, rCurrentProcessInfo);
+      }
+      else if ( rVariable == CAUCHY_STRESS_VECTOR ) {
+         CalculateOnIntegrationPoints( EQ_CAUCHY_STRESS, rValue, rCurrentProcessInfo);
       }
       else {
          LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
@@ -960,14 +967,6 @@ namespace Kratos
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
 
-      if ( this->Id() == 0)
-      {
-         std::cout << " TANGENT MATRIX " << rLeftHandSideMatrix << std::endl;
-         std::cout << std::endl;
-         std::cout << std::endl;
-         std::cout << std::endl;
-         std::cout << std::endl;
-      }
 
    }
 
@@ -1138,7 +1137,7 @@ namespace Kratos
 
       //use of this variable for the complete parameter: (deffault: 4)
       double AlphaStabilization  = 4.0; 
-      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
       AlphaStabilization *= StabilizationFactor; 
 
       const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
@@ -1154,7 +1153,7 @@ namespace Kratos
       if (YoungModulus < 0.00001)
       {
          AlphaStabilization = 4.0 * StabilizationFactor / 18.0;
-         AlphaStabilization *= mElementDouble; 
+         AlphaStabilization *= mElementStabilizationNumber; 
 
       }
 
@@ -1524,7 +1523,7 @@ namespace Kratos
 
       //use of this variable for the complete parameter: (deffault: 4)
       double AlphaStabilization  = 4.0; 
-      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
       AlphaStabilization *= StabilizationFactor; 
 
       const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
@@ -1540,7 +1539,7 @@ namespace Kratos
       if (YoungModulus < 0.00001)
       {
          AlphaStabilization = 4.0 * StabilizationFactor / 18.0;
-         AlphaStabilization *= mElementDouble; 
+         AlphaStabilization *= mElementStabilizationNumber; 
       }
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1564,36 +1563,6 @@ namespace Kratos
       // std::cout<<" KppStab "<<rLeftHandSideMatrix-Kh<<std::endl;
 
       KRATOS_CATCH( "" )
-
-   }
-
-
-
-
-   // GET THE (GEOMETRICAL) SIZE FOR THE STABILIZATION TERM
-   // this size is recomended from Sun, Ostien and Salinger (IJNAMG, 2013)
-
-   double UpdatedLagrangianUJElement::GetElementSize( const Matrix& rDN_DX)
-   {
-      double he = 0.0;
-
-      unsigned int number_of_nodes = rDN_DX.size1();
-      unsigned int dimension = rDN_DX.size2();
-
-      double aux;
-      for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-         aux = 0;
-         for (unsigned int p = 0; p < dimension ; p++)
-         {
-            aux += rDN_DX(i,p);
-         }
-         he += fabs(aux);
-      }
-      he *= sqrt( double(dimension) );
-      he = 4.0/he;
-
-      return he;
 
    }
 
@@ -1656,16 +1625,17 @@ namespace Kratos
 
 
          // OBS, now changing Variables I change Values because they are pointers ( I hope);
-         double NodalJacobian = 0;
-         for (int i = 0; i < 3; i++)
-            NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
+         double ElementalDetFT = Variables.detFT;
+         Matrix ElementalFT = Variables.FT;
 
-         double detFT = Variables.detFT;
+         // AND NOW IN THE OTHER WAY
+         Matrix m; double d; 
+         ComputeConstitutiveVariables( Variables, m, d);
 
-         Variables.FT /= pow( Variables.detFT, 1.0/2.0);
-         Variables.FT *= pow( ( NodalJacobian), 1.0/2.0);
-
-         Variables.detFT = ( NodalJacobian);
+         Variables.FT = m;
+         Variables.detFT = d; 
+         Values.SetDeformationGradientF( Variables.FT);
+         Values.SetDeterminantF( Variables.detFT );
 
 
          //call the constitutive law to update material variables
@@ -1677,9 +1647,8 @@ namespace Kratos
                Variables.N,
                rCurrentProcessInfo );
 
-
-         Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/2.0);
-         Variables.detFT = detFT;
+         Variables.FT = ElementalFT;
+         Variables.detFT = ElementalDetFT;
 
 
          //call the element internal variables update
@@ -1688,15 +1657,15 @@ namespace Kratos
 
 
       //PostProcess. Increment of Displacement
-      /* Vector desp = ZeroVector(3);
+       Vector desp = ZeroVector(3);
          const unsigned int number_of_points = GetGeometry().PointsNumber();
          for (unsigned int i = 0; i < number_of_points; ++i)  {
          desp = ZeroVector(3);
          desp += GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
          desp -= GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT, 1);
-         if ( GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT_DT) )
-         GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT) = desp;
-         } */
+         if ( GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT_INCR) )
+         GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_INCR) = desp;
+         } 
 
       mFinalizedStep = true;
 
@@ -1745,22 +1714,23 @@ namespace Kratos
          this->SetGeneralVariables(Variables,Values,PointNumber);
 
          // OBS, now changing Variables I change Values because they are pointers ( I hope);
-         double NodalJacobian = 0;
-         for (int i = 0; i < 3; i++)
-            NodalJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * Variables.N[i];
+         double ElementalDetFT = Variables.detFT;
+         Matrix ElementalFT = Variables.FT;
 
-         double detFT = Variables.detFT;
+         // AND NOW IN THE OTHER WAY
+         Matrix m; double d; 
+         ComputeConstitutiveVariables( Variables, m, d);
 
-         Variables.FT /= pow( Variables.detFT, 1.0/2.0);
-         Variables.FT *= pow( ( NodalJacobian), 1.0/2.0);
-
-         Variables.detFT = (NodalJacobian);
+         Variables.FT = m;
+         Variables.detFT = d; 
+         Values.SetDeformationGradientF( Variables.FT);
+         Values.SetDeterminantF( Variables.detFT );
 
          //compute stresses and constitutive parameters
          mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-         Variables.FT *=  pow(  detFT / (  NodalJacobian), 1.0/2.0);
-         Variables.detFT = detFT;
+         Variables.FT = ElementalFT;
+         Variables.detFT = ElementalDetFT;
 
          //some transformation of the configuration can be needed (UL element specially)
          this->TransformGeneralVariables(Variables,PointNumber);
@@ -1825,6 +1795,87 @@ namespace Kratos
 
 
       KRATOS_CATCH( "" )
+   }
+
+
+   void UpdatedLagrangianUJElement::ComputeConstitutiveVariables(  GeneralVariables& rVariables, Matrix& rFT, double& rDetFT)
+      //void UpdatedLagrangianUJElement::ComputeConstitutiteVariables( const GeneralVariables& rVariables, Matrix& rFT, double& rDetFT)
+   {
+      KRATOS_TRY
+      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().size();
+
+      rDetFT = 0;
+      for (unsigned int i = 0; i < number_of_nodes; i++) 
+         rDetFT += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * rVariables.N[i];
+
+      rFT = rVariables.FT;
+
+      rFT *=  pow( rDetFT/ rVariables.detFT, 1.0/double(dimension) );
+      /*if ( this->Id() == 1) {
+         std::cout << " IN THIS FUNCTION " << std::endl;
+         std::cout << " FT " << rFT << std::endl;
+         std::cout << " detFT " << rDetFT << std::endl;
+         std::cout << " " << std::endl;
+         std::cout << " VAARIAABLES " << std::endl;
+         std::cout << " FT " << rVariables.FT << std::endl;
+         std::cout << " DetFT " << rVariables.detFT << std::endl;
+         std::cout << std::endl;
+      }*/
+
+      // COMPUTE THE EFFECT OF THE INTERPOLATION, LETS SEE
+      std::vector< Matrix > EECCInverseDefGrad;
+      ProcessInfo SomeProcessInfo;
+      this->GetValueOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
+      Matrix EECCInverseBig = EECCInverseDefGrad[0];
+      Matrix EECCDefGradInverse = ZeroMatrix(dimension);
+      for (unsigned int i = 0; i < dimension; i++) {
+         for (unsigned int j = 0; j < dimension; j++) {
+            EECCDefGradInverse(i,j) = EECCInverseBig(i,j);
+         }
+      }
+
+      double det;
+      Matrix EECCDefGrad;
+      MathUtils<double>::InvertMatrix( EECCDefGradInverse, EECCDefGrad, det);
+
+      double detF0 = 0;
+      unsigned int step = 1;
+      if ( mFinalizedStep ==  true) 
+         step = 0;
+         for ( unsigned int i = 0; i < number_of_nodes; i++)
+         detF0 += GetGeometry()[i].GetSolutionStepValue( JACOBIAN, step ) * rVariables.N[i];
+
+      Matrix F0 = rVariables.F0;
+      F0 *= pow( detF0 / rVariables.detF0, 1.0/double(dimension) );
+
+      Matrix F0Inverse;
+      MathUtils<double>::InvertMatrix( F0, F0Inverse, det);
+
+      Matrix Update = prod( F0Inverse, EECCDefGrad);
+
+      if ( this->Id() == 0)
+      {
+         std::cout << " TRY TO SEE WHAT I DID " << std::endl;
+         std::cout << " CONSTITUTIVE INVERSE " << EECCInverseDefGrad[0] << std::endl;
+         std::cout << "  CONSTITUTIVE " << EECCDefGrad << std::endl;
+         std::cout << std::endl;
+         std::cout << " FINALIZED ?: " << mFinalizedStep << std::endl;
+         std::cout << " NODAL " << detF0 << std::endl;
+         std::cout << " PREVIOUS DISPL F " << rVariables.F0 << std::endl;
+         std::cout << "   MAYBE " << rVariables.FT << std::endl;
+         std::cout << " SO FINALLY F0 displ theta " << F0 << std::endl;
+         std::cout << " and the Inverse is: " << F0Inverse << std::endl;
+         std::cout << " UPDATE ?" << Update << std::endl;
+         std::cout << " AND THE LAST ONE " << prod( rFT, Update) << std::endl;
+         std::cout << std::endl;
+      }
+
+      // SO FINALLY I DO THAT
+      rFT = prod( rFT, Update);
+
+
+      KRATOS_CATCH( " " )
    }
 
 

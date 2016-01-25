@@ -176,7 +176,9 @@ namespace Kratos
          ///@name Protected member Variables
          ///@{
 
-         double mGeneralConstant;
+         double mElementStabilizationNumber;
+
+         double mElementScalingNumber; 
 
          ///@}
          ///@name Protected Operators
