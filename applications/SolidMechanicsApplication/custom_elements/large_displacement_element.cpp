@@ -893,7 +893,7 @@ void LargeDisplacementElement::CalculateRightHandSide( VectorType& rRightHandSid
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 }
 
 //************************************************************************************
@@ -927,7 +927,7 @@ void LargeDisplacementElement::CalculateRightHandSide( std::vector< VectorType >
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 }
 
 
@@ -953,7 +953,7 @@ void LargeDisplacementElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
     LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 
@@ -978,10 +978,89 @@ void LargeDisplacementElement::CalculateLocalSystem( MatrixType& rLeftHandSideMa
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+
+    bool test_tangent = false;
+    if( test_tangent ){
+      
+      //std::cout<<" ["<<this->Id()<<"] MATRIX "<<rLeftHandSideMatrix<<std::endl;
+    
+      MatrixType PerturbedLeftHandSideMatrix = ZeroMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
+      this->CalculatePerturbedLeftHandSide( PerturbedLeftHandSideMatrix, rCurrentProcessInfo );
+
+      //std::cout<<" ["<<this->Id()<<"] PERTURBED MATRIX "<<PerturbedLeftHandSideMatrix<<std::endl;
+
+      //std::cout<<" ["<<this->Id()<<"] DIFFERENCES "<<PerturbedLeftHandSideMatrix-rLeftHandSideMatrix<<std::endl;
+
+      //rLeftHandSideMatrix = PerturbedLeftHandSideMatrix;
+
+    }
 
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+
+void LargeDisplacementElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+
+    VectorType RightHandSideVector = Vector();
+
+    //Initialize sizes for the system components:
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX,false);
+
+    DofsVectorType ElementalDofList;
+    this->GetDofList( ElementalDofList, rCurrentProcessInfo );
+
+    unsigned int size = ElementalDofList.size();
+    for( unsigned int i=0; i<size; i++)
+      {
+	//Set perturbation in "i" dof component
+	double& value    = ElementalDofList[i]->GetSolutionStepValue();
+	double  original = value;
+
+	double  deltavalue = 1e-10;
+	if( value !=0 )
+	  deltavalue = value * 1e-8;
+
+	//Calculate elemental system
+	RightHandSideVector = ZeroVector(RightHandSideVector.size());
+	value = original + deltavalue;
+	this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+	VectorType RightHandSideVectorI = RightHandSideVector;
+	
+	//Calculate elemental system
+	RightHandSideVector = ZeroVector(RightHandSideVector.size());
+	value = original - deltavalue;
+	this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+	VectorType RightHandSideVectorII = RightHandSideVector;
+
+	// std::cout<<" i: "<<i<<" RHS "<<RightHandSideVectorI<<std::endl;
+	// std::cout<<" ii: "<<i<<" RHS "<<RightHandSideVectorII<<std::endl;
+
+	for( unsigned int j=0; j<size; j++)
+	  {
+	    rLeftHandSideMatrix(j,i) = (-1) * (RightHandSideVectorI[j] - RightHandSideVectorII[j]) / (2.0*deltavalue);
+	  }
+
+	value = original;
+      }
+
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -1033,7 +1112,7 @@ void LargeDisplacementElement::CalculateLocalSystem( std::vector< MatrixType >& 
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate elemental system
-    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 

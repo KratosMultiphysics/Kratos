@@ -264,11 +264,11 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
     else
       ElasticVariables.ReferenceTemperature = 0;
 
-    //3.-DeformationGradient Tensor 3D
+    //3.-Total DeformationGradientF Tensor 3D
     ElasticVariables.DeformationGradientF = DeformationGradientF;
     ElasticVariables.DeformationGradientF = Transform2DTo3D( ElasticVariables.DeformationGradientF );
 
-    //4.-Determinant of the Total Deformation Gradient
+    //4.-Determinant of the Total DeformationGradientF
     ElasticVariables.DeterminantF         = DeterminantF;
 
     //5.-Left Cauchy Green tensor b: (stored in the CauchyGreenMatrix)

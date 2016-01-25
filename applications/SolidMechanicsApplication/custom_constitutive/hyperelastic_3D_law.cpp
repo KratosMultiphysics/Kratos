@@ -187,102 +187,101 @@ void HyperElastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialPropert
 void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
 
-    //-----------------------------//
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
-    mStrainEnergy = 0.0; //When it is not calculated, a zero will be returned
+  //-----------------------------//
+  //a.-Check if the constitutive parameters are passed correctly to the law calculation
+  CheckParameters(rValues);
+  mStrainEnergy = 0.0; //When it is not calculated, a zero will be returned
 
-    //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
+  //b.- Get Values to compute the constitutive law:
+  Flags &Options=rValues.GetOptions();
 
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-    const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
-    const double& DeterminantF            = rValues.GetDeterminantF();
+  const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+  const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+  const double& DeterminantF            = rValues.GetDeterminantF();
 
-    Vector& StrainVector                  = rValues.GetStrainVector();
-    Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+  Vector& StrainVector                  = rValues.GetStrainVector();
+  Vector& StressVector                  = rValues.GetStressVector();
+  Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
-    //-----------------------------//
+  //-----------------------------//
 
-    //0.- Initialize parameters
-    MaterialResponseVariables ElasticVariables;
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+  //0.- Initialize parameters
+  MaterialResponseVariables ElasticVariables;
+  ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
 
-    //1.- Lame constants
-    const double& YoungModulus        = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient  = MaterialProperties[POISSON_RATIO];
+  //1.- Lame constants
+  const double& YoungModulus        = MaterialProperties[YOUNG_MODULUS];
+  const double& PoissonCoefficient  = MaterialProperties[POISSON_RATIO];
 
-    ElasticVariables.LameLambda       = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
-    ElasticVariables.LameMu           =  YoungModulus/(2*(1+PoissonCoefficient));
+  ElasticVariables.LameLambda       = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
+  ElasticVariables.LameMu           =  YoungModulus/(2*(1+PoissonCoefficient));
 
-    //2.- Thermal constants
-    if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
-      ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
-    else
-      ElasticVariables.ThermalExpansionCoefficient = 0;
+  //2.- Thermal constants
+  if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+    ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+  else
+    ElasticVariables.ThermalExpansionCoefficient = 0;
 
-    if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
-      ElasticVariables.ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
-    else
-      ElasticVariables.ReferenceTemperature = 0;
+  if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+    ElasticVariables.ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+  else
+    ElasticVariables.ReferenceTemperature = 0;
 
 
-    //3.-DeformationGradient Tensor 3D
-    ElasticVariables.DeformationGradientF = DeformationGradientF;
-    ElasticVariables.DeformationGradientF = Transform2DTo3D( ElasticVariables.DeformationGradientF );
+  //3.-DeformationGradient Tensor 3D
+  ElasticVariables.DeformationGradientF = DeformationGradientF;
+  ElasticVariables.DeformationGradientF = Transform2DTo3D( ElasticVariables.DeformationGradientF );
 
-    //4.-Determinant of the Total Deformation Gradient
-    ElasticVariables.DeterminantF = DeterminantF;
+  //4.-Determinant of the Total Deformation Gradient
+  ElasticVariables.DeterminantF = DeterminantF;
 
-    //5.-Right Cauchy Green tensor C
-    Matrix RightCauchyGreen = prod(trans( ElasticVariables.DeformationGradientF),  ElasticVariables.DeformationGradientF);
+  //5.-Right Cauchy Green tensor C
+  Matrix RightCauchyGreen = prod(trans( ElasticVariables.DeformationGradientF),  ElasticVariables.DeformationGradientF);
     
-    //6.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
-    ElasticVariables.traceCG = 0;
-    ElasticVariables.CauchyGreenMatrix( 3, 3 );
-    MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
+  //6.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
+  ElasticVariables.traceCG = 0;
+  ElasticVariables.CauchyGreenMatrix( 3, 3 );
+  MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
     
-    //7.-Green-Lagrange Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
-      {
-	this->CalculateGreenLagrangeStrain(RightCauchyGreen, StrainVector);
-      }
+  //7.-Green-Lagrange Strain:
+  if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+    {
+      this->CalculateGreenLagrangeStrain(RightCauchyGreen, StrainVector);
+    }
 
-    //8.-Calculate Total PK2 stress
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
-      {
+  //8.-Calculate Total PK2 stress
+  if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
+    {
 	
-	this->CalculateStress( ElasticVariables, StressMeasure_PK2, StressVector );
-      }
+      this->CalculateStress( ElasticVariables, StressMeasure_PK2, StressVector );
+    }
     
-    //9.-Calculate Constitutive Matrix related to Total PK2 stress
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-      {
-	this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
-      }
+  //9.-Calculate Constitutive Matrix related to Total PK2 stress
+  if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    {
+      this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
+    }
        
-   if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
-   {
+  if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+    {
      
       double ln_J = std::log(ElasticVariables.DeterminantF);
-      //double ln_J = std::log(mDeterminantF0); //no funciona tampoc per updated... pero per total els dos son esquivalents.
       double trace_C = 0.0;
 
       for (unsigned int i = 0; i<RightCauchyGreen.size1();i++)
-      {
-          trace_C += RightCauchyGreen(i,i);
-      }
+	{
+	  trace_C += RightCauchyGreen(i,i);
+	}
 
       mStrainEnergy =  0.5*ElasticVariables.LameLambda*ln_J*ln_J - ElasticVariables.LameMu*ln_J + 0.5*ElasticVariables.LameMu*(trace_C-3); //see Belytschko page 239
       
      
-  }  
+    }  
     
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
+  // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
+  // std::cout<<" Stress "<<StressVector<<std::endl;
 
-    //-----------------------------//
+  //-----------------------------//
 
 }
 

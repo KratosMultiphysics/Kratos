@@ -204,7 +204,7 @@ void UpdatedLagrangianUPElement::Initialize()
 {
     KRATOS_TRY
 
-    LargeDisplacementUPElement::Initialize();
+    LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -319,6 +319,9 @@ void UpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariable
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row( Ncontainer, rPointNumber);
+
     //Current Deformation Gradient [dx_n+1/dx_n]
     //this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);
 
@@ -339,8 +342,6 @@ void UpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariable
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
-    //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
     CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);

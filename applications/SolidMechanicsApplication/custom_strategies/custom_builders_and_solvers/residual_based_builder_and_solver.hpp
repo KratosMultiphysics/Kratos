@@ -520,9 +520,10 @@ public:
         if (this->GetEchoLevel() >= 2)
         {
             std::cout << "Before solving the system :" << std::endl;
-	    if (this->GetEchoLevel() == 3)
+	    if (this->GetEchoLevel() == 3){
 	      std::cout << "System Matrix   = " << A << std::endl;
-            std::cout << "Unknowns vector = " << Dx << std::endl;
+	      std::cout << "Unknowns vector = " << Dx << std::endl;
+	    }
             std::cout << "RHS vector      = " << b << std::endl;
         }
 
@@ -536,9 +537,10 @@ public:
         if (this->GetEchoLevel() >= 2)
         {
             std::cout << "After solving the system:" << std::endl;
-	    if (this->GetEchoLevel() == 3)
+	    if (this->GetEchoLevel() == 3){
 	      std::cout << "System Matrix   = " << A << std::endl;
-            std::cout << "Unknowns vector = " << Dx << std::endl;
+	    }
+	    std::cout << "Results vector  = " << Dx << std::endl;
             std::cout << "RHS vector      = " << b << std::endl;
         }
 

@@ -415,6 +415,7 @@ void KratosSolidMechanicsApplication::Register()
     Serializer::Register( "HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw );
 
     //Hyperelastic Plastic J2 specilization laws U-P
+    Serializer::Register( "HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw );
     Serializer::Register( "HyperElasticPlasticUPJ2PlaneStrain2DLaw", mHyperElasticPlasticUPJ2PlaneStrain2DLaw );
     Serializer::Register( "HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw );
 
