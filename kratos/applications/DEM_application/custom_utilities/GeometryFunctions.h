@@ -772,7 +772,7 @@ namespace Kratos {
         N[1] = A[2]*B[0] - A[0]*B[2];
         N[2] = A[0]*B[1] - A[1]*B[0];
         //normalize
-      
+
         double normal_flag = 1.0;
         
         if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
