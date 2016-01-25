@@ -641,13 +641,28 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString = "") const
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "    Number of Nodes      : " << mpNodes->size() << std::endl;
+        rOStream << "    Number of Properties : " << mpProperties->size() << std::endl;
+        rOStream << "    Number of Elements   : " << mpElements->size() << std::endl;
+        rOStream << "    Number of Conditions : " << mpConditions->size() << std::endl;
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const
     {
         rOStream << PrefixString << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString = "") const
+    virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString ) const
     {
         rOStream << PrefixString << "    Number of Nodes      : " << mpNodes->size() << std::endl;
         rOStream << PrefixString << "    Number of Properties : " << mpProperties->size() << std::endl;
