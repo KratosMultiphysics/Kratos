@@ -31,6 +31,11 @@
 
 // VALEEEEEEE: Crec que ja tinc tot el tema de la Voigt notation bé, em sembla, però bueno, tot és possible
 
+
+// Pot encara tenir un error, pq amb les lleis de JMC en versió 3D no acaba de convergir del tot i en canvi la UJP si que ho fa
+
+// VALE, hi ha la mElementScalingNumber, que, de moment, hi poso 1/K perquè llavors convergeix millor perquè multiplico la segona equació per això.
+
 namespace Kratos
 {
 
@@ -210,7 +215,6 @@ namespace Kratos
       if ( rVariable == EQ_CAUCHY_STRESS)
       {
          const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
          //create and initialize element variables:
          GeneralVariables Variables;
@@ -275,6 +279,19 @@ namespace Kratos
    void UpdatedLagrangianUPSecondElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
    {
 
+      // Scaling constant for the second equation.
+      const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
+      const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
+
+      double BulkModulus = YoungModulus/ 3.0 / ( 1.0 - 2.0*PoissonCoefficient) ;
+
+      mElementScalingNumber = 1.0;
+      if (YoungModulus > 1e-5 )
+         mElementScalingNumber = 100.0/BulkModulus; 
+
+      
+      
+      
       //contributions to stiffness matrix calculated on the reference config
       rVariables.detF0   *= rVariables.detF;
       double DeterminantF = rVariables.detF;
@@ -320,6 +337,18 @@ namespace Kratos
 
    void UpdatedLagrangianUPSecondElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
+      // Scaling constant for the second equation.
+      const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
+      const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
+
+      double BulkModulus = YoungModulus/ 3.0 / ( 1.0 - 2.0*PoissonCoefficient) ;
+
+      mElementScalingNumber = 1.0;
+      if (YoungModulus > 1e-5 )
+         mElementScalingNumber = 100.0/BulkModulus; 
+
+      
+      
       //contribution to external forces
       rVariables.detF0   *= rVariables.detF;
       double DeterminantF = rVariables.detF;
@@ -416,11 +445,11 @@ namespace Kratos
                consistent=2;
 
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-            rRightHandSideVector[indexp] += consistent * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
+            rRightHandSideVector[indexp] += consistent * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) * mElementScalingNumber; //2D
 
          }
 
-         rRightHandSideVector[indexp] -= rElementVariables.ElementalMeanStress * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+         rRightHandSideVector[indexp] -= rElementVariables.ElementalMeanStress * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF) * mElementScalingNumber;
 
 
          indexp += (dimension + 1);
@@ -495,7 +524,7 @@ namespace Kratos
                consistent=2*AlphaStabilization;
 
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-            rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+            rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) * mElementScalingNumber;
 
             // std::cout<<" Pressure "<<Pressure<<std::endl;
          }
@@ -530,6 +559,11 @@ namespace Kratos
       ECConstitutiveMatrix = prod( rElementVariables.DeviatoricTensor, ECConstitutiveMatrix);
 
       // that collection of terms.
+
+      if ( this->Id() < 0) {
+         std::cout << " CONST MATRIX FROM EECC " << ECConstitutiveMatrix << std::endl;
+      }
+
 
       // a. 2 ( pElem - p Nodal) I4S
       for ( unsigned int i = 0; i < 6; i++) {
@@ -784,7 +818,7 @@ namespace Kratos
             int indexup= dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-               rLeftHandSideMatrix(indexp,indexup+k) +=  Kpu2( i, j*2 + k) ;
+               rLeftHandSideMatrix(indexp,indexup+k) +=  Kpu2( i, j*2 + k) *mElementScalingNumber;
             }
          }
          indexp += (dimension + 1);
@@ -824,7 +858,7 @@ namespace Kratos
             if(indexpi==indexpj)
                consistent=2;
 
-            rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D
+            rLeftHandSideMatrix(indexpi,indexpj)  -= consistent * (1.0/12.0) * rIntegrationWeight / (rVariables.detF0/rVariables.detF) * mElementScalingNumber; //2D
 
             indexpj += (dimension + 1);
          }
@@ -909,7 +943,7 @@ namespace Kratos
             if(indexpi==indexpj)
                consistent=2*AlphaStabilization;
 
-            rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF);     //2D
+            rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF) * mElementScalingNumber;     //2D
 
             indexpj += (dimension + 1);
          }
