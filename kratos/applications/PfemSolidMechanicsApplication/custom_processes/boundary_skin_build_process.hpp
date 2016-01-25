@@ -657,7 +657,7 @@ namespace Kratos
 		if (ne->Id() == ie->Id())
 		  {
 		    //if no neighbour is present => the face is free surface
-		    for(unsigned int j=0; j<NumberNodesInFace; j++)
+		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
 		      {
 			rGeometry[lpofa(j,iface)].Set(BOUNDARY);
 		      }
@@ -701,7 +701,7 @@ namespace Kratos
 		      
 		      FaceNodes.reserve(NumberNodesInFace);
 
-		      for(unsigned int j=0; j<NumberNodesInFace; j++)
+		      for(unsigned int j=1; j<=NumberNodesInFace; j++)
 			{
 			  FaceNodes.push_back(rGeometry(lpofa(j,iface)));
 			}
@@ -833,7 +833,7 @@ namespace Kratos
 		if (ne->Id() == ie->Id())
 		  {
 		    //if no neighbour is present => the face is free surface
-		    for(unsigned int j=0; j<NumberNodesInFace; j++)
+		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
 		      {
 			rGeometry[lpofa(j,iface)].Set(BOUNDARY);
 		      }
@@ -844,7 +844,7 @@ namespace Kratos
 		      
 		    FaceNodes.reserve(NumberNodesInFace);
 
-		    for(unsigned int j=0; j<NumberNodesInFace; j++)
+		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
 		      {
 			FaceNodes.push_back(rGeometry(lpofa(j,iface)));
 		      }

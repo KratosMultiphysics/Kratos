@@ -1809,7 +1809,7 @@ namespace Kratos
 	      {
 		rGeom.NodesInFaces(lpofa);   
 
-		//if no neighnour is present => the face is free surface
+		//if no neighbour is present => the face is free surface
 		rGeom[lpofa(1,i)].Set(BOUNDARY);
 		rGeom[lpofa(2,i)].Set(BOUNDARY);
 	
