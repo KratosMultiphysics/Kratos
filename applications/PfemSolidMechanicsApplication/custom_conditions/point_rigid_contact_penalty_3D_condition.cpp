@@ -233,7 +233,10 @@ namespace Kratos
          distance = 1;
 
       //get contact properties and parameters
-      double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
+      double PenaltyParameter = 1;
+      if( GetProperties().Has(PENALTY_PARAMETER) )
+	PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
+
       double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
       // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
@@ -259,13 +262,15 @@ namespace Kratos
       }
 
       rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
-      double PenaltyRatio = GetProperties()[TANGENTIAL_PENALTY_RATIO];
-      rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio ; ///20.0;  
+      double PenaltyRatio = 1;
+      if( GetProperties().Has(TANGENTIAL_PENALTY_RATIO) )
+	PenaltyRatio = GetProperties()[PENALTY_PARAMETER];
 
+      rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio ; ///20.0;  
 
       //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
 
-      // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
+      //std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
 
       KRATOS_CATCH( "" )
    }
