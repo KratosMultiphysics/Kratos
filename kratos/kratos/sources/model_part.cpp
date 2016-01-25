@@ -864,39 +864,72 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
 		return mName + " model part";
 	}
 
-	/// Print information about this object.
+    /// Print information about this object.
 
-	void ModelPart::PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const
-	{
-		rOStream << PrefixString << Info();
-	}
+    void ModelPart::PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
 
-	/// Print object's data.
+    /// Print object's data.
 
-	void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixString) const
-	{
-		if (!IsSubModelPart())
-			rOStream << PrefixString << "    Buffer Size : " << mBufferSize << std::endl;
-		rOStream << PrefixString << "    Number of tables : " << NumberOfTables() << std::endl;
-		rOStream << PrefixString << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
-		if (!IsSubModelPart())
-			mpProcessInfo->PrintData(rOStream);
-		rOStream << std::endl;
-		for (IndexType i = 0; i < mMeshes.size(); i++)
-		{
-			rOStream << PrefixString << "    Mesh " << i << " : " << std::endl;
-			GetMesh(i).PrintData(rOStream, PrefixString + "    ");
-		}
+    void ModelPart::PrintData(std::ostream& rOStream) const
+    {
+        if (!IsSubModelPart())
+            rOStream  << "    Buffer Size : " << mBufferSize << std::endl;
+        rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
+        rOStream << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
+        if (!IsSubModelPart())
+            mpProcessInfo->PrintData(rOStream);
+        rOStream << std::endl;
+        for (IndexType i = 0; i < mMeshes.size(); i++)
+        {
+            rOStream << "    Mesh " << i << " : " << std::endl;
+            GetMesh(i).PrintData(rOStream, "    ");
+        }
 
-		for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-		{
-			i_sub_model_part->PrintInfo(rOStream, PrefixString + "    ");
-			rOStream << std::endl;
-			i_sub_model_part->PrintData(rOStream, PrefixString + "    ");
-		}
-	}
+        for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        {
+            i_sub_model_part->PrintInfo(rOStream, "    ");
+            rOStream << std::endl;
+            i_sub_model_part->PrintData(rOStream, "    ");
+        }
+    }
 
-	void ModelPart::save(Serializer& rSerializer) const
+
+    /// Print information about this object.
+
+    void ModelPart::PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const
+    {
+        rOStream << PrefixString << Info();
+    }
+
+    /// Print object's data.
+
+    void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixString) const
+    {
+        if (!IsSubModelPart())
+            rOStream << PrefixString << "    Buffer Size : " << mBufferSize << std::endl;
+        rOStream << PrefixString << "    Number of tables : " << NumberOfTables() << std::endl;
+        rOStream << PrefixString << "    Number of sub model parts : " << NumberOfSubModelParts() << std::endl;
+        if (!IsSubModelPart())
+            mpProcessInfo->PrintData(rOStream);
+        rOStream << std::endl;
+        for (IndexType i = 0; i < mMeshes.size(); i++)
+        {
+            rOStream << PrefixString << "    Mesh " << i << " : " << std::endl;
+            GetMesh(i).PrintData(rOStream, PrefixString + "    ");
+        }
+
+        for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        {
+            i_sub_model_part->PrintInfo(rOStream, PrefixString + "    ");
+            rOStream << std::endl;
+            i_sub_model_part->PrintData(rOStream, PrefixString + "    ");
+        }
+    }
+
+    void ModelPart::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer);
 		rSerializer.save("Name", mName);

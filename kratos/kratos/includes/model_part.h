@@ -974,10 +974,16 @@ public:
     virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString="") const;
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString = "") const;
+    virtual void PrintData(std::ostream& rOStream) const;
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const;
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream, std::string const& PrefixString) const;
 
 
     ///@}
