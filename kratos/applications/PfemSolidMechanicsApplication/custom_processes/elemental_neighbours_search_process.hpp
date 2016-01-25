@@ -349,7 +349,7 @@ namespace Kratos
       for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
         {
 	  Element::GeometryType& pGeom = ie->GetGeometry();
-	  int size= pGeom.EdgesNumber();
+	  int size= pGeom.FacesNumber();
 
 	  //(ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(size);
 
@@ -428,7 +428,15 @@ namespace Kratos
             }
         }
 
+      std::cout<<" Search NEIGHBOURS "<<std::endl;
 
+      NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
+      for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        {
+	  if( in->Is(BOUNDARY) )
+	     std::cout<<" Boundary["<<in->Id()<<"]"<<std::endl;
+        }
+      
       //*************  Neigbours of elements  *********//
       //add the neighbour elements to all the elements in the mesh
       //loop over faces
@@ -439,7 +447,7 @@ namespace Kratos
 	      //face nodes
 	      Geometry<Node<3> >& geom = (ie)->GetGeometry();
 
-	      if( geom.EdgesNumber() == 3 ){
+	      if( geom.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given face
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
@@ -488,9 +496,9 @@ namespace Kratos
 	      //face nodes
 	      Geometry<Node<3> >& geom = (ie)->GetGeometry();
 
-	      if( geom.EdgesNumber() == 4 ){
+	      if( geom.FacesNumber() == 4 ){
 			
-		//vector of the 3 faces around the given face
+		//vector of the 4 faces around the given element (3D tetrahedron)
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -510,6 +518,7 @@ namespace Kratos
 		  {
 		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
 		      {
+		
 			ie->Set(BOUNDARY);
 
 			Geometry<Node<3> >& pGeom = (ie)->GetGeometry();
@@ -519,8 +528,10 @@ namespace Kratos
 			
 			for(unsigned int i = 0; i < pGeom.size(); i++)
 			  {
-			    if(i!=counter)
+			    if(i!=counter){
 			      pGeom[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+			      //std::cout<<" SetBoundary ("<<pGeom[lpofa(i,0)].Id()<<")"<<std::endl;
+			    }
 			  }
 
 		      }
@@ -529,9 +540,9 @@ namespace Kratos
 
 
 	      }
-	      else if( geom.EdgesNumber() == 3 ){
+	      else if( geom.FacesNumber() == 3 ){
 
-		//vector of the 3 faces around the given face
+		//vector of the 3 faces around the given element (3D triangle)
 		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
 		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -572,6 +583,7 @@ namespace Kratos
 	      
 	    }
         }
+
 
       return true;
     }

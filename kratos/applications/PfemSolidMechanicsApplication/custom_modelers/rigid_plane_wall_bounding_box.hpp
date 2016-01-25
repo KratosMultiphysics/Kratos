@@ -213,10 +213,10 @@ public:
       
       TPointType  PlanePoint = mPlane.Point;
       
-      if( mBox.Convexity == 1)
+      if( mBox.Convexity == 1 )
 	PlanePoint += mPlane.Normal * 0.1; //increase the bounding box 
 
-      if( mBox.Convexity == -1)
+      if( mBox.Convexity == -1 )
        	PlanePoint -= mPlane.Normal * 0.1; //decrease the bounding box 
 
       is_inside = ContactSearch(rPoint, PlanePoint);

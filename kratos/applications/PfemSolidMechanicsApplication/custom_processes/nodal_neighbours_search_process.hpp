@@ -130,7 +130,7 @@ namespace Kratos
 	{
 	  //print out the mesh generation time
 	  if( mEchoLevel > 1 )
-	    std::cout<<"   Neighbour Nodes Search time = "<<auxiliary.elapsed()<<std::endl;
+	    std::cout<<"  Neighbour Nodes Search time = "<<auxiliary.elapsed()<<std::endl;
 	  //PrintNodeNeighbours();
 	}
 

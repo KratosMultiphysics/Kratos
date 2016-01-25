@@ -23,11 +23,13 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 
+#include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
 #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
 #include "custom_conditions/rigid_body_point_rigid_contact_condition.hpp"
+
 
 #include "pfem_solid_mechanics_application.h"
 
@@ -340,36 +342,50 @@ namespace Kratos
                            }
                            else if( mpRigidWall->GetDimension() == 3 ){
 
-                              //Set Beam Element Properties
-                              WeakPointerVector<Element>& rE = (*nd)->GetValue(NEIGHBOUR_ELEMENTS);
+			     WeakPointerVector<Element>& rE = (*nd)->GetValue(NEIGHBOUR_ELEMENTS);
+			    
+			     //Get info from neighbour elements
+			     if( rE[0].GetGeometry().WorkingSpaceDimension() > 1 ){
+			       
+			       int number_properties = mrModelPart.NumberOfProperties();
+			       PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
+			       GeometryType::Pointer   p_geometry   = GeometryType::Pointer(new Point3DType( (*nd) ));
+			       
+			       p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+                             
+			     }
+			     else{
 
-                              PropertiesType& Properties = rE[0].GetProperties();
-                              double Radius = 0;
-                              double Max_Radius = Properties[MEAN_RADIUS];
+			       //Set Beam Element Properties
+			       PropertiesType& Properties = rE[0].GetProperties();
+			       double Radius = 0;
+			       double Max_Radius = Properties[MEAN_RADIUS];
 
-                              int element_id = 0;
-                              for(unsigned int ie=1; ie<rE.size(); ie++)
-                              {
-                                 PropertiesType& Properties = rE[ie].GetProperties();      
-                                 Radius = Properties[MEAN_RADIUS];
-                                 if( Max_Radius < Radius )
-                                    element_id =ie;
-                              }
+			       int element_id = 0;
+			       for(unsigned int ie=1; ie<rE.size(); ie++)
+				 {
+				   PropertiesType& Properties = rE[ie].GetProperties();      
+				   Radius = Properties[MEAN_RADIUS];
+				   if( Max_Radius < Radius )
+				     element_id =ie;
+				 }
 
 
-                              double PenaltyParameter = (*p_properties)[PENALTY_PARAMETER];
-                              p_properties = rE[element_id].pGetProperties();      
-                              p_properties->SetValue( PENALTY_PARAMETER, PenaltyParameter );
+			       double PenaltyParameter = (*p_properties)[PENALTY_PARAMETER];
+			       p_properties = rE[element_id].pGetProperties();      
+			       p_properties->SetValue( PENALTY_PARAMETER, PenaltyParameter );
 
-                              //std::cout<<" BEAM radius considered for contact "<<(*p_properties)[MEAN_RADIUS]<<std::endl;
+			       //std::cout<<" BEAM radius considered for contact "<<(*p_properties)[MEAN_RADIUS]<<std::endl;
 
-                              GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
-                              //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-                              p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
-                              //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+			       GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+			       //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+			       p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
+			       //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 
-                              //std::cout<<" Node Selected for BEAM Contact "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
-                              //std::cout<<" with properties "<<*p_properties<<std::endl;
+			       //std::cout<<" Node Selected for BEAM Contact "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
+			       //std::cout<<" with properties "<<*p_properties<<std::endl;
+
+			     }
                            }
 
                            //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
