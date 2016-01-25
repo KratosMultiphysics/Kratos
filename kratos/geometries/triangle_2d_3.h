@@ -564,17 +564,17 @@ public:
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(3,3);
 
-        NodesInFaces(0,0)=0;
+        NodesInFaces(0,0)=0;//face or other node
         NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;//other node
+        NodesInFaces(2,0)=2;
 
-        NodesInFaces(0,1)=1;
+        NodesInFaces(0,1)=1;//face or other node 
         NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;//other node
+        NodesInFaces(2,1)=0;
 
-        NodesInFaces(0,2)=2;
+        NodesInFaces(0,2)=2;//face or other node
         NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;//other node
+        NodesInFaces(2,2)=1;
 
     }
 
