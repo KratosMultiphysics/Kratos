@@ -345,9 +345,9 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
-      CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
-      CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
+      // CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
+      // CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
+      // CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
 
       KRATOS_CATCH( "" )
    }
@@ -435,21 +435,26 @@ namespace Kratos
          double IntegrationWeight = 1;
          IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-         if( Variables.Options.Is(ACTIVE) )
-            rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1; 
+ 	 if ( rLocalSystem.CalculationFlags.Is(PointRigidContactCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+	   {
+	     //contributions to stiffness matrix calculated on the reference config
+	     this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
+	   }
 
-         if ( rLocalSystem.CalculationFlags.Is(PointRigidContactCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-         {
-            //contributions to stiffness matrix calculated on the reference config
-            this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
-         }
-
-         if ( rLocalSystem.CalculationFlags.Is(PointRigidContactCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-         {
-            //contribution to external forces 
-            this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
-         }
-
+	 if ( rLocalSystem.CalculationFlags.Is(PointRigidContactCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+	   {
+	     //contribution to external forces 
+	     this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
+	   }
+	
+         if( Variables.Options.Is(ACTIVE) )// {
+	   rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1; 
+	 //   std::cout<<" ACTIVE_CONTACTS "<<rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS]<<std::endl;
+	 //   std::cout<<" RHS "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
+	 // }
+	 // else{
+	 //   std::cout<<" NON Active Contact "<<GetGeometry()[0].Id()<<" "<<Variables.Gap.Normal<<" normal"<<Variables.Surface.Normal<<" "<<GetGeometry()[0].Coordinates()<<std::endl;
+	 // }
       }
 
       KRATOS_CATCH( "" )
@@ -633,9 +638,8 @@ namespace Kratos
       //Calculate condition system
       this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-      //KRATOS_WATCH( rLeftHandSideMatrix )
-      //KRATOS_WATCH( rRightHandSideVector )
-
+      //std::cout<<" ContactID ["<<this->Id()<<"]: LHS "<<rLeftHandSideMatrix<<std::endl;
+      //std::cout<<" ContactID ["<<this->Id()<<"]: RHS "<<rRightHandSideVector<<std::endl;
    }
 
 

@@ -211,8 +211,6 @@ model_part.AddNodalSolutionStepVariable(RIGID_WALL);
 model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
 model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
 
-model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
-
 
 
 #--- READ MODEL ------#
