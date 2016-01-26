@@ -203,7 +203,7 @@ void SmallStrainUPwDiffOrderElement::GetDofList( DofsVectorType& rElementalDofLi
         rElementalDofList.resize(ElementSize);
 
     SizeType Index = 0;
-
+/*
     for(SizeType i = 0; i < NumPNodes; i++)
     {
         rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
@@ -220,6 +220,18 @@ void SmallStrainUPwDiffOrderElement::GetDofList( DofsVectorType& rElementalDofLi
         if(Dim > 2)
             rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
     }
+*/
+
+    for(SizeType i = 0; i < NumUNodes; i++)
+    {
+        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
+        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
+        if(Dim > 2)
+            rElementalDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
+    }
+
+    for(SizeType i=0; i<NumPNodes; i++)
+        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
 
     KRATOS_CATCH( "" )
 }
