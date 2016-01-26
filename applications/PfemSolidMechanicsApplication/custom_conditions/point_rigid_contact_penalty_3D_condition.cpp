@@ -104,9 +104,17 @@ namespace Kratos
 
       mTangentialVariables.Sign = 1;
 
-      mTangentialVariables.FrictionCoefficient = 0.0;//0.3;
+
       mTangentialVariables.DynamicFrictionCoefficient = 0.0;//0.2;
       mTangentialVariables.StaticFrictionCoefficient  = 0.0;//0.3;
+
+      if( GetProperties().Has(MU_DYNAMIC) )
+	mTangentialVariables.DynamicFrictionCoefficient = GetProperties()[MU_DYNAMIC];
+
+      if( GetProperties().Has(MU_STATIC) )
+	mTangentialVariables.StaticFrictionCoefficient = GetProperties()[MU_STATIC];
+
+      mTangentialVariables.FrictionCoefficient = mTangentialVariables.StaticFrictionCoefficient;      
 
 
       // Compute the neighbour distance, then a stress-"like" may be computed.
@@ -179,6 +187,8 @@ namespace Kratos
       if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
 
          rVariables.Options.Set(ACTIVE,true);
+	 
+	 //std::cout<<" Active Contact "<<GetGeometry()[0].Id()<<" "<<rVariables.Gap.Normal<<" normal"<<rVariables.Surface.Normal<<std::endl;
 
          //get contact properties and parameters
          this->CalculateContactFactors( rVariables );
@@ -262,9 +272,10 @@ namespace Kratos
       }
 
       rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
+
       double PenaltyRatio = 1;
       if( GetProperties().Has(TANGENTIAL_PENALTY_RATIO) )
-	PenaltyRatio = GetProperties()[PENALTY_PARAMETER];
+	PenaltyRatio = GetProperties()[TANGENTIAL_PENALTY_RATIO];
 
       rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio ; ///20.0;  
 
@@ -394,7 +405,8 @@ namespace Kratos
       {
          KRATOS_TRY
 
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
          if( rVariables.Options.Is(ACTIVE)){
 
             mTangentialVariables.IntegrationWeight  = rIntegrationWeight;
@@ -410,7 +422,7 @@ namespace Kratos
             if ( fabs(GetGeometry()[0].X() ) < 1e-5) 
                ContactStress = 0.0*ContactForce / mTangentialVariables.Neighb_distance / rIntegrationWeight ;
 
-            if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE )) { 
+            if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE ) && GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_STRESS )) { 
                const array_1d< double, 3 >& EffectiveContactForce = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_FORCE);
                array_1d< double, 3 >& EffectiveContactStress = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_CONTACT_STRESS);
                EffectiveContactStress = EffectiveContactForce / mTangentialVariables.Neighb_distance / rIntegrationWeight ;

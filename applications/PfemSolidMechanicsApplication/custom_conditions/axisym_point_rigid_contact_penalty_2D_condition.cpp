@@ -101,10 +101,10 @@ namespace Kratos
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
 
-    // double radius   = 0;
     double distance = 0;
     double counter  = 0;
 
+    // double radius   = 0;
     // double meanradius = 0;
 
     for(unsigned int i = 0; i < rN.size(); i++)
@@ -116,9 +116,7 @@ namespace Kratos
 	  Neighb_Point[2] = rN[i].Z();
 	    
 	  // radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
-	  
 	  // meanradius += radius;
-
 	  // distance += norm_2(Contact_Point-Neighb_Point) * radius;
 
 	  distance += norm_2(Contact_Point-Neighb_Point);
@@ -132,14 +130,32 @@ namespace Kratos
     // else
     //   distance /= ( counter * (meanradius/counter) ); 
 
-    distance /= counter;
+    if( counter != 0 )
+      distance /= counter;
+
+    if( distance == 0 )
+      distance = 1;
 
     //get contact properties and parameters
-    double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
+    double PenaltyParameter = 1;
+    if( GetProperties().Has(PENALTY_PARAMETER) )
+      PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
+
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
+    double factor = 4;
+    if( distance < 1.0 ){ //take a number bigger than 1.0 (length units)
+      int order = (int)((-1) * std::log10(distance) + 1) ;
+      distance *= factor * pow(10,order);
+    }
+
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
+
+    double PenaltyRatio = 1;
+    if( GetProperties().Has(TANGENTIAL_PENALTY_RATIO) )
+      PenaltyRatio = GetProperties()[TANGENTIAL_PENALTY_RATIO];
+    
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio;  
     
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
@@ -155,7 +171,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-      rCurrentRadius=0;
+    rCurrentRadius=0;
     rReferenceRadius=0;
 
     //Displacement from the reference to the current configuration

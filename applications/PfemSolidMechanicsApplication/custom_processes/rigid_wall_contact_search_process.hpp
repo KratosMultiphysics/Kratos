@@ -390,7 +390,8 @@ namespace Kratos
 
                            //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
 
-                           mrModelPart.Conditions().push_back(p_cond);
+			   mrModelPart.AddCondition(p_cond);
+                           //mrModelPart.Conditions().push_back(p_cond);
 
                            id +=1;
 
@@ -428,7 +429,8 @@ namespace Kratos
 
                               }
 
-                              mrModelPart.Conditions().push_back(p_cond);
+			      mrModelPart.AddCondition(p_cond);
+                              //mrModelPart.Conditions().push_back(p_cond);
 
                               id +=1;
                            }

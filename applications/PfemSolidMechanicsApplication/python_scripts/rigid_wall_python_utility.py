@@ -112,7 +112,7 @@ class RigidWallUtility:
                         self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                     # rigid wall contact search process
-                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, 8))
+                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
                         
                 elif(conditions["WallType"] == "CIRCLE"):
@@ -160,7 +160,13 @@ class RigidWallUtility:
             # set properties for rigid wall conditions
             penalty_parameter = self.GetPenaltyParameter()
             size = self.model_part.NumberOfProperties(0)-1 #take in account that penalty will be set to this property:: other option size=0
+            dynamic_friction_coeffitient = 0.0
+            static_friction_coeffitient  = 0.0
             self.model_part.Properties[size].SetValue(PENALTY_PARAMETER, penalty_parameter)
+
+            self.model_part.Properties[size].SetValue(MU_DYNAMIC, dynamic_friction_coeffitient)
+            self.model_part.Properties[size].SetValue(MU_STATIC, static_friction_coeffitient)
+
             for size in range(0, self.number_of_walls):
                 self.contact_search_process[size].ExecuteInitializeSolutionStep()
 

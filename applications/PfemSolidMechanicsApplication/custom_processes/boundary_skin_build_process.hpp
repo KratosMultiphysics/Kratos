@@ -739,7 +739,8 @@ namespace Kratos
 		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(NumberNodesInFace,iface)) ) );
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);
 
-		      mrModelPart.Conditions(MeshId).push_back(p_cond);
+		      mrModelPart.AddCondition(p_cond, MeshId);
+		      //mrModelPart.Conditions(MeshId).push_back(p_cond);
 
 		    }
 		    // Set new conditions: end
@@ -898,7 +899,9 @@ namespace Kratos
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);
 		    }
 
-		    mrModelPart.Conditions(MeshId).push_back(Condition::Pointer(p_cond));
+		    mrModelPart.AddCondition(Condition::Pointer(p_cond), MeshId);
+		    //mrModelPart.Conditions(MeshId).push_back(Condition::Pointer(p_cond));
+
 		    // Set new conditions: end
 		    
 		  }
@@ -939,7 +942,8 @@ namespace Kratos
 
 	      rConditionId +=1;
 
-	      mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
+	      mrModelPart.AddCondition(ic->Clone(rConditionId,FaceNodes),MeshId);
+	      //mrModelPart.Conditions(MeshId).push_back(ic->Clone(rConditionId,FaceNodes));
 
 	    }
 	  }
