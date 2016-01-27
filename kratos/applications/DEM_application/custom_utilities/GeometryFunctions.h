@@ -658,7 +658,7 @@ namespace Kratos {
         CrossProduct(normal, temp, quart_axis);
 
         quart_axis[0] = quart_axis[0] / normal_norm;
-        quart_axis[1] = quart_axis[2] / normal_norm;
+        quart_axis[1] = quart_axis[1] / normal_norm;
         quart_axis[2] = quart_axis[2] / normal_norm;
     }
 
