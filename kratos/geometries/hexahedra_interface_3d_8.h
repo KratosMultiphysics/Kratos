@@ -23,7 +23,9 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * An eight node hexahedra interface geometry. The shape functions are the same as for the
+ * hexahedra_3d_8 element, but the jacobian is computed as in the quadrilateral_3d_4 element to 
+ * to avoid having detJ = 0. Default integration method is Lobatto.
  */
 
 template<class TPointType> class HexahedraInterface3D8 : public Geometry<TPointType>
@@ -181,7 +183,7 @@ public:
 
         array_1d< double , 3 > vz;
         vz.clear();
-        noalias(vz) += Point6 + Point6;
+        noalias(vz) += Point5 + Point6;
         noalias(vz) += Point7 + Point8;
         noalias(vz) += - Point1 - Point2;
         noalias(vz) += - Point3 - Point4;
@@ -307,7 +309,7 @@ public:
 
         array_1d< double , 3 > vz;
         vz.clear();
-        noalias(vz) += *pPoint6 + *pPoint6;
+        noalias(vz) += *pPoint5 + *pPoint6;
         noalias(vz) += *pPoint7 + *pPoint8;
         noalias(vz) += - *pPoint1 - *pPoint2;
         noalias(vz) += - *pPoint3 - *pPoint4;
@@ -878,10 +880,10 @@ public:
         }
 
         //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod )/2; pnt++ )
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             //defining single jacobian matrix
-            Matrix jacobian(3,2,0.0);
+            Matrix jacobian = ZeroMatrix( 3, 2 );
             
             //loop over all nodes
             for ( unsigned int i = 0; i < pmid.size(); i++ )
@@ -895,7 +897,6 @@ public:
 			}
 			
 			rResult[pnt] = jacobian;
-			rResult[pnt+4] = jacobian;
         }//end of loop over all integration points
         return rResult;
     }
@@ -929,8 +930,8 @@ public:
 		pmid[2] = 0.5 * (BaseType::GetPoint( 2 ) + BaseType::GetPoint( 6 ));
 		pmid[3] = 0.5 * (BaseType::GetPoint( 3 ) + BaseType::GetPoint( 7 ));
 		
-		Matrix deltaPosMid(3, 3);
-		for(unsigned int i = 0; i < 3; i++)
+		Matrix deltaPosMid(4, 3);
+		for(unsigned int i = 0; i < 4; i++)
 			for(unsigned int j = 0; j < 3; j++)
 				deltaPosMid(i, j) = 0.5*( DeltaPosition(i, j) + DeltaPosition(i+4, j) );
 		
@@ -948,10 +949,11 @@ public:
         }
 
         //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod )/2; pnt++ )
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             //defining single jacobian matrix
-            Matrix jacobian(3,2,0.0);
+            Matrix jacobian = ZeroMatrix( 3, 2 );
+            
             //loop over all nodes
             for ( unsigned int i = 0; i < pmid.size(); i++ )
             {
@@ -964,7 +966,6 @@ public:
             }
 
             rResult[pnt] = jacobian;
-			rResult[pnt+4] = jacobian;
         }//end of loop over all integration points
 
         return rResult;
@@ -1142,7 +1143,15 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
                                            IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        //workaround by riccardo
+        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
+			rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
+
+        //for all integration points
+		double detJ = Area()*0.25;
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+            rResult[pnt] = detJ;
+
         return rResult;
     }
 
@@ -1171,8 +1180,7 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
                                           IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
-        return 0.0;
+        return Area()*0.25;
     }
 
     /**
@@ -1196,8 +1204,7 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
-        return 0.0;
+        return Area()*0.25;
     }
 
     /**
@@ -1222,7 +1229,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -1254,7 +1261,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -1276,7 +1283,7 @@ public:
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -1404,24 +1411,24 @@ public:
         switch ( ShapeFunctionIndex )
         {
         case 0:
-            return( 0.25*( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] ) );
+            return( 0.125*( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] ) );
         case 1:
-            return( 0.25*( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] ) );
+            return( 0.125*( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] )*( 1.0 - rPoint[2] ) );
         case 2:
-            return( 0.25*( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] ) );
+            return( 0.125*( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) );
         case 3:
-            return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
+            return( 0.125*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 - rPoint[2] ) );
         case 4:
-            return( 0.25*( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] ) );
+            return( 0.125*( 1.0 - rPoint[0] )*( 1.0 - rPoint[1] )*( 1.0 + rPoint[2] ) );
         case 5:
-            return( 0.25*( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] ) );
+            return( 0.125*( 1.0 + rPoint[0] )*( 1.0 - rPoint[1] )*( 1.0 + rPoint[2] ) );
         case 6:
-            return( 0.25*( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] ) );
+            return( 0.125*( 1.0 + rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 + rPoint[2] ) );
         case 7:
-            return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
+            return( 0.125*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 + rPoint[2] ) );
         default:
             KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" , *this );
+                                "Wrong index of shape function!" , *this );
         }
 
         return 0;
@@ -1438,10 +1445,38 @@ public:
      */
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-		KRATOS_THROW_ERROR( std::logic_error, "This integration method is not supported" , *this );
-		return rResult;
-    }
+        if ( rResult.size1() != 8 || rResult.size2() != 3 )
+            rResult.resize( 8, 3 );
 
+        rResult = ZeroMatrix( 8, 3 );
+
+        rResult( 0, 0 ) = -0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 - rPoint[2] );
+        rResult( 0, 1 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[2] );
+        rResult( 0, 2 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[1] );
+        rResult( 1, 0 ) =  0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 - rPoint[2] );
+        rResult( 1, 1 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[2] );
+        rResult( 1, 2 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[1] );
+        rResult( 2, 0 ) =  0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 - rPoint[2] );
+        rResult( 2, 1 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[2] );
+        rResult( 2, 2 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] );
+        rResult( 3, 0 ) = -0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 - rPoint[2] );
+        rResult( 3, 1 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[2] );
+        rResult( 3, 2 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[1] );
+        rResult( 4, 0 ) = -0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 + rPoint[2] );
+        rResult( 4, 1 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[2] );
+        rResult( 4, 2 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[1] );
+        rResult( 5, 0 ) =  0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 + rPoint[2] );
+        rResult( 5, 1 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] );
+        rResult( 5, 2 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[1] );
+        rResult( 6, 0 ) =  0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] );
+        rResult( 6, 1 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] );
+        rResult( 6, 2 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] );
+        rResult( 7, 0 ) = -0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] );
+        rResult( 7, 1 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[2] );
+        rResult( 7, 2 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[1] );
+
+        return rResult;
+    }
 
     /**
      * Calculates the Gradients of the shape functions.
@@ -1490,9 +1525,9 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 3 );
+            rResult[pnt].resize( 8, 3 );
 
-            for ( int i = 0; i < 4; i++ )
+            for ( int i = 0; i < 8; i++ )
             {
                 for ( int j = 0; j < 3; j++ )
                 {
@@ -1513,6 +1548,7 @@ public:
             Vector& determinants_of_jacobian,
             IntegrationMethod ThisMethod) const
     {
+        //TODO: this is not correct
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
 
         if ( integration_points_number == 0 )
@@ -1670,30 +1706,30 @@ private:
     static Matrix ShapeFunctionsLocalGradients( const CoordinatesArrayType& rPoint )
     {
         Matrix result = ZeroMatrix( 8, 3 );
-        result( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
-        result( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
-        result( 0, 2 ) = 0.0;
-        result( 1, 0 ) = 0.25 * ( 1.0 - rPoint[1] );
-        result( 1, 1 ) = -0.25 * ( 1.0 + rPoint[0] );
-        result( 1, 2 ) = 0.0;
-        result( 2, 0 ) = 0.25 * ( 1.0 + rPoint[1] );
-        result( 2, 1 ) = 0.25 * ( 1.0 + rPoint[0] );
-        result( 2, 2 ) = 0.0;
-        result( 3, 0 ) = -0.25 * ( 1.0 + rPoint[1] );
-        result( 3, 1 ) = 0.25 * ( 1.0 - rPoint[0] );
-        result( 3, 2 ) = 0.0;
-        result( 4, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
-        result( 4, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
-        result( 4, 2 ) = 0.0;
-        result( 5, 0 ) = 0.25 * ( 1.0 - rPoint[1] );
-        result( 5, 1 ) = -0.25 * ( 1.0 + rPoint[0] );
-        result( 5, 2 ) = 0.0;
-        result( 6, 0 ) = 0.25 * ( 1.0 + rPoint[1] );
-        result( 6, 1 ) = 0.25 * ( 1.0 + rPoint[0] );
-        result( 6, 2 ) = 0.0;
-        result( 7, 0 ) = -0.25 * ( 1.0 + rPoint[1] );
-        result( 7, 1 ) = 0.25 * ( 1.0 - rPoint[0] );
-        result( 7, 2 ) = 0.0;
+        result( 0, 0 ) = -0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 - rPoint[2] );
+        result( 0, 1 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[2] );
+        result( 0, 2 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[1] );
+        result( 1, 0 ) =  0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 - rPoint[2] );
+        result( 1, 1 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[2] );
+        result( 1, 2 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[1] );
+        result( 2, 0 ) =  0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 - rPoint[2] );
+        result( 2, 1 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[2] );
+        result( 2, 2 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] );
+        result( 3, 0 ) = -0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 - rPoint[2] );
+        result( 3, 1 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[2] );
+        result( 3, 2 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[1] );
+        result( 4, 0 ) = -0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 + rPoint[2] );
+        result( 4, 1 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[2] );
+        result( 4, 2 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[1] );
+        result( 5, 0 ) =  0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 + rPoint[2] );
+        result( 5, 1 ) = -0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] );
+        result( 5, 2 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 - rPoint[1] );
+        result( 6, 0 ) =  0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] );
+        result( 6, 1 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[2] );
+        result( 6, 2 ) =  0.125 * ( 1.0 + rPoint[0] ) * ( 1.0 + rPoint[1] );
+        result( 7, 0 ) = -0.125 * ( 1.0 + rPoint[1] ) * ( 1.0 + rPoint[2] );
+        result( 7, 1 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[2] );
+        result( 7, 2 ) =  0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 + rPoint[1] );
         return result;
     }
 
@@ -1726,29 +1762,37 @@ private:
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             shape_function_values( pnt, 0 ) =
-                0.25 * ( 1.0 - integration_points[pnt].X() )
-                * ( 1.0 - integration_points[pnt].Y() );
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
             shape_function_values( pnt, 1 ) =
-                0.25 * ( 1.0 + integration_points[pnt].X() )
-                * ( 1.0 - integration_points[pnt].Y() );
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
             shape_function_values( pnt, 2 ) =
-                0.25 * ( 1.0 + integration_points[pnt].X() )
-                * ( 1.0 + integration_points[pnt].Y() );
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
             shape_function_values( pnt, 3 ) =
-                0.25 * ( 1.0 - integration_points[pnt].X() )
-                * ( 1.0 + integration_points[pnt].Y() );
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
             shape_function_values( pnt, 4 ) =
-                0.25 * ( 1.0 - integration_points[pnt].X() )
-                * ( 1.0 - integration_points[pnt].Y() );
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
             shape_function_values( pnt, 5 ) =
-                0.25 * ( 1.0 + integration_points[pnt].X() )
-                * ( 1.0 - integration_points[pnt].Y() );
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
             shape_function_values( pnt, 6 ) =
-                0.25 * ( 1.0 + integration_points[pnt].X() )
-                * ( 1.0 + integration_points[pnt].Y() );
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
             shape_function_values( pnt, 7 ) =
-                0.25 * ( 1.0 - integration_points[pnt].X() )
-                * ( 1.0 + integration_points[pnt].Y() );
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
         }
 
         return shape_function_values;
@@ -1784,30 +1828,78 @@ private:
         {
             Matrix& result = d_shape_f_values[pnt];
             result = ZeroMatrix( 8, 3 );
-            result( 0, 0 ) = -0.25 * ( 1.0 - integration_points[pnt].Y() );
-            result( 0, 1 ) = -0.25 * ( 1.0 - integration_points[pnt].X() );
-            result( 0, 2 ) = 0.0;
-            result( 1, 0 ) = 0.25 * ( 1.0 - integration_points[pnt].Y() );
-            result( 1, 1 ) = -0.25 * ( 1.0 + integration_points[pnt].X() );
-            result( 1, 2 ) = 0.0;
-            result( 2, 0 ) = 0.25 * ( 1.0 + integration_points[pnt].Y() );
-            result( 2, 1 ) = 0.25 * ( 1.0 + integration_points[pnt].X() );
-            result( 2, 2 ) = 0.0;
-            result( 3, 0 ) = -0.25 * ( 1.0 + integration_points[pnt].Y() );
-            result( 3, 1 ) = 0.25 * ( 1.0 - integration_points[pnt].X() );
-            result( 3, 2 ) = 0.0;
-            result( 4, 0 ) = -0.25 * ( 1.0 - integration_points[pnt].Y() );
-            result( 4, 1 ) = -0.25 * ( 1.0 - integration_points[pnt].X() );
-            result( 4, 2 ) = 0.0;
-            result( 5, 0 ) = 0.25 * ( 1.0 - integration_points[pnt].Y() );
-            result( 5, 1 ) = -0.25 * ( 1.0 + integration_points[pnt].X() );
-            result( 5, 2 ) = 0.0;
-            result( 6, 0 ) = 0.25 * ( 1.0 + integration_points[pnt].Y() );
-            result( 6, 1 ) = 0.25 * ( 1.0 + integration_points[pnt].X() );
-            result( 6, 2 ) = 0.0;
-            result( 7, 0 ) = -0.25 * ( 1.0 + integration_points[pnt].Y() );
-            result( 7, 1 ) = 0.25 * ( 1.0 - integration_points[pnt].X() );
-            result( 7, 2 ) = 0.0;
+            result( 0, 0 ) =
+                -0.125 * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 0, 1 ) =
+                -0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 0, 2 ) =
+                -0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() );
+            result( 1, 0 ) =
+                0.125 * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 1, 1 ) =
+                -0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 1, 2 ) =
+                -0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() );
+            result( 2, 0 ) =
+                0.125 * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 2, 1 ) =
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 2, 2 ) =
+                -0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() );
+            result( 3, 0 ) =
+                -0.125 * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 3, 1 ) =
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Z() );
+            result( 3, 2 ) =
+                -0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() );
+            result( 4, 0 ) =
+                -0.125 * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 4, 1 ) =
+                -0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 4, 2 ) =
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() );
+            result( 5, 0 ) =
+                0.125 * ( 1.0 - integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 5, 1 ) =
+                -0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 5, 2 ) =
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 - integration_points[pnt].Y() );
+            result( 6, 0 ) =
+                0.125 * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 6, 1 ) =
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 6, 2 ) =
+                0.125 * ( 1.0 + integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() );
+            result( 7, 0 ) =
+                -0.125 * ( 1.0 + integration_points[pnt].Y() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 7, 1 ) =
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Z() );
+            result( 7, 2 ) =
+                0.125 * ( 1.0 - integration_points[pnt].X() )
+                * ( 1.0 + integration_points[pnt].Y() );
         }
 
         return d_shape_f_values;
@@ -1818,7 +1910,8 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                IntegrationPointsArrayType(),
+                Quadrature < HexaedronGaussLobattoIntegrationPoints1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < HexaedronGaussLobattoIntegrationPoints2,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
@@ -1833,7 +1926,8 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                Matrix(),
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_1 ),
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Matrix(),
@@ -1852,7 +1946,8 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                ShapeFunctionsGradientsType(),
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::GI_GAUSS_1 ),
                 HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),

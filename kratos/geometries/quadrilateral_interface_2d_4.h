@@ -40,9 +40,9 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * A four node quadrilateral interface geometry. The shape functions are the same as for the
+ * quadrilateral_2d_4 element, but the jacobian is computed as in the line_2d_2 element to 
+ * to avoid having detJ = 0. Default integration method is Lobatto.
  */
 
 template<class TPointType> class QuadrilateralInterface2D4
@@ -440,7 +440,11 @@ public:
      */
     virtual double Length() const
     {
-        return Area();
+        array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
+		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
+		
+		array_1d<double, 3> v( p1 - p0 );
+		return std::sqrt( v[0]*v[0] + v[1]*v[1] );
     }
 
     /** This method calculates and returns area or surface area of
@@ -460,11 +464,7 @@ public:
      */
     virtual double Area() const
     {
-        array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
-		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 2 ));
-		
-		array_1d<double, 3> v( p1 - p0 );
-		return std::sqrt( v[0]*v[0] + v[1]*v[1] );
+        return Length();
     }
 
 
@@ -1384,8 +1384,10 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                IntegrationPointsArrayType(),
-                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,  2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints1,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLobattoIntegrationPoints2,  
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }
@@ -1401,7 +1403,8 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                Matrix(),
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_1 ),
                 QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Matrix(),
@@ -1420,7 +1423,7 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                ShapeFunctionsGradientsType(),
+                QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
                 QuadrilateralInterface2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType(),
