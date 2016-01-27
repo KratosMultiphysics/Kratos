@@ -651,15 +651,15 @@ namespace Kratos {
 
         normalize(temp);
 
-        double normal_norm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+        double normal_norm_inv = 1.0 / sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
 
-        quart_angle = DotProduct(normal, temp) / normal_norm;
+        quart_angle = DotProduct(normal, temp) * normal_norm_inv;
 
         CrossProduct(normal, temp, quart_axis);
 
-        quart_axis[0] = quart_axis[0] / normal_norm;
-        quart_axis[1] = quart_axis[1] / normal_norm;
-        quart_axis[2] = quart_axis[2] / normal_norm;
+        quart_axis[0] = quart_axis[0] * normal_norm_inv;
+        quart_axis[1] = quart_axis[1] * normal_norm_inv;
+        quart_axis[2] = quart_axis[2] * normal_norm_inv;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
