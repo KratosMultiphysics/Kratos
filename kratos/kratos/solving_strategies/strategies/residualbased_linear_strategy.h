@@ -432,6 +432,16 @@ public:
             std::cout << "solution obtained = " << mDx << std::endl;
             std::cout << "RHS  = " << mb << std::endl;
         }
+        if (this->GetEchoLevel() == 4) //print to matrix market file
+        {
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm";
+            TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
+            
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
+            TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
+        }
 
         //update results
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
