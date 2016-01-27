@@ -41,9 +41,9 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * A six node prism interface geometry. The shape functions are the same as for the
+ * prism_3d_6 element, but the jacobian is computed as in the triangle_3d_3 element to 
+ * to avoid having detJ = 0. Default integration method is Lobatto.
  */
 
 template<class TPointType> class PrismInterface3D6
@@ -442,6 +442,11 @@ public:
         return( sqrt( s*( s - a )*( s - b )*( s - c ) ) );
     }
 
+    virtual double Volume() const
+    {
+        return Area();
+    }
+
     /** This method calculates and returns length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
@@ -466,6 +471,19 @@ public:
      */
     virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
     {
+        this->PointLocalCoordinates( rResult, rPoint );
+
+        if ( rResult[0] >= 0.0 - 1.0e-8 && rResult[0] <= 1.0 + 1.0e-8 )
+            if ( rResult[1] >= 0.0 - 1.0e-8 && rResult[1] <= 1.0 + 1.0e-8 )
+                if ( rResult[2] >= 0.0 - 1.0e-8 && rResult[2] <= 1.0 + 1.0e-8 )
+                    if ((( 1.0 - ( rResult[0] + rResult[1] ) ) >= 0.0 - 1.0e-8 ) && (( 1.0 - ( rResult[0] + rResult[1] ) ) <= 1.0 + 1.0e-8 ) )
+                        return true;
+
+        return false;
+    }
+    /*
+    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+    {
         PointLocalCoordinates( rResult, rPoint );
 
         if ( rResult[0] >= 0.0 && rResult[0] <= 1.0 )
@@ -475,7 +493,8 @@ public:
 
         return false;
     }
-
+    */
+    /*
     virtual CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint )
     {
@@ -553,7 +572,7 @@ public:
 
         return( rResult );
     }
-
+    */
     ///@}
     ///@name Jacobian
     ///@{
@@ -789,17 +808,25 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
                                            IntegrationMethod ThisMethod ) const
     {
-        array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
+		array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 4 ));
 		array_1d<double, 3> p2 = 0.5 * (BaseType::GetPoint( 2 ) + BaseType::GetPoint( 5 ));
+        
+		array_1d<double, 3> Tangent1( p1 - p0 );
+		array_1d<double, 3> Tangent2( p2 - p0 );
 		
-		Vector Tangent1( p1 - p0 );
-		Vector Tangent2( p2 - p0 );
+		array_1d<double, 3> Normal;
+		MathUtils<double>::CrossProduct( Normal, Tangent1, Tangent2);
 		
-		if(rResult.size() != 3)
-			rResult.resize(3, false);
-		noalias(rResult) = MathUtils<double>::CrossProduct( Tangent1, Tangent2);
-		
+        double detJ = norm_2(Normal);
+
+        //for all integration points
+        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
+			rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
+            
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+            rResult[pnt] = detJ;
+
         return rResult;
     }
 
@@ -905,7 +932,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -936,7 +963,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -959,7 +986,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -978,6 +1005,11 @@ public:
         return 9;
     }
 
+    virtual SizeType FacesNumber() const
+    {
+        return 5;
+    }
+    
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -1075,21 +1107,20 @@ public:
         switch ( ShapeFunctionIndex )
         {
         case 0:
-            return( 1.0 -rPoint[0] - rPoint[1] );
+            return( 1.0 -( rPoint[0] + rPoint[1] + rPoint[2] - ( rPoint[0]*rPoint[2] ) - ( rPoint[1]*rPoint[2] ) ) );
         case 1:
-            return( rPoint[0] );
+            return( rPoint[0] - ( rPoint[0]*rPoint[2] ) );
         case 2:
-            return( rPoint[1] );
+            return( rPoint[1] - ( rPoint[1]*rPoint[2] ) );
         case 3:
-            return( 1.0 -rPoint[3] - rPoint[4] );
+            return( rPoint[2] - ( rPoint[0]*rPoint[2] ) - ( rPoint[1]*rPoint[2] ) );
         case 4:
-            return( rPoint[3] );
+            return( rPoint[0]*rPoint[2] );
         case 5:
-            return( rPoint[4] );
+            return( rPoint[1]*rPoint[2] );
         default:
             KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" ,
-                          *this );
+                          "Wrong index of shape function!" , *this );
         }
 
         return 0;
@@ -1266,29 +1297,30 @@ public:
     {
         rResult.resize( 6, 3 );
         noalias( rResult ) = ZeroMatrix( 6, 3 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 0, 2 ) =  0.0;
+        
+        rResult( 0, 0 ) = -1.0 + rPoint[2];
+        rResult( 0, 1 ) = -1.0 + rPoint[2];
+        rResult( 0, 2 ) =  -1.0 + rPoint[0] + rPoint[1];
 
-        rResult( 1, 0 ) =  1.0;
+        rResult( 1, 0 ) =  1.0 - rPoint[2];
         rResult( 1, 1 ) =  0.0;
-        rResult( 1, 2 ) =  0.0;
+        rResult( 1, 2 ) =  -rPoint[0];
 
         rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
-        rResult( 2, 2 ) =  0.0;
+        rResult( 2, 1 ) =  1.0 - rPoint[2];
+        rResult( 2, 2 ) =  -rPoint[1];
 
-        rResult( 3, 0 ) = -1.0;
-        rResult( 3, 1 ) = -1.0;
-        rResult( 3, 2 ) =  0.0;
+        rResult( 3, 0 ) = -rPoint[2];
+        rResult( 3, 1 ) = -rPoint[2];
+        rResult( 3, 2 ) =  1.0 - rPoint[0] - rPoint[1];
 
-        rResult( 4, 0 ) =  1.0;
+        rResult( 4, 0 ) =  rPoint[2];
         rResult( 4, 1 ) =  0.0;
-        rResult( 4, 2 ) =  0.0;
+        rResult( 4, 2 ) =  rPoint[0];
 
         rResult( 5, 0 ) =  0.0;
-        rResult( 5, 1 ) =  1.0;
-        rResult( 5, 2 ) =  0.0;
+        rResult( 5, 1 ) =  rPoint[2];
+        rResult( 5, 2 ) =  rPoint[1];
 
         return rResult;
     }
@@ -1308,29 +1340,30 @@ public:
     {
         rResult.resize( 6, 3 );
         noalias( rResult ) = ZeroMatrix( 6, 3 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 0, 1 ) = -1.0;
-        rResult( 0, 2 ) =  0.0;
+        
+        rResult( 0, 0 ) = -1.0 + rPoint.Z();
+        rResult( 0, 1 ) = -1.0 + rPoint.Z();
+        rResult( 0, 2 ) =  -1.0 + rPoint.X() + rPoint.Y();
 
-        rResult( 1, 0 ) =  1.0;
+        rResult( 1, 0 ) =  1.0 - rPoint.Z();
         rResult( 1, 1 ) =  0.0;
-        rResult( 1, 2 ) =  0.0;
+        rResult( 1, 2 ) =  -rPoint.X();
 
         rResult( 2, 0 ) =  0.0;
-        rResult( 2, 1 ) =  1.0;
-        rResult( 2, 2 ) =  0.0;
+        rResult( 2, 1 ) =  1.0 - rPoint.Z();
+        rResult( 2, 2 ) =  -rPoint.Y();
 
-        rResult( 3, 0 ) = -1.0;
-        rResult( 3, 1 ) = -1.0;
-        rResult( 3, 2 ) =  0.0;
+        rResult( 3, 0 ) = -rPoint.Z();
+        rResult( 3, 1 ) = -rPoint.Z();
+        rResult( 3, 2 ) =  1.0 - rPoint.X() - rPoint.Y();
 
-        rResult( 4, 0 ) =  1.0;
+        rResult( 4, 0 ) =  rPoint.Z();
         rResult( 4, 1 ) =  0.0;
-        rResult( 4, 2 ) =  0.0;
+        rResult( 4, 2 ) =  rPoint.X();
 
         rResult( 5, 0 ) =  0.0;
-        rResult( 5, 1 ) =  1.0;
-        rResult( 5, 2 ) =  0.0;
+        rResult( 5, 1 ) =  rPoint.Z();
+        rResult( 5, 2 ) =  rPoint.Y();
 
         return rResult;
     }
@@ -1350,11 +1383,13 @@ public:
             ShapeFunctionsGradientsType temp( this->PointsNumber() );
             rResult.swap( temp );
         }
-
+        
+        //TODO: this is not correct for a prism
+        
         rResult[0].resize( 2, 2 );
-
         rResult[1].resize( 2, 2 );
         rResult[2].resize( 2, 2 );
+        
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.0;
         rResult[0]( 1, 0 ) = 0.0;
@@ -1392,9 +1427,10 @@ public:
             boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
-
+        
+        //TODO: this is not correct for a prism
+        
         rResult[0][0].resize( 2, 2 );
-
         rResult[0][1].resize( 2, 2 );
         rResult[1][0].resize( 2, 2 );
         rResult[1][1].resize( 2, 2 );
@@ -1493,16 +1529,21 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            row( shape_function_values, pnt )[0] = 1.0
-                                                   - integration_points[pnt].X()
-                                                   - integration_points[pnt].Y();
-            row( shape_function_values, pnt )[1] = integration_points[pnt].X();
-            row( shape_function_values, pnt )[2] = integration_points[pnt].Y();
-            row( shape_function_values, pnt )[3] = 1.0
-                                                   - integration_points[pnt].X()
-                                                   - integration_points[pnt].Y();
-            row( shape_function_values, pnt )[4] = integration_points[pnt].X();
-            row( shape_function_values, pnt )[5] = integration_points[pnt].Y();
+            shape_function_values ( pnt, 0 ) =  ( 1.0
+                                                - integration_points[pnt].X()
+                                                - integration_points[pnt].Y()
+                                                - integration_points[pnt].Z()
+                                                + ( integration_points[pnt].X() * integration_points[pnt].Z() )
+                                                + ( integration_points[pnt].Y() * integration_points[pnt].Z() ) );
+            shape_function_values( pnt, 1 ) = integration_points[pnt].X()
+                                              - ( integration_points[pnt].X() * integration_points[pnt].Z() );
+            shape_function_values( pnt, 2 ) = integration_points[pnt].Y()
+                                              - ( integration_points[pnt].Y() * integration_points[pnt].Z() );
+            shape_function_values( pnt, 3 ) = integration_points[pnt].Z()
+                                              - ( integration_points[pnt].X() * integration_points[pnt].Z() )
+                                              - ( integration_points[pnt].Y() * integration_points[pnt].Z() );
+            shape_function_values( pnt, 4 ) = ( integration_points[pnt].X() * integration_points[pnt].Z() );
+            shape_function_values( pnt, 5 ) = ( integration_points[pnt].Y() * integration_points[pnt].Z() );
         }
 
         return shape_function_values;
@@ -1537,30 +1578,25 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            Matrix result( 6, 3 );
-            result( 0, 0 ) = -1.0;
-            result( 0, 1 ) = -1.0;
-            result( 0, 2 ) =  0.0;
-
-            result( 1, 0 ) =  1.0;
+            Matrix result = ZeroMatrix( 6, 3 );
+            result( 0, 0 ) = -1.0 + integration_points[pnt].Z();
+            result( 0, 1 ) = -1.0 + integration_points[pnt].Z();
+            result( 0, 2 ) = -1.0 + integration_points[pnt].X() + integration_points[pnt].Y();
+            result( 1, 0 ) =  1.0 - integration_points[pnt].Z();
             result( 1, 1 ) =  0.0;
-            result( 1, 2 ) =  0.0;
-
+            result( 1, 2 ) =  -integration_points[pnt].X();
             result( 2, 0 ) =  0.0;
-            result( 2, 1 ) =  1.0;
-            result( 2, 2 ) =  0.0;
-
-            result( 3, 0 ) = -1.0;
-            result( 3, 1 ) = -1.0;
-            result( 3, 2 ) =  0.0;
-
-            result( 4, 0 ) =  1.0;
+            result( 2, 1 ) =  1.0 - integration_points[pnt].Z();
+            result( 2, 2 ) =  -integration_points[pnt].Y();
+            result( 3, 0 ) =  -integration_points[pnt].Z();
+            result( 3, 1 ) =  -integration_points[pnt].Z();
+            result( 3, 2 ) =  1.0 - integration_points[pnt].X() - integration_points[pnt].Y();
+            result( 4, 0 ) =  integration_points[pnt].Z();
             result( 4, 1 ) =  0.0;
-            result( 4, 2 ) =  0.0;
-
+            result( 4, 2 ) =  integration_points[pnt].X();
             result( 5, 0 ) =  0.0;
-            result( 5, 1 ) =  1.0;
-            result( 5, 2 ) =  0.0;
+            result( 5, 1 ) =  integration_points[pnt].Z();
+            result( 5, 2 ) =  integration_points[pnt].Y();
             d_shape_f_values[pnt] = result;
         }
 
@@ -1575,8 +1611,10 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                IntegrationPointsArrayType(),
-                Quadrature<PrismGaussLobattoIntegrationPoints2, 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<PrismGaussLobattoIntegrationPoints1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<PrismGaussLobattoIntegrationPoints2,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
             }
@@ -1593,7 +1631,8 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                Matrix(),
+                PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_1 ),
                 PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Matrix(),
@@ -1612,7 +1651,7 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                ShapeFunctionsGradientsType(),
+                PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
                 PrismInterface3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
                 ShapeFunctionsGradientsType(),
                 ShapeFunctionsGradientsType(),
