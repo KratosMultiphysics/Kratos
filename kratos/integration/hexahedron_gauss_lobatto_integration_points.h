@@ -22,6 +22,48 @@
 namespace Kratos
 {
 
+//TODO
+class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(HexahedronGaussLobattoIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 4;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        msIntegrationPoints[0] = IntegrationPointType( -1.00 , -1.00, 0.00, 1.00 );
+        msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, 0.00, 1.00 );
+        msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, 0.00, 1.00 );
+        msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, 0.00, 1.00 );
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Hexahedron Gauss-Lobatto quadrature 1 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+    
+}; // Class HexahedronGaussLobattoIntegrationPoints1
 
 class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints2
 {

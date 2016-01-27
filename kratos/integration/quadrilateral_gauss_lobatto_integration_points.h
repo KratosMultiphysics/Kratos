@@ -22,6 +22,45 @@
 namespace Kratos
 {
 
+class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussLobattoIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 2;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        msIntegrationPoints[0] = IntegrationPointType( -1.00 , 0.00, 1.00 );
+        msIntegrationPoints[1] = IntegrationPointType(  1.00 , 0.00, 1.00 );
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Quadrilateral Gauss-Lobatto integration 1 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+    
+}; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
 class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints2
 {
@@ -63,7 +102,7 @@ protected:
 private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
-};
+}; // Class QuadrilateralGaussLobattoIntegrationPoints2
 
 
 
