@@ -174,44 +174,44 @@ class GraphPlotUtility:
     def Plot(self, write_id):
 
     # matplot needed
-    def PlotMP(self, write_id): 
-        clf()
-        plot(self.Time, self.Y, 'g-o')
-        # plot(self.Time,self.Y,'g-o',self.Time,self.Y_x,'b-s', self.Time,self.Y_y,'r-^')
-        grid(True)
-        title('TITLE: ' + str(self.plot_name))
+    #def PlotMP(self, write_id): 
+    #    clf()
+    #    plot(self.Time, self.Y, 'g-o')
+    #    # plot(self.Time,self.Y,'g-o',self.Time,self.Y_x,'b-s', self.Time,self.Y_y,'r-^')
+    #    grid(True)
+    #    title('TITLE: ' + str(self.plot_name))
 
-        # xlabel(str(self.x_var))
-        xlabel("TIME")
-        ylabel(str(self.y_var))
+    #    # xlabel(str(self.x_var))
+    #    xlabel("TIME")
+    #    ylabel(str(self.y_var))
 
-        force_extra = 10
-        time_extra = 10 * self.GetStepDeltaTime()
+    #    force_extra = 10
+    #    time_extra = 10 * self.GetStepDeltaTime()
 
-        x_limits = self.SearchLimits(self.Time, time_extra)
-        # x_limits = self.SearchLimits(self.X,time_extra)
-        y_limits = self.SearchLimits(self.Y, force_extra)
-        y_xlimits = self.SearchLimits(self.Y_x, force_extra)
-        y_ylimits = self.SearchLimits(self.Y_y, force_extra)
+    #    x_limits = self.SearchLimits(self.Time, time_extra)
+    #    # x_limits = self.SearchLimits(self.X,time_extra)
+    #    y_limits = self.SearchLimits(self.Y, force_extra)
+    #    y_xlimits = self.SearchLimits(self.Y_x, force_extra)
+    #    y_ylimits = self.SearchLimits(self.Y_y, force_extra)
 
-        y_max = y_limits.max
-        y_min = y_limits.min
-        if(y_max < y_xlimits.max):
-            y_max = y_xlimits.max
-        if(y_max < y_ylimits.max):
-            y_max = y_ylimits.max
+    #   y_max = y_limits.max
+    #    y_min = y_limits.min
+    #    if(y_max < y_xlimits.max):
+    #        y_max = y_xlimits.max
+    #    if(y_max < y_ylimits.max):
+    #        y_max = y_ylimits.max
 
-        if(y_min > y_xlimits.min):
-            y_min = y_xlimits.min
-        if(y_min > y_ylimits.min):
-            y_min = y_ylimits.min
+    #    if(y_min > y_xlimits.min):
+    #        y_min = y_xlimits.min
+    #    if(y_min > y_ylimits.min):
+    #        y_min = y_ylimits.min
 
-        xlim(x_limits.min, x_limits.max)
-        ylim(y_min, y_max)
+    #    xlim(x_limits.min, x_limits.max)
+    #    ylim(y_min, y_max)
 
-        figure_name = os.path.join(self.problem_path, self.plot_name + "_" + str(write_id))+ ".graph.png"
+    #    figure_name = os.path.join(self.problem_path, self.plot_name + "_" + str(write_id))+ ".graph.png"
 
-        savefig(figure_name)
+    #    savefig(figure_name)
 
     #
     def SearchLimits(self, X, extra):
