@@ -172,7 +172,8 @@ class GraphPlotUtility:
 
     #
     def Plot(self, write_id):
-
+        time = self.GetStepTime()
+    
     # matplot needed
     #def PlotMP(self, write_id): 
     #    clf()
