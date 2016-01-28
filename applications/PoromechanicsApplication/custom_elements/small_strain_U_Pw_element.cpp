@@ -496,8 +496,7 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<double>
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-            PoromechanicsMathUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
+            rOutput[PointNumber] =  PoromechanicsMathUtilities::CalculateVonMises(Variables.StressVector);
         }
     }
     else
