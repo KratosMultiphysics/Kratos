@@ -67,8 +67,6 @@ protected:
 
     virtual void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,const double& rYoungModulus,const double& rPoissonCoefficient );
 
-    void CalculateStress( Vector& rStressVector, const Vector& rStrainVector, const Matrix& rConstitutiveMatrix );
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

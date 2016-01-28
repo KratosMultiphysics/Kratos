@@ -99,7 +99,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     if( rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {        
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-        this->CalculateStress(StressVector,StrainVector,ConstitutiveMatrix);
+        StressVector = prod(ConstitutiveMatrix,StrainVector);
     }
     else if(rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
     {
@@ -143,11 +143,6 @@ void LinearElastic3DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatr
 
     rConstitutiveMatrix ( 1 , 2 ) = rConstitutiveMatrix ( 0 , 1 );
     rConstitutiveMatrix ( 2 , 1 ) = rConstitutiveMatrix ( 0 , 1 );
-}
-
-void LinearElastic3DLaw::CalculateStress( Vector& rStressVector, const Vector& rStrainVector, const Matrix& rConstitutiveMatrix )
-{
-    rStressVector = prod(rConstitutiveMatrix,rStrainVector);
 }
 
 } // Namespace Kratos
