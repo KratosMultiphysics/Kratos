@@ -173,8 +173,8 @@ class GraphPlotUtility:
     #
     def Plot(self, write_id):
 
-    #
-    def PlotMP(self, write_id): #matplot needed
+    # matplot needed
+    def PlotMP(self, write_id): 
         clf()
         plot(self.Time, self.Y, 'g-o')
         # plot(self.Time,self.Y,'g-o',self.Time,self.Y_x,'b-s', self.Time,self.Y_y,'r-^')
