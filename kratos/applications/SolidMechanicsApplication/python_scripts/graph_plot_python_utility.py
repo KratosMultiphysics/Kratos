@@ -5,10 +5,10 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 #import matplotlib
-import collections
+#import collections
 
-from numpy import *
-from pylab import *
+#from numpy import *
+#from pylab import *
 
 
 class GraphPlotUtility:
