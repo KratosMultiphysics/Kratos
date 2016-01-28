@@ -4,7 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
-import matplotlib
+#import matplotlib
 import collections
 
 from numpy import *
@@ -173,6 +173,8 @@ class GraphPlotUtility:
     #
     def Plot(self, write_id):
 
+    #
+    def PlotMP(self, write_id): #matplot needed
         clf()
         plot(self.Time, self.Y, 'g-o')
         # plot(self.Time,self.Y,'g-o',self.Time,self.Y_x,'b-s', self.Time,self.Y_y,'r-^')
