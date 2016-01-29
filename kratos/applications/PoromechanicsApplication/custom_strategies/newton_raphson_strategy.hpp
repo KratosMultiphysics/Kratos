@@ -198,7 +198,7 @@ public:
 
         //initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 0;
-        double dofs_ratio = 1000, residual_ratio = 1000;
+        double dofs_ratio = 1000.0, residual_ratio = 1000.0;
 
         while ((dofs_ratio > mDofs_Relative_Tolerance || residual_ratio > mResidual_Relative_Tolerance) && iteration_number < mMaxIterationNumber)
         {

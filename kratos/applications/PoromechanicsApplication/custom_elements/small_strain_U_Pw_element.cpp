@@ -49,8 +49,9 @@ Element::Pointer SmallStrainUPwElement::Create( IndexType NewId, NodesArrayType 
 int  SmallStrainUPwElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    
+    const GeometryType& rGeom = GetGeometry();
+    unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     //verify that the variables are correctly initialized
 
@@ -78,20 +79,20 @@ int  SmallStrainUPwElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_WATER has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
-    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+    for ( unsigned int i = 0; i < rGeom.size(); i++ )
     {
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
+        if ( rGeom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", rGeom[i].Id() )
 
-        if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+        if ( rGeom[i].HasDofFor( DISPLACEMENT_X ) == false || rGeom[i].HasDofFor( DISPLACEMENT_Y ) == false || rGeom[i].HasDofFor( DISPLACEMENT_Z ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", rGeom[i].Id() )
 
 
-        if ( this->GetGeometry()[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", this->GetGeometry()[i].Id() )
+        if ( rGeom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", rGeom[i].Id() )
 
-        if ( this->GetGeometry()[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", GetGeometry()[i].Id() )
+        if ( rGeom[i].HasDofFor( WATER_PRESSURE ) == false )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", rGeom[i].Id() )
     }
 
     //verify that the constitutive law exists
@@ -122,7 +123,7 @@ int  SmallStrainUPwElement::Check( const ProcessInfo& rCurrentProcessInfo )
             KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered)", "" )
     }
 
-	this->GetProperties().GetValue( CONSTITUTIVE_LAW_POINTER )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+	this->GetProperties().GetValue( CONSTITUTIVE_LAW_POINTER )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );
 
     return 0;
 
@@ -134,8 +135,9 @@ int  SmallStrainUPwElement::Check( const ProcessInfo& rCurrentProcessInfo )
 void SmallStrainUPwElement::Initialize()
 {
     KRATOS_TRY
-
-	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    
+    const GeometryType& rGeom = GetGeometry();
+	const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
 
     if ( mConstitutiveLawVector.size() != integration_points.size() )
         mConstitutiveLawVector.resize( integration_points.size() );
@@ -145,7 +147,7 @@ void SmallStrainUPwElement::Initialize()
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW_POINTER]->Clone();
-            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), rGeom,row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
         }
     }
     else
@@ -157,20 +159,26 @@ void SmallStrainUPwElement::Initialize()
 //----------------------------------------------------------------------------------------
 
 void SmallStrainUPwElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
-{
+{   
     KRATOS_TRY
-
-    rElementalDofList.resize( 0 );
-    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
-
-    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    unsigned int element_size = number_of_nodes * (dimension + 1);
+    unsigned int index = 0;
+    
+    if (rElementalDofList.size() != element_size)
+      rElementalDofList.resize( element_size );
+    
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-        if( dimension == 3 )
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
-
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_PRESSURE ));
+        rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+        if( dimension > 2 )
+            rElementalDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+        
+        rElementalDofList[index++] = GetGeometry()[i].pGetDof(WATER_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -181,9 +189,10 @@ void SmallStrainUPwElement::GetDofList( DofsVectorType& rElementalDofList, Proce
 void SmallStrainUPwElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
 
     //Resetting the LHS
@@ -210,9 +219,10 @@ void SmallStrainUPwElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
 void SmallStrainUPwElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    
+    const GeometryType& rGeom = GetGeometry();
+    unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
 
     //Resetting mass matrix
@@ -221,15 +231,15 @@ void SmallStrainUPwElement::CalculateMassMatrix( MatrixType& rMassMatrix, Proces
     noalias( rMassMatrix ) = ZeroMatrix( MatSize, MatSize );
 
     //Defining shape functions and the determinant of the jacobian at all integration points
-    Matrix Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+    Matrix Ncontainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
     Vector detJcontainer;
-    GetGeometry().DeterminantOfJacobian(detJcontainer,mThisIntegrationMethod);
+    rGeom.DeterminantOfJacobian(detJcontainer,mThisIntegrationMethod);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     double IntegrationCoefficient;
     double Porosity = GetProperties()[POROSITY];
-    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1-Porosity)*GetProperties()[DENSITY_SOLID];
+    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
     unsigned int node;
     Matrix Nut = ZeroMatrix( dimension + 1 , number_of_nodes * (dimension + 1) );
 
@@ -260,29 +270,24 @@ void SmallStrainUPwElement::CalculateMassMatrix( MatrixType& rMassMatrix, Proces
 void SmallStrainUPwElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    unsigned int element_size = number_of_nodes * (dimension + 1);
+    unsigned int index = 0;
+    
+    if (rResult.size() != element_size)
+      rResult.resize( element_size, false );
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int element_size          = number_of_nodes * (dimension + 1);
-    int index;
-
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        index = i * (dimension + 1);
-        rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        if( dimension == 3)
-        {
-            rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-            rResult[index + 3] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-        }
-        else
-        {
-            rResult[index + 2] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-        }
+        rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+        if( dimension > 2)
+            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+
+        rResult[index++] = GetGeometry()[i].GetDof(WATER_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -292,29 +297,22 @@ void SmallStrainUPwElement::EquationIdVector( EquationIdVectorType& rResult, Pro
 
 void SmallStrainUPwElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int       element_size    = number_of_nodes * (dimension + 1);
-    unsigned int index;
+    unsigned int index = 0;
 
     if ( rValues.size() != element_size )
         rValues.resize( element_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        index = i * (dimension + 1);
-        rValues[index]     = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        rValues[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
-        if ( dimension == 3 )
-        {
-            rValues[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
-            rValues[index + 3] = 0.0;
-        }
-        else
-        {
-            rValues[index + 2] = 0.0;
-        }
-
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+        if ( dimension > 2 )
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
+        rValues[index++] = 0.0;
     }
 }
 
@@ -322,8 +320,9 @@ void SmallStrainUPwElement::GetSecondDerivativesVector( Vector& rValues, int Ste
 
 void SmallStrainUPwElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
 
     //Resetting the RHS
@@ -468,8 +467,9 @@ void SmallStrainUPwElement::GetValueOnIntegrationPoints( const Variable<Constitu
 void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number, false );
@@ -481,7 +481,7 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<double>
         this->InitializeElementalVariables(Variables, rCurrentProcessInfo);
 
         //Create constitutive law parameters:
-        ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //Loop over integration points
@@ -514,7 +514,8 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<Vector>
 {
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
@@ -526,7 +527,7 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<Vector>
         this->InitializeElementalVariables(Variables, rCurrentProcessInfo);
 
         //Create constitutive law parameters:
-        ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         //Loop over integration points
@@ -578,9 +579,9 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<Vector>
             this->CalculateKinematics(Variables,PointNumber);
 
             //Compute FluidFlux vector q [m/s]
-            const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int dimension = rGeom.WorkingSpaceDimension();
             Vector BodyAcceleration = ZeroVector(dimension);
-            const unsigned int number_of_nodes = GetGeometry().size();
+            const unsigned int number_of_nodes = rGeom.size();
             unsigned int Index = 0;
             for(unsigned int i = 0; i < number_of_nodes; i++)
             {
@@ -594,7 +595,7 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<Vector>
             GradPressureTerm -= GetProperties()[DENSITY_WATER]*BodyAcceleration;
 
             Vector AuxFluidFlux = ZeroVector(dimension);
-            AuxFluidFlux = - 1/Variables.DynamicViscosity * prod(Variables.IntrinsicPermeability, GradPressureTerm );
+            AuxFluidFlux = - 1.0/Variables.DynamicViscosity * prod(Variables.IntrinsicPermeability, GradPressureTerm );
 
             Vector FluidFlux = ZeroVector(3);
             FluidFlux[0] = AuxFluidFlux[0];
@@ -623,8 +624,9 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<Matrix 
 {
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
@@ -674,20 +676,22 @@ void SmallStrainUPwElement::CalculateAll(MatrixType& rLeftHandSideMatrix, Vector
                                 bool CalculateLHSMatrixFlag, bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-
+    
+    const GeometryType& rGeom = GetGeometry();
+    
     //Definition of variables
     ElementalVariables Variables;
     this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
 
     //Create constitutive law parameters:
-    ConstitutiveLaw::Parameters ConstitutiveParameters(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
     if(CalculateLHSMatrixFlag)
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if(CalculateResidualVectorFlag)
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -719,14 +723,16 @@ void SmallStrainUPwElement::CalculateAll(MatrixType& rLeftHandSideMatrix, Vector
 
 void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     //Variables at all integration points
-    rVariables.NContainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    rVariables.DN_DlocalContainer = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-    GetGeometry().Jacobian( rVariables.JContainer, mThisIntegrationMethod );
+    rVariables.NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    rVariables.DN_DlocalContainer = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+    rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 
     //Variables computed at each integration point
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
     rVariables.B = ZeroMatrix( voigtsize, number_of_nodes * dimension );
@@ -735,7 +741,7 @@ void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rV
     rVariables.StressVector = ZeroVector( voigtsize );
 
     //Needed parameters for consistency with the general constitutive law
-    rVariables.detF  = 1;
+    rVariables.detF  = 1.0;
     rVariables.F     = identity_matrix<double>(dimension);
 
     //Nodal variables
@@ -747,15 +753,17 @@ void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rV
     //ProcessInfo variables
     double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
     rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[GAMMA_NEWMARK]/(rCurrentProcessInfo[BETA_NEWMARK]*DeltaTime);
-    rVariables.NewmarkCoefficient2 = 1/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
+    rVariables.NewmarkCoefficient2 = 1.0/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
 }
 
 //----------------------------------------------------------------------------------------
 
 void SmallStrainUPwElement::InitializeNodalVariables (ElementalVariables& rVariables)
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
 
     unsigned int Local_i;
     Vector BodyAccelerationAux    = ZeroVector(3);
@@ -767,23 +775,23 @@ void SmallStrainUPwElement::InitializeNodalVariables (ElementalVariables& rVaria
     for(unsigned int i=0; i<number_of_nodes; i++)
     {
         Local_i = i * dimension;
-        BodyAccelerationAux = GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        BodyAccelerationAux = rGeom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
         rVariables.BodyAcceleration[Local_i]   = BodyAccelerationAux[0];
-        rVariables.DisplacementVector[Local_i] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rVariables.VelocityVector[Local_i]     = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X);
-        rVariables.PressureVector[i]           = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.PressureDtVector[i]         = GetGeometry()[i].FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
+        rVariables.DisplacementVector[Local_i] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X);
+        rVariables.VelocityVector[Local_i]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
+        rVariables.PressureVector[i]           = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.PressureDtVector[i]         = rGeom[i].FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
 
         rVariables.BodyAcceleration[Local_i+1]   = BodyAccelerationAux[1];
-        rVariables.DisplacementVector[Local_i+1] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        rVariables.VelocityVector[Local_i+1]     = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y);
+        rVariables.DisplacementVector[Local_i+1] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
+        rVariables.VelocityVector[Local_i+1]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
 
         if(dimension == 3)
         {
             rVariables.BodyAcceleration[Local_i+2]   = BodyAccelerationAux[2];
-            rVariables.DisplacementVector[Local_i+2] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
-            rVariables.VelocityVector[Local_i+2]     = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z);
+            rVariables.DisplacementVector[Local_i+2] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
+            rVariables.VelocityVector[Local_i+2]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z);
         }
     }
 }
@@ -794,9 +802,9 @@ void SmallStrainUPwElement::InitializeProperties (ElementalVariables& rVariables
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double BulkModulus = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    double BulkModulus = GetProperties()[YOUNG_MODULUS]/(3.0*(1.0-2.0*GetProperties()[POISSON_RATIO]));
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
-    rVariables.BiotCoefficient = 1-BulkModulus/BulkModulusSolid;
+    rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
     double Porosity = GetProperties()[POROSITY];
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
     rVariables.DynamicViscosity = GetProperties()[DYNAMIC_VISCOSITY];
@@ -822,9 +830,11 @@ void SmallStrainUPwElement::CalculateKinematics(ElementalVariables& rVariables, 
 
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    const GeometryType& rGeom = GetGeometry();
+    
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int node;
 
     //Setting the shape function vector
@@ -833,7 +843,7 @@ void SmallStrainUPwElement::CalculateKinematics(ElementalVariables& rVariables, 
     //Calculating the determinant and inverse of the jacobian matrix
     Matrix InvJ;
     MathUtils<double>::InvertMatrix(rVariables.JContainer[PointNumber], InvJ, rVariables.detJ);
-    if(rVariables.detJ<0)
+    if(rVariables.detJ<0.0)
         KRATOS_THROW_ERROR( std::invalid_argument," |J|<0 , |J| = ", rVariables.detJ )
 
     //Calculate shape functions global gradients
@@ -923,11 +933,13 @@ void SmallStrainUPwElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
 
 void SmallStrainUPwElement::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     Matrix StiffnessMatrix = prod(trans(rVariables.B), Matrix(prod(rVariables.ConstitutiveMatrix, rVariables.B)))*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i, Global_j, Local_i, Local_j;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -960,19 +972,21 @@ void SmallStrainUPwElement::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHand
 
 void SmallStrainUPwElement::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
 
     Vector VoigtVector = ZeroVector(voigtsize);
-    VoigtVector[0] = 1;
-    VoigtVector[1] = 1;
-    if(dimension == 3) VoigtVector[2] = 1;
+    VoigtVector[0] = 1.0;
+    VoigtVector[1] = 1.0;
+    if(dimension == 3) VoigtVector[2] = 1.0;
 
     Matrix CouplingMatrix = rVariables.BiotCoefficient*prod(trans(rVariables.B),Matrix(outer_prod(VoigtVector,rVariables.Np)))*rVariables.IntegrationCoefficient;
 
     //Distribute coupling block matrix into the elemental matrix
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int number_of_nodes = rGeom.size();
     unsigned int Global_i, Global_j, Local_i, Local_j;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1015,11 +1029,13 @@ void SmallStrainUPwElement::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandS
 
 void SmallStrainUPwElement::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     Matrix CompressibilityMatrix = rVariables.NewmarkCoefficient2*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute compressibility block matrix into the elemental matrix
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i, Global_j;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1039,13 +1055,15 @@ void SmallStrainUPwElement::CalculateAndAddCompressibilityMatrix(MatrixType& rLe
 
 void SmallStrainUPwElement::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables)
 {
-    Matrix PermeabilityMatrix = 1/rVariables.DynamicViscosity*
+    const GeometryType& rGeom = GetGeometry();
+    
+    Matrix PermeabilityMatrix = 1.0/rVariables.DynamicViscosity*
                                 prod(rVariables.GradNpT,Matrix(prod(rVariables.IntrinsicPermeability,trans(rVariables.GradNpT))))*
                                 rVariables.IntegrationCoefficient;
 
     //Distribute permeability block matrix into the elemental matrix
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i, Global_j;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1084,11 +1102,13 @@ void SmallStrainUPwElement::CalculateAndAddRHS(VectorType& rRightHandSideVector,
 
 void SmallStrainUPwElement::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     Vector StiffnessForce = prod(trans(rVariables.B), rVariables.StressVector)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i, Local_i;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1107,12 +1127,14 @@ void SmallStrainUPwElement::CalculateAndAddStiffnessForce(VectorType& rRightHand
 
 void SmallStrainUPwElement::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i;
 
     double Porosity = GetProperties()[POROSITY];
-    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1-Porosity)*GetProperties()[DENSITY_SOLID];
+    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
 
     Vector BodyAcceleration = ZeroVector(dimension);
     unsigned int Index = 0;
@@ -1139,21 +1161,23 @@ void SmallStrainUPwElement::CalculateAndAddMixBodyForce(VectorType& rRightHandSi
 
 void SmallStrainUPwElement::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
 
     Vector VoigtVector = ZeroVector(voigtsize);
-    VoigtVector[0] = 1;
-    VoigtVector[1] = 1;
-    if(dimension == 3) VoigtVector[2] = 1;
+    VoigtVector[0] = 1.0;
+    VoigtVector[1] = 1.0;
+    if(dimension == 3) VoigtVector[2] = 1.0;
 
     Matrix CouplingMatrix = rVariables.BiotCoefficient*prod(trans(rVariables.B),Matrix(outer_prod(VoigtVector,rVariables.Np)))*rVariables.IntegrationCoefficient;
 
     Vector CouplingForce = prod(CouplingMatrix,rVariables.PressureVector);
 
     //Distribute coupling block vector 1 into elemental vector
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int number_of_nodes = rGeom.size();
     unsigned int Global_i, Local_i;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1182,13 +1206,15 @@ void SmallStrainUPwElement::CalculateAndAddCouplingTerms(VectorType& rRightHandS
 
 void SmallStrainUPwElement::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     Matrix CompressibilityMatrix = rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     Vector CompressibilityFlow = prod(CompressibilityMatrix,rVariables.PressureDtVector);
 
     //Distribute compressibility block vector into elemental vector
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1203,13 +1229,15 @@ void SmallStrainUPwElement::CalculateAndAddCompressibilityFlow(VectorType& rRigh
 
 void SmallStrainUPwElement::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
-    Matrix PermeabilityMatrix = 1/rVariables.DynamicViscosity*prod(rVariables.GradNpT,Matrix(prod(rVariables.IntrinsicPermeability,trans(rVariables.GradNpT))))*rVariables.IntegrationCoefficient;
+    const GeometryType& rGeom = GetGeometry();
+    
+    Matrix PermeabilityMatrix = 1.0/rVariables.DynamicViscosity*prod(rVariables.GradNpT,Matrix(prod(rVariables.IntrinsicPermeability,trans(rVariables.GradNpT))))*rVariables.IntegrationCoefficient;
 
     Vector PermeabilityFlow = prod(PermeabilityMatrix,rVariables.PressureVector);
 
     //Distribute permeability block vector into elemental vector
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -1224,11 +1252,13 @@ void SmallStrainUPwElement::CalculateAndAddPermeabilityFlow(VectorType& rRightHa
 
 void SmallStrainUPwElement::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
-    Matrix GradNpTPerm = 1/rVariables.DynamicViscosity*GetProperties()[DENSITY_WATER]*
+    const GeometryType& rGeom = GetGeometry();
+    
+    Matrix GradNpTPerm = 1.0/rVariables.DynamicViscosity*GetProperties()[DENSITY_WATER]*
                          prod(rVariables.GradNpT,rVariables.IntrinsicPermeability)*rVariables.IntegrationCoefficient;
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
     unsigned int Global_i;
 
     Vector BodyAcceleration = ZeroVector(dimension);

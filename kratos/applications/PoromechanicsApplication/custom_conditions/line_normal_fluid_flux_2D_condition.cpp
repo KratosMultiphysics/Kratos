@@ -43,13 +43,14 @@ Condition::Pointer LineNormalFluidFlux2DCondition::Create(IndexType NewId, Nodes
 void LineNormalFluidFlux2DCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
     rVariables.ConditionVector = ZeroVector(1);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        rVariables.ConditionVector[0] += rVariables.Np[i]*GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
+        rVariables.ConditionVector[0] += rVariables.Np[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
 
     KRATOS_CATCH( "" )

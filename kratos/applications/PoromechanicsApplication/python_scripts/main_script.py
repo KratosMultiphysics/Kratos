@@ -38,7 +38,7 @@ problem_name = ProjectParameters.problem_name
 delta_time = ProjectParameters.delta_time
 ending_time = ProjectParameters.ending_time
 current_step = 0
-current_time = 0
+current_time = 0.0
 current_id = 1
 tol = delta_time*1e-10
 

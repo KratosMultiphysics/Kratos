@@ -43,14 +43,15 @@ Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType NewId, Node
 void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType NumUNodes = rGeom.PointsNumber();
     Vector SurfaceLoad = ZeroVector(3);
     rVariables.ConditionVector = ZeroVector(3);
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
-        SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue(SURFACE_LOAD);
+        SurfaceLoad = rGeom[i].FastGetSolutionStepValue(SURFACE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Nu[i]*SurfaceLoad[0];
         rVariables.ConditionVector[1] += rVariables.Nu[i]*SurfaceLoad[1];

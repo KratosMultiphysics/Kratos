@@ -43,17 +43,18 @@ Condition::Pointer LineNormalLoad2DCondition::Create(IndexType NewId, NodesArray
 void LineNormalLoad2DCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    double NormalStress = 0;
-    double TangentialStress = 0;
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    double NormalStress = 0.0;
+    double TangentialStress = 0.0;
     double dx_dxi = rVariables.JContainer[PointNumber](0,0), dy_dxi = rVariables.JContainer[PointNumber](1,0);
     rVariables.ConditionVector = ZeroVector(2);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        NormalStress     += rVariables.Np[i]*GetGeometry()[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-        TangentialStress += rVariables.Np[i]*GetGeometry()[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+        NormalStress     += rVariables.Np[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+        TangentialStress += rVariables.Np[i]*rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
     }
 
     rVariables.ConditionVector[0] = TangentialStress * dx_dxi - NormalStress     * dy_dxi;

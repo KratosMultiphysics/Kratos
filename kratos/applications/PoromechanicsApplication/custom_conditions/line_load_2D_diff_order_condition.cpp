@@ -44,13 +44,14 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 {
     KRATOS_TRY
 
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType NumUNodes = rGeom.PointsNumber();
     Vector LineLoad = ZeroVector(3);
     rVariables.ConditionVector = ZeroVector(2);
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
-        LineLoad = GetGeometry()[i].FastGetSolutionStepValue(LINE_LOAD);
+        LineLoad = rGeom[i].FastGetSolutionStepValue(LINE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Nu[i]*LineLoad[0];
         rVariables.ConditionVector[1] += rVariables.Nu[i]*LineLoad[1];

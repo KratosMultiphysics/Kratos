@@ -116,7 +116,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
         rConditionDofList.resize(ConditionSize);
     
     SizeType Index = 0;
-    
+/*
     for(SizeType i = 0; i < NumPNodes; i++)
     {
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
@@ -133,7 +133,19 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
         if(Dim > 2)
             rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
     }
+*/
 
+    for(SizeType i = 0; i < NumUNodes; i++)
+    {
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_X );
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Y );
+        if(Dim > 2)
+            rConditionDofList[Index++] = GetGeometry()[i].pGetDof( DISPLACEMENT_Z );
+    }
+
+    for(SizeType i=0; i<NumPNodes; i++)
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        
     KRATOS_CATCH( "" )
 }
 
@@ -263,9 +275,10 @@ void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
 void GeneralUPwDiffOrderCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    rVariables.NuContainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+    const GeometryType& rGeom = GetGeometry();
+    rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
-    GetGeometry().Jacobian( rVariables.JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 }
 
 //----------------------------------------------------------------------------------------

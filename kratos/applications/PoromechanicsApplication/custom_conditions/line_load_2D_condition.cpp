@@ -43,14 +43,15 @@ Condition::Pointer LineLoad2DCondition::Create(IndexType NewId, NodesArrayType c
 void LineLoad2DCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
     Vector LineLoad = ZeroVector(3);
     rVariables.ConditionVector = ZeroVector(2);
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
     {
-        LineLoad = GetGeometry()[i].FastGetSolutionStepValue(LINE_LOAD);
+        LineLoad = rGeom[i].FastGetSolutionStepValue(LINE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Np[i]*LineLoad[0];
         rVariables.ConditionVector[1] += rVariables.Np[i]*LineLoad[1];

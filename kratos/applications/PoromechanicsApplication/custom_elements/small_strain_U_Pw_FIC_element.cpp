@@ -49,8 +49,9 @@ Element::Pointer SmallStrainUPwFICElement::Create( IndexType NewId, NodesArrayTy
 void SmallStrainUPwFICElement::Initialize()
 {
     KRATOS_TRY
-
-	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    
+    const GeometryType& rGeom = GetGeometry();
+	const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
 
     if ( mConstitutiveLawVector.size() != integration_points.size() )
         mConstitutiveLawVector.resize( integration_points.size() );
@@ -60,7 +61,7 @@ void SmallStrainUPwFICElement::Initialize()
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW_POINTER]->Clone();
-            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), rGeom,row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
         }
     }
     else
@@ -68,8 +69,8 @@ void SmallStrainUPwFICElement::Initialize()
 
     
     //FIC member variables
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     if( (dimension==2 && number_of_nodes==4) || (dimension==3 && number_of_nodes==8)) // Quadrilaterals2D4N or Hexahedra3D8N
     {
@@ -79,16 +80,16 @@ void SmallStrainUPwFICElement::Initialize()
     mShapeFunctionsDerivativesContainer.resize(integration_points.size());
     
     GeometryType::ShapeFunctionsGradientsType DN_DlocalContainer;
-    DN_DlocalContainer = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+    DN_DlocalContainer = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer;
-    GetGeometry().Jacobian( JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian( JContainer, mThisIntegrationMethod );
     Matrix InvJ, GradNpT;
     double detJ;
     
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         MathUtils<double>::InvertMatrix(JContainer[PointNumber], InvJ, detJ);
-        if(detJ<0)
+        if(detJ<0.0)
             KRATOS_THROW_ERROR( std::invalid_argument," |J|<0 , |J| = ", detJ )
         
         //Calculate shape functions global gradients
@@ -104,19 +105,20 @@ void SmallStrainUPwFICElement::Initialize()
 
 void SmallStrainUPwFICElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
+    const GeometryType& rGeom = GetGeometry();
     GeometryType::ShapeFunctionsGradientsType DN_DlocalContainer;
-    DN_DlocalContainer = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+    DN_DlocalContainer = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer;
-    GetGeometry().Jacobian( JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian( JContainer, mThisIntegrationMethod );
     Matrix InvJ, GradNpT;
     double detJ;
     
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         MathUtils<double>::InvertMatrix(JContainer[PointNumber], InvJ, detJ);
-        if(detJ<0)
+        if(detJ<0.0)
             KRATOS_THROW_ERROR( std::invalid_argument," |J|<0 , |J| = ", detJ )
         
         //Calculate shape functions global gradients
@@ -130,19 +132,20 @@ void SmallStrainUPwFICElement::InitializeNonLinearIteration(ProcessInfo& rCurren
 
 void SmallStrainUPwFICElement::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
+    const GeometryType& rGeom = GetGeometry();
     GeometryType::ShapeFunctionsGradientsType DN_DlocalContainer;
-    DN_DlocalContainer = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+    DN_DlocalContainer = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer;
-    GetGeometry().Jacobian( JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian( JContainer, mThisIntegrationMethod );
     Matrix InvJ, GradNpT;
     double detJ;
     
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         MathUtils<double>::InvertMatrix(JContainer[PointNumber], InvJ, detJ);
-        if(detJ<0)
+        if(detJ<0.0)
             KRATOS_THROW_ERROR( std::invalid_argument," |J|<0 , |J| = ", detJ )
         
         //Calculate shape functions global gradients
@@ -156,6 +159,8 @@ void SmallStrainUPwFICElement::FinalizeNonLinearIteration(ProcessInfo& rCurrentP
     
 Matrix SmallStrainUPwFICElement::CalculateExtrapolationMatrix(const unsigned int dimension)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     Matrix ExtrapolationMatrix;
     std::vector<Vector> NodeLocalCoordinates;
     
@@ -185,10 +190,10 @@ Matrix SmallStrainUPwFICElement::CalculateExtrapolationMatrix(const unsigned int
         {
             const Element::GeometryType::CoordinatesArrayType NodeLocalCoord = NodeLocalCoordinates[i];
             
-            ExtrapolationMatrix(i,0) = GetGeometry().ShapeFunctionValue(0,NodeLocalCoord);
-            ExtrapolationMatrix(i,1) = GetGeometry().ShapeFunctionValue(1,NodeLocalCoord);
-            ExtrapolationMatrix(i,2) = GetGeometry().ShapeFunctionValue(2,NodeLocalCoord);
-            ExtrapolationMatrix(i,3) = GetGeometry().ShapeFunctionValue(3,NodeLocalCoord);
+            ExtrapolationMatrix(i,0) = rGeom.ShapeFunctionValue(0,NodeLocalCoord);
+            ExtrapolationMatrix(i,1) = rGeom.ShapeFunctionValue(1,NodeLocalCoord);
+            ExtrapolationMatrix(i,2) = rGeom.ShapeFunctionValue(2,NodeLocalCoord);
+            ExtrapolationMatrix(i,3) = rGeom.ShapeFunctionValue(3,NodeLocalCoord);
         }
     }
     else
@@ -241,14 +246,14 @@ Matrix SmallStrainUPwFICElement::CalculateExtrapolationMatrix(const unsigned int
         {
             const Element::GeometryType::CoordinatesArrayType NodeLocalCoord = NodeLocalCoordinates[i];
             
-            ExtrapolationMatrix(i,0) = GetGeometry().ShapeFunctionValue(0,NodeLocalCoord);
-            ExtrapolationMatrix(i,1) = GetGeometry().ShapeFunctionValue(1,NodeLocalCoord);
-            ExtrapolationMatrix(i,2) = GetGeometry().ShapeFunctionValue(2,NodeLocalCoord);
-            ExtrapolationMatrix(i,3) = GetGeometry().ShapeFunctionValue(3,NodeLocalCoord);
-            ExtrapolationMatrix(i,4) = GetGeometry().ShapeFunctionValue(4,NodeLocalCoord);
-            ExtrapolationMatrix(i,5) = GetGeometry().ShapeFunctionValue(5,NodeLocalCoord);
-            ExtrapolationMatrix(i,6) = GetGeometry().ShapeFunctionValue(6,NodeLocalCoord);
-            ExtrapolationMatrix(i,7) = GetGeometry().ShapeFunctionValue(7,NodeLocalCoord);
+            ExtrapolationMatrix(i,0) = rGeom.ShapeFunctionValue(0,NodeLocalCoord);
+            ExtrapolationMatrix(i,1) = rGeom.ShapeFunctionValue(1,NodeLocalCoord);
+            ExtrapolationMatrix(i,2) = rGeom.ShapeFunctionValue(2,NodeLocalCoord);
+            ExtrapolationMatrix(i,3) = rGeom.ShapeFunctionValue(3,NodeLocalCoord);
+            ExtrapolationMatrix(i,4) = rGeom.ShapeFunctionValue(4,NodeLocalCoord);
+            ExtrapolationMatrix(i,5) = rGeom.ShapeFunctionValue(5,NodeLocalCoord);
+            ExtrapolationMatrix(i,6) = rGeom.ShapeFunctionValue(6,NodeLocalCoord);
+            ExtrapolationMatrix(i,7) = rGeom.ShapeFunctionValue(7,NodeLocalCoord);
         }
     }
     
@@ -259,13 +264,15 @@ Matrix SmallStrainUPwFICElement::CalculateExtrapolationMatrix(const unsigned int
 
 void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
+    const GeometryType& rGeom = GetGeometry();
+    
     //Variables at all integration points
-    rVariables.NContainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    GetGeometry().DeterminantOfJacobian(rVariables.detJContainer,mThisIntegrationMethod);
+    rVariables.NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    rGeom.DeterminantOfJacobian(rVariables.detJContainer,mThisIntegrationMethod);
 
     //Variables computed at each integration point
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
     rVariables.B = ZeroMatrix( voigtsize, number_of_nodes * dimension );
@@ -274,7 +281,7 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
     rVariables.StressVector = ZeroVector( voigtsize );
 
     //Needed parameters for consistency with the general constitutive law
-    rVariables.detF  = 1;
+    rVariables.detF  = 1.0;
     rVariables.F     = identity_matrix<double>(dimension);
     
     //Nodal variables
@@ -286,14 +293,14 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
     //ProcessInfo variables
     double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
     rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[GAMMA_NEWMARK]/(rCurrentProcessInfo[BETA_NEWMARK]*DeltaTime);
-    rVariables.NewmarkCoefficient2 = 1/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
+    rVariables.NewmarkCoefficient2 = 1.0/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
     
     //FIC variables
-    rVariables.ShearModulus = GetProperties()[YOUNG_MODULUS]/(2*(1+GetProperties()[POISSON_RATIO]));
+    rVariables.ShearModulus = GetProperties()[YOUNG_MODULUS]/(2.0*(1.0+GetProperties()[POISSON_RATIO]));
     rVariables.SecondOrderStrainDerivatives = false;
     if(dimension==2)
     {
-        rVariables.ElementLength = sqrt(4*GetGeometry().Area()/M_PI);
+        rVariables.ElementLength = sqrt(4.0*rGeom.Area()/M_PI);
         
         if(number_of_nodes==4) // Quadrilaterals2D4N
         {
@@ -305,7 +312,7 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
     }
     else
     {
-        rVariables.ElementLength = pow((6*GetGeometry().Volume()/M_PI),(1.0/3.0));
+        rVariables.ElementLength = pow((6.0*rGeom.Volume()/M_PI),(1.0/3.0));
         
         if(number_of_nodes==8) // Hexahedra3D8N
         {
@@ -321,9 +328,10 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
 
 void SmallStrainUPwFICElement::ExtrapolateShapeFunctionsDerivatives(ElementalVariables& rVariables)
 {
-    const unsigned int  number_of_nodes = GetGeometry().size();
-    const unsigned int  dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int  number_of_nodes = rGeom.size();
+    const unsigned int  dimension       = rGeom.WorkingSpaceDimension();
+    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
     unsigned int node;
     
     Matrix GPShapeFunctionsDerivatives = ZeroMatrix(integration_points_number, dimension*number_of_nodes);
@@ -403,9 +411,10 @@ void SmallStrainUPwFICElement::CalculateKinematics(ElementalVariables& rVariable
 
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int node;
     
     //Setting the shape function vector
@@ -464,20 +473,21 @@ void SmallStrainUPwFICElement::CalculateKinematics(ElementalVariables& rVariable
 
 void SmallStrainUPwFICElement::CalculateStrainDerivativeTerm(ElementalVariables& rVariables)
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int node;
 
     //Compute the voigt identity matrix Iv
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
     Matrix Iv = ZeroMatrix(voigtsize,voigtsize);
-    Iv(0,0) = 1;
-    Iv(1,1) = 1;
+    Iv(0,0) = 1.0;
+    Iv(1,1) = 1.0;
     Iv(2,2) = 0.5;
     if(dimension==3)
     {
-        Iv(2,2) = 1;
+        Iv(2,2) = 1.0;
         Iv(3,3) = 0.5;
         Iv(4,4) = 0.5;
         Iv(5,5) = 0.5;
@@ -547,12 +557,14 @@ void SmallStrainUPwFICElement::CalculateAndAddStrainDerivativeMatrix(MatrixType&
 {
     if(rVariables.SecondOrderStrainDerivatives==true)
     {
+        const GeometryType& rGeom = GetGeometry();
+        
         Matrix StrainDerivativeMatrix = rVariables.NewmarkCoefficient1*0.25*rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient*
                                         prod(rVariables.GradNpT,rVariables.StrainDerivativeTerm)*rVariables.IntegrationCoefficient;
 
         //Distribute strain derivative block matrix into the elemental matrix
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        const unsigned int number_of_nodes = rGeom.size();
         unsigned int Global_i, Global_j, Local_j;
         
         for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -578,16 +590,18 @@ void SmallStrainUPwFICElement::CalculateAndAddStrainDerivativeMatrix(MatrixType&
 void SmallStrainUPwFICElement::CalculateAndAddStressDerivativeMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables)
 {
     if(rVariables.SecondOrderStrainDerivatives==true)
-    {        
+    {   
+        const GeometryType& rGeom = GetGeometry();
+        
         Matrix StressDerivativeTerm = this->CalculateStressDerivativeTerm(rVariables);
         
-        double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8*rVariables.ShearModulus);
+        double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8.0*rVariables.ShearModulus);
         
-        Matrix StressDerivativeMatrix = rVariables.NewmarkCoefficient1*StabilizationParameter/3*prod(rVariables.GradNpT,StressDerivativeTerm)*rVariables.IntegrationCoefficient;
+        Matrix StressDerivativeMatrix = rVariables.NewmarkCoefficient1*StabilizationParameter/3.0*prod(rVariables.GradNpT,StressDerivativeTerm)*rVariables.IntegrationCoefficient;
 
         //Distribute stress derivative block matrix into the elemental matrix
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        const unsigned int number_of_nodes = rGeom.size();
         unsigned int Global_i, Global_j, Local_j;
         
         for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -613,9 +627,9 @@ void SmallStrainUPwFICElement::CalculateAndAddStressDerivativeMatrix(MatrixType&
 Matrix SmallStrainUPwFICElement::CalculateStressDerivativeTerm(ElementalVariables& rVariables)
 {
     //TODO: for the moment this is implemented only for linear elasticity
-    
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int node;
     double D1 = rVariables.ConstitutiveMatrix(0,0), D2 = rVariables.ConstitutiveMatrix(0,1);
     
@@ -639,14 +653,14 @@ Matrix SmallStrainUPwFICElement::CalculateStressDerivativeTerm(ElementalVariable
         {
             node = 3 * i;
                 
-            StressDerivativeTerm(0, node)   = (D1+2*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][0];
-            StressDerivativeTerm(1, node+1) = (D1+2*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][1];
-            StressDerivativeTerm(2, node+2) = (D1+2*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][2];
-            StressDerivativeTerm(0, node+1) = (D1+2*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][3];
+            StressDerivativeTerm(0, node)   = (D1+2.0*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][0];
+            StressDerivativeTerm(1, node+1) = (D1+2.0*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][1];
+            StressDerivativeTerm(2, node+2) = (D1+2.0*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][2];
+            StressDerivativeTerm(0, node+1) = (D1+2.0*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][3];
             StressDerivativeTerm(1, node)   = StressDerivativeTerm(0, node+1);
-            StressDerivativeTerm(1, node+2) = (D1+2*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][4];
+            StressDerivativeTerm(1, node+2) = (D1+2.0*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][4];
             StressDerivativeTerm(2, node+1) = StressDerivativeTerm(1, node+2);
-            StressDerivativeTerm(0, node+2) = (D1+2*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][5];
+            StressDerivativeTerm(0, node+2) = (D1+2.0*D2)*rVariables.ShapeFunctionsSecondOrderDerivatives[i][5];
             StressDerivativeTerm(2, node)   = StressDerivativeTerm(0, node+2);
         }
     }
@@ -658,14 +672,15 @@ Matrix SmallStrainUPwFICElement::CalculateStressDerivativeTerm(ElementalVariable
 
 void SmallStrainUPwFICElement::CalculateAndAddPressureDerivativeMatrix(MatrixType& rLeftHandSideMatrix, ElementalVariables& rVariables)
 {
-    double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8*rVariables.ShearModulus);
+    double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8.0*rVariables.ShearModulus);
     
-    Matrix PressureDerivativeMatrix = rVariables.NewmarkCoefficient2*StabilizationParameter*(rVariables.BiotCoefficient-2*rVariables.ShearModulus*rVariables.BiotModulusInverse/(3*rVariables.BiotCoefficient))*
+    Matrix PressureDerivativeMatrix = rVariables.NewmarkCoefficient2*StabilizationParameter*(rVariables.BiotCoefficient-2.0*rVariables.ShearModulus*rVariables.BiotModulusInverse/(3.0*rVariables.BiotCoefficient))*
                                       prod(rVariables.GradNpT,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
     
     //Distribute pressure derivative block matrix into the elemental matrix
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i, Global_j;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -718,8 +733,9 @@ void SmallStrainUPwFICElement::CalculateAndAddStrainDerivativeFlow(VectorType& r
         Vector StrainDerivativeFlow = prod(StrainDerivativeMatrix,rVariables.VelocityVector);
                 
         //Distribute strain derivative block vector into the elemental vector
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.size();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         unsigned int Global_i;
         for(unsigned int i = 0; i < number_of_nodes; i++)
         {
@@ -738,15 +754,16 @@ void SmallStrainUPwFICElement::CalculateAndAddStressDerivativeFlow(VectorType& r
     {
         Matrix StressDerivativeTerm = this->CalculateStressDerivativeTerm(rVariables);
         
-        double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8*rVariables.ShearModulus);
+        double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8.0*rVariables.ShearModulus);
         
-        Matrix StressDerivativeMatrix = StabilizationParameter/3*prod(rVariables.GradNpT,StressDerivativeTerm)*rVariables.IntegrationCoefficient;
+        Matrix StressDerivativeMatrix = StabilizationParameter/3.0*prod(rVariables.GradNpT,StressDerivativeTerm)*rVariables.IntegrationCoefficient;
 
         Vector StressDerivativeFlow = prod(StressDerivativeMatrix,rVariables.VelocityVector);
                 
         //Distribute stress derivative block vector into the elemental vector
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.size();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         unsigned int Global_i;
         for(unsigned int i = 0; i < number_of_nodes; i++)
         {
@@ -762,16 +779,17 @@ void SmallStrainUPwFICElement::CalculateAndAddStressDerivativeFlow(VectorType& r
 
 void SmallStrainUPwFICElement::CalculateAndAddPressureDerivativeFlow(VectorType& rRightHandSideVector, ElementalVariables& rVariables)
 {
-    double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8*rVariables.ShearModulus);
+    double StabilizationParameter = rVariables.ElementLength*rVariables.ElementLength*rVariables.BiotCoefficient/(8.0*rVariables.ShearModulus);
     
-    Matrix PressureDerivativeMatrix = StabilizationParameter*(rVariables.BiotCoefficient-2*rVariables.ShearModulus*rVariables.BiotModulusInverse/(3*rVariables.BiotCoefficient))*
+    Matrix PressureDerivativeMatrix = StabilizationParameter*(rVariables.BiotCoefficient-2.0*rVariables.ShearModulus*rVariables.BiotModulusInverse/(3.0*rVariables.BiotCoefficient))*
                                       prod(rVariables.GradNpT,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
     
     Vector PressureDerivativeFlow = prod(PressureDerivativeMatrix,rVariables.PressureDtVector);
 
     //Distribute pressure derivative block vector into the elemental vector
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i;
     
     for(unsigned int i = 0; i < number_of_nodes; i++)

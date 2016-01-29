@@ -46,7 +46,7 @@ Condition::Pointer PointLoadCondition::Create(IndexType NewId,NodesArrayType con
 void PointLoadCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
+    
     const SizeType Dim = GetGeometry().WorkingSpaceDimension();
     const SizeType ConditionSize = Dim + 1;
 
@@ -100,7 +100,7 @@ void PointLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 void PointLoadCondition::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
+    
     const SizeType Dim = GetGeometry().WorkingSpaceDimension();
     const SizeType ConditionSize = Dim + 1;
 
@@ -151,8 +151,10 @@ void PointLoadCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTyp
     //Contributions to the right hand side
     if ( CalculateResidualVectorFlag )
     {
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Vector ForceVector = GetGeometry()[0].FastGetSolutionStepValue( POINT_LOAD );
+        const GeometryType& rGeom = GetGeometry();
+        
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
+        Vector ForceVector = rGeom[0].FastGetSolutionStepValue( POINT_LOAD );
         
         if(dimension==2)
             ForceVector = ForceVector * GetProperties()[THICKNESS];
