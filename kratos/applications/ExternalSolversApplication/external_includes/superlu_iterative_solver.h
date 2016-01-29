@@ -225,10 +225,9 @@ public:
 //         SuperMatrix A, AA, L, U;
         SuperMatrix A, L, U;
         SuperMatrix B, X;
-        NCformat *Astore;
-        NCformat *Ustore;
-        SCformat *Lstore;
-        //double   *a_orig;
+
+        
+	//double   *a_orig;
         //int       *asub_orig, *xa_orig;
         int      *etree;
         int      *perm_c; /* column permutation vector */
@@ -280,9 +279,11 @@ public:
         options.ILU_Norm = INF_NORM;
         options.ILU_MILU = SILU;
          */
-        ilu_set_default_options(&options);
-         options.ILU_MILU = SILU; //SMILU_3;
 
+	ilu_set_default_options(&options);
+	options.ILU_MILU = SILU; //SMILU_3;
+	 
+	options.PrintStat = NO;
 	options.Trans = NOTRANS;
 	
 // 	options.RowPerm = NO;
@@ -364,10 +365,13 @@ public:
 // 		    rA.value_data().begin(), index2_vector, index1_vector,
 // 		    values, i1, i2);
 
-        Astore = (NCformat*) A.Store;
+	//jmc
+	//NCformat *Astore;
+        //Astore = (NCformat*) A.Store;
         dfill_diag(n, (NCformat*) A.Store);
 
-        printf("Dimension %dx%d; # nonzeros %d\n", A.nrow, A.ncol, ((NCformat*) A.Store)->nnz);
+	//jmc
+        //printf("Dimension %dx%d; # nonzeros %d\n", A.nrow, A.ncol, ((NCformat*) A.Store)->nnz);
 
         fflush(stdout);
 
@@ -423,35 +427,39 @@ public:
         /* Set RHS for GMRES. */
         if (!(b = doubleMalloc(m))) ABORT("Malloc fails for b[].");
         for (i = 0; i < m; i++) b[i] = rB[i];
+	
+	//jmc
+        //printf("dgsisx(): info %d, equed %c\n", info, equed[0]);
+        //if (info > 0 || rcond < 1e-8 || rpg > 1e8)
+        //    printf("WARNING: This preconditioner might be unstable.\n");
 
-        printf("dgsisx(): info %d, equed %c\n", info, equed[0]);
-        if (info > 0 || rcond < 1e-8 || rpg > 1e8)
-            printf("WARNING: This preconditioner might be unstable.\n");
+        //if ( info == 0 || info == n+1 )
+        //{
+        //    if ( options.PivotGrowth == YES )
+        //        printf("Recip. pivot growth = %e\n", rpg);
+        //    if ( options.ConditionNumber == YES )
+        //        printf("Recip. condition number = %e\n", rcond);
+        //}
+        //else if ( info > 0 && lwork == -1 )
+        //{
+        //    printf("** Estimated memory: %d bytes\n", info - n);
+	//}
 
-        if ( info == 0 || info == n+1 )
-        {
-            if ( options.PivotGrowth == YES )
-                printf("Recip. pivot growth = %e\n", rpg);
-            if ( options.ConditionNumber == YES )
-                printf("Recip. condition number = %e\n", rcond);
-        }
-        else if ( info > 0 && lwork == -1 )
-        {
-            printf("** Estimated memory: %d bytes\n", info - n);
-        }
-
-        Lstore = (SCformat *) L.Store;
-        Ustore = (NCformat *) U.Store;
-        printf("n(A) = %d, nnz(A) = %d\n", n, Astore->nnz);
-        printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
-        printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
-        printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - n);
-        printf("Fill ratio: nnz(F)/nnz(A) = %.3f\n",
-               ((double)(Lstore->nnz) + (double)(Ustore->nnz) - (double)n)
-               / (double)Astore->nnz);
-        printf("L\\U MB %.3f\ttotal MB needed %.3f\n",
-               mem_usage.for_lu/1e6, mem_usage.total_needed/1e6);
-        fflush(stdout);
+	//jmc
+        //NCformat *Ustore;
+        //SCformat *Lstore;
+        //Lstore = (SCformat *) L.Store;
+        //Ustore = (NCformat *) U.Store;
+        //printf("n(A) = %d, nnz(A) = %d\n", n, Astore->nnz);
+        //printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
+        //printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
+        //printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - n);
+        //printf("Fill ratio: nnz(F)/nnz(A) = %.3f\n",
+        //       ((double)(Lstore->nnz) + (double)(Ustore->nnz) - (double)n)
+        //       / (double)Astore->nnz);
+        //printf("L\\U MB %.3f\ttotal MB needed %.3f\n",
+        //       mem_usage.for_lu/1e6, mem_usage.total_needed/1e6);
+        //fflush(stdout);
 
         /* Set the global variables. */
         GLOBAL_A = &A;
@@ -475,7 +483,8 @@ public:
         /* Set the variables used by GMRES. */
         //restrt = SUPERLU_MIN(n / 3 + 1, 150);
         int restrt = SUPERLU_MIN(n / 3 + 1, mrestart);
-        int maxit = mmax_it; //1000;
+        //jmc
+	//int maxit = mmax_it; //1000;
         int iter = mmax_it;
         resid = mTol; // 1e-8;
         if (!(x = doubleMalloc(n))) ABORT("Malloc fails for x[].");
@@ -483,7 +492,8 @@ public:
         if (info <= n + 1)
         {
             int i_1 = 1;
-            double nrmA, nrmB, res, t;
+
+	    double nrmB, res, t;
             
             //extern double dnrm2_(int *, double [], int *);
             //extern void daxpy_(int *, double *, double [], int *, double [], int *);
@@ -507,25 +517,29 @@ public:
             t = SuperLU_timer_() - t;
 
             /* Output the result. */
-            nrmA = dnrm2_(&(Astore->nnz), (double *)((DNformat *)A.Store)->nzval,
-                          &i_1);
+	    //jmc
+	    //double nrmA;
+            //nrmA = dnrm2_(&(Astore->nnz), (double *)((DNformat *)A.Store)->nzval,
+            //              &i_1);
+
             nrmB = dnrm2_(&m, b, &i_1);
             sp_dgemv( ( char *)"N", -1.0, &A, x, 1, 1.0, b, 1);
             res = dnrm2_(&m, b, &i_1);
             resid = res / nrmB;
-            printf("||A||_F = %.1e, ||B||_2 = %.1e, ||B-A*X||_2 = %.1e, "
-                   "relres = %.1e\n", nrmA, nrmB, res, resid);
+	    //jmc
+            //printf("||A||_F = %.1e, ||B||_2 = %.1e, ||B-A*X||_2 = %.1e, "
+            //       "relres = %.1e\n", nrmA, nrmB, res, resid);
 
-            if (iter >= maxit)
-            {
-                if (resid >= 1.0){
-		    iter = -180;
-		    std::cout << "final residual is VERY VERY LARGE" << std::endl;
-		}
-                else if (resid > 1e-8) iter = -111;
-            }
-            printf("iteration: %d\nresidual: %.1e\nGMRES time: %.2f seconds.\n",
-                   iter, resid, t);
+            //if (iter >= maxit)
+            //{
+            //    if (resid >= 1.0){
+	    //      iter = -180;
+	    //      std::cout << "final residual is VERY VERY LARGE" << std::endl;
+	    //}
+            //    else if (resid > 1e-8) iter = -111;
+            //}
+            //printf("iteration: %d\nresidual: %.1e\nGMRES time: %.2f seconds.\n",
+            //       iter, resid, t);
 
             //for (i = 0; i < m; i++) {
             //  maxferr = SUPERLU_MAX(maxferr, fabs(x[i] - xact[i]));
