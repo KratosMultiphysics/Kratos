@@ -43,14 +43,15 @@ Condition::Pointer SurfaceLoad3DCondition::Create(IndexType NewId, NodesArrayTyp
 void SurfaceLoad3DCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
     Vector SurfaceLoad = ZeroVector(3);
     rVariables.ConditionVector = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue(SURFACE_LOAD);
+        SurfaceLoad = rGeom[i].FastGetSolutionStepValue(SURFACE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Np[i]*SurfaceLoad[0];
         rVariables.ConditionVector[1] += rVariables.Np[i]*SurfaceLoad[1];

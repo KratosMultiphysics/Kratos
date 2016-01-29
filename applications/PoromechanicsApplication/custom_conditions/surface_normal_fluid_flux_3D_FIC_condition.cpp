@@ -52,8 +52,9 @@ void SurfaceNormalFluidFlux3DFICCondition::CalculateAndAddBoundaryMassMatrix(Mat
     Matrix BoundaryMassMatrix = rVariables.NewmarkCoefficient*rVariables.ElementLength*rVariables.BiotModulusInverse/6*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
     
     //Distribute boundary mass block matrix into the elemental matrix
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i, Global_j;
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
@@ -83,20 +84,21 @@ void SurfaceNormalFluidFlux3DFICCondition::CalculateAndAddRHS(VectorType& rRight
 
 void SurfaceNormalFluidFlux3DFICCondition::CalculateAndAddBoundaryMassFlow(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
 {    
-    Matrix BoundaryMassMatrix = rVariables.ElementLength*rVariables.BiotModulusInverse/6*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
-
-    const unsigned int number_of_nodes = GetGeometry().size();
+    Matrix BoundaryMassMatrix = rVariables.ElementLength*rVariables.BiotModulusInverse/6.0*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
     Vector PressureDtVector = ZeroVector(number_of_nodes);
     
     for(unsigned int i=0; i<number_of_nodes; i++)
     {
-        PressureDtVector[i] = GetGeometry()[i].FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
+        PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
     }
 
     Vector BoundaryMassFlow = prod(BoundaryMassMatrix,PressureDtVector);
 
     //Distribute boundary mass block vector into the elemental vector
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int Global_i;
     
     for(unsigned int i = 0; i < number_of_nodes; i++)

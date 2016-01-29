@@ -54,14 +54,15 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
 
     NormalVector[2] = rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](1,1) -
                       rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](0,1);
-
-    const SizeType NumUNodes = GetGeometry().PointsNumber();
-    double NormalStress = 0;
+    
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    double NormalStress = 0.0;
     rVariables.ConditionVector = ZeroVector(3);
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
-        NormalStress += rVariables.Nu[i]*GetGeometry()[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+        NormalStress += rVariables.Nu[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     }
 
     rVariables.ConditionVector[0] = NormalStress * NormalVector[0];

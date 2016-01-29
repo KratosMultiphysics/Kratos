@@ -359,7 +359,7 @@ protected:
         
         // adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
-            noalias(LHS_Contribution) += 1/(mBeta*DeltaTime*DeltaTime)*M;
+            noalias(LHS_Contribution) += 1.0/(mBeta*DeltaTime*DeltaTime)*M;
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -367,7 +367,7 @@ protected:
     inline void UpdateVelocity(array_1d<double,3>& CurrentVelocity,const array_1d<double,3>& PreviousVelocity,const array_1d<double,3>& PreviousAcceleration,
                                 const array_1d<double,3>& CurrentAcceleration, double DeltaTime)
     {
-        noalias(CurrentVelocity) = PreviousVelocity + (1-mGamma)*DeltaTime*PreviousAcceleration + mGamma*DeltaTime*CurrentAcceleration;
+        noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*DeltaTime*PreviousAcceleration + mGamma*DeltaTime*CurrentAcceleration;
     }
 
     //------------------------------------------------------------------------------------
@@ -375,14 +375,14 @@ protected:
     inline void UpdateAcceleration(array_1d<double,3>& CurrentAcceleration,const array_1d<double,3>& DeltaDisplacement,const array_1d<double,3>& PreviousVelocity,
                                     const array_1d<double,3>& PreviousAcceleration, double DeltaTime)
     {
-        noalias(CurrentAcceleration) = 1/(mBeta*DeltaTime*DeltaTime)*(DeltaDisplacement - DeltaTime*PreviousVelocity - (0.5-mBeta)*DeltaTime*DeltaTime*PreviousAcceleration);
+        noalias(CurrentAcceleration) = 1.0/(mBeta*DeltaTime*DeltaTime)*(DeltaDisplacement - DeltaTime*PreviousVelocity - (0.5-mBeta)*DeltaTime*DeltaTime*PreviousAcceleration);
     }
 
     //------------------------------------------------------------------------------------
     
     inline void UpdatePressureDt(double& CurrentPressureDt, double DeltaPressure, double PreviousPressureDt, double DeltaTime)
     {
-        CurrentPressureDt = 1/(mTheta*DeltaTime)*(DeltaPressure - (1-mTheta)*DeltaTime*PreviousPressureDt);
+        CurrentPressureDt = 1.0/(mTheta*DeltaTime)*(DeltaPressure - (1.0-mTheta)*DeltaTime*PreviousPressureDt);
     }
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

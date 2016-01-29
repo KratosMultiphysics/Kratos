@@ -49,18 +49,24 @@ Condition::Pointer GeneralUPwCondition::Create(IndexType NewId,NodesArrayType co
 void GeneralUPwCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    rConditionDofList.resize(0);
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    for (unsigned int i = 0; i < GetGeometry().size(); i++)
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    unsigned int condition_size        = number_of_nodes * (dimension + 1);
+    unsigned int index = 0;
+    
+    if (rConditionDofList.size() != condition_size)
+      rConditionDofList.resize( condition_size );
+    
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-        if( dimension == 3 )
-            rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        rConditionDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+        rConditionDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+        if( dimension > 2 )
+            rConditionDofList[index++] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
         
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(WATER_PRESSURE));
+        rConditionDofList[index++] = GetGeometry()[i].pGetDof(WATER_PRESSURE);
     }
 
     KRATOS_CATCH( "" )
@@ -72,8 +78,9 @@ void GeneralUPwCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
     
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
     
     //Resetting the LHS
@@ -100,29 +107,24 @@ void GeneralUPwCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 void GeneralUPwCondition::EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int condition_size        = number_of_nodes * (dimension + 1);
-    int index;
+    unsigned int index = 0;
     
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        index = i * (dimension + 1);
-        rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        if( dimension == 3)
-        {
-            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[index + 3] = GetGeometry()[i].GetDof(WATER_PRESSURE).EquationId();
-        }
-        else
-        {
-            rResult[index + 2] = GetGeometry()[i].GetDof(WATER_PRESSURE).EquationId();
-        }
+        rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+        if( dimension > 2)
+            rResult[index++] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+
+        rResult[index++] = GetGeometry()[i].GetDof(WATER_PRESSURE).EquationId();
     }
 
     KRATOS_CATCH( "" )
@@ -132,8 +134,9 @@ void GeneralUPwCondition::EquationIdVector(EquationIdVectorType& rResult,Process
 
 void GeneralUPwCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
         
     //Resetting the RHS
@@ -190,24 +193,25 @@ void GeneralUPwCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTy
 
 void GeneralUPwCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    rVariables.NContainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    GetGeometry().Jacobian( rVariables.JContainer, mThisIntegrationMethod );
+    const GeometryType& rGeom = GetGeometry();
+    rVariables.NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
     
     //FIC condition variables
-    double BulkModulus = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
+    double BulkModulus = GetProperties()[YOUNG_MODULUS]/(3.0*(1.0-2.0*GetProperties()[POISSON_RATIO]));
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
-    double BiotCoefficient = 1-BulkModulus/BulkModulusSolid;
+    double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
     double Porosity = GetProperties()[POROSITY];
     rVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
 
     double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-    rVariables.NewmarkCoefficient = 1/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
+    rVariables.NewmarkCoefficient = 1.0/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     if(dimension==2)
-        rVariables.ElementLength = GetGeometry().Length();
+        rVariables.ElementLength = rGeom.Length();
     else
-        rVariables.ElementLength = sqrt(4*GetGeometry().Area()/M_PI);
+        rVariables.ElementLength = sqrt(4.0*rGeom.Area()/M_PI);
 }
 
 //----------------------------------------------------------------------------------------
