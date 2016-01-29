@@ -13,7 +13,7 @@ namespace Kratos {
     }
 
     void DEM_D_Hertz_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_D_Hertz_viscous_Coulomb to properties " << pProp->Id() << std::endl;
+        std::cout << "\nAssigning DEM_D_Hertz_viscous_Coulomb to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }   
     
@@ -83,9 +83,9 @@ namespace Kratos {
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
-                                                                double ViscoDampingLocalContactForce[3],
-                                                                SphericParticle* const element1,
-                                                                SphericParticle* const element2) {
+                                                                 double ViscoDampingLocalContactForce[3],
+                                                                 SphericParticle* const element1,
+                                                                 SphericParticle* const element2) {
         
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
@@ -153,8 +153,8 @@ namespace Kratos {
                 
         InitializeContactWithFEM(element, wall, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
-        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
+        LocalElasticContactForce[2] = CalculateNormalForce(indentation);
+        cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
         
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
         
@@ -222,8 +222,8 @@ namespace Kratos {
                 else {                
                     const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
                     const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
-                    ViscoDampingLocalContactForce[0]    *= fraction;
-                    ViscoDampingLocalContactForce[1]    *= fraction;
+                    ViscoDampingLocalContactForce[0] *= fraction;
+                    ViscoDampingLocalContactForce[1] *= fraction;
                 }        
             }
             else {
