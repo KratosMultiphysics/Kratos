@@ -1,8 +1,8 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//   Last Modified by:    $Author: Ignasi de Pouplana $
+//   Date:                $Date:         January 2015 $
+//   Revision:            $Revision:              1.8 $
 //
 //
 
