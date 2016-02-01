@@ -18,7 +18,7 @@ double ToThePower(double base, unsigned int n)
 
 double GetDebyeLength(double cation_concentration)
 {
-    return 1.04e8 / sqrt(cation_concentration);
+    return 7.34e7 * sqrt(cation_concentration);
 }
 
 namespace Kratos {
@@ -28,8 +28,7 @@ namespace Kratos {
         mD_p = 2.0e-7; // particle diameter; it whould be equal for both particles or the third law of Newton will be violated
         mA_p = 0.25 * KRATOS_M_PI * mD_p * mD_p;
         mThickness = 1.0e-9;
-        mDDLCoefficient = 1.56e6;
-        mDebyeLengthInv = 1.04e8;
+        mDDLCoefficient = 1.5e5;
         mEquivRadius = mD_p / KRATOS_M_PI; // this is the "coin" equivalent radius
     }
 //Z
@@ -93,16 +92,15 @@ namespace Kratos {
                                                              SphericParticle* element2,
                                                              bool& sliding) {
 
-        InitializeContact(element1, element2, indentation);
+        //InitializeContact(element1, element2, indentation);
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
-        double distance = element1->GetRadius() + element2->GetRadius() - indentation;
+        double distance = element1->GetSearchRadius() + element2->GetSearchRadius() - indentation;
         double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-        double smoother = 1.0;std::max(1.0, 9.0 * indentation / (element1->GetSearchRadius() + element2->GetSearchRadius()));
-        LocalElasticContactForce[2]  = smoother * CalculateNormalForce(distance, cation_concentration);
+        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetSearchRadius() + element2->GetSearchRadius()));
+        LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
 //Z
-        cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
-
+        cohesive_force              = CalculateCohesiveNormalForce(element1, element2, indentation);
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
 
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
@@ -179,13 +177,14 @@ namespace Kratos {
                                                               SphericParticle* const element,
                                                               DEMWall* const wall,
                                                               bool& sliding) {
-        InitializeContactWithFEM(element, wall, indentation);
-        double distance = element->GetRadius() - indentation;
+        //InitializeContactWithFEM(element, wall, indentation);
+        double distance = element->GetSearchRadius() - indentation;
         double cation_concentration = element->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-        double smoother = 1.0;std::max(1.0, 9.0 * indentation / (element->GetSearchRadius()));
-        LocalElasticContactForce[2]  = smoother * CalculateNormalForce(distance, cation_concentration);
+        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetSearchRadius() + element2->GetSearchRadius()));
+        LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
+        //LocalElasticContactForce[2]  = smoother * (CalculateVanDerWaalsForce(distance) - 0.0000001 * CalculateVanDerWaalsForce(pow(distance, 1.2))) ;
 
-        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
+        //CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
     }
 
     template<class NeighbourClassType>
@@ -226,7 +225,6 @@ namespace Kratos {
 
         double F_vdW = CalculateVanDerWaalsForce(distance);
         double F_DDL = CalculateDiffuseDoubleLayerForce(distance, cation_concentration);
-        //return F_vdW / ToThePower(mD_p, 7) + F_DDL / ToThePower(mD_p, 4);
 
         return F_vdW + F_DDL;
     }
@@ -247,7 +245,7 @@ namespace Kratos {
 
     double DEM_D_Bentonite_Colloid::CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration)
     {
-        return mA_p * mDDLCoefficient * exp(-GetDebyeLength(cation_concentration) * distance);
+        return mA_p * mDDLCoefficient * cation_concentration * exp(- GetDebyeLength(cation_concentration) * distance);
     }
 
 } // namespace Kratos
