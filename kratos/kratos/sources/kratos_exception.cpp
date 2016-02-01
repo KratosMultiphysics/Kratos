@@ -124,21 +124,21 @@ namespace Kratos
 	}
   */
 	/// char stream function
-	KratosException operator << (KratosException& rThis, const char * rString)
+    KratosException& KratosException::operator << (const char * rString)
 	{
-		rThis.append_message(rString);
+        append_message(rString);
 
-		return rThis;
+        return *this;
 	}
 
-	KratosException operator << (KratosException& rThis, std::ostream& (*pf)(std::ostream&))
+    KratosException& KratosException::operator << (std::ostream& (*pf)(std::ostream&))
 	{
 		std::stringstream buffer;
 		pf(buffer);
 
-		rThis.append_message(buffer.str());
+        append_message(buffer.str());
 
-		return rThis;
+        return *this;
 	}
 
 }  // namespace Kratos.
