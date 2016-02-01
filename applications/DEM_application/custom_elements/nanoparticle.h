@@ -22,6 +22,11 @@ public:
     /// Pointer definition of NanoParticle
     KRATOS_CLASS_POINTER_DEFINITION(NanoParticle);
 
+    using SphericParticle::GetGeometry;
+    using SphericParticle::GetDensity;
+    using SphericParticle::mRealMass;
+    using SphericParticle::mRadius;
+
     NanoParticle():SphericParticle()
     {
         mThicknessOverRadius = 0.01; // Hard-coded but should go into node
@@ -61,11 +66,13 @@ public:
                                  const array_1d<double,3>& gravity);
 
     double GetVolume();
+    double GetSearchRadius();
+
 
 protected:
 
-    void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info){};
     double mThicknessOverRadius;
+    double mSearchRadius;
 
 private:
 

@@ -13,9 +13,10 @@
 namespace Kratos {
 void NanoParticle::CustomInitialize()
 {
+    mSearchRadius = GetGeometry()[0].GetSolutionStepValue(RADIUS);
     mRadius = 1e-7;
     double density            = GetDensity();
-    double added_mass_coefficient = 1.0;
+    double added_mass_coefficient = 1;
     mRealMass                 = added_mass_coefficient * density * GetVolume();
     GetGeometry()[0].GetSolutionStepValue(NODAL_MASS) = mRealMass;
 }
@@ -30,8 +31,6 @@ void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_app
     array_1d<double, 3> van_der_waals_force; van_der_waals_force.clear();
     array_1d<double, 3> double_layer_force; double_layer_force.clear();
 
-    this->ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-
     additionally_applied_force += brownian_motion_force + van_der_waals_force + double_layer_force;
 
 
@@ -44,6 +43,11 @@ void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_app
 double NanoParticle::GetVolume()
 {
     return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
+}
+
+double NanoParticle::GetSearchRadius()
+{
+    return mSearchRadius;
 }
     
 } // namespace Kratos
