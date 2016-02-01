@@ -104,7 +104,6 @@ namespace Kratos {
         double mD_p;
         double mThickness;
         double mDDLCoefficient;
-        double mDebyeLengthInv;
         double mEquivRadius;
         
         friend class Serializer;
