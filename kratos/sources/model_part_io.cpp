@@ -23,6 +23,7 @@
 
 // Project includes
 #include "includes/model_part_io.h"
+#include "utilities/logger.h"
 
 
 
@@ -345,19 +346,20 @@ namespace Kratos
                 ReadNodalDataBlock(rThisModelPart);
             else if(word == "ElementalData")
                 ReadElementalDataBlock(rThisModelPart.Elements());
-            else if(word == "ConditionalData")
-                ReadConditionalDataBlock(rThisModelPart.Conditions());
-            else if(word == "CommunicatorData")
+			else if (word == "ConditionalData")
+				ReadConditionalDataBlock(rThisModelPart.Conditions());
+			else if(word == "CommunicatorData")
             {
                 ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
                 //Adding the elements and conditions to the communicator
                 rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
                 rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
             }
-            else if(word == "Mesh")
-                ReadMeshBlock(rThisModelPart);
-
-        }
+			else if (word == "Mesh")
+				ReadMeshBlock(rThisModelPart);
+			else if (word == "SubModelPart")
+				ReadSubModelPartBlock(rThisModelPart, rThisModelPart);
+		}
         std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
         std::cout << std::endl;
 	Timer::Stop("Reading Input");
@@ -501,8 +503,10 @@ namespace Kratos
                 DivideElementalDataBlock(output_files, ElementsAllPartitions);
             else if(word == "ConditionalData")
                 DivideConditionalDataBlock(output_files, ConditionsAllPartitions);
-            else if(word == "Mesh")
-                DivideMeshBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+			else if (word == "Mesh")
+				DivideMeshBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+			else if (word == "SubModelPart")
+				DivideSubModelPartBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
 
         }
 
@@ -2356,6 +2360,154 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+	void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart)
+	{
+		KRATOS_TRY
+
+		std::string word;
+
+		ReadWord(word); // Reading the name of the sub model part
+		
+		ModelPart& r_sub_model_part = rParentModelPart.CreateSubModelPart(word);
+
+		while (true)
+		{
+			ReadWord(word);
+			//if (mFile.eof())
+			//	break;
+			if (CheckEndBlock("SubModelPart", word))
+				break;
+
+			ReadBlockName(word);
+			if (word == "SubModelPartData")
+				ReadModelPartDataBlock(r_sub_model_part);
+			else if (word == "SubModelPartTables")
+				ReadSubModelPartTablesBlock(rMainModelPart, r_sub_model_part);
+			else if (word == "SubModelPartProperties")
+				ReadSubModelPartPropertiesBlock(rMainModelPart, r_sub_model_part);
+			else if (word == "SubModelPartNodes")
+				ReadSubModelPartNodesBlock(rMainModelPart, r_sub_model_part);
+			else if (word == "SubModelPartElements")
+				ReadSubModelPartElementsBlock(rMainModelPart, r_sub_model_part);
+			else if (word == "SubModelPartConditions")
+				ReadSubModelPartConditionsBlock(rMainModelPart, r_sub_model_part);
+			// TODO: Add the following blocks. Pooyan.
+			//else if (word == "CommunicatorData")
+			//{
+			//	ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
+			//	//Adding the elements and conditions to the communicator
+			//	rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
+			//	rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
+			//}
+			//else if (word == "Mesh")
+			//	ReadMeshBlock(rThisModelPart);
+			else if (word == "SubModelPart")
+				ReadSubModelPartBlock(rMainModelPart, r_sub_model_part);
+		}
+
+		KRATOS_CATCH("")
+	}
+	void  ModelPartIO::ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
+	{
+		KRATOS_TRY
+
+		SizeType table_id;
+		std::string word;
+
+		while (!mFile.eof())
+		{
+			ReadWord(word); // Reading the node id or End
+			if (CheckEndBlock("SubModelPartTables", word))
+				break;
+
+			ExtractValue(word, table_id);
+			ModelPart::TablesContainerType::iterator i_table = FindKey(rMainModelPart.Tables(), table_id, "Table");
+			rSubModelPart.AddTable((i_table.base())->first, (i_table.base())->second);
+		}
+		KRATOS_CATCH("")
+	}
+
+	void  ModelPartIO::ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
+	{
+		KRATOS_TRY
+
+		SizeType properties_id;
+		std::string word;
+
+		while (!mFile.eof())
+		{
+			ReadWord(word); // Reading the node id or End
+			if (CheckEndBlock("SubModelPartProperties", word))
+				break;
+
+			ExtractValue(word, properties_id);
+			PropertiesContainerType::iterator i_properties = FindKey(rMainModelPart.rProperties(), properties_id, "Properties");
+			rSubModelPart.AddProperties(*(i_properties.base()));
+		}
+		KRATOS_CATCH("")
+	}
+
+	void  ModelPartIO::ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
+	{
+		KRATOS_TRY
+
+		SizeType node_id;
+		std::string word;
+
+		while (!mFile.eof())
+		{
+			ReadWord(word); // Reading the node id or End
+			if (CheckEndBlock("SubModelPartNodes", word))
+				break;
+
+			ExtractValue(word, node_id);
+			NodesContainerType::iterator i_node = FindKey(rMainModelPart.Nodes(), ReorderedNodeId(node_id), "Node");
+			rSubModelPart.AddNode(*(i_node.base()));
+		}
+		KRATOS_CATCH("")
+	}
+
+	void  ModelPartIO::ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
+	{
+		KRATOS_TRY
+
+		SizeType element_id;
+		std::string word;
+
+		while (!mFile.eof())
+		{
+			ReadWord(word); // Reading the node id or End
+			if (CheckEndBlock("SubModelPartElements", word))
+				break;
+
+			ExtractValue(word, element_id);
+			ElementsContainerType::iterator i_element = FindKey(rMainModelPart.Elements(), ReorderedElementId(element_id), "Element");
+			rSubModelPart.AddElement(*(i_element.base()));
+		}
+		KRATOS_CATCH("")
+	}
+
+	void  ModelPartIO::ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
+	{
+		KRATOS_TRY
+
+		SizeType condition_id;
+		std::string word;
+
+		while (!mFile.eof())
+		{
+			ReadWord(word); // Reading the node id or End
+			if (CheckEndBlock("SubModelPartConditions", word))
+				break;
+
+			ExtractValue(word, condition_id);
+			ConditionsContainerType::iterator i_condition = FindKey(rMainModelPart.Conditions(), ReorderedConditionId(condition_id), "Condition");
+			rSubModelPart.AddCondition(*(i_condition.base()));
+		}
+		KRATOS_CATCH("")
+	}
+
+
     void ModelPartIO::DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles)
     {
         KRATOS_TRY
@@ -3017,7 +3169,17 @@ namespace Kratos
         
     }
 
-    void ModelPartIO::DivideMeshDataBlock(OutputFilesContainerType& OutputFiles)
+	void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& NodesAllPartitions,
+		PartitionIndicesContainerType const& ElementsAllPartitions,
+		PartitionIndicesContainerType const& ConditionsAllPartitions)
+	{
+		KRATOS_ERROR << "This Method is not implemented yet!" << std::endl;
+	}
+
+
+
+	void ModelPartIO::DivideMeshDataBlock(OutputFilesContainerType& OutputFiles)
     {
         KRATOS_TRY
         std::string block;
@@ -3437,6 +3599,8 @@ namespace Kratos
     ModelPartIO& ModelPartIO::ReadBlock(std::string& Block, std::string const& BlockName)
     {
         Block.clear();
+		std::vector<std::string> nested_block_names;
+		nested_block_names.push_back(BlockName);
 
         char c = GetCharacter();
         std::string word;
@@ -3451,10 +3615,34 @@ namespace Kratos
                     word += c;
                     c = GetCharacter();
                 }
-                if(CheckEndBlock(BlockName, word))
-                    break;
+				if (CheckEndBlock(nested_block_names.back(), word))
+				{
+					nested_block_names.pop_back();
+					if(nested_block_names.empty())
+						break;
+				}
+
                 Block += word;
             }
+			else if (c == 'B')
+			{
+				word.clear();
+				while (!mFile.eof() && !IsWhiteSpace(c))
+				{
+					word += c;
+					c = GetCharacter();
+				}
+				if (word == "Begin")
+				{
+					Block += word;
+					ReadWord(word);
+					nested_block_names.push_back(word);
+
+					Block += word;
+				}
+					
+				Block += word;
+			}
 
             Block += c;
 
