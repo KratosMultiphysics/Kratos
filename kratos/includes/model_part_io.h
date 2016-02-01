@@ -395,7 +395,19 @@ protected:
     
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
-    void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
+	void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
+
+	void ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+	void ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+	void ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+	void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+	void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
+
+	void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
     void DivideTableBlock(OutputFilesContainerType& OutputFiles);
 
@@ -440,6 +452,11 @@ protected:
                                          PartitionIndicesContainerType const& NodesAllPartitions,
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions);
+
+	void DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& NodesAllPartitions,
+		PartitionIndicesContainerType const& ElementsAllPartitions,
+		PartitionIndicesContainerType const& ConditionsAllPartitions);
 
     void DivideMeshDataBlock(OutputFilesContainerType& OutputFiles);
 
