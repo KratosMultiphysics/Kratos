@@ -89,7 +89,24 @@ namespace Kratos
       ///@name Operators 
       ///@{
       
-      
+      /// string stream function
+      template<class StreamValueType>
+      KratosException& operator << (StreamValueType const& rValue)
+      {
+          std::stringstream buffer;
+          buffer << rValue;
+
+          append_message(buffer.str());
+
+          return *this;
+      }
+
+      /// Manipulator stream function
+    //  template<class StreamValueType>
+      KratosException& operator << (std::ostream& (*pf)(std::ostream&));
+      /// char stream function
+      KratosException& operator << (const char * rString);
+
       ///@}
       ///@name Operations
       ///@{
@@ -241,23 +258,23 @@ namespace Kratos
   //std::ostream& operator << (std::ostream& rOStream,
   //	  const KratosException& rThis);
 
-  /// string stream function
-  template<class StreamValueType>
-  KratosException operator << (KratosException& rThis, StreamValueType const& rValue)
-  {
-	  std::stringstream buffer;
-	  buffer << rValue;
-
-	  rThis.append_message(buffer.str());
-
-	  return rThis;
-  }
-
-  /// Manipulator stream function
+//  /// string stream function
 //  template<class StreamValueType>
-  KRATOS_API(KRATOS_CORE) KratosException operator << (KratosException& rThis, std::ostream& (*pf)(std::ostream&));
-  /// char stream function
-  KRATOS_API(KRATOS_CORE) KratosException operator << (KratosException& rThis, const char * rString);
+//  KratosException operator << (KratosException rThis, StreamValueType const& rValue)
+//  {
+//	  std::stringstream buffer;
+//	  buffer << rValue;
+
+//	  rThis.append_message(buffer.str());
+
+//	  return rThis;
+//  }
+
+//  /// Manipulator stream function
+////  template<class StreamValueType>
+//  KRATOS_API(KRATOS_CORE) KratosException operator << (KratosException rThis, std::ostream& (*pf)(std::ostream&));
+//  /// char stream function
+//  KRATOS_API(KRATOS_CORE) KratosException operator << (KratosException rThis, const char * rString);
 
   ///@}
 
