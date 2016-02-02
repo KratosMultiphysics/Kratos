@@ -183,6 +183,7 @@ void SmallStrainUPwDiffOrderElement::Initialize()
             break;
         default:
             KRATOS_THROW_ERROR(std::logic_error,"Unexpected geometry type for different order interpolation element","");
+            break;
     }
 
     KRATOS_CATCH( "" )

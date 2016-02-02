@@ -221,7 +221,7 @@ void SmallStrainUPwElement::CalculateMassMatrix( MatrixType& rMassMatrix, Proces
     KRATOS_TRY
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     const unsigned int number_of_nodes = rGeom.PointsNumber();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
 
@@ -735,7 +735,7 @@ void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rV
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
-    rVariables.B = ZeroMatrix( voigtsize, number_of_nodes * dimension );
+    rVariables.B = ZeroMatrix( voigtsize, number_of_nodes * dimension );    
     rVariables.StrainVector = ZeroVector( voigtsize );
     rVariables.ConstitutiveMatrix = ZeroMatrix( voigtsize, voigtsize );
     rVariables.StressVector = ZeroVector( voigtsize );
