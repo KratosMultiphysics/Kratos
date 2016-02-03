@@ -61,6 +61,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     mFluidFraction                          = node.FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
     const array_1d<double, 3>& fluid_vel    = node.FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
     const array_1d<double, 3>& particle_vel = node.FastGetSolutionStepValue(VELOCITY);
+    mLastTimeStep = 0.0;
 
     if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
         noalias(mSlipVel) = fluid_vel / mFluidFraction - particle_vel;
@@ -77,6 +78,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     array_1d<double, 3> virtual_mass_force;
     array_1d<double, 3> saffman_lift_force;
     array_1d<double, 3> magnus_lift_force;
+    array_1d<double, 3> brownian_motion_force;
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by additionally_applied_force here
@@ -87,10 +89,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeSaffmanLiftForce(saffman_lift_force, r_current_process_info);
     ComputeMagnusLiftForce(magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
+    ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
 
-    additionally_applied_force = drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force;
+    additionally_applied_force = drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
 
-    UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force);
+    UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force, r_current_process_info);
     
     //Now add the contribution of base class function (gravity or other forces added in upper levels):
     TBaseElement::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_current_process_info, gravity);
@@ -108,7 +111,8 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
                                                 const array_1d<double, 3>& drag_force,
                                                 const array_1d<double, 3>& virtual_mass_force,
                                                 const array_1d<double, 3>& saffman_lift_force,
-                                                const array_1d<double, 3>& magnus_lift_force)
+                                                const array_1d<double, 3>& magnus_lift_force,
+                                                ProcessInfo& r_current_process_info)
 {
     GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)      = hydrodynamic_force;
     GetGeometry()[0].FastGetSolutionStepValue(BUOYANCY)                = buoyancy;
@@ -127,6 +131,11 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
 
     if (mHasLiftForceNodalVar){
         GetGeometry()[0].FastGetSolutionStepValue(LIFT_FORCE)          = saffman_lift_force + magnus_lift_force;
+    }
+
+    if (mHasDragCoefficeintVar){
+        double drag_coefficient = ComputeDragCoefficient(r_current_process_info);
+        GetGeometry()[0].FastGetSolutionStepValue(DRAG_COEFFICIENT)    = drag_coefficient;
     }
 }
 
@@ -166,52 +175,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>
         return;
     }
 
-    else {
-
-        // calculating the 'dimensional' drag coefficient, i.e., the factor by which the slip velocity must be multiplied to yield the drag force
-        double drag_coeff;
-
-        if (mDragForceType == 1){
-            drag_coeff = ComputeStokesDragCoefficient();
-        }
-
-        else if (mDragForceType == 2){ // formulations of Haider (1989) and Chien (1994)
-            drag_coeff = ComputeWeatherfordDragCoefficient(r_current_process_info);
-        }
-
-        else if (mDragForceType == 3){ // formulation of Ganser (1993)
-            drag_coeff = ComputeGanserDragCoefficient(r_current_process_info);
-        }
-
-        else if (mDragForceType == 4){ // formulation of Ishii and Zuber (1979)
-            drag_coeff = ComputeIshiiDragCoefficient(r_current_process_info);
-        }
-
-        else if (mDragForceType == 5){ // Newton regime (Re ~ 1000 - 250000), formulation of Haider and Levenspiel (1989)
-            drag_coeff = ComputeNewtonRegimeDragCoefficient();
-        }
-
-        else if (mDragForceType == 6){ // Intermediate regime (Re ~ 0.5 - 1000), formulation of Schiller and Naumann (1933)
-            drag_coeff = ComputeIntermediateRegimeDragCoefficient();
-        }
-
-        else if (mDragForceType == 7){ // All regimes (Re ~ 0 - 250000), formulation of Haider and Levenspiel (1989)
-            drag_coeff = ComputeHaiderDragCoefficient();
-        }
-
-        else if (mDragForceType == 8){ // Intermediate regimes (Re ~ 0 - 1000), formulation of Beetstra et al. obtained using lattice-Boltzmann (2007)
-            drag_coeff = ComputeBeetstraDragCoefficient();
-        }
-
-        else if (mDragForceType == 9){ // Coin-shaped Stokesian
-            drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
-        }
-
-        else {
-            std::cout << "The integer value designating the drag coefficient calculation model" << std::endl;
-            std::cout << " (mDragForceType = " << mDragForceType << "), is not supported" << std::endl << std::flush;
-            return;
-        }
+    else { // calculating the 'dimensional' drag coefficient, i.e., the factor by which the slip velocity must be multiplied to yield the drag force
+        ProcessInfo const& const_current_process_info = r_current_process_info;
+        double drag_coeff = ComputeDragCoefficient(const_current_process_info);
 
         ApplyDragPorosityModification(drag_coeff);
 
@@ -384,6 +350,34 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<d
 
 }
 
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+template< class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info)
+{
+    if (mBrownianMotionType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
+        noalias(brownian_motion_force) = ZeroVector(3);
+
+        return;
+    }
+
+    else {
+        const double kT = 4.11e-21;
+        double current_time = r_current_process_info[TIME] ;
+        double delta_t_inv = 1.0 / (current_time - mLastTimeStep);
+        mLastTimeStep = current_time;
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(-0.5, 0.5);
+        double coeff = std::sqrt(24 * kT * 2 / KRATOS_M_PI * ComputeStokesDragCoefficient() * delta_t_inv);
+        brownian_motion_force[0] = coeff * dis(gen);
+        brownian_motion_force[1] = coeff * dis(gen);
+        brownian_motion_force[2] = coeff * dis(gen);
+    }
+}
+
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
@@ -438,6 +432,65 @@ void SphericSwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<d
             ComputeParticleReynoldsNumber(Output);
         }
     }
+
+    else if (rVariable == DRAG_COEFFICIENT){
+        Output = ComputeDragCoefficient(r_current_process_info);
+    }
+}
+
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template< class TBaseElement >
+double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const ProcessInfo& r_current_process_info)
+{
+    double drag_coeff;
+
+    if (mDragForceType == 1){
+        drag_coeff = ComputeStokesDragCoefficient();
+    }
+
+    else if (mDragForceType == 2){ // formulations of Haider (1989) and Chien (1994)
+        drag_coeff = ComputeWeatherfordDragCoefficient(r_current_process_info);
+    }
+
+    else if (mDragForceType == 3){ // formulation of Ganser (1993)
+        drag_coeff = ComputeGanserDragCoefficient(r_current_process_info);
+    }
+
+    else if (mDragForceType == 4){ // formulation of Ishii and Zuber (1979)
+        drag_coeff = ComputeIshiiDragCoefficient(r_current_process_info);
+    }
+
+    else if (mDragForceType == 5){ // Newton regime (Re ~ 1000 - 250000), formulation of Haider and Levenspiel (1989)
+        drag_coeff = ComputeNewtonRegimeDragCoefficient();
+    }
+
+    else if (mDragForceType == 6){ // Intermediate regime (Re ~ 0.5 - 1000), formulation of Schiller and Naumann (1933)
+        drag_coeff = ComputeIntermediateRegimeDragCoefficient();
+    }
+
+    else if (mDragForceType == 7){ // All regimes (Re ~ 0 - 250000), formulation of Haider and Levenspiel (1989)
+        drag_coeff = ComputeHaiderDragCoefficient();
+    }
+
+    else if (mDragForceType == 8){ // Intermediate regimes (Re ~ 0 - 1000), formulation of Beetstra et al. obtained using lattice-Boltzmann (2007)
+        drag_coeff = ComputeBeetstraDragCoefficient();
+    }
+
+    else if (mDragForceType == 9){ // Coin-shaped Stokesian
+        drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
+    }
+
+    else {
+        std::string message;
+        std::string first_part ("The integer value designating the drag coefficient calculation model.\n");
+        std::string second_part ("(mDragForceType) is not supported.");
+        message = first_part + second_part;
+        KRATOS_THROW_ERROR(std::invalid_argument, message, mDragForceType);
+    }
+
+    return drag_coeff;
 }
 
 //**************************************************************************************************************************************************
@@ -453,7 +506,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeStokesDragCoefficient()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(ProcessInfo& r_current_process_info)
+double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     KRATOS_TRY
 
@@ -623,7 +676,7 @@ double SphericSwimmingParticle<TBaseElement>::CalculateShahsTerm(double power_la
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(ProcessInfo& r_current_process_info)
+double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     KRATOS_TRY
 
@@ -656,7 +709,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(Proce
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(ProcessInfo& r_current_process_info)
+double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     double coeff = 0.45;
     double reynolds;
@@ -867,6 +920,7 @@ void SphericSwimmingParticle<TBaseElement>::CustomInitialize()
     mHasVirtualMassForceNodalVar = GetGeometry()[0].SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
     mHasLiftForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(LIFT_FORCE);
     mSphericity                  = GetGeometry()[0].SolutionStepsDataHas(PARTICLE_SPHERICITY);
+    mHasDragCoefficeintVar       = GetGeometry()[0].SolutionStepsDataHas(DRAG_COEFFICIENT);
 }
 
 //**************************************************************************************************************************************************
@@ -883,6 +937,7 @@ void SphericSwimmingParticle<TBaseElement>::AdditionalMemberDeclarationFirstStep
     mFluidModelType         = r_process_info[FLUID_MODEL_TYPE];
     mPorosityCorrectionType = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
     mHydrodynamicTorqueType = r_process_info[HYDRO_TORQUE_TYPE];
+    mBrownianMotionType     = 0;
 }
 
 //**************************************************************************************************************************************************
