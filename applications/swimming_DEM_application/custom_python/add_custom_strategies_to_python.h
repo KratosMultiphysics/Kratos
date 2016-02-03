@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson   $
+//   Last Modified by:    $Author: Guillermo Casas, gcasas@cimne.upc.edu  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
 //

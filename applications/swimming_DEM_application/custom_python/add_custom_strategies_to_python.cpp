@@ -76,7 +76,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 //schemes
-
+#include "solving_strategies/schemes/scheme.h"
+#include "../DEM_application/DEM_application.h"
+#include "../DEM_application/custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_strategies/schemes/terminal_velocity_scheme.h"
 
 //parallel strategies
 //#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
@@ -85,8 +88,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_strategies/schemes/mpi_foward_euler_scheme.h" //MPI CARLOS descomentar aixo
 
 //builder_and_solvers
-
-
 
 
 namespace Kratos
@@ -98,7 +99,8 @@ namespace Kratos
 
 		void  AddCustomStrategiesToPython()
 		{
-
+            class_< TerminalVelocityScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+            ("TerminalVelocityScheme", init<>());
 		  
            //MPI CARLOS decomentar de aqui....
 		  /*
