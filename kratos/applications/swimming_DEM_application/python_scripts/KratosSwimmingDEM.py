@@ -77,10 +77,12 @@ DEM_parameters.fluid_domain_volume                    = 2 * math.pi # write down
 ##############################################################################
 
 # NANO BEGIN
-pp.CFD_DEM.PostCationConcentration = True
-pp.initial_concentration = 0.5
-pp.final_concentration = 0.5
-pp.cation_concentration_frequence = 1000
+if pp.CFD_DEM.drag_force_type == 9:
+    pp.CFD_DEM.PostCationConcentration = True
+    pp.initial_concentration = 1.0
+    pp.final_concentration = 0.01
+    pp.fluid_speed = 1e-14
+    pp.cation_concentration_frequence = 1
 # NANO END
 
 # Import utilities from models
@@ -177,6 +179,9 @@ dem_fem_search = DEM_FEM_Search()
 # Creating a solver object and set the search strategy
 
 solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+
+if pp.CFD_DEM.drag_force_type == 9:
+    solver.time_integration_scheme = TerminalVelocityScheme()
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -555,7 +560,7 @@ particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_
 #G
 
 # NANO BEGIN
-cation_concentration_counter = swim_proc.Counter(pp.cation_concentration_frequence,1, 1)
+cation_concentration_counter = swim_proc.Counter(pp.cation_concentration_frequence,1, pp.CFD_DEM.drag_force_type == 9)
 # NANO END
 
 #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
@@ -596,12 +601,14 @@ swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_p
 
 
 # NANO BEGIN
-alpha = 1.0
-print(alpha)
-for node in spheres_model_part.Nodes:
-    node.SetSolutionStepValue(CATION_CONCENTRATION, pp.initial_concentration)
-# NANO END
+if pp.CFD_DEM.drag_force_type == 9:
+    alpha = 1000.0
 
+    for node in spheres_model_part.Nodes:
+        node.SetSolutionStepValue(CATION_CONCENTRATION, pp.initial_concentration)
+
+# NANO END
+post_utils.Writeresults(time)
 while (time <= final_time):
 
     time = time + Dt
@@ -631,7 +638,8 @@ while (time <= final_time):
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
 
-        fluid_solver.Solve()
+        if not pp.CFD_DEM.drag_force_type == 9:
+            fluid_solver.Solve()
 
     # assessing stationarity
 
@@ -699,7 +707,7 @@ while (time <= final_time):
         rigid_face_model_part.ProcessInfo[TIME] = time_dem
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
+        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static            
             solver.Solve()
 
         # Walls movement:
