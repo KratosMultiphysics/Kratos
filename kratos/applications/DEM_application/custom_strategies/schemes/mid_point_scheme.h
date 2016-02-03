@@ -2,7 +2,6 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-
 #if !defined(KRATOS_MID_POINT__SCHEME_H_INCLUDED )
 #define  KRATOS_MID_POINT__SCHEME_H_INCLUDED
 
@@ -21,457 +20,172 @@
 
 #include "DEM_application.h"
 
-namespace Kratos
-{
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+namespace Kratos {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  
-  class MidPointScheme :  public DEMIntegrationScheme
-    {
+    class MidPointScheme : public DEMIntegrationScheme {
     public:
-      ///@name Type Definitions
-      ///@{
-      
-      typedef ModelPart::NodesContainerType    NodesArrayType;
-      typedef ModelPart::ElementsContainerType ElementsArrayType;
-       
-	
-      /// Pointer definition of MidPointScheme
-      KRATOS_CLASS_POINTER_DEFINITION(MidPointScheme);
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      MidPointScheme(){}
+        ///@name Type Definitions
+        ///@{
 
-      /// Destructor.
-      virtual ~MidPointScheme(){}
-      
+        typedef ModelPart::NodesContainerType NodesArrayType;
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
+        /// Pointer definition of MidPointScheme
+        KRATOS_CLASS_POINTER_DEFINITION(MidPointScheme);
 
-     //NOTE: THIS IS NOT EXACTLY CENTRAL DIFFERENCES
-     
-     void Calculate(ModelPart& model_part)
-      {
-          ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
+        /// Default constructor.
 
-          CalculateTranslationalMotion(model_part);
+        MidPointScheme() {
+        }
 
-          if(rCurrentProcessInfo[ROTATION_OPTION]!=0)
-          {
-             CalculateRotationalMotion(model_part);
-          }
+        /// Destructor.
 
-      }
-    
-    void CalculateTranslationalMotion(ModelPart& model_part)
-    {  
-      
-    KRATOS_TRY
-        
-    //typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
-    //typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
-         
-	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
-        NodesArrayType& pNodes           = model_part.Nodes();
+        virtual ~MidPointScheme() {
+        }
 
- 	double delta_t      =  CurrentProcessInfo[DELTA_TIME];
-    double half_delta_t = 0.5 * delta_t;
-	array_1d<double, 3 > aux, vel_copy;
-    
-    vector<unsigned int> node_partition;
+        void AddSpheresVariables(ModelPart & r_model_part) {
 
-	#ifdef _OPENMP
-    int number_of_threads = omp_get_max_threads();
-    #else
-    int number_of_threads = 1;
-    #endif
-	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-	
-	#pragma omp parallel for private(aux) shared(delta_t) 
-	for(int k=0; k<number_of_threads; k++)
-	{
-	  NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-	  NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-	  {
+            DEMIntegrationScheme::AddSpheresVariables(r_model_part);
 
-        array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-        array_1d<double, 3 > & coor            = i->Coordinates();
-        array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
-        array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
+        }
 
-        double mass                           = i->FastGetSolutionStepValue(NODAL_MASS);
+        void AddClustersVariables(ModelPart & r_model_part) {
 
-	    noalias(aux)                          = (half_delta_t/ mass) * force;
-	    
-	   
-	    if( i->pGetDof(VELOCITY_X)->IsFixed() == false  )
-        {
-	         vel_copy[0]    = vel [0] + aux[0];
-              
-	         delta_displ[0]  = delta_t * vel_copy[0];
-              
-                 displ[0]   += delta_displ[0];
-              
-                 coor[0]   = initial_coor[0] + displ[0];
-              
-                 vel[0] += (delta_t/ mass) * force[0];
-	    }
+            DEMIntegrationScheme::AddClustersVariables(r_model_part);
 
-            else
-            {
-                                
-                displ[0]  += delta_displ[0];
-                
-                delta_displ[0] = delta_t * vel[0];
+        }
 
-                coor[0]   = initial_coor[0] + displ[0];
-            }
+        void UpdateTranslationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& coor,
+                array_1d<double, 3 >& displ,
+                array_1d<double, 3 >& delta_displ,
+                array_1d<double, 3 >& vel,
+                const array_1d<double, 3 >& initial_coor,
+                const array_1d<double, 3 >& force,
+                const double force_reduction_factor,
+                const double mass,
+                const double delta_t,
+                const bool Fix_vel[3]) {
 
-	    if( i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
-            {
-                vel_copy[1]    = vel [1] + aux[1];
-              
-                delta_displ[1]  = delta_t * vel_copy[1];
-              
-                 displ[1]   +=delta_displ[1];
-              
-                 coor[1]   = initial_coor[1] + displ[1];
-              
-                 vel[1] += (delta_t/ mass) * force[1];
-	    }
-
-            else
-            {
-                 
-                 displ[1]  += delta_displ[1];
-                 
-                 delta_displ[1] = delta_t * vel[1];
-                  
-                 coor[1]   = initial_coor[1] + displ[1];
-            }
-
-
-	    if( i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
-            {
-                vel_copy[2]    = vel [2] + aux[2];
-              
-                delta_displ[2]  = delta_t * vel_copy[2];
-              
-                 displ[2]   +=delta_displ[2];
-              
-                 coor[2]   = initial_coor[2] + displ[2];
-              
-                 vel[2] += (delta_t/ mass) * force[2];
-	    }    
-
-            else
-            {
-                displ[2]  += delta_displ[2]; 
-              
-                delta_displ[2] = delta_t * vel[2];    
-
-                coor[2]   = initial_coor[2] + displ[2];
-            }            
-	
-	    } //End nodes loop
-	  } //End openMP loop
-	  
-	  KRATOS_CATCH("")
-	}
-
-
-      void CalculateRotationalMotion(ModelPart& model_part)
-      {
-          KRATOS_TRY   
-
-                
-        ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-        NodesArrayType& pNodes           = model_part.Nodes();
-
-    
-    double delta_t =  rCurrentProcessInfo[DELTA_TIME];
-    double half_delta_t = 0.5 * delta_t;
-    array_1d<double, 3 > AngularVelAux;
-    
-     vector<unsigned int> node_partition;
-
-    #ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-    #else
-        int number_of_threads = 1;
-    #endif
-    OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
-    #pragma omp parallel for shared(delta_t)
-    for(int k=0; k<number_of_threads; k++)
-    {
-            NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-            NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-            {
-
-                double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-                double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
-
-                array_1d<double, 3 > & AngularVel             = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3 > & RotaMoment             = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                //array_1d<double, 3 > & delta_rotation_displ   = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
-                array_1d<double, 3 > & Rota_Displace          = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                array_1d<double, 3 > delta_rotation_displ;                   
-                //double & Orientation_real                     = i->FastGetSolutionStepValue(ORIENTATION_REAL); 
-                //array_1d<double, 3 > & Orientation_imag       = i->FastGetSolutionStepValue(ORIENTATION_IMAG);                
-                
-                bool If_Fix_Rotation[3] = {false, false, false};
-                If_Fix_Rotation[0] = i->pGetDof(ANGULAR_VELOCITY_X)->IsFixed();
-                If_Fix_Rotation[1] = i->pGetDof(ANGULAR_VELOCITY_Y)->IsFixed();
-                If_Fix_Rotation[2] = i->pGetDof(ANGULAR_VELOCITY_Z)->IsFixed();
-                
-                for(std::size_t iterator = 0 ; iterator < 3; iterator++)
-                {
-                    if(If_Fix_Rotation[iterator] == false)
-                    {
-                         double RotaAcc = 0.0;
-                         
-                         RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia);
-
-                         if(rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
-                         {
-                                  RotaAcc = RotaAcc * ( 1 - coeff );
-                         }
-                       
-                       
-                         AngularVelAux[iterator] = AngularVel[iterator] + RotaAcc * half_delta_t;
-                         
-                         delta_rotation_displ[iterator] = AngularVelAux[iterator] * delta_t;
-                         
-                         Rota_Displace[iterator] +=  delta_rotation_displ[iterator];  
-                         
-                         AngularVel[iterator] += RotaAcc * delta_t;
-      
-       
-                    }                   
-
-                    else
-                    {
-
-                        delta_rotation_displ[iterator]= 0.0;
-                                           
-                        /*
-                       *
-                       *
-                       *  implementation of fixed rotational motion.
-                       *
-                       *
-                       */
-
-                    }
-                    
-                    //RotaMoment[iterator] = 0.0;
+            for (int k = 0; k < 3; k++) {
+                if (Fix_vel[k] == false) {
+                    delta_displ[k] = delta_t * (vel [k] + (0.5 * delta_t / mass) * force[k]);
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
+                    vel[k] += (delta_t / mass) * force[k];
+                } else {
+                    delta_displ[k] = delta_t * vel[k];
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
                 }
-                
-                //double RotationAngle;
+            } // dimensions                                     
+
+        }
+
+        void UpdateRotationalVariables(
+                const Node < 3 > & i,
+                array_1d<double, 3 >& rotated_angle,
+                array_1d<double, 3 >& delta_rotation,
+                array_1d<double, 3 >& angular_velocity,
+                array_1d<double, 3 >& angular_acceleration,
+                const double delta_t,
+                const bool Fix_Ang_vel[3]) {
+
+            for (int k = 0; k < 3; k++) {
+                if (Fix_Ang_vel[k] == false) {
+                    delta_rotation[k] = delta_t * (angular_velocity[k] + (0.5 * delta_t * angular_acceleration[k]));
+                    rotated_angle[k] += delta_rotation[k];
+                    angular_velocity[k] += delta_t * angular_acceleration[k];
+                } else {
+                    delta_rotation[k] = angular_velocity[k] * delta_t;
+                    rotated_angle[k] += delta_rotation[k];
+                }
             }
         }
-        
-        KRATOS_CATCH(" ")
-        
-    }
-    
-    
-    
-    
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	std::stringstream buffer;
-        buffer << "MidPointScheme" ;
-        return buffer.str();
-      }
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "MidPointScheme";}
+        void CalculateLocalAngularAcceleration(
+                const Node < 3 > & i,
+                const double moment_of_inertia,
+                const array_1d<double, 3 >& torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& angular_acceleration) {
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
+            for (int j = 0; j < 3; j++) {
+                angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;
+            }
+        }
+
+        void CalculateLocalAngularAccelerationByEulerEquations(
+                const Node < 3 > & i,
+                const array_1d<double, 3 >& local_angular_velocity,
+                const array_1d<double, 3 >& moments_of_inertia,
+                const array_1d<double, 3 >& local_torque,
+                const double moment_reduction_factor,
+                array_1d<double, 3 >& local_angular_acceleration) {
+
+            for (int j = 0; j < 3; j++) {
+                local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
+                local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;
+            }
+        }
+
+        virtual std::string Info() const {
+            std::stringstream buffer;
+            buffer << "MidPointScheme";
+            return buffer.str();
+        }
+
+        /// Print information about this object.
+
+        virtual void PrintInfo(std::ostream& rOStream) const {
+            rOStream << "MidPointScheme";
+        }
+
+        /// Print object's data.
+
+        virtual void PrintData(std::ostream& rOStream) const {
+        }
+
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
+
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-     MidPointScheme& operator=(MidPointScheme const& rOther)
-     {
-       return *this;
-     }
 
-      /// Copy constructor.
-      MidPointScheme(MidPointScheme const& rOther)
-      {
-	*this = rOther;
-      }
+        /// Assignment operator.
 
-        
-      ///@}    
-        
-    }; // Class MidPointScheme
+        MidPointScheme& operator=(MidPointScheme const& rOther) {
+            return *this;
+        }
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    MidPointScheme& rThis){return rIStream;}
+        /// Copy constructor.
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const MidPointScheme& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+        MidPointScheme(MidPointScheme const& rOther) {
+            *this = rOther;
+        }
 
-      return rOStream;
+
+    };
+
+    /// input stream function
+
+    inline std::istream& operator>>(std::istream& rIStream,
+            MidPointScheme& rThis) {
+        return rIStream;
     }
-  ///@}
 
-  ///@} addtogroup block
-  
-}  // namespace Kratos.
+    /// output stream function
+
+    inline std::ostream& operator<<(std::ostream& rOStream,
+            const MidPointScheme& rThis) {
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
+
+        return rOStream;
+    }
+
+} // namespace Kratos.
 
 #endif // KRATOS_MID_POINT__SCHEME_H_INCLUDED  defined 
-
