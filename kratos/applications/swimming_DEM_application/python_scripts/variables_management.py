@@ -71,9 +71,7 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars = []
     pp.dem_vars += pp.dem_printing_vars
     pp.dem_vars += pp.coupling_dem_vars
-
-    if (pp.CFD_DEM.buoyancy_force_type > 0):
-        pp.dem_vars += [BUOYANCY]
+    pp.dem_vars += [BUOYANCY]
 
     if (pp.CFD_DEM.drag_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option):
         pp.dem_vars += [DRAG_FORCE]
@@ -150,7 +148,7 @@ def ConstructListsOfResultsToPrint(pp):
         if (pp.CFD_DEM.print_FLUID_VISCOSITY_PROJECTED_option):
             pp.dem_nodal_results += ["FLUID_VISCOSITY_PROJECTED"]
 
-        if (pp.CFD_DEM.print_BUOYANCY_option > 0):
+        if (pp.CFD_DEM.print_BUOYANCY_option):
             pp.dem_nodal_results += ["BUOYANCY"]
 
     if (pp.CFD_DEM.add_each_hydro_force_option):
@@ -163,9 +161,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if (pp.CFD_DEM.print_LIFT_FORCE_option):
             pp.dem_nodal_results += ["LIFT_FORCE"]
-    
-    pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
-    pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
+    if (pp.CFD_DEM.embedded_option):
+        pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
+        pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)
