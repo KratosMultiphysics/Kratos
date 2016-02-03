@@ -123,6 +123,7 @@ namespace Kratos
 	  /// The overide of the base class what method
 	  /** This method returns the entire message with where information
 	  */
+
       const char* what() const throw () /*noexcept*/; // Todo: I should change this after switching to c++11. Pooyan.
 
 	  const std::string& message() const;
