@@ -18,6 +18,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
+#include "custom_strategies/strategies/iterative_solver_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -90,6 +91,7 @@ namespace Kratos
         
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
+          typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
           
           class_< ExplicitSolverSettings, boost::noncopyable >
           (
@@ -106,15 +108,20 @@ namespace Kratos
           "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
-                  .def("PrepareElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareElementsForPrinting)
+                  .def("PrepareElementsForPrinting", &ExplicitSolverStrategyType::PrepareElementsForPrinting)
           ;
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
           "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                  .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
-                  .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  
+          
+          ;
+         
+          class_< IterativeSolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          (
+          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+                                
           
           ;
 
