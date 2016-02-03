@@ -12,21 +12,14 @@
 #include <cmath>
 #include "utilities/math_utils.h"
 
-// Project includes
-#include "includes/define.h"
-#include "includes/node.h"
-#include "includes/element.h"
-
 namespace Kratos
 {
 
 class PoromechanicsMathUtilities
 {
     
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 public:
-
+        
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     static inline double CalculateVonMises(const Vector& StressVector)
