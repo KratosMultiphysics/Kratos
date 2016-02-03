@@ -136,7 +136,7 @@ class DEM_FEM_Search : public SpatialSearch
       ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rElements.GetContainer());
       ConditionsContainerType::ContainerType& conditions_bins = const_cast<ConditionsContainerType::ContainerType&>(rConditions.GetContainer());
 
-      GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
+      //GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
       GeometricalObjectType::ContainerType BinsConditionPointerToGeometricalObjecPointerTemporalVector;
       RadiusArrayType Radius_out;
 
@@ -146,7 +146,7 @@ class DEM_FEM_Search : public SpatialSearch
       OpenMPUtils::CreatePartition(num_of_threads, elements_sear.size(), total_dem_partition_index);
       OpenMPUtils::CreatePartition(num_of_threads, conditions_bins.size(), total_fem_partition_index);
 
-      std::vector<GeometricalObjectType::ContainerType> Vector_SearElementPointerToGeometricalObjecPointerTemporalVector(num_of_threads);
+      //std::vector<GeometricalObjectType::ContainerType> Vector_SearElementPointerToGeometricalObjecPointerTemporalVector(num_of_threads);
       std::vector<GeometricalObjectType::ContainerType> Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector(num_of_threads);
 
       std::vector<array_1d<double, 3> > Vector_DEM_BB_LowPoint(num_of_threads); std::vector <array_1d<double, 3 > > Vector_DEM_BB_HighPoint(num_of_threads);
@@ -170,33 +170,36 @@ class DEM_FEM_Search : public SpatialSearch
       typedef ConditionsContainerType::ContainerType::iterator Cond_iter;
 
       //2. CALCULATE THE DEM BBX
-      #pragma omp parallel for
-      for (int k = 0; k < num_of_threads; k++) {
-        Elem_iter it_begin = elements_sear.begin() + total_dem_partition_index[k];
-        Elem_iter it_end   = elements_sear.begin() + total_dem_partition_index[k + 1];
-
+    
+      #pragma omp parallel 
+      {
+        
         array_1d<double, 3 > aux_coor;
-
-        for(std::size_t i = 0; i < 3; i++) {
-          Vector_DEM_BB_LowPoint[k][i]  = inf;
-          Vector_DEM_BB_HighPoint[k][i] = -inf;
-        }
-
         double radius = 0.0;
-
-        for(Elem_iter it = it_begin; it != it_end; it++) {
-          GeometryType &pGeometry = (*it)->GetGeometry();
-          aux_coor                = pGeometry[0].Coordinates();
-          radius                  = pGeometry[0].FastGetSolutionStepValue(RADIUS);
-          Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
-
-          for(std::size_t i = 0; i < 3; i++) {
-            Vector_DEM_BB_LowPoint[k][i]   = (Vector_DEM_BB_LowPoint[k][i] > aux_coor[i]) ? aux_coor[i] : Vector_DEM_BB_LowPoint[k][i];
-            Vector_DEM_BB_HighPoint[k][i]  = (Vector_DEM_BB_HighPoint[k][i] < aux_coor[i]) ? aux_coor[i] : Vector_DEM_BB_HighPoint[k][i];
-          }
+        int k = OpenMPUtils::ThisThread();
+      
+        for(std::size_t i = 0; i < 3; i++) {
+            Vector_DEM_BB_LowPoint[k][i]  = inf;
+            Vector_DEM_BB_HighPoint[k][i] = -inf;
         }
-      }
+            
+        #pragma omp for 
+        for (unsigned int p = 0; p < elements_sear.size(); p++) {
+          
+            Elem_iter it = elements_sear.begin() + p;
+            GeometryType &pGeometry = (*it)->GetGeometry();
+            aux_coor                = pGeometry[0].Coordinates();
+            radius                  = pGeometry[0].FastGetSolutionStepValue(RADIUS);
+            Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
 
+            for(std::size_t i = 0; i < 3; i++) {
+              Vector_DEM_BB_LowPoint[k][i]   = (Vector_DEM_BB_LowPoint[k][i] > aux_coor[i]) ? aux_coor[i] : Vector_DEM_BB_LowPoint[k][i];
+              Vector_DEM_BB_HighPoint[k][i]  = (Vector_DEM_BB_HighPoint[k][i] < aux_coor[i]) ? aux_coor[i] : Vector_DEM_BB_HighPoint[k][i];
+            }
+          } //pragma
+      }//pragma parallel
+
+      
       //3. GATHER DEM BOUNDING BOX
       for(int k = 0; k < num_of_threads; k++) {
         for(std::size_t i = 0; i < 3; i++) {
@@ -212,13 +215,13 @@ class DEM_FEM_Search : public SpatialSearch
         DEM_BB_HighPoint[i] += 1.00f * Global_Ref_Radius;
       }
 
-      //4. FIND THE FE INSIDE DEM_BB TO BUILD THE BINS AND CONSTRUCT THE GLOBAL BBX
-      #pragma omp parallel for
-      for(int k = 0; k < num_of_threads; k++){
-        Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].reserve(total_fem_partition_index[k+1]);
 
-        Cond_iter it_begin = conditions_bins.begin() + total_fem_partition_index[k];
-        Cond_iter it_end   = conditions_bins.begin() + total_fem_partition_index[k + 1];
+       //4. FIND THE FE INSIDE DEM_BB TO BUILD THE BINS AND CONSTRUCT THE GLOBAL BBX
+
+      #pragma omp parallel 
+      {
+        int k = OpenMPUtils::ThisThread();
+        Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].reserve(total_fem_partition_index[k+1]);
 
         for(std::size_t i = 0; i < 3; i++) {
           Vector_GLOBAL_BB_LowPoint[k][i]  = inf;
@@ -228,7 +231,11 @@ class DEM_FEM_Search : public SpatialSearch
         array_1d<double, 3> rHighPoint;
         array_1d<double, 3> rLowPoint;
 
-        for(ConditionsContainerType::ContainerType::iterator it = it_begin; it != it_end; it++){
+        #pragma omp for private(rHighPoint,rLowPoint)
+        for (unsigned int c = 0; c < conditions_bins.size(); c++) {
+        
+          Cond_iter it = conditions_bins.begin() + c;
+        
           GeometryType pGeometry = (*it)->GetGeometry();
           rLowPoint  = pGeometry[0];
           rHighPoint = pGeometry[0];
@@ -256,9 +263,10 @@ class DEM_FEM_Search : public SpatialSearch
             }
             Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].push_back(*it);
           }
-        }//Loop on Conditions
-      }//Loop on threads
-
+        }//parallel for
+        
+      }//parallel omp
+        
       //5. GATHER FEM ELEMENTS AND THE GLOBAL BBX
       int fem_total_size = 0;
       for(int k = 0; k < num_of_threads; k++) {
@@ -296,7 +304,7 @@ class DEM_FEM_Search : public SpatialSearch
         std::size_t                           NumberOfResults = 0;
 
         #pragma omp for
-        for (int p = 0; p < (int)elements_sear.size(); p++) {
+        for (unsigned int p = 0; p < elements_sear.size(); p++) {
          
           Elem_iter it = elements_sear.begin() + p;
                   
