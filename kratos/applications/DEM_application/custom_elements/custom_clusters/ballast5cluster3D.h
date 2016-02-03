@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_BALLAST2CLUSTER3D_H_INCLUDED )
-#define  KRATOS_BALLAST2CLUSTER3D_H_INCLUDED
+#if !defined(KRATOS_BALLAST5CLUSTER3D_H_INCLUDED )
+#define  KRATOS_BALLAST5CLUSTER3D_H_INCLUDED
 
 // System includes
 #include <string>
@@ -38,14 +38,14 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-    class Ballast2Cluster3D : public Cluster3D
+    class Ballast5Cluster3D : public Cluster3D
     {
     public:
       ///@name Type Definitions
       ///@{
       
       /// Pointer definition of Cluster3D
-        KRATOS_CLASS_POINTER_DEFINITION(Ballast2Cluster3D);
+        KRATOS_CLASS_POINTER_DEFINITION(Ballast5Cluster3D);
   
       ///@}
       ///@name Life Cycle
@@ -62,10 +62,10 @@ namespace Kratos
 //         {
 //         }
 //         
-        Ballast2Cluster3D( );
-        Ballast2Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
-        Ballast2Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
-        Ballast2Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+        Ballast5Cluster3D( );
+        Ballast5Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
+        Ballast5Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
+        Ballast5Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
         
@@ -93,7 +93,7 @@ namespace Kratos
       
    
       /// Destructor.
-        virtual ~Ballast2Cluster3D();
+        virtual ~Ballast5Cluster3D();
       
       /*
       virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -330,7 +330,7 @@ namespace Kratos
       ///@{    
       ///@}    
         
-    }; // Class Ballast2Cluster3D
+    }; // Class Ballast5Cluster3D
 
   ///@} 
   
@@ -345,11 +345,11 @@ namespace Kratos
  
   /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, 
-                    Ballast2Cluster3D& rThis);
+                    Ballast5Cluster3D& rThis);
 
   /// output stream function
     inline std::ostream& operator << (std::ostream& rOStream, 
-                    const Ballast2Cluster3D& rThis)
+                    const Ballast5Cluster3D& rThis)
     {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
@@ -363,4 +363,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BALLAST2CLUSTER3D_INCLUDED  defined
+#endif // KRATOS_BALLAST5CLUSTER3D_INCLUDED  defined
