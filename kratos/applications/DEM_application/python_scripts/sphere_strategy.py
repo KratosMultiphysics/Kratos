@@ -137,12 +137,15 @@ class ExplicitStrategy:
 
         # STRATEGIES
 
-        self.search_strategy = OMP_DEMSearch()            
-            
+        self.search_strategy = OMP_DEMSearch()
+
         if (Param.IntegrationScheme == 'Forward_Euler'):
             self.time_integration_scheme = ForwardEulerScheme()
         elif (Param.IntegrationScheme == 'Mid_Point_Rule'):
             self.time_integration_scheme = MidPointScheme()
+        elif (Param.IntegrationScheme == 'Newmark_Beta_Method'):
+            print(Param.IntegrationScheme)
+            self.time_integration_scheme = NewmarkBetaScheme(0.5, 0.25)
         else:
             print('scheme not defined')
 
