@@ -364,7 +364,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<
     }
 
     else {
-        const double kT = 4.11e-21;
+        noalias(brownian_motion_force) = ZeroVector(3);
+        /*const double kT = 4.11e-21;
         double current_time = r_current_process_info[TIME] ;
         double delta_t_inv = 1.0 / (current_time - mLastTimeStep);
         mLastTimeStep = current_time;
@@ -374,7 +375,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<
         double coeff = std::sqrt(24 * kT * 2 / KRATOS_M_PI * ComputeStokesDragCoefficient() * delta_t_inv);
         brownian_motion_force[0] = coeff * dis(gen);
         brownian_motion_force[1] = coeff * dis(gen);
-        brownian_motion_force[2] = coeff * dis(gen);
+        brownian_motion_force[2] = coeff * dis(gen);*/
     }
 }
 
