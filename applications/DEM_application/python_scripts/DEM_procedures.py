@@ -262,7 +262,7 @@ class Procedures(object):
 
         # Nano Particle
         model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION) #TODO: add this variable only if the nanoparticle is used
-
+        model_part.AddNodalSolutionStepVariable(DRAG_COEFFICIENT) #TODO: add this variable only if the nanoparticle is used
                     
         # ONLY VISUALIZATION
         if (Var_Translator(self.DEM_parameters.PostExportId)):
