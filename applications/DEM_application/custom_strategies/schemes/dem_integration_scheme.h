@@ -23,17 +23,15 @@
 
 namespace Kratos {
 
-    class DEMIntegrationScheme {
+    class KRATOS_DEMAPPLICATION_EXPORT_DLL DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
         KRATOS_CLASS_POINTER_DEFINITION(DEMIntegrationScheme);
 
-        DEMIntegrationScheme() {
-        }
+        DEMIntegrationScheme();
 
-        virtual ~DEMIntegrationScheme() {
-        }
+        virtual ~DEMIntegrationScheme();
 
         virtual void AddSpheresVariables(ModelPart & r_model_part);
         virtual void AddClustersVariables(ModelPart & r_model_part);

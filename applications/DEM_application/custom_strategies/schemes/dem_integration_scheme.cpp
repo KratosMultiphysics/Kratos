@@ -6,7 +6,10 @@
 #include "dem_integration_scheme.h"
 
 namespace Kratos {
-    
+
+    DEMIntegrationScheme::DEMIntegrationScheme(){}
+    DEMIntegrationScheme::~DEMIntegrationScheme(){}
+
     void DEMIntegrationScheme::AddSpheresVariables(ModelPart & r_model_part){
         
         r_model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -37,7 +40,7 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
         r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
     }
-    
+
     void DEMIntegrationScheme::UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part) { //must be done AFTER the translational motion!
 
         KRATOS_TRY
