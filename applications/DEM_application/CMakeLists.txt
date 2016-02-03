@@ -41,6 +41,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast2cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast3cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast4cluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast5cluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast6cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_CL.cpp
