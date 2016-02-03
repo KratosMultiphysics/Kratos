@@ -49,7 +49,8 @@ namespace Kratos
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
         void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
         void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-        void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);      
+        void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
+        using SphericParticle::ComputeNewNeighboursHistoricalData; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
         void ComputeNewNeighboursHistoricalData(std::vector<unsigned int>&                  mTempNeighboursIds, 
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
