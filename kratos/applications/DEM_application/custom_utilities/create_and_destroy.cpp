@@ -279,9 +279,14 @@ namespace Kratos {
             pnew_node->Set(BLOCKED);
         }
         else {
+            array_1d<double, 3 > zero_vector(3, 0.0);
             Kratos::SphericParticle* injector_spheric_particle = dynamic_cast<Kratos::SphericParticle*> (injector_element.get());
             injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
+            injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+            injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
             spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
+            spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+            spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
         }
 
         p_particle->Set(NEW_ENTITY);
@@ -455,10 +460,16 @@ namespace Kratos {
             
             Kratos::SphericParticle* injector_spheric_particle = dynamic_cast<Kratos::SphericParticle*> (injector_element.get());
             
+            array_1d<double, 3 > zero_vector(3, 0.0);
+            
             for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) { 
                 Kratos::SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
+                injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
+                spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+                spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
                 spheric_p_particle->Set(NEW_ENTITY);
                 spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
                 //spheric_p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());  //protected!!
