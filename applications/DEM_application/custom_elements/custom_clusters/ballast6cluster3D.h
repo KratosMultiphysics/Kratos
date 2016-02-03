@@ -1,13 +1,13 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: Salva $
-//   Date:                $Date: 2014-09-25 16:07:33 $
+//   Last Modified by:    $Author: Joaquín $
+//   Date:                $Date: 2016-01-26 15:00:00 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
 //
 
-#if !defined(KRATOS_BALLAST2CLUSTER3D_H_INCLUDED )
-#define  KRATOS_BALLAST2CLUSTER3D_H_INCLUDED
+#if !defined(KRATOS_BALLAST6CLUSTER3D_H_INCLUDED )
+#define  KRATOS_BALLAST6CLUSTER3D_H_INCLUDED
 
 // System includes
 #include <string>
@@ -38,14 +38,14 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-    class Ballast2Cluster3D : public Cluster3D
+    class Ballast6Cluster3D : public Cluster3D
     {
     public:
       ///@name Type Definitions
       ///@{
       
       /// Pointer definition of Cluster3D
-        KRATOS_CLASS_POINTER_DEFINITION(Ballast2Cluster3D);
+        KRATOS_CLASS_POINTER_DEFINITION(Ballast6Cluster3D);
   
       ///@}
       ///@name Life Cycle
@@ -62,10 +62,10 @@ namespace Kratos
 //         {
 //         }
 //         
-        Ballast2Cluster3D( );
-        Ballast2Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
-        Ballast2Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
-        Ballast2Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+        Ballast6Cluster3D( );
+        Ballast6Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
+        Ballast6Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
+        Ballast6Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
         
@@ -93,7 +93,7 @@ namespace Kratos
       
    
       /// Destructor.
-        virtual ~Ballast2Cluster3D();
+        virtual ~Ballast6Cluster3D();
       
       /*
       virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -330,7 +330,7 @@ namespace Kratos
       ///@{    
       ///@}    
         
-    }; // Class Ballast2Cluster3D
+    }; // Class Ballast6Cluster3D
 
   ///@} 
   
@@ -345,11 +345,11 @@ namespace Kratos
  
   /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, 
-                    Ballast2Cluster3D& rThis);
+                    Ballast6Cluster3D& rThis);
 
   /// output stream function
     inline std::ostream& operator << (std::ostream& rOStream, 
-                    const Ballast2Cluster3D& rThis)
+                    const Ballast6Cluster3D& rThis)
     {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
@@ -363,4 +363,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BALLAST2CLUSTER3D_INCLUDED  defined
+#endif // KRATOS_BALLAST6CLUSTER3D_INCLUDED  defined
