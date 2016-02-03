@@ -63,16 +63,13 @@ namespace Kratos
 
           class_<DEMIntegrationScheme, boost::noncopyable >
                     ("DEMIntegrationScheme", init< >())
-                  ;
-
-          class_<ParticleCreatorDestructor, boost::noncopyable >
-                    ("ParticleCreatorDestructor", init<>())
+            .def("AddSpheresVariables",&DEMIntegrationScheme::AddSpheresVariables)
+            .def("AddClustersVariables",&DEMIntegrationScheme::AddClustersVariables)
                   ;
 
           class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
-                    "ForwardEulerScheme", init<>()
-                  )
+                    "ForwardEulerScheme", init<>() )            
                   ;
 
           class_< MidPointScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>

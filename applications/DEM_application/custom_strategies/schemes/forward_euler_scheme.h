@@ -33,6 +33,10 @@ namespace Kratos {
 
         /// Destructor.
         virtual ~ForwardEulerScheme() {}
+        
+        void AddSpheresVariables(ModelPart & r_model_part);
+    
+        void AddClustersVariables(ModelPart & r_model_part);
 
         void UpdateTranslationalVariables(
             const Node < 3 > & i,

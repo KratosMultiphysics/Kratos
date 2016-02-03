@@ -35,6 +35,9 @@ namespace Kratos {
         virtual ~DEMIntegrationScheme() {
         }
 
+        virtual void AddSpheresVariables(ModelPart & r_model_part);
+        virtual void AddClustersVariables(ModelPart & r_model_part);
+        
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part);         
         virtual void Calculate(ModelPart& model_part);
         virtual void UpdateTranslationalVariables(

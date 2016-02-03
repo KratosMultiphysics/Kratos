@@ -7,6 +7,37 @@
 
 namespace Kratos {
     
+    void DEMIntegrationScheme::AddSpheresVariables(ModelPart & r_model_part){
+        
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
+        r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);   
+        
+        r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA); 
+        r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
+        r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
+        r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
+        r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);         
+    }
+    
+    void DEMIntegrationScheme::AddClustersVariables(ModelPart & r_model_part){
+        
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
+        r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);     
+        
+        r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA); 
+        r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
+        r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
+        r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
+        r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
+        r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
+    }
+    
     void DEMIntegrationScheme::UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part) { //must be done AFTER the translational motion!
 
         KRATOS_TRY
