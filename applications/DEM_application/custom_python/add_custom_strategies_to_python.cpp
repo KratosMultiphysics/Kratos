@@ -30,6 +30,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
+#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/mid_point_scheme.h"
 
@@ -71,6 +72,12 @@ namespace Kratos
           class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "ForwardEulerScheme", init<>() )            
+                  ;
+
+          class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+          (
+                    "NewmarkBetaScheme", init<const double, const double>()
+                  )
                   ;
 
           class_< MidPointScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
@@ -115,6 +122,11 @@ namespace Kratos
           (
           "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  
+          ;
+         
+          class_< IterativeSolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          (
+          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
           
           ;
          
