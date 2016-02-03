@@ -46,6 +46,8 @@
 #include "custom_elements/custom_clusters/ballast2cluster3D.h"
 #include "custom_elements/custom_clusters/ballast3cluster3D.h"
 #include "custom_elements/custom_clusters/ballast4cluster3D.h"
+#include "custom_elements/custom_clusters/ballast5cluster3D.h"
+#include "custom_elements/custom_clusters/ballast6cluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
@@ -224,6 +226,8 @@ private:
     const Ballast2Cluster3D  mBallast2Cluster3D;
     const Ballast3Cluster3D  mBallast3Cluster3D;
     const Ballast4Cluster3D  mBallast4Cluster3D;
+    const Ballast5Cluster3D  mBallast5Cluster3D;
+    const Ballast6Cluster3D  mBallast6Cluster3D;
     const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
