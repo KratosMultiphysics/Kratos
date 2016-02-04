@@ -560,7 +560,12 @@ particles_results_counter    = swim_proc.Counter(DEM_parameters.print_particles_
 #G
 
 # NANO BEGIN
-cation_concentration_counter = swim_proc.Counter(pp.cation_concentration_frequence,1, pp.CFD_DEM.drag_force_type == 9)
+frequence = 1
+
+if DEM_parameters.ElementType == "SwimmingNanoParticle":
+    frequence = pp.cation_concentration_frequence
+
+cation_concentration_counter = swim_proc.Counter(frequence, 1, pp.CFD_DEM.drag_force_type == 9)
 # NANO END
 
 #fluid_model_part.AddNodalSolutionStepVariable(BODY_FORCE)
@@ -721,7 +726,10 @@ while (time <= final_time):
         if (DEM_parameters.dem_inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
         #first_dem_iter = False
-    print("concentration: " + str(concentration))
+
+    if DEM_parameters.ElementType == "SwimmingNanoParticle":
+        print("concentration: " + str(concentration))
+
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
