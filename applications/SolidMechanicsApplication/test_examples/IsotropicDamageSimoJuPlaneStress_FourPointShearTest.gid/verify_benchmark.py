@@ -8,13 +8,13 @@ import benchmarking
 
 
 def Run():
-    print("Running scordelis low roof")
-    return benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
+    print("Running Benchmark")
+    return benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
 
 if __name__ == '__main__':
-    success, Msg = Run()
-    if(Msg):
+    success,Msg = Run()
+    if(success):
         print("Test successful")
     else:
         print("Test failed")
-        print(Msg)
+        print(success)

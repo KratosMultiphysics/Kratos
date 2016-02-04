@@ -2,7 +2,7 @@
 # Importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from beam_sections_python_utility import SetProperties
+#from beam_sections_python_utility import SetProperties
 def AssignMaterial(Properties):
 # GUI property identifier: Property1
 # GUI material identifier: Concrete

@@ -4,5 +4,5 @@ kratos_benchmarking_path = '../../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 import benchmarking
 
-print("Building reference data for Shell T3 Thin Bending RollUp")
+print("Building reference data")
 benchmarking.BuildReferenceData("run_test.py", "benchmark_results.txt")
