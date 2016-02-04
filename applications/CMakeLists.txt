@@ -69,7 +69,7 @@ if(${STRUCTURAL_APPLICATION} MATCHES ON)
 endif(${STRUCTURAL_APPLICATION} MATCHES ON)
 
 if(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
-  add_subdirectory(structural_mechanics_application)
+  add_subdirectory(StructuralMechanicsApplication)
 endif(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
 
 if(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
