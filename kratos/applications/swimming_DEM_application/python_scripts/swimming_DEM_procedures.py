@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
+import numpy as np
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -8,8 +9,6 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
-
-import sphere_strategy as SolverStrategy
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
@@ -85,6 +84,13 @@ def TransferFacePressuresToPressure(model_part):
     for node in model_part.Nodes:
         total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
         node.SetSolutionStepValue(PRESSURE, total_pressure)         
+
+def FindClosestNode(model_part, coors):
+     coors = np.asarray(coors)
+     coors_nodes = np.asarray([[node.X, node.Y, node.Z] for node in model_part.Nodes])
+     nodes = [node for node in model_part.Nodes]
+     dist_2 = np.sum((coors_nodes - coors) ** 2, axis = 1)
+     return nodes[np.ndarray.argmin(dist_2)]
 
 class FluidFractionFieldUtility:
 
