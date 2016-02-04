@@ -1,0 +1,534 @@
+BOOK:Dirichlet_Boundary_Conditions
+NUMBER: 1 CONDITION: point_Solid_Displacement
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: SOLID_DISPLACEMENT_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 2 CONDITION: line_Solid_Displacement
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: SOLID_DISPLACEMENT_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 3 CONDITION: surface_Solid_Displacement
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: SOLID_DISPLACEMENT_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 4 CONDITION: volume_Solid_Displacement
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: SOLID_DISPLACEMENT_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+QUESTION: SOLID_DISPLACEMENT_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 5 CONDITION: point_Temperature
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Temperature_Distribution#CB#(Uniform)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)
+QUESTION: Temperature_Value
+VALUE: 20
+HELP: Units: ºC
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Z
+QUESTION: Coordinate_at_Base_Dam
+VALUE: 0.0
+HELP: Coordinate at the base of the dam. Units: m
+QUESTION: Surface_Temp
+VALUE: 15
+HELP: Mean annual water temperature at the surface. Units ºC
+QUESTION: Bottom_Temp
+VALUE: 9
+HELP: Mean annual water temperature at the bottom of reservoir. Units ºC
+QUESTION: Height_Dam
+VALUE: 0.0
+HELP: Height of the dam. Units m
+QUESTION: Temperature_Amplitude
+VALUE: 6
+HELP: Annual water temperature amplitude at the surface. Units ºC
+QUESTION: Angular_Frequency
+VALUE: 0.5235987756
+HELP: Angular frequency of the water temperature cycle. Units month-1
+QUESTION: Day_Ambient_Temp
+VALUE: 201
+HELP: Day at which ambient temperature is at maximum. Units days
+QUESTION: Fixed_Temperature#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 6 CONDITION: line_Temperature
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Temperature_Distribution#CB#(Uniform,Bofang)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)(Bofang,HIDE,Temperature_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Surface_Temp,#CURRENT#,RESTORE,Bottom_Temp,#CURRENT#,RESTORE,Height_Dam,#CURRENT#,RESTORE,Temperature_Amplitude,#CURRENT#,RESTORE,Angular_Frequency,#CURRENT#,RESTORE,Day_Ambient_Temp,#CURRENT#)
+QUESTION: Temperature_Value
+VALUE: 20
+HELP: Units: ºC
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Z
+QUESTION: Coordinate_at_Base_Dam
+VALUE: 0.0
+HELP: Coordinate at the base of the dam. Units: m
+QUESTION: Surface_Temp
+VALUE: 15
+HELP: Mean annual water temperature at the surface. Units ºC
+QUESTION: Bottom_Temp
+VALUE: 9
+HELP: Mean annual water temperature at the bottom of reservoir. Units ºC
+QUESTION: Height_Dam
+VALUE: 0.0
+HELP: Height of the dam. Units m
+QUESTION: Temperature_Amplitude
+VALUE: 6
+HELP: Annual water temperature amplitude at the surface. Units ºC
+QUESTION: Angular_Frequency
+VALUE: 0.5235987756
+HELP: Angular frequency of the water temperature cycle. Units month-1
+QUESTION: Day_Ambient_Temp
+VALUE: 201
+HELP: Day at which ambient temperature is at maximum. Units days
+QUESTION: Fixed_Temperature#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 7 CONDITION: surface_Temperature
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Temperature_Distribution#CB#(Uniform,Bofang)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)(Bofang,HIDE,Temperature_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Surface_Temp,#CURRENT#,RESTORE,Bottom_Temp,#CURRENT#,RESTORE,Height_Dam,#CURRENT#,RESTORE,Temperature_Amplitude,#CURRENT#,RESTORE,Angular_Frequency,#CURRENT#,RESTORE,Day_Ambient_Temp,#CURRENT#)
+QUESTION: Temperature_Value
+VALUE: 20
+HELP: Units: ºC
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Z
+QUESTION: Coordinate_at_Base_Dam
+VALUE: 0.0
+HELP: Coordinate at the base of the dam. Units: m
+QUESTION: Surface_Temp
+VALUE: 15
+HELP: Mean annual water temperature at the surface. Units ºC
+QUESTION: Bottom_Temp
+VALUE: 9
+HELP: Mean annual water temperature at the bottom of reservoir. Units ºC
+QUESTION: Height_Dam
+VALUE: 0.0
+HELP: Height of the dam. Units m
+QUESTION: Temperature_Amplitude
+VALUE: 6
+HELP: Annual water temperature amplitude at the surface. Units ºC
+QUESTION: Angular_Frequency
+VALUE: 0.5235987756
+HELP: Angular frequency of the water temperature cycle. Units month-1
+QUESTION: Day_Ambient_Temp
+VALUE: 201
+HELP: Day at which ambient temperature is at maximum. Units days
+QUESTION: Fixed_Temperature#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+NUMBER: 8 CONDITION: volume_Temperature
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Temperature_Distribution#CB#(Uniform)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)
+QUESTION: Temperature_Value
+VALUE: 20
+HELP: Units: ºC
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Z
+QUESTION: Coordinate_at_Base_Dam
+VALUE: 0.0
+HELP: Coordinate at the base of the dam. Units: m
+QUESTION: Surface_Temp
+VALUE: 15
+HELP: Mean annual water temperature at the surface. Units ºC
+QUESTION: Bottom_Temp
+VALUE: 9
+HELP: Mean annual water temperature at the bottom of reservoir. Units ºC
+QUESTION: Height_Dam
+VALUE: 0.0
+HELP: Height of the dam. Units m
+QUESTION: Temperature_Amplitude
+VALUE: 6
+HELP: Annual water temperature amplitude at the surface. Units ºC
+QUESTION: Angular_Frequency
+VALUE: 0.5235987756
+HELP: Angular frequency of the water temperature cycle. Units month-1
+QUESTION: Day_Ambient_Temp
+VALUE: 201
+HELP: Day at which ambient temperature is at maximum. Units days
+QUESTION: Fixed_Temperature#CB#(1,0)
+VALUE: 1
+HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
+END CONDITION
+BOOK:Other_Conditions
+NUMBER: 9 CONDITION: point_Point_Load
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: POINT_LOAD_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: POINT_LOAD_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: POINT_LOAD_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS for a 2D case: N/m. Units in IS for a 3D case: N
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 10 CONDITION: line_Line_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: LINE_LOAD_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m2.
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: LINE_LOAD_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m2.
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: LINE_LOAD_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m2.
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 11 CONDITION: Line_Normal_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: LINE_NORMAL_LOAD#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Value,0.0,HIDE,Fix_Normal,0)(1,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Value,#CURRENT#,RESTORE,Fix_Normal,1)
+QUESTION: Normal_Load_Distribution#CB#(Uniform,Hydrostatic)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Normal_Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
+QUESTION: Normal_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m2. A positive value corresponds to a compressive load.
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Y
+QUESTION: Coordinate_at_Base_Dam
+VALUE: 0.0
+HELP: Coordinate of the chosen direction at which the load is 0.
+QUESTION: Specific_Weight
+VALUE: 10000
+HELP: Only for 2D cases. Units in IS: N/m3. A positive value leads to a compressive load.
+QUESTION: Fix_Normal#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: LINE_TANGENTIAL_LOAD#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,HIDE,Tangential_Value,0.0,HIDE,Fix_Tangential,0)(1,RESTORE,Tangential_Value,#CURRENT#,RESTORE,Fix_Tangential,1)
+QUESTION: Tangential_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m2.
+QUESTION: Fix_Tangential#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 12 CONDITION: Surface_Normal_Load
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Load_Distribution#CB#(Uniform,Hydrostatic)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
+QUESTION: Value
+VALUE: 0.0
+HELP: Units in IS: N/m2. A positive value corresponds to a compressive load.
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Y
+QUESTION: Coordinate_at_Base_Dam
+VALUE: 0.0
+HELP: Coordinate of the chosen direction at which the load is 0.
+QUESTION: Specific_Weight
+VALUE: 10000
+HELP: Units in IS: N/m3. A positive value leads to a compressive load.
+QUESTION: Fixed#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 13 CONDITION: surface_Surface_Load
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: SURFACE_LOAD_X#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: N/m2.
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: SURFACE_LOAD_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: N/m2.
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: SURFACE_LOAD_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: N/m2.
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 14 CONDITION: surface_Thermal_Conditions
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Conductivity_Value
+VALUE: 1.0
+HELP: Units: W/(m·K)
+QUESTION: Fixed_Conductivity#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: Specific_Heat_Value
+VALUE: 1000
+HELP: Value of the specific heat capacity. Units: J/(kg·K)
+QUESTION: Fixed_Specific_Heat#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: Nodal_Density_Value
+VALUE: 2500
+HELP: Nodal density used for the thermal problem. Units: kg/m3
+QUESTION: Fixed_Nodal_Density#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 15 CONDITION: volume_Thermal_Conditions
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: Conductivity_Value
+VALUE: 1.0
+HELP: Units: W/(m·K)
+QUESTION: Fixed_Conductivity#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: Specific_Heat_Value
+VALUE: 1000
+HELP: Value of the specific heat capacity. Units: J/(kg·K)
+QUESTION: Fixed_Specific_Heat#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+QUESTION: Nodal_Density_Value
+VALUE: 2500
+HELP: Nodal density used for the thermal problem. Units: kg/m3
+QUESTION: Fixed_Nodal_Density#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 16 CONDITION: surface_Body_Acceleration
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: BODY_ACCELERATION_X#CB#(1,0)
+VALUE: 0
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m/s2
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+QUESTION: BODY_ACCELERATION_Y#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: -10.0
+HELP: Units in IS: m/s2
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+QUESTION: BODY_ACCELERATION_Z#CB#(1,0)
+VALUE: 0
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m/s2
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+END CONDITION
+NUMBER: 17 CONDITION: volume_Body_Acceleration
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
+QUESTION: BODY_ACCELERATION_X#CB#(1,0)
+VALUE: 0
+DEPENDENCIES: (0,SET,X_Value,0.0,SET,Fix_X,0)(1,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,1)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m/s2
+QUESTION: Fix_X#CB#(1,0)
+VALUE: 1
+QUESTION: BODY_ACCELERATION_Y#CB#(1,0)
+VALUE: 0
+DEPENDENCIES: (0,SET,Y_Value,0.0,SET,Fix_Y,0)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,1)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m/s2
+QUESTION: Fix_Y#CB#(1,0)
+VALUE: 1
+QUESTION: BODY_ACCELERATION_Z#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (0,SET,Z_Value,0.0,SET,Fix_Z,0)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,1)
+QUESTION: Z_Value
+VALUE: -10.0
+HELP: Units in IS: m/s2
+QUESTION: Fix_Z#CB#(1,0)
+VALUE: 1
+END CONDITION
+BOOK:Elements
+NUMBER: 18 CONDITION: Triangles
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+END CONDITION
+NUMBER: 19 CONDITION: Quadrilaterals
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+END CONDITION
+NUMBER: 20 CONDITION: Tetrahedra
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+END CONDITION
+NUMBER: 21 CONDITION: Hexahedra
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+END CONDITION

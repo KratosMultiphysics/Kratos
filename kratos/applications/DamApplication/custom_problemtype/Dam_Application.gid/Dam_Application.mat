@@ -1,0 +1,21 @@
+NUMBER: 1 MATERIAL: Concrete
+QUESTION: Type#CB#(Elastic)
+VALUE: Elastic
+QUESTION: Constitutive_Law_Name#CB#(LinearElastic2DPlaneStress,LinearElastic2DPlaneStrain,LinearElastic3D,ThermalLinearElastic2DPlaneStress,ThermalLinearElastic2DPlaneStrain,,ThermalLinearElastic3D)
+VALUE: ThermalLinearElastic2DPlaneStrain
+DEPENDENCIES: (LinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,10e-5)(LinearElastic2DPlaneStrain,HIDE,Thickness,1,HIDE,Thermal_Expansion_Coefficient,10e-5)(LinearElastic3D,HIDE,Thickness,#CURRENT#,HIDE,Thermal_Expansion_Coefficient,10e-5)(ThermalLinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic2DPlaneStrain,HIDE,Thickness,1,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)(ThermalLinearElastic3D,HIDE,Thickness,#CURRENT#,RESTORE,Thermal_Expansion_Coefficient,#CURRENT#)
+QUESTION: Young_Modulus
+VALUE: 35.0e9
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Density
+VALUE: 2500
+HELP: Units in IS: Kg/m3
+QUESTION: Thickness
+VALUE: 1
+HELP: Units in IS: m
+QUESTION: Thermal_Expansion_Coefficient
+VALUE: 10e-5
+HELP: Units in IS: ºC-1
+END MATERIAL
