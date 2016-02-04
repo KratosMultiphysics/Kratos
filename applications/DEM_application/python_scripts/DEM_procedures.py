@@ -261,8 +261,9 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
 
         # Nano Particle
-        model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION) #TODO: add this variable only if the nanoparticle is used
-        model_part.AddNodalSolutionStepVariable(DRAG_COEFFICIENT) #TODO: add this variable only if the nanoparticle is used
+        if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
+            model_part.AddNodalSolutionStepVariable(CATION_CONCENTRATION)
+            model_part.AddNodalSolutionStepVariable(DRAG_COEFFICIENT)
                     
         # ONLY VISUALIZATION
         if (Var_Translator(self.DEM_parameters.PostExportId)):
@@ -1025,8 +1026,10 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
+
         # NANO
-        self.PushPrintVar(self.PostHeatFlux,         CATION_CONCENTRATION,        self.spheres_variables)
+        if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
+            self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
