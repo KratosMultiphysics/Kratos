@@ -378,6 +378,15 @@ QuadrilateralGaussLegendreIntegrationPoints5::msIntegrationPoints =
 
 //Gauss-Lobatto
 
+QuadrilateralGaussLobattoIntegrationPoints1::IntegrationPointsArrayType
+QuadrilateralGaussLobattoIntegrationPoints1::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( -1.00 , 0.00, 1.00 ),
+		IntegrationPointType(  1.00 , 0.00, 1.00 )
+	}
+};
+
 QuadrilateralGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
 QuadrilateralGaussLobattoIntegrationPoints2::msIntegrationPoints =
 {
@@ -606,6 +615,16 @@ PrismGaussLegendreIntegrationPoints5::msIntegrationPoints=
 
 //Gauss-Lobatto
 
+PrismGaussLobattoIntegrationPoints1::IntegrationPointsArrayType
+PrismGaussLobattoIntegrationPoints1::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( 0.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
+		IntegrationPointType( 1.0 , 0.0 , 0.5 , 1.00 / 6.00 ),
+		IntegrationPointType( 0.0 , 1.0 , 0.5 , 1.00 / 6.00 )
+	}
+};
+
 PrismGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
 PrismGaussLobattoIntegrationPoints2::msIntegrationPoints =
 {
@@ -689,6 +708,17 @@ HexahedronGaussLegendreIntegrationPoints3::msIntegrationPoints =
 };
 
 //Gauss-Lobatto
+
+HexahedronGaussLobattoIntegrationPoints1::IntegrationPointsArrayType
+HexahedronGaussLobattoIntegrationPoints1::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( -1.00 , -1.00, 0.00, 1.00 ),
+		IntegrationPointType(  1.00 , -1.00, 0.00, 1.00 ),
+		IntegrationPointType(  1.00 ,  1.00, 0.00, 1.00 ),
+		IntegrationPointType( -1.00 ,  1.00, 0.00, 1.00 )
+	}
+};
 
 HexahedronGaussLobattoIntegrationPoints2::IntegrationPointsArrayType
 HexahedronGaussLobattoIntegrationPoints2::msIntegrationPoints =
