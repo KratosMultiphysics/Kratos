@@ -168,7 +168,7 @@ class ConditionsUtility:
                     ImposedLineLoad[1] = 0
                 node.SetSolutionStepValue(IMPOSED_LINE_LOAD, ImposedLineLoad)
         '''
-
+        
         #Soil column problem cyclic load (2D)
         '''
         current_time = current_step*self.delta_time
@@ -178,4 +178,24 @@ class ConditionsUtility:
             if(node.IsFixed(LINE_LOAD_Y)):
                 LineLoad[1] = ImposedLoad
             node.SetSolutionStepValue(LINE_LOAD, LineLoad)
+        '''
+        
+        #Soil foundation problem step load (3D)
+        '''
+        if(current_step==1):
+            for node in model_part.Nodes:
+                ImposedSurfaceLoad = node.GetSolutionStepValue(IMPOSED_SURFACE_LOAD)
+                SurfaceLoad = node.GetSolutionStepValue(SURFACE_LOAD)
+                if(node.IsFixed(SURFACE_LOAD_Z)):
+                    ImposedSurfaceLoad[2] = -2000
+                    SurfaceLoad[2] = 0
+                node.SetSolutionStepValue(IMPOSED_SURFACE_LOAD, ImposedSurfaceLoad)
+                node.SetSolutionStepValue(SURFACE_LOAD, SurfaceLoad)
+
+        if(current_step==6):
+            for node in model_part.Nodes:
+                ImposedSurfaceLoad = node.GetSolutionStepValue(IMPOSED_SURFACE_LOAD)
+                if(node.IsFixed(SURFACE_LOAD_Z)):
+                    ImposedSurfaceLoad[2] = 0
+                node.SetSolutionStepValue(IMPOSED_SURFACE_LOAD, ImposedSurfaceLoad)
         '''
