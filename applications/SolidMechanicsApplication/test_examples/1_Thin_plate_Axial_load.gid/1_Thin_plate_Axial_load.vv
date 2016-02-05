@@ -1,0 +1,37 @@
+BeginZE /home/flo/Escritorio/Josep Maria/Gid/1_Thin_plate_Axial_load.gid/1_Thin_plate_Axial_load.vv
+   x -1.04020011425018311 5.04020023345947266
+   y 4.90593242645263672 -0.90593266487121582
+   z -8.71779823303222656 8.71779823303222656
+   e 2.90593266487121582
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c 2 2 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 3.92798995971679688 -76.4354019165039062 124.876998901367188 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/flo/Escritorio/Josep Maria/Gid/1_Thin_plate_Axial_load.gid/1_Thin_plate_Axial_load.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

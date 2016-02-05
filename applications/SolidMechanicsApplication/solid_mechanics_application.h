@@ -43,9 +43,7 @@
 #include "containers/flags.h"
 
 //conditions
-#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/point_load_2D_condition.hpp"
-
 #include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "custom_conditions/point_load_3D_condition.hpp"
 
@@ -56,8 +54,6 @@
 #include "custom_conditions/surface_load_3D_condition.hpp"
 
 //elements
-// #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
-// #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/small_displacement_element.hpp"
 #include "custom_elements/axisym_small_displacement_element.hpp"
 
@@ -67,10 +63,6 @@
 
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
-// #include "custom_elements/membrane_element.hpp"
-// 
-// #include "custom_elements/shell_thick_element_3D4N.hpp"
-// #include "custom_elements/shell_thin_element_3D3N.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
@@ -124,8 +116,6 @@
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_stress_2D_law.hpp"
 
-// //cross sections
-// #include "custom_utilities/shell_cross_section.hpp"
 
 namespace Kratos
 {
@@ -153,16 +143,6 @@ KRATOS_DEFINE_VARIABLE(double, NEWMARK_GAMMA )
 KRATOS_DEFINE_VARIABLE(double, RAYLEIGH_ALPHA )
 KRATOS_DEFINE_VARIABLE(double, RAYLEIGH_BETA )
 
-// //geometrical
-// KRATOS_DEFINE_VARIABLE( double, AREA )
-// KRATOS_DEFINE_VARIABLE( double, IX )
-// KRATOS_DEFINE_VARIABLE( double, IY )
-// KRATOS_DEFINE_VARIABLE( double, IZ )
-// KRATOS_DEFINE_VARIABLE( double, CROSS_AREA )
-// KRATOS_DEFINE_VARIABLE( double, MEAN_RADIUS )
-// KRATOS_DEFINE_VARIABLE( int,    SECTION_SIDES )
-// KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
-
 //constitutive law
 KRATOS_DEFINE_VARIABLE(std::string, CONSTITUTIVE_LAW_NAME )
 KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
@@ -170,11 +150,6 @@ KRATOS_DEFINE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX )
 KRATOS_DEFINE_VARIABLE(Matrix, DEFORMATION_GRADIENT )
 KRATOS_DEFINE_VARIABLE(double, DETERMINANT_F )
 KRATOS_DEFINE_VARIABLE(bool,   IMPLEX  )
-
-// //cross section
-// KRATOS_DEFINE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
-// KRATOS_DEFINE_VARIABLE( int,          SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
-// KRATOS_DEFINE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
 //condition nodal load variables
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
@@ -185,25 +160,12 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_LOAD )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_LINE_LOAD )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_SURFACE_LOAD )
 
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_TORQUE )
-
-// //shell generalized variables
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN_GLOBAL )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_CURVATURE )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_CURVATURE_GLOBAL )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_FORCE )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_FORCE_GLOBAL )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_MOMENT )
-// KRATOS_DEFINE_VARIABLE( Matrix, SHELL_MOMENT_GLOBAL )
-
-// //material orientation
+//material orientation
 KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DX )
 KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DY )
 KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DZ )
 
-// //othotropic/anisotropic constants
+//othotropic/anisotropic constants
 KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_X )
 KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_Y )
 KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_Z )
@@ -419,19 +381,7 @@ private:
     ///@name Member Variables
     ///@{
 
-//     //beams
-// 
-//     const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
-// 
-// 
-//     //shells
-// 
-//     const IsotropicShellElement  mIsotropicShellElement3D3N;
-//     const ShellThickElement3D4N  mShellThickElement3D4N;
-//     const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
-//     const ShellThinElement3D3N   mShellThinElement3D3N;
-//     const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
-	
+
     //solid
 
     //small displacement
@@ -500,15 +450,12 @@ private:
     const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
     const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement3D4N;
 	
-//     const MembraneElement mMembraneElement3D3N;
-    
     //conditions
     const ForceLoadCondition                  mForceLoadCondition;
 
     const PointLoad2DCondition              mPointLoadCondition2D1N;
     const PointLoadAxisym2DCondition  mAxisymPointLoadCondition2D1N;
     const PointLoad3DCondition              mPointLoadCondition3D1N;
-    const PointTorque3DCondition          mPointTorqueCondition3D1N;
 
     const LineLoad2DCondition              mLineLoadCondition2D2N;
     const LineLoad2DCondition              mLineLoadCondition2D3N;
