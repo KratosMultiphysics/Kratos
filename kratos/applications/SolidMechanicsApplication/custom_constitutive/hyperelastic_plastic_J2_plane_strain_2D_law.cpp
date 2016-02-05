@@ -19,7 +19,7 @@
 #include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
 
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

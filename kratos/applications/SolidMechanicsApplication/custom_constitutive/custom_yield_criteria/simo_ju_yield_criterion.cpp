@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
 
 namespace Kratos

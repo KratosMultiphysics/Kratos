@@ -12,7 +12,7 @@
 
 // Project includes
 #include "custom_elements/large_displacement_element.hpp"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 
 namespace Kratos

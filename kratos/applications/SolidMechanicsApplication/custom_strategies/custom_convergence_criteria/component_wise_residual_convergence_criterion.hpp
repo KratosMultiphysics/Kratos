@@ -19,7 +19,7 @@
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/define.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

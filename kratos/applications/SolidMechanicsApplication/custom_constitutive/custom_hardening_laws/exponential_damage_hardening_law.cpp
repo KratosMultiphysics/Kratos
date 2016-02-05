@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
 
 namespace Kratos

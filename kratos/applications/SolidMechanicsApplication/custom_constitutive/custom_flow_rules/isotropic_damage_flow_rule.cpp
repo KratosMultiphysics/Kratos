@@ -15,7 +15,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 
 namespace Kratos

@@ -20,7 +20,7 @@
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
 
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
