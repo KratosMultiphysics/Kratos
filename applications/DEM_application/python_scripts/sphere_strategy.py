@@ -137,8 +137,8 @@ class ExplicitStrategy:
 
         # STRATEGIES
 
-        self.search_strategy = OMP_DEMSearch()
-
+        self.search_strategy = OMP_DEMSearch()            
+            
         if (Param.IntegrationScheme == 'Forward_Euler'):
             self.time_integration_scheme = ForwardEulerScheme()
         elif (Param.IntegrationScheme == 'Mid_Point_Rule'):
@@ -146,6 +146,8 @@ class ExplicitStrategy:
         elif (Param.IntegrationScheme == 'Newmark_Beta_Method'):
             print(Param.IntegrationScheme)
             self.time_integration_scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif (Param.IntegrationScheme == 'Verlet_Velocity'):
+            self.time_integration_scheme = VerletVelocityScheme()    
         else:
             print('scheme not defined')
 
@@ -194,7 +196,7 @@ class ExplicitStrategy:
             self.ModifyProperties(properties)
             
         for properties in self.cluster_model_part.Properties:            
-            self.ModifyProperties(properties)    
+            self.ModifyProperties(properties)
                                             
         self.contact_model_part = ModelPart("dummy")
         
