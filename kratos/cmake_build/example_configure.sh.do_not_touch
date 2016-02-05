@@ -52,6 +52,7 @@ cmake ..  									                            \
 -DDEM_APPLICATION=OFF								                    \
 -DSWIMMING_DEM_APPLICATION=OFF                                          \
 -DSOLID_MECHANICS_APPLICATION=ON   					                    \
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                \
 -DPFEM_SOLID_MECHANICS_APPLICATION=OFF 					                \
 -DINSTALL_EMBEDDED_PYTHON=OFF                                           \
 
