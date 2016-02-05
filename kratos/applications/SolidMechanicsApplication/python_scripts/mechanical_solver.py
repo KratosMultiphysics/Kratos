@@ -21,23 +21,14 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)
     # add specific variables for the problem conditions
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_ROTATION)
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
-    model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
 
     if config is not None:
-        if hasattr(config, "RotationDofs"):
-            if config.RotationDofs:
-                # add specific variables for the problem (rotation dofs)
-                model_part.AddNodalSolutionStepVariable(ROTATION);
-                model_part.AddNodalSolutionStepVariable(TORQUE);
-                model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-                model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
         if hasattr(config, "PressureDofs"):
             if config.PressureDofs:
                 # add specific variables for the problem (pressure dofs)
@@ -60,12 +51,6 @@ def AddDofs(model_part, config=None):
         node.AddDof(DISPLACEMENT_Z, REACTION_Z);
         
     if config is not None:
-        if hasattr(config, "RotationDofs"):
-            if config.RotationDofs:
-                for node in model_part.Nodes:
-                    node.AddDof(ROTATION_X, TORQUE_X);
-                    node.AddDof(ROTATION_Y, TORQUE_Y);
-                    node.AddDof(ROTATION_Z, TORQUE_Z);
         if hasattr(config, "PressureDofs"):
             if config.PressureDofs:
                 for node in model_part.Nodes:
@@ -282,11 +267,6 @@ class MechanicalSolver:
                   else:
                       self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
                   # self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
-          elif(self.scheme_type == "PseudoDynamicSolver"):
-              # definition of time scheme
-              self.damp_factor_f = -0.3;
-              self.damp_factor_m = 10.0;
-              self.mechanical_scheme = ResidualBasedRelaxationScheme(self.damp_factor_f, self.damp_factor_m)
 
     #
     def SetConvergenceCriterion(self):

@@ -1,0 +1,37 @@
+BeginZE /home/flo/Escritorio/Josep Maria/Gid/5_Z_cantilever.gid/5_Z_cantilever.vv
+   x -3.98480606079101562 13.9848060607910156
+   y 7.09646749496459961 -4.89646768569946289
+   z -17.6331233978271484 15.5331239700317383
+   e 5.52770805358886719
+   v 0.560921132564544678 -0.0694113373756408691 -0.0163109861314296722
+   r 0.824792981147766113
+   m 0.989832043647766113 -0.050962202250957489 -0.132798328995704651 0 -0.104774951934814453 0.370202839374542236 -0.923023343086242676 0 0.0962016209959983826 0.927551984786987305 0.361099064350128174 0 0 0 0 1
+   c 5 1.10000002384185791 1.04999995231628418
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 3.92798995971679688 -76.4354019165039062 124.876998901367188 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/flo/Escritorio/Josep Maria/Gid/5_Z_cantilever.gid/5_Z_cantilever.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

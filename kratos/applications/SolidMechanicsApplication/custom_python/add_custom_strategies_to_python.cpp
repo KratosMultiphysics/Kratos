@@ -44,10 +44,9 @@
 #include "custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_contact_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/component_wise_bossak_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp" 
 
-// modified schemes for the new custom operations on nodal variables
+//modified schemes for the new custom operations on nodal variables
 #include "custom_strategies/custom_schemes/residual_based_static_scheme_v2.hpp"
 #include "custom_strategies/custom_schemes/residual_based_newmark_scheme_v2.hpp"
 #include "custom_strategies/custom_schemes/residual_based_bossak_scheme_v2.hpp"
@@ -94,7 +93,6 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
     typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
     typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
-    typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
 
     //custom scheme types - modified
@@ -175,15 +173,6 @@ void  AddCustomStrategiesToPython()
             .def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
-
-    // Residual Based Relaxation Scheme Type
-    class_< ResidualBasedRelaxationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedRelaxationScheme", init< double , double >() )
-
-            .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
 
     // Explicit scheme: Central differences 
     class_< ExplicitCentralDifferencesSchemeType,
