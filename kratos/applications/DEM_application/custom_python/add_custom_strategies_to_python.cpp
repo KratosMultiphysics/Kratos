@@ -31,6 +31,7 @@
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/newmark_beta_scheme.h"
+#include "custom_strategies/schemes/verlet_velocity_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/mid_point_scheme.h"
 
@@ -71,12 +72,19 @@ namespace Kratos
 
           class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
-                    "ForwardEulerScheme", init<>() )            
+                    "ForwardEulerScheme", init<>()
+                  )
                   ;
 
           class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "NewmarkBetaScheme", init<const double, const double>()
+                  )
+                  ;
+
+          class_< VerletVelocityScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+          (
+                    "VerletVelocityScheme", init<>()
                   )
                   ;
 
