@@ -1063,9 +1063,7 @@ namespace Kratos {
 
         mSkinSphere                     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup                 = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
-        
-        KRATOS_WATCH(mContinuumGroup)
-        //KRATOS_WATCH(++counter)        
+          
         KRATOS_CATCH("")
 
     } //ContinuumSphereMemberDeclarationFirstStep
