@@ -46,7 +46,7 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
 
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
     rVariables.ConditionVector.resize(1,false);
-    noalias(rVariables.ConditionVector) = ZeroVector(1);
+    rVariables.ConditionVector[0] = 0.0;
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
     {

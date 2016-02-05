@@ -47,7 +47,7 @@ void SurfaceNormalFluidFlux3DCondition::CalculateConditionVector(ConditionVariab
     const GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.size();
     rVariables.ConditionVector.resize(1,false);
-    noalias(rVariables.ConditionVector) = ZeroVector(1);
+    rVariables.ConditionVector[0] = 0.0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
