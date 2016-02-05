@@ -156,6 +156,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.time_integration_scheme = ForwardEulerScheme()
         elif (Param.IntegrationScheme == 'Mid_Point_Rule'):
             self.time_integration_scheme = MidPointScheme()
+        elif (Param.IntegrationScheme == 'Verlet_Velocity'):
+            self.time_integration_scheme = VerletVelocityScheme()
         else:
             print('scheme not defined')
 
