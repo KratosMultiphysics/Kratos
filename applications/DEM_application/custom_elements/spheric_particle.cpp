@@ -644,7 +644,7 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         DeltDisp[2] += (new_axes1[2] - e1[2] - new_axes2[2] + e2[2]);
 }
 
-void SphericParticle::ComputeMoments(double NormalLocalContactForce,
+void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                                      array_1d<double, 3>& Force,
                                      array_1d<double, 3>& rInitialRotaMoment,
                                      double LocalCoordSystem2[3],
@@ -697,8 +697,8 @@ void SphericParticle::ComputeMoments(double NormalLocalContactForce,
             }
                              
             if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0 && DEM_MODULUS_3(CoordSystemMoment2) > 0.0) GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
-            double AbsoluteNormalLocalContactForce = fabs(NormalLocalContactForce);
-            DEM_MULTIPLY_BY_SCALAR_3(MR, AbsoluteNormalLocalContactForce)
+            double AbsoluteNormalLocalElasticContactForce = fabs(NormalLocalElasticContactForce);
+            DEM_MULTIPLY_BY_SCALAR_3(MR, AbsoluteNormalLocalElasticContactForce)
                   
             double MR_now = DEM_MODULUS_3(MR) * equiv_rolling_friction_coeff;
             double MR_max = DEM_MODULUS_3(MaxRotaMoment);
@@ -793,7 +793,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
                 noalias(rInitialRotaMoment) = coeff_acc * ang_velocity; // the moment needed to stop the spin in one time step
             }
             
-            ComputeMoments(LocalContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
+            ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
         }
         
         if (r_process_info[STRESS_STRAIN_OPTION]) {
@@ -989,7 +989,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                     noalias(rInitialRotaMoment) = coeff_acc * AngularVel; // the moment needed to stop the spin in one time step
                 }
               
-              ComputeMoments(LocalContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+              ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
         
             //WEAR        
