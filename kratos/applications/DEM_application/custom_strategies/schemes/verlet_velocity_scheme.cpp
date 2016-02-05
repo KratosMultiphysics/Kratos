@@ -5,13 +5,13 @@
 
 namespace Kratos {
 
-    void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
+    void VerletVelocityScheme::AddSpheresVariables(ModelPart & r_model_part){
         
         DEMIntegrationScheme::AddSpheresVariables(r_model_part);
         
     }
     
-    void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part){
+    void VerletVelocityScheme::AddClustersVariables(ModelPart & r_model_part){
         
         DEMIntegrationScheme::AddClustersVariables(r_model_part);
                               
