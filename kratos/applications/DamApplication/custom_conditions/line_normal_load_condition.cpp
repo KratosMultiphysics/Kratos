@@ -48,6 +48,7 @@ void LineNormalLoadCondition::CalculateConditionVector(ConditionVariables& rVari
     double NormalStress = 0;
     double TangentialStress = 0;
     double dx_dxi = rVariables.JContainer[PointNumber](0,0), dy_dxi = rVariables.JContainer[PointNumber](1,0);
+    rVariables.ConditionVector.resize(2);
     rVariables.ConditionVector = ZeroVector(2);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )

@@ -57,6 +57,7 @@ void SurfaceNormalLoadCondition::CalculateConditionVector(ConditionVariables& rV
 
     const unsigned int number_of_nodes = GetGeometry().size();
     double NormalStress = 0;
+    rVariables.ConditionVector.resize(3);
     rVariables.ConditionVector = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
