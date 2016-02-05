@@ -166,24 +166,28 @@ Matrix SmallStrainUPwFICElement::CalculateExtrapolationMatrix(const unsigned int
     
     if(dimension==2)
     {
-        ExtrapolationMatrix = ZeroMatrix(4,4);
+        ExtrapolationMatrix.resize(4,4,false);
         NodeLocalCoordinates.resize(4);
         
-        NodeLocalCoordinates[0] = ZeroVector(3);
+        (NodeLocalCoordinates[0]).resize(3,false);
         NodeLocalCoordinates[0][0] = -sqrt(3);
         NodeLocalCoordinates[0][1] = -sqrt(3);
+        NodeLocalCoordinates[0][2] = 0.0;
         
-        NodeLocalCoordinates[1] = ZeroVector(3);
+        (NodeLocalCoordinates[1]).resize(3,false);
         NodeLocalCoordinates[1][0] =  sqrt(3);
         NodeLocalCoordinates[1][1] = -sqrt(3);
+        NodeLocalCoordinates[1][2] = 0.0;
         
-        NodeLocalCoordinates[2] = ZeroVector(3);
+        (NodeLocalCoordinates[2]).resize(3,false);
         NodeLocalCoordinates[2][0] =  sqrt(3);
         NodeLocalCoordinates[2][1] =  sqrt(3);
+        NodeLocalCoordinates[2][2] =  0.0;
         
-        NodeLocalCoordinates[3] = ZeroVector(3);
+        (NodeLocalCoordinates[3]).resize(3,false);
         NodeLocalCoordinates[3][0] = -sqrt(3);
         NodeLocalCoordinates[3][1] =  sqrt(3);
+        NodeLocalCoordinates[3][2] =  0.0;
         
         //Element nodes loop
         for(unsigned int i=0; i<4; i++)
@@ -198,45 +202,45 @@ Matrix SmallStrainUPwFICElement::CalculateExtrapolationMatrix(const unsigned int
     }
     else
     {
-        ExtrapolationMatrix = ZeroMatrix(8,8);
+        ExtrapolationMatrix.resize(8,8,false);
         NodeLocalCoordinates.resize(8);
         
-        NodeLocalCoordinates[0] = ZeroVector(3);
+        (NodeLocalCoordinates[0]).resize(3,false);
         NodeLocalCoordinates[0][0] = -sqrt(3);
         NodeLocalCoordinates[0][1] = -sqrt(3);
         NodeLocalCoordinates[0][2] = -sqrt(3);
         
-        NodeLocalCoordinates[1] = ZeroVector(3);
+        (NodeLocalCoordinates[1]).resize(3,false);
         NodeLocalCoordinates[1][0] =  sqrt(3);
         NodeLocalCoordinates[1][1] = -sqrt(3);
         NodeLocalCoordinates[1][2] = -sqrt(3);
         
-        NodeLocalCoordinates[2] = ZeroVector(3);
+        (NodeLocalCoordinates[2]).resize(3,false);
         NodeLocalCoordinates[2][0] =  sqrt(3);
         NodeLocalCoordinates[2][1] =  sqrt(3);
         NodeLocalCoordinates[2][2] = -sqrt(3);
         
-        NodeLocalCoordinates[3] = ZeroVector(3);
+        (NodeLocalCoordinates[3]).resize(3,false);
         NodeLocalCoordinates[3][0] = -sqrt(3);
         NodeLocalCoordinates[3][1] =  sqrt(3);
         NodeLocalCoordinates[3][2] = -sqrt(3);
         
-        NodeLocalCoordinates[4] = ZeroVector(3);
+        (NodeLocalCoordinates[4]).resize(3,false);
         NodeLocalCoordinates[4][0] = -sqrt(3);
         NodeLocalCoordinates[4][1] = -sqrt(3);
         NodeLocalCoordinates[4][2] =  sqrt(3);
         
-        NodeLocalCoordinates[5] = ZeroVector(3);
+        (NodeLocalCoordinates[5]).resize(3,false);
         NodeLocalCoordinates[5][0] =  sqrt(3);
         NodeLocalCoordinates[5][1] = -sqrt(3);
         NodeLocalCoordinates[5][2] =  sqrt(3);
         
-        NodeLocalCoordinates[6] = ZeroVector(3);
+        (NodeLocalCoordinates[6]).resize(3,false);
         NodeLocalCoordinates[6][0] =  sqrt(3);
         NodeLocalCoordinates[6][1] =  sqrt(3);
         NodeLocalCoordinates[6][2] =  sqrt(3);
         
-        NodeLocalCoordinates[7] = ZeroVector(3);
+        (NodeLocalCoordinates[7]).resize(3,false);
         NodeLocalCoordinates[7][0] = -sqrt(3);
         NodeLocalCoordinates[7][1] =  sqrt(3);
         NodeLocalCoordinates[7][2] =  sqrt(3);
@@ -275,10 +279,11 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
-    rVariables.B = ZeroMatrix( voigtsize, number_of_nodes * dimension );
-    rVariables.StrainVector = ZeroVector( voigtsize );
-    rVariables.ConstitutiveMatrix = ZeroMatrix( voigtsize, voigtsize );
-    rVariables.StressVector = ZeroVector( voigtsize );
+    (rVariables.B).resize(voigtsize, number_of_nodes * dimension, false);
+    noalias(rVariables.B) = ZeroMatrix( voigtsize, number_of_nodes * dimension );
+    (rVariables.StrainVector).resize(voigtsize,false);
+    (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
+    (rVariables.StressVector).resize(voigtsize,false);
 
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF  = 1.0;
@@ -307,7 +312,7 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
             rVariables.SecondOrderStrainDerivatives = true;
             this->ExtrapolateShapeFunctionsDerivatives(rVariables);
             rVariables.ShapeFunctionsSecondOrderDerivatives.resize(4);
-            rVariables.StrainDerivativeTerm = ZeroMatrix(2,8);
+            (rVariables.StrainDerivativeTerm).resize(2,8, false);
         }
     }
     else
@@ -319,7 +324,7 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
             rVariables.SecondOrderStrainDerivatives = true;
             this->ExtrapolateShapeFunctionsDerivatives(rVariables);
             rVariables.ShapeFunctionsSecondOrderDerivatives.resize(8);
-            rVariables.StrainDerivativeTerm = ZeroMatrix(3,24);
+            (rVariables.StrainDerivativeTerm).resize(3,24, false);
         }
     }
 }
@@ -357,7 +362,7 @@ void SmallStrainUPwFICElement::ExtrapolateShapeFunctionsDerivatives(ElementalVar
     {
         for(unsigned int i = 0; i < number_of_nodes; i++)
         {
-            rVariables.NodalShapeFunctionsDerivatives[i] = ZeroVector(8);
+            (rVariables.NodalShapeFunctionsDerivatives[i]).resize(8,false);
             node = i*dimension;
             
             rVariables.NodalShapeFunctionsDerivatives[i][0] = NodalShapeFunctionsDerivativesMatrix(0,node);
@@ -374,7 +379,7 @@ void SmallStrainUPwFICElement::ExtrapolateShapeFunctionsDerivatives(ElementalVar
     {
         for(unsigned int i = 0; i < number_of_nodes; i++)
         {
-            rVariables.NodalShapeFunctionsDerivatives[i] = ZeroVector(24);
+            (rVariables.NodalShapeFunctionsDerivatives[i]).resize(24,false);
             node = i*dimension;
             
             rVariables.NodalShapeFunctionsDerivatives[i][0] = NodalShapeFunctionsDerivativesMatrix(0,node);

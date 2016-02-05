@@ -735,10 +735,11 @@ void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rV
     const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
     if( dimension == 3 ) voigtsize  = 6;
-    rVariables.B = ZeroMatrix( voigtsize, number_of_nodes * dimension );    
-    rVariables.StrainVector = ZeroVector( voigtsize );
-    rVariables.ConstitutiveMatrix = ZeroMatrix( voigtsize, voigtsize );
-    rVariables.StressVector = ZeroVector( voigtsize );
+    (rVariables.B).resize(voigtsize, number_of_nodes * dimension, false);
+    noalias(rVariables.B) = ZeroMatrix( voigtsize, number_of_nodes * dimension );
+    (rVariables.StrainVector).resize(voigtsize,false);
+    (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
+    (rVariables.StressVector).resize(voigtsize,false);
 
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF  = 1.0;
@@ -767,11 +768,11 @@ void SmallStrainUPwElement::InitializeNodalVariables (ElementalVariables& rVaria
 
     unsigned int Local_i;
     Vector BodyAccelerationAux    = ZeroVector(3);
-    rVariables.BodyAcceleration   = ZeroVector(number_of_nodes * dimension);
-    rVariables.DisplacementVector = ZeroVector(number_of_nodes * dimension);
-    rVariables.VelocityVector     = ZeroVector(number_of_nodes * dimension);
-    rVariables.PressureVector     = ZeroVector(number_of_nodes);
-    rVariables.PressureDtVector   = ZeroVector(number_of_nodes);
+    (rVariables.BodyAcceleration).resize(number_of_nodes * dimension,false);
+    (rVariables.DisplacementVector).resize(number_of_nodes * dimension,false);
+    (rVariables.VelocityVector).resize(number_of_nodes * dimension,false);
+    (rVariables.PressureVector).resize(number_of_nodes,false);
+    (rVariables.PressureDtVector).resize(number_of_nodes,false);
     for(unsigned int i=0; i<number_of_nodes; i++)
     {
         Local_i = i * dimension;
@@ -809,7 +810,7 @@ void SmallStrainUPwElement::InitializeProperties (ElementalVariables& rVariables
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
     rVariables.DynamicViscosity = GetProperties()[DYNAMIC_VISCOSITY];
     //Setting the intrinsic permeability matrix
-    rVariables.IntrinsicPermeability = ZeroMatrix(dimension, dimension);
+    (rVariables.IntrinsicPermeability).resize(dimension,dimension,false);
     rVariables.IntrinsicPermeability(0,0) = GetProperties()[PERMEABILITY_XX];
     rVariables.IntrinsicPermeability(1,1) = GetProperties()[PERMEABILITY_YY];
     rVariables.IntrinsicPermeability(0,1) = GetProperties()[PERMEABILITY_XY];
