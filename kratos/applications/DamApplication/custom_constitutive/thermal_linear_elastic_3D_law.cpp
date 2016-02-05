@@ -149,7 +149,7 @@ void ThermalLinearElastic3DLaw::CalculateThermalStrain( Vector& rThermalStrainVe
     
     //Identity vector
     rThermalStrainVector.resize(6,false); // Warning: we have to resize the vector here to avoid memory error
-    rThermalStrainVector = ZeroVector(6);
+    noalias(rThermalStrainVector) = ZeroVector(6);
     rThermalStrainVector[0] = 1.0;
     rThermalStrainVector[1] = 1.0;
     rThermalStrainVector[2] = 1.0;
