@@ -46,8 +46,8 @@ void LineLoadCondition::CalculateConditionVector(ConditionVariables& rVariables,
 
     const unsigned int number_of_nodes = GetGeometry().size();
     Vector LineLoad = ZeroVector(3);
-    rVariables.ConditionVector.resize(2);
-    rVariables.ConditionVector = ZeroVector(2);
+    rVariables.ConditionVector.resize(2,false);
+    noalias(rVariables.ConditionVector) = ZeroVector(2);
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
     {
