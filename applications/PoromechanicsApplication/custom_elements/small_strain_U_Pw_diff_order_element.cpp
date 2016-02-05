@@ -952,12 +952,12 @@ void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVari
     const SizeType NumUNodes = rGeom.PointsNumber();
     unsigned int voigtsize  = 3;
     if( Dim == 3 ) voigtsize  = 6;
-
-    rVariables.B = ZeroMatrix( voigtsize, NumUNodes * Dim );
-    rVariables.StrainVector = ZeroVector( voigtsize );
-    rVariables.ConstitutiveMatrix = ZeroMatrix( voigtsize, voigtsize );
-    rVariables.StressVector = ZeroVector( voigtsize );
-
+    (rVariables.B).resize(voigtsize, NumUNodes * Dim, false);
+    noalias(rVariables.B) = ZeroMatrix( voigtsize, NumUNodes * Dim );
+    (rVariables.StrainVector).resize(voigtsize,false);
+    (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
+    (rVariables.StressVector).resize(voigtsize,false);
+    
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF  = 1.0;
     rVariables.F     = identity_matrix<double>(Dim);
@@ -985,10 +985,9 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables (ElementalVariable
 
     SizeType Local_i;
     Vector BodyAccelerationAux    = ZeroVector(3);
-    rVariables.BodyAcceleration   = ZeroVector(NumUNodes * Dim);
-    rVariables.DisplacementVector = ZeroVector(NumUNodes * Dim);
-    rVariables.VelocityVector     = ZeroVector(NumUNodes * Dim);
-
+    (rVariables.BodyAcceleration).resize(NumUNodes * Dim,false);
+    (rVariables.DisplacementVector).resize(NumUNodes * Dim,false);
+    (rVariables.VelocityVector).resize(NumUNodes * Dim,false);
     for(SizeType i=0; i<NumUNodes; i++)
     {
         Local_i = i * Dim;
@@ -1010,8 +1009,8 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables (ElementalVariable
         }
     }
 
-    rVariables.PressureVector   = ZeroVector(NumPNodes);
-    rVariables.PressureDtVector = ZeroVector(NumPNodes);
+    (rVariables.PressureVector).resize(NumPNodes,false);
+    (rVariables.PressureDtVector).resize(NumPNodes,false);
     for(SizeType i=0; i<NumPNodes; i++)
     {
         rVariables.PressureVector[i]   = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
@@ -1032,7 +1031,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties (ElementalVariables& r
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
     rVariables.DynamicViscosity = GetProperties()[DYNAMIC_VISCOSITY];
     //Setting the intrinsic permeability matrix
-    rVariables.IntrinsicPermeability = ZeroMatrix(dimension, dimension);
+    (rVariables.IntrinsicPermeability).resize(dimension,dimension,false);
     rVariables.IntrinsicPermeability(0,0) = GetProperties()[PERMEABILITY_XX];
     rVariables.IntrinsicPermeability(1,1) = GetProperties()[PERMEABILITY_YY];
     rVariables.IntrinsicPermeability(0,1) = GetProperties()[PERMEABILITY_XY];
