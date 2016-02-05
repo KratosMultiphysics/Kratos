@@ -81,9 +81,9 @@ void ThermalLinearElastic2DPlaneStrain::CalculateThermalStrain( Vector& rThermal
     
     //Identity vector
     rThermalStrainVector.resize(3,false);
-    rThermalStrainVector = ZeroVector(3);
-    rThermalStrainVector[0] = 1;
-    rThermalStrainVector[1] = 1;
+    rThermalStrainVector[0] = 1.0;
+    rThermalStrainVector[1] = 1.0;
+    rThermalStrainVector[2] = 0.0;
 
     // Delta T
     double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
