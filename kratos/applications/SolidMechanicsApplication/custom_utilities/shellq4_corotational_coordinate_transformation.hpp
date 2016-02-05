@@ -9,8 +9,8 @@
 #if !defined(KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED )
 #define  KRATOS_SHELLQ4_COROTATIONAL_COORDINATE_TRANSFORMATION_H_INCLUDED
 
-#include "EICR.hpp"
-#include "shellq4_coordinate_transformation.hpp"
+#include "custom_utilities/EICR.hpp"
+#include "custom_utilities/shellq4_coordinate_transformation.hpp"
 
 namespace Kratos
 {

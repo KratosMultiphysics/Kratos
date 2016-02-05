@@ -71,14 +71,14 @@ KRATOS_CREATE_VARIABLE(double, RAYLEIGH_ALPHA )
 KRATOS_CREATE_VARIABLE(double, RAYLEIGH_BETA )
 
 //geometrical
-KRATOS_CREATE_VARIABLE( double, AREA )
-KRATOS_CREATE_VARIABLE( double, IX )
-KRATOS_CREATE_VARIABLE( double, IY )
-KRATOS_CREATE_VARIABLE( double, IZ )
-KRATOS_CREATE_VARIABLE( double, CROSS_AREA )
-KRATOS_CREATE_VARIABLE( double, MEAN_RADIUS )
-KRATOS_CREATE_VARIABLE( int,    SECTION_SIDES )
-KRATOS_CREATE_VARIABLE( Matrix ,GEOMETRIC_STIFFNESS )
+// KRATOS_CREATE_VARIABLE( double, AREA )
+// KRATOS_CREATE_VARIABLE( double, IX )
+// KRATOS_CREATE_VARIABLE( double, IY )
+// KRATOS_CREATE_VARIABLE( double, IZ )
+// KRATOS_CREATE_VARIABLE( double, CROSS_AREA )
+// KRATOS_CREATE_VARIABLE( double, MEAN_RADIUS )
+// KRATOS_CREATE_VARIABLE( int,    SECTION_SIDES )
+// KRATOS_CREATE_VARIABLE( Matrix ,GEOMETRIC_STIFFNESS )
 
 //constitutive law
 KRATOS_CREATE_VARIABLE( std::string, CONSTITUTIVE_LAW_NAME )
@@ -90,9 +90,9 @@ KRATOS_CREATE_VARIABLE( double, DETERMINANT_F )
 KRATOS_CREATE_VARIABLE( bool ,  IMPLEX  )
 
 //cross section
-KRATOS_CREATE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
-KRATOS_CREATE_VARIABLE( int, SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
-KRATOS_CREATE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
+// KRATOS_CREATE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
+// KRATOS_CREATE_VARIABLE( int, SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
+// KRATOS_CREATE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
 //condition nodal load variables
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
@@ -107,21 +107,21 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_TORQUE )
 
 //shell generalized variables
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN_GLOBAL )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_CURVATURE )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_CURVATURE_GLOBAL )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_FORCE )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_FORCE_GLOBAL )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT )
-KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT_GLOBAL )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN_GLOBAL )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_CURVATURE )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_CURVATURE_GLOBAL )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_FORCE )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_FORCE_GLOBAL )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT )
+// KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT_GLOBAL )
 
 //material orientation
 KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DX )
 KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DY )
 KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DZ )
 
-//othotropic/anisotropic constants
+// //othotropic/anisotropic constants
 KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_X )
 KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_Y )
 KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_Z )
@@ -185,13 +185,13 @@ KRATOS_CREATE_VARIABLE( double, PRESSURE_REACTION )
 
 
 KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
-    mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-
-    mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), false ),
-    mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), true ),
-    mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), false ),
-    mShellThinCorotationalElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), true ),
+//     mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+// 
+//     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+//     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), false ),
+//     mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), true ),
+//     mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), false ),
+//     mShellThinCorotationalElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), true ),
    
     mSmallDisplacementElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mSmallDisplacementElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
@@ -246,7 +246,7 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAxisymUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mUpdatedLagrangianUPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+//     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     
     mPointLoadCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mAxisymPointLoadCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -278,17 +278,17 @@ void KratosSolidMechanicsApplication::Register()
 
     //Register Elements
 
-    //Register beams
-
-    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
-
-    //Register shells
-
-    KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
-    KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
-    KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
+//     //Register beams
+// 
+//     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
+// 
+//     //Register shells
+// 
+//     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
+//     KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
+//     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
+//     KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
+//     KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
 
     //Register solids
 
@@ -356,7 +356,7 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPElement2D3N", mAxisymUpdatedLagrangianUPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPElement3D4N", mUpdatedLagrangianUPElement3D4N )
 
-    KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
+//     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "ForceLoadCondition", mForceLoadCondition )
@@ -458,15 +458,15 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
     KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
 
-    //geometrical
-    KRATOS_REGISTER_VARIABLE( AREA )
-    KRATOS_REGISTER_VARIABLE( IX )
-    KRATOS_REGISTER_VARIABLE( IY )
-    KRATOS_REGISTER_VARIABLE( IZ )
-    KRATOS_REGISTER_VARIABLE( CROSS_AREA )
-    KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
-    KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
-    KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
+//     //geometrical
+//     KRATOS_REGISTER_VARIABLE( AREA )
+//     KRATOS_REGISTER_VARIABLE( IX )
+//     KRATOS_REGISTER_VARIABLE( IY )
+//     KRATOS_REGISTER_VARIABLE( IZ )
+//     KRATOS_REGISTER_VARIABLE( CROSS_AREA )
+//     KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
+//     KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
+//     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
 
     //constitutive law
     KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NAME )
@@ -476,10 +476,10 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( DETERMINANT_F )
     KRATOS_REGISTER_VARIABLE( IMPLEX )
     
-    //cross section
-    KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
-    KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
-    KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
+//     //cross section
+//     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
+//     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
+//     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
     
     //condition nodal load variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
@@ -493,14 +493,14 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_TORQUE )      
 
-    //shell generalized variables
-    KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
-    KRATOS_REGISTER_VARIABLE( SHELL_FORCE )
-    KRATOS_REGISTER_VARIABLE( SHELL_STRAIN_GLOBAL )
-    KRATOS_REGISTER_VARIABLE( SHELL_FORCE_GLOBAL )
-    KRATOS_REGISTER_VARIABLE( SHELL_CURVATURE )
-    KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
-	KRATOS_REGISTER_VARIABLE( SHELL_MOMENT_GLOBAL )
+//     //shell generalized variables
+//     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
+//     KRATOS_REGISTER_VARIABLE( SHELL_FORCE )
+//     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN_GLOBAL )
+//     KRATOS_REGISTER_VARIABLE( SHELL_FORCE_GLOBAL )
+//     KRATOS_REGISTER_VARIABLE( SHELL_CURVATURE )
+//     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
+// 	KRATOS_REGISTER_VARIABLE( SHELL_MOMENT_GLOBAL )
     
     //material orientation
     KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
