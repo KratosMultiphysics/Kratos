@@ -16,7 +16,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
 
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

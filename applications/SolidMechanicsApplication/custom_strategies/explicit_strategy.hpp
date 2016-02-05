@@ -20,7 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 //default builder and solver
 #include "custom_strategies/custom_builders_and_solvers/explicit_builder_and_solver.hpp"

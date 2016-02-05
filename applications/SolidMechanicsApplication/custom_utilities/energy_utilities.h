@@ -28,7 +28,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_conditions/point_load_2D_condition.hpp"
 
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

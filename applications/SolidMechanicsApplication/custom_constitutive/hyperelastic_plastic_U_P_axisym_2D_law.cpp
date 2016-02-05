@@ -16,7 +16,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.hpp"
 
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

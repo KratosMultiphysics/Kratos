@@ -12,7 +12,7 @@
 
 // Project includes
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 
 namespace Kratos
