@@ -28,7 +28,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
-    model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
+    model_part.AddNodalSolutionStepVariable(POINT_MOMENT)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
     #add additional problem variables
     #model_part.AddNodalSolutionStepVariable(DISPLACEMENT_DT)
