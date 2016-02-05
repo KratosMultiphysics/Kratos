@@ -885,7 +885,7 @@ public:
             {
                 i = (*it2)->EquationId();
 
-                (*it2)->GetSolutionStepReactionValue() = b[i];
+                (*it2)->GetSolutionStepReactionValue() = -b[i];
             }
         }
 
