@@ -82,6 +82,8 @@ if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
     scheme = ForwardEulerScheme()
 elif (DEM_parameters.IntegrationScheme == 'Mid_Point_Rule'):
     scheme = MidPointScheme()
+elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+    scheme = VerletVelocityScheme()
 else:
     KRATOSprint('Error: scheme not defined')
 
