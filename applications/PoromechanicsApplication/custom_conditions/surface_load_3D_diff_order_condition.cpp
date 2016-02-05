@@ -47,7 +47,8 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
     Vector SurfaceLoad = ZeroVector(3);
-    rVariables.ConditionVector = ZeroVector(3);
+    rVariables.ConditionVector.resize(3,false);
+    noalias(rVariables.ConditionVector) = ZeroVector(3);
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {

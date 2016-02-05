@@ -45,7 +45,8 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
     KRATOS_TRY
 
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    rVariables.ConditionVector = ZeroVector(1);
+    rVariables.ConditionVector.resize(1,false);
+    noalias(rVariables.ConditionVector) = ZeroVector(1);
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
     {

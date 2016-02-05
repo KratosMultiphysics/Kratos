@@ -47,7 +47,8 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
     Vector LineLoad = ZeroVector(3);
-    rVariables.ConditionVector = ZeroVector(2);
+    rVariables.ConditionVector.resize(2,false);
+    noalias(rVariables.ConditionVector) = ZeroVector(2);
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {

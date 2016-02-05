@@ -47,7 +47,8 @@ void LineLoad2DCondition::CalculateConditionVector(ConditionVariables& rVariable
     const GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.size();
     Vector LineLoad = ZeroVector(3);
-    rVariables.ConditionVector = ZeroVector(2);
+    rVariables.ConditionVector.resize(2,false);
+    noalias(rVariables.ConditionVector) = ZeroVector(2);
 
     for(unsigned int i = 0; i < number_of_nodes; i++)
     {

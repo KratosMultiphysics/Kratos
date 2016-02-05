@@ -49,7 +49,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
     double NormalStress = 0.0;
     double TangentialStress = 0.0;
     double dx_dxi = rVariables.JContainer[PointNumber](0,0), dy_dxi = rVariables.JContainer[PointNumber](1,0);
-    rVariables.ConditionVector = ZeroVector(2);
+    rVariables.ConditionVector.resize(2,false);
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {

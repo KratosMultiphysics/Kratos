@@ -47,7 +47,8 @@ void SurfaceLoad3DCondition::CalculateConditionVector(ConditionVariables& rVaria
     const GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.size();
     Vector SurfaceLoad = ZeroVector(3);
-    rVariables.ConditionVector = ZeroVector(3);
+    rVariables.ConditionVector.resize(3,false);
+    noalias(rVariables.ConditionVector) = ZeroVector(3);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
