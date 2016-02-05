@@ -192,6 +192,9 @@ class ExplicitStrategy:
             
         for properties in self.inlet_model_part.Properties:            
             self.ModifyProperties(properties)
+            
+        for properties in self.cluster_model_part.Properties:            
+            self.ModifyProperties(properties)    
                                             
         self.contact_model_part = ModelPart("dummy")
         
