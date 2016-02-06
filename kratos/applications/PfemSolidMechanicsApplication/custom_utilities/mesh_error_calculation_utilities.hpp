@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

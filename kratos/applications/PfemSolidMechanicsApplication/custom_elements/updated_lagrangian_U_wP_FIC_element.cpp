@@ -15,7 +15,7 @@
 #include "custom_elements/updated_lagrangian_U_wP_FIC_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -15,7 +15,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

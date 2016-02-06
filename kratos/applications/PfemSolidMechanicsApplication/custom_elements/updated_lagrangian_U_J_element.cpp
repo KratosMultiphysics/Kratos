@@ -16,7 +16,7 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 // MIRAR POR ENCIMA DE IMPLEMENTAR UNA FORMULACION U-J, de esta forma cuando llamo a la constitutiva pongo Fbarra de los desplazamientos y el jacobiano de J.
 // Como a la parte constitutiva solo paso punteros (i no matrices y otras cosas) se vuelve un poco asín

@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_conditions/point_rigid_contact_condition.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 #include "custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.hpp"
 #include "custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.hpp"

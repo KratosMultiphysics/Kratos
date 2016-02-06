@@ -18,7 +18,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "custom_modelers/spatial_bounding_box.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

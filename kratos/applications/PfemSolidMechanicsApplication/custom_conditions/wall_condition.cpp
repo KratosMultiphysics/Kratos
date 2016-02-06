@@ -12,7 +12,7 @@
 #include "wall_condition.hpp"
 
 // Project includes
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

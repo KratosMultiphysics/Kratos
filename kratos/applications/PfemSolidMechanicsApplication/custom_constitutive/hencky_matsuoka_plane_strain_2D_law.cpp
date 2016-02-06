@@ -19,7 +19,7 @@
 #include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
 #include "custom_constitutive/hencky_matsuoka_plane_strain_2D_law.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

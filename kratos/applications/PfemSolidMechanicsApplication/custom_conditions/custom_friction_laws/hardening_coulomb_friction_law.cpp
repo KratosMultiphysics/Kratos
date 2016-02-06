@@ -1,7 +1,7 @@
 
 
 #include "custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

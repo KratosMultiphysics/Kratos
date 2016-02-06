@@ -15,7 +15,7 @@
 #include "custom_elements/updated_lagrangian_U_wP_Stab_Lag_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 // TO BE REMOVED. The differences (ie: constant lagrangian permeability) are now commented in the base element
 

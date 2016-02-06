@@ -1,17 +1,14 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                    July 2013 $
+//   Date:                $Date:                February 2015 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-
 // System includes
 
-
 // External includes 
-
 
 // Project includes
 #include "includes/define.h"
@@ -51,92 +48,9 @@
 
 namespace Kratos
 {
-  //Create Variables
+  //Application variables creation: (see pfem_solid_mechanics_application_variables.cpp)
 
-  //solution
-  KRATOS_CREATE_VARIABLE(int, NUMBER_OF_ACTIVE_CONTACTS )
-  KRATOS_CREATE_VARIABLE(int, NUMBER_OF_STICK_CONTACTS )
-  KRATOS_CREATE_VARIABLE(int, NUMBER_OF_SLIP_CONTACTS )
-  
-  KRATOS_CREATE_VARIABLE(double, IMPOSED_WATER_PRESSURE )
-  //constitutive law	
-  KRATOS_CREATE_VARIABLE(double, MEAN_ERROR )
-
-  //material
-  KRATOS_CREATE_VARIABLE(double, PRE_CONSOLIDATION_STRESS )
-  KRATOS_CREATE_VARIABLE(double, OVER_CONSOLIDATION_RATIO )
-  KRATOS_CREATE_VARIABLE(double, INITIAL_SHEAR_MODULUS )
-  KRATOS_CREATE_VARIABLE(double, WATER_BULK_MODULUS )
-  KRATOS_CREATE_VARIABLE(double, PERMEABILITY )
-  KRATOS_CREATE_VARIABLE(double, NORMAL_COMPRESSION_SLOPE )
-  KRATOS_CREATE_VARIABLE(double, SWELLING_SLOPE )
-  KRATOS_CREATE_VARIABLE(double, CRITICAL_STATE_LINE )
-  KRATOS_CREATE_VARIABLE(double, ALPHA_SHEAR )
-  KRATOS_CREATE_VARIABLE(double, INITIAL_POROSITY )
-  KRATOS_CREATE_VARIABLE(double, COHESION )
-  KRATOS_CREATE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
-
-  //element
-  KRATOS_CREATE_VARIABLE(Vector, DARCY_FLOW )
-  KRATOS_CREATE_VARIABLE(Matrix, TOTAL_CAUCHY_STRESS )
-
-  // transfer variables and initial
-  KRATOS_CREATE_VARIABLE(Matrix, ELASTIC_LEFT_CAUCHY_GREEN_TENSOR )
-  KRATOS_CREATE_VARIABLE(Vector, ELASTIC_LEFT_CAUCHY_GREEN_VECTOR )
-
-  KRATOS_CREATE_VARIABLE(Matrix, KIRCHHOFF_STRESS_TENSOR )
-  KRATOS_CREATE_VARIABLE(Vector, ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS )
-
-  //thermal
-
-  //mechanical
-
-  //geometrical
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
-  KRATOS_CREATE_VARIABLE(Vector, BOUNDARY_NORMAL )
-  KRATOS_CREATE_VARIABLE(double, SHRINK_FACTOR )
-  KRATOS_CREATE_VARIABLE( double, MEAN_RADIUS )
-
-  //domain definition
-  KRATOS_CREATE_VARIABLE(unsigned int, DOMAIN_LABEL )
-  KRATOS_CREATE_VARIABLE(int         , RIGID_WALL )
-  KRATOS_CREATE_VARIABLE(double      , WALL_TIP_RADIUS )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WALL_VELOCITY )
-
-  //contact condition
-  KRATOS_CREATE_VARIABLE(Condition::Pointer, MASTER_CONDITION )
-  KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
-  KRATOS_CREATE_VARIABLE(WeakPointerVector< Node<3> >, MASTER_NODES )
-
-  //contact 
-  KRATOS_CREATE_VARIABLE(bool,   FRICTION_ACTIVE )
-  KRATOS_CREATE_VARIABLE(double, PENALTY_PARAMETER )
-  KRATOS_CREATE_VARIABLE(double, LAGRANGE_MULTIPLIER_NORMAL )
-  KRATOS_CREATE_VARIABLE(double, LAGRANGE_MULTIPLIER_NORMAL_REACTION )
-  KRATOS_CREATE_VARIABLE(double, TAU_STAB )
-  KRATOS_CREATE_VARIABLE(double, MU_STATIC )
-  KRATOS_CREATE_VARIABLE(double, MU_DYNAMIC )
-
-  // contact post process
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_STRESS )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
-  KRATOS_CREATE_VARIABLE(double, CONTACT_ADHESION ) 
-  KRATOS_CREATE_VARIABLE(double, CONTACT_FRICTION_ANGLE )
-  KRATOS_CREATE_VARIABLE(double, TANGENTIAL_PENALTY_RATIO )
-  KRATOS_CREATE_VARIABLE(double, CONTACT_PLASTIC_SLIP )
-
-  // some post process variables + stress invariants
-  KRATOS_CREATE_VARIABLE(double, PRECONSOLIDATION )
-  KRATOS_CREATE_VARIABLE(double, STRESS_INV_P )
-  KRATOS_CREATE_VARIABLE(double, STRESS_INV_J2 )
-  KRATOS_CREATE_VARIABLE(double, STRESS_INV_THETA )
-  KRATOS_CREATE_VARIABLE(double, VOLUMETRIC_PLASTIC )
-  KRATOS_CREATE_VARIABLE(double, INCR_SHEAR_PLASTIC )
-
-  KRATOS_CREATE_VARIABLE(double, M_MODULUS )
-  KRATOS_CREATE_VARIABLE(double, SIMILAR_YOUNG_MODULUS)
+  //Application Constructor:
 
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
     mTotalUpdatedLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -158,7 +72,6 @@ namespace Kratos
     mUpdatedLagrangianUwPFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-
    
     mCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -180,90 +93,13 @@ namespace Kratos
     KratosApplication::Register();
     //KratosSolidMechanicsApplication::Register();
 
-    std::cout << "      KRATOS' _ |  __|  __| \\   |                  " << std::endl;
-    std::cout << "             '__| |_   |_   |\\ /|                  " << std::endl;
-    std::cout << "            _|   _|    |__ _|  _|SOLID MECHANICS    " << std::endl;
-    std::cout << "Initializing KratosPfemSolidMechanicsApplication... " << std::endl;
+    std::cout << "            ___  __           ___      _ _    _          " << std::endl;
+    std::cout << "     KRATOS| _ \\/ _|___ _ __ / __| ___| (_)__| |         " << std::endl;
+    std::cout << "           |  _/  _/ -_) '  \\\\__ \\/ _ \\ | / _` |         " << std::endl;
+    std::cout << "           |_| |_| \\___|_|_|_|___/\\___/_|_\\__,_|MECHANICS" << std::endl;
+    std::cout << "Initializing KratosPfemSolidMechanicsApplication...      " << std::endl;
     
-    //Register Elements
-
-    //Register total updated lagrangian elements
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D3N", mTotalUpdatedLagrangianElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D4N", mTotalUpdatedLagrangianElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D6N", mTotalUpdatedLagrangianElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D8N", mTotalUpdatedLagrangianElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D4N", mTotalUpdatedLagrangianElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D6N", mTotalUpdatedLagrangianElement3D6N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D8N", mTotalUpdatedLagrangianElement3D8N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D10N", mTotalUpdatedLagrangianElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D15N", mTotalUpdatedLagrangianElement3D15N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D20N", mTotalUpdatedLagrangianElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D27N", mTotalUpdatedLagrangianElement3D27N )
-
-    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianUPElement2D3N", mTotalUpdatedLagrangianUPElement2D3N )
-
-    //Register updated lagrangian U wP elements
-    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPElement2D3N", mUpdatedLagrangianUwPElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPStabElement2D3N", mUpdatedLagrangianUwPStabElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPFICElement2D3N", mUpdatedLagrangianUwPFICElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPStabElement2D3N", mAxisymUpdatedLagrangianUwPStabElement2D3N )
-
-    //Register Conditions
-
-    KRATOS_REGISTER_CONDITION( "Condition2D2N", mCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "Condition3D3N", mCondition3D3N )
-
-    KRATOS_REGISTER_CONDITION( "CompositeCondition2D2N", mCompositeCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "CompositeCondition3D3N", mCompositeCondition3D3N )
-   
-    KRATOS_REGISTER_CONDITION( "WallCondition2D2N", mWallCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "WallCondition3D3N", mWallCondition3D3N )
-
-    KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition2D3N", mContactDomainLMCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "ContactDomainPenaltyCondition2D3N", mContactDomainPenaltyCondition2D3N )
-
-    KRATOS_REGISTER_CONDITION( "AxisymContactDomainLMCondition2D3N", mAxisymContactDomainLMCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )
-
-
-    //Register Constitutive Laws
-    //Serializer::Register("NonLinearHenckyCamClayPlasticPlaneStrain2DLaw", mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw);
-    //Serializer::Register("NonLinearHenckyCamClayPlasticAxisym2DLaw", mNonLinearHenckyCamClayPlasticAxisym2DLaw);
-    //Serializer::Register("LinearHenckyCamClayPlasticPlaneStrain2DLaw", mLinearHenckyCamClayPlasticPlaneStrain2DLaw);
-    //Serializer::Register("LinearHenckyCamClayPlasticAxisym2DLaw", mLinearHenckyCamClayPlasticAxisym2DLaw);
-    Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
-    Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
-    Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
-    Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
-    Serializer::Register("HenckyTrescaPlasticAxisym2DLaw", mHenckyTrescaPlasticAxisym2DLaw);
-    Serializer::Register("HenckyTrescaPlasticPlaneStrain2DLaw", mHenckyTrescaPlasticPlaneStrain2DLaw);
-    Serializer::Register("HenckyMohrCoulombPlasticAxisym2DLaw", mHenckyMohrCoulombPlasticAxisym2DLaw);
-    Serializer::Register("HenckyMohrCoulombPlasticPlaneStrain2DLaw", mHenckyMohrCoulombPlasticPlaneStrain2DLaw);
-
-    Serializer::Register("HenckyPlasticUPJ2Axisym2DLaw", mHenckyPlasticUPJ2Axisym2DLaw);
-    Serializer::Register("HenckyPlasticUPJ2PlaneStrain2DLaw", mHenckyPlasticUPJ2PlaneStrain2DLaw);
-    Serializer::Register("HenckyPlasticUPTrescaAxisym2DLaw", mHenckyPlasticUPTrescaAxisym2DLaw);
-    Serializer::Register("HenckyPlasticUPTrescaPlaneStrain2DLaw", mHenckyPlasticUPTrescaPlaneStrain2DLaw);
-
-    //Register Flow Rules
-    Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
-    Serializer::Register("J2ExplicitFlowRule", mJ2ExplicitFlowRule);
-    Serializer::Register("MohrCoulombExplicitFlowRule", mMohrCoulombExplicitFlowRule);
-    //Serializer::Register("CamClayExplicitFlowRule", mCamClayExplicitFlowRule);
-    //Serializer::Register("LinearCamClayExplicitFlowRule", mLinearCamClayExplicitFlowRule);
-    Serializer::Register("BorjaCamClayExplicitFlowRule", mBorjaCamClayExplicitFlowRule);
-
-    //Register Yield Criterion
-    Serializer::Register("J2YieldCriterion", mJ2YieldCriterion);
-    Serializer::Register("TrescaYieldCriterion", mTrescaYieldCriterion);
-    Serializer::Register("MohrCoulombYieldCriterion", mMohrCoulombYieldCriterion);
-    Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
-
-    //Register Hardening Laws
-    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw); 
-
-    //Register Variables
+    //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
     //solution
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_ACTIVE_CONTACTS )
@@ -350,6 +186,84 @@ namespace Kratos
 
     KRATOS_REGISTER_VARIABLE( M_MODULUS )
     KRATOS_REGISTER_VARIABLE( SIMILAR_YOUNG_MODULUS )
+
+    //Register Elements
+
+    //Register total updated lagrangian elements
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D3N", mTotalUpdatedLagrangianElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D4N", mTotalUpdatedLagrangianElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D6N", mTotalUpdatedLagrangianElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement2D8N", mTotalUpdatedLagrangianElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D4N", mTotalUpdatedLagrangianElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D6N", mTotalUpdatedLagrangianElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D8N", mTotalUpdatedLagrangianElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D10N", mTotalUpdatedLagrangianElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D15N", mTotalUpdatedLagrangianElement3D15N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D20N", mTotalUpdatedLagrangianElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianElement3D27N", mTotalUpdatedLagrangianElement3D27N )
+
+    KRATOS_REGISTER_ELEMENT( "TotalUpdatedLagrangianUPElement2D3N", mTotalUpdatedLagrangianUPElement2D3N )
+
+    //Register updated lagrangian U wP elements
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPElement2D3N", mUpdatedLagrangianUwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPStabElement2D3N", mUpdatedLagrangianUwPStabElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUwPFICElement2D3N", mUpdatedLagrangianUwPFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPStabElement2D3N", mAxisymUpdatedLagrangianUwPStabElement2D3N )
+
+    //Register Conditions
+
+    KRATOS_REGISTER_CONDITION( "Condition2D2N", mCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "Condition3D3N", mCondition3D3N )
+
+    KRATOS_REGISTER_CONDITION( "CompositeCondition2D2N", mCompositeCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "CompositeCondition3D3N", mCompositeCondition3D3N )
+   
+    KRATOS_REGISTER_CONDITION( "WallCondition2D2N", mWallCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "WallCondition3D3N", mWallCondition3D3N )
+
+    KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition2D3N", mContactDomainLMCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "ContactDomainPenaltyCondition2D3N", mContactDomainPenaltyCondition2D3N )
+
+    KRATOS_REGISTER_CONDITION( "AxisymContactDomainLMCondition2D3N", mAxisymContactDomainLMCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenaltyCondition2D3N", mAxisymContactDomainPenaltyCondition2D3N )
+
+
+    //Register Constitutive Laws
+    //Serializer::Register("NonLinearHenckyCamClayPlasticPlaneStrain2DLaw", mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw);
+    //Serializer::Register("NonLinearHenckyCamClayPlasticAxisym2DLaw", mNonLinearHenckyCamClayPlasticAxisym2DLaw);
+    //Serializer::Register("LinearHenckyCamClayPlasticPlaneStrain2DLaw", mLinearHenckyCamClayPlasticPlaneStrain2DLaw);
+    //Serializer::Register("LinearHenckyCamClayPlasticAxisym2DLaw", mLinearHenckyCamClayPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
+    Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
+    Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
+    Serializer::Register("HenckyTrescaPlasticAxisym2DLaw", mHenckyTrescaPlasticAxisym2DLaw);
+    Serializer::Register("HenckyTrescaPlasticPlaneStrain2DLaw", mHenckyTrescaPlasticPlaneStrain2DLaw);
+    Serializer::Register("HenckyMohrCoulombPlasticAxisym2DLaw", mHenckyMohrCoulombPlasticAxisym2DLaw);
+    Serializer::Register("HenckyMohrCoulombPlasticPlaneStrain2DLaw", mHenckyMohrCoulombPlasticPlaneStrain2DLaw);
+
+    Serializer::Register("HenckyPlasticUPJ2Axisym2DLaw", mHenckyPlasticUPJ2Axisym2DLaw);
+    Serializer::Register("HenckyPlasticUPJ2PlaneStrain2DLaw", mHenckyPlasticUPJ2PlaneStrain2DLaw);
+    Serializer::Register("HenckyPlasticUPTrescaAxisym2DLaw", mHenckyPlasticUPTrescaAxisym2DLaw);
+    Serializer::Register("HenckyPlasticUPTrescaPlaneStrain2DLaw", mHenckyPlasticUPTrescaPlaneStrain2DLaw);
+
+    //Register Flow Rules
+    Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
+    Serializer::Register("J2ExplicitFlowRule", mJ2ExplicitFlowRule);
+    Serializer::Register("MohrCoulombExplicitFlowRule", mMohrCoulombExplicitFlowRule);
+    //Serializer::Register("CamClayExplicitFlowRule", mCamClayExplicitFlowRule);
+    //Serializer::Register("LinearCamClayExplicitFlowRule", mLinearCamClayExplicitFlowRule);
+    Serializer::Register("BorjaCamClayExplicitFlowRule", mBorjaCamClayExplicitFlowRule);
+
+    //Register Yield Criterion
+    Serializer::Register("J2YieldCriterion", mJ2YieldCriterion);
+    Serializer::Register("TrescaYieldCriterion", mTrescaYieldCriterion);
+    Serializer::Register("MohrCoulombYieldCriterion", mMohrCoulombYieldCriterion);
+    Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
+
+    //Register Hardening Laws
+    Serializer::Register("CamClayKinematicHardeningLaw", mCamClayKinematicHardeningLaw); 
 
   }
   

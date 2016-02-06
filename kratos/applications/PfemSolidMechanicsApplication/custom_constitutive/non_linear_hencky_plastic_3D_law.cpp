@@ -16,8 +16,8 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
-
-#include "pfem_solid_mechanics_application.h"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

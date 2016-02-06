@@ -6,12 +6,9 @@
 //
 //
 
-
 // System includes
 
-
 // External includes 
-
 
 // Project includes
 #include "includes/define.h"
@@ -63,13 +60,13 @@ namespace Kratos
     KratosApplication::Register();
     //KratosFluidDynamicsApplication::Register();
 
-    std::cout << "      KRATOS' _ |  __|  __| \\   |                  " << std::endl;
-    std::cout << "             '__| |_   |_   |\\ /|                  " << std::endl;
-    std::cout << "            _|   _|    |__ _|  _|FLUID DYNAMICS     " << std::endl;
-    std::cout << "Initializing KratosPfemFluidDynamicsApplication... " << std::endl;
-    
+    std::cout << "            ___  __           ___ _      _    _          " << std::endl;
+    std::cout << "     KRATOS| _ \\/ _|___ _ __ | __| |_  _(_)__| |         " << std::endl;
+    std::cout << "           |  _/  _/ -_) '  \\| _|| | || | / _` |         " << std::endl;
+    std::cout << "           |_| |_| \\___|_|_|_|_| |_|\\_,_|_\\__,_|DYNAMICS " << std::endl;
+    std::cout << "Initializing KratosPfemFluidDynamicsApplication...       " << std::endl;
+       
     //Register Elements
-
 
     //Register Conditions
 

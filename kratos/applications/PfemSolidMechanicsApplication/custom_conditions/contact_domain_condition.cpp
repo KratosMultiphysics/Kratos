@@ -14,7 +14,7 @@
 #include "includes/kratos_flags.h"
 #include "custom_conditions/contact_domain_condition.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 
 //#include <omp.h>

@@ -8,7 +8,7 @@
 #include "includes/define.h"
 #include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
 // ROUNDED MohrCoulomb YIELD CRITERION (Sloan & Booker, 1986 ) (in the octahedral)

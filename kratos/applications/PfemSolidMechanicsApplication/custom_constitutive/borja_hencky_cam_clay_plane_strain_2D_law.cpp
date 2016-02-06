@@ -16,7 +16,7 @@
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 namespace Kratos
 {
 

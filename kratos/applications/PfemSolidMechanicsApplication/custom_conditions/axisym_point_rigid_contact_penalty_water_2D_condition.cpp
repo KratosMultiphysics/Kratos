@@ -1,6 +1,6 @@
 #include "axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 // This is the same than  AxisymPointRigidContactPenalty2DCondition; however, if the yield surface of the contact is written with in terms of the 
 // effective contact stress, it induces a new term in the global matrix. (THIS IS WHY IT IS PROGRAMED; just to check if it increases the convergence 

@@ -15,7 +15,7 @@
 #include "custom_elements/updated_lagrangian_U_P_Second_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 // **
 // UP ELEMENT BUT NOT FOR ISOCHORIC PLASTICITY THAT HAS AN HYPERELASTIC SPLIT BETWEEN VOLUMETRIC AND DEVIATORIC PART

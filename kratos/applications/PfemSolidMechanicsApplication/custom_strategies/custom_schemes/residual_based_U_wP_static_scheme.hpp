@@ -24,7 +24,7 @@
 #include "includes/variables.h"
 
 #include "solid_mechanics_application.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 #include "custom_strategies/custom_schemes/residual_based_static_scheme.hpp"
 
 namespace Kratos
