@@ -17,7 +17,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_3d_law.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -15,7 +15,7 @@
 #include "custom_elements/updated_lagrangian_U_wP_second_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 
 // THIS ELEMENT IS THE SAME THAN THE UwP but, instead of using the term div(u) i putted dot(J) / J

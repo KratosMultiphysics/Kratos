@@ -9,7 +9,7 @@
 // Project includes
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

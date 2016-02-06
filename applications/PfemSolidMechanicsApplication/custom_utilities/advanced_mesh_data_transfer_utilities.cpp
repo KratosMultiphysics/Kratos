@@ -9,7 +9,7 @@
 // Project includes
 #include "includes/kratos_flags.h"
 #include "custom_utilities/mesh_data_transfer_utilities.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 // functions to compute the "advanced"  mesh data transfer
 // follows the scheme to compute the super mesh and from the mapping interpolate in a Least squares.

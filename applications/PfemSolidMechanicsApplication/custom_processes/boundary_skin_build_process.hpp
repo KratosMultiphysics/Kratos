@@ -29,8 +29,9 @@
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_3d_3.h"
 
+#include "custom_conditions/composite_condition.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 
 namespace Kratos

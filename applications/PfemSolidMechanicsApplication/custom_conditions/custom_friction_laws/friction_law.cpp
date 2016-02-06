@@ -1,6 +1,6 @@
 
 #include "custom_conditions/custom_friction_laws/friction_law.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 #include "custom_conditions/custom_friction_laws/friction_law.hpp"
 

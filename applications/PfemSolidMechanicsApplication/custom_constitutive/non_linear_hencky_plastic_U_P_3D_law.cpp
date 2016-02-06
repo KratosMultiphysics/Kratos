@@ -11,7 +11,7 @@
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
 
 #include "solid_mechanics_application.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

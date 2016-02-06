@@ -15,7 +15,7 @@
 #include "custom_modelers/laplacian_smoothing.hpp"
 #include "custom_modelers/mesh_modeler.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

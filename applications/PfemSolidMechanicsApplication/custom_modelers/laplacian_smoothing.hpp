@@ -19,11 +19,12 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 #ifdef   SINGLE
 #define  REAL float

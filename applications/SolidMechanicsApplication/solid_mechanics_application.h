@@ -1,15 +1,15 @@
 //--------------------------------------------------------------------
-/*    |  /           |
-      ' /   __| _` | __|  _ \   __|
-      . \  |   (   | |   (   |\__ \ 
-     _|\_\_|  \__,_|\__|\___/ ____/  
-                   KRATOS  __|   _ \  |   |  _ \    
-                         \__ \  (   | |   | | , )          
-                         ____/ \___/ ___|_| ___/ MECHANICS 
-			   
-     License:		  SolidMechanicsApplication/license.txt
-     Main authors:        Josep Maria Carbonell i Puigbo
-                          ..                                        */
+//    |  /           |                                               .
+//    ' /   __| _` | __|  _ \   __|                                  .
+//    . \  |   (   | |   (   |\__ \                                  .
+//   _|\_\_|  \__,_|\__|\___/ ____/                                  .
+//                 KRATOS  __|   _ \  |   |  _ \                     .
+//                       \__ \  (   | |   | | , )                    .      
+//                       |___/ \___/ ___|_| ___/ MECHANICS           .            
+//			                                             .
+//   License:(BSD)	  SolidMechanicsApplication/license.txt      .
+//   Main authors:        Josep Maria Carbonell                      .
+//                        ..                                         .
 //--------------------------------------------------------------------
 //
 //   Project Name:        KratosSolidMechanicsApplication $
@@ -22,15 +22,11 @@
 #if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -113,7 +109,6 @@
 #include "custom_constitutive/isotropic_damage_simo_ju_3D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_strain_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_simo_ju_plane_stress_2D_law.hpp"
-
 
 #include "solid_mechanics_application_variables.h"
 
@@ -274,12 +269,10 @@ typedef array_1d<double,6> Vector6;
    ///@}
 
  private:
+
    ///@name Static Member Variables
    ///@{
 
-
-
-   //       static const ApplicationCondition  msApplicationCondition;
 
    ///@}
    ///@name Member Variables
@@ -328,7 +321,6 @@ typedef array_1d<double,6> Vector6;
    const TotalLagrangianElement mTotalLagrangianElement3D20N;
    const TotalLagrangianElement mTotalLagrangianElement3D27N;
 
- 
    //updated lagrangian
    const UpdatedLagrangianElement mUpdatedLagrangianElement2D3N;
    const UpdatedLagrangianElement mUpdatedLagrangianElement2D4N;

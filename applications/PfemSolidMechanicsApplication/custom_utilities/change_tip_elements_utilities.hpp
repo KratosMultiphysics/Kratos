@@ -27,7 +27,7 @@
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 #if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
 #define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED

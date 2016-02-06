@@ -18,7 +18,7 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

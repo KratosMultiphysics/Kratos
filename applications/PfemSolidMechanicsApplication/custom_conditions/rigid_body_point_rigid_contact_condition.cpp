@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_conditions/rigid_body_point_rigid_contact_condition.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

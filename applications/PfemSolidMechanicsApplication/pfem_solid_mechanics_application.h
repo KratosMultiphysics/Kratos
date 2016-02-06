@@ -1,27 +1,26 @@
-//--------------------------------------------------------------------
-/*    |  /           |
-      ' /   __| _` | __|  _ \   __|
-      . \  |   (   | |   (   |\__ \ 
-     _|\_\_|  \__,_|\__|\___/ ____/  
-        KRATOS' _ |  __|  __| \   |   __|   _ \  |   |  _ \    
-               '__| |_   |_   |\ /| \__ \  (   | |   | | , )                  
-              _|   _|    |__ _|  _| ____/ \___/ ___|_| ___/ MECHANICS 
- 
-     License:		      PfemSolidMechanicsApplication/license.txt
-     Main authors:        Josep Maria Carbonell i Puigbo
-                          ..                                        */  
-//--------------------------------------------------------------------
+//-------------------------------------------------------------
+//         ___  __           ___      _ _    _ 
+//  KRATOS| _ \/ _|___ _ __ / __| ___| (_)__| |
+//        |  _/  _/ -_) '  \\__ \/ _ \ | / _` |
+//        |_| |_| \___|_|_|_|___/\___/_|_\__,_|MECHANICS
+//                                            
+//  License:(BSD)    PfemSolidMechanicsApplication/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
+//                   Lluis Monforte 
+//
+//-------------------------------------------------------------
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                    July 2013 $
+//   Date:                $Date:                February 2015 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
+
 #if !defined(KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_H_INCLUDED
-
 
 // System includes
 
@@ -98,6 +97,8 @@
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.hpp"
 
+#include "pfem_solid_mechanics_application_variables.h"
+
 namespace Kratos
 {
   ///@name Type	Definitions
@@ -105,101 +106,6 @@ namespace Kratos
 
   ///@name Kratos Globals
   ///@{ 
-
-
-  //Define Variables
-
-  //solution
-  KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_ACTIVE_CONTACTS )
-  KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_STICK_CONTACTS )
-  KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_SLIP_CONTACTS )
-
-
-  KRATOS_DEFINE_VARIABLE(double, IMPOSED_WATER_PRESSURE )
-  //geometrical
-
-  //constitutive law   
-  KRATOS_DEFINE_VARIABLE(double, MEAN_ERROR )
-
-  //material
-  KRATOS_DEFINE_VARIABLE(double, PRE_CONSOLIDATION_STRESS )
-  KRATOS_DEFINE_VARIABLE(double, OVER_CONSOLIDATION_RATIO )
-  KRATOS_DEFINE_VARIABLE(double, INITIAL_SHEAR_MODULUS )
-  KRATOS_DEFINE_VARIABLE(double, WATER_BULK_MODULUS )
-  KRATOS_DEFINE_VARIABLE(double, PERMEABILITY )
-  KRATOS_DEFINE_VARIABLE(double, NORMAL_COMPRESSION_SLOPE )
-  KRATOS_DEFINE_VARIABLE(double, SWELLING_SLOPE )
-  KRATOS_DEFINE_VARIABLE(double, CRITICAL_STATE_LINE )
-  KRATOS_DEFINE_VARIABLE(double, ALPHA_SHEAR )
-  KRATOS_DEFINE_VARIABLE(double, INITIAL_POROSITY )
-  KRATOS_DEFINE_VARIABLE(double, COHESION )
-  KRATOS_DEFINE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
-
-
-
-
-  //element
-  KRATOS_DEFINE_VARIABLE(Matrix, TOTAL_CAUCHY_STRESS )
-  KRATOS_DEFINE_VARIABLE(Vector, DARCY_FLOW )
-
-  // transfer and initial state (set and get)
-  KRATOS_DEFINE_VARIABLE(Matrix, KIRCHHOFF_STRESS_TENSOR )
-  KRATOS_DEFINE_VARIABLE(Vector, ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS )
-  KRATOS_DEFINE_VARIABLE(Matrix, ELASTIC_LEFT_CAUCHY_GREEN_TENSOR )
-  KRATOS_DEFINE_VARIABLE(Vector, ELASTIC_LEFT_CAUCHY_GREEN_VECTOR )
-
-  //thermal
-
-  //mechanical
-
-  //nodal dofs
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
-  KRATOS_DEFINE_VARIABLE(Vector, BOUNDARY_NORMAL )
-  KRATOS_DEFINE_VARIABLE(double, SHRINK_FACTOR )
-  KRATOS_DEFINE_VARIABLE( double, MEAN_RADIUS )
-
-  //domain definition
-  KRATOS_DEFINE_VARIABLE(unsigned int, DOMAIN_LABEL )
-  KRATOS_DEFINE_VARIABLE(int         , RIGID_WALL )
-  KRATOS_DEFINE_VARIABLE(double      , WALL_TIP_RADIUS )
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WALL_VELOCITY )
-
-  //contact condition
-  KRATOS_DEFINE_VARIABLE(Condition::Pointer, MASTER_CONDITION )
-  KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
-  KRATOS_DEFINE_VARIABLE(WeakPointerVector< Node<3> >, MASTER_NODES )
-
-  //contact properties
-  KRATOS_DEFINE_VARIABLE(bool, FRICTION_ACTIVE )
-  KRATOS_DEFINE_VARIABLE(double, PENALTY_PARAMETER )
-  KRATOS_DEFINE_VARIABLE(double, LAGRANGE_MULTIPLIER_NORMAL )
-  KRATOS_DEFINE_VARIABLE(double, LAGRANGE_MULTIPLIER_NORMAL_REACTION )
-  KRATOS_DEFINE_VARIABLE(double, TAU_STAB )
-  KRATOS_DEFINE_VARIABLE(double, MU_STATIC )
-  KRATOS_DEFINE_VARIABLE(double, MU_DYNAMIC )
-
-  // contact postprocess
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS )
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_STRESS )
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
-  KRATOS_DEFINE_VARIABLE(double, CONTACT_ADHESION )
-  KRATOS_DEFINE_VARIABLE(double, CONTACT_FRICTION_ANGLE)
-  KRATOS_DEFINE_VARIABLE(double, TANGENTIAL_PENALTY_RATIO )
-  KRATOS_DEFINE_VARIABLE(double, CONTACT_PLASTIC_SLIP )
-
-
-  // some post process variables + stress invariants
-  KRATOS_DEFINE_VARIABLE(double, PRECONSOLIDATION )
-  KRATOS_DEFINE_VARIABLE(double, STRESS_INV_P )
-  KRATOS_DEFINE_VARIABLE(double, STRESS_INV_J2 )
-  KRATOS_DEFINE_VARIABLE(double, STRESS_INV_THETA )
-  KRATOS_DEFINE_VARIABLE(double, VOLUMETRIC_PLASTIC )
-  KRATOS_DEFINE_VARIABLE(double, INCR_SHEAR_PLASTIC )
-
-
-  KRATOS_DEFINE_VARIABLE(double, M_MODULUS )
-  KRATOS_DEFINE_VARIABLE(double, SIMILAR_YOUNG_MODULUS )
 
   ///@} 
   ///@name Type Definitions
@@ -255,8 +161,6 @@ namespace Kratos
     ///@{
 
     virtual void Register();
-
-
 
     ///@}
     ///@name Access
@@ -348,10 +252,6 @@ namespace Kratos
   private:
     ///@name Static Member Variables 
     ///@{ 
-
-
-
-    //       static const ApplicationCondition  msApplicationCondition; 
 
     ///@} 
     ///@name Member Variables 

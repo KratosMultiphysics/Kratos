@@ -17,7 +17,7 @@
 #include "includes/properties.h"
 #include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 
 namespace Kratos

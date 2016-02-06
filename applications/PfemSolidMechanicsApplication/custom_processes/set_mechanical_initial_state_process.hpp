@@ -22,7 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 
 

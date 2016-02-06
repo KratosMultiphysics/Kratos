@@ -14,7 +14,7 @@
 // Project includes
 #include "custom_modelers/contact_domain_2D_modeler.hpp"
 
-#include "pfem_solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 
 namespace Kratos

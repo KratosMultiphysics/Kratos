@@ -1,15 +1,15 @@
 //--------------------------------------------------------------------
-/*    |  /           |
-      ' /   __| _` | __|  _ \   __|
-      . \  |   (   | |   (   |\__ \ 
-     _|\_\_|  \__,_|\__|\___/ ____/  
-                   KRATOS  __|   _ \  |   |  _ \    
-                         \__ \  (   | |   | | , )          
-                         ____/ \___/ ___|_| ___/ MECHANICS 
-			   
-     License:		  SolidMechanicsApplication/license.txt
-     Main authors:        Josep Maria Carbonell i Puigbo
-                          ..                                        */
+//    |  /           |                                               .
+//    ' /   __| _` | __|  _ \   __|                                  .
+//    . \  |   (   | |   (   |\__ \                                  .
+//   _|\_\_|  \__,_|\__|\___/ ____/                                  .
+//                 KRATOS  __|   _ \  |   |  _ \                     .
+//                       \__ \  (   | |   | | , )                    .      
+//                       |___/ \___/ ___|_| ___/ MECHANICS           .            
+//			                                             .
+//   License:(BSD)	  SolidMechanicsApplication/license.txt      .
+//   Main authors:        Josep Maria Carbonell                      .
+//                        ..                                         .
 //--------------------------------------------------------------------
 //
 //   Project Name:        KratosSolidMechanicsApplication $
