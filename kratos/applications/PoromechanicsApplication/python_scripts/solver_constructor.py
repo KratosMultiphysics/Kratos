@@ -93,7 +93,7 @@ def CreateSolver(model_part, config):
     if(config.analysis_type == "Quasi-Static"):
         model_part.ProcessInfo[BETA_NEWMARK] = 0.25
         model_part.ProcessInfo[GAMMA_NEWMARK] = 0.5
-        model_part.ProcessInfo[THETA_NEWMARK] = 0.5
+        model_part.ProcessInfo[THETA_NEWMARK] = 0.5 #(0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         is_dynamic = False
         solution_scheme = NewmarkScheme(is_dynamic)
     elif(config.analysis_type == "Dynamic"):
