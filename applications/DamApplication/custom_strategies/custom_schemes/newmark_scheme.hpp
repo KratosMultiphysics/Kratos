@@ -183,9 +183,6 @@ public:
             double& TangentialContactStress = (i)->FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
             TangentialContactStress += (i)->FastGetSolutionStepValue(IMPOSED_TANGENTIAL_STRESS);
             
-            double& Temperature = (i)->FastGetSolutionStepValue(TEMPERATURE);
-            Temperature += (i)->FastGetSolutionStepValue(IMPOSED_TEMPERATURE);
-
 
             //Predict Acceleration and Velocity
             noalias(DeltaDisplacement)               = CurrentDisplacement - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
