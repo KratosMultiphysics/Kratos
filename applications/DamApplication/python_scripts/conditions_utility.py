@@ -13,10 +13,6 @@ class ConditionsUtility:
 
         self.time_unit_converter = time_unit_converter
         self.delta_time = delta_time
-        if(evolution_type== "Exact"):
-            self.evolution_conditions_process = EvolutionConditionsProcess(model_part, time_unit_converter)
-        else:
-            self.evolution_conditions_process = InterpolatedEvolutionConditionsProcess(model_part, time_unit_converter)
 
         self.imposed_displacement = ConditionsOptions.Imposed_Displacement
         self.imposed_pointload = ConditionsOptions.Imposed_PointLoad
@@ -26,6 +22,21 @@ class ConditionsUtility:
         self.imposed_tangentialload = ConditionsOptions.Imposed_TangentialLoad
         self.imposed_temperature = ConditionsOptions.Imposed_Temperature
 
+        self.listofconditions=[]
+        
+        if(self.imposed_normalload=="Table"):
+            if(evolution_type== "Exact"):
+                self.listofconditions.append(ExactEvolutionConditionsLoadProcess(model_part, time_unit_converter))
+            else:
+                self.listofconditions.append(InterpolationEvolutionConditionsLoadProcess(model_part, time_unit_converter))
+                
+        if(self.imposed_temperature=="Table"):
+            if(evolution_type== "Exact"):
+                self.listofconditions.append(ExactEvolutionConditionsTemperatureProcess(model_part, time_unit_converter))
+            else: 
+                self.listofconditions.append(InterpolationEvolutionConditionsTemperatureProcess(model_part, time_unit_converter))
+        elif(self.imposed_temperature=="Linearly_Incremented"):
+            self.listofconditions.append(LinearEvolutionConditionsTemperatureProcess(model_part))
 
     def Initialize(self, model_part):
 
@@ -124,7 +135,7 @@ class ConditionsUtility:
                     node.SetSolutionStepValue(TANGENTIAL_CONTACT_STRESS, TangentialStress)
         elif(self.imposed_tangentialload=="Non-linearly_Modified"):
             self.NonLinearImposedConditions = True
-            
+
         if(self.imposed_temperature=="Linearly_Incremented"):
             for node in model_part.Nodes:
                 if(node.IsFixed(TEMPERATURE)):
@@ -136,12 +147,11 @@ class ConditionsUtility:
         elif(self.imposed_temperature=="Non-linearly_Modified"):
             self.NonLinearImposedConditions = True
 
-
     def UpdateImposedConditions(self, model_part, current_step):
-        
-        if(self.imposed_normalload=="Table" or self.imposed_temperature=="Table"):
-            self.evolution_conditions_process.Execute()
             
+        for condition in self.listofconditions:
+            condition.Execute()
+        
         if(self.NonLinearImposedConditions):
             print("Customize your conditions")
         
