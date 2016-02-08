@@ -36,7 +36,9 @@ void  AddMappersToPython()
     class_<SharedPointsMapper >("SharedPointsMapper",
                                 init< const ModelPart::NodesContainerType&, const  ModelPart::NodesContainerType&, double>())
     .def("ScalarMap",&SharedPointsMapper::ScalarMap)
+    .def("InverseScalarMap",&SharedPointsMapper::InverseScalarMap)
     .def("VectorMap",&SharedPointsMapper::VectorMap)
+    .def("InverseVectorMap",&SharedPointsMapper::InverseVectorMap)
     ;
 
     class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
