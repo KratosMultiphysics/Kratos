@@ -5,8 +5,8 @@
 //   Revision:            $Revision:          0.0 $
 //
 
-#if !defined(KRATOS_EVOLUTION_CONDITIONS_PROCESS )
-#define  KRATOS_EVOLUTION_CONDITIONS_PROCESS
+#if !defined(KRATOS_EXACT_EVOLUTION_CONDITIONS_TEMPERATURE_PROCESS )
+#define  KRATOS_EXACT_EVOLUTION_CONDITIONS_TEMPERATURE_PROCESS
 
 #include <cmath>
 
@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class EvolutionConditionsProcess : public Process
+class ExactEvolutionConditionsTemperatureProcess : public Process
 {
     
 public:
@@ -35,7 +35,7 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Constructor
-    EvolutionConditionsProcess(ModelPart& r_model_part, double time_unit_converter) : mr_model_part(r_model_part)
+    ExactEvolutionConditionsTemperatureProcess(ModelPart& r_model_part, double time_unit_converter) : mr_model_part(r_model_part)
     {
         mlast_id = 0;
         mtime_unit_converter = time_unit_converter;
@@ -44,7 +44,7 @@ public:
     //------------------------------------------------------------------------------------
     
     // Destructor
-    virtual ~EvolutionConditionsProcess(){}
+    virtual ~ExactEvolutionConditionsTemperatureProcess(){}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,6 @@ public:
         
             this->Uniform_conditions(table_outer_temp); 
             
-            this->Hydrostatic_pressure(table_water_level); 
         }
     }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -155,50 +154,11 @@ protected:
             Temperature = outer_temp;
         }
     }
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Hydrostatic_pressure(TableContainerType const& table_water_level)
-    {
-        // We have to pick up the provided values by the mesh
-        std::string direction = (*(mr_model_part.pGetMesh(3)))[GRAVITY_DIRECTION];
-        const double& coordinate_base = (*(mr_model_part.pGetMesh(3)))[COORDINATE_BASE_DAM];
-        const double& spe_weight =  (*(mr_model_part.pGetMesh(3)))[SPECIFIC_WEIGHT];
-        
-        double ref_coord;
-        
-        const double& water_level = table_water_level[mlast_id].second[0];                          // Water Level
-                
-        for(ModelPart::NodeIterator i = mr_model_part.pGetMesh(3)->NodesBegin(); i <mr_model_part.pGetMesh(3)->NodesEnd(); i++)
-        {
-            double& pressure  = (i)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-            
-            if(direction=="X")
-            {
-                ref_coord = coordinate_base + water_level;
-                pressure = spe_weight*(ref_coord- (i)->X());
-                    if(pressure < 0.0)
-                        pressure = 0.0; 
-            }
-            else if(direction=="Y")
-            {
-                ref_coord = coordinate_base + water_level;
-                pressure = spe_weight*(ref_coord- (i)->Y());
-                    if(pressure < 0.0)
-                        pressure = 0.0; 
-            }
-            else if(direction=="Z")
-            {
-                ref_coord = coordinate_base + water_level;
-                pressure = spe_weight*(ref_coord- (i)->Z());
-                    if(pressure < 0.0)
-                        pressure = 0.0; 
-            }
-        }
-    }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 };//Class
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_EVOLUTION_CONDITIONS_PROCESS defined */
+#endif /* KRATOS_EXACT_EVOLUTION_CONDITIONS_TEMPERATURE_PROCESS defined */
