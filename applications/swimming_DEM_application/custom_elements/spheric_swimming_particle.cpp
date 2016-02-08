@@ -134,7 +134,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
         GetGeometry()[0].FastGetSolutionStepValue(LIFT_FORCE)          = saffman_lift_force + magnus_lift_force;
     }
 
-    if (mHasDragCoefficeintVar){
+    if (mHasDragCoefficientVar){
         double drag_coefficient = ComputeDragCoefficient(r_current_process_info);
         GetGeometry()[0].FastGetSolutionStepValue(DRAG_COEFFICIENT)    = drag_coefficient;
     }
@@ -922,7 +922,7 @@ void SphericSwimmingParticle<TBaseElement>::CustomInitialize()
     mHasVirtualMassForceNodalVar = GetGeometry()[0].SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
     mHasLiftForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(LIFT_FORCE);
     mSphericity                  = GetGeometry()[0].SolutionStepsDataHas(PARTICLE_SPHERICITY);
-    mHasDragCoefficeintVar       = GetGeometry()[0].SolutionStepsDataHas(DRAG_COEFFICIENT);
+    mHasDragCoefficientVar       = GetGeometry()[0].SolutionStepsDataHas(DRAG_COEFFICIENT);
 }
 
 //**************************************************************************************************************************************************
