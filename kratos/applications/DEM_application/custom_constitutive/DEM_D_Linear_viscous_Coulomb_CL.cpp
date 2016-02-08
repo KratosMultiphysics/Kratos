@@ -46,8 +46,10 @@ namespace Kratos {
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);                   
         
         //Normal and Tangent elastic constants
-        const double sqrt_equiv_radius = sqrt(equiv_radius);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius;
+        //const double sqrt_equiv_radius = sqrt(equiv_radius);
+        const double alpha = 0.05;   // relative indentation between particles
+        const double modified_radius = equiv_radius * sqrt(alpha * (2.0 - alpha));
+        mKn = equiv_young * KRATOS_M_PI * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;       
     }
     
@@ -122,6 +124,7 @@ namespace Kratos {
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
         const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus); 
+
         /*
         const double effective_young = my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus for RIGID WALLS! 
         const double effective_young = 0.5 * my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus if the wall has the same E of the sphere
@@ -134,8 +137,11 @@ namespace Kratos {
         // For flexible walls, the computation is different, Thornton 2012 proposes same Shear for both)
         */        
         //Normal and Tangent elastic constants
-        const double sqrt_equiv_radius = sqrt(effective_radius);
-        mKn = 2.0 * equiv_young * sqrt_equiv_radius;
+        //const double sqrt_equiv_radius = sqrt(effective_radius);
+
+        const double alpha = 0.05;
+        const double modified_radius = effective_radius * sqrt(alpha * (2.0 - alpha));
+        mKn = equiv_young * KRATOS_M_PI * modified_radius;                                 // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }    
     
@@ -170,6 +176,7 @@ namespace Kratos {
     }
         
     template<class NeighbourClassType>
+
     void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
                                                                       const double OldLocalContactForce[3],
                                                                       double LocalElasticContactForce[3],
