@@ -76,8 +76,8 @@ public:
 
         if( OriginNodes.size()!=0 && DestinationNodes.size()!=0)
         {
-            if( OriginNodes.size() != DestinationNodes.size() )
-                KRATOS_THROW_ERROR(std::logic_error,"wrong number of nodes","");
+            //if( OriginNodes.size() != DestinationNodes.size() )
+            //    KRATOS_THROW_ERROR(std::logic_error,"wrong number of nodes","");
 
             mOriginNodes.reserve( OriginNodes.size() );
             mDestinationNodes.reserve( DestinationNodes.size() );
@@ -136,6 +136,24 @@ public:
         KRATOS_CATCH("")
     }
 
+    void InverseScalarMap( const Variable<double>& rOriginVariable,
+                    const Variable<double>& rDestinationVariable)
+    {
+        KRATOS_TRY
+
+        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+
+        for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
+        {
+            (it_origin++ )->FastGetSolutionStepValue(rOriginVariable) = 
+                (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable);
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
     //**************************************************************************************************
     //**************************************************************************************************
     void VectorMap( const Variable<array_1d<double,3> >& rOriginVariable,
@@ -148,8 +166,29 @@ public:
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
-            noalias( (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable) ) =
+            (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable) =
                 (it_origin++ )->FastGetSolutionStepValue(rOriginVariable);
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    //**************************************************************************************************
+    //**************************************************************************************************
+    void InverseVectorMap( const Variable<array_1d<double,3> >& rOriginVariable,
+                    const Variable<array_1d<double,3> >& rDestinationVariable)
+    {
+        KRATOS_TRY
+
+        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+
+        for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
+        {
+            noalias((it_origin++ )->FastGetSolutionStepValue(rOriginVariable)) = 
+                 (it_destination++ )->FastGetSolutionStepValue(rDestinationVariable);
+                
 
         }
 
