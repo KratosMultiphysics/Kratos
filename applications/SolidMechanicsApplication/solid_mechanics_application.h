@@ -48,6 +48,8 @@
 #include "custom_conditions/surface_load_3D_condition.hpp"
 
 //elements
+#include "custom_elements/linear_solid_element.hpp"
+
 #include "custom_elements/small_displacement_element.hpp"
 #include "custom_elements/axisym_small_displacement_element.hpp"
 
@@ -212,8 +214,8 @@ typedef array_1d<double,6> Vector6;
    virtual void PrintData(std::ostream& rOStream) const
    {
      KRATOS_WATCH( "in KratosSolidMechanicsApplication" )
-       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
-       rOStream << "Variables:" << std::endl;
+     KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
+     rOStream << "Variables:" << std::endl;
      KratosComponents<VariableData>().PrintData(rOStream);
      rOStream << std::endl;
      rOStream << "Elements:" << std::endl;
@@ -280,6 +282,11 @@ typedef array_1d<double,6> Vector6;
 
 
    //solid
+   const LinearSolidElement mLinearSolidElement2D3N;
+   const LinearSolidElement mLinearSolidElement2D4N;
+   const LinearSolidElement mLinearSolidElement3D4N;
+   const LinearSolidElement mLinearSolidElement3D8N;
+
 
    //small displacement
    const SmallDisplacementElement mSmallDisplacementElement2D3N;

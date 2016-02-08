@@ -58,6 +58,11 @@ namespace Kratos
   //Application Constructor:
 
   KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
+    mLinearSolidElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mLinearSolidElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mLinearSolidElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mLinearSolidElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+
     mSmallDisplacementElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mSmallDisplacementElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mSmallDisplacementElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
@@ -243,6 +248,10 @@ namespace Kratos
     //Register Elements
 
     //Register solids
+    KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D3N", mLinearSolidElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D4N", mLinearSolidElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D6N", mLinearSolidElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D8N", mLinearSolidElement3D8N )
 
     //Register small displacement elements
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D3N", mSmallDisplacementElement2D3N )

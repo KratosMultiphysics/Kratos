@@ -1224,10 +1224,12 @@ void LargeDisplacementElement::InitializeMaterial()
                     row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
         }
     }
-    else
+    else{
         KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
-        KRATOS_CATCH( "" )
     }
+
+    KRATOS_CATCH( "" )
+}
 
 
 //************************************************************************************
