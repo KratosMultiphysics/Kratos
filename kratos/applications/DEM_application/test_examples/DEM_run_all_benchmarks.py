@@ -24,7 +24,8 @@ Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two ident
                   "Running DEM Benchmark 9... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
                   "Running DEM Benchmark 10... Linear: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 11... Hertzian: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
-                  "","","","","","","","",
+                  "Running DEM Benchmark 12... Sphere rotating over a plane surface with Rolling Friction\n",
+                  "","","","","","","",
                   "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
                   "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
                   "Running DEM Benchmark 22... Tensile test of two identical spheres\n",\
@@ -46,8 +47,8 @@ def Run():
     failure = False
     #list_of_failed_tests = []
     
-    #Discontinuum Tests. From 1 to 11
-    D_DEM_Benchmarks_list = list(range(1,12))
+    #Discontinuum Tests. From 1 to 12
+    D_DEM_Benchmarks_list = list(range(1,13))
         
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
@@ -99,6 +100,7 @@ def Run():
     g.write("Benchmark 09. Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n")
     g.write("Benchmark 10. Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n")
     g.write("Benchmark 11. Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n")
+    g.write("Benchmark 12. Sphere rotating over a plane surface with Rolling Friction\n")
     g.write("\nCONTINUUM TESTS:\n")
     g.write("Benchmark 20. Normal compression of two identical spheres\n")
     g.write("Benchmark 21. Normal compression of two identical indented spheres\n")
