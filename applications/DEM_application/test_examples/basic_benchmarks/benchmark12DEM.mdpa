@@ -1,0 +1,52 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+PARTICLE_DENSITY 1.0
+YOUNG_MODULUS 2.6e7
+POISSON_RATIO 0.203
+PARTICLE_FRICTION 0.5
+PARTICLE_COHESION 0.0
+COEFFICIENT_OF_RESTITUTION 0.2
+PARTICLE_MATERIAL 1
+ROLLING_FRICTION 0.2
+DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes // GUI group identifier: DEM celemid SphericPartDEMElement3D
+1 0.0000 0.0027 -0.0000
+End Nodes
+
+Begin Elements SphericParticle3D   //  GUI group identifier: DEM
+1 1 1
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: DEM Elementid SphericPartDEMElement3D
+1 0 0.0026
+End NodalData
+
+//Begin Mesh 1 // GUI conditionid DEM-VelocityBC group identifier: DEM
+//  Begin MeshData // GUI Groupid: DEM
+//  IMPOSED_VELOCITY_X 0
+//  IMPOSED_VELOCITY_X_VALUE 0.15
+//  IMPOSED_VELOCITY_Y 0
+//  IMPOSED_VELOCITY_Y_VALUE 0.0
+//  IMPOSED_VELOCITY_Z 0
+//  IMPOSED_VELOCITY_Z_VALUE 0.0
+//  IMPOSED_ANGULAR_VELOCITY_X 0
+//  IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+//  IMPOSED_ANGULAR_VELOCITY_Y 0
+//  IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+//  IMPOSED_ANGULAR_VELOCITY_Z 0
+//  IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+//  FORCE_INTEGRATION_GROUP 0
+//  TOP 0
+//  BOTTOM 0
+//  End MeshData
+//  Begin MeshNodes
+//  1
+//  End MeshNodes
+//End Mesh
+
