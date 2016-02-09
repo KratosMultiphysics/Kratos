@@ -90,6 +90,13 @@ def initialize_time_parameters(benchmark_number):
         number_of_points_in_the_graphic = 10
         number_of_coeffs_of_restitution = 4
         
+    elif benchmark_number==12:
+
+        final_time                      = 0.1
+        dt                              = 5.0e-7 #3.6e-12
+        output_time_step                = 1e-4
+        number_of_points_in_the_graphic = 1
+        
     elif benchmark_number==20:            # Normal compression
 
         final_time                      = 0.01
@@ -1853,7 +1860,103 @@ class Benchmark11: ########## HERTZIAN THORNTON
     def generate_graph_points(self, modelpart, time, output_time_step, dt):
         pass
 
+class Benchmark12: ########## ROLIING FRICTION
 
+    def __init__(self):
+        self.initial_vel         = 0.15
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+ 
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+        
+        for node in modelpart.Nodes:
+            if node.Id == 1:
+                node.SetSolutionStepValue(VELOCITY_X, self.initial_vel)
+
+        self.angular_velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.angular_velocity_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        self.simulation_graph.close()
+
+    def ApplyNodalRotation(self, time, modelpart):       #MAIN LOOP STEP
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            total_angular_velocity_z = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 1:
+                   angular_velocity_z = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
+                   total_angular_velocity_z += angular_velocity_z
+
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_angular_velocity_z).rjust(13)+"\n")
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP 
+
+        error1, error2, error3 = self.compute_errors(self.angular_velocity_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("\n\n")
+        error_file.write("==== WENSRICH PAPER TEST. ROLLING FRCITION ====\n\n")
+        error_file.write("DEM Benchmark 12:")
+
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 12 SUCCESSFUL\n")
+            shutil.rmtree('benchmark12_Post_Files', ignore_errors = True)
+        else:
+            error_file.write(" KO!........ Test 12 FAILED\n")
+        error_file.close()
+
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+        pass
+
+        lines_analytics = lines_DEM = list(range(0, 1000));
+        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+        i = 0
+        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:  #with open('paper_data/reference_graph_benchmark12.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    analytics_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))   #segona component del vector ()
+                i+=1
+        final_restitution_numbers_error = 0
+
+        for j in analytics_data:
+            summation_of_analytics_data+=abs(j)
+
+        for i, j in zip(DEM_data, analytics_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_analytics_data
+
+        print("Error in simulation =", 100*final_restitution_numbers_error,"%")
+
+        error1 = 100*final_restitution_numbers_error
+
+        error2 = error3 = 0
+
+        return error1, error2, error3
+
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
+        pass
+
+    
 class Benchmark20:
 
     def __init__(self):

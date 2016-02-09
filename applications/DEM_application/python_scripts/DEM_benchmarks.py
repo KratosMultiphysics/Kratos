@@ -22,6 +22,8 @@ list = list(range(1,12))
 
 if benchmark_number in list:
     import DEM_explicit_solver_var as DEM_parameters
+elif benchmark_number ==12:
+    import DEM_explicit_solver_var_12 as DEM_parameters
 else:
     import DEM_explicit_solver_var2 as DEM_parameters
 
