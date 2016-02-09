@@ -93,6 +93,7 @@ add_library(KratosSolidMechanicsApplication SHARED ${KRATOS_SOLID_MECHANICS_APPL
 target_link_libraries(KratosSolidMechanicsApplication KratosCore)
 ##target_link_libraries(KratosSolidMechanicsApplication KratosCore triangle tetgen msuite tetMeshOpt)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosFooApplication PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
 
 
