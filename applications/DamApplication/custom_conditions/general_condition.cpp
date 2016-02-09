@@ -181,7 +181,16 @@ void GeneralCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType&
 
 void GeneralCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
+    const GeometryType& rGeom = GetGeometry();
+    const SizeType NumNodes = rGeom.size();
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const SizeType NumGPoints = integration_points.size();
+    
+    (rVariables.NContainer).resize(NumGPoints,NumNodes,false);
     rVariables.NContainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+    
+    (rVariables.N).resize(NumNodes,false);
+    
     GetGeometry().Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 }
 
@@ -190,8 +199,8 @@ void GeneralCondition::InitializeConditionVariables (ConditionVariables& rVariab
 void GeneralCondition::CalculateKinematics(ConditionVariables& rVariables,unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    //Setting the shape function vector
+   
+    //Setting the shape function vector    
     rVariables.N = row( rVariables.NContainer, PointNumber);
 
     KRATOS_CATCH( "" )
