@@ -55,7 +55,6 @@ class GidOutputConfiguration:
 
 ## Problem Data ---------------------------------------------------------------------------------------------------------------
 
-problem_name = 'diffusion_beam_3d'
+problem_name = '/path/to/kratos/applications/DamApplication/test_examples/diffusion_beam_3d.gid/diffusion_beam_3d'
 problem_path = '/path/to/kratos/applications/DamApplication/test_examples/diffusion_beam_3d.gid'
-
 
