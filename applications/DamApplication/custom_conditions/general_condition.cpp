@@ -183,14 +183,18 @@ void GeneralCondition::InitializeConditionVariables (ConditionVariables& rVariab
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumNodes = rGeom.size();
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
-    const SizeType NumGPoints = integration_points.size();
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const SizeType WorkingDim = rGeom.WorkingSpaceDimension();
+    const SizeType LocalDim = rGeom.LocalSpaceDimension();
     
     (rVariables.NContainer).resize(NumGPoints,NumNodes,false);
     rVariables.NContainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
     
     (rVariables.N).resize(NumNodes,false);
     
+    (rVariables.JContainer).resize(NumGPoints,false);
+    for(SizeType i = 0; i<NumGPoints; i++)
+        ((rVariables.JContainer)[i]).resize(WorkingDim,LocalDim,false);
     GetGeometry().Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 }
 
@@ -201,7 +205,7 @@ void GeneralCondition::CalculateKinematics(ConditionVariables& rVariables,unsign
     KRATOS_TRY
    
     //Setting the shape function vector    
-    rVariables.N = row( rVariables.NContainer, PointNumber);
+    noalias(rVariables.N) = row( rVariables.NContainer, PointNumber);
 
     KRATOS_CATCH( "" )
 }
