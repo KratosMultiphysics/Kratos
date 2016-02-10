@@ -15,11 +15,10 @@ proc InitGIDProject { dir } {
 
 # Pass the path and the name of the problem to the Python script
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
-    set filename [file join $dir "${basename}-1.dat"]
-
+    set filename [file join $dir ${basename}-1.dat]
     set varfile [open $filename a]
-    puts $varfile "problem_name = '${basename}'"
-    puts $varfile "problem_path = '${dir}'"
+    puts $varfile "problem_name = '[file join $dir $basename]'"
+    puts $varfile "problem_path = '[file join $dir]'"
     #puts $varfile "gid_path = '${gidexe}'"
     #puts $varfile "kratos_path = '${::Dam_Application::kratos_path}'"
     puts $varfile ""
