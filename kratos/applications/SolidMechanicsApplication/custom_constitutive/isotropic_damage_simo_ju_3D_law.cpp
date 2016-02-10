@@ -82,7 +82,7 @@ IsotropicDamageSimoJu3DLaw::~IsotropicDamageSimoJu3DLaw()
 void IsotropicDamageSimoJu3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& rDomainGeometry )
 {   
     //rCharacteristicSize is the diameter of a sphere with the same volume as the element
-    rCharacteristicSize = pow((6*rDomainGeometry.Volume()/M_PI),(1.0/3.0));
+    rCharacteristicSize = pow((6*rDomainGeometry.Volume()/KRATOS_M_PI),(1.0/3.0));
 }
 
 
