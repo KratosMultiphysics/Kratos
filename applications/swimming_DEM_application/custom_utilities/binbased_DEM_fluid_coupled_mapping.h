@@ -330,8 +330,8 @@ void HomogenizeFromDEMMesh(
     ModelPart& r_dem_model_part,
     ModelPart& r_fluid_model_part,
     const double& search_radius,
-    const double& shape_factor,
-    bool must_search = true) // it is the density function's maximum divided by its support's radius
+    const double& shape_factor, // it is the density function's maximum divided by its support's radius
+    bool must_search = true)
 {
     KRATOS_TRY
 
@@ -371,9 +371,9 @@ void HomogenizeFromDEMMesh(
     #pragma omp parallel for
     for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
         NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+        double area = i_node->GetSolutionStepValue(NODAL_AREA);
         double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
-
-        fluid_fraction = 1.0 - fluid_fraction;
+        fluid_fraction = 1.0 - fluid_fraction / area;
     }
 
     // transferring the rest of effects onto the fluid (not a naturally parallel task)
@@ -1418,13 +1418,22 @@ void CalculateNodalFluidFractionByAveraging( // it is actually calculating its c
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights)
 {
-    if (neighbours.size() > 0 && p_node->Is(INSIDE)){
-        double& radius = p_node->FastGetSolutionStepValue(RADIUS);
-        double solid_volume = 4.0 / 3.0 * KRATOS_M_PI * radius * radius * radius;
+    unsigned int vector_size = neighbours.size();
+    if (vector_size && p_node->Is(INSIDE)){
+        const double& radius = p_node->FastGetSolutionStepValue(RADIUS);
+        double solid_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
+        double normalization_coeff = 0.0;
+        for (unsigned int k = 0; k < vector_size; k++){
+            normalization_coeff += weights[k];
+        }
+        normalization_coeff = 1.0 / normalization_coeff;
 
-        for (unsigned int i = 0; i != neighbours.size(); ++i){
-            double area = neighbours[i]->GetSolutionStepValue(NODAL_AREA);
-            neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume / area ;
+        for (unsigned int i = 0; i != vector_size; ++i){
+            //double area = neighbours[i]->GetSolutionStepValue(NODAL_AREA);
+//GGG
+            //neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume / area ;
+            neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * normalization_coeff * solid_volume;
+//ZZZ
         }
     }
 }
