@@ -1547,7 +1547,7 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData QuadrilateralInterface3D4<TPointType>::msGeometryData(
-    2, 3, 2,
+    2, 3, 1,
     GeometryData::GI_GAUSS_2,
     QuadrilateralInterface3D4<TPointType>::AllIntegrationPoints(),
     QuadrilateralInterface3D4<TPointType>::AllShapeFunctionsValues(),

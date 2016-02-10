@@ -1716,7 +1716,7 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData PrismInterface3D6<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    3, 3, 2, GeometryData::GI_GAUSS_2,
     PrismInterface3D6<TPointType>::AllIntegrationPoints(),
     PrismInterface3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
