@@ -47,8 +47,9 @@ namespace Kratos {
         
         //Normal and Tangent elastic constants
         //const double sqrt_equiv_radius = sqrt(equiv_radius);
-        const double alpha = 0.05;   // relative indentation between particles
-        const double modified_radius = equiv_radius * sqrt(alpha * (2.0 - alpha));
+
+        //const double alpha = 0.05;   // a = sqrt(s(2r-s)) chord formula for a fixed sagita ratio  s/r = 5%
+        const double modified_radius = equiv_radius * 0.31225; // sqrt(alpha * (2.0 - alpha)) = 0.31225
         mKn = equiv_young * KRATOS_M_PI * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;       
     }
@@ -139,8 +140,8 @@ namespace Kratos {
         //Normal and Tangent elastic constants
         //const double sqrt_equiv_radius = sqrt(effective_radius);
 
-        const double alpha = 0.05;
-        const double modified_radius = effective_radius * sqrt(alpha * (2.0 - alpha));
+        //const double alpha = 0.05;
+        const double modified_radius = effective_radius * 0.31225;
         mKn = equiv_young * KRATOS_M_PI * modified_radius;                                 // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }    
