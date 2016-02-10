@@ -5,10 +5,11 @@ proc InitGIDProject { dir } {
     
     GiDMenu::Create "Dam Application" PRE
 	GiDMenu::InsertOption "Dam Application" [list "Dirichlet Boundary Conditions"] 0 PRE "GidOpenConditions \"Dirichlet_Boundary_Conditions\"" "" ""
-	GiDMenu::InsertOption "Dam Application" [list "Other Conditions"] 1 PRE "GidOpenConditions \"Other_Conditions\"" "" ""
-	GiDMenu::InsertOption "Dam Application" [list "Elements"] 2 PRE "GidOpenConditions \"Elements\"" "" ""
-    GiDMenu::InsertOption "Dam Application" [list "Materials"] 3 PRE "GidOpenMaterials" "" ""
-    GiDMenu::InsertOption "Dam Application" [list "Problem Parameters"] 4 PRE "GidOpenProblemData" "" ""
+	GiDMenu::InsertOption "Dam Application" [list "Load Conditions"] 1 PRE "GidOpenConditions \"Load_Conditions\"" "" ""
+    GiDMenu::InsertOption "Dam Application" [list "Other Conditions"] 2 PRE "GidOpenConditions \"Other_Conditions\"" "" ""
+	GiDMenu::InsertOption "Dam Application" [list "Elements"] 3 PRE "GidOpenConditions \"Elements\"" "" ""
+    GiDMenu::InsertOption "Dam Application" [list "Materials"] 4 PRE "GidOpenMaterials" "" ""
+    GiDMenu::InsertOption "Dam Application" [list "Problem Parameters"] 5 PRE "GidOpenProblemData" "" ""
 	GiDMenu::UpdateMenus
 }
 

@@ -907,6 +907,10 @@ Begin NodalData SPECIFIC_HEAT
 *end nodes
 End NodalData
 
+*endif
+*Set cond volume_Mechanical_Conditions *nodes
+*Add cond surface_Mechanical_Conditions *nodes
+*if(CondNumEntities > 0)
 Begin NodalData DENSITY
 *loop nodes *OnlyinCond
 *NodesNum  *cond(Nodal_Density_Value)  *cond(Fixed_Nodal_Density)
