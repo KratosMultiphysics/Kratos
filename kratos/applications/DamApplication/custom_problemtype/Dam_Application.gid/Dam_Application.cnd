@@ -277,7 +277,7 @@ HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modi
 END CONDITION
 
 
-BOOK: Other_Conditions
+BOOK: Load_Conditions
 
 CONDITION: point_Point_Load
 CONDTYPE: over points
@@ -431,6 +431,8 @@ VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
 END CONDITION
 
+BOOK: Other_Conditions
+
 CONDITION: surface_Thermal_Conditions
 CONDTYPE: over surfaces
 CONDMESHTYPE: over nodes
@@ -446,6 +448,11 @@ HELP: Value of the specific heat capacity. Units: J/(kg·K)
 QUESTION: Fixed_Specific_Heat#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+
+CONDITION: surface_Mechanical_Conditions
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
 QUESTION: Nodal_Density_Value
 VALUE: 2500
 HELP: Nodal density used for the thermal problem. Units: kg/m3
@@ -469,6 +476,11 @@ HELP: Value of the specific heat capacity. Units: J/(kg·K)
 QUESTION: Fixed_Specific_Heat#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+
+CONDITION: volume_Mechanical_Conditions
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
 QUESTION: Nodal_Density_Value
 VALUE: 2500
 HELP: Nodal density used for the thermal problem. Units: kg/m3
