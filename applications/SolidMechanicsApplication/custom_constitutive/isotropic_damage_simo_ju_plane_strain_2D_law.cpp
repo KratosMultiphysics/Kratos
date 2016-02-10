@@ -82,7 +82,7 @@ IsotropicDamageSimoJuPlaneStrain2DLaw::~IsotropicDamageSimoJuPlaneStrain2DLaw()
 void IsotropicDamageSimoJuPlaneStrain2DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& rDomainGeometry )
 {
     //rCharacteristicSize is the diameter of a circle with the same area as the element
-    rCharacteristicSize = sqrt(4*rDomainGeometry.Area()/M_PI);
+    rCharacteristicSize = sqrt(4*rDomainGeometry.Area()/KRATOS_M_PI);
 }
 
 
