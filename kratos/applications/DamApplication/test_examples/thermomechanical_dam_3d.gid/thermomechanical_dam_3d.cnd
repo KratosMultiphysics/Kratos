@@ -267,7 +267,7 @@ QUESTION: Fixed_Temperature#CB#(1,0)
 VALUE: 1
 HELP: Fixed: it is not a DOF. It is an imposed value that can be externally modified over time. Unfixed: it is an initial value for the DOF
 END CONDITION
-BOOK:Other_Conditions
+BOOK:Load_Conditions
 NUMBER: 9 CONDITION: point_Point_Load
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
@@ -415,6 +415,7 @@ QUESTION: Fix_Z#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
 END CONDITION
+BOOK:Other_Conditions
 NUMBER: 14 CONDITION: surface_Thermal_Conditions
 CONDTYPE: over surfaces
 CONDMESHTYPE: over nodes
@@ -430,6 +431,10 @@ HELP: Value of the specific heat capacity. Units: J/(kg·K)
 QUESTION: Fixed_Specific_Heat#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 15 CONDITION: surface_Mechanical_Conditions
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
 QUESTION: Nodal_Density_Value
 VALUE: 2500
 HELP: Nodal density used for the thermal problem. Units: kg/m3
@@ -437,7 +442,7 @@ QUESTION: Fixed_Nodal_Density#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
 END CONDITION
-NUMBER: 15 CONDITION: volume_Thermal_Conditions
+NUMBER: 16 CONDITION: volume_Thermal_Conditions
 CONDTYPE: over volumes
 CONDMESHTYPE: over nodes
 QUESTION: Conductivity_Value
@@ -452,6 +457,10 @@ HELP: Value of the specific heat capacity. Units: J/(kg·K)
 QUESTION: Fixed_Specific_Heat#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+NUMBER: 17 CONDITION: volume_Mechanical_Conditions
+CONDTYPE: over volumes
+CONDMESHTYPE: over nodes
 QUESTION: Nodal_Density_Value
 VALUE: 2500
 HELP: Nodal density used for the thermal problem. Units: kg/m3
@@ -459,7 +468,7 @@ QUESTION: Fixed_Nodal_Density#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
 END CONDITION
-NUMBER: 16 CONDITION: surface_Body_Acceleration
+NUMBER: 18 CONDITION: surface_Body_Acceleration
 CONDTYPE: over surfaces
 CONDMESHTYPE: over nodes
 QUESTION: BODY_ACCELERATION_X#CB#(1,0)
@@ -487,7 +496,7 @@ HELP: Units in IS: m/s2
 QUESTION: Fix_Z#CB#(1,0)
 VALUE: 1
 END CONDITION
-NUMBER: 17 CONDITION: volume_Body_Acceleration
+NUMBER: 19 CONDITION: volume_Body_Acceleration
 CONDTYPE: over volumes
 CONDMESHTYPE: over nodes
 QUESTION: BODY_ACCELERATION_X#CB#(1,0)
@@ -516,19 +525,19 @@ QUESTION: Fix_Z#CB#(1,0)
 VALUE: 1
 END CONDITION
 BOOK:Elements
-NUMBER: 18 CONDITION: Triangles
+NUMBER: 20 CONDITION: Triangles
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 END CONDITION
-NUMBER: 19 CONDITION: Quadrilaterals
+NUMBER: 21 CONDITION: Quadrilaterals
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 END CONDITION
-NUMBER: 20 CONDITION: Tetrahedra
+NUMBER: 22 CONDITION: Tetrahedra
 CONDTYPE: over volumes
 CONDMESHTYPE: over body elements
 END CONDITION
-NUMBER: 21 CONDITION: Hexahedra
+NUMBER: 23 CONDITION: Hexahedra
 CONDTYPE: over volumes
 CONDMESHTYPE: over body elements
 END CONDITION
