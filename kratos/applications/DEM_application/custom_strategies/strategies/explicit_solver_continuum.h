@@ -255,7 +255,7 @@ namespace Kratos
    
           ModelPart& r_model_part            = GetModelPart();
           ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
-          int time_step                      = rcurrent_process_info[TIME_STEPS];
+          
           mFixSwitch                         = rcurrent_process_info[FIX_VELOCITIES_FLAG];   
           
           bool has_mpi = false;
@@ -287,63 +287,65 @@ namespace Kratos
 
             // 1. Search Neighbors /////////////////////////////////     
 
-            if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
-
-                if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
-
-                    if (BaseType::GetBoundingBoxOption() == 1) {
-                        BoundingBoxUtility();                        
-                    }
-
-                    SearchNeighboursInContinuum(has_mpi); 
-
-                    ComputeNewNeighboursHistoricalData();
-
-                    BaseType::SetOriginalRadius(r_model_part);
-                    BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
-                    BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
-                    rcurrent_process_info[SEARCH_CONTROL] = 2;
-                    if (BaseType::GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-                        if (rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {                            
-                            CreateContactElements();
-                            InitializeContactElements();
-                            ParticleAreaCalculate(true); //first time;
-                            ContactCalculateArea();
-                            ParticleAreaCalculate(false); //2nd time
-                        }
-                    }
-                }
-                else{
-                    rcurrent_process_info[SEARCH_CONTROL] = 1;
-                }
-          }
+            SearchOperations(r_model_part, has_mpi);
             
-          // 2. Calculate forces   /////////////////////////////////            
-          BaseType::GetForce();
-          //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes          
-          BaseType::Clear_forces_FEM();
-          BaseType::Calculate_Conditions_RHS_and_Add();         
-           
-          // 3. Move particles   /////////////////////////////////  
-          BaseType::SynchronizeSolidMesh(r_model_part); // Should be... just TOTAL_FORCES (and ELASTIC_FORCES) and PARTICLE_MOMENT
-          
-          BaseType::PerformTimeIntegrationOfMotion(); 
+            // 2. Calculate forces   /////////////////////////////////            
+            BaseType::ForceOperations(r_model_part);
+
+            BaseType::PerformTimeIntegrationOfMotion(); 
                                       
-          //Synch this var.
-          r_model_part.GetCommunicator().MaxAll(rcurrent_process_info[SEARCH_CONTROL]);
+            //Synch this var.
+            r_model_part.GetCommunicator().MaxAll(rcurrent_process_info[SEARCH_CONTROL]);
                    
                                  
-          // 4. Finalize step   /////////////////////////////////            
-          BaseType::FinalizeSolutionStep();
-          FinalizeSolutionStepFEM();
+            // 4. Finalize step   /////////////////////////////////            
+            BaseType::FinalizeSolutionStep();
+            FinalizeSolutionStepFEM();
           		
-          KRATOS_CATCH("") 
+            KRATOS_CATCH("") 
           
           return 0.0;
           
       }//Solve()
       
-      
+     
+      void SearchOperations(ModelPart& r_model_part, bool has_mpi)
+      {
+         
+          ProcessInfo& rcurrent_process_info   = r_model_part.GetProcessInfo();
+          int time_step                      = rcurrent_process_info[TIME_STEPS];
+          if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
+
+              if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
+
+                  if (BaseType::GetBoundingBoxOption() == 1) {
+                      BoundingBoxUtility();                        
+                  }
+
+                  SearchNeighboursInContinuum(has_mpi); 
+
+                  ComputeNewNeighboursHistoricalData();
+
+                  BaseType::SetOriginalRadius(r_model_part);
+                  BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
+                  BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+                  rcurrent_process_info[SEARCH_CONTROL] = 2;
+                  if (BaseType::GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+                      if (rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {                            
+                          CreateContactElements();
+                          InitializeContactElements();
+                          ParticleAreaCalculate(true); //first time;
+                          ContactCalculateArea();
+                          ParticleAreaCalculate(false); //2nd time
+                      }
+                  }
+              }
+              else{
+                  rcurrent_process_info[SEARCH_CONTROL] = 1;
+              }
+          }
+     }//SearchOPerations;
+     
     void ComputeNewNeighboursHistoricalData() {
         KRATOS_TRY  
 
