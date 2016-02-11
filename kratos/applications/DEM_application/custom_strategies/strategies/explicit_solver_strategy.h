@@ -683,11 +683,10 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
-      virtual void PerformTimeIntegrationOfMotion()
+      virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0)
       {
           KRATOS_TRY
 
-          int StepFlag = 0;
           GetScheme()->Calculate(BaseType::GetModelPart(),StepFlag);
           GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
 

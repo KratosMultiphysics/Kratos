@@ -46,9 +46,9 @@ namespace Kratos
       using BaseType::mNumberOfThreads;
       using BaseType::mListOfSphericParticles;
       using BaseType::mListOfGhostSphericParticles;
-      
-      
+          
       /// Pointer definition of ExplicitSolverStrategy
+
       KRATOS_CLASS_POINTER_DEFINITION(ContinuumExplicitSolverStrategy);
 
       /// Default constructor.
@@ -135,7 +135,7 @@ namespace Kratos
         
         KRATOS_TRY
          
-        std::cout << "------------------CONTINUUM EXPLICIT SOLVER STRATEGY---------------------" << "\n" <<std::endl;
+        std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" <<std::endl;
 
         ModelPart& r_model_part             = GetModelPart();
         ModelPart& fem_model_part           = GetFemModelPart();
@@ -255,7 +255,7 @@ namespace Kratos
    
           ModelPart& r_model_part            = GetModelPart();
           
-          //mFixSwitch                         = rcurrent_process_info[FIX_VELOCITIES_FLAG];   
+          
           bool has_mpi = false;
           VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
           if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
@@ -265,7 +265,7 @@ namespace Kratos
           BaseType::ForceOperations(r_model_part);
           BaseType::PerformTimeIntegrationOfMotion();           
           FinalizeSolutionStep();
-		
+
           KRATOS_CATCH("") 
           
           return 0.0;
@@ -274,16 +274,16 @@ namespace Kratos
       
       void InitializeSolutionStep()
       {
-        BaseType::InitializeSolutionStep();
-        //ContactInitializeSolutionStep();
+          BaseType::InitializeSolutionStep();
+          
       }
-      
+          //ContactInitializeSolutionStep();
       void SearchOperations(ModelPart& r_model_part, bool has_mpi)
       {
-         
+          
          ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
-         
-         if(rcurrent_process_info[SEARCH_CONTROL]==0)
+                                  
+          if(rcurrent_process_info[SEARCH_CONTROL]==0)
           {            
             for (int i = 0; i < mNumberOfThreads; i++)
             {
@@ -299,42 +299,42 @@ namespace Kratos
                }
              }             
           }
-        
+
           int time_step                      = rcurrent_process_info[TIME_STEPS];
-          if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
+            if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
 
-              if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
+                if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
 
-                  if (BaseType::GetBoundingBoxOption() == 1) {
-                      BoundingBoxUtility();                        
-                  }
+                    if (BaseType::GetBoundingBoxOption() == 1) {
+                        BoundingBoxUtility();                        
+                    }
 
-                  SearchNeighboursInContinuum(has_mpi); 
+                    SearchNeighboursInContinuum(has_mpi); 
 
-                  ComputeNewNeighboursHistoricalData();
+                    ComputeNewNeighboursHistoricalData();
 
-                  BaseType::SetOriginalRadius(r_model_part);
-                  BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
-                  BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
-                  rcurrent_process_info[SEARCH_CONTROL] = 2;
-                  if (BaseType::GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-                      if (rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {                            
-                          CreateContactElements();
-                          InitializeContactElements();
-                          ParticleAreaCalculate(true); //first time;
-                          ContactCalculateArea();
-                          ParticleAreaCalculate(false); //2nd time
-                      }
-                  }
-              }
-              else{
-                  rcurrent_process_info[SEARCH_CONTROL] = 1;
-              }
+                    BaseType::SetOriginalRadius(r_model_part);
+                    BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
+                    BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+                    rcurrent_process_info[SEARCH_CONTROL] = 2;
+                    if (BaseType::GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+                        if (rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {                            
+                            CreateContactElements();
+                            InitializeContactElements();
+                            ParticleAreaCalculate(true); //first time;
+                            ContactCalculateArea();
+                            ParticleAreaCalculate(false); //2nd time
+                        }
+                    }
+                }
+                else{
+                    rcurrent_process_info[SEARCH_CONTROL] = 1;
+                }
           }
-          
+          //Synch this var.
           r_model_part.GetCommunicator().MaxAll(rcurrent_process_info[SEARCH_CONTROL]);
-     }//SearchOPerations;
-     
+      }
+      
     void ComputeNewNeighboursHistoricalData() {
         KRATOS_TRY  
 
@@ -685,7 +685,7 @@ namespace Kratos
         BaseType::FinalizeSolutionStep();
         FinalizeSolutionStepFEM();
         
-      }
+    } //SetInitialDemContacts            
          
      void FinalizeSolutionStepFEM() {      
       KRATOS_TRY
