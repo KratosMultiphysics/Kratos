@@ -30,10 +30,11 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
+#include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/verlet_velocity_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
-#include "custom_strategies/schemes/mid_point_scheme.h"
+#include "custom_strategies/schemes/taylor_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -75,6 +76,12 @@ namespace Kratos
                     "ForwardEulerScheme", init<>()
                   )
                   ;
+                  
+          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+          (
+                    "SymplecticEulerScheme", init<>()
+                  )
+                  ;        
 
           class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
@@ -88,9 +95,9 @@ namespace Kratos
                   )
                   ;
 
-          class_< MidPointScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
+          class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
-                    "MidPointScheme", init<>()
+                    "TaylorScheme", init<>()
                   )
                   ;
 
