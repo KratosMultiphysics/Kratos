@@ -39,6 +39,10 @@ elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_paramet
     import continuum_sphere_strategy as SolverStrategy
 elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy    
+elif (DEM_parameters.IntegrationScheme == "Verlet_Velocity" and DEM_parameters.ElementType == "SphericContPartDEMElement3D"):
+    import verlet_continuum_sphere_strategy as SolverStrategy
+else:
+    KRATOSprint('Error: Strategy unnavailable. Select a different scheme-element')
 
 ##############################################################################
 #                                                                            #
@@ -85,7 +89,7 @@ elif (DEM_parameters.IntegrationScheme == 'Mid_Point_Rule'):
 elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
     scheme = VerletVelocityScheme()
 else:
-    KRATOSprint('Error: scheme not defined')
+    KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
