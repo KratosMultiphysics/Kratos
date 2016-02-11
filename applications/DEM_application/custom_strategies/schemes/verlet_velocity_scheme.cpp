@@ -53,7 +53,7 @@ namespace Kratos {
                     }
                 } // dimensions  
            }
-           else if(StepFlag == 2)
+           else if(StepFlag == 2) //CORRECT
            {
              
              for (int k = 0; k < 3; k++) {
@@ -83,7 +83,9 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
             const double delta_t,
             const bool Fix_Ang_vel[3]) {
-
+      
+            if(StepFlag == 1) //PREDICT
+            {
                 for (int k = 0; k < 3; k++) {
                     if (Fix_Ang_vel[k] == false) {
                         delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
@@ -93,7 +95,23 @@ namespace Kratos {
                         delta_rotation[k] = angular_velocity[k] * delta_t;
                         rotated_angle[k] += delta_rotation[k];
                         }
-        }
+               }
+            }
+            
+             if(StepFlag == 2) //CORRECT
+            {
+                for (int k = 0; k < 3; k++) {
+                    if (Fix_Ang_vel[k] == false) {
+                        delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
+                        rotated_angle[k] += delta_rotation[k];
+                angular_velocity[k] += delta_t * angular_acceleration[k];
+                    } else {
+                        delta_rotation[k] = angular_velocity[k] * delta_t;
+                        rotated_angle[k] += delta_rotation[k];
+                        }
+               }
+            }//CORRECT
+            
     }            
     
     void VerletVelocityScheme::CalculateLocalAngularAcceleration(
