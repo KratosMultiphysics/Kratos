@@ -17,7 +17,8 @@ proc InitGIDProject { dir } {
 proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
     set filename [file join $dir ${basename}-1.dat]
     set varfile [open $filename a]
-    puts $varfile "problem_name = '[file join $dir $basename]'"
+    #puts $varfile "problem_name = '[file join $dir $basename]'"
+    puts $varfile "problem_name = '${basename}'"
     puts $varfile "problem_path = '[file join $dir]'"
     #puts $varfile "gid_path = '${gidexe}'"
     #puts $varfile "kratos_path = '${::Dam_Application::kratos_path}'"
