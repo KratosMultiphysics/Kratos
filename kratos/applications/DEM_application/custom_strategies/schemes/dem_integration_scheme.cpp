@@ -65,31 +65,32 @@ namespace Kratos {
         KRATOS_CATCH(" ")
     }
     
-    void DEMIntegrationScheme::Calculate(ModelPart& model_part) {
+    void DEMIntegrationScheme::Calculate(ModelPart& model_part, int StepFlag) {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
         NodesArrayType& pLocalNodes = model_part.GetCommunicator().LocalMesh().Nodes();
         NodesArrayType& pGhostNodes = model_part.GetCommunicator().GhostMesh().Nodes();
-        CalculateTranslationalMotion(model_part, pLocalNodes);
-        CalculateTranslationalMotion(model_part, pGhostNodes);
+        CalculateTranslationalMotion(model_part, pLocalNodes, StepFlag);
+        CalculateTranslationalMotion(model_part, pGhostNodes, StepFlag);
 
         if (!rCurrentProcessInfo[CONTAINS_CLUSTERS]) {
             if (rCurrentProcessInfo[ROTATION_OPTION] != 0) {
-                CalculateRotationalMotion(model_part, pLocalNodes);
-                CalculateRotationalMotion(model_part, pGhostNodes);
+                CalculateRotationalMotion(model_part, pLocalNodes, StepFlag);
+                CalculateRotationalMotion(model_part, pGhostNodes, StepFlag);
             }
         } else {
 
             if (rCurrentProcessInfo[ROTATION_OPTION] == 0) {
                 UpdateLinearDisplacementAndVelocityOfSpheres(model_part);
             } else {
-                CalculateRotationalMotionOfClusters(model_part);
+                CalculateRotationalMotionOfClusters(model_part, StepFlag);
             }
         }
         KRATOS_CATCH(" ")
     }
-
+        
     void DEMIntegrationScheme::UpdateTranslationalVariables(
+                            int StepFlag,
                             const Node < 3 > & i,
                             array_1d<double, 3 >& coor,
                             array_1d<double, 3 >& displ,
@@ -105,7 +106,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
     }
     
-    void DEMIntegrationScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
+    void DEMIntegrationScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -130,7 +131,18 @@ namespace Kratos {
                 if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
                 array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
                 array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
+                //array_1d<double, 3 >& displ_ant = i.FastGetSolutionStepValue(DISPLACEMENT,2);
                 array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                /*
+                if(i.Id()==1)
+                {
+                KRATOS_WATCH("  ")
+                KRATOS_WATCH(delta_displ)
+                KRATOS_WATCH(displ)
+                KRATOS_WATCH(displ_ant)
+                KRATOS_WATCH(displ-displ_ant)
+                }
+                */
                 array_1d<double, 3 >& coor = i.Coordinates();
                 array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
                 array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
@@ -143,7 +155,7 @@ namespace Kratos {
                 Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
                 Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
 
-                UpdateTranslationalVariables(i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
+                UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
 
             } //nodes in the thread
         } //threads
@@ -160,6 +172,7 @@ namespace Kratos {
     }
     
     void DEMIntegrationScheme::UpdateRotationalVariables(
+                int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -171,7 +184,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateRotationalVariables) shouldn't be accessed, use derived class instead", 0);
     }   
     
-    void DEMIntegrationScheme::CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
+    void DEMIntegrationScheme::CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
 
         KRATOS_TRY
 
@@ -217,7 +230,7 @@ namespace Kratos {
                 array_1d<double, 3 > angular_acceleration;                    
                 CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor,angular_acceleration);
 
-                UpdateRotationalVariables(i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+                UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
                 if (if_trihedron_option) {
                     double theta[3] = {0.0};
@@ -274,7 +287,7 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::CalculateLocalAngularAccelerationByEulerEquations) shouldn't be accessed, use derived class instead", 0);                        
     }   
     
-    void DEMIntegrationScheme::CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part) { //must be done AFTER the translational motion!
+    void DEMIntegrationScheme::CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag) { //must be done AFTER the translational motion!
 
         KRATOS_TRY
 
@@ -334,7 +347,7 @@ namespace Kratos {
                     Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
                     Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                    UpdateRotationalVariables(i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
+                    UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
                     double ang = sqrt(delta_rotation[0] * delta_rotation[0] + delta_rotation[1] * delta_rotation[1] + delta_rotation[2] * delta_rotation[2]);
                     if (ang) {

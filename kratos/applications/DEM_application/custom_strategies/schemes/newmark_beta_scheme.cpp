@@ -4,7 +4,7 @@
 #include "newmark_beta_scheme.h"
 
 namespace Kratos {
-    void NewmarkBetaScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
+    void NewmarkBetaScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -43,13 +43,14 @@ namespace Kratos {
                 Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
                 Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
 
-                UpdateTranslationalVariables(i, coor, displ, delta_displ, vel, initial_coor, force, old_force, force_reduction_factor, mass, delta_t, Fix_vel);
+                UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, old_force, force_reduction_factor, mass, delta_t, Fix_vel);
             } //nodes in the thread
         } //threads
         KRATOS_CATCH(" ")
     }
 
     void NewmarkBetaScheme::UpdateTranslationalVariables(
+            int StepFlag,
             const Node < 3 > & i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
@@ -81,6 +82,7 @@ namespace Kratos {
     }
 
     void NewmarkBetaScheme::UpdateRotationalVariables(
+                int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,

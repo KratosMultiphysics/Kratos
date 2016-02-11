@@ -17,9 +17,13 @@ namespace Kratos {
                               
     }
 
-    
+    void VerletVelocityScheme::Calculate(ModelPart & r_model_part)
+    {
+      KRATOS_THROW_ERROR(std::runtime_error, "This function (VerletVelocityScheme::Calculate) shouldn't be accessed, use Predict and Correct instead", 0);
+    }
 
     void VerletVelocityScheme::UpdateTranslationalVariables(
+            int StepFlag,
             const Node < 3 > & i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
@@ -48,6 +52,7 @@ namespace Kratos {
         } //threads
         
     void VerletVelocityScheme::UpdateRotationalVariables(
+            int StepFlag,
             const Node < 3 > & i,
             array_1d<double, 3 >& rotated_angle,
             array_1d<double, 3 >& delta_rotation,

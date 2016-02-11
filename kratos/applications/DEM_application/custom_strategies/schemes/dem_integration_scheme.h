@@ -37,8 +37,10 @@ namespace Kratos {
         virtual void AddClustersVariables(ModelPart & r_model_part);
         
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part);         
-        virtual void Calculate(ModelPart& model_part);
+        virtual void Calculate(ModelPart& model_part, int StepFlag);
+                
         virtual void UpdateTranslationalVariables(
+                            int StepFlag, 
                             const Node < 3 > & i,
                             array_1d<double, 3 >& coor,
                             array_1d<double, 3 >& displ,
@@ -50,7 +52,7 @@ namespace Kratos {
                             const double mass,
                             const double delta_t,
                             const bool Fix_vel[3]);
-        virtual void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes);
+        virtual void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag );
         
         virtual void CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
@@ -60,6 +62,7 @@ namespace Kratos {
                                 array_1d<double, 3 >& angular_acceleration);
 
         virtual void UpdateRotationalVariables(
+                int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -68,7 +71,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]);
 
-        virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes);
+        virtual void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
         
         virtual void CalculateLocalAngularAccelerationByEulerEquations(
                                     const Node < 3 > & i,
@@ -78,7 +81,7 @@ namespace Kratos {
                                     const double moment_reduction_factor,
                                     array_1d<double, 3 >& local_angular_acceleration);
 
-        virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part);
+        virtual void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part, int StepFlag);
 
         virtual std::string Info() const {
             std::stringstream buffer;
