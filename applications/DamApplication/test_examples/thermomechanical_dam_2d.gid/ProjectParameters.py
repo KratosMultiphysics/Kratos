@@ -55,6 +55,6 @@ class GidOutputConfiguration:
 
 ## Problem Data ---------------------------------------------------------------------------------------------------------------
 
-problem_name = '/path/to/kratos/applications/DamApplication/test_examples/thermomechanical_dam_2d.gid/thermomechanical_dam_2d'
+problem_name = 'thermomechanical_dam_2d'
 problem_path = '/path/to/kratos/applications/DamApplication/test_examples/thermomechanical_dam_2d.gid'
 
