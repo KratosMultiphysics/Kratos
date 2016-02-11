@@ -16,7 +16,7 @@ def Usage():
         '\t python kratos_run_tests [-l level] [-v vervosity] [-a app1:[app2:...]]',  # noqa
         'Options',
         '\t -h, --help: Shows this command',
-        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(small)\' \'(nightly)\'',  # noqa
+        '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Vervosty level: 0, 1 (Default), 2'
     ]
@@ -83,18 +83,18 @@ def RunTestSuit(application, path, level, verbose):
     subprocess.call([
         'python',
         path+'/tests/'+'test_'+application+'.py',
-        '-v '+str(verbose),
-        '-l '+level
+        '-l'+level,
+        '-v'+str(verbose)
     ])
 
 
 def main():
 
-    verbose_values = ['0', '1', '2']
-    level_values = ['all', 'small', 'nightly']
+    verbose_values = [0, 1, 2]
+    level_values = ['all', 'nightly', 'small']
 
     # Set default values
-    applications = GetAvailableApplication() + ['KratosCore']
+    applications = GetAvailableApplication()
     verbosity = 1
     level = 'all'
 
@@ -115,8 +115,8 @@ def main():
 
     for o, a in opts:
         if o in ('-v', '--verbose'):
-            if a in verbose_values:
-                verbosity = a
+            if int(a) in verbose_values:
+                verbosity = int(a)
             else:
                 print('Error: {} is not a valid verbose level.'.format(a))
                 Usage()
@@ -141,24 +141,27 @@ def main():
 
             for a in parsedApps:
                 if a not in applications:
-                    print('Error: {} does not exists'.format(a))
+                    print('Warning: Application {} does not exists'.format(a))
                     sys.exit()
 
             applications = parsedApps
         else:
             assert False, 'unhandled option'
 
-    # Run the tests for KratosCore
-    if 'KratosCore' in applications:
-        RunTestSuit(
-            'KratosCore',
-            GetModulePath('KratosMultiphysics'),
-            level,
-            verbosity
-        )
+    print('\n--run_tests intialized correctly--\n')
+
+    # KratosCore must always be runned
+    print('Running tests for KratosCore')
+    RunTestSuit(
+        'KratosCore',
+        os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'kratos',
+        level,
+        verbosity
+    )
 
     # Run the tests for the rest of the Applications
     for application in applications:
+        print('Running tests for {}'.format(application))
         RunTestSuit(
             application,
             KratosLoader.kratos_applications+'/'+application,
