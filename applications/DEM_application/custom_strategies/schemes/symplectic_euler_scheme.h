@@ -1,18 +1,16 @@
 //
-// Author: 
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-#if !defined(KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED )
-#define  KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED
-
-
+#if !defined(KRATOS_SYMPLECTIC_EULER_SCHEME_H_INCLUDED )
+#define  KRATOS_SYMPLECTIC_EULER_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream> 
 #include <cfloat>
 
-// External includes 
+// Project includes
 #include "dem_integration_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -22,29 +20,24 @@
 
 namespace Kratos {
 
-    class VerletVelocityScheme : public DEMIntegrationScheme {
+    class SymplecticEulerScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        /// Pointer definition of VerletVelocityScheme
-        KRATOS_CLASS_POINTER_DEFINITION(VerletVelocityScheme);
+        /// Pointer definition of SymplecticEulerScheme
+        KRATOS_CLASS_POINTER_DEFINITION(SymplecticEulerScheme);
 
         /// Default constructor.
-
-        VerletVelocityScheme() {}
+        SymplecticEulerScheme() {}
 
         /// Destructor.
-        virtual ~VerletVelocityScheme() {}
-
+        virtual ~SymplecticEulerScheme() {}
+        
         void AddSpheresVariables(ModelPart & r_model_part);
     
         void AddClustersVariables(ModelPart & r_model_part);
 
-        void Predict(ModelPart & r_model_part);
-        void Correct(ModelPart & r_model_part);
-        void Calculate(ModelPart & r_model_part);
-                  
         void UpdateTranslationalVariables(
             int StepFlag,
             const Node < 3 > & i,
@@ -58,7 +51,7 @@ namespace Kratos {
             const double mass,
             const double delta_t,
             const bool Fix_vel[3]);
-
+        
         void UpdateRotationalVariables(
                 int StepFlag,
                 const Node < 3 > & i,
@@ -67,8 +60,8 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
-                const bool Fix_Ang_vel[3]);
-
+                const bool Fix_Ang_vel[3]);        
+        
         void CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
@@ -88,14 +81,14 @@ namespace Kratos {
 
         virtual std::string Info() const {
             std::stringstream buffer;
-            buffer << "VerletVelocityScheme";
+            buffer << "SymplecticEulerScheme";
             return buffer.str();
         }
 
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const {
-            rOStream << "VerletVelocityScheme";
+            rOStream << "SymplecticEulerScheme";
         }
 
         /// Print object's data.
@@ -109,41 +102,32 @@ namespace Kratos {
 
     private:
 
+
         /// Assignment operator.
 
-        VerletVelocityScheme& operator=(VerletVelocityScheme const& rOther) {
+        SymplecticEulerScheme& operator=(SymplecticEulerScheme const& rOther) {
             return *this;
         }
 
         /// Copy constructor.
 
-        VerletVelocityScheme(VerletVelocityScheme const& rOther) {
+        SymplecticEulerScheme(SymplecticEulerScheme const& rOther) {
             *this = rOther;
         }
 
 
-    }; // Class VerletVelocityScheme
+        ///@}    
 
-    ///@} 
+    }; // Class SymplecticEulerScheme 
 
-    ///@name Type Definitions       
-    ///@{ 
-
-
-    ///@} 
-    ///@name Input and output 
-    ///@{ 
-
-
-    /// input stream function
 
     inline std::istream& operator>>(std::istream& rIStream,
-            VerletVelocityScheme& rThis) {
+            SymplecticEulerScheme& rThis) {
         return rIStream;
     }
 
     inline std::ostream& operator<<(std::ostream& rOStream,
-            const VerletVelocityScheme& rThis) {
+            const SymplecticEulerScheme& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -153,4 +137,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_SYMPLECTIC_EULER_SCHEME_H_INCLUDED  defined 

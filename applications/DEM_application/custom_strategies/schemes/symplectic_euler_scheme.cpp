@@ -1,24 +1,24 @@
 
 
 #include "DEM_application.h"
-#include "forward_euler_scheme.h"
+#include "symplectic_euler_scheme.h"
 
 namespace Kratos {
     
-    void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
+    void SymplecticEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
         
         DEMIntegrationScheme::AddSpheresVariables(r_model_part);
         
     }
     
-    void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part){
+    void SymplecticEulerScheme::AddClustersVariables(ModelPart & r_model_part){
         
         DEMIntegrationScheme::AddClustersVariables(r_model_part);
                               
     }
 
     
-    void ForwardEulerScheme::UpdateTranslationalVariables(
+    void SymplecticEulerScheme::UpdateTranslationalVariables(
             int StepFlag,
             const Node < 3 > & i,
             array_1d<double, 3 >& coor,
@@ -34,10 +34,10 @@ namespace Kratos {
 
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
+                vel[k] += delta_t * force_reduction_factor * force[k] / mass;
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
-                vel[k] += delta_t * force_reduction_factor * force[k] / mass;
             } else {
                 delta_displ[k] = delta_t * vel[k];
                 displ[k] += delta_displ[k];
@@ -46,7 +46,7 @@ namespace Kratos {
         } // dimensions  
     }
 
-    void ForwardEulerScheme::UpdateRotationalVariables(
+    void SymplecticEulerScheme::UpdateRotationalVariables(
                 int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
@@ -58,9 +58,9 @@ namespace Kratos {
 
         for (int k = 0; k < 3; k++) {
             if (Fix_Ang_vel[k] == false) {
+                angular_velocity[k] += delta_t * angular_acceleration[k];  
                 delta_rotation[k] = angular_velocity[k] * delta_t;
                 rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
             } else {
                 delta_rotation[k] = angular_velocity[k] * delta_t;
                 rotated_angle[k] += delta_rotation[k];
@@ -68,7 +68,7 @@ namespace Kratos {
         }
     }            
     
-    void ForwardEulerScheme::CalculateLocalAngularAcceleration(
+    void SymplecticEulerScheme::CalculateLocalAngularAcceleration(
                                 const Node < 3 > & i,
                                 const double moment_of_inertia,
                                 const array_1d<double, 3 >& torque, 
@@ -81,7 +81,7 @@ namespace Kratos {
     }
     
     
-    void ForwardEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
+    void SymplecticEulerScheme::CalculateLocalAngularAccelerationByEulerEquations(
                                 const Node < 3 > & i,
                                 const array_1d<double, 3 >& local_angular_velocity,
                                 const array_1d<double, 3 >& moments_of_inertia,
@@ -90,7 +90,7 @@ namespace Kratos {
                                 array_1d<double, 3 >& local_angular_acceleration){
         
         for (int j = 0; j < 3; j++) {
-            //Euler equations in Explicit (Forward Euler) scheme:
+            //Euler equations in Explicit (Symplectic Euler) scheme:
             local_angular_acceleration[j] = (local_torque[j] - (local_angular_velocity[(j + 1) % 3] * moments_of_inertia[(j + 2) % 3] * local_angular_velocity[(j + 2) % 3] - local_angular_velocity[(j + 2) % 3] * moments_of_inertia[(j + 1) % 3] * local_angular_velocity[(j + 1) % 3])) / moments_of_inertia[j];
             local_angular_acceleration[j] = local_angular_acceleration[j] * moment_reduction_factor;            
         }

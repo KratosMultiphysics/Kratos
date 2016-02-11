@@ -34,9 +34,10 @@ namespace Kratos {
 
         /// Destructor.
         virtual ~NewmarkBetaScheme() {}
-        void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes);
+        void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
 
         void UpdateTranslationalVariables(
+            int StepFlag,
             const Node < 3 > & i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
@@ -51,6 +52,7 @@ namespace Kratos {
             const bool Fix_vel[3]);
         
         void UpdateRotationalVariables(
+                int StepFlag,
                 const Node < 3 > & i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
