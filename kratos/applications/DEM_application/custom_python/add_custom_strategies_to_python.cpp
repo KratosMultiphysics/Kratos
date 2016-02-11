@@ -19,6 +19,7 @@
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
 #include "custom_strategies/strategies/iterative_solver_strategy.h"
+#include "custom_strategies/strategies/verlet_solver_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -81,7 +82,7 @@ namespace Kratos
           (
                     "SymplecticEulerScheme", init<>()
                   )
-                  ;        
+                  ;
 
           class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
@@ -114,6 +115,7 @@ namespace Kratos
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
           typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
+          typedef VerletVelocitySolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > VerletVelocitySolverStrategy;
           
           class_< ExplicitSolverSettings, boost::noncopyable >
           (
@@ -145,6 +147,12 @@ namespace Kratos
           
           ;
          
+          class_< VerletVelocitySolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          (
+          "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+                                         
+          ;
+
         }
 
     }  // namespace Python.
