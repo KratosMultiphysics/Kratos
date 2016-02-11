@@ -88,10 +88,10 @@ namespace Kratos
         ModelPart& r_model_part = BaseType::GetModelPart();
         
         BaseType::InitializeSolutionStep();
-        GetScheme()->Calculate(BaseType::GetModelPart(),1); //Predict
+        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),1); //Predict
         BaseType::SearchOperations(r_model_part);
         BaseType::ForceOperations(r_model_part);
-        GetScheme()->Calculate(BaseType::GetModelPart(),2); //Correct
+        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),2); //Correct
         BaseType::FinalizeSolutionStep();         
 
         return 0.00;
