@@ -256,7 +256,6 @@ namespace Kratos
           ModelPart& r_model_part            = GetModelPart();
           
           //mFixSwitch                         = rcurrent_process_info[FIX_VELOCITIES_FLAG];   
-          
           bool has_mpi = false;
           VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
           if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
@@ -281,6 +280,8 @@ namespace Kratos
       
       void SearchOperations(ModelPart& r_model_part, bool has_mpi)
       {
+         
+         ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
          
          if(rcurrent_process_info[SEARCH_CONTROL]==0)
           {            
