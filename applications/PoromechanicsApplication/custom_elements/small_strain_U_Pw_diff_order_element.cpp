@@ -279,23 +279,24 @@ void SmallStrainUPwDiffOrderElement::CalculateMassMatrix( MatrixType& rMassMatri
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType BlockElementSize = NumUNodes * Dim;
-
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const SizeType NumGPoints = integration_points.size();
+    
     Matrix M = ZeroMatrix(BlockElementSize, BlockElementSize);
 
     //Defining shape functions and the determinant of the jacobian at all integration points
     Matrix Nucontainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
-    Vector detJcontainer;
+    Vector detJcontainer = ZeroVector(NumGPoints);
     rGeom.DeterminantOfJacobian(detJcontainer,mThisIntegrationMethod);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     double IntegrationCoefficient;
     double Porosity = GetProperties()[POROSITY];
     double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
     SizeType Index = 0;
     Matrix Nu = ZeroMatrix( Dim , NumUNodes * Dim );
 
-    for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < NumGPoints; PointNumber++ )
     {
         //Setting the shape function matrix
         for ( SizeType i = 0; i < NumUNodes; i++ )
@@ -919,7 +920,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatri
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, Variables.detJu, integration_points[PointNumber].Weight() );
+        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, Variables.detJuContainer[PointNumber], integration_points[PointNumber].Weight() );
 
         //Contributions to the left hand side
         if ( CalculateLHSMatrixFlag )
@@ -938,18 +939,36 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType& rLeftHandSideMatri
 void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
     
     //Variables at all integration points
+    (rVariables.NuContainer).resize(NumGPoints,NumUNodes,false);
     rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    
+    (rVariables.NpContainer).resize(NumGPoints,NumPNodes,false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
-    rVariables.DNu_DlocalContainer = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-    rVariables.DNp_DlocalContainer = mpPressureGeometry->ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-    rGeom.Jacobian( rVariables.JuContainer, mThisIntegrationMethod );
-    mpPressureGeometry->Jacobian( rVariables.JpContainer, mThisIntegrationMethod );
 
-    //Variables computed at each integration point
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumUNodes = rGeom.PointsNumber();
+    (rVariables.Nu).resize(NumUNodes,false);
+    (rVariables.Np).resize(NumPNodes,false);
+    
+    (rVariables.DNu_DXContainer).resize(NumGPoints,false);
+    for(SizeType i = 0; i<NumGPoints; i++)
+        ((rVariables.DNu_DXContainer)[i]).resize(NumUNodes,Dim,false);
+    (rVariables.DNu_DX).resize(NumUNodes,Dim,false);
+    (rVariables.detJuContainer).resize(NumGPoints,false);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rVariables.DNu_DXContainer,rVariables.detJuContainer,mThisIntegrationMethod);
+
+    (rVariables.DNp_DXContainer).resize(NumGPoints,false);
+    for(SizeType i = 0; i<NumGPoints; i++)
+        ((rVariables.DNp_DXContainer)[i]).resize(NumPNodes,Dim,false);
+    (rVariables.GradNpT).resize(NumPNodes,Dim,false);
+    Vector detJpContainer = ZeroVector(NumGPoints);
+    mpPressureGeometry->ShapeFunctionsIntegrationPointsGradients(rVariables.DNp_DXContainer,detJpContainer,mThisIntegrationMethod);
+    
+    //Variables computed at each integration point    
     unsigned int voigtsize  = 3;
     if( Dim == 3 ) voigtsize  = 6;
     (rVariables.B).resize(voigtsize, NumUNodes * Dim, false);
@@ -960,7 +979,8 @@ void SmallStrainUPwDiffOrderElement::InitializeElementalVariables (ElementalVari
     
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF  = 1.0;
-    rVariables.F     = identity_matrix<double>(Dim);
+    (rVariables.F).resize(Dim, Dim, false);
+    noalias(rVariables.F) = identity_matrix<double>(Dim);
 
     //Nodal variables
     this->InitializeNodalVariables(rVariables);
@@ -1057,23 +1077,12 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics(ElementalVariables& rVa
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
 
-    //Setting the shape function vector
-    rVariables.Nu = row(rVariables.NuContainer, PointNumber);
-    rVariables.Np = row(rVariables.NpContainer, PointNumber);
+    //Setting the vector of shape functions and the matrix of the shape functions global gradients
+    noalias(rVariables.Nu) = row(rVariables.NuContainer, PointNumber);
+    noalias(rVariables.Np) = row(rVariables.NpContainer, PointNumber);
 
-    //Calculating the determinant and inverse of the jacobian matrix
-    Matrix InvJu, InvJp;
-    double detJp;
-    MathUtils<double>::InvertMatrix(rVariables.JuContainer[PointNumber], InvJu, rVariables.detJu);
-    MathUtils<double>::InvertMatrix(rVariables.JpContainer[PointNumber], InvJp, detJp);
-    if(rVariables.detJu<0.0)
-        KRATOS_THROW_ERROR( std::invalid_argument," |Ju|<0 , |Ju| = ", rVariables.detJu )
-    if(detJp<0.0)
-        KRATOS_THROW_ERROR( std::invalid_argument," |Jp|<0 , |Jp| = ", detJp )
-
-    //Calculate shape functions global gradients
-    rVariables.DNu_DX = prod(rVariables.DNu_DlocalContainer[PointNumber] , InvJu);
-    rVariables.GradNpT = prod(rVariables.DNp_DlocalContainer[PointNumber] , InvJp);
+    noalias(rVariables.DNu_DX) = rVariables.DNu_DXContainer[PointNumber];
+    noalias(rVariables.GradNpT) = rVariables.DNp_DXContainer[PointNumber];
 
     SizeType node;
 

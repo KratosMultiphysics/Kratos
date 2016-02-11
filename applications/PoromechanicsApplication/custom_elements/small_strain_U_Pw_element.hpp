@@ -30,8 +30,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUPwElement );
     
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
@@ -104,14 +102,13 @@ protected:
     {
         //Variables at all integration points
         Matrix NContainer;
-        GeometryType::ShapeFunctionsGradientsType DN_DlocalContainer;
-        GeometryType::JacobiansType JContainer;
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
+        Vector detJContainer;
 
         //Variables at each integration point
         Vector Np; //Contains the shape functions at every node
         Matrix GradNpT; //Contains the derivatives of the shape functions
         Matrix B;
-        double detJ;
         double IntegrationCoefficient;
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
@@ -142,13 +139,12 @@ protected:
         bool SecondOrderStrainDerivatives;
         std::vector<Vector> NodalShapeFunctionsDerivatives; //Contains the vector of nodal shape function derivatives for every shape function
         std::vector<Vector> ShapeFunctionsSecondOrderDerivatives; //Contains the vector of shape function second order derivatives for every shape function
-        Vector detJContainer;
         Matrix StrainDerivativeTerm;
     };
     
     // Member Variables
     
-    IntegrationMethod mThisIntegrationMethod;
+    GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     
