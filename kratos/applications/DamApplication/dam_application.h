@@ -18,7 +18,7 @@
 #include "includes/constitutive_law.h"
 
 #include "includes/variables.h"
-#include "solid_mechanics_application.h"
+#include "solid_mechanics_application_variables.h"
 
 #include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
