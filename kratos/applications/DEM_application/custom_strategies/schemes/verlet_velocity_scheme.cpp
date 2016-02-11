@@ -6,16 +6,10 @@
 namespace Kratos {
 
     void VerletVelocityScheme::AddSpheresVariables(ModelPart & r_model_part){
-        
-        DEMIntegrationScheme::AddSpheresVariables(r_model_part);
-        
-    }
+         DEMIntegrationScheme::AddSpheresVariables(r_model_part);}
     
     void VerletVelocityScheme::AddClustersVariables(ModelPart & r_model_part){
-        
-        DEMIntegrationScheme::AddClustersVariables(r_model_part);
-                              
-    }
+         DEMIntegrationScheme::AddClustersVariables(r_model_part);}
 
     void VerletVelocityScheme::Calculate(ModelPart & r_model_part)
     {
@@ -41,38 +35,27 @@ namespace Kratos {
       
                 for (int k = 0; k < 3; k++) {
                     if (Fix_vel[k] == false) {
-                        delta_displ[k] = delta_t * vel[k] + 0.5 * delta_t * delta_t * force[k] / mass;
+                        delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] / mass * delta_t * delta_t ;
                         displ[k] += delta_displ[k];
                         coor[k] = initial_coor[k] + displ[k];
-                        vel[k] += delta_t * force_reduction_factor * force[k] / mass;
+                        vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
                     }
                     else {
                         delta_displ[k] = delta_t * vel[k];
                         displ[k] += delta_displ[k];
                         coor[k] = initial_coor[k] + displ[k];
                     }
-                } // dimensions  
+                }  
            }
            else if(StepFlag == 2) //CORRECT
            {
              
-             for (int k = 0; k < 3; k++) {
-                    if (Fix_vel[k] == false) {
-                        delta_displ[k] = delta_t * vel[k] + 0.5 * delta_t * delta_t * force[k] / mass;
-                        displ[k] += delta_displ[k];
-                        coor[k] = initial_coor[k] + displ[k];
-                        vel[k] += delta_t * force_reduction_factor * force[k] / mass;
-                    }
-                    else {
-                        delta_displ[k] = delta_t * vel[k];
-                        displ[k] += delta_displ[k];
-                        coor[k] = initial_coor[k] + displ[k];
-                    }
-                } // dimensions  
+                for (int k = 0; k < 3; k++) {
+                     vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;}
    
            }
 
-        } //threads
+        } 
         
     void VerletVelocityScheme::UpdateRotationalVariables(
             int StepFlag,
