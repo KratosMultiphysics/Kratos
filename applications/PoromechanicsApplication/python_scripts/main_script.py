@@ -34,7 +34,7 @@ parallel=OpenMPUtils()
 parallel.SetNumThreads(int(ProjectParameters.NumberofThreads))
 
 # Problem parameters
-problem_name = ProjectParameters.problem_name
+problem_name = os.path.join(str(ProjectParameters.problem_path),str(ProjectParameters.problem_name))
 delta_time = ProjectParameters.delta_time
 ending_time = ProjectParameters.ending_time
 current_step = 0
