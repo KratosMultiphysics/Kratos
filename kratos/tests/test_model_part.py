@@ -439,4 +439,4 @@ class TestModelPart(KratosUnittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    KratosUnittest.main()
