@@ -78,11 +78,11 @@ namespace Kratos
                   )
                   ;
                   
-//          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>   dona error  de linker, arreglar dilluns
-//          (
-//                    "SymplecticEulerScheme", init<>()
-//                  )
-//                  ;
+          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable> //   dona error  de linker, arreglar dilluns
+          (
+                    "SymplecticEulerScheme", init<>()
+                  )
+                  ;
 
           class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
