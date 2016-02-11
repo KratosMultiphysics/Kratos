@@ -276,8 +276,24 @@ void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix,
 void GeneralUPwDiffOrderCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
+    const SizeType NumUNodes = rGeom.PointsNumber();
+    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const SizeType WorkingDim = rGeom.WorkingSpaceDimension();
+    const SizeType LocalDim = rGeom.LocalSpaceDimension();
+
+    (rVariables.NuContainer).resize(NumGPoints,NumUNodes,false);
     rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    
+    (rVariables.NpContainer).resize(NumGPoints,NumPNodes,false);
     rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
+
+    (rVariables.Nu).resize(NumUNodes,false);
+    (rVariables.Np).resize(NumPNodes,false);
+
+    (rVariables.JContainer).resize(NumGPoints,false);
+    for(SizeType i = 0; i<NumGPoints; i++)
+        ((rVariables.JContainer)[i]).resize(WorkingDim,LocalDim,false);
     rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 }
 
@@ -288,8 +304,8 @@ void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVari
     KRATOS_TRY
 
     //Setting the shape function vector
-    rVariables.Nu = row( rVariables.NuContainer, PointNumber);
-    rVariables.Np = row( rVariables.NpContainer, PointNumber);
+    noalias(rVariables.Nu) = row( rVariables.NuContainer, PointNumber);
+    noalias(rVariables.Np) = row( rVariables.NpContainer, PointNumber);
 
     KRATOS_CATCH( "" )
 }

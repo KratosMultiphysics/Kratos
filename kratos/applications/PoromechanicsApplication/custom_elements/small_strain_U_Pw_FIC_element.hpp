@@ -53,12 +53,13 @@ public:
 protected:
 
     // Member Variables
-    std::vector<Matrix> mShapeFunctionsDerivativesContainer; //Contains the matrices with the shape functions derivatives for every integration point
+    GeometryType::ShapeFunctionsGradientsType mDN_DXContainer; //Contains the matrices with the shape functions derivatives for every integration point
+    Vector mdetJContainer;
     Matrix mExtrapolationMatrix;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    Matrix CalculateExtrapolationMatrix(const unsigned int dimension);
+    void CalculateExtrapolationMatrix(Matrix& rExtrapolationMatrix, const unsigned int dimension);
     
     
     void InitializeElementalVariables (ElementalVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
@@ -76,7 +77,7 @@ protected:
     
     void CalculateAndAddStressDerivativeMatrix(MatrixType& rLeftHandSideMatrix,ElementalVariables& rVariables);
     
-    Matrix CalculateStressDerivativeTerm(ElementalVariables& rVariables);
+    void CalculateStressDerivativeTerm(Matrix& rStressDerivativeTerm, const ElementalVariables& rVariables);
     
     void CalculateAndAddPressureDerivativeMatrix(MatrixType& rLeftHandSideMatrix,ElementalVariables& rVariables);
     

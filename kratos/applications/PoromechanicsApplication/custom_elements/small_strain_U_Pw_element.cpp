@@ -224,7 +224,9 @@ void SmallStrainUPwElement::CalculateMassMatrix( MatrixType& rMassMatrix, Proces
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
     const unsigned int number_of_nodes = rGeom.PointsNumber();
     unsigned int MatSize = number_of_nodes * (dimension + 1);
-
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const SizeType NumGPoints = integration_points.size();
+    
     //Resetting mass matrix
     if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
@@ -232,18 +234,17 @@ void SmallStrainUPwElement::CalculateMassMatrix( MatrixType& rMassMatrix, Proces
 
     //Defining shape functions and the determinant of the jacobian at all integration points
     Matrix Ncontainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
-    Vector detJcontainer;
+    Vector detJcontainer = ZeroVector(NumGPoints);
     rGeom.DeterminantOfJacobian(detJcontainer,mThisIntegrationMethod);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
     double IntegrationCoefficient;
     double Porosity = GetProperties()[POROSITY];
     double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
     unsigned int node;
     Matrix Nut = ZeroMatrix( dimension + 1 , number_of_nodes * (dimension + 1) );
 
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( unsigned int PointNumber = 0; PointNumber < NumGPoints; PointNumber++ )
     {
         //Setting the shape function matrix
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -705,7 +706,7 @@ void SmallStrainUPwElement::CalculateAll(MatrixType& rLeftHandSideMatrix, Vector
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, Variables.detJ, integration_points[PointNumber].Weight() );
+        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient, Variables.detJContainer[PointNumber], integration_points[PointNumber].Weight() );
 
         //Contributions to the left hand side
         if ( CalculateLHSMatrixFlag )
@@ -724,26 +725,36 @@ void SmallStrainUPwElement::CalculateAll(MatrixType& rLeftHandSideMatrix, Vector
 void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
+    const SizeType NumNodes = rGeom.size();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
     
     //Variables at all integration points
+    (rVariables.NContainer).resize(NumGPoints,NumNodes,false);
     rVariables.NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
-    rVariables.DN_DlocalContainer = rGeom.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-    rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
 
+    (rVariables.Np).resize(NumNodes,false);
+    
+    (rVariables.DN_DXContainer).resize(NumGPoints,false);
+    for(SizeType i = 0; i<NumGPoints; i++)
+        ((rVariables.DN_DXContainer)[i]).resize(NumNodes,Dim,false);
+    (rVariables.GradNpT).resize(NumNodes,Dim,false);
+    (rVariables.detJContainer).resize(NumGPoints,false);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rVariables.DN_DXContainer,rVariables.detJContainer,mThisIntegrationMethod);
+    
     //Variables computed at each integration point
-    const unsigned int number_of_nodes = rGeom.size();
-    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
     unsigned int voigtsize  = 3;
-    if( dimension == 3 ) voigtsize  = 6;
-    (rVariables.B).resize(voigtsize, number_of_nodes * dimension, false);
-    noalias(rVariables.B) = ZeroMatrix( voigtsize, number_of_nodes * dimension );
+    if( Dim == 3 ) voigtsize  = 6;
+    (rVariables.B).resize(voigtsize, NumNodes * Dim, false);
+    noalias(rVariables.B) = ZeroMatrix( voigtsize, NumNodes * Dim );
     (rVariables.StrainVector).resize(voigtsize,false);
     (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
     (rVariables.StressVector).resize(voigtsize,false);
 
     //Needed parameters for consistency with the general constitutive law
-    rVariables.detF  = 1.0;
-    rVariables.F     = identity_matrix<double>(dimension);
+    rVariables.detF = 1.0;
+    (rVariables.F).resize(Dim, Dim, false);
+    noalias(rVariables.F) = identity_matrix<double>(Dim);
 
     //Nodal variables
     this->InitializeNodalVariables(rVariables);
@@ -838,18 +849,10 @@ void SmallStrainUPwElement::CalculateKinematics(ElementalVariables& rVariables, 
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int node;
 
-    //Setting the shape function vector
-    rVariables.Np = row( rVariables.NContainer, PointNumber);
-
-    //Calculating the determinant and inverse of the jacobian matrix
-    Matrix InvJ;
-    MathUtils<double>::InvertMatrix(rVariables.JContainer[PointNumber], InvJ, rVariables.detJ);
-    if(rVariables.detJ<0.0)
-        KRATOS_THROW_ERROR( std::invalid_argument," |J|<0 , |J| = ", rVariables.detJ )
-
-    //Calculate shape functions global gradients
-    rVariables.GradNpT = prod(rVariables.DN_DlocalContainer[PointNumber] , InvJ);
-
+    //Setting the vector of shape functions and the matrix of the shape functions global gradients
+    noalias(rVariables.Np) = row( rVariables.NContainer, PointNumber);
+    noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[PointNumber];
+    
     //Compute the deformation matrix B
     if( dimension == 2 )
     {
@@ -882,7 +885,7 @@ void SmallStrainUPwElement::CalculateKinematics(ElementalVariables& rVariables, 
     }
 
     //Compute infinitessimal strain
-    rVariables.StrainVector = prod(rVariables.B,rVariables.DisplacementVector);
+    noalias(rVariables.StrainVector) = prod(rVariables.B,rVariables.DisplacementVector);
 
     KRATOS_CATCH( "" )
 }

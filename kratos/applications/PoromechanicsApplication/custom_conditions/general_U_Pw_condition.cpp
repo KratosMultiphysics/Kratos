@@ -194,7 +194,19 @@ void GeneralUPwCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTy
 void GeneralUPwCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
+    const SizeType NumNodes = rGeom.size();
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const SizeType WorkingDim = rGeom.WorkingSpaceDimension();
+    const SizeType LocalDim = rGeom.LocalSpaceDimension();
+
+    (rVariables.NContainer).resize(NumGPoints,NumNodes,false);
     rVariables.NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    
+    (rVariables.Np).resize(NumNodes,false);
+
+    (rVariables.JContainer).resize(NumGPoints,false);
+    for(SizeType i = 0; i<NumGPoints; i++)
+        ((rVariables.JContainer)[i]).resize(WorkingDim,LocalDim,false);
     rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
     
     //FIC condition variables
@@ -211,7 +223,7 @@ void GeneralUPwCondition::InitializeConditionVariables (ConditionVariables& rVar
     if(dimension==2)
         rVariables.ElementLength = rGeom.Length();
     else
-        rVariables.ElementLength = sqrt(4.0*rGeom.Area()/M_PI);
+        rVariables.ElementLength = sqrt(4.0*rGeom.Area()/KRATOS_M_PI);
 }
 
 //----------------------------------------------------------------------------------------
@@ -221,7 +233,7 @@ void GeneralUPwCondition::CalculateKinematics(ConditionVariables& rVariables,uns
     KRATOS_TRY
 
     //Setting the shape function vector
-    rVariables.Np = row( rVariables.NContainer, PointNumber);
+    noalias(rVariables.Np) = row( rVariables.NContainer, PointNumber);
 
     KRATOS_CATCH( "" )
 }

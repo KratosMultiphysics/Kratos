@@ -29,8 +29,6 @@ class SmallStrainUPwDiffOrderElement : public Element
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUPwDiffOrderElement );
-    
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -105,10 +103,9 @@ protected:
         //Variables at all integration points
         Matrix NuContainer;
         Matrix NpContainer;
-        GeometryType::ShapeFunctionsGradientsType DNu_DlocalContainer;
-        GeometryType::ShapeFunctionsGradientsType DNp_DlocalContainer;
-        GeometryType::JacobiansType JuContainer;
-        GeometryType::JacobiansType JpContainer;
+        GeometryType::ShapeFunctionsGradientsType DNu_DXContainer;
+        GeometryType::ShapeFunctionsGradientsType DNp_DXContainer;
+        Vector detJuContainer;
 
         //Variables at each integration point
         Vector Nu; //Contains the displacement shape functions at every node
@@ -116,7 +113,6 @@ protected:
         Matrix DNu_DX; //Contains the global derivatives of the displacement shape functions
         Matrix GradNpT; //Contains the global derivatives of the pressure shape functions
         Matrix B;
-        double detJu;
         double IntegrationCoefficient;
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
@@ -144,7 +140,7 @@ protected:
     
     // Member Variables
     
-    IntegrationMethod mThisIntegrationMethod;
+    GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     
