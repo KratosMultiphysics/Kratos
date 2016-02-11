@@ -41,9 +41,9 @@ namespace Kratos {
     
         void AddClustersVariables(ModelPart & r_model_part);
 
-        void Predict(ModelPart & r_model_part);
-        void Correct(ModelPart & r_model_part);
-        void Calculate(ModelPart & r_model_part);
+        void Predict(ModelPart & r_model_part){};
+        void Correct(ModelPart & r_model_part){};
+        void Calculate(ModelPart & r_model_part){};
                   
         void UpdateTranslationalVariables(
             int StepFlag,
