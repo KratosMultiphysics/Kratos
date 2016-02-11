@@ -349,38 +349,6 @@ void SphericParticle::CalculateBalltoBallElasticEnergy(double& total_normal_elas
 }
 */
 
-void SphericParticle::CalculateKinematicEnergy(double& r_kinematic_energy)
-{
-    const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);    
-    double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
-    
-    r_kinematic_energy = 0.5 * (mRealMass * square_of_celerity); 
-    
-    if (this->Is(DEMFlags::HAS_ROTATION)){
-        const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        const double moment_of_inertia    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-        double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
-        
-        r_kinematic_energy += 0.5 * moment_of_inertia * square_of_angular_celerity;
-    }
-}
-
-void SphericParticle::CalculateGravitationalEnergy(const array_1d<double,3>& gravity, double& r_gravitational_energy)
-{
-    
-    double mass = this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-    double gh = 0.0;
-    array_1d<double, 3> coord = this->GetGeometry()[0].Coordinates();
-
-    for (unsigned int i=0;i<3;i++){
-      
-      gh += coord(i)*-gravity(i); //negative makes gravity introduce positive potential energy
-    
-    }
-
-    r_gravitational_energy = mass*gh;
-
-}//CalculateGravitationalEnergy
 
 
 void SphericParticle::CalculateMomentum(array_1d<double, 3>& r_momentum)
@@ -1469,10 +1437,30 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
 
         return;
     }
+    
+    if (rVariable == PARTICLE_KINEMATIC_ENERGY){
+      
+      const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);    
+      double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
+    
+      Output = 0.5 * (mRealMass * square_of_celerity); 
+      
+      if (this->Is(DEMFlags::HAS_ROTATION)){
+          const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const double moment_of_inertia    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
+          
+          Output += 0.5 * moment_of_inertia * square_of_angular_celerity;
+      }
+      
+      return;
+ 
+    }
 
     AdditionalCalculate(rVariable, Output, r_process_info);
 
     KRATOS_CATCH("")
+    
 }// Calculate
 
 void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output,
