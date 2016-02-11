@@ -1,13 +1,18 @@
-﻿import unittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 
-class TestModelPartIO(unittest.TestCase):
+
+def GetFilePath(fileName):
+    return os.path.dirname(__file__) + "/" + fileName
+
+
+class TestModelPartIO(KratosUnittest.TestCase):
 
     def test_model_part_io_read_model_part(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part_io = ModelPartIO("test_model_part_io")
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io"))
         model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -103,7 +108,7 @@ class TestModelPartIO(unittest.TestCase):
 
         outlet_model_part = model_part.GetSubModelPart("Outlet")
 
- 
+
         self.assertEqual(outlet_model_part.NumberOfTables(), 0)
         self.assertEqual(outlet_model_part.NumberOfProperties(), 1)
         self.assertEqual(outlet_model_part.NumberOfNodes(), 0)
@@ -119,4 +124,4 @@ class TestModelPartIO(unittest.TestCase):
     #    model_part_io.ReadProperties(model_part.Properties)
 
 if __name__ == '__main__':
-    unittest.main()
+    KratosUnittest.main()
