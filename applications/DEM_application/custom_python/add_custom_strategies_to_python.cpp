@@ -145,13 +145,6 @@ namespace Kratos
           
           ;
          
-          class_< IterativeSolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
-          (
-          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                                
-          
-          ;
-
         }
 
     }  // namespace Python.
