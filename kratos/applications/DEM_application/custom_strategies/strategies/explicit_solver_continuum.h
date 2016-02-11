@@ -254,21 +254,35 @@ namespace Kratos
           KRATOS_TRY
    
           ModelPart& r_model_part            = GetModelPart();
-          ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
           
-          mFixSwitch                         = rcurrent_process_info[FIX_VELOCITIES_FLAG];   
+          //mFixSwitch                         = rcurrent_process_info[FIX_VELOCITIES_FLAG];   
           
           bool has_mpi = false;
           VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
           if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
                    
-          // 0. Initialize step   /////////////////////////////////            
-          BaseType::InitializeSolutionStep();
+          InitializeSolutionStep();
+          SearchOperations(r_model_part, has_mpi);
+          BaseType::ForceOperations(r_model_part);
+          BaseType::PerformTimeIntegrationOfMotion();           
+          FinalizeSolutionStep();
+		
+          KRATOS_CATCH("") 
           
-          //ContactInitializeSolutionStep();
+          return 0.0;
           
-                                  
-          if(rcurrent_process_info[SEARCH_CONTROL]==0)
+      }//Solve()
+      
+      void InitializeSolutionStep()
+      {
+        BaseType::InitializeSolutionStep();
+        //ContactInitializeSolutionStep();
+      }
+      
+      void SearchOperations(ModelPart& r_model_part, bool has_mpi)
+      {
+         
+         if(rcurrent_process_info[SEARCH_CONTROL]==0)
           {            
             for (int i = 0; i < mNumberOfThreads; i++)
             {
@@ -284,34 +298,7 @@ namespace Kratos
                }
              }             
           }
-
-            // 1. Search Neighbors /////////////////////////////////     
-
-            SearchOperations(r_model_part, has_mpi);
-            
-            // 2. Calculate forces   /////////////////////////////////            
-            BaseType::ForceOperations(r_model_part);
-
-            BaseType::PerformTimeIntegrationOfMotion(); 
-                                      
-            //Synch this var.
-            r_model_part.GetCommunicator().MaxAll(rcurrent_process_info[SEARCH_CONTROL]);
-                   
-                                 
-            // 4. Finalize step   /////////////////////////////////            
-            BaseType::FinalizeSolutionStep();
-            FinalizeSolutionStepFEM();
-          		
-            KRATOS_CATCH("") 
-          
-          return 0.0;
-          
-      }//Solve()
-      
-     
-      void SearchOperations(ModelPart& r_model_part, bool has_mpi)
-      {
-         
+        
           ProcessInfo& rcurrent_process_info   = r_model_part.GetProcessInfo();
           int time_step                      = rcurrent_process_info[TIME_STEPS];
           if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
@@ -344,6 +331,8 @@ namespace Kratos
                   rcurrent_process_info[SEARCH_CONTROL] = 1;
               }
           }
+          
+          r_model_part.GetCommunicator().MaxAll(rcurrent_process_info[SEARCH_CONTROL]);
      }//SearchOPerations;
      
     void ComputeNewNeighboursHistoricalData() {
@@ -688,7 +677,15 @@ namespace Kratos
       }          
       
       KRATOS_CATCH("")
-    } //SetInitialDemContacts            
+    } //SetInitialDemContacts     
+    
+     void FinalizeSolutionStep()
+      {
+        
+        BaseType::FinalizeSolutionStep();
+        FinalizeSolutionStepFEM();
+        
+      }
          
      void FinalizeSolutionStepFEM() {      
       KRATOS_TRY
