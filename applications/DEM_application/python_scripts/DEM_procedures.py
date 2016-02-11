@@ -431,8 +431,8 @@ class Procedures(object):
             names.append("time")
             names.append("mass")
             names.append("gravitational_energy")
-            names.append("kinetic_energy")
-            names.append("elastic_energy")
+            names.append("kinematic_energy")
+            #names.append("elastic_energy")
             names.append("momentum")
             names.append("angular_momentum")
             names.append("total_energy")
@@ -444,18 +444,18 @@ class Procedures(object):
         center = physics_calculator.CalculateCenterOfMass(model_part)
         initial_center = physics_calculator.GetInitialCenterOfMass()
         gravity_energy = physics_calculator.CalculateGravitationalPotentialEnergy(model_part, initial_center)
-        kinetic_energy = physics_calculator.CalculateKineticEnergy(model_part)
-        elastic_energy = physics_calculator.CalculateElasticEnergy(model_part)
+        kinematic_energy = physics_calculator.CalculateKinematicEnergy(model_part)
+        #elastic_energy = physics_calculator.CalculateElasticEnergy(model_part)
         momentum = physics_calculator.CalculateTotalMomentum(model_part)
         angular_momentum = physics_calculator.CalulateTotalAngularMomentum(model_part)
-        total_energy = gravity_energy + kinetic_energy + elastic_energy
+        total_energy = gravity_energy + kinematic_energy #+ elastic_energy
 
         # Filling in the entries values corresponding to the entries names above
         present_prop.append(time)
         present_prop.append(mass)
         present_prop.append(gravity_energy)
-        present_prop.append(kinetic_energy)
-        present_prop.append(elastic_energy)
+        present_prop.append(kinematic_energy)
+        #present_prop.append(elastic_energy)
         present_prop.append(momentum)
         present_prop.append(angular_momentum)
         present_prop.append(total_energy)
@@ -1201,11 +1201,11 @@ class DEMIo(object):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
                 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MIQUEL MAPPING
+            self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MSIMSI MIQUEL MAPPING
             #Compute and print the graphical bounding box if active in time
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
-            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)
+            #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
 
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
@@ -1405,8 +1405,9 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
     
-        self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
-        
+        #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
+
+      
         
 class ParallelUtils(object):
 
