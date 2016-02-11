@@ -224,6 +224,7 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  
                   double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
                   added_mass += particle_mass;
                 }
@@ -274,7 +275,6 @@ class SphericElementGlobalPhysicsCalculator
           const array_1d<double, 3>& gravity                    = r_model_part.GetProcessInfo()[GRAVITY];
           const array_1d<double, 3> center_of_mass              = CalculateCenterOfMass(r_model_part);
           const array_1d<double, 3> center_of_mass_to_reference = reference_point - center_of_mass;
-
           double potential_energy = total_mass * (center_of_mass_to_reference[0] * gravity[0] + center_of_mass_to_reference[1] * gravity[1] + center_of_mass_to_reference[2] * gravity[2]);
 
           return potential_energy;
@@ -283,24 +283,26 @@ class SphericElementGlobalPhysicsCalculator
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      double CalculateKineticEnergy(ModelPart& r_model_part)
+      double CalculateKinematicEnergy(ModelPart& r_model_part)
       {
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
-          double kinetic_energy = 0.0;
+          double kinematic_energy = 0.0;
 
-          #pragma omp parallel for reduction(+ : kinetic_energy)
+          #pragma omp parallel for reduction(+ : kinematic_energy)
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_kinetic_energy;
-                  (it)->Calculate(KINETIC_ENERGY, particle_kinetic_energy, r_model_part.GetProcessInfo());
-                  kinetic_energy += particle_kinetic_energy;
+                  double particle_kinematic_energy = 0.0;
+                  
+                  (it)->Calculate(PARTICLE_KINEMATIC_ENERGY, particle_kinematic_energy, r_model_part.GetProcessInfo());
+                  
+                  kinematic_energy += particle_kinematic_energy;
                 }
 
             }
 
-          return kinetic_energy;
+          return kinematic_energy;
       }
       
       //***************************************************************************************************************
