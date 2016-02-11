@@ -101,7 +101,7 @@ void  AddCustomUtilitiesToPython() {
         .def("CalculateD50", &SphericElementGlobalPhysicsCalculator::CalculateD50)
         .def("CalculateCenterOfMass", &SphericElementGlobalPhysicsCalculator::CalculateCenterOfMass)
         .def("GetInitialCenterOfMass", &SphericElementGlobalPhysicsCalculator::GetInitialCenterOfMass)
-        .def("CalculateKineticEnergy", &SphericElementGlobalPhysicsCalculator::CalculateKineticEnergy)
+        .def("CalculateKinematicEnergy", &SphericElementGlobalPhysicsCalculator::CalculateKinematicEnergy)
         .def("CalculateGravitationalPotentialEnergy", &SphericElementGlobalPhysicsCalculator::CalculateGravitationalPotentialEnergy)
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
@@ -123,7 +123,7 @@ void  AddCustomUtilitiesToPython() {
      class_<DEM_FEM_Search, boost::noncopyable >
         ("DEM_FEM_Search", init<>())
         .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)
-        .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)  
+        .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)
         ;
         
       class_<PreUtilities, boost::noncopyable >
@@ -151,8 +151,7 @@ void  AddCustomUtilitiesToPython() {
         ("BenchmarkUtils", init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
-  
-     
+    
 
     }
 
