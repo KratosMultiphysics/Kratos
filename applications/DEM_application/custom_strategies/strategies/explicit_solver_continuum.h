@@ -300,7 +300,6 @@ namespace Kratos
              }             
           }
         
-          ProcessInfo& rcurrent_process_info   = r_model_part.GetProcessInfo();
           int time_step                      = rcurrent_process_info[TIME_STEPS];
           if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
 
