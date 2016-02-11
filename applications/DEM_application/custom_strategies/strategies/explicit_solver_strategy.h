@@ -508,85 +508,90 @@ namespace Kratos
       
       virtual double Solve()
       {
-          KRATOS_TRY
+          
+        KRATOS_TRY
 
-          ModelPart& r_model_part            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();      
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        
+        InitializeSolutionStep();
+        SearchOperations(r_model_part);
+        ForceOperations(r_model_part);
+        PerformTimeIntegrationOfMotion();                   
+        FinalizeSolutionStep();         
+
+        return 0.00;
+
+        KRATOS_CATCH("")
           
-          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-          
-          int time_step = rCurrentProcessInfo[TIME_STEPS];
-  
-          // 1. Here we initialize member variables that depend on the rCurrentProcessInfo          
-          InitializeSolutionStep();
-          
-          // 2. Neighboring search. Every N times. + destruction of particles outside the bounding box                   
-          
-          double time = rCurrentProcessInfo[TIME];
-                    
-          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) {
+      }//Solve()
+
+      
+      void SearchOperations(ModelPart& r_model_part)
+      {
+         
+         ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+         int time_step = rCurrentProcessInfo[TIME_STEPS];
+         double time = rCurrentProcessInfo[TIME];
+         
+         if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box                   
               
-              if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
+            if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
                   BoundingBoxUtility();
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-              }
+            }
               
-              SetSearchRadius(r_model_part, 1.0);        
-              SearchNeighbours();
+            SetSearchRadius(r_model_part, 1.0);        
+            SearchNeighbours();
 
-              this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
-              this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-              RepairPointersToNormalProperties(mListOfSphericParticles);
-              RepairPointersToNormalProperties(mListOfGhostSphericParticles);
-              RebuildPropertiesProxyPointers(mListOfSphericParticles);
-              RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
+            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
+            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+            RepairPointersToNormalProperties(mListOfSphericParticles);
+            RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+            RebuildPropertiesProxyPointers(mListOfSphericParticles);
+            RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
-              ComputeNewNeighboursHistoricalData();  
-              
-              SetOriginalRadius(r_model_part);              
-              SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
-              ComputeNewRigidFaceNeighboursHistoricalData();
-              mSearchControl = 2; // Search is active and has been performed during this time step
-              //ReorderParticles();
-          }
+            ComputeNewNeighboursHistoricalData();  
+            
+            SetOriginalRadius(r_model_part);              
+            SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
+            ComputeNewRigidFaceNeighboursHistoricalData();
+            mSearchControl = 2; // Search is active and has been performed during this time step
+            //ReorderParticles();
+      
+            
+        }
 
-          else {
-              mSearchControl = 1; // Search is active but no search has been done this time step;
-          }
-           
-          RebuildPropertiesProxyPointers(mListOfSphericParticles);
-          RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
+        else {
           
-          // 3. Get and Calculate the forces
-          CleanEnergies();
+            mSearchControl = 1; // Search is active but no search has been done this time step;
+        }
           
-          GetForce(); // Basically only calls CalculateRightHandSide( )
-          
-          //FastGetForce();
-          
-          GetClustersForce();
-          
-          Calculate_Conditions_RHS_and_Add(); //TODO: flag to disable this part
-          
-          Calculate_Nodal_Pressures_and_Stresses(); //TODO: flag to disable this part
-          
-          CalculateEnergies();
-          
-          // 4. Synchronize (should be just FORCE and TORQUE)
-          SynchronizeSolidMesh(r_model_part);
-          
-          // 5. Motion Integration
-          PerformTimeIntegrationOfMotion();                   
-          
-          FinalizeSolutionStep();         
-
-          return 0.00;
-
-          KRATOS_CATCH("")
-      }//Solve()
-
+        //RebuildPropertiesProxyPointers(mListOfSphericParticles);
+        //RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
+        
+      }//SearchOperations;
+      
+      void ForceOperations(ModelPart& r_model_part)
+      {
+        
+        // 3. Get and Calculate the forces
+        CleanEnergies();
+        
+        GetForce(); // Basically only calls CalculateRightHandSide( )
+        
+        //FastGetForce();
+        
+        GetClustersForce();
+        
+        Calculate_Conditions_RHS_and_Add(); //TODO: flag to disable this part
+        
+        Calculate_Nodal_Pressures_and_Stresses(); //TODO: flag to disable this part
+                  
+        // 4. Synchronize (should be just FORCE and TORQUE)
+        SynchronizeSolidMesh(r_model_part);
+        
+      }//ForceOperations;
       
       void InitialTimeStepCalculation()
       {
@@ -682,8 +687,9 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          GetScheme()->Calculate(BaseType::GetModelPart());
-          GetScheme()->Calculate(*mpCluster_model_part);
+          int StepFlag = 0;
+          GetScheme()->Calculate(BaseType::GetModelPart(),StepFlag);
+          GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
 
           KRATOS_CATCH("")
       }
@@ -697,7 +703,10 @@ namespace Kratos
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-
+          
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+          
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
@@ -1505,55 +1514,14 @@ namespace Kratos
                   
           double& total_elastic_energy        = rCurrentProcessInfo[PARTICLE_ELASTIC_ENERGY];
           double& total_damping_energy        = rCurrentProcessInfo[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
-          //double& total_friccional_work       = rCurrentProcessInfo[PARTICLE_INELASTIC_FRICTIONAL_WORK] //cumulative
-          double& total_kinematic_energy      = rCurrentProcessInfo[PARTICLE_KINEMATIC_ENERGY];
-          double& total_gravitational_energy  = rCurrentProcessInfo[PARTICLE_GRAVITATIONAL_ENERGY];
-          
+
           total_elastic_energy        = 0.0;
           total_damping_energy        = 0.0;
           //total_friccional_work       = 0.0;
-          total_kinematic_energy      = 0.0;
-          total_gravitational_energy  = 0.0;
 
           KRATOS_CATCH("")
      }            
     
-    
-     void CalculateEnergies()
-     {
-          KRATOS_TRY
-
-          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
-          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];             
-          //double& total_normal_elastic_energy = rCurrentProcessInfo[PARTICLE_ELASTIC_ENERGY];
-          double& total_kinematic_energy = rCurrentProcessInfo[PARTICLE_KINEMATIC_ENERGY];
-          double& total_gravitational_energy = rCurrentProcessInfo[PARTICLE_GRAVITATIONAL_ENERGY];
-         
-          const int number_of_particles = (int)mListOfSphericParticles.size();
-          
-          #pragma omp parallel
-          {
-            Vector rhs_elem;
-            rhs_elem.resize(6);
-            #pragma omp for schedule(dynamic, 100) //schedule(guided)
-            
-            for (int i = 0; i < number_of_particles; i++){
-                //double total_normal_elastic_energy_on_particle = 0.0;
-                double kinematic_energy_on_particle = 0.0;
-                double gravitational_energy_on_particle = 0.0;   
-
-                mListOfSphericParticles[i]->CalculateKinematicEnergy(kinematic_energy_on_particle);
-                mListOfSphericParticles[i]->CalculateGravitationalEnergy(gravity, gravitational_energy_on_particle);
-
-                total_kinematic_energy += kinematic_energy_on_particle;
-                total_gravitational_energy += gravitational_energy_on_particle;
-            }
-            
-          }
-
-          KRATOS_CATCH("")
-     }
-
 
      void GlobalDamping() {   // flagged for deletion
 
