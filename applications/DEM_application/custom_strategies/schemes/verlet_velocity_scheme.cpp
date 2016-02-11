@@ -49,13 +49,10 @@ namespace Kratos {
            }
            else if(StepFlag == 2) //CORRECT
            {
-             
-                for (int k = 0; k < 3; k++) {
-                     vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;}
-   
+                   for (int k = 0; k < 3; k++) {
+                     vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;}   
            }
-
-        } 
+    }
         
     void VerletVelocityScheme::UpdateRotationalVariables(
             int StepFlag,
