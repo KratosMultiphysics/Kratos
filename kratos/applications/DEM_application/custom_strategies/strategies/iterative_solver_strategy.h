@@ -80,6 +80,19 @@ namespace Kratos
         KRATOS_CATCH("")        
       }// Initialize()
 
+      
+      void SchemePredict()
+      {
+          BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),1);
+          BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),1); 
+      }
+  
+      void SchemeCorrect()
+      {
+        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),2); 
+        BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),2); 
+      }
+      
       virtual double Solve()
       {
             
@@ -88,10 +101,10 @@ namespace Kratos
         ModelPart& r_model_part = BaseType::GetModelPart();
         
         BaseType::InitializeSolutionStep();
-        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),1); //Predict
+        SchemePredict();
         BaseType::SearchOperations(r_model_part);
         BaseType::ForceOperations(r_model_part);
-        BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),2); //Correct
+        SchemeCorrect();
         BaseType::FinalizeSolutionStep();         
 
         return 0.00;
@@ -102,6 +115,8 @@ namespace Kratos
 
   };//ClassIterativeSolverStrategy
 
+  
+  
      
 }  // namespace Kratos.
 
