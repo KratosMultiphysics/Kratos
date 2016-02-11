@@ -151,9 +151,6 @@ virtual void ComputeNewNeighboursHistoricalData( std::vector<unsigned int>& mTem
 
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 
-virtual void CalculateKinematicEnergy(double& rKinematicEnergy);
-virtual void CalculateGravitationalEnergy(const array_1d<double,3>& gravity, double& r_gravitational_energy);
-
 std::vector<SphericParticle*> mNeighbourElements;
 std::vector<DEMWall*>         mNeighbourRigidFaces;
 std::vector<double>           mNeighbourRigidFacesPram;
