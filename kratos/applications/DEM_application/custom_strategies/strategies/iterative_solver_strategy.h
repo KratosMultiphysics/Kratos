@@ -83,16 +83,21 @@ namespace Kratos
       virtual double Solve()
       {
             
-          KRATOS_TRY
-          
-          
-           BaseType::Solve();
-   
+        KRATOS_TRY
 
-        KRATOS_CATCH("") 
-          
-        return 0.0;
-          
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        
+        BaseType::InitializeSolutionStep();
+        //Predictor();
+        BaseType::SearchOperations(r_model_part);
+        BaseType::ForceOperations(r_model_part);
+        //Corrector();                   
+        BaseType::FinalizeSolutionStep();         
+
+        return 0.00;
+
+        KRATOS_CATCH("")
+                  
       }//Solve()
 
   };//ClassIterativeSolverStrategy
