@@ -43,7 +43,7 @@ HorizontalFixVel                 = "ON"
 
 # Solution Strategy
 
-IntegrationScheme                = "Mid_Point_Rule"
+IntegrationScheme                = "Forward_Euler"
 AutoReductionOfTimeStepOption    = "OFF"
 DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 5e-7
