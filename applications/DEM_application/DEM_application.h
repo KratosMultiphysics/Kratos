@@ -6,9 +6,9 @@
 //
 //
 
+
 #if !defined(KRATOS_DEM_APPLICATION_H_INCLUDED)
 #define KRATOS_DEM_APPLICATION_H_INCLUDED
-
 
 // System includes
 #include <string>
@@ -54,8 +54,6 @@
 #include "custom_conditions/RigidEdge.h"
 #include "custom_elements/thermal_spheric_particle.h"
 
-#include "DEM_application_variables.h"
-
 //Constitutive laws
 
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
@@ -63,15 +61,6 @@
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
-
-
-#define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
-#define DEM_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
-#define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
-#define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
-#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
-#define DEM_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
-#define DEM_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 
 namespace Kratos
 {
