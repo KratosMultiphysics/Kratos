@@ -1045,15 +1045,35 @@ void Interpolate(
     Variable<array_1d<double, 3> >& r_origin_variable,
     Variable<array_1d<double, 3> >& r_destination_variable)
 {
-    // geometry of the element of the origin model part
+    // geometry of the element of the origin model part   
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
+    double N_fast[TDim + 1];
+    N_fast[TDim + 1] = 1.0;
 
-    array_1d<double, 3>& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
+    for (unsigned int i = 0; i < TDim; i++){
+        N_fast[i] = N[i];
+        N_fast[TDim] -= N_fast[i];
+    }
 
-    step_data = N[0] * geom[0].FastGetSolutionStepValue(r_origin_variable);
+    array_1d<double, 3>& first_origin_datum = geom[0].FastGetSolutionStepValue(r_origin_variable);
+    double step_datum_fast[TDim];
+
+    for (unsigned int j = 0; j < TDim; j++){
+        step_datum_fast[j] = N_fast[0] * first_origin_datum[j];
+    }
 
     for (unsigned int i = 1; i < TDim + 1; i++){
-        step_data += N[i] * geom[i].FastGetSolutionStepValue(r_origin_variable);
+        array_1d<double, 3>& origin_datum = geom[i].FastGetSolutionStepValue(r_origin_variable);
+
+        for (unsigned int j = 0; j < TDim; j++){
+            step_datum_fast[j] += N_fast[i] * origin_datum[j];
+        }
+    }
+
+    array_1d<double, 3>& step_datum = p_node->FastGetSolutionStepValue(r_destination_variable);
+
+    for (unsigned int j = 0; j < TDim; j++){
+        step_datum[j] = step_datum_fast[j];
     }
 }
 
@@ -1070,14 +1090,38 @@ void Interpolate(
 {
     // Geometry of the element of the origin model part
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
+    double N_fast[TDim + 1];
+    N_fast[TDim] = 1.0;
 
+    for (unsigned int i = 0; i < TDim; i++){
+        N_fast[i] = N[i];
+        N_fast[TDim] -= N_fast[i];
+    }
+
+    array_1d<double, 3>& first_origin_datum = geom[0].FastGetSolutionStepValue(r_origin_variable);
+    array_1d<double, 3>& first_origin_datum_old = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
+    double step_datum_fast[TDim];
+
+    for (unsigned int j = 0; j < TDim; j++){
+        step_datum_fast[j] = N_fast[0] * (alpha * first_origin_datum[j] + (1.0 - alpha) * first_origin_datum_old[j]);
+    }
     // Destination data
-    array_1d<double, 3>& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
-    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
 
     for (unsigned int i = 1; i < TDim + 1; i++){
-        step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
+        array_1d<double, 3>& origin_datum = geom[i].FastGetSolutionStepValue(r_origin_variable);
+        array_1d<double, 3>& origin_datum_old = geom[i].FastGetSolutionStepValue(r_origin_variable, 1);
+
+        for (unsigned int j = 0; j < TDim; j++){
+            step_datum_fast[j] += N_fast[i] * (alpha * origin_datum[j] + (1.0 - alpha) * origin_datum_old[j]);
+        }
     }
+
+    array_1d<double, 3>& step_datum = p_node->FastGetSolutionStepValue(r_destination_variable);
+
+    for (unsigned int i = 0; i < TDim; i++){
+        step_datum[i] = step_datum_fast[i];
+    }
+
  }
 
 //***************************************************************************************************************
