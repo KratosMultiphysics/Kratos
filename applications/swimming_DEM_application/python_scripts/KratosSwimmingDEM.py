@@ -779,10 +779,9 @@ while (time <= final_time):
 
 swimming_DEM_gid_io.finalize_results()
 
-print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
+print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
 simulation_end_time = timer.monotonic()
-print("(Total elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)")
-print()
+print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
 sys.stdout.flush()
 
 for i in drag_file_output_list:
