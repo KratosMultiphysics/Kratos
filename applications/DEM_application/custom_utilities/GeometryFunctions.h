@@ -11,6 +11,8 @@
 #include <cmath>
 #include "utilities/openmp_utils.h"
 
+#include "DEM_application_variables.h"
+
 namespace Kratos {
     
     namespace GeometryFunctions {
@@ -80,8 +82,8 @@ namespace Kratos {
 
     static inline void normalize(double Vector[3])
     {
-            double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
-            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
+            double distance = DEM_INNER_PRODUCT_3(Vector, Vector);
+            double inv_distance = (distance > 0.0) ?  1.0 / sqrt(distance) : 0.00;
 
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
@@ -400,24 +402,28 @@ namespace Kratos {
         NormalDirection[0] *= inv_distance;
         NormalDirection[1] *= inv_distance;
         NormalDirection[2] *= inv_distance;
+        double N_fast[3];
+        N_fast[0] = NormalDirection[0];
+        N_fast[1] = NormalDirection[1];
+        N_fast[2] = NormalDirection[2];
 
-        if (fabs(NormalDirection[0]) >= 0.577) //0.57735026919
+        if (fabs(N_fast[0]) >= 0.577) //0.57735026919
         {
-            LocalCoordSystem[0][0] = - NormalDirection[1];
-            LocalCoordSystem[0][1] = NormalDirection[0];
+            LocalCoordSystem[0][0] = - N_fast[1];
+            LocalCoordSystem[0][1] = N_fast[0];
             LocalCoordSystem[0][2] = 0.0;
         }
-        else if (fabs(NormalDirection[1]) >= 0.577)
+        else if (fabs(N_fast[1]) >= 0.577)
         {
             LocalCoordSystem[0][0] = 0.0;
-            LocalCoordSystem[0][1] = - NormalDirection[2];
-            LocalCoordSystem[0][2] = NormalDirection[1];
+            LocalCoordSystem[0][1] = - N_fast[2];
+            LocalCoordSystem[0][2] = N_fast[1];
         }
         else
         {
-            LocalCoordSystem[0][0] = NormalDirection[2];
+            LocalCoordSystem[0][0] = N_fast[2];
             LocalCoordSystem[0][1] = 0.0;
-            LocalCoordSystem[0][2] = - NormalDirection[0];
+            LocalCoordSystem[0][2] = - N_fast[0];
         }
 
         //normalize(Vector0);
@@ -428,15 +434,15 @@ namespace Kratos {
         LocalCoordSystem[0][2] = LocalCoordSystem[0][2] * inv_distance0;
 
         //CrossProduct(NormalDirection, Vector0, Vector1);
-        LocalCoordSystem[1][0] = NormalDirection[1] * LocalCoordSystem[0][2] - NormalDirection[2] * LocalCoordSystem[0][1];
-        LocalCoordSystem[1][1] = LocalCoordSystem[0][0] * NormalDirection[2] - NormalDirection[0] * LocalCoordSystem[0][2];
-        LocalCoordSystem[1][2] = NormalDirection[0] * LocalCoordSystem[0][1] - NormalDirection[1] * LocalCoordSystem[0][0];
+        LocalCoordSystem[1][0] = N_fast[1] * LocalCoordSystem[0][2] - N_fast[2] * LocalCoordSystem[0][1];
+        LocalCoordSystem[1][1] = N_fast[2] * LocalCoordSystem[0][0] - N_fast[0] * LocalCoordSystem[0][2];
+        LocalCoordSystem[1][2] = N_fast[0] * LocalCoordSystem[0][1] - N_fast[1] * LocalCoordSystem[0][0];
 
         //normalize(Vector1);
 
-        LocalCoordSystem[2][0] = NormalDirection[0];
-        LocalCoordSystem[2][1] = NormalDirection[1];
-        LocalCoordSystem[2][2] = NormalDirection[2];
+        LocalCoordSystem[2][0] = N_fast[0];
+        LocalCoordSystem[2][1] = N_fast[1];
+        LocalCoordSystem[2][2] = N_fast[2];
     }
 
     static inline double DistanceOfTwoPoint(double coord1[3], double coord2[3])
@@ -690,18 +696,21 @@ namespace Kratos {
     static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element, double& area){
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
-        array_1d<double, 3> cp1;
-        array_1d<double, 3> b_a; 
-        array_1d<double, 3> p1_a;
-        
-        b_a  = Coord2 - Coord1;
-        p1_a = JudgeCoord - Coord1;
-        
-        GeometryFunctions::CrossProduct(b_a, p1_a, cp1);
+        double b[3];
+        double p1[3];
+        double coor[3];
+        DEM_COPY_SECOND_TO_FIRST_3(coor, Coord1)
+        b[0] = Coord2[0] - coor[0];
+        b[1] = Coord2[1] - coor[1];
+        b[2] = Coord2[2] - coor[2];
+        p1[0] = JudgeCoord[0] - coor[0];
+        p1[1] = JudgeCoord[1] - coor[1];
+        p1[2] = JudgeCoord[2] - coor[2];
+        DEM_SET_TO_CROSS_OF_FIRST_TWO_3(b, p1, coor)
 
-        if (GeometryFunctions::DotProduct(cp1, normal_element) >= 0)
-        {
-            area = sqrt(cp1[0] * cp1[0] + cp1[1] * cp1[1] + cp1[2] * cp1[2]) * 0.5;
+
+        if (DEM_INNER_PRODUCT_3(coor, normal_element) >= 0){
+            area = 0.5 * DEM_MODULUS_3(coor);
             return true;
         }
         else return false;
@@ -752,59 +761,60 @@ namespace Kratos {
     }//WeightsCalculation
     
     static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
-    {
-        int facet_size = Coord.size();
-        //Calculate Normal
-      
-        array_1d <double,3> A;
-        array_1d <double,3> B;
-        array_1d <double,3> N;
-        array_1d <double,3> PC;
-      
-        for(unsigned int i = 0; i<3; i++)
-        {
-            A[i] = Coord[2][i]-Coord[1][i];
-            B[i] = Coord[0][i]-Coord[1][i];
-            PC[i] = Particle_Coord[i]-Coord[1][i];
+    { 
+        double A[3];
+        double B[3];
+        double PC[3];
+
+        for (unsigned int i = 0; i < 3; i++){
+            B[i]  = Coord[0][i];
+            PC[i] = Coord[1][i];
+            A[i]  = Coord[2][i];
         }
-  
-        N[0] = A[1]*B[2] - A[2]*B[1];
-        N[1] = A[2]*B[0] - A[0]*B[2];
-        N[2] = A[0]*B[1] - A[1]*B[0];
+      
+        for (unsigned int i = 0; i < 3; i++){
+            A[i] = A[i] - PC[i];
+            B[i] = B[i] - PC[i];
+            PC[i] = Particle_Coord[i] - PC[i];
+        }
+
+        //Calculate Normal
+
+        double N_fast[3];
+        DEM_SET_TO_CROSS_OF_FIRST_TWO_3(A, B, N_fast)
         //normalize
 
         double normal_flag = 1.0;
         
-        if(DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
-        {
+        if (DEM_INNER_PRODUCT_3(PC, N_fast) < 0){ //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
             normal_flag = -1.0;
-            N = -N;
         }
-        normalize(N); 
+
+        normalize(N_fast);
      
         //Calculate distance:
       
         DistPToB = 0.0;
       
-        for (unsigned int i = 0; i<3; i++)
-        {
-            DistPToB += N[i]*PC[i];
+        for (unsigned int i = 0; i < 3; i++){
+            DistPToB += normal_flag * N_fast[i] * PC[i];
         }
 
-        if (DistPToB < rad )
-        {
+        if (DistPToB < rad){
             array_1d <double, 3> IntersectionCoord;
-        
-            for (unsigned int i = 0; i<3; i++)
-            {
-                IntersectionCoord[i] = Particle_Coord[i] - DistPToB*N[i];
+            array_1d <double, 3> N;
+
+            for (unsigned int i = 0; i < 3; i++){
+                IntersectionCoord[i] = Particle_Coord[i] - DistPToB * normal_flag * N_fast[i];
+                N[i] = N_fast[i];
             }
-        
-            for (int i = 0; i<facet_size; i++)
-            {
+
+            int facet_size = Coord.size();
+
+            for (int i = 0; i < facet_size; i++){
                 double this_area = 0.0;
-                if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, normal_flag*N, this_area) == false)
-                {
+
+                if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, N, this_area) == false){
                     current_edge_index = i;
                     return false;
 
