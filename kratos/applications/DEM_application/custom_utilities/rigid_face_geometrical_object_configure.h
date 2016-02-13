@@ -238,7 +238,7 @@ public:
       
       bool ContactExists = false;
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
-      double Particle_Coord[3]         = {0.0};
+      double Particle_Coord[3];
       Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
       Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
       Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
@@ -262,19 +262,19 @@ public:
       
       ContactExists = GeometryFunctions::FastFacetCheck( Coord,  Particle_Coord, Radius, distance_point_to_plane, current_edge_index);
       
-      if(ContactExists == true){return true;}
+      if (ContactExists){return true;}
       
       //The key here is to see that we only need to check for further contact if, when not having contact with plane, the distance_point_to_plane is lower than the radius. 
       //In this case it might have contact with edges or vertices, otherwise no contact is possible. 
 
-      if ( (ContactExists == false) && (distance_point_to_plane < Radius ) )
+      else if (distance_point_to_plane < Radius)
       {
         bool local_contact_exists = false;
         for (unsigned int e = current_edge_index; e < FE_size; e++ )
         {
           
           local_contact_exists = GeometryFunctions::FastEdgeVertexCheck( Coord[e], Coord[(e+1)%FE_size],  Particle_Coord, Radius );
-          if(local_contact_exists) {return true;}
+          if (local_contact_exists) {return true;}
           
         }//for every edge
 

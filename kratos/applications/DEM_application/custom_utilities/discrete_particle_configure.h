@@ -15,6 +15,7 @@
 // Kratos includes
 #include "spatial_containers/spatial_search.h"
 #include "includes/dem_variables.h"
+#include "DEM_application_variables.h"
 
 namespace Kratos
 {
@@ -164,9 +165,16 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
-        double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);  
-        
+        //array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        const array_1d<double, 3> coor1 = rObj_1->GetGeometry()[0];
+        const array_1d<double, 3> coor2 = rObj_2->GetGeometry()[0];
+
+        double difference[3];
+        difference[0] = coor1[0] - coor2[0];
+        difference[1] = coor1[1] - coor2[1];
+        difference[2] = coor1[2] - coor2[2];
+        double distance_2 = DEM_INNER_PRODUCT_3(difference, difference);
+
         double radius_sum      = radius_1 + rObj_2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
 
@@ -305,11 +313,11 @@ private:
     }
     
     static inline bool floatle(double a, double b) {
-        return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
+        return a < b || std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }
     
     static inline bool floatge(double a, double b) {
-        return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
+        return a > b || std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }
 
     ///@}
