@@ -12,6 +12,9 @@ import os
 import sys
 import math
 
+simulation_start_time = timer.monotonic()
+
+print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -68,7 +71,7 @@ import sphere_strategy as SolverStrategy
 pp.CFD_DEM.coupling_level_type = DEM_parameters.coupling_level_type
 #pp.CFD_DEM.lift_force_type = DEM_parameters.lift_force_option
 pp.CFD_DEM.drag_modifier_type = DEM_parameters.drag_modifier_type
-DEM_parameters.fluid_domain_volume                    = 2 * math.pi # write down the volume you know it has
+DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
 
 ##############################################################################
 #                                                                            #
@@ -777,6 +780,9 @@ while (time <= final_time):
 swimming_DEM_gid_io.finalize_results()
 
 print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
+simulation_end_time = timer.monotonic()
+print("(Total elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)")
+print()
 sys.stdout.flush()
 
 for i in drag_file_output_list:
