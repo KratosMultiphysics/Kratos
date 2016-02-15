@@ -73,13 +73,21 @@ DensityFunctionPolynomial(const double range, const double shape_factor)
 
 virtual ~DensityFunctionPolynomial(){}
 
-void ComputeWeights(std::vector<double> & distances, std::vector<double> & weights)
+void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal_areas, std::vector<double> & weights)
 {
+    double total_nodal_area_inv = 0.0;
+
+    for (unsigned int i = 0; i != distances.size(); ++i){
+        total_nodal_area_inv += nodal_areas[i];
+    }
+
+    total_nodal_area_inv = 1.0 / total_nodal_area_inv;
+
     double sum_of_weights_inv = 0.0;
 
     for (unsigned int i = 0; i != distances.size(); ++i){
         double radius_2 = distances[i] * distances[i];
-        double weight = m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0;
+        double weight = nodal_areas[i] * (m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0);
         weights[i] = weight;
         sum_of_weights_inv += weight;
     }
@@ -87,6 +95,37 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & weigh
     sum_of_weights_inv = 1.0 / sum_of_weights_inv;
 
     // normalizing weights
+    for (unsigned int i = 0; i != distances.size(); ++i){
+        weights[i] *= sum_of_weights_inv;
+    }
+}
+
+void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal_areas, const double max_nodal_area_inv, std::vector<double> & weights)
+{
+    double total_nodal_area_inv = 0.0;
+
+    for (unsigned int i = 0; i != distances.size(); ++i){
+        total_nodal_area_inv += nodal_areas[i];
+    }
+
+    total_nodal_area_inv = 1.0 / total_nodal_area_inv;
+
+    double sum_of_weights_inv = 0.0;
+
+    for (unsigned int i = 0; i != distances.size(); ++i){
+        double radius_2 = distances[i] * distances[i];
+        double r = mR;// * pow(nodal_areas[i] * max_nodal_area_inv, 0.3333333333333333333333333333333);
+        double weight;
+
+        weight = nodal_areas[i] * (radius_2 > r * r) ? 0.0 : fm6(r) * radius_2 * radius_2 * radius_2 + fm4(r) * radius_2 * radius_2 + fm2(r) * radius_2 + r;
+        weights[i] = weight;
+        sum_of_weights_inv += weight;
+    }
+
+    sum_of_weights_inv = (sum_of_weights_inv == 0.0) ? 0.0 : 1.0 / sum_of_weights_inv;
+
+    // normalizing weights
+
     for (unsigned int i = 0; i != distances.size(); ++i){
         weights[i] *= sum_of_weights_inv;
     }
@@ -100,6 +139,23 @@ double m6;
 double m4;
 double m2;
 double m0;
+
+double fm6(double r)
+{
+    return  315 / (32 * KRATOS_M_PI * pow(r, 9)) - 3 / pow(r, 5);
+}
+
+double fm4(double r)
+{
+    return  7 / pow(r, 3) - 315 / (16 * KRATOS_M_PI * pow(r, 7));
+}
+
+double fm2(double r)
+{
+    return  315 / (32 * KRATOS_M_PI * pow(r, 5)) - 5 / r;
+}
+
+
 
 }; // class DensityFunctionPolynomial
 
