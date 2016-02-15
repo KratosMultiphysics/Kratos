@@ -29,30 +29,46 @@ namespace Kratos {
             const double mass,
             const double delta_t,
             const bool Fix_vel[3]) {
-               
-            if(StepFlag == 1) //PREDICT
+            
+            if(StepFlag == -1) //INITIALIZE SCHEME
             {
-      
                 for (int k = 0; k < 3; k++) {
                     if (Fix_vel[k] == false) {
-                        delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] / mass * delta_t * delta_t ;
-                        displ[k] += delta_displ[k];
-                        coor[k] = initial_coor[k] + displ[k];
-                        vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
+                        vel[k] -= 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
+                    }              
+                }  
+           }
+  
+            if(StepFlag == 1) //PREDICT
+            {
+                for (int k = 0; k < 3; k++) 
+                {
+                    if (Fix_vel[k] == false) 
+                    {
+                      delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] / mass * delta_t * delta_t ;
+                      displ[k] += delta_displ[k];
+                      coor[k] = initial_coor[k] + displ[k];
+                      vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
                     }
-                    else {
-                        delta_displ[k] = delta_t * vel[k];
-                        displ[k] += delta_displ[k];
-                        coor[k] = initial_coor[k] + displ[k];
+                    else 
+                    {
+                      delta_displ[k] = delta_t * vel[k];
+                      displ[k] += delta_displ[k];
+                      coor[k] = initial_coor[k] + displ[k];
                     }
                 }  
            }
            else if(StepFlag == 2) //CORRECT
            {
-                   for (int k = 0; k < 3; k++) {
-                     vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;}   
+             for (int k = 0; k < 3; k++) 
+             {
+                if (Fix_vel[k] == false) 
+                {
+                  vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
+                }   
+             }
            }
-    }
+    }//VerletVelocityScheme
         
     void VerletVelocityScheme::UpdateRotationalVariables(
             int StepFlag,
