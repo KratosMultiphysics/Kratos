@@ -140,15 +140,19 @@ BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                const int coupling_type,
                                const int viscosity_modification_type,
                                const int n_particles_per_depth_distance = 1)
-                             : mMinFluidFraction(min_fluid_fraction),
+                             : mMustCalculateMaxNodalArea(true),
+                               mMinFluidFraction(min_fluid_fraction),
+                               mMaxNodalAreaInv(0.0),
                                mCouplingType(coupling_type),
                                mViscosityModificationType(viscosity_modification_type),
                                mParticlesPerDepthDistance(n_particles_per_depth_distance)
+
 
 {
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
     }
+
 }
 
 /// Destructor.
@@ -326,6 +330,76 @@ void InterpolateFromDEMMesh(
 //***************************************************************************************************************
 //  data_to_project to fluid mesh = current DEM data
 
+void VariingRadiusHomogenizeFromDEMMesh(
+    ModelPart& r_dem_model_part,
+    ModelPart& r_fluid_model_part,
+    const double& search_radius,
+    const double& shape_factor, // it is the density function's maximum divided by its support's radius
+    bool must_search = true)
+{
+    KRATOS_TRY
+
+    // setting interpolated variables to their default values
+    ResetFluidVariables(r_fluid_model_part);
+
+    // searching neighbour nodes to each particle (it will have an influence on them only)
+
+    if (mMustCalculateMaxNodalArea){
+        CalculateFluidNodesMaxNodalArea(r_fluid_model_part);
+    }
+
+    if (must_search){
+        SearchParticleNodalNeighbours(r_fluid_model_part, r_dem_model_part, search_radius);
+    }
+
+    FillVectorOfSwimmingSpheres(r_dem_model_part);
+
+    if (!must_search) { // we keep the old neighbours
+        RecalculateDistances(r_dem_model_part);
+    }
+
+    // calculating weights for each particle's nodal contributions
+
+    DensityFunctionPolynomial<3> weighing_function(search_radius, shape_factor);
+
+    #pragma omp parallel for
+    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfRadii[i], mMaxNodalAreaInv, mVectorsOfDistances[i]);
+    }
+
+    // transferring fluid fraction information onto the fluid (not a naturally parallel task)
+
+    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i]);
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+        double area = i_node->GetSolutionStepValue(NODAL_AREA);
+        double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+        fluid_fraction = 1.0 - fluid_fraction/area;
+    }
+
+    // transferring the rest of effects onto the fluid (not a naturally parallel task)
+
+    for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
+
+        for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+            NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+
+            ComputeHomogenizedNodalVariable(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+//  data_to_project to fluid mesh = current DEM data
+
 void HomogenizeFromDEMMesh(
     ModelPart& r_dem_model_part,
     ModelPart& r_fluid_model_part,
@@ -348,7 +422,7 @@ void HomogenizeFromDEMMesh(
 
     if (!must_search) { // we keep the old neighbours
         RecalculateDistances(r_dem_model_part);
-    }   
+    }
 
     // calculating weights for each particle's nodal contributions
 
@@ -356,7 +430,7 @@ void HomogenizeFromDEMMesh(
 
     #pragma omp parallel for
     for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfDistances[i]);
+        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfRadii[i], mVectorsOfDistances[i]);
     }
 
     // transferring fluid fraction information onto the fluid (not a naturally parallel task)
@@ -529,7 +603,9 @@ vector<unsigned int> mNodesPartition;
 
 private:
 
+bool mMustCalculateMaxNodalArea;
 double mMinFluidFraction;
+double mMaxNodalAreaInv;
 int mCouplingType;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
@@ -542,6 +618,7 @@ std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii).
 std::vector<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* > mSwimmingSphereElementPointers;
 VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
 VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
+VectorDistanceType mVectorsOfRadii;
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -636,6 +713,57 @@ void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part,
                                    const double& search_radius)
 {
     unsigned int n_nodes = r_dem_model_part.Nodes().size();
+
+    mSearchRadii.resize(n_nodes, search_radius);
+
+    if (n_nodes != mVectorsOfNeighNodes.size()){
+        mVectorsOfNeighNodes.resize(n_nodes);
+        mVectorsOfDistances.resize(n_nodes);
+        mVectorsOfRadii.resize(n_nodes);
+    }
+
+    for (int i = 0; i != (int)n_nodes; ++i){
+        mVectorsOfNeighNodes[i].clear();
+        mVectorsOfDistances[i].clear();
+        mVectorsOfRadii[i].clear();
+    }
+
+    NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
+    NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
+    mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+
+    for (unsigned int i = 0; i < mVectorsOfNeighNodes.size(); i++){
+        unsigned int n_neigh = mVectorsOfNeighNodes[i].size();
+        mVectorsOfRadii[i].resize(n_neigh);
+
+        for (unsigned int j = 0; j < n_neigh; j++){
+            mVectorsOfRadii[i][j] = mVectorsOfNeighNodes[i][j]->FastGetSolutionStepValue(NODAL_AREA);
+        }
+    }
+    // passing the neighbour's information to the particles
+
+    for (int i = 0; i < (int)n_nodes; i++){
+        ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
+        SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = dynamic_cast<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* >(&(*i_particle));
+
+        if (mVectorsOfNeighNodes[i].size()){
+            p_particle->Set(INSIDE, true);
+            p_particle->mNeighbourNodes.clear();
+            p_particle->mNeighbourNodesDistances.clear();
+            p_particle->mNeighbourNodes.insert((p_particle->mNeighbourNodes).begin(), mVectorsOfNeighNodes[i].begin(), mVectorsOfNeighNodes[i].end());
+            p_particle->mNeighbourNodesDistances.insert((p_particle->mNeighbourNodesDistances).begin(), mVectorsOfDistances[i].begin(), mVectorsOfDistances[i].end());
+        }
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part,
+                                   ModelPart& r_dem_model_part,
+                                   const double& search_radius)
+{
+    unsigned int n_nodes = r_dem_model_part.Nodes().size();
     mSearchRadii.resize(n_nodes, search_radius);
 
     if (n_nodes != mVectorsOfNeighNodes.size()){
@@ -675,14 +803,18 @@ void RecalculateDistances(ModelPart& r_dem_model_part){
 
     int n_particles = (int)mSwimmingSphereElementPointers.size();
     mVectorsOfDistances.resize(n_particles);
+    mVectorsOfRadii.resize(n_particles);
 
     for (int i = 0; i != n_particles; ++i){
         SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = mSwimmingSphereElementPointers[i];
         int n_neighbours = (int)p_particle->mNeighbourNodes.size();
         mVectorsOfDistances[i].resize(n_neighbours);
+        mVectorsOfRadii[i].resize(n_neighbours);
 
         for (int j = 0; j != n_neighbours; ++j){
-            mVectorsOfDistances[i][j] = CalculateDistance(p_particle->mNeighbourNodes[j], p_particle); // spatial search is designed for varying radius
+
+            mVectorsOfDistances[i][j] = CalculateDistance(p_particle->mNeighbourNodes[j], p_particle);
+            // spatial search is designed for varying radius
         }
     }
 }
@@ -1048,7 +1180,7 @@ void Interpolate(
     // geometry of the element of the origin model part   
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
     double N_fast[TDim + 1];
-    N_fast[TDim + 1] = 1.0;
+    N_fast[TDim] = 1.0;
 
     for (unsigned int i = 0; i < TDim; i++){
         N_fast[i] = N[i];
@@ -1464,14 +1596,29 @@ void CalculateNodalFluidFractionByAveraging( // it is actually calculating its c
     if (vector_size && p_node->Is(INSIDE)){
         const double& radius = p_node->FastGetSolutionStepValue(RADIUS);
         double solid_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
-        double normalization_coeff = 0.0;
-        for (unsigned int k = 0; k < vector_size; k++){
-            normalization_coeff += weights[k];
-        }
-        normalization_coeff = 1.0 / normalization_coeff;
 
         for (unsigned int i = 0; i != vector_size; ++i){
-            neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * normalization_coeff * solid_volume;
+            neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume;
+        }
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void CalculateNodalSolidFractionByAveraging(
+    const Node<3>::Pointer p_node,
+    const ResultNodesContainerType& neighbours,
+    const DistanceType& weights,
+    const double averaging_volume_inv)
+{
+    unsigned int vector_size = neighbours.size();
+    if (vector_size && p_node->Is(INSIDE)){
+        const double& radius = p_node->FastGetSolutionStepValue(RADIUS);
+        double solid_volume = 4.0 * KRATOS_M_PI_3 * radius * radius * radius;
+
+        for (unsigned int i = 0; i != vector_size; ++i){
+            neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += averaging_volume_inv * weights[i] * solid_volume;
         }
     }
 }
@@ -1546,6 +1693,25 @@ inline void ClearVariable(const NodeIteratorType& node_it, const VariableData *v
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part)
+{
+    double max_nodal_area = 0.0;
+
+    for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
+        NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_node.base());
+        double nodal_area = p_node->FastGetSolutionStepValue(NODAL_AREA);
+        max_nodal_area = std::max(nodal_area, max_nodal_area);
+    }
+
+    mMaxNodalAreaInv = 1.0 / max_nodal_area;
+
+    mMustCalculateMaxNodalArea = false;
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var)
 {
     var.AssignZero(node_it->SolutionStepData().Data(var));
@@ -1588,7 +1754,7 @@ void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part){
 //***************************************************************************************************************
 
 double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b){
-    array_1d<double, 3> coor_a = a->Coordinates();
+    array_1d<double, 3> coor_a = a->Coordinates();   
     array_1d<double, 3> coor_b = b->GetGeometry()[0].Coordinates();
     return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));
 }
