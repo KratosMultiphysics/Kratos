@@ -64,6 +64,11 @@ typedef MeshType::NodesContainerType NodesContainerType;
 typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
 typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+double GetAreaFromCondition( Condition& dummy )
+{
+    return( dummy.GetGeometry().Area() );
+}
+
 double GetAreaFromElement( Element& dummy )
 {
     return( dummy.GetGeometry().Area() );
@@ -470,6 +475,8 @@ void  AddMeshToPython()
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
+	.def("GetArea",GetAreaFromCondition)
+
 
 
 //				.def(VariableIndexingPython<Condition, Variable<int> >())
