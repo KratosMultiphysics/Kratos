@@ -34,6 +34,7 @@ class ExplicitStrategy:
         # Initialization of member variables
 
         # SIMULATION FLAGS
+        self.Parameters           = Param
         self.self_strain_option   = Var_Translator(Param.StressStrainOption)
         self.critical_time_option = Var_Translator(Param.AutoReductionOfTimeStepOption)
         self.trihedron_option     = Var_Translator(Param.PostEulerAngles)
@@ -49,6 +50,8 @@ class ExplicitStrategy:
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
+        
+        self.IntegrationSchemeName = 'none'
         
         if (hasattr(Param, "LocalResolutionMethod")):
             if(Param.LocalResolutionMethod == "hierarchical"):
@@ -144,11 +147,12 @@ class ExplicitStrategy:
         elif (Param.IntegrationScheme == 'Symplectic_Euler'):
             self.time_integration_scheme = SymplecticEulerScheme()    
         elif (Param.IntegrationScheme == 'Taylor_Scheme'):
-            self.time_integration_scheme = MidPointScheme()
+            self.time_integration_scheme = TaylorScheme()
         elif (Param.IntegrationScheme == 'Newmark_Beta_Method'):
             self.time_integration_scheme = NewmarkBetaScheme(0.5, 0.25)
         elif (Param.IntegrationScheme == 'Verlet_Velocity'):
-            self.time_integration_scheme = VerletVelocityScheme()    
+            self.time_integration_scheme = VerletVelocityScheme()
+            self.IntegrationSchemeName = 'Verlet_Velocity'
         else:
             print('scheme not defined')
 
@@ -210,11 +214,16 @@ class ExplicitStrategy:
         self.settings.inlet_model_part = self.inlet_model_part   
         self.settings.cluster_model_part = self.cluster_model_part   
                 
-        self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+        
+          self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                              self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
-       
+        else:
+          self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+        
         #self.cplusplus_strategy = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor,
-        #                                     self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
+         #                                    self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
    
