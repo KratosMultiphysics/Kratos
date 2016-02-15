@@ -25,6 +25,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # SIMULATION FLAGS        
   
+        self.Parameters                     = Param
         self.self_strain_option             = Var_Translator(Param.StressStrainOption)
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
         self.case_option                    = 3  
@@ -233,10 +234,18 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part   
         self.settings.cluster_model_part = self.cluster_model_part
-                
-        self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
-                                                
+        
+        
+        if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+          
+          self.cplusplus_strategy = VerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                  self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+         VerletVelocitySolverStrategy
+        else:
+          
+          self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                  self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+         
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)
 
         #Setting the constitutive LAWS
