@@ -80,13 +80,22 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_Ang_vel[3]) {
       
+            if(StepFlag == -1) //INITIALIZE SCHEME
+            {
+                for (int k = 0; k < 3; k++) {
+                    if (Fix_Ang_vel[k] == false) {
+                        angular_velocity[k] -= 0.5 * angular_acceleration[k] ;
+                    }
+                }
+           }
+
             if(StepFlag == 1) //PREDICT
             {
                 for (int k = 0; k < 3; k++) {
                     if (Fix_Ang_vel[k] == false) {
                         delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
                         rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
+                        angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
                     } else {
                         delta_rotation[k] = angular_velocity[k] * delta_t;
                         rotated_angle[k] += delta_rotation[k];
@@ -98,13 +107,8 @@ namespace Kratos {
             {
                 for (int k = 0; k < 3; k++) {
                     if (Fix_Ang_vel[k] == false) {
-                        delta_rotation[k] = angular_velocity[k] * delta_t + 0.5 * delta_t * delta_t * angular_acceleration[k];
-                        rotated_angle[k] += delta_rotation[k];
-                angular_velocity[k] += delta_t * angular_acceleration[k];
-                    } else {
-                        delta_rotation[k] = angular_velocity[k] * delta_t;
-                        rotated_angle[k] += delta_rotation[k];
-                        }
+                        angular_velocity[k] += 0.5 * angular_acceleration[k] * delta_t;
+                    }
                }
             }//CORRECT
             
