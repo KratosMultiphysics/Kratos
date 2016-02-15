@@ -58,12 +58,14 @@ namespace Kratos
           if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
 
           this->InitializeSolutionStep();
+          
+          this->PerformTimeIntegrationOfMotion(1);
+          
           this->SearchOperations(r_model_part, has_mpi);
           this->ForceOperations(r_model_part);
-          this->PerformTimeIntegrationOfMotion(1);
-          //BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),1);
-          //BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),2);
+          
           this->PerformTimeIntegrationOfMotion(2);
+          
           this->FinalizeSolutionStep();
 
           KRATOS_CATCH("")
