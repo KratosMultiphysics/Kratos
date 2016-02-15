@@ -21,6 +21,7 @@
 #include "custom_strategies/strategies/iterative_solver_strategy.h"
 #include "custom_strategies/strategies/verlet_solver_strategy.h"
 
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -78,7 +79,7 @@ namespace Kratos
                   )
                   ;
                   
-          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable> //   dona error  de linker, arreglar dilluns
+          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable> 
           (
                     "SymplecticEulerScheme", init<>()
                   )
@@ -95,7 +96,7 @@ namespace Kratos
                     "VerletVelocityScheme", init<>()
                   )
                   ;
-
+                  
           class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "TaylorScheme", init<>()
