@@ -127,6 +127,48 @@ def SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_
         where_to_substitute[lll] = tmp
     return where_to_substitute
 
+def Compute_RHS(functional, testfunc, do_simplifications=False):
+    rhs = Matrix( zeros(testfunc.shape[0],1) )
+    for i in range(0,testfunc.shape[0]):
+        rhs[i] = diff(functional[0,0], testfunc[i])
+        
+        if(do_simplifications):
+            rhs[i] = simplify(rhs[i]) 
+
+    return rhs
+
+def Compute_LHS(rhs, testfunc, dofs, do_simplifications=False):
+    lhs = Matrix( zeros(testfunc.shape[0],dofs.shape[0]) )
+    for i in range(0,lhs.shape[0]):
+        for j in range(0,lhs.shape[1]):
+            lhs[i,j] = -diff(rhs[i,0], dofs[j,0])
+            
+            if(do_simplifications):
+                lhs[i,j] = simplify(lhs[i,j])
+
+    return lhs
+
+def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications=False):
+    rhs = Compute_RHS(functional, testfunc, do_simplifications)
+    lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
+    return rhs,lhs
+    #rhs = Matrix( zeros(testfunc.shape[0],1) )
+    #for i in range(0,testfunc.shape[0]):
+        #rhs[i] = diff(functional[0,0], testfunc[i])
+        
+        #if(do_simplifications):
+            #rhs[i] = simplify(rhs[i]) 
+    
+    #lhs = Matrix( zeros(testfunc.shape[0],dofs.shape[0]) )
+    #for i in range(0,lhs.shape[0]):
+        #for j in range(0,lhs.shape[1]):
+            #lhs[i,j] = -diff(rhs[i,0], dofs[j,0])
+            
+            #if(do_simplifications):
+                #lhs[i,j] = simplify(lhs[i,j])
+
+    #return rhs,lhs
+
 def OutputVector(r,name, mode="python", initial_tabs = 3,max_index=30):
     initial_spaces = str("")
     for i in range(0,initial_tabs):
@@ -226,3 +268,18 @@ def OutputSymbolicVariable(var, mode="python", initial_tabs = 3,max_index=30):
     #print("ccc")
     
     return outstring
+
+def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30, optimizations='basic'):
+    symbol_name = "c"+name
+    A_factors, A_collected = cse(A,numbered_symbols(symbol_name), optimizations)
+    A = A_collected[0] #overwrite lhs with the one with the collected components
+
+    Acoefficient_str = str("")
+    for factor in A_factors:
+        varname = factor[0]
+        value = factor[1]
+        output_value = OutputSymbolicVariable(value, mode)
+        Acoefficient_str += "const double " + str(varname.__str__()) + " = " + output_value 
+        #print(output_str)
+    A_out = Acoefficient_str+OutputMatrix(A,name,mode,initial_tabs,max_index)    
+    return A_out
