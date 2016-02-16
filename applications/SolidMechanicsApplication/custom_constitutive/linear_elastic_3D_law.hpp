@@ -22,7 +22,7 @@ namespace Kratos
  * Defines a linear isotropic constitutive law in 2D (Plane Strain)
  * This material law is defined by the parameters:
  * 1) YOUNG MODULUS
- * 2) POISSON RATIO
+ * 2) POISSON RATIO 
  * As there are no further parameters the functionality is valid
  * for small and large displacements elasticity.
  */
