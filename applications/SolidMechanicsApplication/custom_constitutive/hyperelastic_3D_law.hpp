@@ -23,7 +23,7 @@ namespace Kratos
  * Defines a hyperelastic isotropic constitutive law in 3D Neohookean Model
  * This material law is defined by the parameters:
  * 1) YOUNG MODULUS
- * 2) POISSON RATIO
+ * 2) POISSON RATIO 
  * As there are no further parameters the functionality is limited
  * to large displacements elasticity.
  */
