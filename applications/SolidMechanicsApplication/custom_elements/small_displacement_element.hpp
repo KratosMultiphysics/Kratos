@@ -9,7 +9,7 @@
 #if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
 #define  KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
-// System includes
+// System includes 
 
 // External includes
 
