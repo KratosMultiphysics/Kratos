@@ -42,6 +42,7 @@ import swimming_DEM_procedures as swim_proc
 import CFD_DEM_coupling
 import variables_management as vars_man
 import embedded
+import analytics
 
 # listing project parameters (to be put in problem type)
 pp.CFD_DEM                                   = DEM_parameters
@@ -608,6 +609,24 @@ post_utils_DEM = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_part, pp) # all variables are set to 0 by default
 
 
+# ANALYTICS BEGIN
+import analytics
+variables_to_measure = [PRESSURE, FLUID_FRACTION]
+steps_between_measurements = 100
+gauge = analytics.Gauge(fluid_model_part, Dt, final_time, variables_to_measure, steps_between_measurements)
+point_coors = [0.0, 0.0, 0.01]
+target_node = swim_proc.FindClosestNode(fluid_model_part, point_coors)
+target_id = target_node.Id
+print(target_node.X, target_node.Y, target_node.Z)
+print(target_id)
+def condition(node):
+    return node.Id == target_id
+
+gauge.ConstructArrayOfNodes(condition)
+print(gauge.variables)
+print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
+# ANALYTICS END005
+
 # NANO BEGIN
 if pp.CFD_DEM.drag_force_type == 9:
     alpha = 1000.0
@@ -648,6 +667,10 @@ while (time <= final_time):
 
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
+            gauge.MakeNodalMeasurement()
+            if print_analytics_counter.Tick():
+                gauge.PrintMeasurements(main_path)
+                gauge.PlotPSD()
 
     # assessing stationarity
 
