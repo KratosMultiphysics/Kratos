@@ -68,7 +68,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     }
 
     else {
-        mSlipVel = fluid_vel - particle_vel;
+        noalias(mSlipVel) = fluid_vel - particle_vel;
     }
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
@@ -91,7 +91,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
     ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
 
-    additionally_applied_force = drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
+    noalias(additionally_applied_force) += drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
 
     UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force, r_current_process_info);
     
@@ -115,23 +115,23 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
                                                 const array_1d<double, 3>& magnus_lift_force,
                                                 ProcessInfo& r_current_process_info)
 {
-    GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)      = hydrodynamic_force;
-    GetGeometry()[0].FastGetSolutionStepValue(BUOYANCY)                = buoyancy;
+    noalias(GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))      = hydrodynamic_force;
+    noalias(GetGeometry()[0].FastGetSolutionStepValue(BUOYANCY))                = buoyancy;
 
     if (mHasHydroMomentNodalVar){
-        GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_MOMENT) = hydrodynamic_moment;
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_MOMENT)) = hydrodynamic_moment;
     }
 
     if (mHasDragForceNodalVar){
-        GetGeometry()[0].FastGetSolutionStepValue(DRAG_FORCE)          = drag_force;
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(DRAG_FORCE))          = drag_force;
     }
 
     if (mHasVirtualMassForceNodalVar){
-        GetGeometry()[0].FastGetSolutionStepValue(VIRTUAL_MASS_FORCE)  = virtual_mass_force;
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(VIRTUAL_MASS_FORCE))  = virtual_mass_force;
     }
 
     if (mHasLiftForceNodalVar){
-        GetGeometry()[0].FastGetSolutionStepValue(LIFT_FORCE)          = saffman_lift_force + magnus_lift_force;
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(LIFT_FORCE))          = saffman_lift_force + magnus_lift_force;
     }
 
     if (mHasDragCoefficientVar){
@@ -298,12 +298,12 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<doub
         ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
 
         if (reynolds == 0.0 || rot_reynolds == 0.0){
-            lift_force = ZeroVector(3);
+            noalias(lift_force) = ZeroVector(3);
         }
 
         else {
             const double lift_coeff = 0.45  + (rot_reynolds / reynolds - 0.45) * exp(- 0.05684 * pow(rot_reynolds, 0.4) * pow(reynolds, 0.3));
-            lift_force = 0.5 *  mFluidDensity * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot_cross_slip_vel / norm_of_slip_rot;
+            noalias(lift_force) = 0.5 *  mFluidDensity * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot_cross_slip_vel / norm_of_slip_rot;
         }
     }
 
@@ -340,7 +340,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<d
             rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
         }
 
-        hydro_torque = 0.5 *  mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
+        noalias(hydro_torque) = 0.5 *  mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
     }
 
     else {
@@ -427,7 +427,7 @@ void SphericSwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<d
             }
 
             else {
-                mSlipVel = fluid_vel - particle_vel;
+                noalias(mSlipVel) = fluid_vel - particle_vel;
             }
 
             mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
