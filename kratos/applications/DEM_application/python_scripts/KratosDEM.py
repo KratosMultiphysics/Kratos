@@ -82,12 +82,17 @@ solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_pa
 
 if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
     scheme = ForwardEulerScheme()
-elif (DEM_parameters.IntegrationScheme == 'Mid_Point_Rule'):
+elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+    scheme = SymplecticEulerScheme()
+elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
     scheme = MidPointScheme()
+elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+    scheme = NewmarkBetaScheme(0.5, 0.25)
 elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
     scheme = VerletVelocityScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
