@@ -153,7 +153,9 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        array_1d<double, 3> rObj_2_to_rObj_1;
+        noalias(rObj_2_to_rObj_1) = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         const double& radius_1 = rObj_1->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
@@ -166,8 +168,8 @@ public:
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
         //array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
-        const array_1d<double, 3> coor1 = rObj_1->GetGeometry()[0];
-        const array_1d<double, 3> coor2 = rObj_2->GetGeometry()[0];
+        const array_1d<double, 3>& coor1 = rObj_1->GetGeometry()[0];
+        const array_1d<double, 3>& coor2 = rObj_2->GetGeometry()[0];
 
         double difference[3];
         difference[0] = coor1[0] - coor2[0];
@@ -188,7 +190,7 @@ public:
  
 //        double separation_from_particle_radius_ratio = 0.1;
 
-        array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
+        const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
  
         const double& radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
@@ -207,7 +209,7 @@ public:
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
 //        double separation_from_particle_radius_ratio = 0.1;
-        array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
+        const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
         bool intersect = (
@@ -222,8 +224,8 @@ public:
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
-        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry()[0];
-        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry()[0];
+        const array_1d<double, 3>& center_of_particle1 = rObj_1->GetGeometry()[0];
+        const array_1d<double, 3>& center_of_particle2 = rObj_2->GetGeometry()[0];
 
         distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
                         (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
