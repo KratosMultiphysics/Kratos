@@ -162,7 +162,10 @@ def main():
                     sys.exit()
 
             applications = parsedApps
-            applications.remove('KratosCore')
+
+            if 'KratosCore' in applications:
+                applications.remove('KratosCore')
+
         else:
             assert False, 'unhandled option'
 
