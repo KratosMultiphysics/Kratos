@@ -8,6 +8,7 @@ import sys
 import subprocess
 
 from KratosMultiphysics import KratosLoader
+from KratosMultiphysics.KratosUnittest import CaptureStdout
 
 
 def Usage():
@@ -165,7 +166,8 @@ def main():
         else:
             assert False, 'unhandled option'
 
-    print('\n--run_tests intialized correctly--\n')
+    # Capture stdout from KratosUnittest
+    CaptureStdout()
 
     # KratosCore must always be runned
     print('Running tests for KratosCore')
