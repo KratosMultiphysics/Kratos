@@ -112,7 +112,11 @@ public:
 
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
+    typedef typename TSparseSpaceType::MatrixPointerType SparseMatrixPointerType;
+
     typedef typename TSparseSpaceType::VectorType VectorType;
+
+    typedef typename TSparseSpaceType::VectorPointerType VectorPointerType;
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
@@ -220,6 +224,23 @@ public:
         return false;
     }
 
+    /** Normal solve method.
+    *  Solves the linear system Ax=b with system matrix and
+    *  vectors passed as pointers. If a subclass does not 
+    *  implement this solve method, it calls the overloaded 
+    *  solve method with parameters passed by reference
+    *  instead of as pointers.
+    *  @param pA. System matrix.
+    *  @param pX. Solution vector.
+    *  @param pB. Right hand side vector.
+    */
+    virtual bool Solve(SparseMatrixPointerType pA, VectorPointerType pX, VectorPointerType pB)
+    {
+        SparseMatrixType& rA = *pA;
+        VectorType& rX = *pX;
+        VectorType& rB = *pB;
+        return this->Solve(rA,rX,rB);
+    }
 
     /** Multi solve method for solving a set of linear systems with same coefficient matrix.
     Solves the linear system Ax=b and puts the result on SystemVector& rX.
