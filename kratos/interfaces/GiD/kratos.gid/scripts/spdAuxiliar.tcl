@@ -57,9 +57,7 @@ proc spdAux::processIncludes { } {
 proc spdAux::processDynamicNodes { root } {
     foreach elem [$root getElementsByTagName "dynamicnode"] {
         set func [$elem getAttribute command]
-        
         spdAux::${func} $elem
-        #apps::ExecuteOnCurrent $elem $func
     }
 }
 
@@ -648,15 +646,20 @@ proc spdAux::injectConstitutiveLawOutputs { basenode } {
 }
 
 proc spdAux::injectProcs { basenode } {
-    set nf [file join $::SolidMechanics::dir xml Procs.spd]
-    set xml [tDOM::xmlReadFile $nf]
-    set newnode [dom parse [string trim $xml]]
-    set xmlNode [$newnode documentElement]
-
-    foreach in [$xmlNode getElementsByTagName "proc"] {
-        [$basenode parent] appendChild $in
+    set appId [apps::getActiveAppId]
+    if {$appId ne ""} {
+        set f "::$appId"
+        append f "::dir"
+        set nf [file join [subst $$f] xml Procs.spd]
+        set xml [tDOM::xmlReadFile $nf]
+        set newnode [dom parse [string trim $xml]]
+        set xmlNode [$newnode documentElement]
+    
+        foreach in [$xmlNode getElementsByTagName "proc"] {
+            [$basenode parent] appendChild $in
+        }
+        $basenode delete
     }
-    $basenode delete
 }
 
 proc spdAux::CheckConstLawOutputState {outnode} {
