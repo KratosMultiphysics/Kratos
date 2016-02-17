@@ -334,6 +334,16 @@ public:
 
     //**************************************************************************
     //**************************************************************************
+    /** Solve the linear problem.
+     *  This function is deprecated with the BuildAndSolve
+     *  and BuildRHSAndSolve methods which pass system matrix
+     *  and vectors by reference. New code should call
+     *  SystemSolve with system matrix and vectors passed
+     *  by their smart pointers. Otherwise, the trilinos
+     *  ml preconditioner can't be reused and problems
+     *  that don't need to recompute the preconditioner
+     *  can't exploit this.
+     */ 
     virtual void SystemSolve(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -388,10 +398,80 @@ public:
 
     }
 
+    /** Solve the linear problem.
+     */ 
+    virtual void SystemSolve(
+        TSystemMatrixPointerType pA,
+        TSystemVectorPointerType pDx,
+        TSystemVectorPointerType pb,
+        ModelPart& r_model_part
+    )
+    {
+        KRATOS_TRY
+
+        TSystemMatrixType& rA = *pA;
+        TSystemVectorType& rDx = *pDx;
+        TSystemVectorType& rb = *pb;
+
+        double norm_b;
+        if(TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
+        else
+            norm_b = 0.00;
+
+        if(norm_b != 0.00)
+        {
+            if (this->GetEchoLevel()>1)
+                if (mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
+
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, BaseType::mDofSet, r_model_part);
+
+            if (this->GetEchoLevel()>3)
+            {
+                EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", rA, "matrixA", "lhs_matrix", true);
+                EpetraExt::MultiVectorToMatrixMarketFile( "b.mm", rb, "vectorb","rhs_vector",true);
+                KRATOS_THROW_ERROR(std::logic_error,"stopping after printing the matrix","")
+            }
+
+            if (this->GetEchoLevel()>3)
+            {
+                EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", rA, "matrixA", "block_matrix", true);
+                EpetraExt::MultiVectorToMatrixMarketFile( "b.mm", rb, "vectorb","rhs_vector",true);
+                KRATOS_THROW_ERROR(std::logic_error,"stopping after printing the matrix","")
+            }
+
+            BaseType::mpLinearSystemSolver->Solve(pA,pDx,pb);
+        }
+        else
+        {
+            TSparseSpace::SetToZero(rDx);
+        }
+
+        //prints informations about the current time
+        if (this->GetEchoLevel()>1)
+        {
+          if(this->mrComm.MyPID() == 0)
+            std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+  
+
     //**************************************************************************
     //**************************************************************************
 
 
+    /** Build and solve the linear problem.
+     *  This function is deprecated. New code should call
+     *  BuildAndSolve with system matrix and vectors passed
+     *  by their smart pointers. Otherwise, the trilinos
+     *  ml preconditioner can't be reused and problems
+     *  that don't need to recompute the preconditioner
+     *  can't exploit this.
+     */ 
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
@@ -442,8 +522,73 @@ public:
         KRATOS_CATCH("")
     }
 
+    /** Build and solve the linear problem.
+     *  
+     */ 
+    void BuildAndSolve(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& r_model_part,
+        TSystemMatrixPointerType pA,
+        TSystemVectorPointerType pDx,
+        TSystemVectorPointerType pb)
+    {
+        KRATOS_TRY
+
+        boost::timer building_time;
+
+        TSystemMatrixType& rA = *pA;
+        TSystemVectorType& rDx = *pDx;
+        TSystemVectorType& rb = *pb;
+
+        Build(pScheme,r_model_part,rA,rb);
+
+        if(BaseType::GetEchoLevel()>0)
+        {
+            if(this->mrComm.MyPID() == 0)
+                std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+        }
+
+        //apply dirichlet conditions
+        ApplyDirichletConditions(pScheme,r_model_part,rA,rDx,rb);
+
+        if (BaseType::GetEchoLevel()== 3)
+        {
+            std::cout << "before the solution of the system" << std::endl;
+            std::cout << "System Matrix = " << rA << std::endl;
+            std::cout << "unknowns vector = " << rDx << std::endl;
+            std::cout << "RHS vector = " << rb << std::endl;
+        }
+
+        boost::timer solve_time;
+
+        SystemSolve(pA,pDx,pb,r_model_part);
+
+        if(BaseType::GetEchoLevel()>0)
+        {
+            if(this->mrComm.MyPID() == 0)
+                std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+        }
+        if (BaseType::GetEchoLevel()== 3)
+        {
+            std::cout << "after the solution of the system" << std::endl;
+            std::cout << "System Matrix = " << rA << std::endl;
+            std::cout << "unknowns vector = " << rDx << std::endl;
+            std::cout << "RHS vector = " << rb << std::endl;
+        }
+
+        KRATOS_CATCH("")
+    }
+
     //**************************************************************************
     //**************************************************************************
+    /** Build right-hand side and solve the linear problem.
+     *  This function is deprecated. New code should call
+     *  BuildRHSAndSolve with system matrix and vectors passed
+     *  by their smart pointers. Otherwise, the trilinos
+     *  ml preconditioner can't be reused and problems that
+     *  don't need to recompute the preconditioner can't exploit
+     *  this.
+     */ 
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
@@ -457,6 +602,29 @@ public:
         SystemSolve(A,Dx,b,r_model_part);
 
         KRATOS_CATCH("")
+    }
+
+    /** Build right-hand side and solve the linear problem.
+     *  
+     */ 
+    void BuildRHSAndSolve(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& r_model_part,
+        TSystemMatrixPointerType pA,
+        TSystemVectorPointerType pDx,
+        TSystemVectorPointerType pb)
+    {
+      KRATOS_TRY
+        
+      TSystemMatrixType& rA = *pA;
+      TSystemVectorType& rDx = *pDx;
+      TSystemVectorType& rb = *pb;
+      
+      BuildRHS(pScheme,r_model_part,rb);
+      ApplyDirichletConditions(pScheme,r_model_part,rA,rDx,rb);
+      SystemSolve(pA,pDx,pb,r_model_part);
+      
+      KRATOS_CATCH("")
     }
 
     //**************************************************************************
