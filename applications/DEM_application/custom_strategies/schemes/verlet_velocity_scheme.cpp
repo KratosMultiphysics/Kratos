@@ -29,26 +29,18 @@ namespace Kratos {
             const double mass,
             const double delta_t,
             const bool Fix_vel[3]) {
-            
-            if(StepFlag == -1) //INITIALIZE SCHEME
-            {
-                for (int k = 0; k < 3; k++) {
-                    if (Fix_vel[k] == false) {
-                        vel[k] -= 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
-                    }              
-                }  
-           }
-  
+
+            double mass_inv = 1.0 / mass;
             if(StepFlag == 1) //PREDICT
             {
                 for (int k = 0; k < 3; k++) 
                 {
                     if (Fix_vel[k] == false) 
                     {
-                      delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] / mass * delta_t * delta_t ;
+                      delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
                       displ[k] += delta_displ[k];
                       coor[k] = initial_coor[k] + displ[k];
-                      vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
+                      vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
                     }
                     else 
                     {
@@ -58,15 +50,25 @@ namespace Kratos {
                     }
                 }  
            }
+
            else if(StepFlag == 2) //CORRECT
            {
              for (int k = 0; k < 3; k++) 
              {
                 if (Fix_vel[k] == false) 
                 {
-                  vel[k] += 0.5 * force_reduction_factor * force[k] / mass * delta_t ;
+                  vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
                 }   
              }
+           }
+
+            else if (StepFlag == -1) //INITIALIZE SCHEME
+            {
+                for (int k = 0; k < 3; k++) {
+                    if (Fix_vel[k] == false) {
+                        vel[k] -= 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
+                    }
+                }
            }
     }//VerletVelocityScheme
         
@@ -80,16 +82,7 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_Ang_vel[3]) {
       
-            if(StepFlag == -1) //INITIALIZE SCHEME
-            {
-                for (int k = 0; k < 3; k++) {
-                    if (Fix_Ang_vel[k] == false) {
-                        angular_velocity[k] -= 0.5 * angular_acceleration[k] ;
-                    }
-                }
-           }
-
-            if(StepFlag == 1) //PREDICT
+            if (StepFlag == 1) //PREDICT
             {
                 for (int k = 0; k < 3; k++) {
                     if (Fix_Ang_vel[k] == false) {
@@ -103,7 +96,7 @@ namespace Kratos {
                }
             }
             
-             if(StepFlag == 2) //CORRECT
+            else if(StepFlag == 2) //CORRECT
             {
                 for (int k = 0; k < 3; k++) {
                     if (Fix_Ang_vel[k] == false) {
@@ -111,6 +104,15 @@ namespace Kratos {
                     }
                }
             }//CORRECT
+
+             else if(StepFlag == -1) //INITIALIZE SCHEME
+             {
+                 for (int k = 0; k < 3; k++) {
+                     if (Fix_Ang_vel[k] == false) {
+                         angular_velocity[k] -= 0.5 * angular_acceleration[k] ;
+                     }
+                 }
+            }
             
     }            
     
@@ -121,8 +123,9 @@ namespace Kratos {
                                 const double moment_reduction_factor,
                                 array_1d<double, 3 >& angular_acceleration){
         
+        double moment_of_inertia_inv = 1.0 / moment_of_inertia;
         for (int j = 0; j < 3; j++) {
-            angular_acceleration[j] = moment_reduction_factor * torque[j] / moment_of_inertia;           
+            angular_acceleration[j] = moment_reduction_factor * torque[j] * moment_of_inertia_inv;
         }
     }
     
