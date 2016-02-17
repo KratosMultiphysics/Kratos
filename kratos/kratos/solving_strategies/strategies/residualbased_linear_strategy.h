@@ -416,14 +416,17 @@ public:
             TSparseSpace::SetToZero(mA);
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            // passing smart pointers instead of references here
+            // to prevent dangling pointer to system matrix when
+            // reusing ml preconditioners in the trilinos tpl
+            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mpA, mpDx, mpb);
             BaseType::mStiffnessMatrixIsBuilt = true;
         }
         else
         {
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mpA, mpDx, mpb);
         }
 
         if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
