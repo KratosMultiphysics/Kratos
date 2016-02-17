@@ -38,7 +38,11 @@ proc apps::getActiveApp { } {
 
 proc apps::getActiveAppId { } {
     variable activeApp;
-    return [$activeApp getName]
+    set id ""
+    catch {
+        set id [$activeApp getName]
+    }
+    return $id
 }
 
 proc apps::NewApp {appid publicname} {
