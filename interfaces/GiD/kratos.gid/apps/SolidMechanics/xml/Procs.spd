@@ -82,7 +82,6 @@
 		set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMScheme]] v]
 		
 		set elems [::Model::GetAvailableElements $solStratName $schemeName]
-		#W "Elementos que han pasado la criba $elems"
 		set ids [list ]
 		set names ""
 		set pnames ""
@@ -113,23 +112,6 @@
 		return [spdAux::CheckConstLawParamValue $domNode]
 	  ]]>
 	</proc>
-	<!--<proc n='ConstLawParamState' args='args'>
-	  <![CDATA[
-		set id [$domNode getAttribute n]
-		set constLaw [get_domnode_attribute [[$domNode parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
-		
-		if {$constLaw eq ""} {return 0}
-		set resp [Model::CheckConstLawParamState $constLaw $id]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='ElemParamState' args='args'>
-	  <![CDATA[
-		set resp [::Model::CheckElemParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	  
-	</proc>-->
 	  <proc n='PartParamState' args='args'>
 	  <![CDATA[
 		set resp [::Model::CheckElemParamState $domNode]
@@ -184,32 +166,32 @@
 	</proc>
 	  <proc n='SolStratParamState' args='args'>
 	  <![CDATA[
-		set resp [::SolidMechanics::xml::SolStratParamState $domNode]
+		set resp [::spdAux::SolStratParamState $domNode]
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
 	  <proc n='SchemeParamState' args='args'>
 	  <![CDATA[
-		set resp [::SolidMechanics::xml::SchemeParamState $domNode]
+		set resp [::spdAux::SchemeParamState $domNode]
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>	   
 	  <proc n='ConstLawOutputState' args='args'>
 	  <![CDATA[
-		set resp [::SolidMechanics::xml::CheckConstLawOutputState $domNode]
+		set resp [::spdAux::CheckConstLawOutputState $domNode]
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
 	  <proc n='ElementOutputState' args='args'>
 	  <![CDATA[
-		set resp [::SolidMechanics::xml::CheckElementOutputState $domNode]
+		set resp [::spdAux::CheckElementOutputState $domNode]
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
 	  
 	  <proc n='getIntervals' args='args'>
 	  <![CDATA[
-		set lista [::SolidMechanics::xml::getIntervals]
+		set lista [::spdAux::getIntervals]
 		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
 			$domNode setAttribute v [lindex $lista 0]
 		}
@@ -219,7 +201,7 @@
 	</proc>
 	  <proc n='getTimeFunctions' args='args'>
 	  <![CDATA[
-		set lista [::SolidMechanics::xml::getTimeFunctions]
+		set lista [::spdAux::getTimeFunctions]
 		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
 			$domNode setAttribute v [lindex $lista 0]
 		}
@@ -229,7 +211,7 @@
 	</proc>
 	  <proc n='getFields' args='args'>
 	  <![CDATA[
-		set lista [::SolidMechanics::xml::getFields]
+		set lista [::spdAux::getFields]
 		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
 			$domNode setAttribute v [lindex $lista 0]
 		}
