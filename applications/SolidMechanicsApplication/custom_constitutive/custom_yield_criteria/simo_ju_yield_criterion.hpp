@@ -46,7 +46,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class SimoJuYieldCriterion
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
 	: public YieldCriterion
 {
     public:

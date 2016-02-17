@@ -52,7 +52,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class YieldCriterion
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 {
     public:
 
