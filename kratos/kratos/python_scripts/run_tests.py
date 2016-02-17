@@ -82,12 +82,26 @@ def RunTestSuit(application, path, level, verbose):
 
     '''
 
-    subprocess.call([
-        'python',
-        path+'/tests/'+'test_'+application+'.py',
-        '-l'+level,
-        '-v'+str(verbose)
-    ])
+    script = path+'/tests/'+'test_'+application+'.py'
+
+    if os.path.isfile(script):
+        subprocess.call([
+            'python',
+            script,
+            '-l'+level,
+            '-v'+str(verbose)
+        ])
+    else:
+        if verbose > 0:
+            print(
+                '[Warning]: No test script found for {}'.format(
+                    application),
+                file=sys.stderr)
+        if verbose > 1:
+            print(
+                '  expected file: "{}"'.format(
+                    script),
+                file=sys.stderr)
 
 
 def main():
@@ -142,7 +156,7 @@ def main():
                 sys.exit()
 
             for a in parsedApps:
-                if a not in applications:
+                if a not in applications + ['KratosCore']:
                     print('Warning: Application {} does not exists'.format(a))
                     sys.exit()
 
