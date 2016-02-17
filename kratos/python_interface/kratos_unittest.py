@@ -3,10 +3,29 @@ from unittest import *
 
 import getopt
 import sys
+import warnings
+
+
+class TestLoader(TestLoader):
+    def loadTestsFromTestCases(self, testCaseClasses):
+        ''' Return a list of suites with all tests cases contained in every
+        testCaseClass in testCaseClasses '''
+
+        allTests = []
+
+        for caseClasses in testCaseClasses:
+            caseTests = self.loadTestsFromTestCase(case)
+            allTests.append(caseTests)
+
+        return allTests
 
 
 class TestCase(TestCase):
+
     def failUnlessEqualWithTolerance(self, first, second, tolerance):
+        ''' fails if first and second have a difference greater than
+        tolerance '''
+
         if first < second + tolerance and first > second - tolerance:
             return True
         return False
@@ -72,4 +91,15 @@ def runTests(tests):
         else:
             assert False, 'unhandled option'
 
-    TextTestRunner(verbosity=verbosity).run(tests[level])
+    if tests[level].countTestCases() == 0:
+        print(
+            '[Warning]: "{}" test suite is empty'.format(level),
+            file=sys.stderr)
+    else:
+        TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level])
+
+KratosSuites = {
+    'small': TestSuite(),
+    'nightly': TestSuite(),
+    'all': TestSuite()
+}

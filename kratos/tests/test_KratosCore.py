@@ -6,52 +6,47 @@ from KratosMultiphysics import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import the tests o test_classes to create the suites
 from test_model_part_io import TestModelPartIO as TModelPartIO
 from test_model_part import TestModelPart as TModelPart
 
 
-def AssambleTestSuits():
-    ''' Generates the test suits to run.
+def AssambleTestSuites():
+    ''' Populates the test suites to run.
 
-    Generates the test suits to run. At least, it needs to return the suits:
+    Populates the test suites to run. At least, it should pupulate the suites:
     "small", "nighlty" and "all"
 
     Return
     ------
 
-    set of suits:
-        A set of suits in the form of {"suitname": suit}.
-
+    suites: A dictionary of suites
+        The set of suites with its test_cases added.
     '''
 
-    # Create a test suit with the selected tests (Small tests):
-    SmallSuite = KratosUnittest.TestSuite()
-    SmallSuite.addTest(TModelPartIO('test_model_part_io_read_model_part'))
-    SmallSuite.addTest(TModelPart('test_model_part_properties'))
+    suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests plus all small tests
-    NightSuite = KratosUnittest.TestSuite([SmallSuite])
-    NightSuite.addTest(TModelPart('test_model_part_sub_model_parts'))
-    NightSuite.addTest(TModelPart('test_model_part_nodes'))
-    NightSuite.addTest(TModelPart('test_model_part_tables'))
+    # Create a test suite with the selected tests (Small tests):
+    smallSuite = suites['small']
+    smallSuite.addTest(TModelPartIO('test_model_part_io_read_model_part'))
+    smallSuite.addTest(TModelPart('test_model_part_properties'))
 
-    # Create a test suit that contains all the tests:
-    AllModelPartIO = KratosUnittest.TestLoader().loadTestsFromTestCase(
-        TModelPartIO)
-    AllModelPart = KratosUnittest.TestLoader().loadTestsFromTestCase(
-        TModelPart)
+    # Create a test suite with the selected tests plus all small tests
+    nightSuite = suites['nightly']
+    nightSuite.addTest(TModelPart('test_model_part_sub_model_parts'))
+    nightSuite.addTest(TModelPart('test_model_part_nodes'))
+    nightSuite.addTest(TModelPart('test_model_part_tables'))
 
-    AllSuit = KratosUnittest.TestSuite([
-        AllModelPartIO,
-        AllModelPart
-    ])
+    # Create a test suite that contains all the tests:
+    allSuite = suites['all']
+    allSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TModelPartIO,
+            TModelPart
+        ])
+    )
 
-    return {
-        'small': SmallSuite,
-        'nightly': NightSuite,
-        'all': AllSuit
-    }
+    return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuits())
+    KratosUnittest.runTests(AssambleTestSuites())
