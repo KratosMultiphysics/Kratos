@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="Results" pn="Results" un="SMResults" state="normal" open="1">
+    <value n="OutputDeltaTime" pn="Output delta time" v="0.0" help="Output delta time"/>
+    <container n="OnElement" pn="On element" un="SMElementResults" state="[ActiveIfAnyPartState]">
+        <dynamicnode command="injectElementOutputs" args=""/>
+        <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
+    </container>
+    <container n="OnNodes" pn="On nodes" un="SMNodalResults" help="On nodes" >
+        <value n="DISPLACEMENT" pn="Displacements" v="Yes" values="Yes,No" help="Displacements"/>
+        <value n="VELOCITY" pn="Velocities" v="No" values="Yes,No" help="Displacements"/>
+        <value n="ACCELERATION" pn="Accelerations" v="No" values="Yes,No" help="Displacements"/>
+        <value n="ROTATION" pn="Rotations" v="No" values="Yes,No" help="Rotations"/>
+        <value n="REACTION" pn="Reactions" v="Yes" values="Yes,No" help="Reactions"/>
+        <value n="FORCE" pn="Loads" v="No" values="Yes,No" help="Loads"/>
+    </container>
+    <container n="GiDOptions" pn="Options" class="Tab" help="GiD postprocess options" >
+        <value n="GiDPostMode" pn="Result format" v="Binary" values="Ascii,Binary" help="GiD result file format" />
+        <value n="GiDWriteMeshFlag" pn="Write deformed mesh" v="No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+        <value n="GiDWriteConditionsFlag" pn="Write conditions" v="No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+        <value n="GiDWriteParticlesFlag" pn="Write particles" v="No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
+        <value n="GiDMultiFileFlag" pn="Result file" v="Single" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
+        <value n="EchoLevel" pn="Echo Level" v="0" values="0,1,2,3" help="Verbosity on screen output during process. \n0 -> Low verbosity \n3 -> High verbosity"/>
+    </container>    
+</container>
+    

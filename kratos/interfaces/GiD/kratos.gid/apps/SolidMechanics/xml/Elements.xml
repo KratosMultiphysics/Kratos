@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElementList>
+  <!--solid elements-->
+  <!--small displacements-->
+  <ElementItem n="SmallDisplacementElement2D" pn="Small Displacements" ImplementedInFile="small_displacement_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="SmallDisplacementElement2D3N"/>
+      <item GeometryType="Triangle"      nodes="6" KratosName="SmallDisplacementElement2D6N"/>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="SmallDisplacementElement2D4N"/>
+      <item GeometryType="Quadrilateral" nodes="8" KratosName="SmallDisplacementElement2D8N"/>
+      <item GeometryType="Quadrilateral" nodes="9" KratosName="SmallDisplacementElement2D9N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress,PlaneStrain"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="3"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>      
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="SmallDisplacementElementAxisym" pn="Small Displacements Axisymmetric" ImplementedInFile="axisym_small_displacement_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="AxisymSmallDisplacementElement2D3N"/>
+      <item GeometryType="Triangle"      nodes="6" KratosName="AxisymSmallDisplacementElement2D6N"/>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="AxisymSmallDisplacementElement2D4N"/>
+      <item GeometryType="Quadrilateral" nodes="8" KratosName="AxisymSmallDisplacementElement2D8N"/>
+      <item GeometryType="Quadrilateral" nodes="9" KratosName="AxisymSmallDisplacementElement2D9N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="Axisymmetric"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="4"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="SmallDisplacementElement3D" pn="Small Displacements" ImplementedInFile="small_displacement_element.cpp"
+	       ImplementedInApplication="StructuralApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
+	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedra" nodes="4"  KratosName="SmallDisplacementElement3D4N"/>
+      <item GeometryType="Tetrahedra" nodes="10" KratosName="SmallDisplacementElement3D10N"/>
+      <item GeometryType="Hexahedra"  nodes="8"  KratosName="SmallDisplacementElement3D8N"/>
+      <item GeometryType="Hexahedra"  nodes="20" KratosName="SmallDisplacementElement3D20N"/>
+      <item GeometryType="Hexahedra"  nodes="27" KratosName="SmallDisplacementElement3D27N"/>
+      <item GeometryType="Prism"      nodes="6"  KratosName="SmallDisplacementElement3D6N"/>
+      <item GeometryType="Prism"      nodes="15" KratosName="SmallDisplacementElement3D15N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="3D"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+
+  <!--large displacements-->
+  <!--total lagrangian-->
+  <ElementItem n="TotalLagrangianElement2D" pn="Total Lagrangian" ImplementedInFile="total_lagrangian_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="True,False"
+	       ElementType="Solid" help="This element it implements a Total Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="TotalLagrangianElement2D3N"/>
+      <item GeometryType="Triangle"      nodes="6" KratosName="TotalLagrangianElement2D6N"/>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="TotalLagrangianElement2D4N"/>
+      <item GeometryType="Quadrilateral" nodes="8" KratosName="TotalLagrangianElement2D8N"/>
+      <item GeometryType="Quadrilateral" nodes="9" KratosName="TotalLagrangianElement2D9N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress,PlaneStrain"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="3"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="TotalLagrangianElement3D" pn="Total Lagrangian" ImplementedInFile="total_lagrangian_element.cpp"
+	       ImplementedInApplication="StructuralApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
+	       ElementType="Solid"  help="This element it implements a Total Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedra" nodes="4"  KratosName="TotalLagrangianElement3D4N"/>
+      <item GeometryType="Tetrahedra" nodes="10" KratosName="TotalLagrangianElement3D10N"/>
+      <item GeometryType="Hexahedra"  nodes="8"  KratosName="TotalLagrangianElement3D8N"/>
+      <item GeometryType="Hexahedra"  nodes="20" KratosName="TotalLagrangianElement3D20N"/>
+      <item GeometryType="Hexahedra"  nodes="27" KratosName="TotalLagrangianElement3D27N"/>
+      <item GeometryType="Prism"      nodes="6"  KratosName="TotalLagrangianElement3D6N"/>
+      <item GeometryType="Prism"      nodes="15" KratosName="TotalLagrangianElement3D15N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="3D"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <!--updated lagrangian-->
+  <ElementItem n="UpdatedLagrangianElement2D" pn="Updated Lagrangian" ImplementedInFile="updated_lagrangian_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="UpdatedLagrangianElement2D3N"/>
+      <item GeometryType="Triangle"      nodes="6" KratosName="UpdatedLagrangianElement2D6N"/>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="UpdatedLagrangianElement2D4N"/>
+      <item GeometryType="Quadrilateral" nodes="8" KratosName="UpdatedLagrangianElement2D8N"/>
+      <item GeometryType="Quadrilateral" nodes="9" KratosName="UpdatedLagrangianElement2D9N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress,PlaneStrain"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="3"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="UpdatedLagrangianElementAxisym" pn="Updated Lagrangian Axisymmetric" ImplementedInFile="axisym_updated_lagrangian_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle"      nodes="3" KratosName="AxisymUpdatedLagrangianElement2D3N"/>
+      <item GeometryType="Triangle"      nodes="6" KratosName="AxisymUpdatedLagrangianElement2D6N"/>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="AxisymUpdatedLagrangianElement2D4N"/>
+      <item GeometryType="Quadrilateral" nodes="8" KratosName="AxisymUpdatedLagrangianElement2D8N"/>
+      <item GeometryType="Quadrilateral" nodes="9" KratosName="AxisymUpdatedLagrangianElement2D9N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="Axisymmetric"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="4"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>      
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="UpdatedLagrangianElement3D" pn="Updated Lagrangian" ImplementedInFile="updated_lagrangian_element.cpp"
+	       ImplementedInApplication="StructuralApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
+	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedra" nodes="4"  KratosName="UpdatedLagrangianElement3D4N"/>
+      <item GeometryType="Tetrahedra" nodes="10" KratosName="UpdatedLagrangianElement3D10N"/>
+      <item GeometryType="Hexahedra"  nodes="8"  KratosName="UpdatedLagrangianElement3D8N"/>
+      <item GeometryType="Hexahedra"  nodes="20" KratosName="UpdatedLagrangianElement3D20N"/>
+      <item GeometryType="Hexahedra"  nodes="27" KratosName="UpdatedLagrangianElement3D27N"/>
+      <item GeometryType="Prism"      nodes="6"  KratosName="UpdatedLagrangianElement3D6N"/>
+      <item GeometryType="Prism"      nodes="15" KratosName="UpdatedLagrangianElement3D15N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="3D"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <!--hybrid elements-->
+  <!--hybrid updated lagrangian-->
+  <ElementItem n="UpdatedLagrangianElementUP2D" pn="Updated Lagrangian U-P" ImplementedInFile="updated_lagrangian_U_P_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       help="This element it implements a Hybrid Displacement-Pressure Updated Lagrangian approach to large deformation kinematics"
+		   ElementType="Solid">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="UpdatedLagrangianUPElement2D3N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction="REACTION"/>
+      <dof n="PRESSURE"     pn="Pressure"     type="double" analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"  reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector"    analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="UpdatedLagrangianElementUPAxisym" pn="Updated Lagrangian U-P Axisymmetric" ImplementedInFile="axisym_updated_lagrangian_U_P_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       help="This element it implements a Hybrid Displacement-Pressure Updated Lagrangian approach to large deformation kinematics"
+		   ElementType="Solid" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="AxisymUpdatedLagrangianUPElement2D3N"/>
+    </TopologyFeatures>
+
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="Axisymmetric"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="4"/>
+      <filter field="HybridType" value="U-P"/>
+    </ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector"    analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="PRESSURE"     pn="Pressure"     type="double" analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector"    analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+    </outputs>
+  </ElementItem>
+
+  <!--structural elements-->
+  <!--beam elements-->
+  <ElementItem n="Beam Element" pn="Small Displacement Beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
+	       help="This element implements a small displacement timoshenko beam structural model"
+		   ElementType="Beam" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Line" nodes="2" KratosName="SmallDisplacementBeamElement3D2N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="1D"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <dof n="ROTATION"     pn="Rotation"     type="vector" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <dof n="ANGULAR_VELOCITY"     pn="AngularVelocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <dof n="ANGULAR_ACCELERATION" pn="AngularAcceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="SECTION_TYPE" pn="Section type"/>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor"/>
+    </outputs>
+  </ElementItem>
+
+  <!--membrane elements-->
+  <ElementItem n="MembraneElement" pn="Membrane Element" ImplementedInFile="membrane_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       help="This element it implements a membrane structural model"
+		   ElementType="Membrane" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="MembraneElement3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="3"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+
+  <!--shell elements-->
+  <!--small displacements-->
+  <ElementItem n="ShellElement" pn="Isotropic Shell" ImplementedInFile="isotropic_shell_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       help="This element it implements a DKT element + OPT membrane model"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="IsotropicShellElement3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <dof n="ROTATION"     pn="Rotation"     type="vector" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <dof n="ANGULAR_VELOCITY"     pn="AngularVelocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <dof n="ANGULAR_ACCELERATION" pn="AngularAcceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness"  unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="ShellThinElement" pn="Thin Shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
+	       help="This element it implements an element for thin shells in a small displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="ShellThinElement3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <dof n="ROTATION"     pn="Rotation"     type="vector" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <dof n="ANGULAR_VELOCITY"     pn="AngularVelocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <dof n="ANGULAR_ACCELERATION" pn="AngularAcceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="ShellThickElement" pn="Thick Shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
+	       help="This element it implements an element for thick shells in a small displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="ShellThickElement3D4N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <dof n="ROTATION"     pn="Rotation"     type="vector" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <dof n="ANGULAR_VELOCITY"     pn="AngularVelocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <dof n="ANGULAR_ACCELERATION" pn="AngularAcceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+
+  <!--large displacements-->
+  <ElementItem n="ShellThinCorotationalElement" pn="Thin Shell Corotational" ImplementedInFile="shell_thin_element_3D3N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
+	       help="This element it implements a corotational element for thin shells in a large displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="ShellThinElementCorotational3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <dof n="ROTATION"     pn="Rotation"     type="vector" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <dof n="ANGULAR_VELOCITY"     pn="AngularVelocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <dof n="ANGULAR_ACCELERATION" pn="AngularAcceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="ShellThickCorotationalElement" pn="Thick Shell Corotational" ImplementedInFile="shell_thick_element_3D4N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
+	       help="This element it implements a corotational element for thick shells in a large displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="ShellThickElementCorotational3D4N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of dofs-->
+    <BoundaryConditions>
+      <dof n="DISPLACEMENT" pn="Displacement" type="vector" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <dof n="ROTATION"     pn="Rotation"     type="vector" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <dof n="VELOCITY"     pn="Velocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <dof n="ACCELERATION" pn="Acceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <dof n="ANGULAR_VELOCITY"     pn="AngularVelocity"     type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <dof n="ANGULAR_ACCELERATION" pn="AngularAcceleration" type="vector" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </BoundaryConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+
+
+</ElementList>

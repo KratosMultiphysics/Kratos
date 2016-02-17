@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?><!-- -*- coding: utf-8; mode: SGML -*- -->
+<Kratos_data version='1.0'> 
+  <groups/>
+  <groups_types editable='0'>
+    <group_type pn='normal' default='1'/>
+    <group_type pn='BC' auto_from_bc='1'/>
+  </groups_types>
+  <units>
+    <unit_magnitude n="Mo" pn="Moment" default="m" SI_base="m" active="1">
+      <unit n="Nm" pn="NewtonsMeter" p="1" units_system="SI" factor="1.0"/>
+    </unit_magnitude>
+  </units>
+  <hiddenfield n="activeapp" active="0" v="" state="disabled"/>
+  <hiddenfield n="nDim" un="nDim" v="3D" state="disabled"/>
+  <appLink n="SolidMechanics" pn="Structural" active="0" appid="SolidMechanics"/>
+  <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid"/>
+  <blockdata n="units" pn="Units" icon="units">
+    <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
+    <value n='units_system' pn='Units system' units_system_definition="1">
+      <dependencies node="//*[@unit_definition or @unit_mesh_definition='1']" att1='change_units_system' v1='{@v}'/> 
+    </value>      
+    <container n="basic_units" pn="Basic units" icon="units" help="Basic units to be used in the analysis.">
+      <value n='units_length' pn='Length' unit_definition="L"/>     
+      <value n='units_mass' pn='Mass' unit_definition="M"/>          
+    </container>
+  </blockdata>     
+  <procs>
+	<dynamicnode command="injectProcs" args=""/>
+
+	  <proc n='checkStateByUniqueName' args='args'>
+	  <![CDATA[
+		set total 1
+		
+		foreach {un val} $args {
+		
+		  set xpath [spdAux::getRoute $un]
+		  
+		  spdAux::insertDependencies $domNode $un
+
+		  set realval [get_domnode_attribute [$domNode selectNodes $xpath] v]
+		  if {$realval eq ""} {W "Warning: Check unique name $un"}
+		  if {[lsearch $val $realval] == -1} {
+			set total 0
+			break
+		  }
+		}
+		if {$total} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	<proc n='getElementsFromXML' args='args'>
+	  <![CDATA[
+	  set app [lindex $args 0]
+	  set fil [lindex $args 1]
+	  set tag [lindex $args 2]
+	  set val [lindex $args 3]
+	  set pn [lindex $args 4]
+	  
+	  return [spdAux::getElements $app $fil $tag $val $pn]
+	  ]]>
+	</proc>
+	<proc n='getStateFromXPathValue' args='args'>
+	  <![CDATA[
+	  set arglist [split $args " "]
+	  set xpath {*}[lindex $arglist 0]
+	  set checkvalue [lindex $arglist 1]
+	  set pst [$domNode selectNodes $xpath]
+	  # W "xpath $xpath checkvalue $checkvalue pst $pst"
+	  if {$pst == $checkvalue} { return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+    <proc n='give_materials_list' args='args'>
+      <![CDATA[
+      set optional {
+      { -has_container container_name "" }
+      { -icon icon_name material16 }
+      { -types_icon types_icon_name ""}
+      { -database database_name materials }
+      }        
+      
+      set compulsory ""
+      parse_args $optional $compulsory $args      
+      set restList ""    
+      
+      proc database_append_list { parentNode database_name level container_name icon_name types_icon_name } {
+      set l ""       
+      # We guess the keywords of the levels of the database        
+      set level_names [give_levels_name $parentNode $database_name]
+      set primary_level [lindex $level_names 0]
+      set secondary_level [lindex $level_names 1]
+      
+      if {$secondary_level eq "" && $container_name ne "" && $level == "0"} {
+      error [_ "The has_container flag is not available for the database %s (the different types of materials \
+      should be distributed in several containers)" $database_name]     
+      }
+      
+      foreach domNode [$parentNode childNodes] {
+      set name [$domNode @pn ""]
+      if { $name eq "" } { set name [$domNode @name] }
+      if { [$domNode @n] eq "$secondary_level" } {
+      set ret [database_append_list $domNode  $database_name \
+      [expr {$level+1}] $container_name $icon_name $types_icon_name]
+      if { [llength $ret] } {
+      lappend l [list $level $name $name $types_icon_name 0]
+      eval lappend l $ret
+      }
+      } elseif {[$domNode @n] eq "$primary_level"} {
+      set good 1
+      if { $container_name ne "" } {
+      set xp [format_xpath {container[@n=%s]} $container_name]
+      if { [$domNode selectNodes $xp] eq "" } { set good 0 }
+      }
+      if { $good } {
+      lappend l [list $level $name $name $icon_name 1]
+      }
+      }
+      }
+      return $l
+      }  
+      
+      proc give_caption_name { domNode xp database_name } {     
+      set first_time 1   
+      foreach gNode [$domNode selectNodes $xp] {        
+      if {$first_time} {
+      set caption_name [$gNode @n]
+      set first_time 0 
+      continue  
+      }
+      if {[$gNode @n] ne $caption_name} {
+      error [_ "Please check the n attributes of the database %s" $database_name]   
+      }     
+      }  
+      return $caption_name   
+      }
+      
+      proc give_levels_name { domNode name } {
+      set xp {container}      
+      if {[$domNode selectNodes $xp] eq ""} { 
+      # No seconday level exists
+      set secondary_level ""
+      set xp2 {blockdata}  
+      set primary_level [give_caption_name $domNode $xp2 $name]
+      } else {
+      set secondary_level [give_caption_name $domNode $xp $name]
+      set xp3 {container/blockdata}
+      set primary_level [give_caption_name $domNode $xp3 $name] 
+      }
+      return [list $primary_level $secondary_level]
+      } 
+      
+      set parentNode [$domNode selectNodes [format_xpath {//container[@n=%s]} $database]]
+      
+      if {$parentNode eq ""} {
+      error [_ "Database %s not found in the spd file" $database]  
+      }
+      
+      eval lappend resList [database_append_list $parentNode \
+      $database 0 $has_container $icon $types_icon]
+      return [join $resList ","]
+      ]]>
+    </proc>
+    <proc n='edit_database_list' args='args'>
+      <![CDATA[      
+      set optional {
+      { -has_container container_name "" }
+      { -database database_name materials }
+      }
+      set compulsory ""
+      parse_args $optional $compulsory $args  
+      
+      set node [$domNode selectNodes {/*/translations/translation[@pn="User defined"]}]
+      set title [get_domnode_attribute $node pn]  
+      
+      set list_name [$domNode @n]
+      
+      set xp [format_xpath {//container[@n=%s]} $database] 
+      if {[$domNode selectNodes $xp] eq ""} {
+      error [_ "Database %s not found in the spd file" $database] 
+      }   
+      
+      set xps $xp
+      set level_names [give_levels_name [$domNode selectNodes $xp] $database] 
+      
+      set primary_level [lindex $level_names 0] 
+      set secondary_level [lindex $level_names 1] 
+      
+      
+      if {$secondary_level eq "" && $has_container ne ""} {
+      error [_ "The has_container flag is not available for the database %s (the different types of materials \
+      should be distributed in several containers)" $database]     
+      }
+      
+      if {$secondary_level ne ""} {
+      if {$has_container eq ""} {
+      append xp [format_xpath {/container[@n=%s]} $secondary_level]
+      } else {
+      append xp [format_xpath {/container[@n=%s and .//container[@n=%s]]} $secondary_level $has_container]      
+      }
+      }       
+      
+      if { [dict exists $dict $list_name] } {
+      if {$secondary_level ne ""} {      
+      append xps [format_xpath {/container[@n=%s]} $secondary_level]
+      }
+      append xps [format_xpath {/blockdata[@n=%s and @name=%s]} $primary_level [dict get $dict $list_name]]     
+      } else { set xps "" }      
+      
+      set domNodes [gid_groups_conds::edit_tree_parts_window \
+      -accepted_n $primary_level -select_only_one 1 \
+      $boundary_conds $title $xp $xps]      
+      
+      set dict ""
+      if { [llength $domNodes] } {
+      set domNode [lindex $domNodes 0]
+      if { [$domNode @n] eq $primary_level } {      
+      dict set dict $list_name [$domNode @name]
+      }
+      }
+      return [list $dict ""]      
+      ]]>
+    </proc>    
+  </procs>
+  <translations>
+    <translation pn="User defined"/>
+  </translations>
+  <display_options frame_width="186"/>
+  <blockdata n="Internal data" state="hidden">
+    <value n="lognoter_file" v=""/>
+  </blockdata>  
+</Kratos_data>

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConstitutiveLaws>
+    <!--linear elastic laws-->
+    <CLaw n="LinearElastic3DLaw" pn="Linear Elastic" dev="False" Type="3D" behaviour="Elastic" StrainSize="6" 
+	  help="Linear Elastic Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" AllowsAnisotropy="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="LinearElasticPlaneStrain2DLaw" pn="Linear Elastic Plane Strain" dev="False" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="Linear Elastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="LinearElasticPlaneStress2DLaw" pn="Linear Elastic Plane Stress" dev="False" Type="PlaneStress" behaviour="Elastic" StrainSize="3"
+          help="Linear Elastic Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="LinearElasticAxisym2DLaw" pn="Linear Elastic Axisymmetric" dev="False" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
+          help="Linear Elastic Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="LinearElasticBeamLaw" pn="Linear Elastic" dev="False" Type="1D" behaviour="Elastic" StrainSize="6" 
+	  help="Linear Elastic Behaviour in 3D for Beams" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="D-R" AllowsAnisotropy="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="LinearElasticShellLaw" pn="Linear Elastic" dev="False" Type="PlaneStress" behaviour="Elastic" StrainSize="6" 
+	  help="Linear Elastic Behaviour in 3D for Shells" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="D-R" AllowsAnisotropy="False" >
+        <inputs>
+			<parameter n="DENSITY" pn="Density"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <!--hyper elastic laws-->
+    <CLaw n="HyperElastic3DLaw" pn="Hyper Elastic" dev="False" Type="3D" behaviour="Elastic" StrainSize="6" 
+	  help="NeoHookean HyperElastic Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticPlaneStrain2DLaw" pn="HyperElastic Plane Strain" dev="False" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="NeoHookean HyperElastic Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticAxisym2DLaw" pn="HyperElastic Axisymmetric" dev="False" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
+          help="NeoHookean HyperElastic Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <!--hyper elastic u-p laws-->
+    <CLaw n="HyperElasticUP3DLaw" pn="Hyper Elastic U-P" dev="False" Type="3D" behaviour="Elastic" StrainSize="6" 
+	  help="NeoHookean HyperElastic U-P Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticUPPlaneStrain2DLaw" pn="HyperElastic U-P Plane Strain" dev="False" Type="PlaneStrain" behaviour="Elastic" StrainSize="3"
+          help="NeoHookean HyperElastic U-P Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticUPAxisym2DLaw" pn="HyperElastic U-P Axisymmetric" dev="False" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
+          help="NeoHookean HyperElastic U-P Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <!--hyper elastic plastic laws-->
+    <CLaw n="HyperElasticPlasticJ23DLaw" pn="PLastic J2" dev="False" Type="3D" behaviour="Plastic" StrainSize="6"
+          help="NeoHookean HyperElastic Plastic J2 Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress"/>
+            <parameter n="KINEMATIC_HARDENING_MODULUS" pn="Kinematic Hardening Modulus"/>
+            <parameter n="REFERENCE_HARDENING_MODULUS" pn="Reference Hardening Modulus"/>
+            <parameter n="INFINITY_HARDENING_MODULUS" pn="Infinity Hardening Modulus"/>
+            <parameter n="HARDENING_EXPONENT" pn="Hardening Exponent"/>
+        </inputs>
+        <outputs>
+            <parameter n="PLASTIC_STRAIN" pn="Plastic Strain"/>
+            <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticPlasticJ2PlaneStrain2DLaw" pn="PLastic J2 Plane Strain" dev="False" Type="PlaneStrain" behaviour="Plastic" StrainSize="3"
+          help="NeoHookean HyperElastic Plastic J2 Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+			<parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress"/>
+            <parameter n="KINEMATIC_HARDENING_MODULUS" pn="Kinematic Hardening Modulus"/>
+            <parameter n="REFERENCE_HARDENING_MODULUS" pn="Reference Hardening Modulus"/>
+            <parameter n="INFINITY_HARDENING_MODULUS" pn="Infinity Hardening Modulus"/>
+            <parameter n="HARDENING_EXPONENT" pn="Hardening Exponent"/>
+        </inputs>
+        <outputs>
+            <parameter n="PLASTIC_STRAIN" pn="Plastic Strain"/>
+            <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticPlasticJ2Axisym2DLaw" pn="PLastic J2 Axisymmetric" dev="False" Type="Axisymmetric" behaviour="Plastic" StrainSize="4"
+          help="NeoHookean HyperElastic Plastic J2 Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress"/>
+            <parameter n="KINEMATIC_HARDENING_MODULUS" pn="Kinematic Hardening Modulus"/>
+            <parameter n="REFERENCE_HARDENING_MODULUS" pn="Reference Hardening Modulus"/>
+            <parameter n="INFINITY_HARDENING_MODULUS" pn="Infinity Hardening Modulus"/>
+            <parameter n="HARDENING_EXPONENT" pn="Hardening Exponent"/>
+        </inputs>
+        <outputs>
+            <parameter n="PLASTIC_STRAIN" pn="Plastic Strain"/>
+            <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticPlasticUP3DLaw" pn="PLastic J2 U-P" dev="False" Type="3D" behaviour="Plastic" StrainSize="6"
+          help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress"/>
+            <parameter n="KINEMATIC_HARDENING_MODULUS" pn="Kinematic Hardening Modulus"/>
+            <parameter n="REFERENCE_HARDENING_MODULUS" pn="Reference Hardening Modulus"/>
+            <parameter n="INFINITY_HARDENING_MODULUS" pn="Infinity Hardening Modulus"/>
+            <parameter n="HARDENING_EXPONENT" pn="Hardening Exponent"/>
+        </inputs>
+        <outputs>
+            <parameter n="PLASTIC_STRAIN" pn="Plastic Strain"/>
+            <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticPlasticUPPlaneStrain2DLaw" pn="PLastic J2 U-P Plane Strain" dev="False" Type="PlaneStrain" behaviour="Plastic" StrainSize="3"
+          help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress"/>
+            <parameter n="KINEMATIC_HARDENING_MODULUS" pn="Kinematic Hardening Modulus"/>
+            <parameter n="REFERENCE_HARDENING_MODULUS" pn="Reference Hardening Modulus"/>
+            <parameter n="INFINITY_HARDENING_MODULUS" pn="Infinity Hardening Modulus"/>
+            <parameter n="HARDENING_EXPONENT" pn="Hardening Exponent"/>
+        </inputs>
+        <outputs>
+            <parameter n="PLASTIC_STRAIN" pn="Plastic Strain"/>
+            <parameter n="DELTA_PLASTIC_STRAIN" pn="Delta Plastic Strain"/>
+        </outputs>
+    </CLaw>
+    <CLaw n="HyperElasticPlasticUPJ2Axisym2DLaw" pn="PLastic J2 U-P Axisymmetric" dev="False" Type="Axisymmetric" behaviour="Plastic" StrainSize="4"
+          help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="YIELD_STRESS" pn="Yield Stress"/>
+            <parameter n="KINEMATIC_HARDENING_MODULUS" pn="Kinematic Hardening Modulus"/>
+            <parameter n="REFERENCE_HARDENING_MODULUS" pn="Reference Hardening Modulus"/>
+            <parameter n="INFINITY_HARDENING_MODULUS" pn="Infinity Hardening Modulus"/>
+            <parameter n="HARDENING_EXPONENT" pn="Hardening Exponent"/>
+        </inputs>
+        <outputs>
+            <parameter n="PLASTIC_STRAIN" pn="Plastic Strain"/>
+            <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
+        </outputs>
+    </CLaw>
+    <!--damage laws-->
+    <CLaw n="IsotropicDamageSimoJu3DLaw" pn="Isotropic Damage Simo-Ju" dev="False" Type="3D" behaviour="Damage" StrainSize="6"
+          help="Isotropic Damage Simo-Ju Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
+            <parameter n="STRENGTH_RATIO" pn="Strength Ratio"/>
+            <parameter n="FRACTURE_ENERGY" pn="Fracture Energy"/>
+        </inputs>
+        <outputs>
+            <parameter n="DAMAGE_VARIABLE" pn="Damage Variable"/>
+        </outputs>
+    </CLaw>
+    <CLaw n="IsotropicDamageSimoJuPlaneStrain2DLaw" pn="Isotropic Damage Simo-Ju Plane Strain" dev="False" Type="PlaneStrain" behaviour="Damage" StrainSize="3"
+          help="Isotropic Damage Simo-Ju Behaviour in 2D Plane Strain" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+ 	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
+            <parameter n="STRENGTH_RATIO" pn="Strength Ratio"/>
+            <parameter n="FRACTURE_ENERGY" pn="Fracture Energy"/>
+        </inputs>
+        <outputs>
+            <parameter n="DAMAGE_VARIABLE" pn="Damage Variable"/>
+        </outputs>
+    </CLaw>
+        <CLaw n="IsotropicDamageSimoJuPlaneStress2DLaw" pn="Isotropic Damage Simo-Ju Plane Stress" dev="False" Type="PlaneStress" behaviour="Damage" StrainSize="3"
+          help="Isotropic Damage Simo-Ju Behaviour in 2D Plane Stress" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+        <inputs>
+ 	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
+            <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
+            <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
+            <parameter n="STRENGTH_RATIO" pn="Strength Ratio"/>
+            <parameter n="FRACTURE_ENERGY" pn="Fracture Energy"/>
+            <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+        </inputs>
+        <outputs>
+            <parameter n="DAMAGE_VARIABLE" pn="Damage Variable"/>
+        </outputs>
+    </CLaw>
+</ConstitutiveLaws>
