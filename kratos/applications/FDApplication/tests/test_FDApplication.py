@@ -2,8 +2,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FDApplication import *
 
-import sys
-
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
