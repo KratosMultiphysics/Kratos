@@ -34,6 +34,13 @@ namespace Kratos {
 
         /// Destructor.
         virtual ~NewmarkBetaScheme() {}
+        
+        
+        void AddSpheresVariables(ModelPart & r_model_part);
+    
+        void AddClustersVariables(ModelPart & r_model_part);
+        
+        
         void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag);
 
         void UpdateTranslationalVariables(
@@ -45,7 +52,6 @@ namespace Kratos {
             array_1d<double, 3 >& vel,
             const array_1d<double, 3 >& initial_coor,
             const array_1d<double, 3 >& force,
-            const array_1d<double, 3 >& old_force,
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
