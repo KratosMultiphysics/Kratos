@@ -41,7 +41,7 @@ namespace Kratos
  * Implements a Force Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class LineLoad3DCondition
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LineLoad3DCondition
     : public ForceLoadCondition
 {
 public:
