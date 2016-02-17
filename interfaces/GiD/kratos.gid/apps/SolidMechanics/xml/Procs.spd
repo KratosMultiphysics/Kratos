@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="procs" pn="procs" includeContainer="No">
+    <proc n='GetSchemes' args='args'>
+	  <![CDATA[
+	  
+		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] v]
+		set schemes [::Model::GetAvailableSchemes $solStratName]
+		
+		if {[llength $schemes] == 0} {
+			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
+			return "None"
+		}
+		set names [list ]
+		set pnames [list ]
+		foreach cl $schemes {
+			lappend names [$cl getName]
+			lappend pnames [$cl getName] 
+			lappend pnames [$cl getPublicName]
+		}
+		
+		$domNode setAttribute dict [join $pnames ","]
+		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+		#spdAux::RequestRefresh
+		
+		return [join $names ","]
+		
+	  
+	  ]]>
+	</proc>
+	<proc n='GetSolutionStrategies' args='args'>
+	  <![CDATA[
+	  
+		set names ""
+		set pnames ""
+		set Sols [::Model::GetSolutionStrategies]
+		foreach ss $Sols {
+			lappend ids [$ss getName]
+			append names [$ss getName] ","
+			append pnames [$ss getName] "," [$ss getPublicName] ","
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute dict $pnames
+		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
+		#spdAux::RequestRefresh
+		return $names
+	  
+	  ]]>
+	</proc>
+	<proc n='GetConstitutiveLaws' args='args'>
+	  <![CDATA[
+		set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
+		set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
+		#W "Const Laws que han pasado la criba $Claws"
+		if {[llength $Claws] == 0} {
+			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
+			return "None"
+		}
+		set names [list ]
+		set pnames [list ]
+		foreach cl $Claws {
+			lappend names [$cl getName]
+			lappend pnames [$cl getName] 
+			lappend pnames [$cl getPublicName]
+		}
+		
+		$domNode setAttribute dict [join $pnames ","]
+		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+		spdAux::RequestRefresh
+		
+		return [join $names ","]
+	  ]]>
+	</proc>
+	<proc n='GetElements' args='args'>
+	  <![CDATA[
+		if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] v] eq ""} {
+		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] values
+		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMScheme]] values
+		}
+		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] v]
+		set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMScheme]] v]
+		
+		set elems [::Model::GetAvailableElements $solStratName $schemeName]
+		#W "Elementos que han pasado la criba $elems"
+		set ids [list ]
+		set names ""
+		set pnames ""
+		foreach e $elems {
+			lappend ids [$e getName]
+			append names [$e getName] ","
+			append pnames [$e getName] "," [$e getPublicName] ","
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute dict $pnames
+		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
+		#spdAux::RequestRefresh
+		return $names
+	  
+	  ]]>
+	</proc>
+	<proc n='ConditionState' args='args'>
+	  <![CDATA[
+	  set resp [::Model::CheckConditionState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	
+	<proc n='ConstLawParamValue' args='args'>
+	  <![CDATA[
+		return [spdAux::CheckConstLawParamValue $domNode]
+	  ]]>
+	</proc>
+	<!--<proc n='ConstLawParamState' args='args'>
+	  <![CDATA[
+		set id [$domNode getAttribute n]
+		set constLaw [get_domnode_attribute [[$domNode parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+		
+		if {$constLaw eq ""} {return 0}
+		set resp [Model::CheckConstLawParamState $constLaw $id]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='ElemParamState' args='args'>
+	  <![CDATA[
+		set resp [::Model::CheckElemParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	  
+	</proc>-->
+	  <proc n='PartParamState' args='args'>
+	  <![CDATA[
+		set resp [::Model::CheckElemParamState $domNode]
+		if {$resp eq "0"} {
+			set id [$domNode getAttribute n]
+			set constLaw [get_domnode_attribute [[$domNode parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+			
+			if {$constLaw eq ""} {return hidden}
+			set resp [Model::CheckConstLawParamState $constLaw $id]
+		}
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	  
+	</proc>
+	<proc n='CheckDimension' args='args'>
+	  <![CDATA[
+		set checkdim [lindex $args 0]
+		
+		if {$checkdim eq $::Model::SpatialDimension} {return "normal"} else {return "hidden"}
+	  ]]>
+	  
+	</proc>
+	<proc n='ElemParamValue' args='args'>
+	  <![CDATA[
+		return [spdAux::CheckElemParamValue $domNode]
+	  ]]>
+	</proc>
+	  <proc n='ActiveIfAnyPartState' args='args'>
+	  <![CDATA[
+	  set parts ""
+	  catch {
+		set parts [$domNode selectNodes "[spdAux::getRoute SMParts]/group"]
+		}
+		if {$parts ne ""} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='CheckConditionContainerState' args='args'>
+	  <![CDATA[
+	    if {[spdAux::getRoute SMParts] ne ""} {
+			set conditionId [$domNode @n]
+			
+			set elems [$domNode selectNodes "[spdAux::getRoute SMParts]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSoluType]] v]
+			
+			if {[::Model::CheckElementsCondition $conditionId $elemnames $solutionType]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+	  ]]>
+	</proc>
+	  <proc n='SolStratParamState' args='args'>
+	  <![CDATA[
+		set resp [::SolidMechanics::xml::SolStratParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='SchemeParamState' args='args'>
+	  <![CDATA[
+		set resp [::SolidMechanics::xml::SchemeParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>	   
+	  <proc n='ConstLawOutputState' args='args'>
+	  <![CDATA[
+		set resp [::SolidMechanics::xml::CheckConstLawOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='ElementOutputState' args='args'>
+	  <![CDATA[
+		set resp [::SolidMechanics::xml::CheckElementOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  
+	  <proc n='getIntervals' args='args'>
+	  <![CDATA[
+		set lista [::SolidMechanics::xml::getIntervals]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n='getTimeFunctions' args='args'>
+	  <![CDATA[
+		set lista [::SolidMechanics::xml::getTimeFunctions]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n='getFields' args='args'>
+	  <![CDATA[
+		set lista [::SolidMechanics::xml::getFields]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n="loads_function_time" args="load_name">
+		<![CDATA[
+      return [spdAux::chk_loads_function_time $domNode $load_name]
+	  ]]>
+    </proc>
+
+	  <proc n='SolverEntryState' args='args'>
+	  <![CDATA[
+		set resp [spdAux::CheckSolverEntryState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='SolverParamState' args='args'>
+	  <![CDATA[
+			
+		set id [$domNode getAttribute n]
+		set nodesolver [[$domNode parent] selectNodes "./value\[@n='Solver'\]"]
+		get_domnode_attribute $nodesolver values
+		set solverid [get_domnode_attribute $nodesolver v]
+		
+		if {$solverid eq ""} {set resp 0} {
+		set resp [::Model::getSolverParamState $solverid $id]
+		}
+		
+		spdAux::RequestRefresh
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	<proc n='GetSolvers' args='args'>
+	  <![CDATA[
+	set solStrat [get_domnode_attribute [$domNode parent] solstratname]
+	set solverEntryId [get_domnode_attribute [$domNode parent] n]
+	
+	set solvers [Model::GetAvailableSolvers $solStrat $solverEntryId]
+	
+	set names [list ]
+	set pnames [list ]
+	foreach slvr $solvers {
+		lappend names [$slvr getName]
+		lappend pnames [$slvr getName] 
+		lappend pnames [$slvr getPublicName]
+	}
+	$domNode setAttribute dict [join $pnames ","]
+	if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+	return [join $names ","]
+	  
+	  ]]>
+	</proc>
+</container>
