@@ -119,14 +119,14 @@ public:
    {
         ///Cfeng:rObject is condition
 
-        array_1d<double, 3> Coord;
+        
 
         double xyz_min[3] = { 1e20,  1e20,  1e20};
         double xyz_max[3] = {-1e20, -1e20, -1e20};
 
         for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++)
         {
-                Coord = rObject->GetGeometry()[inode].Coordinates();
+                const array_1d<double, 3>& Coord = rObject->GetGeometry()[inode].Coordinates();
 
                 xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
                 xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
@@ -157,20 +157,13 @@ public:
     }
 
 
-     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
-     {
-         //Cfeng: rObject is block
-
-
-        array_1d<double, 3> Coord;
-
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint) {         
+         
         double xyz_min[3] = { 1e20,  1e20,  1e20};
         double xyz_max[3] = {-1e20, -1e20, -1e20};
 
-        for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++)
-        {
-          Coord = rObject->GetGeometry()[inode].Coordinates();
-
+        for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++) {
+          const array_1d<double, 3>& Coord = rObject->GetGeometry()[inode].Coordinates();
           xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
           xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
           xyz_min[2] = (xyz_min[2] > Coord[2]) ? Coord[2] : xyz_min[2];
@@ -180,20 +173,17 @@ public:
           xyz_max[2] = (xyz_max[2] < Coord[2]) ? Coord[2] : xyz_max[2];
         }
 
-
         bool intersect = (rLowPoint [0] <= xyz_max[0] && rLowPoint [1] <= xyz_max[1] && rLowPoint [2] <= xyz_max[2] &&
                           rHighPoint[0] >= xyz_min[0] && rHighPoint[1] >= xyz_min[1] && rHighPoint[2] >= xyz_min[2]);
 
+        return  intersect;
+    }
 
-         return  intersect;
-
-     }
-
-  static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
-        array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
-
+        const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
+
         bool intersect = (
           floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
           floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
@@ -201,15 +191,13 @@ public:
           floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
           floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
           floatge(rHighPoint[2] + radius,center_of_particle[2]));
-
-
+        
         return  intersect;
     }
     
     static inline bool FastIntersection2D(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius)
     {
       //rObj_1 is particle,  and rObj_2 is condition
-
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       double Particle_Coord[3]         = {0.0};
       Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
@@ -220,22 +208,18 @@ public:
 
       std::vector< array_1d<double,3> > Coord(2);
 
-      for (unsigned int i = 0; i<2; i++)
-      {
-        for (unsigned int j = 0; j<3; j++)
-        {
+      for (unsigned int i = 0; i<2; i++) {
+        for (unsigned int j = 0; j<3; j++) {
             Coord[i][j] = FE_Geom[i].Coordinates()[j];
         }
       }
 
-      return GeometryFunctions::FastEdgeVertexCheck( Coord[0], Coord[1],  Particle_Coord, Radius );
-              
+      return GeometryFunctions::FastEdgeVertexCheck( Coord[0], Coord[1],  Particle_Coord, Radius );              
     }//FastIntersection2D
     
     static inline bool FastIntersection3D(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius)
     {
-      //rObj_1 is particle,  and rObj_2 is condition
-      
+      //rObj_1 is particle,  and rObj_2 is condition      
       bool ContactExists = false;
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       double Particle_Coord[3];
@@ -249,10 +233,8 @@ public:
       std::vector< array_1d<double,3> > Coord;
       Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
 
-      for (unsigned int i = 0; i<FE_size; i++)
-      {
-        for (unsigned int j = 0; j<3; j++)
-        {
+      for (unsigned int i = 0; i<FE_size; i++) {
+        for (unsigned int j = 0; j<3; j++) {
             Coord[i][j] = FE_Geom[i].Coordinates()[j];
         }
       }
@@ -267,50 +249,34 @@ public:
       //The key here is to see that we only need to check for further contact if, when not having contact with plane, the distance_point_to_plane is lower than the radius. 
       //In this case it might have contact with edges or vertices, otherwise no contact is possible. 
 
-      else if (distance_point_to_plane < Radius)
-      {
+      else if (distance_point_to_plane < Radius) {
         bool local_contact_exists = false;
-        for (unsigned int e = current_edge_index; e < FE_size; e++ )
-        {
-          
+        for (unsigned int e = current_edge_index; e < FE_size; e++ ) {          
           local_contact_exists = GeometryFunctions::FastEdgeVertexCheck( Coord[e], Coord[(e+1)%FE_size],  Particle_Coord, Radius );
-          if (local_contact_exists) {return true;}
-          
+          if (local_contact_exists) {return true;}          
         }//for every edge
-
-      }//no plane contact found
+       }//no plane contact found
       
-      return false;    
-        
-    }//FastIntersection3D
+      return false;            
+    }//FastIntersection3D    
+
     
-
-    //******************************************************************************************************************
-
-    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius) //rObj_1 is sphere, rObj_2 is FE
-    {
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius) { //rObj_1 is sphere, rObj_2 is FE    
 
       int facet_size = rObj_2->GetGeometry().size();
-      if (facet_size==2)
-      {
+      if (facet_size==2) {
          return FastIntersection2D(rObj_1, rObj_2, Radius);//, NewContactType);
       }
-      else
-      {
+      else {
          return FastIntersection3D(rObj_1, rObj_2, Radius);//, NewContactType);
       }
-
     }
- 
-    //******************************************************************************************************************
 
-
+    
   //needed for bins
-  static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
-    {
-        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry()[0];
-        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry()[0];
-
+    static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance) {
+        const array_1d<double, 3>& center_of_particle1 = rObj_1->GetGeometry()[0];
+        const array_1d<double, 3>& center_of_particle2 = rObj_2->GetGeometry()[0];
 
         distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
                         (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
@@ -367,22 +333,17 @@ public:
                //new neighbour
            }
   */         
-           if ( ( (New_projected_distance - Old_dist) / fabs(Old_dist) ) > -1.0e-15 ) //old has hierarchy over new
-           {
-              //DO NOT SAVE NEW NEIGH
+           if ( ( (New_projected_distance - Old_dist) / fabs(Old_dist) ) > -1.0e-15 ) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH                        
               return false;
            }
 
-           if ( ( (Old_projected_distance-New_dist )  / fabs(New_dist) ) > -1.0e-15 )  //new has hierarchy over old
-           {
+           if ( ( (Old_projected_distance-New_dist )  / fabs(New_dist) ) > -1.0e-15 ) { //new has hierarchy over old           
              int old_ID = RF_Param[i_Old_RF_position + 14];
-             if (new_ID == old_ID) //SUBSTITUTE
-             {
+             if (new_ID == old_ID) {//SUBSTITUTE             
                 position = i_Old_RF_position;
                 substitute = true;
              }
-             else
-             {
+             else {             
                RF_Param[i_Old_RF_position + 15] = -1;
              }
            } //new has hierarchy over
@@ -391,15 +352,10 @@ public:
 
         std::vector<DEMWall*>& neighbour_rigid_faces = rObj_1->mNeighbourRigidFaces;
 
-        if(substitute)
-        {
-
+        if(substitute) {
           neighbour_rigid_faces[position / 16] = rObj_2;
-
         } //if substitute we wont resize or pushback
-        else
-        {
-
+        else {
           RF_Param.resize(position + 16);
           neighbour_rigid_faces.push_back(rObj_2);
         }
@@ -425,29 +381,19 @@ public:
    }//DistanceHierarchy
 
 
-      static inline void DoubleHierarchyMethod(SphericParticle* rObj_1, DEMWall* rObj_2)
-      {
-
+      static inline void DoubleHierarchyMethod(SphericParticle* rObj_1, DEMWall* rObj_2) {
         const GeometryType& FE_Geom = rObj_2->GetGeometry();
         unsigned int FE_size = FE_Geom.size();
 
-        if(FE_size==2)
-        {
+        if(FE_size==2) {
           DoubleHierarchyMethod2D(rObj_1,rObj_2);
-
         }
-        else{
+        else {
           DoubleHierarchyMethod3D(rObj_1,rObj_2);
         }
-
      }
 
-
-
-
-    static inline void DoubleHierarchyMethod3D(SphericParticle* rObj_1, DEMWall* rObj_2) 
-    {
-          
+    static inline void DoubleHierarchyMethod3D(SphericParticle* rObj_1, DEMWall* rObj_2) {         
        //rObj_1 is particle,  and rObj_2 is condition
        //TYPE HIERARCHY
        int ContactType          = -1;
@@ -473,10 +419,8 @@ public:
        std::vector< array_1d<double,3> > Coord;
        Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
 
-       for (unsigned int i = 0; i<FE_size; i++)
-       {
-         for (unsigned int j = 0; j<3; j++)
-         {
+       for (unsigned int i = 0; i<FE_size; i++) {
+         for (unsigned int j = 0; j<3; j++) {
              Coord[i][j] = FE_Geom[i].Coordinates()[j];
          }
        }
@@ -486,8 +430,7 @@ public:
        ContactExists = GeometryFunctions::FacetCheck(Coord,  Particle_Coord, Radius, local_coord_system,
                                                      distance_point_to_plane, Weight, current_edge_index);
 
-       if (ContactExists == true)
-       {
+       if (ContactExists == true) {
          ContactType = 1;
          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_plane, Weight, ContactType);
          return;
@@ -498,19 +441,15 @@ public:
        //The check should avoid the edges which yielded a OUTSIDE value in the inside-outside check. i.e. we will check from the current edge to the last.
 
        ///Particle-edge contact and Particle-point
-       if ( (ContactExists == false) && (distance_point_to_plane < Radius ) )
-       {
+       if ( (ContactExists == false) && (distance_point_to_plane < Radius ) ) {
           bool local_contact_exists = false;
-          for (unsigned int e = current_edge_index; e < FE_size; e++ )
-          {
-
+          for (unsigned int e = current_edge_index; e < FE_size; e++ ) {
             double eta = 0.5; // dummy initialize
-            double distance_point_to_edge = 2*Radius; //dummy big initialization
+            double distance_point_to_edge = 2.0 * Radius; //dummy big initialization
 
             local_contact_exists = GeometryFunctions::EdgeCheck( Coord[e], Coord[(e+1)%FE_size],  Particle_Coord, Radius, local_coord_system,
                                                           distance_point_to_edge, eta);
-            if (local_contact_exists)
-            {
+            if (local_contact_exists) {
                 //save data
                 ContactType           = 2;
                 Weight[e]             = 1-eta;
@@ -519,34 +458,27 @@ public:
                 ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType);
                 continue; //skip vertex check
             }
-            if ( (local_contact_exists == false) && (distance_point_to_edge < Radius ) )
-            {
+            if ( (local_contact_exists == false) && (distance_point_to_edge < Radius ) ) {
               unsigned int vertex_to_check = -1;
-              if(eta<0.0){ vertex_to_check = e;}
+              if(eta<0.0) {vertex_to_check = e;}
               else if(eta>1.0){ vertex_to_check = (e+1)%FE_size;}
-              else{continue;}
+              else {continue;}
               double distance_point_to_vertex = 0.0;
               local_contact_exists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
 
-              if(local_contact_exists)
-              {
+              if(local_contact_exists) {
                 ContactType             = 3;
                 Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
                 ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType);
               }
-
             } // (ContactExists == false) && (distance_point_to_edge < Radius )
-
           }//for every edge
-
        }//no plane contact found
-
     } //DoubleHierarchyMethod3D
 
     static inline void DoubleHierarchyMethod2D(SphericParticle* rObj_1, DEMWall* rObj_2)
     {
       //rObj_1 is particle,  and rObj_2 is condition
-
       int ContactType          = -1;
       //-1: No contact;
       // 2: Edge;
@@ -567,10 +499,8 @@ public:
       std::vector<double> Weight(2,0.0);
       std::vector< array_1d<double,3> > Coord(2);
 
-      for (unsigned int i = 0; i<2; i++)
-      {
-        for (unsigned int j = 0; j<3; j++)
-        {
+      for (unsigned int i = 0; i<2; i++) {
+        for (unsigned int j = 0; j<3; j++) {
             Coord[i][j] = FE_Geom[i].Coordinates()[j];
         }
       }
@@ -580,9 +510,7 @@ public:
 
       ContactExists = GeometryFunctions::EdgeCheck( Coord[0], Coord[1],  Particle_Coord, Radius, local_coord_system,
                                                         distance_point_to_edge, eta);
-      if (ContactExists)
-      {
-          //save data
+      if (ContactExists) { //save data
           ContactType           = 2;
           Weight[0]             = 1-eta;
           Weight[1]             = eta; //the rest remain 0 (valid for triangles and quadrilateral)
@@ -590,24 +518,21 @@ public:
           ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType);
           return;
       }
-      if ( (ContactExists == false) && (distance_point_to_edge < Radius ) )
-      {
+      
+      if ( (ContactExists == false) && (distance_point_to_edge < Radius ) ) {
         unsigned int vertex_to_check = -1;
         if(eta<0.0){ vertex_to_check = 0;}
         else if(eta>1.0){ vertex_to_check = 1;}
         double distance_point_to_vertex = 0.0;
         ContactExists = GeometryFunctions::VertexCheck( Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
 
-        if(ContactExists)
-        {
+        if(ContactExists) {
           ContactType             = 3;
           Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
           ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType);
           return;
         }
-
       } // (ContactExists == false) && (distance_point_to_edge < Radius )
-
     }//DoubleHierarchyMethod2D
 
 
