@@ -413,6 +413,9 @@ namespace Kratos
           UpdateMaxIdOfCreatorDestructor();
           InitializeClusters(); /// This adds elements to the balls modelpart
           
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+          
           InitializeSolutionStep();
           
           ApplyPrescribedBoundaryConditions();
@@ -462,7 +465,7 @@ namespace Kratos
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
             const int number_of_clusters = pElements.size();
             
-            mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part);
+            //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
             
             #pragma omp for schedule(dynamic, 100) //schedule(guided)
             for (int k = 0; k < number_of_clusters; k++) {
