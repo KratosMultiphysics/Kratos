@@ -71,7 +71,7 @@ virtual ~SphericParticle();
 virtual void Initialize();
 virtual void FullInitialize(const ProcessInfo& r_process_info);
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
-using Element::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
+using DiscreteElement::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control);
 virtual void FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt, int search_control);
 virtual void CollectCalculateRightHandSide(ProcessInfo& r_process_info);
