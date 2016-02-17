@@ -45,7 +45,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class NonLinearIsotropicKinematicHardeningLaw 
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearIsotropicKinematicHardeningLaw 
 	: public HardeningLaw
 {
 public:

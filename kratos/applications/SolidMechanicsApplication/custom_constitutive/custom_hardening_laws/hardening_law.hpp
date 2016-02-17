@@ -50,7 +50,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class HardeningLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) HardeningLaw
 {
 public:
 
