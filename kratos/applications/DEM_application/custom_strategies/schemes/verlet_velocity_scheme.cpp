@@ -11,11 +11,6 @@ namespace Kratos {
     void VerletVelocityScheme::AddClustersVariables(ModelPart & r_model_part){
          DEMIntegrationScheme::AddClustersVariables(r_model_part);}
 
-    void VerletVelocityScheme::Calculate(ModelPart & r_model_part)
-    {
-      KRATOS_THROW_ERROR(std::runtime_error, "This function (VerletVelocityScheme::Calculate) shouldn't be accessed, use Predict and Correct instead", 0);
-    }
-
     void VerletVelocityScheme::UpdateTranslationalVariables(
             int StepFlag,
             const Node < 3 > & i,
