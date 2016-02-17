@@ -269,38 +269,87 @@ void AddStrategies()
     .def( "GetEchoLevel", &TrilinosBuilderAndSolverMLDeactivationtype::GetEchoLevel )
     ;
 
-    typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolvertype;
+    typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverType;
 
-    class_< TrilinosBlockBuilderAndSolvertype, boost::noncopyable >
+    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeSystemSolve1)(
+        TrilinosBlockBuilderAndSolverType::TSystemMatrixType&,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
+        ModelPart&)
+        = &TrilinosBlockBuilderAndSolverType::SystemSolve;
+
+    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeSystemSolve2)(
+        TrilinosBlockBuilderAndSolverType::TSystemMatrixPointerType,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
+        ModelPart&)
+        = &TrilinosBlockBuilderAndSolverType::SystemSolve;
+
+    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildAndSolve1)(
+        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
+        ModelPart&,
+        TrilinosBlockBuilderAndSolverType::TSystemMatrixType&,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorType&)
+        = &TrilinosBlockBuilderAndSolverType::BuildAndSolve;
+
+    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildAndSolve2)(
+        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
+        ModelPart&,
+        TrilinosBlockBuilderAndSolverType::TSystemMatrixPointerType,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType)
+        = &TrilinosBlockBuilderAndSolverType::BuildAndSolve;
+
+    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve1)(
+        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
+        ModelPart&,
+        TrilinosBlockBuilderAndSolverType::TSystemMatrixType&,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorType&)
+        = &TrilinosBlockBuilderAndSolverType::BuildRHSAndSolve;
+    
+    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve2)(
+        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
+        ModelPart&,
+        TrilinosBlockBuilderAndSolverType::TSystemMatrixPointerType,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
+        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType)
+        = &TrilinosBlockBuilderAndSolverType::BuildRHSAndSolve;
+
+    class_< TrilinosBlockBuilderAndSolverType, boost::noncopyable >
     ( "TrilinosBlockBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
-    .def( "SetCalculateReactionsFlag", &TrilinosBlockBuilderAndSolvertype::SetCalculateReactionsFlag )
-    .def( "GetCalculateReactionsFlag", &TrilinosBlockBuilderAndSolvertype::GetCalculateReactionsFlag )
-    .def( "SetDofSetIsInitializedFlag", &TrilinosBlockBuilderAndSolvertype::SetDofSetIsInitializedFlag )
-    .def( "GetDofSetIsInitializedFlag", &TrilinosBlockBuilderAndSolvertype::GetDofSetIsInitializedFlag )
-    .def( "SetReshapeMatrixFlag", &TrilinosBlockBuilderAndSolvertype::SetReshapeMatrixFlag )
-    .def( "GetReshapeMatrixFlag", &TrilinosBlockBuilderAndSolvertype::GetReshapeMatrixFlag )
-    .def( "GetEquationSystemSize", &TrilinosBlockBuilderAndSolvertype::GetEquationSystemSize )
-    .def( "BuildLHS", &TrilinosBlockBuilderAndSolvertype::BuildLHS )
-    .def( "BuildRHS", &TrilinosBlockBuilderAndSolvertype::BuildRHS )
-    .def( "Build", &TrilinosBlockBuilderAndSolvertype::Build )
-    .def( "SystemSolve", &TrilinosBlockBuilderAndSolvertype::SystemSolve )
-    .def( "BuildAndSolve", &TrilinosBlockBuilderAndSolvertype::BuildAndSolve )
-    .def( "BuildRHSAndSolve", &TrilinosBlockBuilderAndSolvertype::BuildRHSAndSolve )
-    .def( "ApplyDirichletConditions", &TrilinosBlockBuilderAndSolvertype::ApplyDirichletConditions )
-    .def( "SetUpDofSet", &TrilinosBlockBuilderAndSolvertype::SetUpDofSet )
-    .def( "GetDofSet", &TrilinosBlockBuilderAndSolvertype::GetDofSet, return_internal_reference<>() )
-    .def( "SetUpSystem", &TrilinosBlockBuilderAndSolvertype::SetUpSystem )
-    .def( "ResizeAndInitializeVectors", &TrilinosBlockBuilderAndSolvertype::ResizeAndInitializeVectors )
-    .def( "InitializeSolutionStep", &TrilinosBlockBuilderAndSolvertype::InitializeSolutionStep )
-    .def( "FinalizeSolutionStep", &TrilinosBlockBuilderAndSolvertype::FinalizeSolutionStep )
-    .def( "CalculateReactions", &TrilinosBlockBuilderAndSolvertype::CalculateReactions )
-    .def( "Clear", &TrilinosBlockBuilderAndSolvertype::Clear )
-    .def( "SetEchoLevel", &TrilinosBlockBuilderAndSolvertype::SetEchoLevel )
-    .def( "GetEchoLevel", &TrilinosBlockBuilderAndSolvertype::GetEchoLevel )
+    .def( "SetCalculateReactionsFlag", &TrilinosBlockBuilderAndSolverType::SetCalculateReactionsFlag )
+    .def( "GetCalculateReactionsFlag", &TrilinosBlockBuilderAndSolverType::GetCalculateReactionsFlag )
+    .def( "SetDofSetIsInitializedFlag", &TrilinosBlockBuilderAndSolverType::SetDofSetIsInitializedFlag )
+    .def( "GetDofSetIsInitializedFlag", &TrilinosBlockBuilderAndSolverType::GetDofSetIsInitializedFlag )
+    .def( "SetReshapeMatrixFlag", &TrilinosBlockBuilderAndSolverType::SetReshapeMatrixFlag )
+    .def( "GetReshapeMatrixFlag", &TrilinosBlockBuilderAndSolverType::GetReshapeMatrixFlag )
+    .def( "GetEquationSystemSize", &TrilinosBlockBuilderAndSolverType::GetEquationSystemSize )
+    .def( "BuildLHS", &TrilinosBlockBuilderAndSolverType::BuildLHS )
+    .def( "BuildRHS", &TrilinosBlockBuilderAndSolverType::BuildRHS )
+    .def( "Build", &TrilinosBlockBuilderAndSolverType::Build )
+    .def( "SystemSolve", TrilinosBlockBuilderAndSolverTypeSystemSolve1 )
+    .def( "BuildAndSolve", TrilinosBlockBuilderAndSolverTypeBuildAndSolve1 )
+    .def( "BuildRHSAndSolve", TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve1 )
+    .def( "SystemSolve", TrilinosBlockBuilderAndSolverTypeSystemSolve2 )
+    .def( "BuildAndSolve", TrilinosBlockBuilderAndSolverTypeBuildAndSolve2 )
+    .def( "BuildRHSAndSolve", TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve2 )
+    .def( "ApplyDirichletConditions", &TrilinosBlockBuilderAndSolverType::ApplyDirichletConditions )
+    .def( "SetUpDofSet", &TrilinosBlockBuilderAndSolverType::SetUpDofSet )
+    .def( "GetDofSet", &TrilinosBlockBuilderAndSolverType::GetDofSet, return_internal_reference<>() )
+    .def( "SetUpSystem", &TrilinosBlockBuilderAndSolverType::SetUpSystem )
+    .def( "ResizeAndInitializeVectors", &TrilinosBlockBuilderAndSolverType::ResizeAndInitializeVectors )
+    .def( "InitializeSolutionStep", &TrilinosBlockBuilderAndSolverType::InitializeSolutionStep )
+    .def( "FinalizeSolutionStep", &TrilinosBlockBuilderAndSolverType::FinalizeSolutionStep )
+    .def( "CalculateReactions", &TrilinosBlockBuilderAndSolverType::CalculateReactions )
+    .def( "Clear", &TrilinosBlockBuilderAndSolverType::Clear )
+    .def( "SetEchoLevel", &TrilinosBlockBuilderAndSolverType::SetEchoLevel )
+    .def( "GetEchoLevel", &TrilinosBlockBuilderAndSolverType::GetEchoLevel )
     ;
     
     class_< TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
-            bases< TrilinosBlockBuilderAndSolvertype >,
+            bases< TrilinosBlockBuilderAndSolverType >,
             boost::noncopyable >
             ("TrilinosBlockBuilderAndSolverPeriodic", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& >());
 
