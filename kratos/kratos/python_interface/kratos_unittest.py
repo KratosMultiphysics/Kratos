@@ -3,7 +3,7 @@ from unittest import *
 
 import getopt
 import sys
-import warnings
+import os
 
 
 class TestLoader(TestLoader):
@@ -14,7 +14,7 @@ class TestLoader(TestLoader):
         allTests = []
 
         for caseClasses in testCaseClasses:
-            caseTests = self.loadTestsFromTestCase(case)
+            caseTests = self.loadTestsFromTestCase(caseClasses)
             allTests.append(caseTests)
 
         return allTests
@@ -31,6 +31,24 @@ class TestCase(TestCase):
         return False
 
     assertEqualTolerance = failUnlessEqualWithTolerance
+
+
+def CaptureStdout():
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    newstdout = os.dup(1)
+    newstderr = os.dup(2)
+
+    devnull = os.open('/dev/null', os.O_WRONLY)
+
+    os.dup2(devnull, 1)
+    os.dup2(devnull, 2)
+
+    os.close(devnull)
+
+    sys.stdout = os.fdopen(newstdout, 'w')
+    sys.stderr = os.fdopen(newstderr, 'w')
 
 
 def Usage():
@@ -96,6 +114,7 @@ def runTests(tests):
             '[Warning]: "{}" test suite is empty'.format(level),
             file=sys.stderr)
     else:
+        CaptureStdout()
         TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level])
 
 KratosSuites = {
