@@ -4,6 +4,20 @@
 #include "newmark_beta_scheme.h"
 
 namespace Kratos {
+    
+    void NewmarkBetaScheme::AddSpheresVariables(ModelPart & r_model_part){
+        
+        DEMIntegrationScheme::AddSpheresVariables(r_model_part);
+        //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);
+    }
+    
+    void NewmarkBetaScheme::AddClustersVariables(ModelPart & r_model_part){
+        
+        DEMIntegrationScheme::AddClustersVariables(r_model_part);
+        //r_model_part.AddNodalSolutionStepVariable(OLD_FORCE?);                      
+    }        
+    
+    
     void NewmarkBetaScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
@@ -32,8 +46,7 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
                 array_1d<double, 3 >& coor = i.Coordinates();
                 array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
-                array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
-                array_1d<double, 3 >& old_force = i.FastGetSolutionStepValue(TOTAL_FORCES);
+                array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);                
 
                 double mass = i.FastGetSolutionStepValue(NODAL_MASS);
 
@@ -43,7 +56,7 @@ namespace Kratos {
                 Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
                 Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
 
-                UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, old_force, force_reduction_factor, mass, delta_t, Fix_vel);
+                UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
             } //nodes in the thread
         } //threads
         KRATOS_CATCH(" ")
@@ -58,12 +71,13 @@ namespace Kratos {
             array_1d<double, 3 >& vel,
             const array_1d<double, 3 >& initial_coor,
             const array_1d<double, 3 >& force,
-            const array_1d<double, 3 >& old_force,
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
             const bool Fix_vel[3]) {
 
+        const array_1d<double, 3 >& old_force = i.FastGetSolutionStepValue(TOTAL_FORCES);
+        
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
                 double mass_inv = 1.0 / mass;

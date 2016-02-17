@@ -8,7 +8,7 @@ namespace Kratos {
     void ForwardEulerScheme::AddSpheresVariables(ModelPart & r_model_part){
         
         DEMIntegrationScheme::AddSpheresVariables(r_model_part);
-        
+        //r_model_part.AddNodalSolutionStepVariable(MY_VARIABLE);
     }
     
     void ForwardEulerScheme::AddClustersVariables(ModelPart & r_model_part){
