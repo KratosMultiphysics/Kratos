@@ -36,7 +36,7 @@ namespace Kratos
 
 /// Linear Solid Element for 3D and 2D geometries.  (Template for learning element design)
 
-class LinearSolidElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearSolidElement
     : public Element
 {
 public:

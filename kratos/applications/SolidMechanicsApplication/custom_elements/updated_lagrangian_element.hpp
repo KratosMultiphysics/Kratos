@@ -41,7 +41,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class UpdatedLagrangianElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) UpdatedLagrangianElement
     : public LargeDisplacementElement
 {
 public:

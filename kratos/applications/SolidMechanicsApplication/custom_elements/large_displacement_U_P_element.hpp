@@ -41,7 +41,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class LargeDisplacementUPElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementUPElement
     : public LargeDisplacementElement
 {
 public:
