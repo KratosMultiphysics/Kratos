@@ -55,7 +55,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class FlowRule
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) FlowRule
   {
   public:
     ///@name Type Definitions
