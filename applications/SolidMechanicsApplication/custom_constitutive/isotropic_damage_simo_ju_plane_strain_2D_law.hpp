@@ -21,7 +21,7 @@ namespace Kratos
 {
 
 
-class IsotropicDamageSimoJuPlaneStrain2DLaw : public LinearElasticPlasticPlaneStrain2DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) IsotropicDamageSimoJuPlaneStrain2DLaw : public LinearElasticPlasticPlaneStrain2DLaw
 {
 public:
     /**

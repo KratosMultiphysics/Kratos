@@ -28,7 +28,7 @@ namespace Kratos
  * The functionality is limited to large displacements 
  */
 
-class HyperElasticPlasticUPJ2Axisym2DLaw : public HyperElasticPlasticUPAxisym2DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticUPJ2Axisym2DLaw : public HyperElasticPlasticUPAxisym2DLaw
 {
 public:
     /**

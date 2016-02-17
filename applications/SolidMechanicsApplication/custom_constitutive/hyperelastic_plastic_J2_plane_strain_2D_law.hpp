@@ -28,7 +28,7 @@ namespace Kratos
  * The functionality is limited to large displacements 
  */
 
-class HyperElasticPlasticJ2PlaneStrain2DLaw : public HyperElasticPlasticPlaneStrain2DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticJ2PlaneStrain2DLaw : public HyperElasticPlasticPlaneStrain2DLaw
 {
 public:
     /**

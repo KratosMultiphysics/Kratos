@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 
-class LinearElasticPlasticPlaneStress2DLaw : public LinearElasticPlastic3DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticPlasticPlaneStress2DLaw : public LinearElasticPlastic3DLaw
 {
 public:
     /**

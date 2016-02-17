@@ -21,7 +21,7 @@ namespace Kratos
 {
 
 
-class IsotropicDamageSimoJu3DLaw : public LinearElasticPlastic3DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) IsotropicDamageSimoJu3DLaw : public LinearElasticPlastic3DLaw
 {
 public:
     /**

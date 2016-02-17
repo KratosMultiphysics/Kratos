@@ -27,7 +27,7 @@ namespace Kratos
  * for small and large displacements elasticity.
  */
 
-class LinearElasticPlaneStress2DLaw : public LinearElasticPlaneStrain2DLaw
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) LinearElasticPlaneStress2DLaw : public LinearElasticPlaneStrain2DLaw
 {
 public:
     /**
