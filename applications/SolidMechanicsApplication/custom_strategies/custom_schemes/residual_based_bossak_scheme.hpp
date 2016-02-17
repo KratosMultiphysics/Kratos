@@ -445,8 +445,17 @@ public:
 
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
-        if (DeltaTime == 0)
-            KRATOS_THROW_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+        //if (DeltaTime == 0)
+	  //KRATOS_THROW_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+
+	if (DeltaTime == 0){
+	  std::cout<<" WARNING: detected delta_time = 0 in the Solution Scheme "<<std::endl;
+	  std::cout<<" DELTA_TIME set to 1 considering a Quasistatic step with one step only "<<std::endl;
+	  std::cout<<" PLEASE : check if the time step is created correctly for the current model part "<<std::endl;
+	  
+	  CurrentProcessInfo[DELTA_TIME] = 1;
+	  DeltaTime = CurrentProcessInfo[DELTA_TIME];
+	}
 
 
         //initializing Newmark constants
