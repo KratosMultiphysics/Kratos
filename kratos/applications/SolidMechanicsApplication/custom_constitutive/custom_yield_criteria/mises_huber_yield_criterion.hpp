@@ -45,7 +45,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MisesHuberYieldCriterion
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 	: public YieldCriterion
 {
     public:
