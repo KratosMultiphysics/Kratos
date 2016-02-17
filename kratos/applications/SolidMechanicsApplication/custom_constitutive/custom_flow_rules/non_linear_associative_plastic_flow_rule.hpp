@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class NonLinearAssociativePlasticFlowRule
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearAssociativePlasticFlowRule
 	  :public FlowRule
   {
   public:

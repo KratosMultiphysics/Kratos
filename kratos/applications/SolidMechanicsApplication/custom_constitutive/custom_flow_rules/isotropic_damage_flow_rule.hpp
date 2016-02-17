@@ -45,7 +45,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class IsotropicDamageFlowRule
+  class KRATOS_API(SOLID_MECHANICS_APPLICATION) IsotropicDamageFlowRule
 	  :public FlowRule
   {
   public:
