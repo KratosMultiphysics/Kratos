@@ -11,40 +11,38 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from SmallTests import Bfecc as TBfecc
 
 
-def AssambleTestSuits():
-    ''' Generates the test suits to run.
+def AssambleTestSuites():
+    ''' Populates the test suites to run.
 
-    Generates the test suits to run. At least, it needs to return the suits:
+    Populates the test suites to run. At least, it should pupulate the suites:
     "small", "nighlty" and "all"
 
     Return
     ------
 
-    set of suits:
-        A set of suits in the form of {"suitname": suit}.
-
+    suites: A dictionary of suites
+        The set of suites with its test_cases added.
     '''
 
+    suites = KratosUnittest.KratosSuites
+
     # Create a test suit with the selected tests (Small tests):
-    SmallSuite = KratosUnittest.TestSuite()
-    SmallSuite.addTest(TBfecc('testCreateSolver'))
+    smallSuite = suites['small']
+    smallSuite.addTest(TBfecc('testCreateSolver'))
 
     # Create a test suit with the selected tests plus all small tests
-    NightSuite = KratosUnittest.TestSuite([SmallSuite])
+    nightSuite = suites['nightly']
+    nightSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests:
-    AllBfecc = KratosUnittest.TestLoader().loadTestsFromTestCase(
-        TBfecc)
+    allSuite = suites['all']
+    allSuite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+            TBfecc
+        ])
+    )
 
-    AllSuit = KratosUnittest.TestSuite([
-        AllBfecc,
-    ])
-
-    return {
-        'small': SmallSuite,
-        'nightly': NightSuite,
-        'all': AllSuit
-    }
+    return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuits())
+    KratosUnittest.runTests(AssambleTestSuites())
