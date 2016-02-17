@@ -209,23 +209,25 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 dt = DEM_parameters.MaxTimeStep
-solver.Initialize()    # Possible modifications of DELTA_TIME
+
+#Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.
+max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
+
+if (max_FEM_node_Id > max_node_Id):
+    max_node_Id = max_FEM_node_Id
+
+creator_destructor.SetMaxNodeId(max_node_Id)    
+
+#Strategy Initialization
+solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes.
 
 if (DEM_parameters.ContactMeshOption =="ON"):
     contact_model_part = solver.contact_model_part
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-
-if (DEM_parameters.dem_inlet_option):    
-    max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
-    max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-
-    if (max_FEM_node_Id > max_node_Id):
-        max_node_Id = max_FEM_node_Id
-    
-    creator_destructor.SetMaxNodeId(max_node_Id)                            
-        
+if (DEM_parameters.dem_inlet_option):                                        
     # constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
