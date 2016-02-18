@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <container n="Fluid" pn="Fluid" icon="units" tree_state="open">
+    <include n="AnalysisType" active="1" path="apps/Fluid/xml/AnalysisType.spd"/>
+    <include n="Parts" active="1" path="apps/Fluid/xml/Parts.spd"/>
+    <include n="InitialConditions" active="1" path="apps/Fluid/xml/InitialConditions.spd"/>
+    <include n="BoundaryConditions" active="1" path="apps/Fluid/xml/BoundaryConditions.spd"/>
+    <include n="SolutionStrategy" active="1" path="apps/Fluid/xml/SolutionStrategy.spd"/>
+    <include n="Results" active="1" path="apps/Fluid/xml/Results.spd"/>
+    <include n="materials" active="1" path="apps/Fluid/xml/Materials.spd"/> 
+  </container>

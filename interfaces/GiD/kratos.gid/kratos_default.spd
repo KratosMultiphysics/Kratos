@@ -14,7 +14,6 @@
   <hiddenfield n="nDim" un="nDim" v="3D" state="disabled"/>
   <appLink n="SolidMechanics" pn="Structural" active="0" appid="SolidMechanics"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid"/>
-  <appLink n="BaseApp" pn="Example" active="0" appid="BaseApp"/>
   <blockdata n="units" pn="Units" icon="units">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
     <value n='units_system' pn='Units system' units_system_definition="1">
