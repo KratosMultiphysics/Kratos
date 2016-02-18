@@ -60,57 +60,57 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        // 1.725 (in meters) was the medium diameter of the rock in GiD (rock05.gid file)
-        // so we should multiply every size that follow by the inverse of that number, 0.5797,
+        // 1.446688 (in meters) was the medium diameter of the rock in GiD (rock05.gid file)
+        // so we should multiply every size that follow by the inverse of that number, 0.691234,
         // to obtain a 'unity' rock.
         // We then have to multiply again everything by 'cl' to obtain the desired dimensions
         // to adjust to the characteristic length given
                 
-        cl *= 0.5797;     
+        cl *= 0.691234;     
  
-        mListOfCoordinates[ 0][0]= 0.282367; mListOfCoordinates[ 0][1]=-0.191849; mListOfCoordinates[ 0][2]=-0.076992;
-        mListOfCoordinates[ 1][0]=-0.326788; mListOfCoordinates[ 1][1]= 0.174716; mListOfCoordinates[ 1][2]= 0.211693;
-        mListOfCoordinates[ 2][0]= 0.618972; mListOfCoordinates[ 2][1]= 0.184459; mListOfCoordinates[ 2][2]= 0.056258;
-        mListOfCoordinates[ 3][0]=-0.165500; mListOfCoordinates[ 3][1]=-0.040034; mListOfCoordinates[ 3][2]=-0.279015;
-        mListOfCoordinates[ 4][0]= 0.161947; mListOfCoordinates[ 4][1]=-0.681441; mListOfCoordinates[ 4][2]= 0.175952;
-        mListOfCoordinates[ 5][0]=-0.523620; mListOfCoordinates[ 5][1]= 0.053050; mListOfCoordinates[ 5][2]= 0.227297;
-        mListOfCoordinates[ 6][0]=-0.440551; mListOfCoordinates[ 6][1]=-0.200588; mListOfCoordinates[ 6][2]=-0.201722;
-        mListOfCoordinates[ 7][0]=-0.134893; mListOfCoordinates[ 7][1]= 0.387507; mListOfCoordinates[ 7][2]= 0.215766;
-        mListOfCoordinates[ 8][0]= 0.168112; mListOfCoordinates[ 8][1]= 0.037289; mListOfCoordinates[ 8][2]= 0.086013;
-        mListOfCoordinates[ 9][0]=-0.579941; mListOfCoordinates[ 9][1]=-0.233373; mListOfCoordinates[ 9][2]= 0.257002;
-        mListOfCoordinates[10][0]=-0.129074; mListOfCoordinates[10][1]=-0.201429; mListOfCoordinates[10][2]= 0.205499;
-        mListOfCoordinates[11][0]=-0.652185; mListOfCoordinates[11][1]= 0.100605; mListOfCoordinates[11][2]= 0.257928;
-        mListOfCoordinates[12][0]= 0.240681; mListOfCoordinates[12][1]= 0.466673; mListOfCoordinates[12][2]=-0.336280;
-        mListOfCoordinates[13][0]=-0.145779; mListOfCoordinates[13][1]= 0.159040; mListOfCoordinates[13][2]= 0.201385;
-        mListOfCoordinates[14][0]= 0.212846; mListOfCoordinates[14][1]= 0.181019; mListOfCoordinates[14][2]=-0.278521;
-        mListOfCoordinates[15][0]=-0.369727; mListOfCoordinates[15][1]= 0.387710; mListOfCoordinates[15][2]= 0.255948;
-        mListOfCoordinates[16][0]= 0.246971; mListOfCoordinates[16][1]= 0.667141; mListOfCoordinates[16][2]= 0.130134;
-        mListOfCoordinates[17][0]= 0.262716; mListOfCoordinates[17][1]=-0.174559; mListOfCoordinates[17][2]=-0.319388;
-        mListOfCoordinates[18][0]= 0.171921; mListOfCoordinates[18][1]= 0.294305; mListOfCoordinates[18][2]= 0.124303;
-        mListOfCoordinates[19][0]= 0.120008; mListOfCoordinates[19][1]=-0.357930; mListOfCoordinates[19][2]= 0.195817;
-        mListOfCoordinates[20][0]= 0.007487; mListOfCoordinates[20][1]=-0.576526; mListOfCoordinates[20][2]= 0.252003;
-        mListOfCoordinates[21][0]= 0.405718; mListOfCoordinates[21][1]= 0.283885; mListOfCoordinates[21][2]= 0.079109;
-        mListOfCoordinates[22][0]=-0.708690; mListOfCoordinates[22][1]=-0.056333; mListOfCoordinates[22][2]= 0.261727;
-        mListOfCoordinates[23][0]= 0.300941; mListOfCoordinates[23][1]=-0.463648; mListOfCoordinates[23][2]= 0.075084;
-        mListOfCoordinates[24][0]=-0.412075; mListOfCoordinates[24][1]=-0.101999; mListOfCoordinates[24][2]= 0.206846;
-        mListOfCoordinates[25][0]= 0.169464; mListOfCoordinates[25][1]=-0.110553; mListOfCoordinates[25][2]=-0.515637;
-        mListOfCoordinates[26][0]= 0.280113; mListOfCoordinates[26][1]=-0.401824; mListOfCoordinates[26][2]=-0.396139;
-        mListOfCoordinates[27][0]= 0.143246; mListOfCoordinates[27][1]= 0.241375; mListOfCoordinates[27][2]=-0.233068;
-        mListOfCoordinates[28][0]=-0.435998; mListOfCoordinates[28][1]=-0.376401; mListOfCoordinates[28][2]= 0.247957;
-        mListOfCoordinates[29][0]=-0.148025; mListOfCoordinates[29][1]= 0.060517; mListOfCoordinates[29][2]= 0.174888;
-        mListOfCoordinates[30][0]= 0.089942; mListOfCoordinates[30][1]= 0.515272; mListOfCoordinates[30][2]= 0.168312;
-        mListOfCoordinates[31][0]=-0.126219; mListOfCoordinates[31][1]=-0.056626; mListOfCoordinates[31][2]=-0.134893;
-        mListOfCoordinates[32][0]= 0.304421; mListOfCoordinates[32][1]=-0.749720; mListOfCoordinates[32][2]= 0.099991;
-        mListOfCoordinates[33][0]= 0.341687; mListOfCoordinates[33][1]= 0.518540; mListOfCoordinates[33][2]= 0.080518;
-        mListOfCoordinates[34][0]= 0.284475; mListOfCoordinates[34][1]=-0.370066; mListOfCoordinates[34][2]=-0.254208;
-        mListOfCoordinates[35][0]= 0.106085; mListOfCoordinates[35][1]= 0.069167; mListOfCoordinates[35][2]=-0.528590;
-        mListOfCoordinates[36][0]=-0.531031; mListOfCoordinates[36][1]= 0.220978; mListOfCoordinates[36][2]= 0.248842;
-        mListOfCoordinates[37][0]= 0.245845; mListOfCoordinates[37][1]= 0.486141; mListOfCoordinates[37][2]=-0.109937;
-        mListOfCoordinates[38][0]= 0.251911; mListOfCoordinates[38][1]= 0.361353; mListOfCoordinates[38][2]=-0.379873;
-        mListOfCoordinates[39][0]= 0.233034; mListOfCoordinates[39][1]=-0.194649; mListOfCoordinates[39][2]= 0.109307;
-        mListOfCoordinates[40][0]= 0.436142; mListOfCoordinates[40][1]= 0.123600; mListOfCoordinates[40][2]=-0.369742;
-        mListOfCoordinates[41][0]=-0.228657; mListOfCoordinates[41][1]=-0.565929; mListOfCoordinates[41][2]= 0.246015;
-        mListOfCoordinates[42][0]=-0.028287; mListOfCoordinates[42][1]= 0.131147; mListOfCoordinates[42][2]=-0.437569;
+        mListOfCoordinates[ 0][0]= 0.250209; mListOfCoordinates[ 0][1]=-0.191917; mListOfCoordinates[ 0][2]=-0.066919;
+        mListOfCoordinates[ 1][0]=-0.358946; mListOfCoordinates[ 1][1]= 0.174648; mListOfCoordinates[ 1][2]= 0.221766;
+        mListOfCoordinates[ 2][0]= 0.586814; mListOfCoordinates[ 2][1]= 0.184391; mListOfCoordinates[ 2][2]= 0.066331;
+        mListOfCoordinates[ 3][0]=-0.197658; mListOfCoordinates[ 3][1]=-0.040102; mListOfCoordinates[ 3][2]=-0.268942;
+        mListOfCoordinates[ 4][0]= 0.129789; mListOfCoordinates[ 4][1]=-0.681509; mListOfCoordinates[ 4][2]= 0.186025;
+        mListOfCoordinates[ 5][0]=-0.555778; mListOfCoordinates[ 5][1]= 0.052982; mListOfCoordinates[ 5][2]= 0.237370;
+        mListOfCoordinates[ 6][0]=-0.472709; mListOfCoordinates[ 6][1]=-0.200656; mListOfCoordinates[ 6][2]=-0.191649;
+        mListOfCoordinates[ 7][0]=-0.167051; mListOfCoordinates[ 7][1]= 0.387439; mListOfCoordinates[ 7][2]= 0.225839;
+        mListOfCoordinates[ 8][0]= 0.135954; mListOfCoordinates[ 8][1]= 0.037221; mListOfCoordinates[ 8][2]= 0.096086;
+        mListOfCoordinates[ 9][0]=-0.612099; mListOfCoordinates[ 9][1]=-0.233441; mListOfCoordinates[ 9][2]= 0.267075;
+        mListOfCoordinates[10][0]=-0.161232; mListOfCoordinates[10][1]=-0.201497; mListOfCoordinates[10][2]= 0.215572;
+        mListOfCoordinates[11][0]=-0.684343; mListOfCoordinates[11][1]= 0.100537; mListOfCoordinates[11][2]= 0.268001;
+        mListOfCoordinates[12][0]= 0.208523; mListOfCoordinates[12][1]= 0.466605; mListOfCoordinates[12][2]=-0.326207;
+        mListOfCoordinates[13][0]=-0.177937; mListOfCoordinates[13][1]= 0.158972; mListOfCoordinates[13][2]= 0.211458;
+        mListOfCoordinates[14][0]= 0.180688; mListOfCoordinates[14][1]= 0.180951; mListOfCoordinates[14][2]=-0.268448;
+        mListOfCoordinates[15][0]=-0.401885; mListOfCoordinates[15][1]= 0.387642; mListOfCoordinates[15][2]= 0.266021;
+        mListOfCoordinates[16][0]= 0.214813; mListOfCoordinates[16][1]= 0.667073; mListOfCoordinates[16][2]= 0.140207;
+        mListOfCoordinates[17][0]= 0.230558; mListOfCoordinates[17][1]=-0.174627; mListOfCoordinates[17][2]=-0.309315;
+        mListOfCoordinates[18][0]= 0.139763; mListOfCoordinates[18][1]= 0.294237; mListOfCoordinates[18][2]= 0.134376;
+        mListOfCoordinates[19][0]= 0.087850; mListOfCoordinates[19][1]=-0.357998; mListOfCoordinates[19][2]= 0.205890;
+        mListOfCoordinates[20][0]=-0.024671; mListOfCoordinates[20][1]=-0.576594; mListOfCoordinates[20][2]= 0.262076;
+        mListOfCoordinates[21][0]= 0.373560; mListOfCoordinates[21][1]= 0.283817; mListOfCoordinates[21][2]= 0.089182;
+        mListOfCoordinates[22][0]=-0.740848; mListOfCoordinates[22][1]=-0.056401; mListOfCoordinates[22][2]= 0.271800;
+        mListOfCoordinates[23][0]= 0.268783; mListOfCoordinates[23][1]=-0.463716; mListOfCoordinates[23][2]= 0.085157;
+        mListOfCoordinates[24][0]=-0.444233; mListOfCoordinates[24][1]=-0.102067; mListOfCoordinates[24][2]= 0.216919;
+        mListOfCoordinates[25][0]= 0.137306; mListOfCoordinates[25][1]=-0.110621; mListOfCoordinates[25][2]=-0.505564;
+        mListOfCoordinates[26][0]= 0.247955; mListOfCoordinates[26][1]=-0.401892; mListOfCoordinates[26][2]=-0.386066;
+        mListOfCoordinates[27][0]= 0.111088; mListOfCoordinates[27][1]= 0.241307; mListOfCoordinates[27][2]=-0.222995;
+        mListOfCoordinates[28][0]=-0.468156; mListOfCoordinates[28][1]=-0.376469; mListOfCoordinates[28][2]= 0.258030;
+        mListOfCoordinates[29][0]=-0.180183; mListOfCoordinates[29][1]= 0.060449; mListOfCoordinates[29][2]= 0.184961;
+        mListOfCoordinates[30][0]= 0.057784; mListOfCoordinates[30][1]= 0.515204; mListOfCoordinates[30][2]= 0.178385;
+        mListOfCoordinates[31][0]=-0.158377; mListOfCoordinates[31][1]=-0.056694; mListOfCoordinates[31][2]=-0.124820;
+        mListOfCoordinates[32][0]= 0.272263; mListOfCoordinates[32][1]=-0.749788; mListOfCoordinates[32][2]= 0.110064;
+        mListOfCoordinates[33][0]= 0.309529; mListOfCoordinates[33][1]= 0.518472; mListOfCoordinates[33][2]= 0.090591;
+        mListOfCoordinates[34][0]= 0.252317; mListOfCoordinates[34][1]=-0.370134; mListOfCoordinates[34][2]=-0.244135;
+        mListOfCoordinates[35][0]= 0.073927; mListOfCoordinates[35][1]= 0.069099; mListOfCoordinates[35][2]=-0.518517;
+        mListOfCoordinates[36][0]=-0.563189; mListOfCoordinates[36][1]= 0.220910; mListOfCoordinates[36][2]= 0.258915;
+        mListOfCoordinates[37][0]= 0.213687; mListOfCoordinates[37][1]= 0.486073; mListOfCoordinates[37][2]=-0.099864;
+        mListOfCoordinates[38][0]= 0.219753; mListOfCoordinates[38][1]= 0.361285; mListOfCoordinates[38][2]=-0.369800;
+        mListOfCoordinates[39][0]= 0.200876; mListOfCoordinates[39][1]=-0.194717; mListOfCoordinates[39][2]= 0.119380;
+        mListOfCoordinates[40][0]= 0.403984; mListOfCoordinates[40][1]= 0.123532; mListOfCoordinates[40][2]=-0.359669;
+        mListOfCoordinates[41][0]=-0.260815; mListOfCoordinates[41][1]=-0.565997; mListOfCoordinates[41][2]= 0.256088;
+        mListOfCoordinates[42][0]=-0.060445; mListOfCoordinates[42][1]= 0.131079; mListOfCoordinates[42][2]=-0.427496;
 
         
         for (int i = 0; i < number_of_spheres; i++) { 
@@ -163,13 +163,13 @@ namespace Kratos {
         
         for (int i = 0; i < number_of_spheres; i++) { mListOfRadii[i]= mListOfRadii[i] * cl; }
        
-        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 1.299807 * cl * cl * cl;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 1.585343 * cl * cl * cl;
                 
         array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         
-        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.180015;
-        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.205021;
-        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.243482;
+        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.215133;
+        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.246313;
+        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.283201;
   
     }     
     
