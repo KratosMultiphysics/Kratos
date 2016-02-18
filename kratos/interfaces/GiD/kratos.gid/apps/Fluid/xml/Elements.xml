@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElementList>
+  <ElementItem n="FractionalStep2D" pn="Fractional Step 2D" ImplementedInFile="fractional_step.cpp"
+	       ImplementedInApplication="FluidDynamicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" MainDofsVariables="VELOCITY"
+	       ElementType="Solid" help="This element implements a Fractional Step Element">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="FractionalStep2D3N"/>
+    </TopologyFeatures>
+	    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="dev" value="False"/>
+	</ConstitutiveLaw_FilterFeatures>
+
+    <!--define list of dofs-->
+    <NodalConditions>
+      <dof n="VELOCITY" pn="Initial Velocity" type="vector" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="PRESSURE" pn="Initial Pressure" type="double" unit_magnitude="P" units="Pa" reaction=""/>
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="VORTICITY" pn="VORTICITY" />
+    </outputs>
+  </ElementItem>
+
+  
+  <ElementItem n="FractionalStep3D" pn="Fractional Step 3D" ImplementedInFile="fractional_step.cpp"
+	       ImplementedInApplication="FluidDynamicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False" MainDofsVariables="VELOCITY"
+	       ElementType="Solid" help="This element implements a Fractional Step Element">
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Tetrahedra" nodes="4" KratosName="FractionalStep3D4N"/>
+    </TopologyFeatures>
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="dev" value="False"/>
+	</ConstitutiveLaw_FilterFeatures>
+    <!--define list of dofs-->
+    <NodalConditions>
+      <dof n="VELOCITY" pn="Initial Velocity" type="vector" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <dof n="PRESSURE" pn="Initial Pressure" type="double" unit_magnitude="P" units="Pa" reaction=""/>
+    </NodalConditions>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="VORTICITY" pn="VORTICITY" />
+    </outputs>
+  </ElementItem>
+  
+</ElementList>

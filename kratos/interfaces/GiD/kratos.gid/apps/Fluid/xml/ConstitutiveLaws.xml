@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ConstitutiveLaws>
+    <!--linear elastic laws-->
+    <CLaw n="Newtonian" pn="Newtonian" dev="False"  
+	  help="Newtonian fluid" >
+        <inputs>
+		  <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+		  <parameter n="VISCOSITY" pn="Viscosity" />
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+    <CLaw n="HerschelBulkley" pn="Herschel Bulkley" dev="False"
+          help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" >
+        <inputs>
+		  <parameter n="YIELD_STRESS" pn="Yield stress"/>
+		  <parameter n="CONSISTENCY_INDEX" pn="Consistency index" />
+		  <parameter n="FLOW_INDEX" pn="Flow index" />
+        </inputs>
+        <outputs>
+            
+        </outputs>
+    </CLaw>
+</ConstitutiveLaws>

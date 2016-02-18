@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StrategyList>
+  <StrategyItem n="FractionalStep" pn="Fractional step" 
+		ImplementedInFile="mechanical_strategy.cpp"
+		ImplementedInApplication="SolidMechanicsApplication"
+		ImplementedInPythonFile="mechanical_solver"
+		MinimumKratosVersion="8500"
+		ProductionReady="true"
+		help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="velocity_linear_solver_config" pn="Velocity linear solver" >
+        <filterFeatures>
+	  <!--<filter field="n" value="BiConjugate"/>
+	      <filter field="symmetric" value="false"/>
+              <filter field="solver_type" value="Iterative"/>    -->
+        </filterFeatures>
+      </linearSolverItem>
+	  
+      <linearSolverItem n="velocity_linear_solver_config" pn="Velocity linear solver" >
+        <filterFeatures>
+	  <!--<filter field="n" value="BiConjugate"/>
+	      <filter field="symmetric" value="false"/>
+              <filter field="solver_type" value="Iterative"/>    -->
+        </filterFeatures>
+      </linearSolverItem>  
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="FS" pn="FS" help="FilterElements">
+	     <parameter_list>
+		  </parameter_list>
+  		  <element_filters>
+			 <filter field="n" value="FractionalStep2D,FractionalStep3D"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+  <StrategyItem n="Monolithic" pn="Monolithic" 
+		ImplementedInFile="mechanical_strategy.cpp"
+		ImplementedInApplication="SolidMechanicsApplication"
+		ImplementedInPythonFile="mechanical_solver"
+		MinimumKratosVersion="8500"
+		ProductionReady="true"
+		help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list>
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="linear_solver_config" pn="Linear Solver" >
+        <filterFeatures>
+	  <!--<filter field="n" value="BiConjugate"/>
+	      <filter field="symmetric" value="false"/>
+              <filter field="solver_type" value="Iterative"/>    -->
+        </filterFeatures>
+      </linearSolverItem>     
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="FS" pn="FS" help="FilterElements">
+	     <parameter_list>
+		  </parameter_list>
+  		  <element_filters>
+			 <filter field="n" value="Monolithic2D,Monolithic3D"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+</StrategyList>

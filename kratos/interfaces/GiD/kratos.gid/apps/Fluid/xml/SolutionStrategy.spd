@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="SolStrat" pn="Solution" help="Solution Strategy" >
+	  <container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy"  v="fh" values="">
+			<container n="ParallelType" pn="Parallel type" help="Parallel type">
+				  <value n="ParallelSolutionType" pn="Parallelization" un="FLParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1"/>
+				  <value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName FLParallelType MPI]"/>
+				  <value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName FLParallelType OpenMP]"/>
+			</container>
+            <container n="SolverTypes" pn="Linear solvers" help="Linear solver">
+				  <container n="VelocitySolver" pn="Velocity solver" state="[checkStateByUniqueName FLSolStrat FractionalStep]" tree_state="open">
+						<value n="LinearSolverType" pn="Solver type" v="Iterative"  values="Direct,Iterative" help="" actualize_tree="1"/>
+						<value n="DirectSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Direct]" v="SuperLU" values="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" dict="SkylineLUFactorization,Skyline LU factorization,SuperLU,Super LU,ParallelMKLPardiso,Parallel MKL Pardiso" help=""/>
+						<value n="IterativeSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="BiConjugateGradientStabilized" values="ConjugateGradient,BiConjugateGradientStabilized,GMRES,AMGCL" dict="ConjugateGradient,Conjugate gradient,BiConjugateGradientStabilized,BiConjugate gradient stabilized,GMRES,GMRES,AMGCL,AMGCL" help=""/>
+						<value n="Tolerance" pn="Tolerance" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="1E-5" help=""/>
+						<value n="KrylovType" pn=" Krylov type" state="[CheckIdOnMyParent LinearSolverType Iterative]" VelocityIterativeSolverType="AMGCL" v="GMRES" values="BICGSTAB,CG,GMRES" help=""/>
+						<value n="SmootherType" pn="Smoother type"  state="[CheckIdOnMyParent LinearSolverType Iterative]" VelocityIterativeSolverType="AMGCL" v="ILU0" values="ILU0,DAMPED_JACOBI,SPAI0" help=""/>
+						<value n="MaximumIterations" pn="Maximum iterations" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="100" help=""/>
+						<value n="PreconditionerType" pn="Preconditioner type" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="ILU0" values="None,Diagonal,ILU0" help=""/>
+				  </container>
+				  <container n="PressureSolver" pn="Pressure solver" state="[checkStateByUniqueName FLSolStrat FractionalStep]" tree_state="open">
+						<value n="LinearSolverType" pn="Solver type" v="Iterative"  values="Direct,Iterative" help="" actualize_tree="1"/>
+						<value n="DirectSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Direct]" v="SuperLU" values="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" dict="SkylineLUFactorization,Skyline LU factorization,SuperLU,Super LU,ParallelMKLPardiso,Parallel MKL Pardiso" help=""/>
+						<value n="IterativeSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="BiConjugateGradientStabilized" values="ConjugateGradient,BiConjugateGradientStabilized,GMRES,AMGCL" dict="ConjugateGradient,Conjugate gradient,BiConjugateGradientStabilized,BiConjugate gradient stabilized,GMRES,GMRES,AMGCL,AMGCL" help=""/>
+						<value n="Tolerance" pn="Tolerance" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="1E-5" help=""/>
+						<value n="KrylovType" pn=" Krylov type" state="[CheckIdOnMyParent LinearSolverType Iterative]" VelocityIterativeSolverType="AMGCL" v="GMRES" values="BICGSTAB,CG,GMRES" help=""/>
+						<value n="SmootherType" pn="Smoother type"  state="[CheckIdOnMyParent LinearSolverType Iterative]" VelocityIterativeSolverType="AMGCL" v="ILU0" values="ILU0,DAMPED_JACOBI,SPAI0" help=""/>
+						<value n="MaximumIterations" pn="Maximum iterations" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="100" help=""/>
+						<value n="PreconditionerType" pn="Preconditioner type" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="ILU0" values="None,Diagonal,ILU0" help=""/>
+				  </container>
+				  <container n="Solver" pn="Solver" state="[checkStateByUniqueName FLSolStrat Monolithic]" tree_state="open">
+						<value n="LinearSolverType" pn="Solver type" v="Iterative"  values="Direct,Iterative" help="" actualize_tree="1"/>
+						<value n="DirectSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Direct]" v="SuperLU" values="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" dict="SkylineLUFactorization,Skyline LU factorization,SuperLU,Super LU,ParallelMKLPardiso,Parallel MKL Pardiso" help=""/>
+						<value n="IterativeSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="BiConjugateGradientStabilized" values="ConjugateGradient,BiConjugateGradientStabilized,GMRES,AMGCL" dict="ConjugateGradient,Conjugate gradient,BiConjugateGradientStabilized,BiConjugate gradient stabilized,GMRES,GMRES,AMGCL,AMGCL" help=""/>
+						<value n="Tolerance" pn="Tolerance" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="1E-5" help=""/>
+						<value n="KrylovType" pn=" Krylov type" state="[CheckIdOnMyParent LinearSolverType Iterative]" VelocityIterativeSolverType="AMGCL" v="GMRES" values="BICGSTAB,CG,GMRES" help=""/>
+						<value n="SmootherType" pn="Smoother type"  state="[CheckIdOnMyParent LinearSolverType Iterative]" VelocityIterativeSolverType="AMGCL" v="ILU0" values="ILU0,DAMPED_JACOBI,SPAI0" help=""/>
+						<value n="MaximumIterations" pn="Maximum iterations" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="100" help=""/>
+						<value n="PreconditionerType" pn="Preconditioner type" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="ILU0" values="None,Diagonal,ILU0" help=""/>
+				  </container>
+			</container>
+            <container n="Avanced" pn="Avanced" help="Avanced Solver Parameters">
+				  <value n="PredictorCorrector" pn="Predictor corrector" v="False" values="True,False" state="[checkStateByUniqueName FLSolStrat FractionalStep]" help=""/>
+				  <value n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" help="Relative velocity tolerance"/>
+				  <value n="AbsoluteVelocityTolerance" pn="Absolute velocity tolerance" v="1E-5" help="Absolute velocity tolerance"/>
+				  <value n="MaximumVelocityIterations" pn="Maximum velocity iterations" v="4" help="" state="[checkStateByUniqueName FLSolStrat FractionalStep]"/>
+				  <value n="RelativePressureTolerance" pn="Relative pressure tolerance" v="1E-3" help="Relative pressure tolerance"/>
+				  <value n="AbsolutePressureTolerance" pn="Absolute pressure tolerance" v="1E-5" help="Absolute pressure tolerance"/>
+				  <value n="MaximumPressureIterations" pn="Maximum pressure iterations" v="3" help="" state="[checkStateByUniqueName FLSolStrat FractionalStep]"/>
+				  <value n="MaximumIterations" pn="Maximum iterations" v="10" help="" state="[checkStateByUniqueName FLSolStrat Monolithic]"/>
+				  <value n="DynamicTau" pn="Use dt in stabilization" v="0.01" values="1.0,0.1,0.01,0.001,0.0" help="" state="[checkStateByUniqueName FLSolStrat Monolithic]"/>
+				  <value n="OssSwitch" pn="Use orthogonal subscales" v="True" values="True,False"  help="" state="[checkStateByUniqueName FLSolStrat Monolithic]"/> 
+				  <value n="RedistanceFrequency" pn="Redistance frequency" v="5" help="Redistance frequency" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
+				  <value n="ExtrapolationLayers" pn="Extrapolation layers" v="10" help="Extrapolation layers" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
+				  <value n="StabdtPressureFactor" pn="Stabilized dt pressure factor" v="1.0" help="Stabilized dt pressure factor"/>
+				  <value n="StabdtConvectionFactor" pn="Stabilized convection factor" v="0.01" help="Stabilized convection factor"/>
+				  <value n="SafetyFactor" pn="Safety factor"  v="0.8" help="Safety factor"/>
+            </container>
+			<container n="Gravity" pn="Gravity" help="Body forces" >
+				  <value n="GravityValue" pn="Gravity value" v="9.8" help="Gravity value"/>
+				  <value n="Cx" pn="Cx" v="0.0" help="X Vector"/>
+				  <value n="Cy" pn="Cy" v="0.0" help="Y Vector"/>
+				  <value n="Cz" pn="Cz" v="-1.0" help="Z Vector"/>
+			</container>
+			<container n="PorousZones" pn="Porous zones" flunSolvTyp="LevelSet" PSolutionType="OpenMP" help="Porous zones" >
+				  <value n="UseErgunEquation" pn="Use Ergun equation" v="No" class="ErgunEquationType" ivalues="Yes,No" values="Yes,No" help="Use Ergun equation"/>
+				  <container n="ErgunEquationNo" pn="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" flunSolvTyp="LevelSet" PSolutionType="OpenMP" nTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" />
+				  <container n="ErgunEquationYes" pn="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" flunSolvTyp="LevelSet" PSolutionType="OpenMP" nTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" />
+			</container>
+	  </container>
+	  <container n="TimeParameters" pn="Time parameters" help="Time parameters" >
+		  <value n="StartTime" pn="Start time" v="0.0" help=""/>
+		  <value n="EndTime" pn="End time" v="1" help=""/>
+		  <value n="UseAutomaticDeltaTime" pn="Automatic delta time"  v="Fixed" values="Fixed,Automatic" help="Select the Delta time option to be used" actualize_tree="1"/>
+		  <value n="DeltaTime" pn="Delta time" v="0.001" help="" state="[CheckIdOnMyParent UseAutomaticDeltaTime Fixed]"/>
+		  <value n="TargetCFL" pn="Target CFL" v="5.0" help="" state="[CheckIdOnMyParent UseAutomaticDeltaTime Automatic]"/>
+		  <value n="DivergenceCleareanceStep" pn="Divergence cleareance step" v="50" help="Define the divergence cleareance step value"/>
+		  <value n="MaxVart" pn="Max Dt" v="0.0" help="Max time variation" state="[CheckIdOnMyParent UseAutomaticDeltaTime Automatic]"/>
+		  <value n="MinVart" pn="Min Dt" v="0.0" help="Min time variation" state="[CheckIdOnMyParent UseAutomaticDeltaTime Automatic]"/>
+	  </container>
+  </container>
