@@ -113,7 +113,7 @@ void SphericParticle::Initialize()
     if (node.GetDof(ANGULAR_VELOCITY_Y).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Y,true);}
     else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);}
     if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
-    else                                          {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}
+    else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}
     CustomInitialize();    
 
     KRATOS_CATCH( "" )
@@ -642,8 +642,11 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
         double equiv_rolling_friction_coeff       = GetRollingFriction() * GetSearchRadius();
         
         if (!wall) {
-            double other_rolling_friction_coeff = p_neighbour->GetRollingFriction() * p_neighbour->GetSearchRadius();
-            double equiv_rolling_friction_coeff = std::min(equiv_rolling_friction_coeff, other_rolling_friction_coeff);
+            double inv_radius_sum = 1.0 / (GetSearchRadius() + p_neighbour->GetSearchRadius());
+            double equiv_rad      = GetSearchRadius() * p_neighbour->GetSearchRadius() * inv_radius_sum;
+            double rolling_friction_coeff = GetRollingFriction() * equiv_rad;
+            double other_rolling_friction_coeff = p_neighbour->GetRollingFriction() * equiv_rad;
+            equiv_rolling_friction_coeff = std::min(rolling_friction_coeff, other_rolling_friction_coeff);
         }
 
         if (equiv_rolling_friction_coeff != 0.0) {
