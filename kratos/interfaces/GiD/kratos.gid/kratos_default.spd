@@ -29,8 +29,8 @@
 	<proc n='GetElements' args='args'>
 	  <![CDATA[
 	  
-		set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
-		set schemeUN [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+		set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+		set schemeUN [spdAux::ExecuteOnCurrentApp getUniqueName Scheme]
 		if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
 		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
 		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] values
