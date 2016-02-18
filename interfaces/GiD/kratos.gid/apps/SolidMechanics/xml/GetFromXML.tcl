@@ -44,4 +44,9 @@ proc SolidMechanics::xml::getProcesses { } {
     Model::getProcesses
 }
 
+
+proc SolidMechanics::xml::getUniqueName {name} {
+    return SM$name
+}
+
 SolidMechanics::xml::Init

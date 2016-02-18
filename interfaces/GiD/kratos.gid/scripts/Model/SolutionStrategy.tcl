@@ -273,18 +273,14 @@ proc Model::GetAllSchemeParams {} {
 proc Model::GetAvailableElements {solutionStrategyId schemeId} { 
     variable Elements
     variable SolutionStrategies
-
+    
+    
     set cumplen [list ]
-    #W $solutionStrategyId
-    #W $schemeId
     set solst [Model::GetSolutionStrategy $solutionStrategyId]
     set scheme [$solst getScheme $schemeId]
     set filters [$scheme getElementFilters]
-    #W "filtros $filters"
     set include [$scheme getElementForceIn]
     set exclude [$scheme getElementForceOut]
-    #W "in $include"
-    #W "ou $exclude"
     
     foreach elem $Elements {
         set f [$elem cumple $filters]
@@ -292,9 +288,7 @@ proc Model::GetAvailableElements {solutionStrategyId schemeId} {
         set i 0
         if {[llength $include]} {set i [$elem cumple $include]}
         set o 0
-        if {[llength $exclude]} {set o [$elem cumple $exclude]}
-        #W "Cumple [$elem getName]? f $f and no $o or i $i [expr ($f && !$o) || $i]"
-        
+        if {[llength $exclude]} {set o [$elem cumple $exclude]}        
         if {[expr ($f && !$o) || $i]} { lappend cumplen $elem}
     }
     

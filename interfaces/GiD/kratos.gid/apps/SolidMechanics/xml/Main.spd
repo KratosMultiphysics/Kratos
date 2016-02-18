@@ -5,7 +5,7 @@
     <include n="Intervals" active="0" path="apps/SolidMechanics/xml/Intervals.spd"/>
     <include n="TimeFunctions" active="0" path="apps/SolidMechanics/xml/Functions.spd"/>
     <include n="Fields" active="0" path="apps/SolidMechanics/xml/Fields.spd"/>
-    <include n="DegreesOfFreedom" active="1" path="apps/SolidMechanics/xml/DegreesOfFreedom.spd"/>
+    <include n="BoundaryConditions" active="1" path="apps/SolidMechanics/xml/BoundaryConditions.spd"/>
     <include n="Loads" active="1" path="apps/SolidMechanics/xml/Loads.spd"/>
     <include n="Processes" active="1" path="apps/SolidMechanics/xml/Processes.spd"/>
     <include n="SolutionStrategy" active="1" path="apps/SolidMechanics/xml/SolutionStrategy.spd"/>

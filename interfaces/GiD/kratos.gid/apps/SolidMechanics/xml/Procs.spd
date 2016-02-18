@@ -27,27 +27,6 @@
 	  
 	  ]]>
 	</proc>
-	<proc n='GetSolutionStrategies' args='args'>
-	  <![CDATA[
-	  
-		set names ""
-		set pnames ""
-		set Sols [::Model::GetSolutionStrategies]
-		foreach ss $Sols {
-			lappend ids [$ss getName]
-			append names [$ss getName] ","
-			append pnames [$ss getName] "," [$ss getPublicName] ","
-		}
-		set names [string range $names 0 end-1]
-		set pnames [string range $pnames 0 end-1]
-		
-		$domNode setAttribute dict $pnames
-		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
-		#spdAux::RequestRefresh
-		return $names
-	  
-	  ]]>
-	</proc>
 	<proc n='GetConstitutiveLaws' args='args'>
 	  <![CDATA[
 		set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
@@ -72,32 +51,22 @@
 		return [join $names ","]
 	  ]]>
 	</proc>
-	<proc n='GetElements' args='args'>
+	
+		  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
-		if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] v] eq ""} {
-		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] values
-		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMScheme]] values
-		}
-		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] v]
-		set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMScheme]] v]
-		
-		set elems [::Model::GetAvailableElements $solStratName $schemeName]
-		set ids [list ]
-		set names ""
-		set pnames ""
-		foreach e $elems {
-			lappend ids [$e getName]
-			append names [$e getName] ","
-			append pnames [$e getName] "," [$e getPublicName] ","
-		}
-		set names [string range $names 0 end-1]
-		set pnames [string range $pnames 0 end-1]
-		
-		$domNode setAttribute dict $pnames
-		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
-		#spdAux::RequestRefresh
-		return $names
-	  
+	  # Overwritten the base function to add Solution Type restrictions
+		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+	    if {[spdAux::getRoute $parts_un] ne ""} {
+			set conditionId [$domNode @n]
+			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSoluType]] v]
+			set params [list analysis_type $solutionType]
+			if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
 	  ]]>
 	</proc>
 	<proc n='ConditionState' args='args'>
@@ -146,22 +115,6 @@
 		set parts [$domNode selectNodes "[spdAux::getRoute SMParts]/group"]
 		}
 		if {$parts ne ""} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='CheckConditionContainerState' args='args'>
-	  <![CDATA[
-	    if {[spdAux::getRoute SMParts] ne ""} {
-			set conditionId [$domNode @n]
-			
-			set elems [$domNode selectNodes "[spdAux::getRoute SMParts]/group/value\[@n='Element'\]"]
-			set elemnames [list ]
-			foreach elem $elems { lappend elemnames [$elem @v]}
-			set elemnames [lsort -unique $elemnames]
-			
-			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSoluType]] v]
-			
-			if {[::Model::CheckElementsCondition $conditionId $elemnames $solutionType]} {return "normal"} else {return "hidden"}
-		} {return "normal"}
 	  ]]>
 	</proc>
 	  <proc n='SolStratParamState' args='args'>

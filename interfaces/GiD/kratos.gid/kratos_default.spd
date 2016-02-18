@@ -26,7 +26,74 @@
     </container>
   </blockdata>     
   <procs>
-	<dynamicnode command="injectProcs" args=""/>
+	<proc n='GetElements' args='args'>
+	  <![CDATA[
+	  
+		set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+		set schemeUN [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+		if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
+		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
+		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] values
+		}
+		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
+		set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v]
+		
+		set elems [::Model::GetAvailableElements $solStratName $schemeName]
+		
+		
+		set names [list ]
+		set pnames [list ]
+		foreach cl $elems {
+			lappend names [$cl getName]
+			lappend pnames [$cl getName] 
+			lappend pnames [$cl getPublicName]
+		}
+		
+		$domNode setAttribute dict [join $pnames ","]
+		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+		spdAux::RequestRefresh
+		
+		return [join $names ","]
+		
+	  ]]>
+	</proc>
+	
+	<proc n='GetSolutionStrategies' args='args'>
+	  <![CDATA[
+	  
+		set names ""
+		set pnames ""
+		set Sols [::Model::GetSolutionStrategies]
+		foreach ss $Sols {
+			lappend ids [$ss getName]
+			append names [$ss getName] ","
+			append pnames [$ss getName] "," [$ss getPublicName] ","
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute dict $pnames
+		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
+		#spdAux::RequestRefresh
+		return $names
+	  
+	  ]]>
+	</proc>
+	
+	  <proc n='CheckNodalConditionState' args='args'>
+	  <![CDATA[
+		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+	    if {[spdAux::getRoute $parts_un] ne ""} {
+			set conditionId [$domNode @n]
+			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			W "$conditionId $elemnames"
+			if {[::Model::CheckElementsCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+	  ]]>
+	</proc>
 
 	  <proc n='checkStateByUniqueName' args='args'>
 	  <![CDATA[
@@ -218,7 +285,9 @@
       }
       return [list $dict ""]      
       ]]>
-    </proc>    
+    </proc>
+	
+	<dynamicnode command="injectProcs" args=""/>
   </procs>
   <translations>
     <translation pn="User defined"/>
