@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Processes" pn="Processes" un="SMProcesses"  state="normal" open="1">
-	<condition n="Process1" pn="Sample process" ov="point,line,surface,volume" ovm="node,element">
-	<value n="Active" pn="Active" v="True" values="True,False"/>
-	<value n="Parameter1" pn="Parameter 1" v="7" />
-	<value n="Parameter2" pn="Parameter 2" v="8" />
-	</condition>
-    
+<container n="Processes" pn="Processes" un="SMProcesses"  state="normal" open="1">    
 	<dynamicnode command="injectProcesses" args=""/>
 </container>
     

@@ -341,7 +341,7 @@
     <!--define list of NodalConditions-->
     <NodalConditions>
       <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction="REACTION"/>
-      <NodalCondition n="PRESSURE"     pn="Pressure"     type="double" analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
+      <NodalCondition n="PRESSURE"     pn="Pressure"     type="double"	  analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
       <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"  reaction=""/>
       <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector"    analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
@@ -395,7 +395,7 @@
 
   <!--structural elements-->
   <!--beam elements-->
-  <ElementItem n="Beam Element" pn="Small Displacement Beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
+  <ElementItem n="BeamElement" pn="Small Displacement Beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a small displacement timoshenko beam structural model"
