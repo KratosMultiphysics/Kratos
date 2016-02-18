@@ -711,7 +711,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-            rOutput[PointNumber] =  PoromechanicsMathUtilities::CalculateVonMises(Variables.StressVector);
+            rOutput[PointNumber] =  ElementUtilities::CalculateVonMises(Variables.StressVector);
         }
     }
     else

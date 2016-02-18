@@ -18,7 +18,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "custom_utilities/poromechanics_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
