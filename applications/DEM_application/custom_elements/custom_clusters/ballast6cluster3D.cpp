@@ -60,13 +60,13 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        // 0.93223 (in meters) was the medium diameter of the rock in GiD (grain_0452_geom.gid file)
-        // so we should multiply every size that follow by the inverse of that number, 1.07270,
+        // 0.989332 (in meters) was the medium diameter of the rock in GiD (grain_0452_geom.gid file)
+        // so we should multiply every size that follow by the inverse of that number, 1.010783,
         // to obtain a 'unity' rock.
         // We then have to multiply again everything by 'cl' to obtain the desired dimensions
         // to adjust to the characteristic length given
                 
-        cl *= 1.07270;
+        cl *= 1.010783;
 
         mListOfCoordinates[ 0][0]= 0.154526; mListOfCoordinates[ 0][1]=-0.232991; mListOfCoordinates[ 0][2]=-0.357640;
         mListOfCoordinates[ 1][0]= 0.057113; mListOfCoordinates[ 1][1]= 0.176699; mListOfCoordinates[ 1][2]=-0.104017;
@@ -165,13 +165,13 @@ namespace Kratos {
         
         for (int i = 0; i < number_of_spheres; i++) { mListOfRadii[i]= mListOfRadii[i] * cl; }
        
-        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 0.424193 * cl * cl * cl;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 0.507020 * cl * cl * cl;
                 
         array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         
-        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.070615;
-        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.109513;
-        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.127389;
+        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.092287;
+        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.191426;
+        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.223336;
 
     }
     
