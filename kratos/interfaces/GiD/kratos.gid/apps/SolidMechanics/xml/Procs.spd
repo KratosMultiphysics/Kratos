@@ -1,56 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="procs" pn="procs" includeContainer="No">
-    <proc n='GetSchemes' args='args'>
-	  <![CDATA[
-	  
-		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSolStrat]] v]
-		set schemes [::Model::GetAvailableSchemes $solStratName]
-		
-		if {[llength $schemes] == 0} {
-			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
-			return "None"
-		}
-		set names [list ]
-		set pnames [list ]
-		foreach cl $schemes {
-			lappend names [$cl getName]
-			lappend pnames [$cl getName] 
-			lappend pnames [$cl getPublicName]
-		}
-		
-		$domNode setAttribute dict [join $pnames ","]
-		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-		#spdAux::RequestRefresh
-		
-		return [join $names ","]
-		
-	  
-	  ]]>
-	</proc>
-	<proc n='GetConstitutiveLaws' args='args'>
-	  <![CDATA[
-		set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
-		set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
-		#W "Const Laws que han pasado la criba $Claws"
-		if {[llength $Claws] == 0} {
-			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
-			return "None"
-		}
-		set names [list ]
-		set pnames [list ]
-		foreach cl $Claws {
-			lappend names [$cl getName]
-			lappend pnames [$cl getName] 
-			lappend pnames [$cl getPublicName]
-		}
-		
-		$domNode setAttribute dict [join $pnames ","]
-		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-		spdAux::RequestRefresh
-		
-		return [join $names ","]
-	  ]]>
-	</proc>
+
 	
 		  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
@@ -76,33 +26,6 @@
 	  ]]>
 	</proc>
 	
-	<proc n='ConstLawParamValue' args='args'>
-	  <![CDATA[
-		return [spdAux::CheckConstLawParamValue $domNode]
-	  ]]>
-	</proc>
-	  <proc n='PartParamState' args='args'>
-	  <![CDATA[
-		set resp [::Model::CheckElemParamState $domNode]
-		if {$resp eq "0"} {
-			set id [$domNode getAttribute n]
-			set constLaw [get_domnode_attribute [[$domNode parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
-			
-			if {$constLaw eq ""} {return hidden}
-			set resp [Model::CheckConstLawParamState $constLaw $id]
-		}
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	  
-	</proc>
-	<proc n='CheckDimension' args='args'>
-	  <![CDATA[
-		set checkdim [lindex $args 0]
-		
-		if {$checkdim eq $::Model::SpatialDimension} {return "normal"} else {return "hidden"}
-	  ]]>
-	  
-	</proc>
 	<proc n='ElemParamValue' args='args'>
 	  <![CDATA[
 		return [spdAux::CheckElemParamValue $domNode]

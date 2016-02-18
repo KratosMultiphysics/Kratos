@@ -4,7 +4,6 @@
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="model_part_name" pn="mesh_id" v="ModelPartName" type="String" state="disabled" />
       <parameter n="variable_name" pn="Variable name" type="String"   />
       <parameter n="factor" pn="factor" type="double"  v="1.0" />
       <parameter n="value" pn="value" type="vector" v="0.0,0.0,-9.81" />
@@ -17,7 +16,6 @@
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="model_part_name" pn="mesh_id" v="ModelPartName" state="disabled" />
       <parameter n="variable_name" pn="Variable name" type="String"   />
       <parameter n="value" pn="value" type="double" />
       <parameter n="is_fixed" pn="Fix" type="bool" />

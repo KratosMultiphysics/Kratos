@@ -79,7 +79,58 @@
 	  
 	  ]]>
 	</proc>
-	
+	    <proc n='GetSchemes' args='args'>
+	  <![CDATA[
+		set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
+		set schemes [::Model::GetAvailableSchemes $solStratName]
+		
+		if {[llength $schemes] == 0} {
+			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
+			return "None"
+		}
+		set names [list ]
+		set pnames [list ]
+		foreach cl $schemes {
+			lappend names [$cl getName]
+			lappend pnames [$cl getName] 
+			lappend pnames [$cl getPublicName]
+		}
+		
+		$domNode setAttribute dict [join $pnames ","]
+		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+		#spdAux::RequestRefresh
+		
+		return [join $names ","]
+		
+	  
+	  ]]>
+	</proc>
+		
+	<proc n='GetConstitutiveLaws' args='args'>
+	  <![CDATA[
+		set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
+		set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
+		#W "Const Laws que han pasado la criba: $Claws"
+		if {[llength $Claws] == 0} {
+			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
+			return "None"
+		}
+		set names [list ]
+		set pnames [list ]
+		foreach cl $Claws {
+			lappend names [$cl getName]
+			lappend pnames [$cl getName] 
+			lappend pnames [$cl getPublicName]
+		}
+		
+		$domNode setAttribute dict [join $pnames ","]
+		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+		spdAux::RequestRefresh
+		
+		return [join $names ","]
+	  ]]>
+	</proc>
 	  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
 		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
@@ -89,7 +140,7 @@
 			set elemnames [list ]
 			foreach elem $elems { lappend elemnames [$elem @v]}
 			set elemnames [lsort -unique $elemnames]
-			W "$conditionId $elemnames"
+			#W "$conditionId $elemnames"
 			if {[::Model::CheckElementsCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
 	  ]]>
@@ -100,11 +151,8 @@
 		set total 1
 		
 		foreach {un val} $args {
-		
 		  set xpath [spdAux::getRoute $un]
-		  
 		  spdAux::insertDependencies $domNode $un
-
 		  set realval [get_domnode_attribute [$domNode selectNodes $xpath] v]
 		  if {$realval eq ""} {W "Warning: Check unique name $un"}
 		  if {[lsearch $val $realval] == -1} {
@@ -115,16 +163,31 @@
 		if {$total} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
-	<proc n='getElementsFromXML' args='args'>
-	  <![CDATA[
-	  set app [lindex $args 0]
-	  set fil [lindex $args 1]
-	  set tag [lindex $args 2]
-	  set val [lindex $args 3]
-	  set pn [lindex $args 4]
 	  
-	  return [spdAux::getElements $app $fil $tag $val $pn]
+	<proc n='ConstLawParamValue' args='args'>
+	  <![CDATA[
+		return [spdAux::CheckConstLawParamValue $domNode]
 	  ]]>
+	</proc>
+	  <proc n='PartParamState' args='args'>
+	  <![CDATA[
+		set resp [::Model::CheckElemParamState $domNode]
+		if {$resp eq "0"} {
+			set id [$domNode getAttribute n]
+			set constLaw [get_domnode_attribute [[$domNode parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+			if {$constLaw eq ""} {return hidden}
+			set resp [Model::CheckConstLawParamState $constLaw $id]
+		}
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	<proc n='CheckDimension' args='args'>
+	  <![CDATA[
+		set checkdim [lindex $args 0]
+		
+		if {$checkdim eq $::Model::SpatialDimension} {return "normal"} else {return "hidden"}
+	  ]]>
+	  
 	</proc>
 	<proc n='getStateFromXPathValue' args='args'>
 	  <![CDATA[

@@ -274,7 +274,6 @@ proc Model::GetAvailableElements {solutionStrategyId schemeId} {
     variable Elements
     variable SolutionStrategies
     
-    
     set cumplen [list ]
     set solst [Model::GetSolutionStrategy $solutionStrategyId]
     set scheme [$solst getScheme $schemeId]
