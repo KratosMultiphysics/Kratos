@@ -4,17 +4,17 @@ oo::class create Element {
     superclass Entity
     
     variable TopologyFeatures
-    variable ElementDegreeOfFreedom
+    variable ElementNodalCondition
     variable ConstLawFilters
     
     constructor {n} {
         next $n
         variable TopologyFeatures
-        variable ElementDegreeOfFreedom
+        variable ElementNodalCondition
         variable ConstLawFilters
         
         set TopologyFeatures [list ]
-        set ElementDegreeOfFreedom [dict create]
+        set ElementNodalCondition [dict create]
         set constLawFilters [dict create]
     }
     
@@ -40,19 +40,19 @@ oo::class create Element {
         return $v
     }
     
-    method addDOF {key dof} {
-        variable ElementDegreeOfFreedom
-        dict set ElementDegreeOfFreedom $key $dof
+    method addNodalCondition {key nc} {
+        variable ElementNodalCondition
+        dict set ElementNodalCondition $key $nc
     }
-    method getDOFs {} {
-        variable ElementDegreeOfFreedom
-        return $ElementDegreeOfFreedom
+    method getNodalConditions {} {
+        variable ElementNodalCondition
+        return $ElementNodalCondition
     }
-    method getDOF {key} {
-        variable ElementDegreeOfFreedom
+    method getNodalCondition {key} {
+        variable ElementNodalCondition
         set v ""
         catch {
-            set v [dict get $ElementDegreeOfFreedom $key]
+            set v [dict get $ElementNodalCondition $key]
         }
         return $v
     }
@@ -85,8 +85,8 @@ oo::class create Element {
         return $c
     }
 }
-catch {DOF destroy}
-oo::class create DOF {
+catch {NodalCondition destroy}
+oo::class create NodalCondition {
     superclass Parameter
     variable reaction
     
@@ -137,17 +137,17 @@ proc Model::ParseElemNode { node } {
         $el addConstLawFilter [$clf getAttribute field] [$clf getAttribute value]
         #W "CL Filter [$clf nodeName] -> [$el getConstLawFilterValue [$clf nodeName]]"
     }
-    foreach dofnode [[$node getElementsByTagName BoundaryConditions] childNodes]  {
-        set n [$dofnode @n]
-        set dof [::Model::DOF new $n [$dofnode @pn] [$dofnode @type] ]
-        $dof setReaction [$dofnode @reaction]
-        $dof setUnits [$dofnode @units]
-        $dof setUnitMagnitude [$dofnode @unit_magnitude]
-        foreach att [$dofnode attributes] {
-            $dof addAttribute $att [split [$dofnode getAttribute $att] ","]
+    foreach ncnode [[$node getElementsByTagName NodalConditions] childNodes]  {
+        set n [$ncnode @n]
+        set nc [::Model::NodalCondition new $n [$ncnode @pn] [$ncnode @type] ]
+        $nc setReaction [$ncnode @reaction]
+        $nc setUnits [$ncnode @units]
+        $nc setUnitMagnitude [$ncnode @unit_magnitude]
+        foreach att [$ncnode attributes] {
+            $nc addAttribute $att [split [$ncnode getAttribute $att] ","]
         }
         
-        $el addDOF $n $dof
+        $el addNodalCondition $n $nc
     }
     
     return $el
@@ -156,7 +156,7 @@ proc Model::ParseElemNode { node } {
 # Se usa?
 proc Model::GetElements {args} { 
     variable Elements
-    W "Get elements $args"
+    #W "Get elements $args"
     set cumplen [list ]
     foreach elem $Elements {
         if {[$elem cumple $args]} { lappend cumplen $elem}
@@ -225,15 +225,15 @@ proc Model::getAllDOFs {} {
     
     set dofs [dict create]
     foreach el $Elements {
-        foreach in [dict keys [$el getDOFs]] {
-            dict set dofs $in [$el getDOF $in]
+        foreach in [dict keys [$el getNodalConditions]] {
+            dict set dofs $in [$el getNodalCondition $in]
         }
     }
     return $dofs
 }
 
 proc Model::getDOFbyId {dofid} {
-    return [dict get [getAllDOFs] $dofid]
+    return [dict get [getAllNodalConditions] $dofid]
 }
 
 
@@ -270,25 +270,24 @@ proc Model::CheckElementOutputState {elemsactive paramName} {
     return $state
 }
 
-proc Model::CheckElementsCondition {conditionId elemnames solType} {
+proc Model::CheckElementsCondition {conditionId elemnames {restrictions "" }} {
     set ret 0
-    set aparece 0
-    set coincideAnalysis 0
     if {[llength $elemnames] < 1} {
-        set ret 0
+        #
     } else {
         foreach eid $elemnames {
             set elem [getElement $eid]
-            set dof [$elem getDOF $conditionId]
+            set dof [$elem getNodalCondition $conditionId]
             
             if {$dof ne ""} {
-                set aparece 1
-                if {[$dof getAttribute analysis_type] eq "Dynamic" && $solType eq "Dynamic"} {set coincideAnalysis 1;break}
-                if {[$dof getAttribute analysis_type] eq "Static"} {set coincideAnalysis 1;break}
+                set ret 1
+                foreach {key value} $restrictions {
+                    # JG: Revisar bidireccionalidad
+                    if {$value ni [$dof getAttribute $key]} {set ret 0;break}
+                }
             }
             
         }
     }
-    if {[expr $aparece && $coincideAnalysis]} {set ret 1}
     return $ret
 }

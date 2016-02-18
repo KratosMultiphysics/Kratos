@@ -495,30 +495,30 @@ proc spdAux::injectProcesses {basenode} {
         set help [$proc getHelp]
         
         set node "<condition n=\"$n\" pn=\"$pn\" ov=\"point,line,surface,volume\"  ovm=\"\" icon=\"shells16\" help=\"$help\"  >"
-	foreach {n input} [$proc getInputs] {
-		set n [$input getName]
-		set pn [$input getPublicName]
-		set type [$input getType]
-		set v [$input getDv]
-		set state [$input getAttribute state]
-		#W "$n $type $v $state"
-		 if {$type eq "vector"} {
-			set v1 [lindex [split $v ","] 0]
-			set v2 [lindex [split $v ","] 1]
-			set v3 [lindex [split $v ","] 2]
-		    append node "
-		    <value n=\"[concat $n "_X"]\"  pn=\"X Value\" v=\"$v1\" help=\"\" />
-		    <value n=\"[concat $n "_Y"]\"  pn=\"Y Value\" v=\"$v2\" help=\"\" />
-		    <value n=\"[concat $n "_Z"]\"  pn=\"Z Value\" v=\"$v3\" help=\"\" />
-		    "
-		} elseif {$type eq "bool"} {
-		    append node "<value n=\"$n\" pn=\"$n\" v=\"$v\" values=\"True,False\"  help=\"\"/>"
-		} elseif {$type eq "String"} {
-		    append node "<value n=\"$n\" pn=\"$n\" v=\"$v\" state=\"$state\"  help=\"\"/>"
-		} else {
-		    append node "<value n=\"$n\" pn=\"$n\" v=\"$v\"  help=\"\"/>"
-		}
-	}
+        foreach {n input} [$proc getInputs] {
+            set n [$input getName]
+            set pn [$input getPublicName]
+            set type [$input getType]
+            set v [$input getDv]
+            set state [$input getAttribute state]
+            #W "$n $type $v $state"
+            if {$type eq "vector"} {
+                set v1 [lindex [split $v ","] 0]
+                set v2 [lindex [split $v ","] 1]
+                set v3 [lindex [split $v ","] 2]
+                append node "
+                <value n=\"[concat $n "_X"]\"  pn=\"X Value\" v=\"$v1\" help=\"\" />
+                <value n=\"[concat $n "_Y"]\"  pn=\"Y Value\" v=\"$v2\" help=\"\" />
+                <value n=\"[concat $n "_Z"]\"  pn=\"Z Value\" v=\"$v3\" help=\"\" />
+                "
+            } elseif {$type eq "bool"} {
+                append node "<value n=\"$n\" pn=\"$n\" v=\"$v\" values=\"True,False\"  help=\"\"/>"
+            } elseif {$type eq "String"} {
+                append node "<value n=\"$n\" pn=\"$n\" v=\"$v\" state=\"$state\"  help=\"\"/>"
+            } else {
+                append node "<value n=\"$n\" pn=\"$n\" v=\"$v\"  help=\"\"/>"
+            }
+        }
         append node "</condition>"
         #W $node
         catch {$procsnode appendXML $node}
@@ -537,8 +537,8 @@ proc spdAux::injectDoFs { basenode } {
         set units [$dof getUnits]
         set um [$dof getUnitMagnitude]
         set help [$dof getHelp]
-        
-        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"point,line,surface,volume\" type=\"$type\" ovm=\"\" icon=\"shells16\" help=\"$help\"  state=\"\[CheckConditionContainerState\]\">"
+         
+        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"point,line,surface,volume\" type=\"$type\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\">"
         if {$type eq "vector"} {
             append node "
             <value n=\"FixX\" pn=\"X Fix\" v=\"1\" values=\"1,0\" help=\"\"/>
@@ -553,7 +553,7 @@ proc spdAux::injectDoFs { basenode } {
         }
         append node "</condition>"
         #W $node
-        catch {$conds appendXML $node}
+        $conds appendXML $node
     }
     $basenode delete
 }
@@ -656,6 +656,12 @@ proc spdAux::injectProcs { basenode } {
         set xmlNode [$newnode documentElement]
     
         foreach in [$xmlNode getElementsByTagName "proc"] {
+            # This allows an app to overwrite mandatory procs
+            set procn [$in @n]
+            catch {
+                set pastnode [[$basenode parent] selectNodes "./proc\[@n='$procn'\]"]
+                $pastnode delete
+            }
             [$basenode parent] appendChild $in
         }
         $basenode delete
