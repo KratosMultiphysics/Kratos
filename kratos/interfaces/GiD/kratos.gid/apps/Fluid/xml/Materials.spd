@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="materials" pn="Materials" un="FLMaterials" icon="material16" help="Materials database (2D)">
     <blockdata n='material' name='Air' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
-      <value n="Density" pn="Density" v="1.01" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
-      <value n="Viscosity" pn="Viscosity" v="1" help="Mass density of the material" unit_magnitude="Viscosity" units="Pa*s"/>
+      <value n="DENSITY" pn="Density" v="1.225" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
+      <value n="VISCOSITY" pn="Viscosity" v="1.81e-5" help="Mass density of the material" unit_magnitude="Viscosity" units="Pa*s"/>
     </blockdata>
-    <blockdata n='material' name='Steel' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
-      <value n="Density" pn="Density" v="7850" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
-      <value n="Viscosity" pn="Viscosity" v="2" help="Mass density of the material" unit_magnitude="Viscosity" units="Pa*s"/>
-    </blockdata>
-    <blockdata n='material' name='Aluminium' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
-      <value n="Density" pn="Density" v="2650" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
-      <value n="Viscosity" pn="Viscosity" v="3" help="Mass density of the material" unit_magnitude="Viscosity" units="Pa*s"/>
+    <blockdata n='material' name='Water' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
+      <value n="DENSITY" pn="Density" v="1.01" help="Mass density of the material" unit_magnitude="Density" units="kg/m^3"/>
+      <value n="VISCOSITY" pn="Viscosity" v="8.9e-4" help="Mass density of the material" unit_magnitude="Viscosity" units="Pa*s"/>
     </blockdata>
 </container>  
