@@ -15,6 +15,8 @@ oo::class create Parameter {
     variable units
     variable unitMagnitude
     
+    variable fix
+    
     constructor {n pn t v u um h {vs ""} {pvs "" }} {
         next $n
         variable type
@@ -26,6 +28,7 @@ oo::class create Parameter {
         
         variable units
         variable unitMagnitude
+        variable fix
         
         my setPublicName $pn
         set type $t
@@ -52,6 +55,8 @@ oo::class create Parameter {
                 lappend pvalues $val
             }
         } else {set pvalues $values}
+        
+        set fix 0
     }
     
     method setDep {dn dv} {
@@ -70,6 +75,8 @@ oo::class create Parameter {
     method getUnits { } {variable units; return $units}
     method setUnitMagnitude {u} {variable unitMagnitude; set unitMagnitude $u}
     method getUnitMagnitude { } {variable unitMagnitude; return $unitMagnitude}
+    method setFixity {u} {variable fix; set fix $u}
+    method getFixity { } {variable fix; return $fix}
 }
 }
 
@@ -90,8 +97,12 @@ proc Model::ParseInputParamNode {st in} {
     set unitMagnitude ""
     catch {set units [$in @units]}
     catch {set unitMagnitude [$in @unit_magnitude]}
-    
-    $st addInput $n $pn $t $v $units $unitMagnitude $h $vs $pvs
+    set fi ""
+    catch {set fi [$in @fixity]}
+    set input [::Model::Parameter new $n $pn $t $v $units $unitMagnitude $h $vs $pvs]
+    if {$fi ne ""} {set fi 0}
+    $input setFixity $fi
+    $st addInputDone $input
     
     if {[$in hasAttribute "parent"]} {
         set dn [[$in parent] @n]

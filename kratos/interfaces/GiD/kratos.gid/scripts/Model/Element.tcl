@@ -89,14 +89,18 @@ catch {NodalCondition destroy}
 oo::class create NodalCondition {
     superclass Parameter
     variable reaction
+    variable ov
     
     constructor {n pn type} {
         next $n $pn $type "1" "" "" $pn
         set reaction ""
+        set ov "point,line,surface,volume"
     }
     
     method setReaction {r} {variable reaction; set reaction $r}
     method getReaction {} {variable reaction; return $reaction}
+    method setOv {r} {variable ov; set ov $r}
+    method getOv {} { variable ov; return $ov}
     
 }
 }
@@ -141,6 +145,11 @@ proc Model::ParseElemNode { node } {
         set n [$ncnode @n]
         set nc [::Model::NodalCondition new $n [$ncnode @pn] [$ncnode @type] ]
         $nc setReaction [$ncnode @reaction]
+        if {[$ncnode hasAttribute ov]} {$nc setOv [$ncnode @ov]}
+            
+        set fi "0"
+        catch {set fi [$ncnode @fixity]}
+        $nc setFixity $fi
         $nc setUnits [$ncnode @units]
         $nc setUnitMagnitude [$ncnode @unit_magnitude]
         foreach att [$ncnode attributes] {
