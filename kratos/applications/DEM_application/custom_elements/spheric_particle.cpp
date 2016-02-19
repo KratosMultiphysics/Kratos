@@ -639,14 +639,11 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
         
-        double equiv_rolling_friction_coeff       = GetRollingFriction() * GetSearchRadius();
+        double equiv_rolling_friction_coeff     = GetRollingFriction() * GetSearchRadius();
         
         if (!wall) {
-            double inv_radius_sum = 1.0 / (GetSearchRadius() + p_neighbour->GetSearchRadius());
-            double equiv_rad      = GetSearchRadius() * p_neighbour->GetSearchRadius() * inv_radius_sum;
-            double rolling_friction_coeff = GetRollingFriction() * equiv_rad;
-            double other_rolling_friction_coeff = p_neighbour->GetRollingFriction() * equiv_rad;
-            equiv_rolling_friction_coeff = std::min(rolling_friction_coeff, other_rolling_friction_coeff);
+            double other_rolling_friction_coeff = p_neighbour->GetRollingFriction() * p_neighbour->GetSearchRadius();
+            equiv_rolling_friction_coeff = std::min(equiv_rolling_friction_coeff, other_rolling_friction_coeff);
         }
 
         if (equiv_rolling_friction_coeff != 0.0) {
