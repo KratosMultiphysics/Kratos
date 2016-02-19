@@ -77,7 +77,6 @@ namespace Kratos
         ModelPart& r_model_part = BaseType::GetModelPart();
         BaseType::Initialize();
         BaseType::InitializeSolutionStep();
-        BaseType::SearchOperations(r_model_part);
         BaseType::ForceOperations(r_model_part);
         BaseType::FinalizeSolutionStep();  
         //SchemeInitialize();
