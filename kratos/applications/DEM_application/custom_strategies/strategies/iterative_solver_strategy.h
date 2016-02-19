@@ -74,12 +74,24 @@ namespace Kratos
       {
         
         KRATOS_TRY
-        
+        ModelPart& r_model_part = BaseType::GetModelPart();
         BaseType::Initialize();
+        BaseType::InitializeSolutionStep();
+        BaseType::SearchOperations(r_model_part);
+        BaseType::ForceOperations(r_model_part);
+        BaseType::FinalizeSolutionStep();  
+        //SchemeInitialize();
            
         KRATOS_CATCH("")        
       }// Initialize()
 
+      
+       void SchemeInitialize()
+      {
+          BaseType::GetScheme()->Calculate(BaseType::GetModelPart(),0);
+          BaseType::GetScheme()->Calculate(BaseType::GetClusterModelPart(),0); 
+      }
+      
       
       void SchemePredict()
       {
