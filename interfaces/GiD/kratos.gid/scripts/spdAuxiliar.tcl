@@ -339,10 +339,8 @@ proc spdAux::CheckConstLawParamValue {node} {
 
     foreach valueNode [$root selectNodes $xp3] {
         if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]}
-    }     
-    
-    W "mat: $material_name prop $id val $val"
-    
+    }   
+    #W "mat: $material_name prop $id val $val"
     
     return $val
 }
