@@ -26,11 +26,6 @@
 	  ]]>
 	</proc>
 	
-	<proc n='ElemParamValue' args='args'>
-	  <![CDATA[
-		return [spdAux::CheckElemParamValue $domNode]
-	  ]]>
-	</proc>
 	  <proc n='ActiveIfAnyPartState' args='args'>
 	  <![CDATA[
 	  set parts ""
