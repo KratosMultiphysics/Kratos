@@ -27,9 +27,6 @@
 // External includes
 #include "boost/smart_ptr.hpp"
 #include <boost/iterator/indirect_iterator.hpp>
-#ifdef _OPENMP
-#include "omptl_algorithm"
-#endif
 
 // Project includes
 #include "includes/define.h"
