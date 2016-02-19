@@ -5,6 +5,27 @@
 		return "normal"
 	  ]]>
 	</proc>
+		<proc n='MaxGroups' args='args'>
+	  <![CDATA[
+		set childs [$domNode getElementsByTagName group]
+		if {[llength $childs] > 1} {
+			foreach group [lrange $childs 1 end] {$group delete}
+			gid_groups_conds::actualize_conditions_window
+			error "You can only set one part"
+		}
+	  ]]>
+	</proc>
+		<proc n='CheckGeometry' args='args'>
+	  <![CDATA[
+		set level [lindex $args 0]
+		if {$level eq 1} {
+			if {$::Model::SpatialDimension eq "3D"} {return volume} {return surface}
+		}
+		if {$level eq 2} {
+			if {$::Model::SpatialDimension eq "3D"} {return surface} {return line}
+		}
+	  ]]>
+	</proc>
 	<proc n='CheckIdOnMyParent' args='args'>
 	  <![CDATA[
 		set r "hidden"

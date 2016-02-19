@@ -14,10 +14,10 @@
       <filter field="dev" value="False"/>
 	</ConstitutiveLaw_FilterFeatures>
 
-    <!--define list of dofs-->
+    <!--define list of NodalConditions-->
     <NodalConditions>
-      <dof n="VELOCITY" pn="Initial Velocity" type="vector" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <dof n="PRESSURE" pn="Initial Pressure" type="double" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="VELOCITY" pn="Initial Velocity" type="vector" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="PRESSURE" pn="Initial Pressure" type="double" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -39,10 +39,10 @@
     <ConstitutiveLaw_FilterFeatures>
       <filter field="dev" value="False"/>
 	</ConstitutiveLaw_FilterFeatures>
-    <!--define list of dofs-->
+    <!--define list of NodalConditions-->
     <NodalConditions>
-      <dof n="VELOCITY" pn="Initial Velocity" type="vector" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <dof n="PRESSURE" pn="Initial Pressure" type="double" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="VELOCITY" pn="Initial Velocity" type="vector" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="PRESSURE" pn="Initial Pressure" type="double" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
