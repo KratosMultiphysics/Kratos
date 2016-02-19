@@ -43,19 +43,25 @@ oo::class create Entity {
     method getHelp { } {variable help; return $help}
     method setHelp { h } {variable help; set help $h}
 
-    
+    method addInputDone {inp} {
+        variable inputs
+        dict set inputs [$inp getName] $inp
+    }
     method addInput {args} {
         variable inputs
         lassign $args n pn t v h vs pvs
         dict set inputs $n [::Model::Parameter new $n $pn $t $v $h $vs $pvs]
     }
     
+    method addOutputDone {out} {
+        variable outputs
+        dict set outputs [$out getName] $out
+    }
     method addOutput {args} {
         variable outputs
         lassign $args n pn t v h vs pvs
         dict set outputs $n [::Model::Parameter new $n $pn $t $v $h $vs $pvs]
     }
-    #method addOutput {n pn} {variable outputs; dict set outputs $n $pn}
         
     method getInputs { } {variable inputs; return $inputs}
     method getInputPn {in} {
@@ -89,13 +95,10 @@ oo::class create Entity {
         
         foreach {k listfiltervalues} $filtros {
             set listattributesvalues [my getAttribute $k]
-            #W "$k : $listfiltervalues -> $listattributesvalues"
             set b1 [string first $listfiltervalues $listattributesvalues]
             set b2 [string first $listattributesvalues $listfiltervalues] 
             set b3 1
-            #W "$b1 $b2"
             if {$b1 eq -1 && $b2 eq -1} {
-                #W "fail $k"
                 set c 0
                 break
             }

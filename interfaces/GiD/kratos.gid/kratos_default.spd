@@ -168,6 +168,12 @@
 		return [spdAux::CheckConstLawParamValue $domNode]
 	  ]]>
 	</proc>
+	
+	<proc n='ElemParamValue' args='args'>
+	  <![CDATA[
+		return [spdAux::CheckElemParamValue $domNode]
+	  ]]>
+	</proc>
 	  <proc n='PartParamState' args='args'>
 	  <![CDATA[
 		set resp [::Model::CheckElemParamState $domNode]

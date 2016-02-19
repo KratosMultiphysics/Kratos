@@ -333,14 +333,15 @@ proc spdAux::CheckConstLawParamValue {node} {
     set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
     set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
     
-    set xp3 [spdAux::getRoute "SMMaterials"]
+    set mats_un [spdAux::ExecuteOnCurrentApp getUniqueName Materials]
+    set xp3 [spdAux::getRoute $mats_un]
     append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
 
     foreach valueNode [$root selectNodes $xp3] {
         if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]}
     }     
     
-    # W "mat: $material_name prop $id val $val"
+    W "mat: $material_name prop $id val $val"
     
     
     return $val
@@ -537,19 +538,27 @@ proc spdAux::injectDoFs { basenode } {
         set units [$dof getUnits]
         set um [$dof getUnitMagnitude]
         set help [$dof getHelp]
-         
-        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"point,line,surface,volume\" type=\"$type\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\">"
+        set ov [$dof getOv]
+        set fix [$dof getFixity]
+        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$ov\" type=\"$type\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\">"
         if {$type eq "vector"} {
+            if {$fix ne 0} {
             append node "
-            <value n=\"FixX\" pn=\"X Fix\" v=\"1\" values=\"1,0\" help=\"\"/>
-            <value n=\"FixY\" pn=\"Y Fix\" v=\"1\" values=\"1,0\" help=\"\"/>
-            <value n=\"FixZ\" pn=\"Z Fix\" v=\"1\" values=\"1,0\" help=\"\"/>
-            <value n=\"ValX\" wn=\"[concat $n "_X"]\" pn=\"X Value\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
-            <value n=\"ValY\" wn=\"[concat $n "_Y"]\" pn=\"Y Value\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
-            <value n=\"ValZ\" wn=\"[concat $n "_Z"]\" pn=\"Z Value\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"FixX\" pn=\"X $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
+                <value n=\"FixY\" pn=\"Y $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
+                <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
+            }
+            
+            append node "
+                <value n=\"ValX\" wn=\"[concat $n "_X"]\" pn=\"X Value\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"ValY\" wn=\"[concat $n "_Y"]\" pn=\"Y Value\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"ValZ\" wn=\"[concat $n "_Z"]\" pn=\"Z Value\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
             "
         } {
-            append node "<value n=\"Value\" pn=\"Value\" v=\"1\" units=\"$units\"  unit_magnitude=\"$um\" help=\"\"/>"
+            if {$fix ne 0} {
+            append node "<value n=\"Fix\" pn=\"$fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
+            }
+            append node "<value n=\"Value\" pn=\"Value\" v=\"1\" units=\"$units\"  unit_magnitude=\"$um\" help=\"$help\"/>"
         }
         append node "</condition>"
         #W $node
