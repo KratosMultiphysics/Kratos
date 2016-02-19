@@ -57,14 +57,7 @@ namespace Kratos {
              }
            }
 
-            else if (StepFlag == -1) //INITIALIZE SCHEME
-            {
-                for (int k = 0; k < 3; k++) {
-                    if (Fix_vel[k] == false) {
-                        vel[k] -= 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
-                    }
-                }
-           }
+
     }//VerletVelocityScheme
         
     void VerletVelocityScheme::UpdateRotationalVariables(
@@ -100,14 +93,6 @@ namespace Kratos {
                }
             }//CORRECT
 
-             else if(StepFlag == -1) //INITIALIZE SCHEME
-             {
-                 for (int k = 0; k < 3; k++) {
-                     if (Fix_Ang_vel[k] == false) {
-                         angular_velocity[k] -= 0.5 * angular_acceleration[k] ;
-                     }
-                 }
-            }
             
     }            
     
