@@ -45,16 +45,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 
-#if !defined(KRATOS_NEW_SOLVING_STRATEGY )
-#define  KRATOS_NEW_SOLVING_STRATEGY
+#if !defined(KRATOS_SOLVING_STRATEGY )
+#define  KRATOS_SOLVING_STRATEGY
 
 
 /* System includes */
 #include <set>
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -482,5 +480,5 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_SOLVING_STRATEGY  defined */
+#endif /* KRATOS_SOLVING_STRATEGY  defined */
 

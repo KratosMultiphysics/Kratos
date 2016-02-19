@@ -682,5 +682,5 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_SOLVING_STRATEGY  defined */
+#endif /* KRATOS_MPM_STRATEGY  defined */
 
