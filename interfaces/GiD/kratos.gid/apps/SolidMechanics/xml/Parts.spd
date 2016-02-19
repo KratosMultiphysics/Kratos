@@ -8,7 +8,7 @@
 			<dependencies node="../value" actualize="1"/>
 	  </value>
 	  <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
-			 values_tree='[give_materials_list]' actualize_tree="1" state="normal">
+			 values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
 			<edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
 			<dependencies node="../value" actualize="1"/>
 	  </value>
