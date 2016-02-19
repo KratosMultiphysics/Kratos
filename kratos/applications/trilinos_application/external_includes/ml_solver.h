@@ -75,13 +75,21 @@ public:
      */
     KRATOS_CLASS_POINTER_DEFINITION(MultiLevelSolver);
 
+    enum ScalingType {NoScaling, LeftScaling};
+
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    typedef typename BaseType::SparseMatrixType SparseMatrixType;
 
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    typedef typename BaseType::VectorType VectorType;
 
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    typedef typename BaseType::DenseMatrixType DenseMatrixType;
+
+    typedef typename BaseType::SparseMatrixPointerType SparseMatrixPointerType;
+  
+    typedef typename BaseType::VectorPointerType VectorPointerType;
+
+    typedef typename boost::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
     /**
      * Default constructor
@@ -92,35 +100,76 @@ public:
         mMLParameterList = ml_parameter_list;
         mtol = tol;
         mmax_iter = nit_max;
+        mScalingType = LeftScaling;
+        mMLPrecIsInitialized = false;
+        mReformPrecAtEachStep = true;
     }
 
     /**
      * Destructor
      */
-    virtual ~MultiLevelSolver() {}
+    virtual ~MultiLevelSolver()
+    {
+      // the preconditioner should be freed before
+      // the system matrix it points to.
+      this->ResetPreconditioner();
+    }
+
+    void SetScalingType(ScalingType val)
+    {
+      mScalingType = val;
+    }
+
+    ScalingType GetScalingType()
+    {
+      return mScalingType;
+    }
+
+    void SetReformPrecAtEachStep(bool val)
+    {
+      mReformPrecAtEachStep = val;
+    }
+
+    void ResetPreconditioner()
+    {
+      mpMLPrec.reset();
+    }
 
     /**
-     * Normal solve method.
-     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-     * rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector.
-     * @param rB. Right hand side vector.
+     * Deprecated solve method.
+     * This method is deprecated. New code should pass system
+     * matrix and vectors as smart pointers to the overloaded
+     * method. Passing smart pointers instead of references
+     * allows the ml preconditioner to be reused if the system
+     * matrix does not change (e.g. linear structural analysis).
+     * Smart pointers are needed to prevent a dangling pointer
+     * from the ml preconditioner to the system matrix.
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_TRY
         Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
 
-		//do scaling
-		Epetra_Vector scaling_vect(rA.RowMap());
-        rA.InvColSums(scaling_vect);
-        AztecProblem.LeftScale(scaling_vect);
-				
-		mMLParameterList.set("PDE equations", mndof);
+        if (this->GetScalingType() == LeftScaling)
+        {
+          // don't use this with conjugate gradient
+          // it destroys the symmetry
+          Epetra_Vector scaling_vect(rA.RowMap());
+          rA.InvColSums(scaling_vect);
+          AztecProblem.LeftScale(scaling_vect);
+        }
+	
+        mMLParameterList.set("PDE equations", mndof);
 
+        // create the preconditioner now. this is expensive.
+        // the preconditioner stores a pointer to the system
+        // matrix. if the system matrix is freed from heap
+        // before the preconditioner, an exception can occur
+        // when the preconditioner is freed. this method is
+        // always safe because is frees the preconditioner at
+        // each solve, but it is not efficient for linear
+        // analysis.
         ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true);
-
 
         // create an AztecOO solver
         AztecOO aztec_solver(AztecProblem);
@@ -132,10 +181,56 @@ public:
         aztec_solver.Iterate(mmax_iter, mtol);
         delete MLPrec;
 
-
-
         return true;
         KRATOS_CATCH("");
+    }
+
+     /**
+     * Normal solve method.
+     * Solves the linear system Ax=b and puts the result in pX.
+     * pX is also the initial guess for iterative methods.
+     * @param pA. System matrix pointer.
+     * @param pX. Solution vector pointer.
+     * @param pB. Right hand side vector pointer.
+     */
+    bool Solve(SparseMatrixPointerType pA, VectorPointerType pX, VectorPointerType pB)
+    {
+      KRATOS_TRY
+      Epetra_LinearProblem AztecProblem(&(*pA),&(*pX),&(*pB));
+
+      if (mScalingType == LeftScaling)
+      {
+        // don't use this with conjugate gradient
+        // it destroys the symmetry
+        Epetra_Vector scaling_vect(pA->RowMap());
+        pA->InvColSums(scaling_vect);
+        AztecProblem.LeftScale(scaling_vect);
+      }
+
+      mMLParameterList.set("PDE equations", mndof);
+
+      if (mReformPrecAtEachStep == true ||
+          mMLPrecIsInitialized == false)
+      {
+        // store the smart pointer to the system matrix
+        // that ml preconditioner points to. this prevents
+        // problems with dangling pointers in trilinos.
+        mpA = pA;
+        // create the preconditioner now. this is expensive.
+        MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(*pA, mMLParameterList, true));
+        mpMLPrec.swap(tmp);
+        mMLPrecIsInitialized = true;
+      }
+
+      AztecOO aztec_solver(AztecProblem);
+      aztec_solver.SetParameters(mAztecParameterList);
+
+      aztec_solver.SetPrecOperator(&(*mpMLPrec));
+ 
+      aztec_solver.Iterate(mmax_iter, mtol);
+
+      return true;
+      KRATOS_CATCH("");
     }
 
     /**
@@ -177,44 +272,40 @@ public:
         ModelPart& r_model_part
     )
     {
-        int old_ndof = -1;
-		unsigned int old_node_id = rdof_set.begin()->Id();
-		int ndof=0;
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-		{
-			
-//			if(it->EquationId() < rdof_set.size() )
-//			{
-				unsigned int id = it->Id();
-				if(id != old_node_id)
-				{
-					old_node_id = id;
-					if(old_ndof == -1) old_ndof = ndof;
-					else if(old_ndof != ndof) //if it is different than the block size is 1
-					{
-						old_ndof = -1;
-						break;
-					}
-					
-					ndof=1;
-				}
-				else
-				{
-					ndof++;
-				}
-//			}
-		}
+      int old_ndof = -1;
+      unsigned int old_node_id = rdof_set.begin()->Id();
+      int ndof=0;
+      for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+      {
+        //			if(it->EquationId() < rdof_set.size() )
+        //			{
+        unsigned int id = it->Id();
+        if(id != old_node_id)
+        {
+          old_node_id = id;
+          if(old_ndof == -1) old_ndof = ndof;
+          else if(old_ndof != ndof) //if it is different than the block size is 1
+          {
+            old_ndof = -1;
+            break;
+          }
+          
+          ndof=1;
+        }
+        else
+        {
+          ndof++;
+        }
+        //			}
+      }
+      
+      r_model_part.GetCommunicator().MinAll(old_ndof);
 		
-		r_model_part.GetCommunicator().MinAll(old_ndof);
-		
-		if(old_ndof == -1) 
-			mndof = 1;
-		else
-			mndof = ndof;
-			
-// 		KRATOS_WATCH(mndof);
-
-
+      if(old_ndof == -1) 
+        mndof = 1;
+      else
+        mndof = ndof;
+      // 		KRATOS_WATCH(mndof);
     }
 
     /**
@@ -235,6 +326,11 @@ public:
 private:
     Teuchos::ParameterList mAztecParameterList;
     Teuchos::ParameterList mMLParameterList;
+    SparseMatrixPointerType mpA;
+    MLPreconditionerPointerType mpMLPrec;
+    ScalingType mScalingType;
+    bool mMLPrecIsInitialized;
+    bool mReformPrecAtEachStep;
     double mtol;
     int mmax_iter;
     int mndof;

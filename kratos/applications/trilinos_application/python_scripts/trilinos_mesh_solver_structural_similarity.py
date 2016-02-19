@@ -27,7 +27,7 @@ def AddDofs(model_part):
 
 class TrilinosMeshSolverStructuralSimilarity:
 
-    def __init__(self, model_part, domain_size, reform_dof_at_every_step):
+    def __init__(self, model_part, domain_size, reform_dof_at_every_step=False):
 
         # Assigning parameters to be used
         self.time_order = 2
@@ -39,13 +39,13 @@ class TrilinosMeshSolverStructuralSimilarity:
         self.Comm = CreateCommunicator()
 
         # Define solver
-        import PressureMultiLevelSolver
-        nit_max = 1000
-        linear_tol = 1e-6
-        self.linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(linear_tol, nit_max)
+        import trilinos_linear_elastic_ml_solver
+        nit_max = 10000
+        linear_tol = 1e-5
+        self.linear_solver = trilinos_linear_elastic_ml_solver.MultilevelLinearSolver(linear_tol, nit_max)
 
     def Initialize(self):
-        self.solver = TrilinosStructuralMeshMovingStrategy(self.Comm, self.model_part, self.linear_solver, self.domain_size, self.time_order, self.reform_dof_at_every_step)
+        self.solver = TrilinosStructuralMeshMovingStrategy(self.Comm, self.model_part, self.linear_solver, self.time_order, self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print("finished moving the mesh")
 
