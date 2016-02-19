@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 
-#if !defined(KRATOS_NEW_RESIDUALBASED_LINEAR_STRATEGY )
-#define  KRATOS_NEW_RESIDUALBASED_LINEAR_STRATEGY
+#if !defined(KRATOS_RESIDUALBASED_LINEAR_STRATEGY )
+#define  KRATOS_RESIDUALBASED_LINEAR_STRATEGY
 
 
 /* System includes */
@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
-
+#include "boost/timer.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -850,5 +850,5 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_RESIDUALBASED_LINEAR_STRATEGY  defined */
+#endif /* KRATOS_RESIDUALBASED_LINEAR_STRATEGY  defined */
 

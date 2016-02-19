@@ -5,8 +5,8 @@
  *  Revision:            $Revision: 1.4 $
  * ***************************************************************************/
 
-#if !defined(KRATOS_NEW_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY )
-#define  KRATOS_NEW_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY
+#if !defined(KRATOS_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY )
+#define  KRATOS_TRILINOS_STRUCTURAL_MESHMOVING_STRATEGY
 
 /* System includes */
 
@@ -344,5 +344,5 @@ private:
 }
 /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY  defined */
+#endif /* KRATOS_STRUCTURAL_MESHMOVING_STRATEGY  defined */
 
