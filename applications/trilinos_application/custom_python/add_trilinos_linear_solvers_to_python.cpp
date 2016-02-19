@@ -120,7 +120,10 @@ void  AddLinearSolvers()
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
     class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
     ("MultiLevelSolver",
-     init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >());
+     init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
+        .def("SetScalingType", &MLSolverType::SetScalingType)
+        .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
+        ;
 
     #ifdef AMGCL_INCLUDED
          enum_<TrilinosAmgclSettings::AMGCLSmoother>("AMGCLSmoother")
@@ -161,6 +164,11 @@ void  AddLinearSolvers()
     .value("NoScaling", NoScaling)
     .value("LeftScaling", LeftScaling)
     .value("SymmetricScaling", SymmetricScaling)
+    ;
+
+    enum_<MLSolverType::ScalingType>("MLSolverScalingType")
+    .value("NoScaling", MLSolverType::NoScaling)
+    .value("LeftScaling", MLSolverType::LeftScaling)
     ;
 }
 
