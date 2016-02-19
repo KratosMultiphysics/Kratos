@@ -1,49 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-11-10 14:23:33 $
-//   Revision:            $Revision: 1.7 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
-
 
 #if !defined(KRATOS_UBLAS_SPACE_H_INCLUDED )
 #define  KRATOS_UBLAS_SPACE_H_INCLUDED
@@ -58,9 +24,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef _OPENMP
 #include "omp.h"
-//#include "omptl"
-//#include "omptl_algorithm"
-//#include "omptl_numeric"
 #endif
 
 
@@ -252,7 +215,7 @@ public:
 #ifndef _OPENMP
         rY.assign(rX);
 #else
-        //omptl::copy(rX.begin(), rX.end(), rY.begin());
+        
         const int size = rX.size();
         if (rY.size() != static_cast<unsigned int>(size))
             rY.resize(size, false);
@@ -373,8 +336,7 @@ public:
 
             }
 #else
-            //omptl::transform(rX.begin(), rX.end(), rX.begin(), std::negate<double>());
-            const int size = rX.size();
+             const int size = rX.size();
 
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
@@ -387,8 +349,6 @@ public:
 #ifndef _OPENMP
             rX *= A;
 #else
-            //                 rX *= A;
-            //omptl::transform(rX.begin(), rX.end(), rX.begin(), MultValueNoAdd<double>(A));
             const int size = rX.size();
 
             #pragma omp parallel for
@@ -419,22 +379,18 @@ public:
 
         if (A == 1.00)
         {
-            //omptl::copy(rY.begin(), rY.end(), rX.begin());
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
                 rX[i] = rY[i];
         }
         else if (A == -1.00)
         {
-            //omptl::transform(rY.begin(), rY.end(), rX.begin(), std::negate<double>());
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
                 rX[i] = -rY[i];
         }
         else
         {
-            //                noalias(rX) = A*rY;
-            //omptl::transform(rY.begin(), rY.end(), rX.begin(), MultValueNoAdd<double>(A)); //todo
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
                 rX[i] = A * rY[i];
@@ -463,21 +419,18 @@ public:
 
         if (A == 1.00)
         {
-            //omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::plus<double>());
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
                 rX[i] += rY[i];
         }
         else if (A == -1.00)
         {
-            //omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::minus<double>());
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
                 rX[i] -= rY[i];
         }
         else
         {
-            //omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), MultAndAddValue<double>(A));
             #pragma omp parallel for
             for (int i = 0; i < size; i++)
                 rX[i] += A * rY[i];
@@ -571,7 +524,6 @@ public:
 #ifndef _OPENMP
         std::fill(rA.begin(), rA.end(), TDataType());
 #else
-        //omptl::fill(rA.begin(), rA.end(), TDataType());
         ParallelFill(rA.begin(), rA.end(), TDataType());
 
 #endif
@@ -583,7 +535,6 @@ public:
 #ifndef _OPENMP
         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-        //omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
         ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #endif
     }
@@ -594,7 +545,6 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        //omptl::fill(rX.begin(), rX.end(), TDataType());
         ParallelFill(rX.begin(), rX.end(), TDataType());
 #endif
     }
@@ -605,7 +555,6 @@ public:
 #ifndef _OPENMP
         std::fill(rA.begin(), rA.end(), TDataType());
 #else
-        //omptl::fill(rA.begin(), rA.end(), TDataType());
         ParallelFill(rA.begin(), rA.end(), TDataType());
 #endif
     }
@@ -615,7 +564,6 @@ public:
 #ifndef _OPENMP
         std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-        //omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
         ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #endif
     }
@@ -625,7 +573,6 @@ public:
 #ifndef _OPENMP
         std::fill(rX.begin(), rX.end(), TDataType());
 #else
-        //omptl::fill(rX.begin(), rX.end(), TDataType());
         ParallelFill(rX.begin(), rX.end(), TDataType());
 #endif
     }
