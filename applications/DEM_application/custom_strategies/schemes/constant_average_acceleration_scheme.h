@@ -47,7 +47,7 @@ namespace Kratos
             
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
-     void Calculate(ModelPart& model_part)
+     void Calculate(ModelPart& model_part, int StepFlag = -1)
      {
         KRATOS_TRY
         

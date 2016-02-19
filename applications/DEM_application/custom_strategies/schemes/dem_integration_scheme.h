@@ -37,7 +37,7 @@ namespace Kratos {
         virtual void AddClustersVariables(ModelPart & r_model_part);
         
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part);         
-        virtual void Calculate(ModelPart& model_part, int StepFlag);
+        virtual void Calculate(ModelPart& model_part, int StepFlag = -1);
                 
         virtual void UpdateTranslationalVariables(
                             int StepFlag, 
