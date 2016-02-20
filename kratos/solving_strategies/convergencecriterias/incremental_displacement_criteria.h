@@ -1,13 +1,15 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: JMCarbonell $
-*   Date:                $Date:      May 2015 $
-*   Revision:            $Revision:       1.8 $
-*
-* ***********************************************************/
-
-// The name of this object must be changed to a:  IncrementalDisplacementCriterion.hpp
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
+//                    
+//
 
 #if !defined(KRATOS_NEW_INCREMENTAL_DISPLACEMENT_CRITERIA )
 #define  KRATOS_NEW_INCREMENTAL_DISPLACEMENT_CRITERIA
