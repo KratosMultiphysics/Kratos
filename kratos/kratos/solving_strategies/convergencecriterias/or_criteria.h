@@ -1,13 +1,15 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: JMCarbonell $
-*   Date:                $Date:      May 2015 $
-*   Revision:            $Revision:       1.8 $
-*
-* ***********************************************************/
-
-// The name of this object must be changed to a:  EitherCriteria.hpp
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                    
+//
 
 #if !defined(KRATOS_OR_CRITERIA_H)
 #define  KRATOS_OR_CRITERIA_H
