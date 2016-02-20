@@ -237,7 +237,7 @@ namespace Kratos
 			    ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
 
 				i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
-				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLIDFRACTION);
 
 			  }
 			}
