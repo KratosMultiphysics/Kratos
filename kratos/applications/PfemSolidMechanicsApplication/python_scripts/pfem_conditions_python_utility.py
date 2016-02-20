@@ -29,8 +29,6 @@ class ConditionsUtility:
     #
     def Initialize(self, time_step):
         self.SetIncrementalDisp(time_step)
-        if(self.rotation_dofs):
-            self.SetIncrementalRotation(time_step)
 
     #
     def SetWeight(self):
@@ -101,31 +99,6 @@ class ConditionsUtility:
             node.SetSolutionStepValue(VELOCITY, Velocity);
 
 
-    #
-    def SetIncrementalRotation(self, time_step):
-
-
-        for node in self.model_part.Nodes:
-            ImposedRotation = node.GetSolutionStepValue(IMPOSED_ROTATION)
-            Rotation = node.GetSolutionStepValue(ROTATION)
-
-            # For displacement imposition:
-            if(node.IsFixed(ROTATION_X) == 1):
-                ImposedRotation[0] = Rotation[0]
-                Rotation[0] = 0
-            if(node.IsFixed(ROTATION_Y) == 1):
-                ImposedRotation[1] = Rotation[1];
-                Rotation[1] = 0;
-            if(node.IsFixed(ROTATION_Z) == 1):
-                ImposedRotation[2] = Rotation[2];
-                Rotation[2] = 0;
-
-            node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation)
-
-            # set to buffer variables to zero
-            node.SetSolutionStepValue(ROTATION, Rotation)
-
-
     def CorrectBoundaryConditions(self,incr_steps,time_step):
 
 
@@ -180,13 +153,6 @@ class ConditionsUtility:
                 force = force * time_step * (incr_steps + 1)
                 node.SetSolutionStepValue(POINT_LOAD, force);
 
-                # point moment conditions
-                moment = node.GetSolutionStepValue(POINT_MOMENT);
-                for comp in [0,1,2]:
-                    moment[comp] = moment[comp] / (time_step * (incr_steps))
-                    moment[comp] = moment[comp] * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(POINT_MOMENT, moment);
-
     #
     def RestartImposedDisp(self):
 
@@ -207,22 +173,5 @@ class ConditionsUtility:
             if(self.rotation_dofs == True):
                 self.RestartImposedRotation();
 
-
-    #
-    def RestartImposedRotation(self):
-
-        if(self.incr_disp == False):
-            for node in self.model_part.Nodes:
-                ImposedRotation = node.GetSolutionStepValue(IMPOSED_ROTATION)
-
-                # For displacement imposition:
-                if(node.IsFixed(ROTATION_X) == 1):
-                    ImposedRotation[0] = 0
-                if(node.IsFixed(ROTATION_Y) == 1):
-                    ImposedRotation[1] = 0;
-                if(node.IsFixed(ROTATION_Z) == 1):
-                    ImposedRotation[2] = 0;
-
-                node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation);
 
     #
