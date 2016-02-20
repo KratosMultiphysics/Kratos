@@ -3,7 +3,7 @@
 from KratosMultiphysics import **
 from KratosMultiphysics.SolidMechanicsApplication import **
 from KratosMultiphysics.PfemSolidMechanicsApplication import **
-from beam_sections_python_utility import SetProperties
+#from beam_sections_python_utility import SetProperties
 
 def AssignMaterial(Properties):
 *loop materials
