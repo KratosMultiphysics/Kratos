@@ -283,3 +283,18 @@ def OutputMatrix_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30,
         #print(output_str)
     A_out = Acoefficient_str+OutputMatrix(A,name,mode,initial_tabs,max_index)    
     return A_out
+
+def OutputVector_CollectingFactors(A,name, mode, initial_tabs = 3, max_index=30, optimizations='basic'):
+    symbol_name = "c"+name
+    A_factors, A_collected = cse(A,numbered_symbols(symbol_name), optimizations)
+    A = A_collected[0] #overwrite lhs with the one with the collected components
+
+    Acoefficient_str = str("")
+    for factor in A_factors:
+        varname = factor[0]
+        value = factor[1]
+        output_value = OutputSymbolicVariable(value, mode)
+        Acoefficient_str += "const double " + str(varname.__str__()) + " = " + output_value 
+        #print(output_str)
+    A_out = Acoefficient_str+OutputVector(A,name,mode,initial_tabs,max_index)    
+    return A_out
