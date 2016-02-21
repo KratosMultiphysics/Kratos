@@ -83,6 +83,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;
