@@ -65,6 +65,7 @@
 #include "add_matrix_market_interface_to_python.h"
 
 #include "add_search_strategies_to_python.h"
+#include "add_kratos_parameters_to_python.h"
 
 namespace Kratos
 {
@@ -125,6 +126,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddParallelStrategiesToPython();
     AddParallelLinearSolversToPython();
     AddMatrixMarketInterfaceToPython();
+    AddKratosParametersToPython();
     
     AddSearchStrategiesToPython();
 
