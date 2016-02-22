@@ -134,16 +134,16 @@ namespace Kratos {
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation, SphericParticle* element1, SphericParticle* element2) {        
+    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(const double indentation, SphericParticle* element1, SphericParticle* element2) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
         return 0.0;
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation, SphericParticle* element1, SphericParticle* element2, const double mass_penalty_factor) {        
+    double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(const double indentation) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
         return 0.0;
     }
-    
+        
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall){
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM) should not be called.","")
         return 0.0;

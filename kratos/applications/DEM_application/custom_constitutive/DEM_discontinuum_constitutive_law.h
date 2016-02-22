@@ -133,8 +133,9 @@ namespace Kratos {
                                             DEMWall* const wall,
                                             bool& sliding);
         
-        virtual double CalculateNormalForce(double indentation, SphericParticle * const element1, SphericParticle * const element2);
-        virtual double CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2, const double mass_penalty_factor); 
+        virtual double CalculateNormalForce(const double indentation, SphericParticle * const element1, SphericParticle * const element2);
+        
+        virtual double CalculateNormalForce(const double indentation);
     
         virtual double CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall);
         
