@@ -34,6 +34,8 @@ def ConstructPreconditioner(configuration):
         elif(preconditioner_type == "AmesosPreconditioner"):
             preconditioner_type = "Amesos"
             preconditioner_parameters.set("amesos: solver type", "Amesos_Klu")
+        else:
+            raise Exception("wrong type of preconditioner")
 
         return [preconditioner_type, preconditioner_parameters]
     else:
