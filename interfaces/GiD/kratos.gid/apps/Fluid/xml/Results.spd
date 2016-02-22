@@ -18,12 +18,9 @@
     </container>
     <container n="GiDOptions" pn="Options" class="Tab" help="GiD postprocess options" open="0">
         <value n="GiDPostMode" pn="Result format" v="Binary" values="Ascii,Binary" help="GiD result file format"/>
-        <value n="GiDWriteMeshFlag" pn="Write deformed mesh" v="False" values="True,False" help="Write the GiD deformed or undeformed mesh"/>
-        <value n="GiDWriteConditionsFlag" pn="Write conditions" v="False" values="True,False" help="Write the conditions or only element to the GiD result file"/>
-        <value n="GiDWriteParticlesFlag" pn="Write particles" v="False" values="True,False" help="Write the particles or only element to the GiD result file"/>
         <value n="GiDMultiFileFlag" pn="Result file" v="Single" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
     </container>
-    <condition n="Dragcalc" pn="Drag Calculation" un="FLDrag" ov="point,line,surface" ovm="node,element" icon="shells16" help="Falsedal displacements">
+    <condition n="Dragcalc" pn="Drag Calculation" un="FLDrag" ov="[CheckGeometry 2]" ovm="element" icon="shells16" help="Drag displacements">
           <value n="File" pn="Output file id" v="" help=""/>
     </condition>
 </container>

@@ -61,17 +61,11 @@
 				  <value n="Cy" pn="Cy" v="0.0" help="Y Vector"/>
 				  <value n="Cz" pn="Cz" v="-1.0" help="Z Vector"/>
 			</container>
-			<container n="PorousZones" pn="Porous zones" flunSolvTyp="LevelSet" PSolutionType="OpenMP" help="Porous zones" >
-				  <value n="UseErgunEquation" pn="Use Ergun equation" v="No" class="ErgunEquationType" ivalues="Yes,No" values="Yes,No" help="Use Ergun equation"/>
-				  <container n="ErgunEquationNo" pn="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" flunSolvTyp="LevelSet" PSolutionType="OpenMP" nTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" />
-				  <container n="ErgunEquationYes" pn="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" flunSolvTyp="LevelSet" PSolutionType="OpenMP" nTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" />
-			</container>
 	  </container>
 	  <container n="TimeParameters" pn="Time parameters" help="Time parameters" >
 		  <value n="StartTime" pn="Start time" v="0.0" help=""/>
 		  <value n="EndTime" pn="End time" v="1" help=""/>
-		  <value n="UseAutomaticDeltaTime" pn="Automatic delta time"  v="Fixed" values="Fixed,Automatic" help="Select the Delta time option to be used" actualize_tree="1"/>
-		  <value n="DeltaTime" pn="Delta time" v="0.001" help="" state="[CheckIdOnMyParent UseAutomaticDeltaTime Fixed]"/>
+		  <value n="DeltaTime" pn="Delta time" v="0.001" help=""/>
 		  <value n="TargetCFL" pn="Target CFL" v="5.0" help="" state="[CheckIdOnMyParent UseAutomaticDeltaTime Automatic]"/>
 		  <value n="DivergenceCleareanceStep" pn="Divergence cleareance step" v="50" help="Define the divergence cleareance step value"/>
 		  <value n="MaxVart" pn="Max Dt" v="0.0" help="Max time variation" state="[CheckIdOnMyParent UseAutomaticDeltaTime Automatic]"/>
