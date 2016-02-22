@@ -62,6 +62,7 @@ namespace Kratos {
                                     bool& sliding);
 
 
+        using  DEMDiscontinuumConstitutiveLaw::CalculateNormalForce; //To avoid Clang Warning
         double CalculateNormalForce(const double distance, const double cation_concentration);
         double CalculateVanDerWaalsForce(const double);
         double CalculateDiffuseDoubleLayerForce(const double distance, const double cation_concentration);
