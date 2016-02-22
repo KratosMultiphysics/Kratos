@@ -51,16 +51,8 @@ class TestKratosParameters(KratosUnittest.TestCase):
 
     def setUp(self):
         self.kp = KratosParameters(json_string)
-        self.compact_expected_output = """{
-            "int_value":10,
-            "double_value":2.0,
-            "bool_value":true,
-            "string_value":"hello",
-            "level1":{
-                "list_value":[3,"hi",false],
-                "tmp":5.0
-            }
-        }"""
+        self.compact_expected_output = """{"int_value":10,"double_value":2.0,"bool_value":true,"string_value":"hello","level1":{"list_value":[3,"hi",false],"tmp":5.0}}"""
+
 
     def test_kratos_parameters(self):
         self.assertEqual(
@@ -92,11 +84,12 @@ class TestKratosParameters(KratosUnittest.TestCase):
 
     def test_kratos_copy_parameters(self):
         # try to make a copy
-        other_copy = KratosParameters(self.kp)
+        original_out = self.kp.PrettyPrintJsonString()
+        other_copy = KratosParameters(self.kp)      
 
         self.assertEqual(
             other_copy.PrettyPrintJsonString(),
-            pretty_out_after_change
+            original_out
         )
 
         other_copy.GetValue("int_value").SetInt(-1)
