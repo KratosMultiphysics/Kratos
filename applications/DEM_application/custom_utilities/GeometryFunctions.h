@@ -28,8 +28,8 @@ namespace Kratos {
     }
         
     static inline void TranslateGridOfNodes(const double time, const double velocity_start_time, const double velocity_stop_time, array_1d<double, 3>& center_position,
-                                            const array_1d<double, 3> initial_center, array_1d<double, 3>& previous_displ, array_1d<double, 3>& linear_velocity_changed,
-                                            const double linear_period, const double dt, const array_1d<double, 3> linear_velocity) {
+                                            const array_1d<double, 3>& initial_center, array_1d<double, 3>& previous_displ, array_1d<double, 3>& linear_velocity_changed,
+                                            const double linear_period, const double dt, const array_1d<double, 3>& linear_velocity) {
 
         if (time < velocity_start_time || time > velocity_stop_time) {
             center_position[0] = initial_center[0] + previous_displ[0];
@@ -276,10 +276,11 @@ namespace Kratos {
     
     static inline void RotateGridOfNodes(const double time, const double angular_velocity_start_time, const double angular_velocity_stop_time,
                                          array_1d<double, 3>& angular_velocity_changed, const double angular_period, const double mod_angular_velocity,
-                                         const array_1d<double, 3> angular_velocity, array_1d<double, 3>& new_axes1, array_1d<double, 3>& new_axes2,
+                                         const array_1d<double, 3>& angular_velocity, array_1d<double, 3>& new_axes1, array_1d<double, 3>& new_axes2,
                                          array_1d<double, 3>& new_axes3) {
         
-        array_1d<double, 3> angle = ZeroVector(3);
+        array_1d<double, 3> angle;
+        noalias(angle) = ZeroVector(3);
         double sign_angle = 1.0;
         array_1d<double, 3> final_angle = ZeroVector(3);                       
         
@@ -293,16 +294,16 @@ namespace Kratos {
                 noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
                 sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
                 noalias(angular_velocity_changed) = angular_velocity * cos(angular_omega * (time - angular_velocity_start_time));
-                final_angle = angle;
+                noalias(final_angle) = angle;
             } else {
                 noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
-                angular_velocity_changed = angular_velocity;
+                noalias(angular_velocity_changed) = angular_velocity;
             }
         } else { //if ((time - angular_velocity_stop_time) > 0.0) {
-            angular_velocity_changed = ZeroVector(3);
+            noalias(angular_velocity_changed) = ZeroVector(3);
 
             if (angular_period > 0.0) {
-                angle = final_angle;
+                noalias(angle) = final_angle;
             } else {
                 noalias(angle) = angular_velocity * (angular_velocity_stop_time - angular_velocity_start_time);
             }
@@ -341,10 +342,10 @@ namespace Kratos {
         }
     }
     
-    static inline void UpdateKinematicVariablesOfAGridOfNodes(double mod_angular_velocity, array_1d<double, 3> linear_velocity,
-                                                              const array_1d<double, 3> initial_center, array_1d<double, 3> new_axes1, array_1d<double, 3> new_axes2,
-                                                              array_1d<double, 3> new_axes3, array_1d<double, 3> angular_velocity_changed,
-                                                              array_1d<double, 3> linear_velocity_changed, array_1d<double, 3> center_position,
+    static inline void UpdateKinematicVariablesOfAGridOfNodes(double mod_angular_velocity, const array_1d<double, 3>& linear_velocity,
+                                                              const array_1d<double, 3>& initial_center, array_1d<double, 3>& new_axes1, array_1d<double, 3>& new_axes2,
+                                                              array_1d<double, 3>& new_axes3, array_1d<double, 3>& angular_velocity_changed,
+                                                              array_1d<double, 3>& linear_velocity_changed, array_1d<double, 3>& center_position,
                                                               const bool fixed_mesh, const double dt, ModelPart::NodesContainerType& pNodes)
     {
         if (mod_angular_velocity > 0.0 || MathUtils<double>::Norm3(linear_velocity) > 0.0) {
@@ -445,7 +446,16 @@ namespace Kratos {
         LocalCoordSystem[2][2] = N_fast[2];
     }
 
-    static inline double DistanceOfTwoPoint(double coord1[3], double coord2[3])
+    static inline double DistanceOfTwoPoint(const double coord1[3], const double coord2[3])
+    {
+        double dx = coord1[0] - coord2[0];
+        double dy = coord1[1] - coord2[1];
+        double dz = coord1[2] - coord2[2];
+
+        return sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    
+    static inline double DistanceOfTwoPoint(const array_1d<double,3>& coord1, const double coord2[3])
     {
         double dx = coord1[0] - coord2[0];
         double dy = coord1[1] - coord2[1];
@@ -463,7 +473,7 @@ namespace Kratos {
         return (dx * dx + dy * dy + dz * dz);
     }
 
-    static inline double DistancePointToPlane(array_1d<double,3> CoordInPlane, double PlaneUnitNormalVector[3], double TestCoord[3])
+    static inline double DistancePointToPlane(const array_1d<double,3>& CoordInPlane, double PlaneUnitNormalVector[3], double TestCoord[3])
     {
         double Vector1[3] = {0.0};
 
@@ -494,7 +504,7 @@ namespace Kratos {
 
     }
 
-    static inline void CoordProjectionOnPlaneNew(double CoordOut[3], array_1d<double, 3> CoordIn, double LocalCoordSystem[3][3], double IntersectionCoord[3])
+    static inline void CoordProjectionOnPlaneNew(double CoordOut[3], const array_1d<double, 3>& CoordIn, double LocalCoordSystem[3][3], double IntersectionCoord[3])
     {
         double out_coord_local[3] = {0.0};
         double in_coord_local[3]  = {0.0};
@@ -511,7 +521,7 @@ namespace Kratos {
 
     }
 
-    static inline void Compute3DimElementFaceLocalSystem(array_1d <double,3> FaceCoord1, array_1d <double,3> FaceCoord2, array_1d <double,3> FaceCoord3, double ParticleCoord[3],
+    static inline void Compute3DimElementFaceLocalSystem(const array_1d <double,3>& FaceCoord1, const array_1d <double,3>& FaceCoord2, const array_1d <double,3>& FaceCoord3, double ParticleCoord[3],
                                                           double LocalCoordSystem[3][3], double& normal_flag)
     {
         //NOTE: this function is designed in a way that the normal always points the side where the center of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
@@ -693,7 +703,7 @@ namespace Kratos {
 
     }*/
    
-    static inline  bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element, double& area){
+    static inline  bool InsideOutside(const array_1d<double, 3>& Coord1, const array_1d<double, 3> &Coord2, const array_1d<double, 3>& JudgeCoord,  const array_1d<double, 3>& normal_element, double& area){
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         double b[3];
@@ -717,15 +727,15 @@ namespace Kratos {
 
     }//InsideOutside
     
-    static inline bool InsideOutside(array_1d<double, 3> Coord1, array_1d<double, 3> Coord2, array_1d<double, 3> JudgeCoord,  array_1d<double, 3> normal_element) {
+    static inline bool InsideOutside(const array_1d<double, 3> &Coord1, const array_1d<double, 3>& Coord2, const array_1d<double, 3>& JudgeCoord, const array_1d<double, 3>& normal_element) {
 
         //NOTE:: Normal_out here has to be the normal of the element orientation (not pointing particle)
         array_1d<double, 3> cp1;
         array_1d<double, 3> b_a; 
         array_1d<double, 3> p1_a;
         
-        b_a  = Coord2 - Coord1;
-        p1_a = JudgeCoord - Coord1;
+        noalias(b_a)  = Coord2 - Coord1;
+        noalias(p1_a) = JudgeCoord - Coord1;
         
         GeometryFunctions::CrossProduct(b_a, p1_a, cp1);
 
@@ -853,7 +863,7 @@ namespace Kratos {
         if (DotProduct(PC,N)<0) //it is assumed that Indentation wont be greater than radius so we can detect contacts on both sides of the FE.
         {
             normal_flag = - 1.0;
-            N = -N;
+            N = -N;  //TODO: improve this by doing something like -> noalias(N) *= -1.0; not compiling
         }
         normalize(N); 
      
@@ -913,7 +923,7 @@ namespace Kratos {
 
     } //FacetCheck   
     
-    static inline bool FastEdgeVertexCheck(array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius)
+    static inline bool FastEdgeVertexCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, double Particle_Coord[3], double Radius)
     {
         double IntersectionCoordEdge[3];
         double normal_unit_vector[3];
@@ -986,7 +996,7 @@ namespace Kratos {
       
     }//FastEdgeVertexCheck;     
     
-    static inline bool EdgeCheck(array_1d <double,3> Coord1, array_1d <double,3> Coord2, double Particle_Coord[3], double Radius,
+    static inline bool EdgeCheck(const array_1d<double,3>& Coord1, const array_1d<double,3>& Coord2, double Particle_Coord[3], double Radius,
                                   double LocalCoordSystem[3][3], double& DistParticleToEdge, double& eta) 
     {
         double IntersectionCoordEdge[3];
@@ -1038,7 +1048,7 @@ namespace Kratos {
 
     }//EdgeCheck
 
-    static inline bool VertexCheck(array_1d <double,3> Coord, double Particle_Coord[3], double Radius, double LocalCoordSystem[3][3], double& DistParticleToVertex)
+    static inline bool VertexCheck(const array_1d<double,3>& Coord, double Particle_Coord[3], double Radius, double LocalCoordSystem[3][3], double& DistParticleToVertex)
     {
         double dist_sq = 0.0;
         array_1d<double, 3> normal_v;
