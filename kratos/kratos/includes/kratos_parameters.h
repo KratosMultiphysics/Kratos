@@ -72,6 +72,10 @@ public:
     {
         return ParameterValue(mrvalue[entry.c_str()]);
     }
+    ParameterValue operator[](const std::string entry)
+    {
+        return ParameterValue(mrvalue[entry.c_str()]);
+    }
 
     //*******************************************************************************************************
     bool Has(const std::string entry)
@@ -110,18 +114,22 @@ public:
     }
     double GetDouble()
     {
+        if(mrvalue.IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
         return mrvalue.GetDouble();
     }
     int GetInt()
     {
+        if(mrvalue.IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
         return mrvalue.GetInt();
     }
     bool GetBool()
     {
+        if(mrvalue.IsBool() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a bool","");
         return mrvalue.GetBool();
     }
     std::string GetString()
     {
+        if(mrvalue.IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
         return mrvalue.GetString();
     }
 
@@ -157,7 +165,11 @@ public:
         if(mrvalue.IsArray() == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
         else
+        {
+            if(index >= mrvalue.Size())
+                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
             return ParameterValue(mrvalue[index]);
+        }
     }
         
 private:
@@ -200,10 +212,19 @@ public:
 
     /// Assignment operator.
     KratosParameters& operator=(KratosParameters const& rOther)
-    {
-        KRATOS_THROW_ERROR(std::logic_error,"not yet correctly implemented","");
-        this->md.Parse( rOther.WriteJsonString().c_str() );
-        
+    {   
+        rapidjson::ParseResult ok = md.Parse<0>(rOther.WriteJsonString().c_str());
+        if( !ok )
+        {
+            std::stringstream msg;
+            msg << rapidjson::GetParseError_En(ok.Code()) << " offset of the error from the beginning of the string = " << ok.Offset() << std::endl;
+            msg << "a much more explicative error message can be obtained by analysing the input string " << std::endl;
+            msg << "with an online analyzer such for example json lint" << std::endl;
+            msg << "the value of the string that was attempted to parse is :" << std::endl << std::endl;
+            msg << rOther.WriteJsonString();
+            KRATOS_THROW_ERROR(std::invalid_argument, "error found in parsing the json_string, the value of the json string was: \n", msg.str());
+        } 
+        return *this;
     }
     /// Copy constructor.
     KratosParameters(KratosParameters const& rOther)
