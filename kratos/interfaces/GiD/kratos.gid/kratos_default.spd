@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!-- -*- coding: utf-8; mode: SGML -*- -->
 <Kratos_data version='1.0'> 
   <groups/>
-  <groups_types editable='0'>
-    <group_type pn='normal' default='1'/>
-    <group_type pn='BC' auto_from_bc='1'/>
-  </groups_types>
   <units>
-    <unit_magnitude n="Mo" pn="Moment" default="m" SI_base="m" active="1">
-      <unit n="Nm" pn="NewtonsMeter" p="1" units_system="SI" factor="1.0"/>
-    </unit_magnitude>
   </units>
   <hiddenfield n="activeapp" active="0" v="" state="disabled"/>
   <hiddenfield n="nDim" un="nDim" v="3D" state="disabled"/>
@@ -354,6 +347,13 @@
       return [list $dict ""]      
       ]]>
     </proc>
+	
+	<proc n='ConditionState' args='args'>
+	  <![CDATA[
+	  set resp [::Model::CheckConditionState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
 	
 	<dynamicnode command="injectProcs" args=""/>
   </procs>

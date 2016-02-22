@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="InitialConditions" pn="InitialConditions">
-	  <dynamicnode command="injectDoFs" args=""/>
+<container n="InitialConditions" pn="Initial Conditions">
+	  <dynamicnode command="injectNodalConditions" args=""/>
 </container>

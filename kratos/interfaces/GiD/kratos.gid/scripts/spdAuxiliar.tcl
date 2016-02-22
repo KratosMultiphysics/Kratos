@@ -525,7 +525,7 @@ proc spdAux::injectProcesses {basenode} {
     $basenode delete
 }
 
-proc spdAux::injectDoFs { basenode } {
+proc spdAux::injectNodalConditions { basenode } {
     set conds [$basenode parent]
     set dofs [::Model::getAllDOFs]
     foreach n [dict keys $dofs] {
@@ -565,7 +565,7 @@ proc spdAux::injectDoFs { basenode } {
     $basenode delete
 }
 
-proc spdAux::injectLoads { basenode } {
+proc spdAux::injectConditions { basenode } {
     set conds [$basenode parent]
     set loads [::Model::getAllConditions]
     foreach n [dict keys $loads] {
@@ -573,7 +573,6 @@ proc spdAux::injectLoads { basenode } {
         set pn [$ld getPublicName]
         set help [$ld getHelp]
         set etype [string tolower [$ld getAttribute ElementType]]
-        
         set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$etype\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[ConditionState\]\">"
         foreach {inName in} [$ld getInputs] {
             set inPn [$in getPublicName]
@@ -581,14 +580,23 @@ proc spdAux::injectLoads { basenode } {
             set um [$in getUnitMagnitude]
             set type [$in getType]
             set dv [$in getDv]
-            
+            set fix [$in getFixity]
             if {$type eq "vector"} {
+                if {$fix ne 0} {
+                    append node "
+                        <value n=\"FixX\" pn=\"X $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
+                        <value n=\"FixY\" pn=\"Y $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
+                        <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
+                    }
                 append node "
                 <value n=\"ValX\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
                 <value n=\"ValY\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
                 <value n=\"ValZ\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
+                if {$fix ne 0} {
+                    append node "<value n=\"Fix\" pn=\"$fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
+                }
                 append node "<value n=\"$inName\" pn=\"$inPn\" v=\"$dv\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"\"/>"
             }
         }

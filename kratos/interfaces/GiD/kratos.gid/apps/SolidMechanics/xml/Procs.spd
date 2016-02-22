@@ -19,12 +19,6 @@
 		} {return "normal"}
 	  ]]>
 	</proc>
-	<proc n='ConditionState' args='args'>
-	  <![CDATA[
-	  set resp [::Model::CheckConditionState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
 	
 	  <proc n='ActiveIfAnyPartState' args='args'>
 	  <![CDATA[

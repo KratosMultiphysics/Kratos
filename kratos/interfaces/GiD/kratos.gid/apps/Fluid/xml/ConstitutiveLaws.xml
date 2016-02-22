@@ -5,7 +5,7 @@
 	  help="Newtonian fluid" >
         <inputs>
 		  <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
-		  <parameter n="VISCOSITY" pn="Viscosity" unit_magnitude="Viscosity" units="Pa*s" />
+		  <parameter n="VISCOSITY" pn="Viscosity" unit_magnitude="Viscosity" units="kg/(m*s)" />
         </inputs>
         <outputs>
             
@@ -14,9 +14,9 @@
     <CLaw n="HerschelBulkley" pn="Herschel Bulkley" dev="False"
           help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" >
         <inputs>
-		  <parameter n="YIELD_STRESS" pn="Yield stress"/>
-		  <parameter n="CONSISTENCY_INDEX" pn="Consistency index" />
-		  <parameter n="FLOW_INDEX" pn="Flow index" />
+		  <parameter n="YIELD_STRESS" pn="Yield stress (t)"/>
+		  <parameter n="CONSISTENCY_INDEX" pn="Consistency index (k)" />
+		  <parameter n="FLOW_INDEX" pn="Flow index (γ)" />
         </inputs>
         <outputs>
             
