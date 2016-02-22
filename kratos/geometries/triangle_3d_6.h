@@ -393,7 +393,15 @@ public:
      */
     virtual double Length() const
     {
-        return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
+        // return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
+        // Approximation to avoid errors. Can be improved. 
+
+		array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
+		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
+
+		array_1d<double, 3> vx( p1 - p0 );
+        
+		return MathUtils<double>::Norm3(vx);
     }
 
     /** This method calculates and returns area or surface area of
@@ -413,7 +421,21 @@ public:
      */
     virtual double Area() const
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        // Approximation to avoid errors. Can be improved.
+        
+        array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
+		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
+		array_1d<double, 3> p2 = BaseType::GetPoint( 2 );
+		array_1d<double, 3> p3 = BaseType::GetPoint( 3 );
+		
+		array_1d<double, 3> vx( p1 - p0 );
+		array_1d<double, 3> vy( p2 - p3 );
+        
+		double base = MathUtils<double>::Norm3(vx);
+        double length = MathUtils<double>::Norm3(vy);
+        
+        return base*length*0.5;
     }
 
     /** This method calculates and returns length, area or volume of
@@ -432,7 +454,7 @@ public:
      */
     virtual double DomainSize() const
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Area();
     }
 
     /**
