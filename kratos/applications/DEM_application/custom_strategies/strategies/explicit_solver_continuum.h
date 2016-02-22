@@ -172,11 +172,16 @@ namespace Kratos
         
         BaseType::GetBoundingBoxOption()     = rcurrent_process_info[BOUNDING_BOX_OPTION];
         BaseType::GetSearchControl()         = rcurrent_process_info[SEARCH_CONTROL];
-
-        BaseType::InitializeSolutionStep();        
+              
         BaseType::InitializeDEMElements();
+        BaseType::InitializeSolutionStep();  
         BaseType::InitializeFEMElements();                
         BaseType::ApplyPrescribedBoundaryConditions();
+        
+        this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
+        this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+        this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
+        this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
         
         // 0. Set search radius.
         unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();

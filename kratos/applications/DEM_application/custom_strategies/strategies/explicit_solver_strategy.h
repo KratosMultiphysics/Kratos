@@ -704,10 +704,7 @@ namespace Kratos
 
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-          
-          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();                    
           
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
