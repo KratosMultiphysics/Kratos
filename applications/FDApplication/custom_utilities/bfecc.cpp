@@ -49,36 +49,21 @@ void BfeccConvecter::Interpolate(const double & Idx,double * input,double * outp
 
 void BfeccConvecter::Convect(double * const input, double * aux, double * velocity, double * output) {
 
-  #pragma omp parallel for
-  for(std::size_t k = mBorderWidth[2]; k < mNumCells[2] + mBorderWidth[2]; k++) {
-    for(std::size_t j = mBorderWidth[1]; j < mNumCells[1] + mBorderWidth[1]; j++) {
-      for(std::size_t i = mBorderWidth[0]; i < mNumCells[0] + mBorderWidth[0]; i++) {
-        ApplyBack(output,input,velocity,i,j,k);
-      }
-    }
-  }
+  auto ApplyBK = std::bind(&BfeccConvecter::ApplyBack, this, output, input, nullptr, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto ApplyFW = std::bind(&BfeccConvecter::ApplyForth, this, aux, output, input, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto ApplyEC = std::bind(&BfeccConvecter::ApplyEcc, this, output, aux, nullptr, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
-  #pragma omp parallel for
-  for(std::size_t k = mBorderWidth[2]; k < mNumCells[2] + mBorderWidth[2]; k++) {
-    for(std::size_t j = mBorderWidth[1]; j < mNumCells[1] + mBorderWidth[1]; j++) {
-      for(std::size_t i = mBorderWidth[0]; i < mNumCells[0] + mBorderWidth[0]; i++) {
-        ApplyForth(aux,output,input,velocity,i,j,k);
-      }
-    }
-  }
+  // OmpParallelLoop(ApplyBK);
+  // OmpParallelLoop(ApplyFW);
+  // OmpParallelLoop(ApplyEC);
 
-  #pragma omp parallel for
-  for(std::size_t k = mBorderWidth[2]; k < mNumCells[2] + mBorderWidth[2]; k++) {
-    for(std::size_t j = mBorderWidth[1]; j < mNumCells[1] + mBorderWidth[1]; j++) {
-      for(std::size_t i = mBorderWidth[0]; i < mNumCells[0] + mBorderWidth[0]; i++) {
-        ApplyEcc(output,aux,velocity,i,j,k);
-      }
-    }
-  }
+  OmpParallelBlockLoop(ApplyBK, {2, 2, 2});
+  OmpParallelBlockLoop(ApplyFW, {2, 2, 2});
+  OmpParallelBlockLoop(ApplyEC, {2, 2, 2});
 }
 
 void BfeccConvecter::ApplyBack(
-    double * output, double * input,
+    double * output, double * input, double * unused,
     double * velocity,
     const std::size_t &i, const std::size_t &j, const std::size_t &k) {
 
@@ -152,7 +137,7 @@ void BfeccConvecter::ApplyForth(
 }
 
 void BfeccConvecter::ApplyEcc(
-    double * output, double * input,
+    double * output, double * input, double * unused,
     double * velocity,
     const std::size_t &i, const std::size_t &j, const std::size_t &k) {
 

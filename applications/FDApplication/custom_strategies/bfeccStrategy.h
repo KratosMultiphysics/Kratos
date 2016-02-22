@@ -29,8 +29,8 @@ public:
   KRATOS_CLASS_POINTER_DEFINITION(BfeccSolverStrategy);
 
   BfeccSolverStrategy(ModelPart& model_part) :
-      mConditionsModelPart(model_part),
-      SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, true) {
+      SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, true),
+      mConditionsModelPart(model_part) {
   }
 
   ~BfeccSolverStrategy(){
@@ -274,7 +274,7 @@ public:
 
   virtual bool SolveSolutionStep() {
 
-    auto & variable = mGrids["VELOCITY"];
+    // auto & variable = mGrids["VELOCITY"];
     auto & velocity = mGrids["VELOCITY"];
     // auto & pressure = mGrids["PRESSURE"];
     auto & auxgrida = mGrids["AUXGRID0"];
