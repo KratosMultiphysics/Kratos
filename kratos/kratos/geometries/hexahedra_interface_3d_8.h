@@ -1437,7 +1437,7 @@ public:
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
 
         JacobiansType J( integration_points_number );
-        Jacobian(J,ThisMethod);
+        BaseType::Jacobian(J,ThisMethod);
 //        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
 
         //loop over all integration points
@@ -1776,9 +1776,9 @@ private:
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < HexaedronGaussLobattoIntegrationPoints1,
+                Quadrature < HexahedronGaussLobattoIntegrationPoints1,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexaedronGaussLobattoIntegrationPoints2,
+                Quadrature < HexahedronGaussLobattoIntegrationPoints2,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 IntegrationPointsArrayType(),
                 IntegrationPointsArrayType()
