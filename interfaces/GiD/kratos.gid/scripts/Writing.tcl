@@ -206,7 +206,7 @@ proc write::writeElementConnectivities { } {
                     set top [$elem getTopologyFeature $etype $nnodes]
                     if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
                     set kratosElemName [$top getKratosName]
-                    #W "Writing $formats"
+                    W "Writing $formats"
                     WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
                     write_calc_data connectivities $formats
                     WriteString "End Elements"
@@ -384,8 +384,9 @@ proc write::getEtype1 {group} {
         set etype "Sphere"
     } elseif {[write_calc_data has_elements -elemtype "Point" $formats]} {
         set etype "Point"
-    } 
-    return $etype
+    }
+    W $etype
+    #return $etype
 }
 
 proc write::getEtype {ov} {

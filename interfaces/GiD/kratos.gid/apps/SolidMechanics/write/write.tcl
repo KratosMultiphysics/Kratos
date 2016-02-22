@@ -364,7 +364,7 @@ proc SolidMechanics::write::writeConditions { } {
             } {
                 set formats [write::GetFormatDict $groupid 0 $nnodes]
                 #set formats [dict create $groupid "%0d "]
-                W $formats
+                #W $formats
                 set elems [write_calc_data connectivities -return $formats]
                 set obj [list ]
                 foreach {e v n1 n2 n3} $elems {lappend obj "$n1 $n2 $n3"}
@@ -373,8 +373,8 @@ proc SolidMechanics::write::writeConditions { } {
             }
             set initial $iter
             for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
-                set nid [lindex $obj $i]
-                write::WriteString "$iter 0 $nid"
+                set nids [lindex $obj $i]
+                write::WriteString "$iter 0 $nids"
             }
             set final [expr $iter -1]
             dict set ConditionsDictGroupIterators $groupid [list $initial $final]

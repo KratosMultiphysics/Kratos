@@ -100,10 +100,9 @@ proc Model::ParseInputParamNode {st in} {
     set fi ""
     catch {set fi [$in @fixity]}
     set input [::Model::Parameter new $n $pn $t $v $units $unitMagnitude $h $vs $pvs]
-    if {$fi ne ""} {set fi 0}
+    if {$fi eq ""} {set fi 0}
     $input setFixity $fi
     $st addInputDone $input
-    
     if {[$in hasAttribute "parent"]} {
         set dn [[$in parent] @n]
         set dv [$in @parent]

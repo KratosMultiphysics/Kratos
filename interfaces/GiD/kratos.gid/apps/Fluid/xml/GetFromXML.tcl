@@ -11,7 +11,7 @@ proc Fluid::xml::Init { } {
     getSolutionStrategies
     getElements
     getConstitutiveLaws
-    #getConditions
+    getConditions
     #getSolvers
 }
 
@@ -28,6 +28,11 @@ proc Fluid::xml::getElements { } {
 proc Fluid::xml::getConstitutiveLaws { } {
     Model::InitVariables ConstitutiveLawsFileName ConstitutiveLaws.xml
     Model::getConstitutiveLaws
+}
+
+proc Fluid::xml::getConditions { } {
+    Model::InitVariables ConditionsFileName Conditions.xml
+    Model::getConditions
 }
 
 proc Fluid::xml::getUniqueName {name} {

@@ -69,10 +69,7 @@ proc Kratos::InitGIDProject { dir } {
     array set kratos_private [ReadProblemtypeXml [file join $dir kratos.xml] Infoproblemtype {Name Version MinimumGiDVersion}]
     if { [GidUtils::VersionCmp $kratos_private(MinimumGiDVersion)] < 0 } {
         WarnWin [_ "Error: %s Interface requires GiD %s or later." $kratos_private(Name) $kratos_private(MinimumGiDVersion)]
-    }
-    set ::GidPriv(ShowGroupsTab) 0 ;# hide native GiD groups from layers window tab
-    #GidUtils::UpdateWindow GROUPS
-    
+    }    
     #append to auto_path only folders that must include tcl packages (loaded on demand with package require mechanism)
     if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
         lappend ::auto_path [file join $dir scripts]
@@ -126,7 +123,7 @@ proc Kratos::ChangeMenus { } {
 
 proc Kratos::load_gid_groups_conds {} {  
     package require customlib_extras ;#this require also customLib
-    #package require customlib_native_groups
+    package require customlib_native_groups
 }
 
 proc Kratos::GiveKratosDefaultsFile {} {

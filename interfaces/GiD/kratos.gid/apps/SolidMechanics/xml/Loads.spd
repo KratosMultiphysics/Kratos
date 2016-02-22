@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="Loads" pn="Loads" un="SMLoads" icon="loads" >
-	  <dynamicnode command="injectLoads" args=""/>
+	  <dynamicnode command="injectConditions" args=""/>
 </container>

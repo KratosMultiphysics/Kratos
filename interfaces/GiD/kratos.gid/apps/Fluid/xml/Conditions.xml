@@ -1,48 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConditionList>
-  <ConditionItem n="FaceCondition2D" pn="Face Condition 2D" ImplementedInFile="face_condition.cpp"
-	       ImplementedInApplication="FluidDynamicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" MainDofsVariables="Velocity, Pressure"
-	       ElementType="Line" help="This element implements a Face Condition to be used together with Fractional Step Element">
-
-    <!--here we could add a list of all of the possible geometries-->
+  <ConditionItem n="Inlet2D" pn="Inlet velocity" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
+	ElementType="Linear" help="">
     <TopologyFeatures>
-      <item GeometryOrder="linear" GeometryType="Line3D2" KratosName="FaceCondition2D3N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="InletCondition2D2N"/>
     </TopologyFeatures>
-
-    <!--define list of dofs-->
-    <ConditionalConditions>
-      <dof n="VELOCITY" pn="Velocity" type="vector" unit_magnitude="L" reaction="REACTION"/>
-      <dof n="PRESSURE" pn="Pressure" type="vector" unit_magnitude="N/m^2" reaction="REACTION_AIR_PRESSURE"/>
-    </ConditionalConditions>
-    <inputs>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs ProcessVariableName="VELOCITY" ProcessFormat="vector">
+	  <parameter n="Velocity" pn="Velocity" type="vector" units="m/s" fixity="Imposed" unit_magnitude="Velocity"/>
     </inputs>
     <outputs>
-      <parameter n="VORTICITY" pn="VORTICITY" />
     </outputs>
   </ConditionItem>
-
-  
-  <ConditionItem n="FractionalStep3D" pn="Fractional Step 3D" ImplementedInFile="fractional_step.cpp"
-	       ImplementedInApplication="FluidDynamicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False" MainDofsVariables="Velocity, Pressure"
-	       ElementType="Membrane" help="This element implements a Fractional Step Element">
-
-    <!--here we could add a list of all of the possible geometries-->
+  <ConditionItem n="Inlet3D" pn="Inlet velocity" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
+	ElementType="Surface" help="">
     <TopologyFeatures>
-      <item GeometryOrder="linear" GeometryType="Tetrahedra3D4" KratosName="FractionalStep3D4N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="InletCondition2D3N"/>
     </TopologyFeatures>
-
-    <!--define list of dofs-->
-    <ConditionalConditions>
-      <dof n="VELOCITY" pn="Velocity" type="vector" unit_magnitude="L" reaction="REACTION"/>
-      <dof n="PRESSURE" pn="Pressure" type="vector" unit_magnitude="N/m^2" reaction="REACTION_AIR_PRESSURE"/>
-    </ConditionalConditions>
-    <inputs>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs ProcessVariableName="VELOCITY" ProcessFormat="vector">
+	  <parameter n="Velocity" pn="Velocity" type="vector" units="m/s" fixity="Imposed" unit_magnitude="Velocity"/>
     </inputs>
     <outputs>
-      <parameter n="VORTICITY" pn="VORTICITY" />
     </outputs>
   </ConditionItem>
-  
+  <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
+	ElementType="Linear" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="OutletCondition2D2N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs ProcessVariableName="PRESSURE" ProcessFormat="double">
+	  <parameter n="Pressure" pn="Pressure" type="double" units="Pa" unit_magnitude="P"/>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
+	ElementType="Surface" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="OutletCondition2D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs ProcessVariableName="PRESSURE" ProcessFormat="double">
+	  <parameter n="Pressure" pn="Pressure" type="double" units="Pa" unit_magnitude="P"/>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="Slip2D" pn="Slip" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
+	ElementType="Linear" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="SlipCondition2D2N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs  ProcessVariableName="" ProcessFormat="">
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="Slip3D" pn="Slip" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
+	ElementType="Surface" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="SlipCondition2D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs ProcessVariableName="" ProcessFormat="">
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="NoSlip2D" pn="NoSlip" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
+	ElementType="Linear" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="SlipCondition2D2N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs  ProcessVariableName="" ProcessFormat="">
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="NoSlip3D" pn="NoSlip" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
+	ElementType="Surface" help="">
+    <TopologyFeatures>
+      <item  GeometryType="Triangle" nodes="3" KratosName="SlipCondition2D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs ProcessVariableName="" ProcessFormat="">
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
 </ConditionList>
