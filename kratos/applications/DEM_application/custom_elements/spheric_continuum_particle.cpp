@@ -96,7 +96,8 @@ namespace Kratos {
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*> (mNeighbourElements[i]);
 
-            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            array_1d<double, 3 > other_to_me_vect;
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
 
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                     other_to_me_vect[1] * other_to_me_vect[1] +
@@ -230,14 +231,9 @@ namespace Kratos {
             
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();
             
-            array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+            const array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             const double &other_radius = neighbour_iterator->GetRadius();
-            array_1d<double, 3> other_ang_vel = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-            /*
-            double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                    other_to_me_vect[1] * other_to_me_vect[1] +
-                    other_to_me_vect[2] * other_to_me_vect[2]);
-            */
+
             double distance = DEM_MODULUS_3(other_to_me_vect);
             double radius_sum = GetRadius() + other_radius;
             double initial_delta = mNeighbourDelta[i_neighbour_count];
@@ -760,8 +756,11 @@ namespace Kratos {
             double DistPToB = RF_Pram[ino1 + 9];
             int iNeighborID = static_cast<int> (RF_Pram[ino1 + 14]);
             double ini_delta = 0.0;
-            array_1d<double, 3> neigh_forces = vector_of_zeros;
-            array_1d<double, 3> neigh_forces_elastic = vector_of_zeros;
+            array_1d<double, 3> neigh_forces;
+            noalias(neigh_forces)= vector_of_zeros;
+            array_1d<double, 3> neigh_forces_elastic;
+            noalias(neigh_forces_elastic) = vector_of_zeros;
+            
             double mapping_new_ini = -1;
 
             for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) {
@@ -774,8 +773,8 @@ namespace Kratos {
 
             for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
-                    neigh_forces_elastic = mNeighbourRigidFacesElasticContactForce[j];
-                    neigh_forces = mNeighbourRigidFacesTotalContactForce[j]; 
+                    noalias(neigh_forces_elastic) = mNeighbourRigidFacesElasticContactForce[j];
+                    noalias(neigh_forces) = mNeighbourRigidFacesTotalContactForce[j]; 
                     break;
                 }
             }
@@ -789,8 +788,8 @@ namespace Kratos {
                 fem_temp_neighbours_ids[fem_neighbour_counter] = static_cast<int> ((mFemTempNeighbours[i])->Id());
                 fem_temp_neighbours_mapping[fem_neighbour_counter] = mapping_new_ini;
                 fem_temp_neighbours_delta[fem_neighbour_counter] = ini_delta;
-                fem_temp_neighbours_contact_forces[fem_neighbour_counter] = neigh_forces;
-                fem_temp_neighbours_elastic_contact_forces[fem_neighbour_counter] = neigh_forces_elastic;
+                noalias(fem_temp_neighbours_contact_forces[fem_neighbour_counter])= neigh_forces;
+                noalias(fem_temp_neighbours_elastic_contact_forces[fem_neighbour_counter]) = neigh_forces_elastic;
 
                 fem_neighbour_counter++;
             }

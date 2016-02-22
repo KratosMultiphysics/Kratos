@@ -243,7 +243,7 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
       
       double origin[3] = {Xorigin, Yorigin, Zorigin};
 
-      double coord[3], vector1[3], vector2[3];
+      double vector1[3], vector2[3];
       double dist, dist1;
 
       double a[3][3];
@@ -251,20 +251,14 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
       
         for(unsigned int j = 0; j < number_of_nodes; j++)
         {
-          array_1d<double, 3> Nodecoord;
-          Nodecoord = this->GetGeometry()[j].Coordinates();
-          
-          coord[0] = Nodecoord[0];
-          coord[1] = Nodecoord[1];
-          coord[2] = Nodecoord[2];
+          const array_1d<double, 3>& Nodecoord = this->GetGeometry()[j].Coordinates();
 
-          vector1[0] = coord[0] - origin[0];
-          vector1[1] = coord[1] - origin[1];
-          vector1[2] = coord[2] - origin[2];
-
+          vector1[0] = Nodecoord[0] - origin[0];
+          vector1[1] = Nodecoord[1] - origin[1];
+          vector1[2] = Nodecoord[2] - origin[2];
 
           dist  = fabs(GeometryFunctions::DotProduct(vector1,n));
-          dist1 = GeometryFunctions::DistanceOfTwoPoint(coord,origin);
+          dist1 = GeometryFunctions::DistanceOfTwoPoint(Nodecoord,origin);
 
           dist = sqrt( dist1 * dist1 - dist * dist);
 
