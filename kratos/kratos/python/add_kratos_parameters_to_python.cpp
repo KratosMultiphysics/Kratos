@@ -55,6 +55,7 @@ void  AddKratosParametersToPython()
         ; 
 
     class_<KratosParameters, KratosParameters::Pointer>("KratosParameters", init<std::string>())
+        .def(init<KratosParameters const&>())
         .def("WriteJsonString", &KratosParameters::WriteJsonString)
         .def("PrettyPrintJsonString", &KratosParameters::PrettyPrintJsonString)
         .def("GetValue", &KratosParameters::GetValue)
