@@ -29,14 +29,25 @@ def AssambleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+
     smallSuite.addTest(TModelPartIO('test_model_part_io_read_model_part'))
     smallSuite.addTest(TModelPart('test_model_part_properties'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
-    nightSuite.addTest(TModelPart('test_model_part_sub_model_parts'))
-    nightSuite.addTest(TModelPart('test_model_part_nodes'))
-    nightSuite.addTest(TModelPart('test_model_part_tables'))
+
+    nightSuite.addTests(map(TModelPart, [
+        'test_model_part_sub_model_parts',
+        'test_model_part_nodes',
+        'test_model_part_tables'
+    ]))
+
+    nightSuite.addTests(map(TParameters, [
+        'test_kratos_parameters',
+        'test_kratos_change_parameters',
+        'test_kratos_copy_parameters',
+        'test_kratos_wrong_parameters'
+    ]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
