@@ -69,6 +69,13 @@ class TestKratosParameters(unittest.TestCase):
         my_list.GetArrayItem(0).SetString("changed")
         self.assertEqual(kp.PrettyPrintJsonString(), pretty_out_after_change)
         
+        #try to make a copy
+        other_copy =  KratosParameters(kp)
+        self.assertEqual(other_copy.PrettyPrintJsonString(), pretty_out_after_change)
+        other_copy.GetValue("int_value").SetInt(-1)
+        self.assertEqual(kp.GetValue("int_value").GetInt(),10)
+        #self.assertEqual(other_copy.GetValue("int_value").GetString(),-1)
+        
         #should check which errors are thrown!!
 
 if __name__ == '__main__':
