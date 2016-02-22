@@ -109,4 +109,4 @@ class TestKratosParameters(KratosUnittest.TestCase):
             self.kp.GetValue("no_value").GetInt()
 
 if __name__ == '__main__':
-    unittest.main()
+    KratosUnittest.main()
