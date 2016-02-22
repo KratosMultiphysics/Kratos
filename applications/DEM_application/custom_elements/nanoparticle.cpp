@@ -31,7 +31,7 @@ void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_app
     array_1d<double, 3> van_der_waals_force; van_der_waals_force.clear();
     array_1d<double, 3> double_layer_force; double_layer_force.clear();
 
-    additionally_applied_force += brownian_motion_force + van_der_waals_force + double_layer_force;
+    noalias(additionally_applied_force) += brownian_motion_force + van_der_waals_force + double_layer_force;
 
 
     //Now add the contribution of base class function (gravity or other forces added in upper levels):

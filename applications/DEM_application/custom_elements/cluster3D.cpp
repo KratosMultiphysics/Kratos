@@ -82,12 +82,8 @@ namespace Kratos {
     
     void Cluster3D::CustomInitialize() {}
     
-    void Cluster3D::SetOrientation(const array_1d<double, 3>& euler_angles) {
-        
-        this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)[0] = euler_angles[0];
-        this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)[1] = euler_angles[1];
-        this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)[2] = euler_angles[2];
-        
+    void Cluster3D::SetOrientation(const array_1d<double, 3>& euler_angles) {        
+        noalias( this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES) ) = euler_angles;        
     }
       
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part){
