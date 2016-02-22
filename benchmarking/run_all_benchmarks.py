@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 import sys
 import benchmarking
+import subprocess
 
 sys.path.append(".")
 
@@ -39,7 +40,7 @@ try:
     import fluid_dynamics_run_all_benchmarks
     Text += fluid_dynamics_run_all_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # DEM application
 try:
@@ -47,7 +48,7 @@ try:
     import DEM_run_all_benchmarks
     Text += DEM_run_all_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # Structural application
 try:
@@ -55,7 +56,7 @@ try:
     import structural_benchmarks
     Text += structural_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # Incompressible fluid application
 try:
@@ -63,7 +64,7 @@ try:
     import incompressible_benchmarks
     Text += incompressible_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # Convection-Diffusion application
 try:
@@ -71,7 +72,7 @@ try:
     import convection_diffusion_benchmarks
     Text += convection_diffusion_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # FSI application
 try:
@@ -79,7 +80,7 @@ try:
     import FSI_benchmarks
     Text += FSI_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # PFEM application
 #try:
@@ -103,7 +104,7 @@ try:
     import meshing_benchmarks
     Text += meshing_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # Trilinos application
 try:
@@ -111,13 +112,24 @@ try:
     import trilinos_benchmarks
     Text += trilinos_benchmarks.Run()
 except:
-    pass    
+    pass
 
 # SwimmingDem application
 try:
     os.chdir(ApplicationsRoot + "swimming_DEM_application/test_examples")
     import swimming_DEM_run_all_benchmarks
     Text += swimming_DEM_run_all_benchmarks.Run()
+except:
+    pass
+
+# Kratos unittest
+try:
+    os.chdir(KratosRoot)
+    subprocess.call([
+        'python',
+        'kratos/python_scripts/run_tests.py',
+        '-lnightly'
+    ])
 except:
     pass
 
