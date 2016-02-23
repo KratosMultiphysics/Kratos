@@ -33,12 +33,14 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
-    model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
+    #model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(NODAL_MOMENTUM)
     model_part.AddNodalSolutionStepVariable(NODAL_INERTIA)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_AUX)
+    model_part.AddNodalSolutionStepVariable(AUX_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(AUX_ACCELERATION)
     if config is not None:
         if hasattr(config, "RotationDofs"):
             if config.RotationDofs:
