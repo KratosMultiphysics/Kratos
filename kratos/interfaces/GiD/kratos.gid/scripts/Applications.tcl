@@ -137,7 +137,7 @@ oo::class create App {
     method activate { } {
         variable name
         set dir [file join $::Kratos::kratos_private(Path) apps $name]
-	set fileName [file join $dir start.tcl]
+        set fileName [file join $dir start.tcl]
         apps::loadAppFile $fileName
         set func $name
         append func "::LoadMyFiles"

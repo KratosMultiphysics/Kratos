@@ -297,19 +297,6 @@ proc spdAux::insertDependencies { baseNode originUN } {
     #}
 }
 
-
-# External File
-proc spdAux::getElements {app fil tag val pn} {
-    variable currentexternalfile
-    
-    if {$currentexternalfile ne "$app//$fil"} {
-        set dir $::Kratos::kratos_private(Path)
-        [xmlGet new ] init "$dir\\apps\\$app\\xml\\$fil.xml"
-        set currentexternalfile "$app//$fil"
-    }
-    return [[xmlGet new] getElementsPretty $tag $val $pn]
-}
-
 proc spdAux::CheckSolverEntryState {domNode} {
         set kw [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
         set nodo [$domNode selectNodes [getRoute $kw]]
@@ -317,7 +304,6 @@ proc spdAux::CheckSolverEntryState {domNode} {
         set currentSolStrat [get_domnode_attribute $nodo v]
         set mySolStrat [get_domnode_attribute $domNode solstratname]
         return [expr [string compare $currentSolStrat $mySolStrat] == 0]
-
 }
 
 

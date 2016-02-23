@@ -75,7 +75,7 @@ proc Kratos::InitGIDProject { dir } {
         lappend ::auto_path [file join $dir scripts]
     }
     # JG Sources iran en un proc a parte
-    foreach filename {xmlGetter.tcl Applications.tcl Writing.tcl spdAuxiliar.tcl } {
+    foreach filename {Applications.tcl Writing.tcl spdAuxiliar.tcl } {
         uplevel 1 [list source [file join $dir scripts $filename]]
     }
 
