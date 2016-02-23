@@ -39,7 +39,8 @@ namespace Kratos {
                                                             double indentation,
                                                             double equiv_visco_damp_coeff_normal,
                                                             double equiv_visco_damp_coeff_tangential,
-                                                            bool sliding) {
+                                                            bool sliding,
+                                                            int failure_id) {
 
         //*** component-wise since localContactForce and RelVel have in principle no relationship.
         // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
@@ -63,6 +64,7 @@ namespace Kratos {
                                                                        double distance,
                                                                        double calculation_area,
                                                                        double LocalCoordSystem[3][3],
-                                                                       array_1d<double, 3>& mContactMoment) {}
-
+                                                                       array_1d<double, 3>& mContactMoment) {
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) should not be called.","")
+    }
 } //kratos
