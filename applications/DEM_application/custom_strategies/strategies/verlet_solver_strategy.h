@@ -18,7 +18,12 @@ namespace Kratos
   class VerletVelocitySolverStrategy: public ContinuumExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
   {
       public:
-          
+
+      typedef ContinuumExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>   ContinuumType;
+
+
+
+
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(VerletVelocitySolverStrategy);
 
@@ -46,7 +51,19 @@ namespace Kratos
          Timer::SetOuputFile("TimesPartialRelease");
          Timer::PrintTimingInformation();
       }      
-      
+
+      void Initialize()
+      {
+        
+        KRATOS_TRY
+        ModelPart& r_model_part = this->GetModelPart();
+        ContinuumType::Initialize();
+        this->InitializeSolutionStep();
+        this->ForceOperations(r_model_part);
+        this->FinalizeSolutionStep();  
+                  
+        KRATOS_CATCH("")        
+      }     
 
       virtual double Solve()
       {
