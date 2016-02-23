@@ -14,14 +14,14 @@ namespace Kratos {
 
     void DEM_Dempack::Initialize(const ProcessInfo& rCurrentProcessInfo) {
         
-        KRATOS_TRY  
+    KRATOS_TRY  
     mHistoryMaxInd              = 0.0; //maximum indentation achieved
     mHistoryMaxForce            = 0.0; //maximum force achieved
     mHistoryDamage              = 0.0; //cumulated_damage
     mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
     mHistoryDisp                = 0.0; //displacement;
     mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
-        KRATOS_CATCH("")  
+    KRATOS_CATCH("")  
     }
 
     DEMContinuumConstitutiveLaw::Pointer DEM_Dempack::Clone() const {
@@ -141,9 +141,9 @@ namespace Kratos {
         
         KRATOS_TRY
 
-        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
-        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
+        //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -264,7 +264,7 @@ namespace Kratos {
 
             if (fabs(indentation) > u2) { // FULL DAMAGE 
                 mNeighbourFailureId_count = 4; //tension failure
-                mIniNeighbourFailureId_mapping = 4;
+                //mIniNeighbourFailureId_mapping = 4;
                 acumulated_damage = 1.0;
                 fn = 0.0;
             } else {
@@ -302,11 +302,11 @@ namespace Kratos {
         
         KRATOS_TRY
 
-        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
+        //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        //int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
 
-        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
-        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
+        //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -316,14 +316,12 @@ namespace Kratos {
         double mInternalFriccion;
         double mShearEnergyCoef;
 
-
-        if(&element1_props == &element2_props ){
+        if (&element1_props == &element2_props) {
 
             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
             mTauZero = element1_props[CONTACT_TAU_ZERO]*1e6;
             mInternalFriccion = element1_props[CONTACT_INTERNAL_FRICC];
             mShearEnergyCoef = element1_props[SHEAR_ENERGY_COEF];
-
         }
         else{
 
@@ -331,12 +329,12 @@ namespace Kratos {
             mTauZero = 0.5*1e6*(element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
             mInternalFriccion = 0.5*(element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
             mShearEnergyCoef = 0.5*(element1_props[SHEAR_ENERGY_COEF] + element2_props[SHEAR_ENERGY_COEF]);
-
         }
 
         double degradation = 1.0; //Tangential. With degradation:
 
-        if (mapping_new_cont != -1) {
+        //if (mapping_new_cont != -1) {
+        if (i_neighbour_count < int(element1->mContinuumInitialNeighborsSize)) {
             if (indentation >= 0.0) { //COMPRESSION              
                 degradation = mHistoryDegradation;
             } else {
@@ -345,11 +343,13 @@ namespace Kratos {
         }
 
         if (mNeighbourFailureId_count == 0) {
+            
             if (mHistoryShearFlag == 0.0) {
 
                 LocalElasticContactForce[0] += -degradation * kt_el * LocalDeltDisp[0]; // 0: first tangential
                 LocalElasticContactForce[1] += -degradation * kt_el * LocalDeltDisp[1]; // 1: second tangential  
             }
+            
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                     + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
@@ -390,7 +390,7 @@ namespace Kratos {
 
                 if (damage_tau >= 1.0) {
                     mNeighbourFailureId_count = 2; // shear
-                    mIniNeighbourFailureId_mapping = 2;
+                    //mIniNeighbourFailureId_mapping = 2;
                     //failure_criterion_state = 1.0;
                     sliding = true;
                 }
@@ -409,5 +409,13 @@ namespace Kratos {
         }
     KRATOS_CATCH("")     
     }
+    
+    void DEM_Dempack::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                    SphericContinuumParticle* neighbor,
+                                                    double equiv_young,
+                                                    double distance,
+                                                    double calculation_area,
+                                                    double LocalCoordSystem[3][3],
+                                                    array_1d<double, 3>& mContactMoment) {}
 
 } /* namespace Kratos.*/
