@@ -41,6 +41,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast2cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast3cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast4cluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/capsulecluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast5cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast6cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
@@ -56,8 +57,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Bentonite_Colloid_CL.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_JKR_cohesive_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_DMT_cohesive_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_JKR_cohesive_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_DMT_cohesive_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
