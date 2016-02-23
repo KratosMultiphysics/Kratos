@@ -63,19 +63,25 @@ class TestKratosParameters(KratosUnittest.TestCase):
         self.assertTrue(self.kp.Has("int_value"))
         self.assertFalse(self.kp.Has("unextisting_value"))
 
-        self.assertEqual(self.kp.GetValue("int_value").GetInt(), 10)
-        self.assertEqual(self.kp.GetValue("double_value").GetDouble(), 2.0)
-        self.assertEqual(self.kp.GetValue("bool_value").GetBool(), True)
-        self.assertEqual(self.kp.GetValue("string_value").GetString(), "hello")
+        self.assertEqual(self.kp["int_value"].GetInt(), 10)
+        self.assertEqual(self.kp["double_value"].GetDouble(), 2.0)
+        self.assertEqual(self.kp["bool_value"].GetBool(), True)
+        self.assertEqual(self.kp["string_value"].GetString(), "hello")
 
         self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
 
     def test_kratos_change_parameters(self):
         # now change one item in the sublist
-        subparams = self.kp.GetValue("level1")
+        subparams = self.kp["level1"]
 
-        my_list = subparams.GetValue("list_value")
-        my_list.GetArrayItem(0).SetString("changed")
+        my_list = subparams["list_value"]
+        
+        for i in range(my_list.size()):
+            if my_list[i].IsBool():
+                self.assertEqual(my_list[i].GetBool(), False)
+                
+        #my_list = subparams["list_value"]
+        subparams["list_value"][0].SetString("changed")
 
         self.assertEqual(
             self.kp.PrettyPrintJsonString(),
@@ -92,14 +98,14 @@ class TestKratosParameters(KratosUnittest.TestCase):
             original_out
         )
 
-        other_copy.GetValue("int_value").SetInt(-1)
-        self.assertEqual(self.kp.GetValue("int_value").GetInt(), 10)
-        # self.assertEqual(other_copy.GetValue("int_value").GetString(),-1)
+        other_copy["int_value"].SetInt(-1)
+        self.assertEqual(self.kp["int_value"].GetInt(), 10)
+        # self.assertEqual(other_copy["int_value").GetString(),-1)
 
     def test_kratos_wrong_parameters(self):
         # should check which errors are thrown!!
         with self.assertRaisesRegex(RuntimeError, "kratos"):
-            self.kp.GetValue("no_value").GetInt()
+            self.kp["no_value"].GetInt()
 
 if __name__ == '__main__':
     KratosUnittest.main()
