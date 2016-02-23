@@ -70,37 +70,39 @@ namespace Kratos
 
            
       
-       void CylinderContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
-      { 
+        void CylinderContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+        { 
 
-        double alpha = 1.0;
-        double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
-        double total_equiv_perimeter = 0.0;
-        int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
-
+            double alpha = 1.0;
+            double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
+            double total_equiv_perimeter = 0.0;
+            //int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
+            unsigned int continuous_initial_neighbours_size = mContinuumInitialNeighborsSize;
         
-        for (unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
-            SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
-            double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-            double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.         
-            total_equiv_perimeter += area;
-        } //for every neighbour
+            for (unsigned int i = 0; i < continuous_initial_neighbours_size; i++) {
+                //SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
+                SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
+                double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.         
+                total_equiv_perimeter += area;
+            } //for every neighbour
       
-        if (cont_ini_neighbours_size >= 3) {
-            if(!*mSkinSphere) {
-              AuxiliaryFunctions::CalculateAlphaFactor2D(cont_ini_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
-                for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                    mContIniNeighArea[i] = alpha*mContIniNeighArea[i];                      
-                  } //for every neighbour
-            }
-            else { //skin sphere                              
-                for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
-                          alpha            = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
-                    mContIniNeighArea[i] = alpha*mContIniNeighArea[i];
-                  }     //loop on cont neighs
-            }           //skin particles.
-        }               //if 3 neighbours or more.
-      }                 //Contact Area Weighting
+            if (continuous_initial_neighbours_size >= 3) {
+            
+                if (!*mSkinSphere) {
+                    AuxiliaryFunctions::CalculateAlphaFactor2D(continuous_initial_neighbours_size, sphere_perimeter, total_equiv_perimeter, alpha); 
+                    for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                        mContIniNeighArea[i] = alpha*mContIniNeighArea[i];                      
+                    } //for every neighbour
+                }
+                else { //skin sphere                              
+                    for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
+                        alpha            = 1.30*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(continuous_initial_neighbours_size))/6); // 6 is mean coordination number.
+                        mContIniNeighArea[i] = alpha*mContIniNeighArea[i];
+                    }     //loop on cont neighs
+                }           //skin particles.
+            }               //if 3 neighbours or more.
+        }                 //Contact Area Weighting
       
       
 
@@ -162,7 +164,7 @@ namespace Kratos
               double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
               bool sliding = false;
 
-              const int mapping_new_cont = mMappingNewCont[i_neighbour_count];
+              //const int mapping_new_cont = mMappingNewCont[i_neighbour_count];
 
               double contact_tau = 0.0;
               double contact_sigma = 0.0;
@@ -182,9 +184,10 @@ namespace Kratos
               double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
               double calculation_area = 0.0;
 
-              if (mapping_new_cont != -1) {
-                  mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);
-                  mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
+              //if (mapping_new_cont != -1) {
+              if (i_neighbour_count < mContinuumInitialNeighborsSize) {
+                  mContinuumConstitutiveLawArray[i_neighbour_count]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);
+                  mContinuumConstitutiveLawArray[i_neighbour_count]-> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
               } else {
                   mDiscontinuumConstitutiveLaw -> CalculateContactArea(GetRadius(), other_radius, calculation_area);
                   mDiscontinuumConstitutiveLaw -> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
@@ -207,13 +210,16 @@ namespace Kratos
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
               //recover old local forces projected over new coordinates
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
-
+              
+              int failure_id = mIniNeighbourFailureId[i_neighbour_count];
+              
               /* Translational Forces */
 
-              if (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0))       //#3
+              if (indentation > 0.0 || (mIniNeighbourFailureId[i_neighbour_count] == 0))       //#3
               {
-                  if (mapping_new_cont != -1) {                                             //Normal Forces
-                      mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateForces(
+                  //if (mapping_new_cont != -1) {                                             //Normal Forces
+                  if (i_neighbour_count < mContinuumInitialNeighborsSize) {
+                      mContinuumConstitutiveLawArray[i_neighbour_count]-> CalculateForces(
                               rCurrentProcessInfo,
                               LocalElasticContactForce,
                               LocalDeltDisp,
@@ -245,8 +251,7 @@ namespace Kratos
                               sliding,
                               this,
                               neighbour_iterator,
-                              mNeighbourFailureId[i_neighbour_count],
-                              mapping_new_cont);
+                              mIniNeighbourFailureId[i_neighbour_count]/*, mapping_new_cont*/);
                   }
               } // compression or cohesive contact
 
@@ -255,24 +260,26 @@ namespace Kratos
               double equiv_visco_damp_coeff_normal;
               double equiv_visco_damp_coeff_tangential;
 
-              if (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0)) {
+              if (indentation > 0.0 || (mIniNeighbourFailureId[i_neighbour_count] == 0)) {
 
                   double LocalRelVel[3] = {0.0};
                   GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
-                  if (mapping_new_cont != -1) {
-                      mContinuumConstitutiveLawArray[mapping_new_cont]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
+                  //if (mapping_new_cont != -1) {
+                  if (i_neighbour_count < mContinuumInitialNeighborsSize) {
+                      mContinuumConstitutiveLawArray[i_neighbour_count]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
                               this,
                               neighbour_iterator,
                               kn_el,
                               kt_el);
 
-                      mContinuumConstitutiveLawArray[mapping_new_cont]->CalculateViscoDamping(LocalRelVel,
+                      mContinuumConstitutiveLawArray[i_neighbour_count]->CalculateViscoDamping(LocalRelVel,
                               ViscoDampingLocalContactForce,
                               indentation,
                               equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
-                              sliding);
+                              sliding,
+                              failure_id);
                   } else {
                       mDiscontinuumConstitutiveLaw -> CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                               equiv_visco_damp_coeff_tangential,
@@ -294,7 +301,8 @@ namespace Kratos
               double LocalContactForce[3] = {0.0};
               double GlobalContactForce[3] = {0.0};
 
-              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson,
+              //if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson,
+              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i_neighbour_count < mContinuumInitialNeighborsSize)) {AddPoissonContribution(equiv_poisson,
                                                                                           LocalCoordSystem,
                                                                                           LocalElasticContactForce[2],
                                                                                           calculation_area);}
@@ -312,19 +320,18 @@ namespace Kratos
                   ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
               }
 
-              if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
+              if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (i_neighbour_count < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
 
-                  CalculateOnContactElements(neighbour_iterator_id,
-                                              i_neighbour_count,
-                                              mapping_new_cont,
-                                              LocalElasticContactForce,
-                                              contact_sigma,
-                                              contact_tau,
-                                              failure_criterion_state,
-                                              acumulated_damage,
-                                              time_steps);}
+                  CalculateOnContactElements(i_neighbour_count,
+                                             LocalElasticContactForce,
+                                             contact_sigma,
+                                             contact_tau,
+                                             failure_criterion_state,
+                                             acumulated_damage,
+                                             time_steps);
+              }
 
-              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {
+              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i_neighbour_count < mContinuumInitialNeighborsSize)) {
                   AddNeighbourContributionToStressTensor(GlobalElasticContactForce,
                                                           LocalCoordSystem[2],distance, radius_sum);}
 
