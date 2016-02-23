@@ -6,8 +6,6 @@
 #include "DEM_Dempack_CL.h"
 //#include "DEM_discontinuum_constitutive_law.h"
 
-
-
 namespace Kratos {
 
     class DEM_Dempack2D : public DEM_Dempack {
@@ -15,8 +13,7 @@ namespace Kratos {
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack2D);
 
-        DEM_Dempack2D() {
-        }
+        DEM_Dempack2D() {}
 
         //DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
 
@@ -27,72 +24,13 @@ namespace Kratos {
         double mHistoryDisp;
         double mHistoryShearFlag;
 
-
         void Initialize(const ProcessInfo& rCurrentProcessInfo);
-
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
-        ~DEM_Dempack2D() {
-        }
+        ~DEM_Dempack2D() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const;
-
         void CalculateContactArea(double radius, double other_radius, double& calculation_area);
-        void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
-
-        void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                double kn_el,
-                double kt_el);
-
-        void CalculateForces(ProcessInfo& rCurrentProcessInfo,
-                double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                const double kn_el,
-                double kt_el,
-                double& contact_sigma,
-                double& contact_tau,
-                double& failure_criterion_state,
-                double equiv_young,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps,
-                bool& sliding,
-                int search_control,
-                vector<int>& search_control_vector);
-
-        void CalculateNormalForces(double LocalElasticContactForce[3],
-                const double kn_el,
-                double equiv_young,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps);
-
-
-        void CalculateTangentialForces(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                double kt_el,
-                double& contact_sigma,
-                double& contact_tau,
-                double indentation,
-                double calculation_area,
-                double& failure_criterion_state,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                bool& sliding,
-                int search_control,
-                vector<int>& search_control_vector);
 
 
     private:
