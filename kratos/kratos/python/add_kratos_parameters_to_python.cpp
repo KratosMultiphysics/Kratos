@@ -52,6 +52,10 @@ void  AddKratosParametersToPython()
         .def("SetString", &ParameterValue::SetString)
         .def("size", &ParameterValue::size)
         .def("GetArrayItem", &ParameterValue::GetArrayItem)
+        .def("__setitem__", &ParameterValue::SetValue)
+        .def("__getitem__", &ParameterValue::GetValue)
+        .def("__setitem__", &ParameterValue::SetArrayItem)
+        .def("__getitem__", &ParameterValue::GetArrayItem)
         ; 
 
     class_<KratosParameters, KratosParameters::Pointer>("KratosParameters", init<std::string>())
