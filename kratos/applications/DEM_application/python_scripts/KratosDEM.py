@@ -150,7 +150,7 @@ main_path = os.getcwd()
 
 os.chdir(main_path)
 
-KRATOSprint("Initializing Problem....")
+KRATOSprint("\nInitializing Problem...")
 
 # Initialize GiD-IO
 demio.AddGlobalVariables()
