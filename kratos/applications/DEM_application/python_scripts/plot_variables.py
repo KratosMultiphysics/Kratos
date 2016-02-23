@@ -22,9 +22,10 @@ class variable_plotter:
                     file_writer.write("ELASTIC_FORCES_X  ELASTIC_FORCES_Y  ELASTIC_FORCES_Z  ")
                     file_writer.write("TOTAL_FORCES_X  TOTAL_FORCES_Y  TOTAL_FORCES_Z  ")
                     file_writer.write("VELOCITY_X  VELOCITY_Y  VELOCITY_Z  ")
-                    file_writer.write("ANGULAR_VELOCITY_X  ANGULAR_VELOCITY_Y  ANGULAR_VELOCITY_Z\n")
+                    file_writer.write("ANGULAR_VELOCITY_X  ANGULAR_VELOCITY_Y  ANGULAR_VELOCITY_Z  ")
+                    file_writer.write("PARTICLE_MOMENT_X  PARTICLE_MOMENT_Y  PARTICLE_MOMENT_Z\n")
                     self.files.append(file_writer)
-                    print("The Id " + str(id) + " was found in the model part")
+                    #print("The Id " + str(id) + " was found in the model part")
                     break
                     
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
@@ -55,6 +56,9 @@ class variable_plotter:
             + "  " + str(node.GetSolutionStepValue(ANGULAR_VELOCITY_X)) \
             + "  " + str(node.GetSolutionStepValue(ANGULAR_VELOCITY_Y)) \
             + "  " + str(node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)) \
+            + "  " + str(node.GetSolutionStepValue(PARTICLE_MOMENT)[0]) \
+            + "  " + str(node.GetSolutionStepValue(PARTICLE_MOMENT)[1]) \
+            + "  " + str(node.GetSolutionStepValue(PARTICLE_MOMENT)[2]) \
             + '\n'
             file_writer.write(string)
             i = i + 1 
