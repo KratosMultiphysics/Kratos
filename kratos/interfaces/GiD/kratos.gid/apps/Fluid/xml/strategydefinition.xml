@@ -10,6 +10,9 @@
     
     <!-- list of options to be filled -->
     <parameter_list>
+	  <parameter n="PredictorCorrector" pn="Predictor corrector" type="bool" v="False" help=""/>  
+	  <parameter n="MaximumVelocityIterations" pn="Maximum velocity iterations" type="integer" v="4" help=""/>  
+	  <parameter n="MaximumPressureIterations" pn="Maximum pressure iterations" type="integer" v="4" help=""/>  
     </parameter_list>
     
     <linearSolvers>
@@ -48,6 +51,9 @@
     
     <!-- list of options to be filled -->
     <parameter_list>
+	  <parameter n="MaximumIterations" pn="Maximum iterations" type="integer" v="10" values="" help=""/>  
+	  <parameter n="DynamicTau" pn="Use dt in stabilization" type="combo" v="0.01" values="1.0,0.1,0.01,0.001,0.0" help=""/>  
+	  <parameter n="OssSwitch" pn="Use orthogonal subscales" type="bool" v="True" help=""/> 
     </parameter_list>
     
     <linearSolvers>

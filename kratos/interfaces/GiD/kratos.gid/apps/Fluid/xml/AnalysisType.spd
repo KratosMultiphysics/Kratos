@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="AnalysisType" pn="Analysis Type" help="Analysis information" state="normal">
     <value n="FreeSurface" pn="Free Surface" un="FLFreeSurface" v="No" values="Yes,No" help="Analysis type" state="hidden"/>
-    <value n="SolStrat" pn="Solution Strategy" un="FLSolStrat" v="" values="[GetSolutionStrategies]"/>
+    <value n="SolStrat" pn="Solution Strategy" un="FLSolStrat" v="" values="[GetSolutionStrategies]"  actualize_tree="1"/>
     <value n="Scheme" pn="Scheme" un="FLScheme" v="" values="[GetSchemes]" state="hidden" actualize_tree="1"/>
    <!-- <value n="FluidType" pn="Fluid type" v="Newtonian"  un="FLNewton" values="Newtonian,HerschelBulkley" dict="Newtonian,Newtonian,HerschelBulkley,Herschel Bulkley" help="Type of fluid"/>-->
   </container>
