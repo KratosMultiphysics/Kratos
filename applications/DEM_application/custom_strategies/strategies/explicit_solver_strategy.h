@@ -538,11 +538,11 @@ namespace Kratos
          
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box                   
               
-            if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
+            //if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
                   BoundingBoxUtility();
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-            }
+            //}
               
             SetSearchRadius(r_model_part, 1.0);        
             SearchNeighbours();
@@ -1227,15 +1227,14 @@ namespace Kratos
         
         mNumberOfElementsOldRadiusList = number_of_elements;
         
-        this->GetRadius().resize(number_of_elements);
-                
-        #pragma omp parallel for
-        for (int i=0; i<number_of_elements; i++){
+        this->GetRadius().resize(number_of_elements);                
+
+	#pragma omp parallel for
+        for (int i = 0; i < number_of_elements; i++ ){
+
             this->GetRadius()[i] = amplification*(mSearchTolerance + mListOfSphericParticles[i]->GetSearchRadius());
+
         }
-        /*for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + p_spheric_particle->GetSearchRadius());//GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
-        }*/
 
         KRATOS_CATCH("")
     }
@@ -1257,7 +1256,7 @@ namespace Kratos
         
             SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin() + i;
  
-            this->GetOriginalRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+            this->GetOriginalRadius()[i] = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
         }
 
@@ -1303,13 +1302,15 @@ namespace Kratos
 
         #pragma omp parallel
         {
-            std::vector<unsigned int> mTempNeighboursIds;
+            std::vector<int> mTempNeighboursIds;
             std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
         
             #pragma omp for
             for(int i=0; i<number_of_particles; i++){
-                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds,mTempNeighbourElasticContactForces,mTempNeighbourTotalContactForces);
+                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds,
+                                                                               mTempNeighbourElasticContactForces,
+                                                                               mTempNeighbourTotalContactForces);
             }
         }
 
