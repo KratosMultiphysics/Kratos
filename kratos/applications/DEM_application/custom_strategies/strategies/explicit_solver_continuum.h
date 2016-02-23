@@ -79,7 +79,7 @@ namespace Kratos
       }      
       
       /*
-      virtual void RebuildListsOfPointersOfEachParticle() { //TODO: delete
+      virtual void RebuildListsOfPointersOfEachParticle(){
           
           ModelPart& r_model_part             = GetModelPart();
           ElementsArrayType& r_local_elems = r_model_part.GetCommunicator().LocalMesh().Elements();
@@ -137,7 +137,7 @@ namespace Kratos
         
         KRATOS_TRY
          
-        std::cout << "------------------CONTINUUM EXPLICIT SOLVER STRATEGY---------------------" << "\n" <<std::endl;
+        std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" <<std::endl;
 
         ModelPart& r_model_part             = GetModelPart();
         ModelPart& fem_model_part           = GetFemModelPart();
@@ -179,8 +179,8 @@ namespace Kratos
         BaseType::InitializeDEMElements();
         BaseType::InitializeFEMElements();                
         BaseType::InitializeSolutionStep(); //SLS
-        BaseType::ApplyPrescribedBoundaryConditions();
-        
+        //BaseType::ApplyPrescribedBoundaryConditions();
+
         this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
@@ -230,7 +230,7 @@ namespace Kratos
           SetInitialDemContacts();
         }   
         
-        ComputeNewNeighboursHistoricalData();   //TODO remove this call                 
+        ComputeNewNeighboursHistoricalData();                    
         
         if(fem_model_part.Nodes().size()>0) {        
           BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
@@ -430,13 +430,13 @@ namespace Kratos
         //#pragma omp parallel for //TODO
         for ( int i = 0; i<number_of_particles; i++){
                        
-            //std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;
-            //mListOfSphericContinuumParticles[i]->mBondElements.resize(r_continuum_ini_neighbours.size());
+                       
+                
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
             unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
             mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
-                       
-            //for (unsigned int j = 0; j < r_continuum_ini_neighbours.size(); j++) {
+                
+
             for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
                 
                 SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*>(neighbour_elements[j]);
@@ -470,20 +470,20 @@ namespace Kratos
         //#pragma omp parallel for //TODO
         for ( int i = 0; i<number_of_particles; i++) {
             
-            //std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;
+
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
             unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
-
-            //for (unsigned int j = 0; j < r_continuum_ini_neighbours; j++ ) {
+                
+                
             for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
                 
                 SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*>(neighbour_elements[j]);
                 
                 if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                
+                    //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
                 if (mListOfSphericContinuumParticles[i]->Id() < neighbour_element->Id()) continue;
-                
-                //for (unsigned int k = 0; k < r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements.size(); k++ ) {
+                    //In all functions using mBondElements we must check that this bond is not used.
+                    
                 for (unsigned int k = 0; k < neighbour_element->mContinuumInitialNeighborsSize; k++ ) {
                     //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
                     //In all functions using mBondElements we must check that this bond is not used.
