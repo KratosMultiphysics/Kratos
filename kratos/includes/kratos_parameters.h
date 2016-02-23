@@ -66,6 +66,23 @@ public:
     {
     }
     
+    const std::string WriteJsonString() const
+    {
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        mrvalue.Accept(writer);
+        return buffer.GetString();
+    }
+
+
+    const  std::string PrettyPrintJsonString() const   
+    {
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        mrvalue.Accept(writer);
+        return buffer.GetString();
+    }
+
     
     //*******************************************************************************************************
     ParameterValue GetValue(const std::string entry)
@@ -76,7 +93,11 @@ public:
     {
         return ParameterValue(mrvalue[entry.c_str()]);
     }
-
+    void SetValue(const std::string entry, const ParameterValue& other_value)
+    {
+        KRATOS_THROW_ERROR(std::logic_error,"it is not allowed to set directly a value ","")
+//         rapidjson::ParseResult ok = mrvalue.Parse<0>(other_value.WriteJsonString().c_str());
+    }
     //*******************************************************************************************************
     bool Has(const std::string entry)
     {
@@ -171,7 +192,16 @@ public:
             return ParameterValue(mrvalue[index]);
         }
     }
-        
+     
+    void SetArrayItem(unsigned int index, const ParameterValue& other_array_item)
+    {
+        KRATOS_THROW_ERROR(std::logic_error,"not allowed to set directly an array value","")
+    }
+       
+    ParameterValue operator[](unsigned int index)
+    {
+        return this->GetArrayItem(index);
+    }
 private:
     rapidjson::Value& mrvalue;
 };
@@ -283,7 +313,7 @@ public:
     }
 
 
-      std::string PrettyPrintJsonString() const   
+    const  std::string PrettyPrintJsonString() const   
     {
         rapidjson::StringBuffer buffer;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
