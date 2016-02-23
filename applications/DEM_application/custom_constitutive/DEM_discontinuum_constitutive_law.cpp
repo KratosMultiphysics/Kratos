@@ -69,7 +69,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
     }
     
-    void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta){
+    void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
     }
     
@@ -210,8 +210,7 @@ namespace Kratos {
             bool& sliding,
             SphericParticle* element1,
             SphericParticle* element2,
-            int &mNeighbourFailureId_count,
-            double mapping_new_cont) {
+            int &mNeighbourFailureId_count) {
 
         KRATOS_TRY
         CalculateNormalForceLinear(LocalElasticContactForce, kn_el, indentation);
@@ -223,8 +222,7 @@ namespace Kratos {
                 sliding,
                 element1,
                 element2,
-                mNeighbourFailureId_count,
-                mapping_new_cont);
+                mNeighbourFailureId_count);
         KRATOS_CATCH("")  
         
     }
@@ -249,8 +247,7 @@ namespace Kratos {
             bool& sliding,
             SphericParticle* element1,
             SphericParticle* element2,
-            int &mNeighbourFailureId_count,
-            double mapping_new_cont) {
+            int &mNeighbourFailureId_count) {
 
         KRATOS_TRY
         const double other_tg_of_fri_angle = element2->GetTgOfFrictionAngle();
