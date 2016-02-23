@@ -182,17 +182,13 @@ proc write::writeElementConnectivities { } {
     variable mat_dict
     
     set xp1 "[spdAux::getRoute $parts]/group"
-    # We will save a TCL dictionary with the information from our materials
-    
     set material_number 0
-    
     foreach gNode [$root selectNodes $xp1] {
         set formats ""
         set group [get_domnode_attribute $gNode n]
-        #W $group
         if { [dict exists $mat_dict $group] } {          
             set mid [dict get $mat_dict $group MID]
-            set ov [$gNode @ov]
+            if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
             #W $ov
             lassign [getEtype $ov] etype nnodes
             #W "$group $ov -> $etype $nnodes"
@@ -206,7 +202,7 @@ proc write::writeElementConnectivities { } {
                     set top [$elem getTopologyFeature $etype $nnodes]
                     if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
                     set kratosElemName [$top getKratosName]
-                    W "Writing $formats"
+                    #W "Writing $formats"
                     WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
                     write_calc_data connectivities $formats
                     WriteString "End Elements"

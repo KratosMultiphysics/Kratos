@@ -13,7 +13,6 @@ proc Fluid::write::writeModelPartEvent { } {
     write::writeModelPartData
     writeProperties
     write::writeMaterials
-    #write::writeTables
     write::writeNodalCoordinates
     write::writeElementConnectivities
     writeConditions
@@ -28,8 +27,7 @@ proc Fluid::write::writeParametersEvent { } {
 }
 
 proc Fluid::write::writeCustomFilesEvent { } {
-    WriteCustomFile
-    WriteAnotherCustomFile
+
 }
 
 # MDPA Blocks

@@ -22,7 +22,7 @@
 			if {$::Model::SpatialDimension eq "3D"} {return volume} {return surface}
 		}
 		if {$level eq 2} {
-			if {$::Model::SpatialDimension eq "3D"} {return surface} {return line}
+			if {$::Model::SpatialDimension eq "2D"} {return surface} {return line}
 		}
 	  ]]>
 	</proc>
