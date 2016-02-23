@@ -7,6 +7,7 @@
   <hiddenfield n="nDim" un="nDim" v="3D" state="disabled"/>
   <appLink n="SolidMechanics" pn="Structural" active="0" appid="SolidMechanics"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid"/>
+  <appLink n="BaseApp" pn="BaseApp" active="0" appid="BaseApp"/>
   <blockdata n="units" pn="Units" icon="units">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
     <value n='units_system' pn='Units system' units_system_definition="1">
@@ -123,6 +124,26 @@
 		return [join $names ","]
 	  ]]>
 	</proc>
+		<proc n='GetSolvers' args='args'>
+	  <![CDATA[
+	set solStrat [get_domnode_attribute [$domNode parent] solstratname]
+	set solverEntryId [get_domnode_attribute [$domNode parent] n]
+	
+	set solvers [Model::GetAvailableSolvers $solStrat $solverEntryId]
+	
+	set names [list ]
+	set pnames [list ]
+	foreach slvr $solvers {
+		lappend names [$slvr getName]
+		lappend pnames [$slvr getName] 
+		lappend pnames [$slvr getPublicName]
+	}
+	$domNode setAttribute dict [join $pnames ","]
+	if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+	return [join $names ","]
+	  
+	  ]]>
+	</proc>
 	  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
 		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
@@ -155,7 +176,22 @@
 		if {$total} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
-	  
+	  	  <proc n='SolverParamState' args='args'>
+	  <![CDATA[
+			
+		set id [$domNode getAttribute n]
+		set nodesolver [[$domNode parent] selectNodes "./value\[@n='Solver'\]"]
+		get_domnode_attribute $nodesolver values
+		set solverid [get_domnode_attribute $nodesolver v]
+		
+		if {$solverid eq ""} {set resp 0} {
+		set resp [::Model::getSolverParamState $solverid $id]
+		}
+		
+		spdAux::RequestRefresh
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
 	<proc n='ConstLawParamValue' args='args'>
 	  <![CDATA[
 		return [spdAux::CheckConstLawParamValue $domNode]
@@ -176,6 +212,12 @@
 			if {$constLaw eq ""} {return hidden}
 			set resp [Model::CheckConstLawParamState $constLaw $id]
 		}
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  	  <proc n='SolverEntryState' args='args'>
+	  <![CDATA[
+		set resp [spdAux::CheckSolverEntryState $domNode]
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
@@ -347,7 +389,6 @@
       return [list $dict ""]      
       ]]>
     </proc>
-	
 	<proc n='ConditionState' args='args'>
 	  <![CDATA[
 	  set resp [::Model::CheckConditionState $domNode]
@@ -355,6 +396,41 @@
 	  ]]>
 	</proc>
 	
+	  <proc n='SolStratParamState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::SolStratParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='SchemeParamState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::SchemeParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>	   
+	  <proc n='ConstLawOutputState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::CheckConstLawOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='ElementOutputState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::CheckElementOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  
+	  <proc n='ActiveIfAnyPartState' args='args'>
+	  <![CDATA[
+	  set parts ""
+	  set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+	  catch {
+		set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]
+		}
+		if {$parts ne ""} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
 	<dynamicnode command="injectProcs" args=""/>
   </procs>
   <translations>

@@ -311,7 +311,7 @@ proc spdAux::getElements {app fil tag val pn} {
 }
 
 proc spdAux::CheckSolverEntryState {domNode} {
-        set kw "SMSolStrat"
+        set kw [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
         set nodo [$domNode selectNodes [getRoute $kw]]
         get_domnode_attribute $nodo values
         set currentSolStrat [get_domnode_attribute $nodo v]
@@ -352,6 +352,12 @@ proc spdAux::chk_loads_function_time { domNode load_name } {
     return [join $loads ,]
 }
 
+proc spdAux::ViewDoc {} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    W [$root asXML]
+}
 
 
 proc spdAux::CheckElemParamValue {node} {
@@ -363,7 +369,8 @@ proc spdAux::CheckElemParamValue {node} {
     set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
     set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
     
-    set xp3 [spdAux::getRoute "SMMaterials"]
+    set mats_un [spdAux::ExecuteOnCurrentApp getUniqueName Materials]
+    set xp3 [spdAux::getRoute $mats_un]
     append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
 
     foreach valueNode [$root selectNodes $xp3] {
@@ -385,10 +392,6 @@ proc spdAux::ListToValues {lista} {
     }
     return [string range $res 0 end-1]
 }
-
-
-
-
 
 proc spdAux::injectSolvers {basenode} {
     
@@ -430,18 +433,20 @@ proc spdAux::injectSolvers {basenode} {
     }
     
     # One container per solverEntry 
-    foreach {st se} $ses {
-        set stn [$st getName]
-        set n [$se getName]
-        set pn [$se getPublicName]
-        set help [$se getHelp]
-        set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"SM$stn$n\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\">"
-        # Inject solvers combo
-        append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\">"
-        append container "<dependencies node=\"../value\" actualize=\"1\"/> </value>"
-        append container $paramsnodes
-        append container "</container>"
-        $contnode appendXML $container
+    foreach {st ss} $ses {
+        foreach se $ss {
+            set stn [$st getName]
+            set n [$se getName]
+            set pn [$se getPublicName]
+            set help [$se getHelp]
+            set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$stn$n\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\">"
+            # Inject solvers combo
+            append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\">"
+            append container "<dependencies node=\"../value\" actualize=\"1\"/> </value>"
+            append container $paramsnodes
+            append container "</container>"
+            $contnode appendXML $container
+        }
     }
     $basenode delete
 }
@@ -687,7 +692,8 @@ proc spdAux::CheckConstLawOutputState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set xp1 "[spdAux::getRoute "SMParts"]/group/value\[@n='ConstitutiveLaw'\]"
+    set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+    set xp1 "$parts_un/group/value\[@n='ConstitutiveLaw'\]"
     set constlawactive [list ]
     foreach gNode [$root selectNodes $xp1] {
         lappend constlawactive [$gNode @v]
@@ -701,7 +707,8 @@ proc spdAux::CheckElementOutputState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set xp1 "[spdAux::getRoute "SMParts"]/group/value\[@n='Element'\]"
+    set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+    set xp1 "$parts_un/group/value\[@n='Element'\]"
     set elemsactive [list ]
     foreach gNode [$root selectNodes $xp1] {
         lappend elemsactive [$gNode @v]
@@ -714,10 +721,11 @@ proc spdAux::CheckElementOutputState {outnode} {
 proc spdAux::SolStratParamState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute SMSolStrat]] v] eq ""} {
-        get_domnode_attribute [$root selectNodes [spdAux::getRoute SMSolStrat]] values
+    set solstrat_un [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] v] eq ""} {
+        get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] values
     }
-    set SolStrat [get_domnode_attribute [$root selectNodes [spdAux::getRoute SMSolStrat]] v]
+    set SolStrat [get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] v]
     set paramName [$outnode @n]
     return [::Model::CheckSolStratInputState $SolStrat $paramName]
 }
@@ -726,9 +734,11 @@ proc spdAux::SchemeParamState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set xp1 "[spdAux::getRoute "SMSolStrat"]"
+    set solstrat_un [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    set schemet_un [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    set xp1 "[spdAux::getRoute $solstrat_un]"
     set SolStrat [[$root selectNodes $xp1 ] @v]
-    set xp1 "[spdAux::getRoute "SMScheme"]"
+    set xp1 "[spdAux::getRoute $schemet_un]"
     set Scheme [[$root selectNodes $xp1 ] @v]
     
     set paramName [$outnode @n]
@@ -738,7 +748,8 @@ proc spdAux::SchemeParamState {outnode} {
 proc spdAux::getIntervals {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "SMIntervals"]/blockdata\[@n='Interval'\]"
+    set intervals_un [spdAux::ExecuteOnCurrentApp getUniqueName Intervals]
+    set xp1 "[spdAux::getRoute $intervals_un]/blockdata\[@n='Interval'\]"
     set lista [list ]
     foreach node [$root selectNodes $xp1] {
         lappend lista [$node @name]
@@ -750,7 +761,8 @@ proc spdAux::getIntervals {} {
 proc spdAux::getTimeFunctions {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "SMFunctions"]/blockdata\[@n='Function'\]"
+    set functions_un [spdAux::ExecuteOnCurrentApp getUniqueName Functions]
+    set xp1 "[spdAux::getRoute $functions_un]/blockdata\[@n='Function'\]"
     set lista [list ]
     foreach node [$root selectNodes $xp1] {
         lappend lista [$node @name]
@@ -762,7 +774,8 @@ proc spdAux::getTimeFunctions {} {
 proc spdAux::getFields {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "SMFields"]/blockdata\[@n='Field'\]"
+    set fields_un [spdAux::ExecuteOnCurrentApp getUniqueName Fields]
+    set xp1 "[spdAux::getRoute $fields_un]/blockdata\[@n='Field'\]"
     set lista [list ]
     foreach node [$root selectNodes $xp1] {
         lappend lista [$node @name]

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="SolStrat" pn="Solution" help="Solution Strategy" >
-	  <container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy"  v="fh" values="">
+<container n="SolutionStrat" pn="Solution" help="Solution Strategy" >
+	  <container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" >
 			<container n="ParallelType" pn="Parallel type" help="Parallel type">
 				  <value n="ParallelSolutionType" pn="Parallelization" un="FLParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1"/>
 				  <value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName FLParallelType MPI]"/>
 				  <value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName FLParallelType OpenMP]"/>
 			</container>
-            <container n="SolverTypes" pn="Linear solvers" help="Linear solver">
+			
+			<dynamicnode command="injectSolvers" args=""/>
+            <!--<container n="SolverTypes" pn="Linear solvers" help="Linear solver">
 				  <container n="VelocitySolver" pn="Velocity solver" state="[checkStateByUniqueName FLSolStrat FractionalStep]" tree_state="open">
 						<value n="LinearSolverType" pn="Solver type" v="Iterative"  values="Direct,Iterative" help="" actualize_tree="1"/>
 						<value n="DirectSolverType" pn="Solver" state="[CheckIdOnMyParent LinearSolverType Direct]" v="SuperLU" values="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" dict="SkylineLUFactorization,Skyline LU factorization,SuperLU,Super LU,ParallelMKLPardiso,Parallel MKL Pardiso" help=""/>
@@ -37,7 +39,7 @@
 						<value n="MaximumIterations" pn="Maximum iterations" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="100" help=""/>
 						<value n="PreconditionerType" pn="Preconditioner type" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="ILU0" values="None,Diagonal,ILU0" help=""/>
 				  </container>
-			</container>
+			</container>-->
             <container n="Avanced" pn="Avanced" help="Avanced Solver Parameters">
 				  <value n="PredictorCorrector" pn="Predictor corrector" v="False" values="True,False" state="[checkStateByUniqueName FLSolStrat FractionalStep]" help=""/>
 				  <value n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" help="Relative velocity tolerance"/>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="NodalConditions" pn="Nodal conditions" un="BANodalConditions" >
+	  <dynamicnode command="injectNodalConditions" args=""/>
+</container>

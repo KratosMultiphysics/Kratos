@@ -90,46 +90,7 @@
 	  ]]>
     </proc>
 
-	  <proc n='SolverEntryState' args='args'>
-	  <![CDATA[
-		set resp [spdAux::CheckSolverEntryState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='SolverParamState' args='args'>
-	  <![CDATA[
-			
-		set id [$domNode getAttribute n]
-		set nodesolver [[$domNode parent] selectNodes "./value\[@n='Solver'\]"]
-		get_domnode_attribute $nodesolver values
-		set solverid [get_domnode_attribute $nodesolver v]
-		
-		if {$solverid eq ""} {set resp 0} {
-		set resp [::Model::getSolverParamState $solverid $id]
-		}
-		
-		spdAux::RequestRefresh
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	<proc n='GetSolvers' args='args'>
-	  <![CDATA[
-	set solStrat [get_domnode_attribute [$domNode parent] solstratname]
-	set solverEntryId [get_domnode_attribute [$domNode parent] n]
-	
-	set solvers [Model::GetAvailableSolvers $solStrat $solverEntryId]
-	
-	set names [list ]
-	set pnames [list ]
-	foreach slvr $solvers {
-		lappend names [$slvr getName]
-		lappend pnames [$slvr getName] 
-		lappend pnames [$slvr getPublicName]
-	}
-	$domNode setAttribute dict [join $pnames ","]
-	if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-	return [join $names ","]
-	  
-	  ]]>
-	</proc>
+
+
+
 </container>
