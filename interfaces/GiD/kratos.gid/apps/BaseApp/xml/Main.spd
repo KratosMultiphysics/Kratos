@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <container n="BaseApp" pn="Base App" icon="units" tree_state="open">
+    <include n="ModelInformation" active="1" path="apps/BaseApp/xml/ModelInformation.spd"/>
+    <include n="Parts" active="1" path="apps/BaseApp/xml/Parts.spd"/>
+    <include n="NodalConditions" active="1" path="apps/BaseApp/xml/NodalConditions.spd"/>
+    <include n="Conditions" active="1" path="apps/BaseApp/xml/Conditions.spd"/>
+    <include n="SolutionStrategy" active="1" path="apps/BaseApp/xml/SolutionStrategy.spd"/>
+    <include n="Results" active="1" path="apps/BaseApp/xml/Results.spd"/>
+    <include n="materials" active="1" path="apps/BaseApp/xml/Materials.spd"/> 
+  </container>

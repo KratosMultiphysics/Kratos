@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<condition n="Parts" pn="Parts" ov="point,line,surface,volume" ovm="node,element" icon="shells16" help="Select your group" un="BAParts">
+	  <value n="Element" pn="Element" v="" dict="" actualize_tree="1" values="[GetElements]" state="normal">
+			<dependencies node="../value" actualize="1"/>
+	  </value>
+	  <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" v=""
+			 values="[GetConstitutiveLaws]" dict="" state="normal">
+			<dependencies node="../value" actualize="1"/>
+	  </value>
+	  <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
+			 values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
+			<edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
+			<dependencies node="../value" actualize="1"/>
+	  </value>
+	  <dynamicnode command="injectElementInputs" args=""/>
+	  <dynamicnode command="injectConstitutiveLawInputs" args=""/>
+</condition>

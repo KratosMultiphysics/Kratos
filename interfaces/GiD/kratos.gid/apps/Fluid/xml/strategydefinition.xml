@@ -21,13 +21,10 @@
         </filterFeatures>
       </linearSolverItem>
 	  
-      <linearSolverItem n="velocity_linear_solver_config" pn="Velocity linear solver" >
+      <linearSolverItem n="pressure_linear_solver_config" pn="Pressure linear solver" >
         <filterFeatures>
-	  <!--<filter field="n" value="BiConjugate"/>
-	      <filter field="symmetric" value="false"/>
-              <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
-      </linearSolverItem>  
+      </linearSolverItem> 
     </linearSolvers>
 	
 	<schemes>
