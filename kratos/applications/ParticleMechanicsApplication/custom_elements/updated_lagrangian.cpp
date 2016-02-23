@@ -427,7 +427,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         
         this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
         
-        
+
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         
@@ -453,15 +453,23 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         //set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values);
         
-        
         mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
         
         this->SetValue(MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
         this->SetValue(MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
         
+        //at the first iteration I recover the previous state of stress and strain
+        if(rCurrentProcessInfo[NL_ITERATION_NUMBER] == 1)
+        {
+            this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
+            this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
+        }
         //the MP density is updated
         double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
-        
+        //if(this->Id() == 1786 || this->Id() == 1836)
+            //{
+                //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
+            //}
         
         //the integration weight is evaluated
         double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
@@ -526,7 +534,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         //1 way.
         //noalias( rVariables.F ) = prod( rVariables.j, InvJ);
         
-        //2 way by means of the gradient of nodal displacement
+        //2 way by means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
 
         Matrix I=identity_matrix<double>( dimension );
         
@@ -534,7 +542,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
         GradientDisp = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
         
-        
+        //REMEMBER THAT USING JUST ONLY THE FIRST ORDER TERM SOME ISSUES CAN COME UP WHEN FOR PROBLEMS WITH LOTS OF ROTATIONAL MOTION(slender cantilever beam??)
         noalias( rVariables.F ) = (I + GradientDisp);
         //if (this->Id() == 365)
         //{
@@ -706,6 +714,10 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
             }
             
         }
+        if(this->Id() == 875)
+        {
+            std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+        }
         
         KRATOS_CATCH( "" )
     }
@@ -783,19 +795,19 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         KRATOS_TRY
         //std::stringstream ss;
         
-        unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int voigtsize  = 3;
-        unsigned int MatSize = number_of_nodes * dimension;
+        //unsigned int number_of_nodes = GetGeometry().size();
+        //unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        //unsigned int voigtsize  = 3;
+        //unsigned int MatSize = number_of_nodes * dimension;
        
-        Matrix temp = ZeroMatrix(voigtsize, MatSize);
+        //Matrix temp = ZeroMatrix(voigtsize, MatSize);
         
         
-        temp = prod( rVariables.ConstitutiveMatrix, rVariables.B );
+        //temp = prod( rVariables.ConstitutiveMatrix, rVariables.B );
         
         
                
-        noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * temp ); //to be optimized to remove the temporary
+        noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 
         
 
         //std::cout << ss.str();
@@ -1031,6 +1043,204 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
     {   
         // In the Initialize of each time step the nodal initial conditions are evaluated
         //1. first of all I need to evaluate the MP momentum and MP_inertia
+        int MP_bool = this->GetValue(MP_BOOL);
+        
+        
+        if(MP_bool == 0)
+        {
+            //std::cout<<" in InitializeSolutionStep1"<<std::endl;
+            unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+            array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+            GeneralVariables Variables;
+            //this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
+            //this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
+            //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+            
+            if(this->Id() == 1786 || this->Id() == 1836)
+            {
+                std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
+            }
+            
+            Matrix J0 = ZeroMatrix(dimension, dimension);
+            
+            J0 = this->MPMJacobian(J0, xg);    
+            
+            //calculating and storing inverse and the determinant of the jacobian 
+            MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
+            
+            Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
+            
+            mConstitutiveLawVector->InitializeSolutionStep( GetProperties(),
+                    GetGeometry(), Variables.N, rCurrentProcessInfo );
+
+            mFinalizedStep = false;
+            
+            
+            
+            array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
+            array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
+            double MP_Mass = this->GetValue(MP_MASS);
+            array_1d<double,3> MP_Momentum;
+            array_1d<double,3> MP_Inertia;
+            array_1d<double,3> NodalMomentum;
+            array_1d<double,3> NodalInertia;
+            
+           
+            
+            
+            
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                MP_Momentum[k] = MP_Velocity[k] * MP_Mass;
+                MP_Inertia[k] = MP_Acceleration[k] * MP_Mass;
+            }
+            //std::cout<<"MP_Momentum "<<MP_Momentum<<std::endl;
+            //std::cout<<"MP_Inertia "<<MP_Inertia<<std::endl;
+            // Here MP contribution in terms of momentum, inertia and mass are added        
+        
+            for ( unsigned int i = 0; i < number_of_nodes; i++ )
+            {   
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    NodalMomentum[j] = Variables.N[i] * MP_Momentum[j];
+                    NodalInertia[j] = Variables.N[i] * MP_Inertia[j];
+                    
+                } 
+                GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+                GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+                //if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
+                //{
+                GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+                //}
+                
+            }
+            //for ( unsigned int i = 0; i < number_of_nodes; i++ )
+            
+            //{   
+                //if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
+                //{
+                //for (unsigned int j = 0; j < number_of_nodes; j++)
+                //{
+                    //if(GetGeometry()[j].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
+                    //{
+                   //GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * Variables.N[j] * MP_Mass;
+                    //}
+                //}
+                //}
+            //} 
+                
+                
+            
+            this->SetValue(MP_BOOL,1);
+        }
+        else
+        {
+            //std::cout<<" in InitializeSolutionStep2"<<std::endl;
+            unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+            const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+            array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+            GeneralVariables Variables;
+            //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+            
+            
+            
+            Matrix J0 = ZeroMatrix(dimension, dimension);
+            
+            J0 = this->MPMJacobian(J0, xg);    
+            
+            //calculating and storing inverse and the determinant of the jacobian 
+            MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
+            
+            Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
+            
+            mConstitutiveLawVector->InitializeSolutionStep( GetProperties(),
+                    GetGeometry(), Variables.N, rCurrentProcessInfo );
+
+            mFinalizedStep = false;
+            
+            
+            
+            array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
+            array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
+            array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
+            array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
+            double MP_Mass = this->GetValue(MP_MASS);
+            array_1d<double,3> MP_Momentum;
+            array_1d<double,3> MP_Inertia;
+            array_1d<double,3> NodalMomentum;
+            array_1d<double,3> NodalInertia;
+            
+           for (unsigned int j=0;j<number_of_nodes;j++)
+            {   
+                //these are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
+                array_1d<double, 3 > & NodalAcceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
+                array_1d<double, 3 > & NodalVelocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+                //std::cout<<"NodalVelocity "<< GetGeometry()[j].Id()<<std::endl;
+                for (unsigned int k = 0; k < dimension; k++)
+                {
+                AUX_MP_Velocity[k] += Variables.N[j] * NodalVelocity[k];
+                AUX_MP_Acceleration[k] += Variables.N[j] * NodalAcceleration[k];
+                }
+            }
+            //std::cout<<" AUX_MP_Velocity "<<AUX_MP_Velocity<<std::endl;
+            //std::cout<<" AUX_MP_Acceleration "<<AUX_MP_Acceleration<<std::endl;
+            
+            
+            //for (unsigned int k = 0; k < 3; k++)
+            //{
+                //MP_Momentum[k] = (MP_Velocity[k] - AUX_MP_Velocity[k]) * MP_Mass;
+                //MP_Inertia[k] = (MP_Acceleration[k] - AUX_MP_Acceleration[k]) * MP_Mass;
+            //}
+            
+            // Here MP contribution in terms of momentum, inertia and mass are added        
+            //if(this->Id() == 15634)
+            //{
+                //std::cout<<" error "<< MP_Velocity - AUX_MP_Velocity<<std::endl;
+            //}
+            for ( unsigned int i = 0; i < number_of_nodes; i++ )
+            {   
+                for (unsigned int j = 0; j < dimension; j++)
+                {
+                    NodalMomentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
+                    NodalInertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
+                    
+                } 
+                GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
+                GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+                //if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
+                //{
+                GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+                //}
+            }
+            //for ( unsigned int i = 0; i < number_of_nodes; i++ )
+            
+            //{   
+                //if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
+                //{
+                //for (unsigned int j = 0; j < number_of_nodes; j++)
+                //{
+                    //if(GetGeometry()[j].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
+                    //{
+                   //GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * Variables.N[j] * MP_Mass;
+                    //}
+                //}
+                //}    
+            //} 
+            AUX_MP_Velocity.clear();
+            AUX_MP_Acceleration.clear();
+        }
+        
+        
+    }
+    
+////************************************************************************************
+////************************************************************************************
+
+void UpdatedLagrangian::IterativeExtrapolation( ProcessInfo& rCurrentProcessInfo )
+    {   
+        // In the Initialize of each time step the nodal initial conditions are evaluated
+        //1. first of all I need to evaluate the MP momentum and MP_inertia
                
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -1049,29 +1259,41 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         
-        mConstitutiveLawVector->InitializeSolutionStep( GetProperties(),
-                GetGeometry(), Variables.N, rCurrentProcessInfo );
+        //mConstitutiveLawVector->InitializeSolutionStep( GetProperties(),
+        //        GetGeometry(), Variables.N, rCurrentProcessInfo );
 
-        mFinalizedStep = false;
+        //mFinalizedStep = false;
         
         
         
         array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
         array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
+        array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
+        array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
         double MP_Mass = this->GetValue(MP_MASS);
         array_1d<double,3> MP_Momentum;
         array_1d<double,3> MP_Inertia;
         array_1d<double,3> NodalMomentum;
         array_1d<double,3> NodalInertia;
         
-       
+       for (unsigned int j=0;j<number_of_nodes;j++)
+        {   
+            //these are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
+            array_1d<double, 3 > & NodalAcceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
+            array_1d<double, 3 > & NodalVelocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+            AUX_MP_Velocity[k] += Variables.N[j] * NodalVelocity[k];
+            AUX_MP_Acceleration[k] += Variables.N[j] * NodalAcceleration[k];
+            }
+        }
         
         
         
         for (unsigned int k = 0; k < dimension; k++)
         {
-            MP_Momentum[k] = MP_Velocity[k] * MP_Mass;
-            MP_Inertia[k] = MP_Acceleration[k] * MP_Mass;
+            MP_Momentum[k] = (MP_Velocity[k] - AUX_MP_Velocity[k]) * MP_Mass;
+            MP_Inertia[k] = (MP_Acceleration[k] - AUX_MP_Acceleration[k]) * MP_Mass;
         }
         
         // Here MP contribution in terms of momentum, inertia and mass are added        
@@ -1090,28 +1312,7 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
             
             
         }
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        
-        {   
-            if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
-            {
-                for (unsigned int j = 0; j < number_of_nodes; j++)
-                {
-                if(GetGeometry()[j].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
-                {
-               GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * Variables.N[j] * MP_Mass;
-                }
-                }
-            } 
-            
-            
-        }
-        
-        
-        
     }
-
-    
 ////************************************************************************************
 ////************************************************************************************
     void UpdatedLagrangian::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
@@ -1233,15 +1434,15 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
             array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
             array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
             
-            //if (this->Id() == 15791 || this->Id() == 366)
-            //{
-                //std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
-                //std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
-                //std::cout<< "NodalMass "<<NodalMass<<std::endl;
-                //std::cout<< "NodalMomentum "<<NodalMomentum<<std::endl;
-                //std::cout<< "NodalInertia "<<NodalInertia<<std::endl;
-                //std::cout<< "rVariables.N "<<rVariables.N<<std::endl;
-            //}
+            if (this->Id() == 1518 || this->Id() == 1513)
+            {
+                std::cout<< "Nodal ID "<< GetGeometry()[i].Id()<<std::endl;
+                std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
+                std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
+                std::cout<< "NodalMass "<<NodalMass<<std::endl;
+                
+                std::cout<< "rVariables.N "<<rVariables.N<<std::endl;
+            }
             
             
             
@@ -1251,7 +1452,8 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
                 
                 delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
                 MP_Acceleration[j] += rVariables.N[i] * NodalAcceleration[j];
-                //MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];
+                //PERCHE NON FUNZIONA QUESTA INTERPOLAZIONE?
+                MP_Velocity[j] += rVariables.N[i] * NodalVelocity[j];
                 
                 //MP_Acceleration[j] +=NodalInertia[j]/(rVariables.N[i] * MP_Mass * MP_number);//
                 //MP_Velocity[j] += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
@@ -1270,9 +1472,12 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         //Another way to update the MP velocity (see paper Guilkey and Weiss, 2003) !!!USING THIS EXPRESSION I CONSERVE MORE ENERGY   
         //THIS EXPRESSION IS OK WHEN NO Dirichlet BOUNDARY CONDITIONS ARE APPLIED.
         //WHEN BOUNDARY CONDITIONS ARE APPLIED SOMETHING HAS TO BE CHANGED to conserve the total linear momentum
-        MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
+        //MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
         //MP_Velocity += MP_PreviousVelocity;
         //Update the MP Velocity
+        
+        //MP_Acceleration = 4/(DeltaTime * DeltaTime) * delta_xg - 4/DeltaTime * MP_PreviousVelocity;
+        //MP_Velocity = 2/DeltaTime * delta_xg - MP_PreviousVelocity;
         this -> SetValue(MP_VELOCITY,MP_Velocity ); 
         
         
@@ -1293,17 +1498,17 @@ KRATOS_CREATE_LOCAL_FLAG( UpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS,
         
        
         
-        //if (this->Id() == 15791 || this->Id() == 366)
+        if (this->Id() == 1518 || this->Id() == 1513)
         
-        //{
+        {
+            std::cout<<" MP position "<<this->Id()<<this -> GetValue(GAUSS_COORD)<<std::endl;
+            std::cout<<" delta_xg "<<this->Id()<<delta_xg<<std::endl;
             
-            //std::cout<<" delta_xg "<<this->Id()<<delta_xg<<std::endl;
+            std::cout<<" MP_Velocity "<<this->Id()<<this -> GetValue(MP_VELOCITY)<<std::endl;
             
-            //std::cout<<" MP_Velocity "<<this->Id()<<this -> GetValue(MP_VELOCITY)<<std::endl;
+            std::cout<<" MP_Acceleration "<<this->Id()<<this -> GetValue(MP_ACCELERATION)<<std::endl;
             
-            //std::cout<<" MP_Acceleration "<<this->Id()<<this -> GetValue(MP_ACCELERATION)<<std::endl;
-            
-        //}
+        }
         
         KRATOS_CATCH( "" )
     }

@@ -372,6 +372,7 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
