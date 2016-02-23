@@ -6,7 +6,6 @@
 #include "DEM_continuum_constitutive_law.h"
 
 
-
 namespace Kratos {
 
     class DEM_KDEM : public DEMContinuumConstitutiveLaw {
@@ -15,15 +14,7 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);
 
         DEM_KDEM() {
-        }
-
-        double mHistoryMaxInd;
-        double mHistoryMaxForce;
-        double mHistoryDamage;
-        double mHistoryDegradation;
-        double mHistoryDisp;
-        double mHistoryShearFlag;
-
+        }    
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
@@ -34,9 +25,9 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
-        void CalculateContactArea(double radius, double other_radius, double &calculation_area);
-        double CalculateContactArea(double radius, double other_radius, std::vector<double> & v);
-        void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
+        void CalculateContactArea(double radius, double other_radius, double& calculation_area);
+        double CalculateContactArea(double radius, double other_radius, std::vector<double>& v);
+        void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
@@ -92,8 +83,18 @@ namespace Kratos {
                 bool& sliding,
                 int search_control,
                 vector<int>& search_control_vector);
+        
+        
+        void CalculateViscoDamping(double LocalRelVel[3],
+                                   double ViscoDampingLocalContactForce[3],
+                                   double indentation,
+                                   double equiv_visco_damp_coeff_normal,
+                                   double equiv_visco_damp_coeff_tangential,
+                                   bool sliding,
+                                   int failure_id);
+        
 
-        void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                               SphericContinuumParticle* neighbor,
                                               double equiv_young,
                                               double distance,
