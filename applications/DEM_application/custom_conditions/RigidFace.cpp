@@ -54,18 +54,17 @@ RigidFace3D::~RigidFace3D() {}
 
 void RigidFace3D::Initialize() {
     /*
-  mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+    mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
     mYoungModulus      = GetProperties()[YOUNG_MODULUS];
     mPoissonRatio      = GetProperties()[POISSON_RATIO];
     */
-  this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-  this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-  this->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+    this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+    this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+    this->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
 
-  this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-  this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-  this->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-
+    this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+    this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+    this->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
 }
 
 //***********************************************************************************
