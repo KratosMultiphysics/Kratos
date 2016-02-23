@@ -58,16 +58,15 @@ namespace Kratos {
 
         virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
                                      double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                double kn_el,
-                double kt_el,
-                double indentation,
-                double& failure_criterion_state,
-                bool& sliding,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                int &mNeighbourFailureId_count,
-                double mapping_new_cont);
+                                     double LocalDeltDisp[3],
+                                     double kn_el,
+                                     double kt_el,
+                                     double indentation,
+                                     double& failure_criterion_state,
+                                     bool& sliding,
+                                     SphericParticle* element1,
+                                     SphericParticle* element2,
+                                     int& mNeighbourFailureId_count);
         
         virtual void CalculateElasticEnergy(double& normal_elastic_energy,
                                                                 double indentation,
@@ -85,8 +84,8 @@ namespace Kratos {
                 bool& sliding,
                 SphericParticle* element1,
                 SphericParticle* element2,
-                int &mNeighbourFailureId_count,
-                double mapping_new_cont);
+                int &mNeighbourFailureId_count);
+        
         virtual void CalculateNormalForceHertz(double LocalElasticContactForce[3], const double kn_el, const double indentation);
         virtual void CalculateViscoDamping(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
