@@ -87,6 +87,7 @@ public:
     //*******************************************************************************************************
     ParameterValue GetValue(const std::string entry)
     {
+        if( mrvalue.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
         return ParameterValue(mrvalue[entry.c_str()]);
     }
     ParameterValue operator[](const std::string entry)
@@ -281,7 +282,19 @@ public:
     ///@{
     ParameterValue GetValue(const std::string entry)
     {
+        if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
         return ParameterValue(md[entry.c_str()]);        
+    }
+    
+    void SetValue(const std::string entry, const ParameterValue& other_value)
+    {
+        KRATOS_THROW_ERROR(std::logic_error,"it is not allowed to set directly a value ","")
+    }
+    
+    ParameterValue operator[](const std::string entry)
+    {
+        if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
+        return ParameterValue(md[entry.c_str()]);    
     }
 
     bool Has(const std::string entry)
@@ -289,7 +302,27 @@ public:
        return md.HasMember(entry.c_str());
     }
 
-
+    ParameterValue GetArrayItem(unsigned int index)
+    { 
+        if(md.IsArray() == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
+        else
+        {
+            if(index >= md.Size())
+                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+            return ParameterValue(md[index]);
+        }
+    }
+     
+    void SetArrayItem(unsigned int index, const ParameterValue& other_array_item)
+    {
+        KRATOS_THROW_ERROR(std::logic_error,"not allowed to set directly an array value","")
+    }
+       
+    ParameterValue operator[](unsigned int index)
+    {
+        return this->GetArrayItem(index);
+    }
 
     ///@}
     ///@name Operations
