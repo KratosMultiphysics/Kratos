@@ -143,9 +143,9 @@ namespace Kratos {
         
         KRATOS_TRY 
 
-        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
-        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
+        //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -266,7 +266,7 @@ namespace Kratos {
 
             if (fabs(indentation) > u2) { // FULL DAMAGE 
                 mNeighbourFailureId_count = 4; //tension failure
-                mIniNeighbourFailureId_mapping = 4;
+                //mIniNeighbourFailureId_mapping = 4;
                 acumulated_damage = 1.0;
                 fn = 0.0;
             } else {
@@ -304,11 +304,11 @@ namespace Kratos {
         
         KRATOS_TRY
 
-        int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
+        //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
+        //int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
 
-        int &mNeighbourFailureId_count = element1->mNeighbourFailureId[i_neighbour_count];
-        int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
+        int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
+        //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -336,7 +336,8 @@ namespace Kratos {
 
         double degradation = 1.0; //Tangential. With degradation:
 
-        if (mapping_new_cont != -1) {
+        //if (mapping_new_cont != -1) {
+        if (i_neighbour_count < int(element1->mContinuumInitialNeighborsSize)) {    
             if (indentation >= 0.0) { //COMPRESSION              
                 degradation = mHistoryDegradation;
             } else {
@@ -390,7 +391,7 @@ namespace Kratos {
 
                 if (damage_tau >= 1.0) {
                     mNeighbourFailureId_count = 2; // shear
-                    mIniNeighbourFailureId_mapping = 2;
+                    //mIniNeighbourFailureId_mapping = 2;
                     //failure_criterion_state = 1.0;
                     sliding = true;
                 }
