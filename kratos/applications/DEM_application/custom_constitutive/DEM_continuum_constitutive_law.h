@@ -51,7 +51,8 @@ namespace Kratos {
                 double indentation,
                 double equiv_visco_damp_coeff_normal,
                 double equiv_visco_damp_coeff_tangential,
-                bool sliding);
+                bool sliding,
+                int failure_id);
 
         virtual void CalculateContactArea(double radius,
                 double other_radius,
