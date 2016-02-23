@@ -120,24 +120,23 @@ namespace Kratos {
             coordinates_of_sphere[2]= central_node.Coordinates()[2] + global_relative_coordinates[2];    
             
             radius_of_sphere = mListOfRadii[i];   
-#pragma omp critical
+            #pragma omp critical
             {
             (*p_max_Id)++;
             max_Id = *p_max_Id;
             }
              
-            Kratos::SphericParticle* new_sphere = p_creator_destructor->ElementCreatorForClusters  (dem_model_part, 
-                                                                                                    max_Id, 
-                                                                                                    radius_of_sphere, 
-                                                                                                    coordinates_of_sphere, 
-                                                                                                    mass,
-                                                                                                    this->pGetProperties(), 
-                                                                                                    r_reference_element,
-                                                                                                    cluster_id);
+            Kratos::SphericParticle* new_sphere = p_creator_destructor->ElementCreatorForClusters(dem_model_part, 
+                                                                                                  max_Id, 
+                                                                                                  radius_of_sphere, 
+                                                                                                  coordinates_of_sphere, 
+                                                                                                  mass,
+                                                                                                  this->pGetProperties(), 
+                                                                                                  r_reference_element,
+                                                                                                  cluster_id);
             
             p_creator_destructor->SetMaxNodeId(max_Id);       
             mListOfSphericParticles[i] = new_sphere;
-            
         }
                 
         KRATOS_CATCH("")
@@ -154,6 +153,7 @@ namespace Kratos {
         GeometryFunctions::GetRotationMatrix(EulerAngles, rotation_matrix);
         
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+            
             GeometryFunctions::VectorLocal2Global(rotation_matrix, mListOfCoordinates[i], global_relative_coordinates);
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
             array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
@@ -162,7 +162,7 @@ namespace Kratos {
             noalias(previous_position) = sphere_position;
             noalias(sphere_position)= central_node.Coordinates() + global_relative_coordinates;
             noalias(delta_displacement) = sphere_position - previous_position;
-            noalias(sphere_node.FastGetSolutionStepValue(VELOCITY) ) = cluster_velocity;
+            noalias(sphere_node.FastGetSolutionStepValue(VELOCITY)) = cluster_velocity;
         }        
     }
     
@@ -192,9 +192,8 @@ namespace Kratos {
             array_1d<double, 3>& velocity = sphere_node.FastGetSolutionStepValue(VELOCITY);
             
             noalias(velocity) = cluster_velocity + linear_vel_due_to_rotation;                                    
-            noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY) ) = cluster_angular_velocity;
-            noalias(sphere_node.FastGetSolutionStepValue(DELTA_ROTATION) ) = cluster_delta_rotation;
-            
+            noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY)) = cluster_angular_velocity;
+            noalias(sphere_node.FastGetSolutionStepValue(DELTA_ROTATION)) = cluster_delta_rotation;
         }                        
     }
     
@@ -235,7 +234,6 @@ namespace Kratos {
             center_torque[0] += additional_torque[0];
             center_torque[1] += additional_torque[1];
             center_torque[2] += additional_torque[2];
-            
         }    
     }
     
