@@ -12,9 +12,9 @@
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
-	    <parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
-	    <parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
-	    <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
+			<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
     <solver n="GMRES" pn="GMRES">

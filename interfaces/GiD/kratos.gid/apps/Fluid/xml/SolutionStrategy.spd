@@ -40,17 +40,14 @@
 						<value n="PreconditionerType" pn="Preconditioner type" state="[CheckIdOnMyParent LinearSolverType Iterative]" v="ILU0" values="None,Diagonal,ILU0" help=""/>
 				  </container>
 			</container>-->
+			<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif"  state="normal" >
+				  <dynamicnode command="injectSolStratParams" args=""/>
+			</container>
             <container n="Avanced" pn="Avanced" help="Avanced Solver Parameters">
-				  <value n="PredictorCorrector" pn="Predictor corrector" v="False" values="True,False" state="[checkStateByUniqueName FLSolStrat FractionalStep]" help=""/>
 				  <value n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" help="Relative velocity tolerance"/>
 				  <value n="AbsoluteVelocityTolerance" pn="Absolute velocity tolerance" v="1E-5" help="Absolute velocity tolerance"/>
-				  <value n="MaximumVelocityIterations" pn="Maximum velocity iterations" v="4" help="" state="[checkStateByUniqueName FLSolStrat FractionalStep]"/>
 				  <value n="RelativePressureTolerance" pn="Relative pressure tolerance" v="1E-3" help="Relative pressure tolerance"/>
 				  <value n="AbsolutePressureTolerance" pn="Absolute pressure tolerance" v="1E-5" help="Absolute pressure tolerance"/>
-				  <value n="MaximumPressureIterations" pn="Maximum pressure iterations" v="3" help="" state="[checkStateByUniqueName FLSolStrat FractionalStep]"/>
-				  <value n="MaximumIterations" pn="Maximum iterations" v="10" help="" state="[checkStateByUniqueName FLSolStrat Monolithic]"/>
-				  <value n="DynamicTau" pn="Use dt in stabilization" v="0.01" values="1.0,0.1,0.01,0.001,0.0" help="" state="[checkStateByUniqueName FLSolStrat Monolithic]"/>
-				  <value n="OssSwitch" pn="Use orthogonal subscales" v="True" values="True,False"  help="" state="[checkStateByUniqueName FLSolStrat Monolithic]"/> 
 				  <value n="RedistanceFrequency" pn="Redistance frequency" v="5" help="Redistance frequency" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
 				  <value n="ExtrapolationLayers" pn="Extrapolation layers" v="10" help="Extrapolation layers" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
 				  <value n="StabdtPressureFactor" pn="Stabilized dt pressure factor" v="1.0" help="Stabilized dt pressure factor"/>
