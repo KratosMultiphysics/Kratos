@@ -355,7 +355,7 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.0, Dynamic=1) );
            
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new BlockResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
