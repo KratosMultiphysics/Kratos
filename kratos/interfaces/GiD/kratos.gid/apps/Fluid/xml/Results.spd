@@ -7,7 +7,6 @@
         <value n="Velocity" pn="Velocity" v="True" values="True,False" help="Velocity"/>
         <value n="Pressure" pn="Pressure" v="True" values="True,False" help="Pressure"/>
         <value n="Reactions" pn="Reactions" v="True" values="True,False" help="Reactions"/>
-        <value n="Distance" pn="Distance" v="False"  values="True,False" help="Distance"  state="[checkStateByUniqueName FLFreeSurface Yes]"/>
     </container>
     <container n="HistoryOutputOnPoints" pn="History output on points">
         <blockdata n="HistoryGraph" pn="History graph" sequence="1" help="History graph properties">
