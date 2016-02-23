@@ -101,7 +101,7 @@ void Particle_Contact_Element::CalculateMeanContactArea(const bool has_mpi)
 {
     KRATOS_TRY
             
-    if(!has_mpi) mMeanContactArea = 0.5 * ( mLocalContactAreaLow + mLocalContactAreaHigh );
+    if (!has_mpi) mMeanContactArea = 0.5 * ( mLocalContactAreaLow + mLocalContactAreaHigh );
     else mMeanContactArea = mLocalContactAreaLow;
     
     KRATOS_CATCH( "" )
