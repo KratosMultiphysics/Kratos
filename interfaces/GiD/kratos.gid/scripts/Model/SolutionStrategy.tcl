@@ -277,20 +277,21 @@ proc Model::GetAvailableElements {solutionStrategyId schemeId} {
     set cumplen [list ]
     set solst [Model::GetSolutionStrategy $solutionStrategyId]
     set scheme [$solst getScheme $schemeId]
-    set filters [$scheme getElementFilters]
-    set include [$scheme getElementForceIn]
-    set exclude [$scheme getElementForceOut]
-    
-    foreach elem $Elements {
-        set f [$elem cumple $filters]
-        set i [$elem cumple $include]
-        set i 0
-        if {[llength $include]} {set i [$elem cumple $include]}
-        set o 0
-        if {[llength $exclude]} {set o [$elem cumple $exclude]}        
-        if {[expr ($f && !$o) || $i]} { lappend cumplen $elem}
+    if {$scheme ne ""} {
+        set filters [$scheme getElementFilters]
+        set include [$scheme getElementForceIn]
+        set exclude [$scheme getElementForceOut]
+        
+        foreach elem $Elements {
+            set f [$elem cumple $filters]
+            set i [$elem cumple $include]
+            set i 0
+            if {[llength $include]} {set i [$elem cumple $include]}
+            set o 0
+            if {[llength $exclude]} {set o [$elem cumple $exclude]}        
+            if {[expr ($f && !$o) || $i]} { lappend cumplen $elem}
+        }
     }
-    
     return $cumplen
 }
 
