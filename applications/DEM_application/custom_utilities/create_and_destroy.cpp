@@ -311,7 +311,7 @@ namespace Kratos {
     void ParticleCreatorDestructor::NodeCreatorForClusters(ModelPart& r_modelpart,
         Node < 3 > ::Pointer& pnew_node,
         int aId,
-        array_1d<double, 3 > & reference_coordinates,
+        array_1d<double, 3>& reference_coordinates,
         double radius,
         Properties& params) {
         double bx = reference_coordinates[0];
@@ -350,23 +350,23 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
         pnew_node->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
-
+        
+        //pnew_node->FastGetSolutionStepValue(SPRAYED_MATERIAL) = 0.0;
     }
 
     Kratos::SphericParticle* ParticleCreatorDestructor::ElementCreatorForClusters(ModelPart& r_modelpart,
-        int r_Elem_Id,
-        double radius,
-        array_1d<double, 3 > & reference_coordinates,
-        double cluster_mass,
-        Properties::Pointer r_params,
-        const Element& r_reference_element,
-        const int cluster_id) {
-
-        Node < 3 > ::Pointer pnew_node;
+                                                                                  int r_Elem_Id,
+                                                                                  double radius,
+                                                                                  array_1d<double, 3>& reference_coordinates,
+                                                                                  double cluster_mass,
+                                                                                  Properties::Pointer r_params,
+                                                                                  const Element& r_reference_element,
+                                                                                  const int cluster_id) {
+        Node<3>::Pointer pnew_node;
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
-        Geometry< Node < 3 > >::PointsArrayType nodelist;
+        Geometry<Node <3> >::PointsArrayType nodelist;
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
@@ -385,7 +385,7 @@ namespace Kratos {
 
         #pragma omp critical
         {        
-        r_modelpart.Elements().push_back(p_particle);
+            r_modelpart.Elements().push_back(p_particle);
         }
         
         return spheric_p_particle;
@@ -668,13 +668,13 @@ namespace Kratos {
         }
         KRATOS_CATCH("")
     }
-
-    void ParticleCreatorDestructor::MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part) {
+    /*
+    void ParticleCreatorDestructor::MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part) { //TODO To be removed
 
         KRATOS_TRY
 
                 typedef ModelPart::ElementsContainerType ElementsArrayType;
-//        typedef ElementsArrayType::iterator ElementsIterator;
+        //        typedef ElementsArrayType::iterator ElementsIterator;
 
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
@@ -700,7 +700,8 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-
+    */
+    
     void ParticleCreatorDestructor::MarkDistantParticlesForErasing(ModelPart& r_model_part) {
         MarkParticlesForErasingGivenBoundingBox(r_model_part, mLowPoint, mHighPoint);
     }
@@ -835,7 +836,7 @@ namespace Kratos {
 
     void ParticleCreatorDestructor::DestroyContinuumParticlesOutsideBoundingBox(ModelPart& r_model_part) {
         MarkDistantParticlesForErasing(r_model_part);
-        MarkInitialNeighboursThatAreBeingRemoved(r_model_part);
+        //MarkInitialNeighboursThatAreBeingRemoved(r_model_part);
         DestroyParticles(r_model_part);
     }
 
