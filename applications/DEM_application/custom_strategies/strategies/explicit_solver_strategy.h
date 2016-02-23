@@ -719,6 +719,9 @@ namespace Kratos
               } // loop over particles
           } // loop threads OpenMP
 
+          ApplyPrescribedBoundaryConditions();
+
+
         KRATOS_CATCH("")
       }
 
@@ -1108,6 +1111,9 @@ namespace Kratos
     void ApplyPrescribedBoundaryConditions() {
       
         KRATOS_TRY
+        ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
+        double time = rCurrentProcessInfo[TIME];
+
 
         ModelPart& r_model_part = BaseType::GetModelPart();
 
@@ -1136,7 +1142,13 @@ namespace Kratos
               vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];
               impose = true;
             }
-            
+
+            double linear_vel_start = (*mesh_it)[VELOCITY_START_TIME];
+            double linear_vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
+            if(time<linear_vel_start || time>linear_vel_stop){
+                impose=false;
+            }
+
             bool has_ang_vel_x = (*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_X);
             if(has_ang_vel_x){
               fix_ang_vel_x = bool((*mesh_it)[IMPOSED_ANGULAR_VELOCITY_X]);
@@ -1157,14 +1169,38 @@ namespace Kratos
               ang_vel_z = (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];          
               impose = true;
             }
-            
-            if(impose){
-            
-              NodesArrayType& pNodes = mesh_it->Nodes();
-          
-              vector<unsigned int> node_partition;
-              OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
 
+            double angular_vel_start = (*mesh_it)[ANGULAR_VELOCITY_START_TIME];
+            double angular_vel_stop = (*mesh_it)[ANGULAR_VELOCITY_STOP_TIME];
+            if(time<angular_vel_start || time>angular_vel_stop){
+                impose=false;
+            }
+
+            NodesArrayType& pNodes = mesh_it->Nodes();
+
+            vector<unsigned int> node_partition;
+            OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
+
+            #pragma omp parallel for
+
+            for (int k=0; k<mNumberOfThreads; k++) {
+
+                typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+                typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+                for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
+
+                      i->Set(DEMFlags::FIXED_VEL_X, false);
+                      i->Set(DEMFlags::FIXED_VEL_Y, false);
+                      i->Set(DEMFlags::FIXED_VEL_Z, false);
+                      i->Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                      i->Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                      i->Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+
+                } // loop over particles
+            } // loop threads OpenMP
+
+            if(impose){
               #pragma omp parallel for
             
               for (int k=0; k<mNumberOfThreads; k++) {
@@ -1175,13 +1211,13 @@ namespace Kratos
                   for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
                       
                       array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
-                      array_1d<double, 3>& angular_velocity = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                      
+                      array_1d<double, 3>& angular_velocity = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);                     
+
                       if(has_vel_x){
                         velocity[0] = vel_x;
                         i->Set(DEMFlags::FIXED_VEL_X, fix_vel_x);
                       }
-                      
+
                       if(has_vel_y){
                         velocity[1] = vel_y;
                         i->Set(DEMFlags::FIXED_VEL_Y, fix_vel_y);
@@ -1206,14 +1242,13 @@ namespace Kratos
                         angular_velocity[2] = ang_vel_z;
                         i->Set(DEMFlags::FIXED_ANG_VEL_Z, fix_ang_vel_z);
                       }
-                      
-                      
+                                           
                   } // loop over particles
                   
               } // loop threads OpenMP
               
             }//If there is some value to be imposed
-            
+
         } // for each mesh
       
         KRATOS_CATCH("")
