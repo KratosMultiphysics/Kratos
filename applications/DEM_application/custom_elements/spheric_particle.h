@@ -2,20 +2,12 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-
-
 #if !defined(KRATOS_SPHERIC_PARTICLE_H_INCLUDED )
 #define  KRATOS_SPHERIC_PARTICLE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
-
-
-// External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -31,17 +23,11 @@
 namespace Kratos
 {
 
-/// Short class definition.
-/** Detail class definition.
-*/
 class DEMWall;
 
 class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericParticle : public DiscreteElement
 {
 public:
-
-///@name Type Definitions
-///@{
 
 /// Pointer definition of SphericParticle
 KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
@@ -53,9 +39,7 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-
 /// Default constructor.
-
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -65,9 +49,6 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 /// Destructor.
 virtual ~SphericParticle();
 
-///@}
-///@name Operations
-///@{
 virtual void Initialize();
 virtual void FullInitialize(const ProcessInfo& r_process_info);
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
@@ -86,7 +67,6 @@ virtual void Calculate(const Variable<double>& rVariable, double& Output, const 
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info);
-
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
@@ -146,22 +126,18 @@ virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericPartic
 /// Print object's data.
 virtual void PrintData(std::ostream& rOStream) const {}
 
-virtual void ComputeNewNeighboursHistoricalData( std::vector<unsigned int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-                                           std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
+virtual void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+                                                std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
 
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
+std::vector<SphericParticle*>     mNeighbourElements;
+std::vector<DEMWall*>             mNeighbourRigidFaces;
+std::vector<double>               mNeighbourRigidFacesPram;
+std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
+std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
+std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
+std::vector<array_1d<double, 3> > mNeighbourTotalContactForces;
 
-std::vector<SphericParticle*> mNeighbourElements;
-std::vector<DEMWall*>         mNeighbourRigidFaces;
-std::vector<double>           mNeighbourRigidFacesPram;
-std::vector<array_1d<double, 3> >           mNeighbourRigidFacesTotalContactForce;
-std::vector<array_1d<double, 3> >           mNeighbourRigidFacesElasticContactForce;
-std::vector< array_1d<double, 3> > mNeighbourElasticContactForces;
-std::vector< array_1d<double, 3> > mNeighbourTotalContactForces;
-
-///@}
-///@name Friends
-///@{
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 
@@ -176,35 +152,35 @@ protected:
 SphericParticle();
 
 virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
-                                          array_1d<double, 3>& rContactForce,
-                                          array_1d<double, 3>& InitialRotaMoment,
-                                          array_1d<double, 3>& rigid_element_force,
-                                          ProcessInfo& r_process_info,
-                                          double mTimeStep,
-                                          int search_control);
+                                                array_1d<double, 3>& rContactForce,
+                                                array_1d<double, 3>& InitialRotaMoment,
+                                                array_1d<double, 3>& rigid_element_force,
+                                                ProcessInfo& r_process_info,
+                                                double mTimeStep,
+                                                int search_control);
 
 virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, 
-                                        std::size_t ino, 
-                                        double LocalCoordSystem[3][3],
-                                        double & DistPToB, 
-                                        double Weight[4], 
-                                        array_1d<double,3>& wall_delta_disp_at_contact_point,
-                                        array_1d<double, 3 > &wall_velocity_at_contact_point, 
-                                        int & ContactType);
+                                          std::size_t ino, 
+                                          double LocalCoordSystem[3][3],
+                                          double & DistPToB, 
+                                          double Weight[4], 
+                                          array_1d<double,3>& wall_delta_disp_at_contact_point,
+                                          array_1d<double, 3 > &wall_velocity_at_contact_point, 
+                                          int & ContactType);
 
 virtual void UpdateDistanceToWall(DEMWall* const wall, 
-                                    const int neighbour_index, 
-                                    double LocalCoordSystem[3][3], 
-                                    double& DistPToB, 
-                                    double Weight[4], 
-                                    int& ContactType);
+                                  const int neighbour_index, 
+                                  double LocalCoordSystem[3][3], 
+                                  double& DistPToB, 
+                                  double Weight[4], 
+                                  int& ContactType);
 
 virtual void UpdateRF_Pram(DEMWall* rObj_2, 
-                            const std::size_t ino,
-                            const double LocalCoordSystem[3][3], 
-                            const double DistPToB,
-                            const double Weight[4], 
-                            const int ContactType);
+                           const std::size_t ino,
+                           const double LocalCoordSystem[3][3], 
+                           const double DistPToB,
+                           const double Weight[4], 
+                           const int ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
 
@@ -311,14 +287,9 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
 double mRadius;
 double mRealMass;
-
 PropertiesProxy* mFastProperties;
-
-std::vector<unsigned int> mOldNeighbourIds;
-
-
+std::vector<int> mOldNeighbourIds;
 std::vector<int> mFemOldNeighbourIds;
-
 int mClusterId;
 
 private:
@@ -353,9 +324,7 @@ rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
 rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);  */
 }
 
-
 }; // Class SphericParticle
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
