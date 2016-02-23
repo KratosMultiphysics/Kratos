@@ -41,6 +41,7 @@ namespace Kratos
        
         void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
         void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
+        //void SetInitialSphereContacts_old(ProcessInfo& rCurrentProcessInfo);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo);
         void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);    
@@ -51,22 +52,25 @@ namespace Kratos
         void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
         void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
         using SphericParticle::ComputeNewNeighboursHistoricalData; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
-        void ComputeNewNeighboursHistoricalData(std::vector<unsigned int>&                  mTempNeighboursIds, 
+        /*
+        void ComputeNewNeighboursHistoricalData(std::vector<unsigned int>&         mTempNeighboursIds, 
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
                                                 std::vector<SphericParticle*>&     mTempNeighbourElements,
                                                 std::vector<double>&               mTempNeighboursDelta,
                                                 std::vector<int>&                  mTempNeighboursFailureId,
                                                 std::vector<int>&                  mTempNeighboursMapping,
-                                                std::vector<int>&                  mTempContNeighboursMapping) ;
+                                                std::vector<int>&                  mTempContNeighboursMapping);
+        */
+        void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
       
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo, const bool first);      
-        virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
+        virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            
-        virtual void AddPoissonContribution( const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
+        virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
         virtual void ContactAreaWeighting();
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
@@ -88,15 +92,14 @@ namespace Kratos
       
         //member variables DEM_CONTINUUM
         int mContinuumGroup;
-        std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
         std::vector<Particle_Contact_Element*> mBondElements;
         std::vector<int> mIniNeighbourIds;
-        std::vector<int> mNeighbourFailureId;
         std::vector<int> mIniNeighbourFailureId;
         std::vector<double> mNeighbourDelta;
-        std::vector<int> mMappingNewCont;
-        std::vector<int> mMappingNewIni;
-
+        
+        unsigned int mContinuumInitialNeighborsSize;
+        unsigned int mInitialNeighborsSize;
+                
         ///@}
       
     protected:
@@ -104,15 +107,15 @@ namespace Kratos
         SphericContinuumParticle();
         
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
-        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
+        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo);
         virtual void CustomInitialize();	
         virtual double GetInitialDeltaWithFEM(int index);              
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                           array_1d<double, 3>& rContactForce, 
-                                           array_1d<double, 3>& InitialRotaMoment, 
-                                           ProcessInfo& rCurrentProcessInfo, 
-                                           double dt,
-                                           const bool multi_stage_RHS);         
+                                                   array_1d<double, 3>& rContactForce, 
+                                                   array_1d<double, 3>& InitialRotaMoment, 
+                                                   ProcessInfo& rCurrentProcessInfo, 
+                                                   double dt,
+                                                   const bool multi_stage_RHS);         
 
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -123,29 +126,27 @@ namespace Kratos
         //double mFinalPressureTime;
         //double mFinalSimulationTime;
      
-        int*  mSkinSphere; 
+        int* mSkinSphere; 
 
-        //sphere neighbour information
+        //sphere neighbor information
         
         std::vector<double>         mContIniNeighArea;        
-        std::vector<int>            mIniNeighbourToIniContinuum;        
-        std::vector<double>         mIniNeighbourDelta;
+        std::vector<double>         mIniNeighbourDelta;                        
                   
-        //fem neighbour information
+        //fem neighbor information
         std::vector<double>         mFemNeighbourDelta;                        
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;
         std::vector<int>            mFemMappingNewIni;
                         
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
-        
-                                    
+
         //FOR DEM_FEM APP        
         void ComputeParticleBlockContactForce_With_Rotation();
         void ComputeParticleBlockContactForce_Without_Rotation();
-        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);       
+        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int& RightFace, double LocalCoordSystem[3][3], double Coeff[4], double& DistPToB);       
 
-        double distances_squared;
+        //double distances_squared;
         
     private:
 
