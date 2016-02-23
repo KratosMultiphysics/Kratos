@@ -46,7 +46,6 @@ pretty_out_after_change = """{
     }
 }"""
 
-
 class TestKratosParameters(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -62,7 +61,7 @@ class TestKratosParameters(KratosUnittest.TestCase):
 
         self.assertTrue(self.kp.Has("int_value"))
         self.assertFalse(self.kp.Has("unextisting_value"))
-
+        
         self.assertEqual(self.kp["int_value"].GetInt(), 10)
         self.assertEqual(self.kp["double_value"].GetDouble(), 2.0)
         self.assertEqual(self.kp["bool_value"].GetBool(), True)
