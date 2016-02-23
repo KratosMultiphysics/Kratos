@@ -33,20 +33,20 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.search_control                 = 1
-        if (Var_Translator(Param.DontSearchUntilFailure)):
-          print ("Search is not active until a bond is broken.")
-          self.search_control               = 0
-          if (len(fem_model_part.Nodes) > 0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
-            print ("WARNING: Search should be activated since there might contact with FEM.")
-
-        self.fix_velocities_flag            = 0       
-
-        self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
         
-        self.virtual_mass_option            = 0
+        if (Var_Translator(Param.DontSearchUntilFailure)):
+            print ("Search is not active until a bond is broken.")
+            self.search_control = 0
+            if (len(fem_model_part.Nodes) > 0 or Param.TestType== "BTS"):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+                print ("WARNING: Search should be activated since there might contact with FEM.")
+
+        self.fix_velocities_flag           = 0       
+        self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
+        self.virtual_mass_option           = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
-        if(self.nodal_mass_coeff != 1.00):
-           self.virtual_mass_option         = 1
+        
+        if (self.nodal_mass_coeff != 1.00):
+            self.virtual_mass_option       = 1
         
         self.delta_option = Var_Translator(Param.DeltaOption)
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
@@ -55,15 +55,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
+        
         if (hasattr(Param, "LocalResolutionMethod")):
-          if(Param.LocalResolutionMethod == "hierarchical"):
-            self.local_resolution_method = 1
-          elif(Param.LocalResolutionMethod == "area_distribution"):
-            self.local_resolution_method = 2
-          else:
-            self.local_resolution_method = 1
+            if(Param.LocalResolutionMethod == "hierarchical"):
+                self.local_resolution_method = 1
+            elif(Param.LocalResolutionMethod == "area_distribution"):
+                self.local_resolution_method = 2
+            else:
+                self.local_resolution_method = 1
         else:
-          self.local_resolution_method = 1
+            self.local_resolution_method = 1
           
         self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
 
@@ -78,11 +79,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.delta_option = 2
             self.coordination_number = Param.CoordinationNumber
             self.search_tolerance = 0.01 * Param.MeanRadius
-
        
-        if(self.delta_option > 0):
-           self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
-
+        if (self.delta_option > 0):
+            self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
                 
         self.fixed_vel_top = Param.LoadingVelocityTop
         self.fixed_vel_bot = Param.LoadingVelocityBot
@@ -121,7 +120,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.inlet_model_part = inlet_model_part        
         self.domain_size = Param.Dimension
 
-
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
         self.gravity[0] = Param.GravityX
@@ -134,11 +132,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (Var_Translator(Param.RollingFrictionOption)):
             self.rolling_friction_option = 1
 
-
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = Var_Translator(Param.PostExportSkinSphere)
-
         self.dummy_switch = 0
 
         # RESOLUTION METHODS AND PARAMETERS
@@ -216,7 +212,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
         #self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
 
-        if ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
+        if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
@@ -252,14 +248,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def Initial_Critical_Time(self):
         (self.cplusplus_strategy).InitialTimeStepCalculation()
 
-    #
-
     def Solve(self):
         (self.cplusplus_strategy).Solve()
         
     def PrepareContactElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareContactElementsForPrinting()
-        
     
     def AddAdditionalVariables(self, model_part, Param):
 
@@ -287,10 +280,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         print("DOFs for the DEM solution added correctly")
 
-
     def AddClusterVariables(self, model_part, Param):
         pass
-    
     
     def ModifyProperties(self, properties):
         BaseExplicitStrategy.ModifyProperties(self, properties)
