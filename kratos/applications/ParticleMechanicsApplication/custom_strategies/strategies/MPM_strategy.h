@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 
+#include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergence_criteria/displacement_convergence_criterion.hpp"
@@ -254,10 +255,11 @@ public:
                     
                     Properties::Pointer properties = i->pGetProperties();
                     double Density = i->GetProperties()[DENSITY];  
+                    //std::cout<< "Density "<< Density<<std::endl;
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                                    
-                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                    //Matrix shape_functions_values = this->MP16ShapeFunctions();
                     //std::cout<<"shape_functions_values "<< shape_functions_values<<std::endl;
                     //const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( GeometryData::GI_GAUSS_4); 
                     
@@ -281,7 +283,7 @@ public:
                                                     
                             Element::Pointer p_element = NewElement.Create((1+PointNumber+number_elements)+(integration_point_per_elements*k), rGeom, properties);
                             //Element::Pointer p_element = NewElement.Create((1+PointNumber+number_nodes)+(integration_point_per_element*k), rGeom, properties);
-                            
+                            double MP_Density = Density;
                             //std::cout<<"MPM ID "<<(1+PointNumber+number_elements)+(integration_point_per_element*k)<<std::endl;
                             xg.clear();
                                 
@@ -306,7 +308,7 @@ public:
                             p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
                             p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
                             p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
-                            
+                            p_element -> SetValue(MP_DENSITY, MP_Density);
                             
                             p_element -> SetValue(MP_MASS, MP_Mass);
                             p_element -> SetValue(MP_VOLUME, MP_Volume);
@@ -338,7 +340,7 @@ public:
             double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
             
-            int MaxIterations = 2;
+            int MaxIterations = 100;
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool MoveMeshFlags = false;
@@ -353,13 +355,13 @@ public:
             double Dynamic;
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, Alpham = 0.0, Dynamic=1) );
            
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new BlockResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             
             double ratio_tolerance = 0.0001;
             double always_converged_norm = 1e-09;
             
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-            int MaxIterations = 10;
+            int MaxIterations = 50;
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool MoveMeshFlags = false;
@@ -380,7 +382,7 @@ public:
             double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
             
-            int MaxIterations = 10;
+            int MaxIterations = 100;
             bool CalculateReactions = false;
             bool ReformDofAtEachIteration = false;
             bool MoveMeshFlags = false;
@@ -456,6 +458,265 @@ public:
         return 0.00;
     }
       
+    virtual Matrix MP16ShapeFunctions()
+    {
+        double Na1 = 0.33333333333333;
+        double Nb1 = 0.45929258829272;
+        double Nb2 = 0.08141482341455;
+        double Nc1 = 0.17056930775176;
+        double Nc2 = 0.65886138449648;
+        
+        double Nd1 = 0.05054722831703;
+        double Nd2 = 0.89890554336594;
+        
+        double Ne1 = 0.26311282963464;
+        double Ne2 = 0.72849239295540;
+        double Ne3 = 0.00839477740996;
+        
+        boost::numeric::ublas::bounded_matrix<double,16,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        MP_ShapeFunctions(0,0) = Na1;
+        MP_ShapeFunctions(0,1) = Na1;
+        MP_ShapeFunctions(0,2) = Na1;
+        
+        MP_ShapeFunctions(1,0) = Nb1;
+        MP_ShapeFunctions(1,1) = Nb1;
+        MP_ShapeFunctions(1,2) = Nb2;
+        
+        MP_ShapeFunctions(2,0) = Nb1;
+        MP_ShapeFunctions(2,1) = Nb2;
+        MP_ShapeFunctions(2,2) = Nb1;
+        
+        MP_ShapeFunctions(3,0) = Nb2;
+        MP_ShapeFunctions(3,1) = Nb1;
+        MP_ShapeFunctions(3,2) = Nb1;
+        
+        MP_ShapeFunctions(4,0) = Nc1;
+        MP_ShapeFunctions(4,1) = Nc1;
+        MP_ShapeFunctions(4,2) = Nc2;
+        
+        MP_ShapeFunctions(5,0) = Nc1;
+        MP_ShapeFunctions(5,1) = Nc2;
+        MP_ShapeFunctions(5,2) = Nc1;
+        
+        MP_ShapeFunctions(6,0) = Nc2;
+        MP_ShapeFunctions(6,1) = Nc1;
+        MP_ShapeFunctions(6,2) = Nc1;
+        
+        MP_ShapeFunctions(7,0) = Nd1;
+        MP_ShapeFunctions(7,1) = Nd1;
+        MP_ShapeFunctions(7,2) = Nd2;
+        
+        MP_ShapeFunctions(8,0) = Nd1;
+        MP_ShapeFunctions(8,1) = Nd2;
+        MP_ShapeFunctions(8,2) = Nd1;
+        
+        MP_ShapeFunctions(9,0) = Nd2;
+        MP_ShapeFunctions(9,1) = Nd1;
+        MP_ShapeFunctions(9,2) = Nd1;
+        
+        MP_ShapeFunctions(10,0) = Ne1;
+        MP_ShapeFunctions(10,1) = Ne2;
+        MP_ShapeFunctions(10,2) = Ne3;
+        
+        MP_ShapeFunctions(11,0) = Ne2;
+        MP_ShapeFunctions(11,1) = Ne3;
+        MP_ShapeFunctions(11,2) = Ne1;
+        
+        MP_ShapeFunctions(12,0) = Ne3;
+        MP_ShapeFunctions(12,1) = Ne1;
+        MP_ShapeFunctions(12,2) = Ne2;
+        
+        MP_ShapeFunctions(13,0) = Ne2;
+        MP_ShapeFunctions(13,1) = Ne1;
+        MP_ShapeFunctions(13,2) = Ne3;
+        
+        MP_ShapeFunctions(14,0) = Ne1;
+        MP_ShapeFunctions(14,1) = Ne3;
+        MP_ShapeFunctions(14,2) = Ne2;
+        
+        MP_ShapeFunctions(15,0) = Ne3;
+        MP_ShapeFunctions(15,1) = Ne2;
+        MP_ShapeFunctions(15,2) = Ne1;
+        
+        //MP_ShapeFunctions = [(Na1, Na1, Na1),(Nb1, Nb1, Nb2),(Nb1, Nb2, Nb1),(Nb2, Nb1, Nb1),
+        //                    (Nc1, Nc1, Nc2),(Nc1, Nc2, Nc1),(Nc2, Nc1, Nc1),(Nd1, Nd1, Nd2),
+        //                    (Nd1, Nd2, Nd1),(Nd2, Nd1, Nd1),(Ne1, Ne2, Ne3),(Ne2, Ne3, Ne1),
+        //                    (Ne3, Ne1, Ne2),(Ne2, Ne1, Ne3),(Ne1, Ne3, Ne2),(Ne3, Ne2, Ne1)];
+                            
+        return MP_ShapeFunctions;
+                            
+    }
+    
+    virtual Matrix MP33ShapeFunctions()
+    {
+        double Na2 = 0.02356522045239;
+        double Na1 = 0.488217389773805;
+        
+        double Nb2 = 0.120551215411079;
+        double Nb1 = 0.43972439229446;
+        
+        double Nc2 = 0.457579229975768;
+        double Nc1 = 0.271210385012116;
+        
+        double Nd2 = 0.744847708916828;
+        double Nd1 = 0.127576145541586;
+        
+        double Ne2 = 0.957365299093579;
+        double Ne1 = 0.021317350453210;
+        
+        double Nf1 = 0.115343494534698;
+        double Nf2 = 0.275713269685514;
+        double Nf3 = 0.608943235779788;
+        
+        double Ng1 = 0.022838332222257;
+        double Ng2 = 0.281325580989940;
+        double Ng3 = 0.695836086787803;
+        
+        double Nh1 = 0.025734050548330;
+        double Nh2 = 0.116251915907597;
+        double Nh3 = 0.858014033544073;
+        boost::numeric::ublas::bounded_matrix<double,33,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        
+        MP_ShapeFunctions(0,0) = Na1;
+        MP_ShapeFunctions(0,1) = Na1;
+        MP_ShapeFunctions(0,2) = Na2;
+        
+        MP_ShapeFunctions(1,0) = Na1;
+        MP_ShapeFunctions(1,1) = Na2;
+        MP_ShapeFunctions(1,2) = Na1;
+        
+        MP_ShapeFunctions(2,0) = Na2;
+        MP_ShapeFunctions(2,1) = Na1;
+        MP_ShapeFunctions(2,2) = Na1;
+        
+        
+        MP_ShapeFunctions(3,0) = Nb1;
+        MP_ShapeFunctions(3,1) = Nb1;
+        MP_ShapeFunctions(3,2) = Nb2;
+        
+        MP_ShapeFunctions(4,0) = Nb1;
+        MP_ShapeFunctions(4,1) = Nb2;
+        MP_ShapeFunctions(4,2) = Nb1;
+        
+        MP_ShapeFunctions(5,0) = Nb2;
+        MP_ShapeFunctions(5,1) = Nb1;
+        MP_ShapeFunctions(5,2) = Nb1;
+        
+        MP_ShapeFunctions(6,0) = Nc1;
+        MP_ShapeFunctions(6,1) = Nc1;
+        MP_ShapeFunctions(6,2) = Nc2;
+        
+        MP_ShapeFunctions(7,0) = Nc1;
+        MP_ShapeFunctions(7,1) = Nc2;
+        MP_ShapeFunctions(7,2) = Nc1;
+        
+        MP_ShapeFunctions(8,0) = Nc2;
+        MP_ShapeFunctions(8,1) = Nc1;
+        MP_ShapeFunctions(8,2) = Nc1;
+        
+        MP_ShapeFunctions(9,0) = Nd1;
+        MP_ShapeFunctions(9,1) = Nd1;
+        MP_ShapeFunctions(9,2) = Nd2;
+        
+        MP_ShapeFunctions(10,0) = Nd1;
+        MP_ShapeFunctions(10,1) = Nd2;
+        MP_ShapeFunctions(10,2) = Nd1;
+        
+        MP_ShapeFunctions(11,0) = Nd2;
+        MP_ShapeFunctions(11,1) = Nd1;
+        MP_ShapeFunctions(11,2) = Nd1;
+        
+        MP_ShapeFunctions(12,0) = Ne1;
+        MP_ShapeFunctions(12,1) = Ne1;
+        MP_ShapeFunctions(12,2) = Ne2;
+        
+        MP_ShapeFunctions(13,0) = Ne1;
+        MP_ShapeFunctions(13,1) = Ne2;
+        MP_ShapeFunctions(13,2) = Ne1;
+        
+        MP_ShapeFunctions(14,0) = Ne2;
+        MP_ShapeFunctions(14,1) = Ne1;
+        MP_ShapeFunctions(14,2) = Ne1;
+        
+        MP_ShapeFunctions(15,0) = Nf1;
+        MP_ShapeFunctions(15,1) = Nf2;
+        MP_ShapeFunctions(15,2) = Nf3;
+        
+        MP_ShapeFunctions(16,0) = Nf2;
+        MP_ShapeFunctions(16,1) = Nf3;
+        MP_ShapeFunctions(16,2) = Nf1;
+        
+        MP_ShapeFunctions(17,0) = Nf3;
+        MP_ShapeFunctions(17,1) = Nf1;
+        MP_ShapeFunctions(17,2) = Nf2;
+        
+        MP_ShapeFunctions(18,0) = Nf2;
+        MP_ShapeFunctions(18,1) = Nf1;
+        MP_ShapeFunctions(18,2) = Nf3;
+        
+        MP_ShapeFunctions(19,0) = Nf1;
+        MP_ShapeFunctions(19,1) = Nf3;
+        MP_ShapeFunctions(19,2) = Nf2;
+        
+        MP_ShapeFunctions(20,0) = Nf3;
+        MP_ShapeFunctions(20,1) = Nf2;
+        MP_ShapeFunctions(20,2) = Nf1;
+        
+        MP_ShapeFunctions(21,0) = Ng1;
+        MP_ShapeFunctions(21,1) = Ng2;
+        MP_ShapeFunctions(21,2) = Ng3;
+        
+        MP_ShapeFunctions(22,0) = Ng2;
+        MP_ShapeFunctions(22,1) = Ng3;
+        MP_ShapeFunctions(22,2) = Ng1;
+        
+        MP_ShapeFunctions(23,0) = Ng3;
+        MP_ShapeFunctions(23,1) = Ng1;
+        MP_ShapeFunctions(23,2) = Ng2;
+        
+        MP_ShapeFunctions(24,0) = Ng2;
+        MP_ShapeFunctions(24,1) = Ng1;
+        MP_ShapeFunctions(24,2) = Ng3;
+        
+        MP_ShapeFunctions(25,0) = Ng1;
+        MP_ShapeFunctions(25,1) = Ng3;
+        MP_ShapeFunctions(25,2) = Ng2;
+        
+        MP_ShapeFunctions(26,0) = Ng3;
+        MP_ShapeFunctions(26,1) = Ng2;
+        MP_ShapeFunctions(26,2) = Ng1;
+        
+        MP_ShapeFunctions(27,0) = Nh1;
+        MP_ShapeFunctions(27,1) = Nh2;
+        MP_ShapeFunctions(27,2) = Nh3;
+        
+        MP_ShapeFunctions(28,0) = Nh2;
+        MP_ShapeFunctions(28,1) = Nh3;
+        MP_ShapeFunctions(28,2) = Nh1;
+    
+        MP_ShapeFunctions(29,0) = Nh3;
+        MP_ShapeFunctions(29,1) = Nh1;
+        MP_ShapeFunctions(29,2) = Nh2;
+        
+        MP_ShapeFunctions(30,0) = Nh2;
+        MP_ShapeFunctions(30,1) = Nh1;
+        MP_ShapeFunctions(30,2) = Nh3;
+        
+        MP_ShapeFunctions(31,0) = Nh1;
+        MP_ShapeFunctions(31,1) = Nh3;
+        MP_ShapeFunctions(31,2) = Nh2;
+        
+        MP_ShapeFunctions(32,0) = Nh3;
+        MP_ShapeFunctions(32,1) = Nh2;
+        MP_ShapeFunctions(32,2) = Nh1;
+        
+                            
+        return MP_ShapeFunctions;
+                            
+    }
+    
+    
+    
 
     /** SearchElement.
      * A search is performed to know in which grid element the material point falls.
