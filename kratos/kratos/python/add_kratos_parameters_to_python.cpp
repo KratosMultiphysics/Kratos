@@ -64,6 +64,10 @@ void  AddKratosParametersToPython()
         .def("PrettyPrintJsonString", &KratosParameters::PrettyPrintJsonString)
         .def("GetValue", &KratosParameters::GetValue)
         .def("Has", &KratosParameters::Has)
+        .def("__setitem__", &KratosParameters::SetValue)
+        .def("__getitem__", &KratosParameters::GetValue)
+        .def("__setitem__", &KratosParameters::SetArrayItem)
+        .def("__getitem__", &KratosParameters::GetArrayItem)        
         ;   
 
   
