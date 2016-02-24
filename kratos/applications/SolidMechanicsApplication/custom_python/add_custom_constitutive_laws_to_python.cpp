@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -11,7 +12,6 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"

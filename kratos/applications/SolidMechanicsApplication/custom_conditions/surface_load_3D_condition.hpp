@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -8,7 +9,6 @@
 
 #if !defined(KRATOS_SURFACE_LOAD_3D_CONDITION_H_INCLUDED )
 #define  KRATOS_SURFACE_LOAD_3D_CONDITION_H_INCLUDED
-
 
 // System includes
 

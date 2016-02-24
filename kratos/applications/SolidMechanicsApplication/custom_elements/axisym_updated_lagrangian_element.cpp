@@ -1,10 +1,4 @@
-//
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
-//
-//
+
 
 // System includes
 
