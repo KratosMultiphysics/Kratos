@@ -49,24 +49,6 @@ namespace Kratos
 
     using namespace boost::python;
 
-    typedef FlowRule::Pointer                        FlowRulePointer;
-    typedef YieldCriterion::Pointer            YieldCriterionPointer;
-    typedef HardeningLaw::Pointer                HardeningLawPointer;
-    typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
-
-    // typedef Properties::Pointer                    PropertiesPointer;
-    // typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
-
-    // typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
-    // typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;
-    // typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
-
-    // void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
-    // 				      ConstitutiveLawPointer ThisConstitutiveLaw )
-    // {
-    //   ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
-    // }
-
     void  AddCustomConstitutiveLawsToPython()
     {
 
