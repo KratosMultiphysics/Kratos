@@ -737,7 +737,7 @@ namespace Kratos
 
 		      //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,i)) ) );			
 		      WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
-		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(NumberNodesInFace,iface)) ) );
+		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,iface)) ) );
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);
 
 		      mrModelPart.AddCondition(p_cond, MeshId);
@@ -896,7 +896,7 @@ namespace Kratos
 
 		      //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,i)) ) );	
 		      WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
-		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(NumberNodesInFace,iface)) ) );
+		      MasterNodes.push_back( Node<3>::WeakPointer( rGeometry(lpofa(0,iface)) ) );
 		      p_cond->SetValue(MASTER_NODES,MasterNodes);
 		    }
 
