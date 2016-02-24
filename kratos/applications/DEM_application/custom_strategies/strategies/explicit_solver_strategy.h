@@ -397,7 +397,7 @@ namespace Kratos
           
           CreatePropertiesProxies(mFastProperties, *mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
           
-          RepairPointersToNormalProperties(mListOfSphericParticles);  //The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
+          RepairPointersToNormalProperties(mListOfSphericParticles);  // The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
           RepairPointersToNormalProperties(mListOfGhostSphericParticles);
           
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
@@ -411,14 +411,14 @@ namespace Kratos
           InitializeDEMElements();           
           InitializeFEMElements();
           UpdateMaxIdOfCreatorDestructor();
-          InitializeClusters(); /// This adds elements to the balls modelpart
+          InitializeClusters(); // This adds elements to the balls modelpart
           
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
           
           InitializeSolutionStep();
           
-          //ApplyPrescribedBoundaryConditions();
+          // ApplyPrescribedBoundaryConditions();
           
           // Search Neighbours and related operations                             
           SetOriginalRadius(r_model_part);
@@ -529,7 +529,7 @@ namespace Kratos
       }//Solve()
 
       
-      void SearchOperations(ModelPart& r_model_part)
+        void SearchOperations(ModelPart& r_model_part)
       {
          
          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
@@ -538,11 +538,12 @@ namespace Kratos
          
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box                   
               
-            //if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
-                  BoundingBoxUtility();
-                  RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-                  RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-            //}
+            if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
+                BoundingBoxUtility();
+            }
+            
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
               
             SetSearchRadius(r_model_part, 1.0);        
             SearchNeighbours();
