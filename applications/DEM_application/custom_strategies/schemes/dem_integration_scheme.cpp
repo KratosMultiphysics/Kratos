@@ -111,11 +111,13 @@ namespace Kratos {
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
         double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        bool virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
         double force_reduction_factor = 1.0;
-        if (if_virtual_mass_option) {
+        if (virtual_mass_option) {
             force_reduction_factor = 1.0 - virtual_mass_coeff;
-            if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+            if ((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) {
+                KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
+            }
         }                        
         vector<unsigned int> node_partition;
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
@@ -193,11 +195,13 @@ namespace Kratos {
         vector<unsigned int> node_partition;
         bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
         double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        bool virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
         double moment_reduction_factor = 1.0;
-        if (if_virtual_mass_option) {
+        if (virtual_mass_option) {
             moment_reduction_factor = 1.0 - virtual_mass_coeff;
-            if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+            if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
+                KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
+            }
         }      
 
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
@@ -297,11 +301,13 @@ namespace Kratos {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
         double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        bool virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
         double moment_reduction_factor = 1.0;
-        if (if_virtual_mass_option) {
+        if (virtual_mass_option) {
             moment_reduction_factor = 1.0 - virtual_mass_coeff;
-            if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+            if ((moment_reduction_factor > 1.0) || (moment_reduction_factor < 0.0)) {
+                KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
+            }
         }     
 
         vector<unsigned int> element_partition;
