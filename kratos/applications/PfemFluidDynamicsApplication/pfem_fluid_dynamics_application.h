@@ -12,8 +12,9 @@
 //-------------------------------------------------------------
 //
 //   Project Name:        KratosPfemFluidDynamicsApplication $
-//   Last modified by:    $Author:               JMCarbonell $
-//   Date:                $Date:              September 2015 $
+//   Created by:          $Author:               JMCarbonell $
+//   Last modified by:    $Co-Author:                        $
+//   Date:                $Date:               February 2016 $
 //   Revision:            $Revision:                     0.0 $
 //
 //
@@ -29,7 +30,7 @@
 // Project includes
 
 // Core applications
-#include "solid_mechanics_application.h"
+#include "pfem_base_application.h"
 
 //conditions
 
@@ -47,6 +48,9 @@
 //hardening laws
 
 //constitutive laws
+
+
+#include "pfem_fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -77,7 +81,6 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  //class KratosPfemFluidDynamicsApplication : public KratosPfemSolidMechanicsApplication
   class KratosPfemFluidDynamicsApplication : public KratosApplication
   {
   public:

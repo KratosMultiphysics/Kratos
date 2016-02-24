@@ -1,11 +1,11 @@
 //
 //   Project Name:        KratosPfemFluidDynamicsApplication $
-//   Last modified by:    $Author:               JMCarbonell $
-//   Date:                $Date:              September 2015 $
+//   Created by:          $Author:               JMCarbonell $
+//   Last modified by:    $Co-Author:                        $
+//   Date:                $Date:               February 2016 $
 //   Revision:            $Revision:                     0.0 $
 //
 //
-
 
 #if !defined(KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED
