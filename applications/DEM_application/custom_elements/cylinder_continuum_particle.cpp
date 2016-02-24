@@ -52,7 +52,7 @@ namespace Kratos
           double density            = GetDensity();
 
           double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-          mass                      = KRATOS_M_PI * density * GetRadius() * GetRadius() * 1.0;
+          mass                      = density * GetVolume();
           mRealMass                 = mass;
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
@@ -344,6 +344,10 @@ namespace Kratos
           KRATOS_CATCH("")
 
       } //ComputeBallToBallContactForce
+      
+      double CylinderContinuumParticle::GetVolume(){
+          return KRATOS_M_PI * GetRadius() * GetRadius();
+      }
 
 
 

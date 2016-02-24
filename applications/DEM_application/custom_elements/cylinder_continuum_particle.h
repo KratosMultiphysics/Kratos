@@ -96,9 +96,8 @@ namespace Kratos
                                          ProcessInfo& rCurrentProcessInfo,
                                          double dt,
                                          const bool multi_stage_RHS);
-
-
-
+      
+      double GetVolume();
       //ParticleWeakVectorType mrNeighbours;
 
       ///@name Protected static Member Variables
