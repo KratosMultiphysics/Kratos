@@ -22,7 +22,7 @@ list = list(range(1,12))
 
 if benchmark_number in list:
     import DEM_explicit_solver_var as DEM_parameters
-elif benchmark_number ==12:
+elif benchmark_number == 12:
     import DEM_explicit_solver_var_12 as DEM_parameters
 else:
     import DEM_explicit_solver_var2 as DEM_parameters
@@ -35,6 +35,8 @@ elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_paramet
     import continuum_sphere_strategy as SolverStrategy
 elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy
+else:
+    KRATOSprint('Error: Strategy unavailable. Select a different scheme element')
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
@@ -53,6 +55,21 @@ else:
     #import DEM_material_test_script
 
     print("Running under OpenMP........")
+    
+#Getting chosen scheme:
+
+if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+    scheme = ForwardEulerScheme()
+elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+    scheme = SymplecticEulerScheme()
+elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+    scheme = MidPointScheme()
+elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+    scheme = NewmarkBetaScheme(0.5, 0.25)
+elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+    scheme = VerletVelocityScheme()
+else:
+    KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
 ########################################################## CHUNG, OOI BENCHMARKS
     
@@ -106,13 +123,15 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
         procedures.AddMpiVariables(spheres_model_part)
         solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
+        scheme.AddSpheresVariables(spheres_model_part)
         procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
         procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
         procedures.AddMpiVariables(cluster_model_part)
+        scheme.AddClustersVariables(cluster_model_part)
         procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
         procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
         solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-        #
+        scheme.AddSpheresVariables(DEM_inlet_model_part)
         procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         procedures.AddMpiVariables(rigid_face_model_part)
@@ -319,18 +338,20 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
             cluster_model_part.ProcessInfo[TIME_STEPS]      = step
 
-
             #### GENERAL TEST LOAD&UNLOAD  ######################
-            benchmark.ApplyNodalRotation(time, spheres_model_part)
+            
+            benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
 
             #walls movement:
             mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
             #########mesh_motion.MoveSphereMeshes(spheres_model_part, time, dt)
 
             #### SOLVE #########################################
-
+            
+            #benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
             solver.Solve()
-
+            #benchmark.ApplyNodalRotation(time, dt, spheres_model_part)
+            
             #### TIME CONTROL ##################################
 
             # adding DEM elements by the inlet:
