@@ -1,11 +1,11 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:            February 2016 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
-
 
 #include "solid_mechanics_application_variables.h"
 

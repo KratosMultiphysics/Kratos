@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -8,9 +9,7 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "custom_conditions/force_load_condition.hpp"
@@ -62,6 +61,7 @@ ForceLoadCondition::ForceLoadCondition(IndexType NewId, GeometryType::Pointer pG
 ForceLoadCondition::ForceLoadCondition( ForceLoadCondition const& rOther )
     : Condition(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+    ,mEnergy(rOther.mEnergy)
       
 {
 }

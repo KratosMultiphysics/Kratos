@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -443,6 +444,12 @@ void LargeDisplacementElement::GetValueOnIntegrationPoints( const Variable<Matri
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
     }
+    else if ( rVariable == DEFORMATION_GRADIENT ) 
+    {
+
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+    }
     else
     {
 
@@ -521,7 +528,7 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
 
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
-	    array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
 	    array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 	    array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
@@ -543,7 +550,7 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
 	
         KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
     }
-    
+
     //Compute total F: FT 
     rVariables.detFT = rVariables.detF * rVariables.detF0;
     rVariables.FT    = prod( rVariables.F, rVariables.F0 );
@@ -555,6 +562,7 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rVariables.N);
+
 }
 
 
@@ -1966,9 +1974,9 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
+	  {
             //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
+	    this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
 	    if( mFinalizedStep ){
@@ -1978,14 +1986,14 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
-            //call the constitutive law to update material variables
+	    //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR)
               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
             else
-                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+	      mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
 
-
-            if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
+	    
+	    if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
                 rOutput[PointNumber].resize( Variables.StressVector.size(), false );
 
             rOutput[PointNumber] = Variables.StressVector;
@@ -2124,7 +2132,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
 
 
     }
-    else if ( rVariable == DEFORMATION_GRADIENT )  // VARIABLE SET FOR TRANSFER PURPOUSES
+    else if ( rVariable == DEFORMATION_GRADIENT )
     {
         //create and initialize element variables:
         GeneralVariables Variables;

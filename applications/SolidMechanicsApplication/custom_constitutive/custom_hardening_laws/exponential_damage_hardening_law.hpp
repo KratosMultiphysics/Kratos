@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              IPouplana $
+//   Created by:          $Author:              IPouplana $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -8,8 +9,6 @@
 
 #if !defined(KRATOS_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED )
 #define  KRATOS_EXPONENTIAL_DAMAGE_HARDENING_LAW_H_INCLUDED
-
-
 
 // System includes
 

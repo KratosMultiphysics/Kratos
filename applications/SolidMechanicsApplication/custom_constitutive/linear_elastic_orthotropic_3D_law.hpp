@@ -1,7 +1,8 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:       Massimo Petracca $
-//   Date:                $Date:                 May 2014 $
+//   Created by:          $Author:            JMCarbonell $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:                July 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
 //

@@ -1,10 +1,12 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              IPouplana $
+//   Created by:          $Author:              IPouplana $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:                July 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
+
 // System includes
 #include <string>
 #include <iostream>

@@ -1,10 +1,12 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            MSantasusana$
+//   Created by:          $Author:           MSantasusana $
+//   Last modified by:    $Co-Author:                     $
 //   Date:                $Date:               March 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
+
 
 #if !defined(KRATOS_ENERGY_UTILITIES_H_INCLUDED )
 #define  KRATOS_ENERGY_UTILITIES_H_INCLUDED
