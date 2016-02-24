@@ -119,7 +119,7 @@ namespace Kratos
           KRATOS_CATCH( "" )
       }
       
-      double CylinderContinuumParticle::GetVolume(){
+      double CylinderParticle::GetVolume(){
           return KRATOS_M_PI * GetRadius() * GetRadius();
       }
 
