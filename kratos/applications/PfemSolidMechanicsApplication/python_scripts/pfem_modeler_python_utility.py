@@ -204,10 +204,9 @@ class ModelerUtility:
         for parameters in configuration.mesh_conditions:
 
             # set mesh modeler
-            if(self.domain_size == 2):
-                mesh_modeler = TriangularMesh2DModeler()
-                # else:
-                # mesh_modeler = TetrahedronMesh3DModeler()
+            mesh_modeler = TriangularMesh2DModeler()
+            #if(self.domain_size == 3):
+            #    mesh_modeler = TetrahedronMesh3DModeler()
                 
             
             mesh_modeler.Initialize()
