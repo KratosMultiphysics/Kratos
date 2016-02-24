@@ -214,11 +214,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-        
-        if (Var_Translator(self.DEM_parameters.PostNonDimensionalVolumeWear)):           
-            model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
-            model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
-
                 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
@@ -243,7 +238,7 @@ class Procedures(object):
         if (Var_Translator(self.DEM_parameters.RotationOption)):
             model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-            if( Var_Translator(self.DEM_parameters.RollingFrictionOption)):
+            if (Var_Translator(self.DEM_parameters.RollingFrictionOption)):
                 model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
         # OTHER PROPERTIES
@@ -283,9 +278,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(DEM_NODAL_AREA)
-        #if (getattr(self.DEM_parameters, "PostNonDimensionalVolumeWear", 0 )):
-        #model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
-        #model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
+        model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
+        model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
         
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,self.DEM_parameters)
@@ -990,7 +984,6 @@ class DEMIo(object):
         self.PostVelocity                 = getattr(self.DEM_parameters, "PostVelocity", 0)
         self.PostTotalForces              = getattr(self.DEM_parameters, "PostTotalForces", 0)
         self.PostNonDimensionalVolumeWear = getattr(self.DEM_parameters, "PostNonDimensionalVolumeWear", 0)
-        self.PostImpactWear               = getattr(self.DEM_parameters, "PostImpactWear", 0)
         self.PostAppliedForces            = getattr(self.DEM_parameters, "PostAppliedForces", 0)
         self.PostDampForces               = getattr(self.DEM_parameters, "PostDampForces", 0)
         self.PostRadius                   = getattr(self.DEM_parameters, "PostRadius", 0)
@@ -1032,9 +1025,6 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement,             DISPLACEMENT,                self.global_variables)
         self.PushPrintVar(self.PostVelocity,                 VELOCITY,                    self.global_variables)
         self.PushPrintVar(self.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
-        if (Var_Translator(self.PostNonDimensionalVolumeWear)):
-            self.PushPrintVar(1,              NON_DIMENSIONAL_VOLUME_WEAR,                self.global_variables)
-            self.PushPrintVar(1,                              IMPACT_WEAR,                self.global_variables)
         
     def AddSpheresVariables(self):
         # Spheres Variables
@@ -1092,9 +1082,9 @@ class DEMIo(object):
         self.PushPrintVar(self.PostTangentialElasticForces,  TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress,              SHEAR_STRESS, self.fem_boundary_variables)
         self.PushPrintVar(self.PostNodalArea,                DEM_NODAL_AREA, self.fem_boundary_variables)
-        #if (Var_Translator(self.PostNonDimensionalVolumeWear)):
-        #self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
-        #self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
+        if (Var_Translator(self.PostNonDimensionalVolumeWear)):
+            self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
+            self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
         
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_1, self.mapping_variables)
