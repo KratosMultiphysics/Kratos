@@ -10,7 +10,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_e
 
 
 ## generate variables with the sources
-set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES     
+set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application_variables.cpp 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_fluid_dynamics_python_application.cpp
