@@ -87,7 +87,7 @@ namespace Kratos
       void Initialize();
       void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity, int search_control);
       
-      
+      double GetVolume();
       
       
       
