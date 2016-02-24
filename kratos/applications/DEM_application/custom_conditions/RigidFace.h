@@ -5,14 +5,8 @@
 #if !defined(KRATOS_RIGIDFACE3D_H_INCLUDED )
 #define  KRATOS_RIGIDFACE3D_H_INCLUDED
 
-
-
-// System includes
-
-
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -53,14 +47,10 @@ public:
     // Destructor
     virtual ~RigidFace3D();
 
-
-    // Name Operations
-
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties ) const;
-
 
     void Initialize();
     void CalculateRightHandSide(
@@ -72,9 +62,6 @@ public:
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
-    //double mTgOfFrictionAngle;
-    //std::vector<SphericParticle*> mNeighbourSphericParticles;
-    
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -83,27 +70,9 @@ public:
      * @param rCurrentProcessInfo
      */
 
-
-
 protected:
   
-  
-  
-
-
 private:
-    ///@name Static Member Variables
-
-    /// privat variables
-
-
-    // privat name Operations
-
-	
-
-    ///@}
-    ///@name Serialization
-    ///@{
 
     friend class Serializer;
 
@@ -116,7 +85,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DEMWall );
     }
-
 
 }; // class RigidFace3D.
 
