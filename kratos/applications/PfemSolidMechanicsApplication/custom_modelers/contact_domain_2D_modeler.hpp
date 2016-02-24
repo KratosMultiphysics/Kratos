@@ -1,7 +1,8 @@
 //
-//   Project Name:                       MachiningApplication $
-//   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                     May 2014 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                February 2016 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -15,6 +16,16 @@
 
 // Project includes
 #include "custom_modelers/triangular_mesh_2D_modeler.hpp"
+
+///VARIABLES used:
+//Data:     MASTER_CONDITION, MASTER_ELEMENTS, MASTER_NODES, NORMAL
+//(props)   THICKNESS, PENALTY_PARAMETER, TAU_STAB, FRICTION_ACTIVE, MU_STATIC,MU_DYNAMIC 
+//StepData: OFFSET, NODAL_H, NORMAL, SHRINK_FACTOR
+//Flags:    (checked)  CONTACT(on conditions), BOUNDARY
+//          (set)      CONTACT(on conditions) 
+//          (modified)  
+//          (reset)
+
 
 namespace Kratos
 {
@@ -66,6 +77,12 @@ public:
     /// Pointer definition of TriGenCDT
     KRATOS_CLASS_POINTER_DEFINITION( ContactDomain2DModeler );
 
+    typedef ModelerUtilities::InfoParameters         InfoParametersType;
+    typedef ModelerUtilities::MeshingParameters   MeshingParametersType;
+    typedef ModelerUtilities::RefiningParameters   RefineParametersType;
+
+    typedef MeshDataTransferUtilities::TransferParameters  TransferParametersType;
+  
 
     typedef Node<3>                                                       PointType;
     typedef Node<3>::Pointer                                       PointPointerType;
@@ -102,6 +119,7 @@ public:
     //*******************************************************************************************
 
     void TransferContactBoundaryData(ModelPart& rModelPart, 
+				     TransferParametersType& rParameters,
 				     bool initial);
 
 
@@ -109,12 +127,6 @@ public:
     //*******************************************************************************************
 
     void GenerateContactMesh (ModelPart& rModelPart,
-			      Element   const& rReferenceElement,
-			      Condition const& rReferenceCondition,
-			      bool   ConstrainedFlag = false,
-			      double AlphaParameter = 1.4,
-			      double SizeFactor = 0.5,
-			      double OffsetFactor = 1.0,
 			      double PenaltyParameter = 1000,
 			      double StabilityParameter = 0.01,
 			      bool   FrictionFlag = false,
@@ -127,7 +139,7 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
     void GenerateContactDT(ModelPart& rModelPart,
-			   MeshModeler::MeshingVariables& rMeshingVariables,
+			   MeshingParametersType& rMeshingVariables,
 			   ContactVariables& rContactVariables);
     
 
@@ -135,7 +147,7 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
     void GenerateContactCDT(ModelPart& rModelPart,
-			    MeshModeler::MeshingVariables& rMeshingVariables,
+			    MeshingParametersType& rMeshingVariables,
 			    ContactVariables& rContactVariables);
 
 
@@ -247,9 +259,9 @@ private:
     ///@name Unaccessible methods
     ///@{
 
-    void SetTriangulationShrankNodes   (ModelPart& rModelPart,
+    void SetTriangulationShrankNodes (ModelPart& rModelPart,
 				      ModelPart::NodesContainerType&  rBoundaryNodes,
-				      MeshModeler::MeshingVariables& rMeshingVariables,
+				      MeshingParametersType& rMeshingVariables,
 				      ContactVariables& rContactVariables,
 				      struct triangulateio& in,
 				      struct triangulateio& out);
@@ -264,7 +276,7 @@ private:
     //Build contact elements in model_part after the Delaunay Tesselation
     void BuildContactConditions (ModelPart& rModelPart,
 				 ModelPart::NodesContainerType& rBoundaryNodes,
-				 MeshModeler::MeshingVariables& rMeshingVariables,
+				 MeshingParametersType& rMeshingVariables,
 				 ContactVariables& rContactVariables,
 				 struct triangulateio &out);
     ///@}

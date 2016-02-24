@@ -1,4 +1,12 @@
 //
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
 // System includes
 #include <iostream>
 #include<cmath>
@@ -8,6 +16,7 @@
 
 // Project includes
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
 

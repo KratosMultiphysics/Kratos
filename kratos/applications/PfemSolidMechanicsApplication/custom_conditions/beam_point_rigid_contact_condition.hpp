@@ -23,7 +23,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
-#include "custom_modelers/spatial_bounding_box.hpp"
+#include "custom_bounding/spatial_bounding_box.hpp"
 
 namespace Kratos
 {

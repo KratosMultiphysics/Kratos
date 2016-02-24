@@ -1,3 +1,12 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
 
 #if !defined(KRATOS_HARDENING_COULOMB_FRICTION_LAW_H_INCLUDED)
 #define      KRATOS_HARDENING_COULOMB_FRICTION_LAW_H_INCLUDED

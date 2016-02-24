@@ -1,5 +1,11 @@
-// Clase HenckyElasticPlastic3DLaw, que es derivada de HyperelasticPlastic3DLaw, de tal manera que només cal canviar CalculateMaterialResponesKirchoff (i totes les funcions que van amb ella)
-
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
 
 #if !defined (KRATOS_NON_LINEAR_HENCKY_PLASTIC_U_P_3D_LAW_H_INCLUDED)
 #define       KRATOS_NON_LINEAR_HENCKY_PLASTIC_U_P_3D_LAW_H_INCLUDED

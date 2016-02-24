@@ -12,12 +12,12 @@
 //-------------------------------------------------------------
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                February 2015 $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
-
 
 #if !defined(KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_H_INCLUDED
@@ -30,6 +30,7 @@
 
 // Core applications
 #include "solid_mechanics_application.h"
+#include "pfem_base_application.h"
 
 //conditions
 #include "custom_conditions/composite_condition.hpp"
@@ -126,7 +127,6 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  //class KratosPfemSolidMechanicsApplication : public KratosSolidMechanicsApplication
   class KratosPfemSolidMechanicsApplication : public KratosApplication
   {
   public:

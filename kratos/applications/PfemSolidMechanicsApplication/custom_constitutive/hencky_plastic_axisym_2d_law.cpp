@@ -1,8 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
@@ -16,7 +17,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_axisym_2d_law.hpp"
 
-#include "solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

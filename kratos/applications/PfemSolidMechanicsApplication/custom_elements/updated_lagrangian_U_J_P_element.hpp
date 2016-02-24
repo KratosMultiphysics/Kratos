@@ -1,8 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              LMonforte $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                 -0.1 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
@@ -14,9 +15,9 @@
 // External includes
 
 // Project includes
-#include "solid_mechanics_application.h"
 #include "custom_elements/updated_lagrangian_U_J_element.hpp"
 
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

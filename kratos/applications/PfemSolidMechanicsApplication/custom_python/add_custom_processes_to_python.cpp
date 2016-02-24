@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
@@ -20,60 +21,42 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
-#include "custom_processes/elemental_neighbours_search_process.hpp"
-#include "custom_processes/nodal_neighbours_search_process.hpp"
-#include "custom_processes/boundary_skin_build_process.hpp"
 #include "custom_processes/rigid_wall_contact_search_process.hpp"
-#include "custom_processes/model_volume_calculation_process.hpp"
 
 //Set initial mechanical state
 #include "custom_processes/set_mechanical_initial_state_process.hpp"
 
 //Modeler Bounding Boxes
-#include "custom_modelers/spatial_bounding_box.hpp"
-#include "custom_modelers/rigid_nose_wall_bounding_box.hpp"
-#include "custom_modelers/rigid_circle_wall_bounding_box.hpp"
-#include "custom_modelers/rigid_plane_wall_bounding_box.hpp"
+#include "custom_bounding/rigid_nose_wall_bounding_box.hpp"
+#include "custom_bounding/rigid_circle_wall_bounding_box.hpp"
+#include "custom_bounding/rigid_plane_wall_bounding_box.hpp"
+
+//Processes
+#include "custom_processes/contact_refine_mesh_boundary_process.hpp"
+
 namespace Kratos
 {
 	
   namespace Python
   {
-
-  	
+ 	
     void  AddCustomProcessesToPython()
     {
 
       using namespace boost::python;
       typedef Process                                         ProcessBaseType;
+      typedef RefineMeshBoundaryProcess             RefineMeshProcessBaseType;
+      typedef std::vector<SpatialBoundingBox::Pointer>   BoundingBoxContainer;
 
-
-      //***************NEIGHBOURS**************//
       
-      class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "NodalNeighboursSearch", init<ModelPart&, int, int, int, int>()
-	 )
-	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
-	;
-      
-      class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int, int>()
-	 )
-	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
-	;
+      //**********MESH MODELLER PROCESS*********//
 
- 
-      //***************BOUNDARY**************//
-
-      class_<BoundarySkinBuildProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<ContactRefineMeshBoundaryProcess, bases<RefineMeshProcessBaseType>, boost::noncopyable >
 	(
-	 "BuildBoundarySkin", init<ModelPart&, int, int, int>()
+	 "ContactRefineMeshBoundary", init<ModelPart&, BoundingBoxContainer&, ModelerUtilities::MeshingParameters&, int, int>()
 	 )
 	;
 
-      
       //********WALL CONTACT SEARCH*********//
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
@@ -110,15 +93,7 @@ namespace Kratos
          ;
 
 
-      //********MODEL VOLUME CALCULATION*********//
-
-      class_<ModelVolumeCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ModelVolumeCalculation", init<ModelPart&, int, int>()
-	 )
-	 .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
-	 .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
-	;
+ 
 
     }
  

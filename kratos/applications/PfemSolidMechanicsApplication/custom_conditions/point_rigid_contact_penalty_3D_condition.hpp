@@ -1,10 +1,12 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2013 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
+
 
 #if !defined(KRATOS_POINT_RIGID_CONTACT_PENALTY_3D_CONDITION_H_INCLUDED )
 #define  KRATOS_POINT_RIGID_CONTACT_PENALTY_3D_CONDITION_H_INCLUDED

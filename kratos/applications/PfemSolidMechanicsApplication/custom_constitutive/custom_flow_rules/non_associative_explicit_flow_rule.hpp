@@ -1,7 +1,14 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
 ////
 // NON ASSOCIATIVE, WITH HARDENING, PLASTIC FLOW RULE COMPUTED IN EXPLICITEDLY (maybe with runge-kutta)
-
-
 
 #if !defined(KRATOS_NON_ASSOCIATIVE_EXPLICIT_PLASTIC_FLOW_RULE_H_INCLUDED)
 #define      KRATOS_NON_ASSOCIATIVE_EXPLICIT_PLASTIC_FLOW_RULE_H_INCLUDED
@@ -12,10 +19,9 @@
 // External includes
 #include<cmath>
 // Project includes
-#include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
 
-
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

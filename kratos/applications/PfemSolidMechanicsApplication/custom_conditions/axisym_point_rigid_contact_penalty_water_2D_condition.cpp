@@ -1,3 +1,13 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2013 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
+
 #include "axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"

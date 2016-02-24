@@ -1,9 +1,12 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              LMonforte $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
+//
+
 //   Implementation of the Fluid Saturated porous media in a U-Pw Formulation
 //     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //

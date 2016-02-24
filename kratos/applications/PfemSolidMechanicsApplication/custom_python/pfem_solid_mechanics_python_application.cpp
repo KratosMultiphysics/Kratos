@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
@@ -17,6 +18,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_modelers_to_python.h"
+#include "custom_python/add_custom_bounding_to_python.h"
 
 #include "pfem_solid_mechanics_application.h"
  
@@ -44,6 +46,7 @@ namespace Kratos
       AddCustomStrategiesToPython();
       AddCustomConstitutiveLawsToPython();
       AddCustomModelersToPython();
+      AddCustomBoundingToPython();
      
       //registering variables in python ( if must to be seen from python )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( NUMBER_OF_ACTIVE_CONTACTS )
@@ -58,7 +61,6 @@ namespace Kratos
  
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEAN_ERROR )
  
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( RIGID_WALL )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( WALL_TIP_RADIUS )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( WALL_REFERENCE_POINT )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( WALL_VELOCITY )
@@ -104,6 +106,7 @@ namespace Kratos
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( PERMEABILITY )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONTACT_PLASTIC_SLIP )
    
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORM_ISOCHORIC_STRESS )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEAN_RADIUS )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPLEX )
     }
