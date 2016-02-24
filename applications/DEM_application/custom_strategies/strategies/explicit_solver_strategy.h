@@ -418,7 +418,7 @@ namespace Kratos
           
           InitializeSolutionStep();
           
-          ApplyPrescribedBoundaryConditions();
+          //ApplyPrescribedBoundaryConditions();
           
           // Search Neighbours and related operations                             
           SetOriginalRadius(r_model_part);
