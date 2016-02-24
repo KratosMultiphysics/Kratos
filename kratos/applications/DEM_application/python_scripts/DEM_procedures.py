@@ -9,6 +9,7 @@ import os
 import shutil
 import sys
 
+
 def Var_Translator(variable):
 
     if (variable == "OFF" or variable == "0" or variable == 0):
@@ -1009,10 +1010,10 @@ class DEMIo(object):
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
         
-        if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
-            self.PostBoundingBox = 1
+        if not (hasattr(self.DEM_parameters, "PrintBoundingBox")):
+            self.PrintBoundingBox = 0
         else:
-            self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
+            self.PrintBoundingBox = getattr(self.DEM_parameters, "PrintBoundingBox", 0)
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
   
@@ -1022,9 +1023,9 @@ class DEMIo(object):
 
     def AddGlobalVariables(self):
         # Global Variables
-        self.PushPrintVar(self.PostDisplacement,             DISPLACEMENT,                self.global_variables)
-        self.PushPrintVar(self.PostVelocity,                 VELOCITY,                    self.global_variables)
-        self.PushPrintVar(self.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
+        self.PushPrintVar(self.PostDisplacement,     DISPLACEMENT,                 self.global_variables)
+        self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
+        self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
         
     def AddSpheresVariables(self):
         # Spheres Variables
@@ -1341,7 +1342,7 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
             
-        if (self.PostBoundingBox):
+        if (self.PrintBoundingBox):
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
         
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
@@ -1371,22 +1372,22 @@ class DEMIo(object):
         DZ = (BBMaxZ-BBMinZ)
         
         #The cases with 0 thickness in one direction, a 10% of the shortest other two is given to the 0-thickness direction.
-        if(DX == 0):
+        if (DX == 0):
           height = min(DY,DZ)
           BBMinX = BBMinX - 0.05*height
           BBMaxX = BBMaxX + 0.05*height
-        if(DY == 0):
+        if (DY == 0):
           height = min(DX,DZ)
           BBMinY = BBMinY - 0.05*height
           BBMaxY = BBMaxY + 0.05*height
-        if(DZ == 0):
+        if (DZ == 0):
           height = min(DX,DY)
           BBMinZ = BBMinZ - 0.05*height
           BBMaxZ = BBMaxZ + 0.05*height
           
         volume = DX*DY*DZ
                         
-        if(abs(volume) > 1e21) :
+        if (abs(volume) > 1e21) :
           BBMaxX = 0.0
           BBMaxY = 0.0
           BBMaxZ = 0.0
