@@ -1,8 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
@@ -23,7 +24,6 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 
-#include "solid_mechanics_application.h"
 #include "pfem_solid_mechanics_application_variables.h"
 #include "custom_strategies/custom_schemes/residual_based_static_scheme.hpp"
 

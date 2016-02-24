@@ -1,8 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
@@ -15,7 +16,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 #include "pfem_solid_mechanics_application_variables.h"
 

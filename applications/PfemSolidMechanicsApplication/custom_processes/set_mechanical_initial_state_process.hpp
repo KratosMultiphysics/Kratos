@@ -1,11 +1,11 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                    July 2013 $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
-
 
 #if !defined ( KRATOS_SET_MECHANICAL_INITIAL_STATE_PROCESS_H_INCLUDED )
 #define  KRATOS_SET_MECHANICAL_INITIAL_STATE_PROCESS_H_INCLUDED

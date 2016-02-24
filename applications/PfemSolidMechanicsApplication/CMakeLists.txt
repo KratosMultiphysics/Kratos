@@ -4,20 +4,9 @@ message("**** configuring KratosPfemSolidMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/custom_external_libraries/triangle )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3 )
-##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite )
-##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/util )
-##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/malla )
-##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
-
-##add subdirectories for compilation of dependent libraries
-##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
-##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
-##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite)
-##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
-
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/triangle )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/tetgen/tetgen1.4.3 )
 
 ## generate variables with the sources
 set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES     
@@ -29,48 +18,46 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/modeler_utilities.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_data_transfer_utilities.cpp
-	
+	##elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_Stab_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_FIC_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp	
+
+	##conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_LM_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_penalty_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_LM_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_penalty_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_pressure_condition.cpp
+
         
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.cpp
-
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.cpp
-        
-
+	##constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_U_P_plane_strain_2D_law.cpp
-
-
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_axisym_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.cpp
-
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_J2_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_axisym_2D_law.cpp
@@ -81,48 +68,50 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_plane_strain_2D_law.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_cam_clay_axisym_2D_law.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_updated_lagrangian_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_Stab_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_FIC_element.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.cpp
-	
+
+        ##hardening laws
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.cpp
+
+	##yield criteria
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.cpp
+
+	##flow rules
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.cpp
+
+
+	##friction laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/friction_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/hardening_coulomb_friction_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/custom_friction_laws/coulomb_adhesion_friction_law.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/composite_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_LM_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_penalty_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_LM_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_contact_domain_penalty_2D_condition.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_rigid_contact_penalty_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_penalty_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_pressure_condition.cpp
-
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/mesh_modeler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/triangular_mesh_2D_modeler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
-
-
+	##processes
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
+	
+	##utilities
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
+
+
+	##modelers
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
 
 )
 
@@ -130,10 +119,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosMeshingApplication triangle tetgen)
-##target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication triangle tetgen)
-##target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore triangle tetgen)
-##target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore triangle tetgen msuite tetMeshOpt)
+target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemBaseApplication)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )
 

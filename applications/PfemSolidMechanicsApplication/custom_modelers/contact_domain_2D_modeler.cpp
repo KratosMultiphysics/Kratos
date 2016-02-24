@@ -1,7 +1,8 @@
 //
-//   Project Name:                       MachiningApplication $
-//   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                     May 2014 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                February 2016 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -9,7 +10,6 @@
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "custom_modelers/contact_domain_2D_modeler.hpp"
@@ -25,7 +25,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void ContactDomain2DModeler::TransferContactBoundaryData(ModelPart& rModelPart, bool initial)
+  void ContactDomain2DModeler::TransferContactBoundaryData(ModelPart& rModelPart, TransferParametersType& rParameters, bool initial)
   {
     KRATOS_TRY
 
@@ -33,11 +33,17 @@ namespace Kratos
     MeshDataTransferUtilities    MeshDataTransfer;
 
     //be careful: it must be done once only after the step solution: 
-    if(initial)
-      MeshDataTransfer.TransferBoundaryData(rModelPart,MeshDataTransferUtilities::INITIALIZATION);
-    else
-      MeshDataTransfer.TransferBoundaryData(rModelPart,MeshDataTransferUtilities::MASTER_ELEMENT_TO_NODE);
-	              	
+    if(initial){
+      //std::cout<<" INITIAL "<<std::endl;
+      rParameters.Options.Set(MeshDataTransferUtilities::INITIALIZATION, true);
+      MeshDataTransfer.TransferBoundaryData(rParameters, rModelPart);
+    }
+    else{
+      //std::cout<<" ELEMENT_TO_NODE "<<std::endl;
+      rParameters.Options.Set(MeshDataTransferUtilities::MASTER_ELEMENT_TO_NODE, true);
+      MeshDataTransfer.TransferBoundaryData(rParameters, rModelPart);
+    }	 
+             	
     KRATOS_CATCH(" ")
   }
 
@@ -46,12 +52,6 @@ namespace Kratos
   //*******************************************************************************************
 
   void ContactDomain2DModeler::GenerateContactMesh (ModelPart& rModelPart,
-						    Element   const& rReferenceElement,
-						    Condition const& rReferenceCondition,
-						    bool   ConstrainedFlag,
-						    double AlphaParameter,
-						    double SizeFactor,
-						    double OffsetFactor,
 						    double PenaltyParameter,
 						    double StabilityParameter,
 						    bool   FrictionFlag,
@@ -61,29 +61,19 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    MeshModeler::MeshingVariables MeshingVars;
-    ContactVariables ContactVars;
+    ContactVariables ContactVariables;
     
-    MeshingVars.SetReferenceElement   (rReferenceElement);
-    MeshingVars.SetReferenceCondition (rReferenceCondition);
-
-    MeshingVars.Refine.SizeFactor  = SizeFactor;
-    MeshingVars.AlphaParameter     = AlphaParameter;
-    MeshingVars.OffsetFactor       = OffsetFactor;
-
-    ContactVars.OffsetFactor       = OffsetFactor;
-    //std::cout<<" OffsetFactor "<<ContactVars.OffsetFactor<<std::endl;
-
-    ContactVars.PenaltyParameter   = PenaltyParameter;
-    ContactVars.StabilityParameter = StabilityParameter;
+    ContactVariables.OffsetFactor       = mpMeshingVariables->OffsetFactor;
+    ContactVariables.PenaltyParameter   = PenaltyParameter;
+    ContactVariables.StabilityParameter = StabilityParameter;
 
     if(FrictionFlag)
-      ContactVars.FrictionFlag = 1;
+      ContactVariables.FrictionFlag = 1;
     else
-      ContactVars.FrictionFlag = 0;
+      ContactVariables.FrictionFlag = 0;
 
-    ContactVars.StaticFrictionCoefficient  = StaticFrictionCoefficient;
-    ContactVars.DynamicFrictionCoefficient = DynamicFrictionCoefficient;
+    ContactVariables.StaticFrictionCoefficient  = StaticFrictionCoefficient;
+    ContactVariables.DynamicFrictionCoefficient = DynamicFrictionCoefficient;
 
     //Sort Conditions
     unsigned int consecutive_index = 1;
@@ -102,10 +92,10 @@ namespace Kratos
     std::cout<<" --------------      BOUND          -------------- "<<std::endl;
 	
     //Generate Delaunay Triangulation for Contact Detection
-    if(!ConstrainedFlag)
-      GenerateContactDT(rModelPart,MeshingVars,ContactVars);
+    if(mpMeshingVariables->Options.Is(ModelerUtilities::CONSTRAINED))
+      GenerateContactCDT(rModelPart,*mpMeshingVariables,ContactVariables);
     else
-      GenerateContactCDT(rModelPart,MeshingVars,ContactVars);
+      GenerateContactDT(rModelPart,*mpMeshingVariables,ContactVariables);
 	
     std::cout<<" --------------                     -------------- "<<std::endl;
     std::cout<<" -------------- CONTACT SEARCH DONE -------------- "<<std::endl;
@@ -137,7 +127,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void ContactDomain2DModeler::GenerateContactDT(ModelPart& rModelPart,
-					 MeshModeler::MeshingVariables& rMeshingVariables,
+					 MeshingParametersType& rMeshingVariables,
 					 ContactVariables& rContactVariables)
   {
 
@@ -152,7 +142,7 @@ namespace Kratos
 
     ModelPart::NodesContainerType  BoundaryNodes;
 
-    
+
     ////////////////////////////////////////////////////////////
     SetTriangulationShrankNodes(rModelPart,BoundaryNodes,rMeshingVariables,rContactVariables,in,out);
     ////////////////////////////////////////////////////////////
@@ -160,11 +150,11 @@ namespace Kratos
     
     //*********************************************************************
 
-    rMeshingVariables.MeshingOptions.Set(MeshModeler::RECONNECT);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::RECONNECT);
     ////////////////////////////////////////////////////////////
-    this->GenerateTriangulation(rMeshingVariables.MeshingOptions,rMeshingVariables.RefiningOptions,in,out);
+    this->GenerateTriangulation(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in,out);
     ////////////////////////////////////////////////////////////
-    rMeshingVariables.MeshingOptions.Reset(MeshModeler::RECONNECT);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::RECONNECT);
 
     
     //*********************************************************************
@@ -185,7 +175,7 @@ namespace Kratos
   //*******************************************************************************************
 
   void ContactDomain2DModeler::GenerateContactCDT(ModelPart& rModelPart,
-						  MeshModeler::MeshingVariables& rMeshingVariables,
+						  MeshingParametersType& rMeshingVariables,
 						  ContactVariables & rContactVariables)
   {
 
@@ -199,27 +189,30 @@ namespace Kratos
 
     ModelPart::NodesContainerType  BoundaryNodes;
 
-    rMeshingVariables.MeshingOptions.Set(MeshModeler::CONSTRAINED_MESH);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
     ////////////////////////////////////////////////////////////
     SetTriangulationShrankNodes(rModelPart,BoundaryNodes,rMeshingVariables,rContactVariables,in,out);
     ////////////////////////////////////////////////////////////
-    
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
+
     //*********************************************************************
 
-    rMeshingVariables.MeshingOptions.Set(MeshModeler::RECONNECT);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::RECONNECT);
 
-    int fail = this->GenerateTriangulation(rMeshingVariables.MeshingOptions,rMeshingVariables.RefiningOptions,in,out);
+    int fail = this->GenerateTriangulation(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in,out);
 
     
     if(fail){
-      rMeshingVariables.MeshingOptions.Reset(MeshModeler::CONSTRAINED_MESH);
+      rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
       ////////////////////////////////////////////////////////////
-      fail = this->GenerateTriangulation(rMeshingVariables.MeshingOptions,rMeshingVariables.RefiningOptions,in, out);
+      fail = this->GenerateTriangulation(rMeshingVariables.ExecutionOptions,rMeshingVariables.Refine->RefiningOptions,in, out);
       ////////////////////////////////////////////////////////////
-      rMeshingVariables.MeshingOptions.Set(MeshModeler::CONSTRAINED_MESH);
+      rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONSTRAINED);
     }
 
-    rMeshingVariables.MeshingOptions.Reset(MeshModeler::RECONNECT);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::RECONNECT);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONSTRAINED);
 
     //*********************************************************************
 
@@ -227,7 +220,6 @@ namespace Kratos
     BuildContactConditions(rModelPart,BoundaryNodes,rMeshingVariables,rContactVariables,out);
     ////////////////////////////////////////////////////////////
 
-    rMeshingVariables.MeshingOptions.Reset(MeshModeler::CONSTRAINED_MESH);
 
     //free the rest of the memory
     DeletePointsList(in);
@@ -243,7 +235,7 @@ namespace Kratos
 
   void ContactDomain2DModeler::SetTriangulationShrankNodes(ModelPart& rModelPart,
 							   ModelPart::NodesContainerType& rBoundaryNodes,
-							   MeshModeler::MeshingVariables& rMeshingVariables,
+							   MeshingParametersType& rMeshingVariables,
 							   ContactVariables& rContactVariables,
 							   struct triangulateio& in,
 							   struct triangulateio& out)
@@ -295,7 +287,7 @@ namespace Kratos
     ClearTrianglesList(out);
 
     //*********************************************************************
-    if(rMeshingVariables.MeshingOptions.Is(MeshModeler::CONSTRAINED_MESH)){
+    if(rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::CONSTRAINED)){
       
       std::cout<<"  Constrained Contact Meshing "<<std::endl;
       
@@ -471,7 +463,7 @@ namespace Kratos
   //Set contact elements in model_part after the Delaunay Tesselation
   void ContactDomain2DModeler::BuildContactConditions(ModelPart& rModelPart,
 						      ModelPart::NodesContainerType& rBoundaryNodes,
-						      MeshModeler::MeshingVariables& rMeshingVariables,
+						      MeshingParametersType& rMeshingVariables,
 						      ContactVariables& rContactVariables,
 						      struct triangulateio& out)
   {
@@ -479,13 +471,15 @@ namespace Kratos
 
     //*******************************************************************
     //selecting elements
-    rMeshingVariables.RefiningOptions.Set(MeshModeler::SELECT_ELEMENTS);
-    rMeshingVariables.RefiningOptions.Set(MeshModeler::CONTACT_SEARCH);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::PASS_ALPHA_SHAPE);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Set(ModelerUtilities::CONTACT_SEARCH);
 
     this->SelectMeshElements(rBoundaryNodes,rMeshingVariables,out);
 
-    rMeshingVariables.RefiningOptions.Reset(MeshModeler::SELECT_ELEMENTS);
-    rMeshingVariables.RefiningOptions.Reset(MeshModeler::CONTACT_SEARCH);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::SELECT_ELEMENTS);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::CONTACT_SEARCH);
+    rMeshingVariables.ExecutionOptions.Reset(ModelerUtilities::PASS_ALPHA_SHAPE);
 
     //*******************************************************************
     //setting new elements
@@ -569,7 +563,8 @@ namespace Kratos
 	    //assign the MASTER ELEMENT and the MASTER NODE
 				
 	    bool condition_found=false;
-	    Condition::Pointer p_master_cond = this->mModelerUtilities.FindMasterCondition(p_contact_cond,rModelPart.Conditions(),condition_found);
+	    ModelerUtilities ModelerUtils;
+	    Condition::Pointer p_master_cond = ModelerUtils.FindMasterCondition(p_contact_cond,rModelPart.Conditions(),condition_found);
 
 	    if(!condition_found){
 	      std::cout<<" MASTER CONDITION NOT FOUND: Contact Element Release "<<std::endl;
@@ -577,11 +572,11 @@ namespace Kratos
 	    }
 	    else{
 
-	      //std::cout<<" contact master "<<std::endl;
-	      //p_master_cond->GetValue(MASTER_ELEMENTS)[0].PrintInfo(std::cout);
-	      //p_master_cond->GetValue(MASTER_ELEMENTS)[0].PrintData(std::cout);
-	      //p_master_cond->GetValue(MASTER_ELEMENTS)[0].GetProperties().PrintData(std::cout);
-	      //std::cout<<std::endl;
+	      // std::cout<<" contact master "<<std::endl;
+	      // p_master_cond->GetValue(MASTER_ELEMENTS)[0].PrintInfo(std::cout);
+	      // p_master_cond->GetValue(MASTER_ELEMENTS)[0].PrintData(std::cout);
+	      // p_master_cond->GetValue(MASTER_ELEMENTS)[0].GetProperties().PrintData(std::cout);
+	      // std::cout<<std::endl;
 	      p_contact_cond->SetValue(MASTER_CONDITION, p_master_cond );
 	      p_contact_cond->SetValue(MASTER_ELEMENTS, p_master_cond->GetValue(MASTER_ELEMENTS) );
 	      p_contact_cond->SetValue(MASTER_NODES, p_master_cond->GetValue(MASTER_NODES) );
@@ -589,7 +584,8 @@ namespace Kratos
 	      p_contact_cond->Set(CONTACT);
 
 	      //setting new elements
-	      (rModelPart.Conditions()).push_back(p_contact_cond);
+	      //(rModelPart.Conditions()).push_back(p_contact_cond);
+	      rModelPart.AddCondition(p_contact_cond);
 	    }
 	    // if( (rModelPart.Conditions()).back().Is(CONTACT) )
 	    //     std::cout<<" IS a CONTACT CONDITION "<<std::endl;

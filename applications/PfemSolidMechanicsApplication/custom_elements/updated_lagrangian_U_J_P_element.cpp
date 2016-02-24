@@ -1,8 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:              LMonforte $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 

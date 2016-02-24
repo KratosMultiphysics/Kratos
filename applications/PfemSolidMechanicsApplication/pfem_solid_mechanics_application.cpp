@@ -1,7 +1,8 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                February 2015 $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -106,12 +107,8 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_STICK_CONTACTS )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_SLIP_CONTACTS )
 
-
     KRATOS_REGISTER_VARIABLE( IMPOSED_WATER_PRESSURE )
     
-    //constitutive law	
-    KRATOS_REGISTER_VARIABLE( MEAN_ERROR )
-
     //material
     KRATOS_REGISTER_VARIABLE( PRE_CONSOLIDATION_STRESS )
     KRATOS_REGISTER_VARIABLE( OVER_CONSOLIDATION_RATIO )
@@ -141,13 +138,9 @@ namespace Kratos
     //mechanical
 
     //geometrical
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
-    KRATOS_REGISTER_VARIABLE( BOUNDARY_NORMAL )
-    KRATOS_REGISTER_VARIABLE( SHRINK_FACTOR )
     KRATOS_REGISTER_VARIABLE( MEAN_RADIUS )
 
-    //domain definition
-    KRATOS_REGISTER_VARIABLE( DOMAIN_LABEL )
+    //domain definition    
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )
     KRATOS_REGISTER_VARIABLE( WALL_TIP_RADIUS )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )

@@ -1,3 +1,11 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
 
 #include "custom_conditions/custom_friction_laws/friction_law.hpp"
 #include "pfem_solid_mechanics_application_variables.h"

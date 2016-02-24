@@ -1,11 +1,11 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:             JMCarbonell $
 //   Date:                $Date:                    July 2015 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
-
 
 // System includes
 #include <iostream>

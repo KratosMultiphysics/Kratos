@@ -1,8 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
 //
 //
 
@@ -15,8 +16,8 @@
 #include "custom_elements/total_updated_lagrangian_U_P_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "solid_mechanics_application.h"
 
+#include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

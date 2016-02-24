@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
@@ -109,6 +110,7 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
         NodesArrayType vertex;
 	mContactVariables.order.resize(GetGeometry().PointsNumber(),false);
 	
+	int counter = 0;
         for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
         {
             bool iset=false;
@@ -137,9 +139,13 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
 		//std::cout<<" order ["<<i<<"] = "<<slave<<std::endl;
                 mContactVariables.slaves.push_back(i);
             }
+
+	    counter += mContactVariables.order[i];
         }
 
 
+	if( counter != 3 )
+	  KRATOS_THROW_ERROR( std::invalid_argument, "Something is Wrong with MASTERNODE and contact order", "" )
 
 	//Permute
 	std::vector<unsigned int> permute (5);
@@ -207,8 +213,8 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
 
-    // std::cout<<" StressVector "<<StressVector<<std::endl;
-    // std::cout<<" F "<<F<<std::endl;
+    // std::cout<<" MC StressVector "<<StressVector<<std::endl;
+    // std::cout<<" MC F "<<F<<std::endl;
 
     StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
 

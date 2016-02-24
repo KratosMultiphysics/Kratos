@@ -1,5 +1,11 @@
-
-
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
 
 #if !defined(KRATOS_CONTACT_FRICTION_LAW_H_INCLUDED)
 #define      KRATOS_CONTACT_FRICTION_LAW_H_INCLUDED

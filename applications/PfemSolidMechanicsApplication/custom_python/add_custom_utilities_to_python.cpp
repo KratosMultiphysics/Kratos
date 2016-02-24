@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
@@ -24,9 +25,6 @@
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 
 //Utilities
-#include "custom_utilities/boundary_normals_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
-#include "custom_utilities/contact_domain_utilities.hpp"
 
 namespace Kratos
 {
@@ -49,31 +47,6 @@ namespace Kratos
 
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >                 BuilderAndSolverType;
       typedef BuilderAndSolverType::Pointer        BuilderAndSolverPointerType;
-
-
-      //***************DOMAIN SET**************//
-      class_< ModelerUtilities, boost::noncopyable > ("ModelerUtilities", init<>())
-	.def("SetDomainLabels",&ModelerUtilities::SetDomainLabels)
-	;
-
-
-      //***************NORMALS**************//
-
-      // This is required to recognize the different overloads 
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalculateMeshBoundaryNormals)(ModelPart&, int, int);
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalculateMeshUnitBoundaryNormals)(ModelPart&, int, int); 
-
-      CalculateMeshBoundaryNormals          CalculateMeshNormals     = &BoundaryNormalsCalculationUtilities::CalculateMeshBoundaryNormals;
-      CalculateMeshUnitBoundaryNormals      CalculateMeshUnitNormals = &BoundaryNormalsCalculationUtilities::CalculateMeshUnitBoundaryNormals;
-      
-      class_<BoundaryNormalsCalculationUtilities > ("BoundaryNormalsCalculation", init<>())
-	.def("CalculateBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateBoundaryNormals)
-	.def("CalculateBoundaryUnitNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
-	.def("CalculateMeshBoundaryNormals", CalculateMeshNormals)
-	.def("CalculateMeshBoundaryUnitNormals", CalculateMeshUnitNormals)
-	;
-
-
 
     }
 

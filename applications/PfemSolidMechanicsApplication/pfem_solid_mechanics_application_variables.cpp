@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                February 2016 $
 //   Revision:            $Revision:                      0.0 $
 //
@@ -27,8 +28,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, NUMBER_OF_SLIP_CONTACTS )
   
   KRATOS_CREATE_VARIABLE(double, IMPOSED_WATER_PRESSURE )
-  //constitutive law	
-  KRATOS_CREATE_VARIABLE(double, MEAN_ERROR )
 
   //material
   KRATOS_CREATE_VARIABLE(double, PRE_CONSOLIDATION_STRESS )
@@ -60,22 +59,13 @@ namespace Kratos
   //mechanical
 
   //geometrical
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
-  KRATOS_CREATE_VARIABLE(Vector, BOUNDARY_NORMAL )
-  KRATOS_CREATE_VARIABLE(double, SHRINK_FACTOR )
   KRATOS_CREATE_VARIABLE( double, MEAN_RADIUS )
 
   //domain definition
-  KRATOS_CREATE_VARIABLE(unsigned int, DOMAIN_LABEL )
-  KRATOS_CREATE_VARIABLE(int         , RIGID_WALL )
-  KRATOS_CREATE_VARIABLE(double      , WALL_TIP_RADIUS )
+  KRATOS_CREATE_VARIABLE(double, WALL_TIP_RADIUS )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WALL_VELOCITY )
 
-  //contact condition
-  KRATOS_CREATE_VARIABLE(Condition::Pointer, MASTER_CONDITION )
-  KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
-  KRATOS_CREATE_VARIABLE(WeakPointerVector< Node<3> >, MASTER_NODES )
 
   //contact 
   KRATOS_CREATE_VARIABLE(bool,   FRICTION_ACTIVE )

@@ -30,17 +30,17 @@ from KratosMultiphysics import *
 #including Applications paths
 from KratosMultiphysics.ExternalSolversApplication    import *
 from KratosMultiphysics.SolidMechanicsApplication     import *
-from KratosMultiphysics.MeshingApplication            import *
+from KratosMultiphysics.PfemBaseApplication           import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
 #import the python utilities:
-import restart_utility              as restart_utils
-import pfem_gid_output_utility           as gid_utils
+import restart_utility                 as restart_utils
+import pfem_gid_output_utility         as gid_utils
 
-import pfem_conditions_python_utility    as condition_utils
-import list_files_python_utility    as files_utils
+import pfem_conditions_python_utility  as condition_utils
+import list_files_python_utility       as files_utils
 
-import modeler_python_utility       as modeler_utils
+import pfem_modeler_python_utility  as modeler_utils
 import rigid_wall_python_utility    as wall_utils
 import graph_plot_python_utility    as plot_utils
 
@@ -272,10 +272,10 @@ rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variab
 # --BUILD MESH MODELER START--####################
 
 # build mesh modeler
-modeler.BuildMeshModeler(general_variables.mesh_modeler_config)
+modeler.BuildMeshModelers(general_variables.mesh_modeler_config, rigid_wall)
 # set rigid walls
-if(rigid_wall_contact_search):
-    modeler.SetRigidWall(rigid_wall)
+#if(rigid_wall_contact_search):
+#    modeler.SetRigidWall(rigid_wall)
 
 # --BUILD MESH MODELER END--####################
 

@@ -1,6 +1,7 @@
 //
 //   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Last modified by:    $Author:                JMCarbonell $
+//   Created by:          $Author:                JMCarbonell $
+//   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                    July 2013 $
 //   Revision:            $Revision:                      0.0 $
 //
@@ -410,7 +411,7 @@ void ContactDomainCondition::Initialize()
 {
     KRATOS_TRY
 
-	    std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
+      std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -588,7 +589,7 @@ void ContactDomainCondition::ClearMasterElementNodalForces(ElementType& rMasterE
 void ContactDomainCondition::SetContactIntegrationVariable ( Vector & rContactVariable, std::vector<Vector> & rMasterVariables, const unsigned int& rPointNumber )
 {
     
-	//option if master element has one integration point:
+	//option if master element has nore than one integration point:
 	unsigned int master_integration_points_number  = rMasterVariables.size();
 	unsigned int contact_integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 	if( master_integration_points_number == contact_integration_points_number ){
@@ -676,7 +677,6 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
 
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
 
-
     //std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
     
     //Get Current Strain
@@ -703,6 +703,9 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
     //Calculate Explicit Lagrange Multipliers or Penalty Factors
     this->CalculateExplicitFactors( rVariables, rCurrentProcessInfo );
 
+    // std::cout<<" F "<<rVariables.F<<std::endl;
+    // std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
+
 
     KRATOS_CATCH( "" )
 }
@@ -713,6 +716,7 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
 
 void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -763,6 +767,8 @@ void ContactDomainCondition::CalculateRightHandSide( std::vector< VectorType >& 
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate condition system
+    // std::cout<<" RightHandSide "<<std::endl;
+
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 
@@ -791,7 +797,7 @@ void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatr
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
     //KRATOS_WATCH( rLeftHandSideMatrix )
     //KRATOS_WATCH( rRightHandSideVector )
@@ -876,6 +882,8 @@ void ContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMat
     LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
     //Calculate condition system
+    //std::cout<<" LeftHandSide "<<std::endl;
+
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 }
@@ -1131,6 +1139,7 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
     KRATOS_TRY
 
     //std::cout<<"//******** CONTACT ELEMENT "<<this->Id()<<" ********// "<<std::endl;
+    //std::cout<<" ["<<GetGeometry()[0].Id()<<","<<GetGeometry()[1].Id()<<","<<GetGeometry()[2].Id()<<"]"<<std::endl;
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
 
@@ -1263,6 +1272,7 @@ void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSys
 	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
 	    this->CalculateAndAddContactForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
 	    calculated = true;
+	    //KRATOS_WATCH( rRightHandSideVectors[i] )
 	  }
 	  
 	  if(calculated == false)
@@ -1282,9 +1292,7 @@ void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSys
       //KRATOS_WATCH( rRightHandSideVector )
 
     }
-    
 
-  //KRATOS_WATCH( rRightHandSideVector )
 }
 
 //************************************************************************************

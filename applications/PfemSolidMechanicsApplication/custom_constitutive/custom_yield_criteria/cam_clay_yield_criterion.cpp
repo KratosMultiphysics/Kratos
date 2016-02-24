@@ -1,3 +1,12 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Created by:          $Author:                  LMonforte $
+//   Last modified by:    $Co-Author:                         $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
 // System includes
 #include <string>
 #include <iostream>
@@ -6,7 +15,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
