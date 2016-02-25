@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <memory>
+#include <vector>
 #include <list>
 
 // GiD IO
@@ -12,7 +13,7 @@ class GridPrinter {
 public:
   // Creator & destructor
 
-  GridPrinter(const double &dx, std::size_t * numCells, std::size_t * borderWidth);
+  GridPrinter(const double &dx, std::vector<std::size_t> numCells, std::vector<std::size_t> borderWidth);
   ~GridPrinter();
 
   void Initialize(const char * name, const std::size_t &N);
@@ -21,10 +22,10 @@ public:
   void WriteGidMeshBinary();
 
   template<typename _Tp>
-  void WriteGidResultsBinary1D(_Tp * grid, const int step, const char * name);
+  void WriteGidResultsBinary1D(_Tp * grid, const int step, std::string name);
 
   template<typename _Tp>
-  void WriteGidResultsBinary3D(_Tp * grid, const int step, const char * name);
+  void WriteGidResultsBinary3D(_Tp * grid, const int step, std::string name);
 
 private:
 
@@ -39,6 +40,6 @@ private:
   double mDx;
   // double mIdx;
 
-  std::size_t * mNumCells;
-  std::size_t * mBorderWidth;
+  std::vector<std::size_t> mNumCells;
+  std::vector<std::size_t> mBorderWidth;
 };

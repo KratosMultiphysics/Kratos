@@ -1,6 +1,6 @@
 #include "custom_utilities/grid_printer.h"
 
-GridPrinter::GridPrinter(const double &dx, std::size_t * numCells, std::size_t * borderWidth)
+GridPrinter::GridPrinter(const double &dx, std::vector<std::size_t> numCells, std::vector<std::size_t> borderWidth)
 : mDx(dx), mNumCells(numCells), mBorderWidth(borderWidth) {};
 
 GridPrinter::~GridPrinter() {
@@ -145,7 +145,7 @@ template<typename _Tp>
 void GridPrinter::WriteGidResultsBinary1D(
     _Tp * grid,
     const int step,
-    const char * name) {
+    std::string name) {
 
   std::size_t gridLength[3] = {
     mNumCells[0] + mBorderWidth[0] * 2,
@@ -153,7 +153,7 @@ void GridPrinter::WriteGidResultsBinary1D(
     mNumCells[2] + mBorderWidth[2] * 2,
   };
 
-  GiD_BeginResult(name,"Static",step,GiD_Scalar,GiD_OnNodes,NULL,NULL,0,NULL);
+  GiD_BeginResult(name.c_str(),"Static",step,GiD_Scalar,GiD_OnNodes,NULL,NULL,0,NULL);
 
   for(std::size_t k = 0; k < gridLength[2]; k++) {
     for(std::size_t j = 0; j < gridLength[1]; j++) {
@@ -183,7 +183,7 @@ template<typename _Tp>
 void GridPrinter::WriteGidResultsBinary3D(
     _Tp * grid,
     const int step,
-    const char * name) {
+    std::string name) {
 
   std::size_t gridLength[3] = {
     mNumCells[0] + mBorderWidth[0] * 2,
@@ -191,7 +191,7 @@ void GridPrinter::WriteGidResultsBinary3D(
     mNumCells[2] + mBorderWidth[2] * 2,
   };
 
-  GiD_BeginResult(name,"Static",step,GiD_Vector,GiD_OnNodes,NULL,NULL,0,NULL);
+  GiD_BeginResult(name.c_str(),"Static",step,GiD_Vector,GiD_OnNodes,NULL,NULL,0,NULL);
 
   for(std::size_t k = 0; k < gridLength[2]; k++) {
     for(std::size_t j = 0; j < gridLength[1]; j++) {
@@ -227,9 +227,9 @@ void GridPrinter::setPostName(const char * post, const std::size_t &N) {
 }
 
 // Function instantiation
-template void GridPrinter::WriteGidResultsBinary1D(int *, const int, const char *);
-template void GridPrinter::WriteGidResultsBinary3D(int *, const int, const char *);
-template void GridPrinter::WriteGidResultsBinary1D(float *, const int, const char *);
-template void GridPrinter::WriteGidResultsBinary3D(float *, const int, const char *);
-template void GridPrinter::WriteGidResultsBinary1D(double *, const int, const char *);
-template void GridPrinter::WriteGidResultsBinary3D(double *, const int, const char *);
+template void GridPrinter::WriteGidResultsBinary1D(int *, const int, std::string);
+template void GridPrinter::WriteGidResultsBinary3D(int *, const int, std::string);
+template void GridPrinter::WriteGidResultsBinary1D(float *, const int, std::string);
+template void GridPrinter::WriteGidResultsBinary3D(float *, const int, std::string);
+template void GridPrinter::WriteGidResultsBinary1D(double *, const int, std::string);
+template void GridPrinter::WriteGidResultsBinary3D(double *, const int, std::string);

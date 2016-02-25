@@ -16,7 +16,7 @@ constexpr std::size_t Dimension = 3;
 class BfeccConvecter {
 public:
   BfeccConvecter();
-  BfeccConvecter(int * flags, std::size_t * numCells, std::size_t * borderWidth, double dt, double dx, std::size_t dim);
+  BfeccConvecter(int * flags, std::vector<std::size_t> numCells, std::vector<std::size_t> borderWidth, double dt, double dx, std::size_t dim);
 
   ~BfeccConvecter();
 
@@ -67,9 +67,9 @@ private:
     #undef TOP
   };
 
-  void ApplyBack( double * output, double * input,         double * unused,   double * velocity, const std::size_t &i, const std::size_t &j, const std::size_t &k);
+  void ApplyBack( double * output, double * input, double * velocity, const std::size_t &i, const std::size_t &j, const std::size_t &k);
   void ApplyForth(double * output, double * convectedBack, double * original, double * velocity, const std::size_t &i, const std::size_t &j, const std::size_t &k);
-  void ApplyEcc(  double * output, double * input,         double * unused,   double * velocity, const std::size_t &i, const std::size_t &j, const std::size_t &k);
+  void ApplyEcc(  double * output, double * input, double * velocity, const std::size_t &i, const std::size_t &j, const std::size_t &k);
 
   std::size_t GetIndex(const std::size_t & i, const std::size_t & j, const std::size_t & k);
 
@@ -81,8 +81,8 @@ private:
 
   std::size_t mDim;
 
-  std::size_t * mNumCells;
-  std::size_t * mBorderWidth;
+  std::vector<std::size_t> mNumCells;
+  std::vector<std::size_t> mBorderWidth;
   int * mFlags;
 
 };

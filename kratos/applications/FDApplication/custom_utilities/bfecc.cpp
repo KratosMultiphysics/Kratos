@@ -2,7 +2,7 @@
 
 BfeccConvecter::BfeccConvecter() {}
 
-BfeccConvecter::BfeccConvecter(int * flags, std::size_t * numCells, std::size_t * borderWidth, double dt, double dx, std::size_t dim)
+BfeccConvecter::BfeccConvecter(int * flags, std::vector<std::size_t> numCells, std::vector<std::size_t> borderWidth, double dt, double dx, std::size_t dim)
   : mDt(dt), mDx(dx), mIdx(1.0f/dx), mDim(dim), mNumCells(numCells), mBorderWidth(borderWidth), mFlags(flags) {
 }
 
@@ -14,7 +14,7 @@ inline std::size_t BfeccConvecter::GetIndex(const std::size_t & i, const std::si
 }
 
 void BfeccConvecter::Interpolate(const double & Idx,double * input,double * output, double * Coords, const std::size_t &Dim) {
-  uint pi,pj,pk,ni,nj,nk;
+  uint lo_i,lo_j,lo_k,hi_i,hi_j,hi_k;
 
   // This may cause errors
   for(std::size_t i = 0; i < Dimension; i++) {
@@ -23,47 +23,73 @@ void BfeccConvecter::Interpolate(const double & Idx,double * input,double * outp
 
   BfeccUtils::GlobalToLocal(Coords,mIdx,Dimension);
 
-  pi = (uint)(Coords[0]); ni = pi+1;
-  pj = (uint)(Coords[1]); nj = pj+1;
-  pk = (uint)(Coords[2]); nk = pk+1;
+  lo_i = (uint)(Coords[0]); hi_i = lo_i+1;
+  lo_j = (uint)(Coords[1]); hi_j = lo_j+1;
+  lo_k = (uint)(Coords[2]); hi_k = lo_k+1;
 
   double Nx, Ny, Nz;
 
-  Nx = 1.0f-(Coords[0] - (double)pi);
-  Ny = 1.0f-(Coords[1] - (double)pj);
-  Nz = 1.0f-(Coords[2] - (double)pk);
+  Nx = 1.0f-(Coords[0] - (double)lo_i);
+  Ny = 1.0f-(Coords[1] - (double)lo_j);
+  Nz = 1.0f-(Coords[2] - (double)lo_k);
 
+  double aa = (       Nx) * (       Ny);
+  double ba = (1.0f - Nx) * (       Ny);
+  double ab = (       Nx) * (1.0f - Ny);
+  double bb = (1.0f - Nx) * (1.0f - Ny);
+
+  auto padd = mNumCells[2] + mBorderWidth[2] * 2;
+
+  auto cell_A = GetIndex(lo_i,lo_j,lo_k);
+  auto cell_B = cell_A + padd;
   for(size_t d = 0; d < Dim; d++) {
-    *(output+d) = (
-      input[GetIndex(pi,pj,pk)*Dim+d] * (       Nx) * (       Ny) * (       Nz) +
-      input[GetIndex(ni,pj,pk)*Dim+d] * (1.0f - Nx) * (       Ny) * (       Nz) +
-      input[GetIndex(pi,nj,pk)*Dim+d] * (       Nx) * (1.0f - Ny) * (       Nz) +
-      input[GetIndex(ni,nj,pk)*Dim+d] * (1.0f - Nx) * (1.0f - Ny) * (       Nz) +
-      input[GetIndex(pi,pj,nk)*Dim+d] * (       Nx) * (       Ny) * (1.0f - Nz) +
-      input[GetIndex(ni,pj,nk)*Dim+d] * (1.0f - Nx) * (       Ny) * (1.0f - Nz) +
-      input[GetIndex(pi,nj,nk)*Dim+d] * (       Nx) * (1.0f - Ny) * (1.0f - Nz) +
-      input[GetIndex(ni,nj,nk)*Dim+d] * (1.0f - Nx) * (1.0f - Ny) * (1.0f - Nz)
-    );
+    double &A = input[cell_A*Dim+d];
+    double &B = input[cell_B*Dim+d];
+    *(output+d)  = aa*(Nz*(A-B)+B);
+  }
+
+  auto cell_C = GetIndex(hi_i,lo_j,lo_k);
+  auto cell_D = cell_C + padd;
+  for(size_t d = 0; d < Dim; d++) {
+    double &C = input[cell_C*Dim+d];
+    double &D = input[cell_D*Dim+d];
+    *(output+d) += ba*(Nz*(C-D)+D);
+  }
+
+  auto cell_E = GetIndex(lo_i,hi_j,lo_k);
+  auto cell_F = cell_E + padd;
+  for(size_t d = 0; d < Dim; d++) {
+    double &E = input[cell_E*Dim+d];
+    double &F = input[cell_F*Dim+d];
+    *(output+d) += ab*(Nz*(E-F)+F);
+  }
+
+  auto cell_G = GetIndex(hi_i,hi_j,lo_k);
+  auto cell_H = cell_G + padd;
+  for(size_t d = 0; d < Dim; d++) {
+    double &G = input[cell_H*Dim+d];
+    double &H = input[cell_H*Dim+d];
+    *(output+d) += bb*(Nz*(G-H)+H);
   }
 }
 
 void BfeccConvecter::Convect(double * const input, double * aux, double * velocity, double * output) {
 
-  auto ApplyBK = std::bind(&BfeccConvecter::ApplyBack, this, output, input, nullptr, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto ApplyBK = std::bind(&BfeccConvecter::ApplyBack,  this, output, input, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
   auto ApplyFW = std::bind(&BfeccConvecter::ApplyForth, this, aux, output, input, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-  auto ApplyEC = std::bind(&BfeccConvecter::ApplyEcc, this, output, aux, nullptr, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+  auto ApplyEC = std::bind(&BfeccConvecter::ApplyEcc,   this, output, aux, velocity, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
-  // OmpParallelLoop(ApplyBK);
-  // OmpParallelLoop(ApplyFW);
-  // OmpParallelLoop(ApplyEC);
+  OmpParallelLoop(ApplyBK);
+  OmpParallelLoop(ApplyFW);
+  OmpParallelLoop(ApplyEC);
 
-  OmpParallelBlockLoop(ApplyBK, {2, 2, 2});
-  OmpParallelBlockLoop(ApplyFW, {2, 2, 2});
-  OmpParallelBlockLoop(ApplyEC, {2, 2, 2});
+  // OmpParallelBlockLoop(ApplyBK, {4, 4, 4});
+  // OmpParallelBlockLoop(ApplyFW, {4, 4, 4});
+  // OmpParallelBlockLoop(ApplyEC, {4, 4, 4});
 }
 
 void BfeccConvecter::ApplyBack(
-    double * output, double * input, double * unused,
+    double * output, double * input,
     double * velocity,
     const std::size_t &i, const std::size_t &j, const std::size_t &k) {
 
@@ -137,7 +163,7 @@ void BfeccConvecter::ApplyForth(
 }
 
 void BfeccConvecter::ApplyEcc(
-    double * output, double * input, double * unused,
+    double * output, double * input,
     double * velocity,
     const std::size_t &i, const std::size_t &j, const std::size_t &k) {
 
