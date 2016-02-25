@@ -536,7 +536,11 @@ public:
 
 
     ///functions for writing nodal results
-    /**
+
+	///////////////////////////////////////////////////////////////////////
+	//////                  HISTORICAL DATABASE BLOCK                 /////
+	///////////////////////////////////////////////////////////////////////
+	 /**
      * writes nodal results for variables of type bool
      */
     void WriteNodalResults( Variable<bool> const& rVariable,
@@ -714,6 +718,174 @@ public:
         Timer::Stop("Writing Results");
 
     }
+   	///////////////////////////////////////////////////////////////////////
+	//////                 NON- HISTORICAL DATABASE BLOCK                 /////
+	///////////////////////////////////////////////////////////////////////
+	 /**
+     * writes nodal results for variables of type bool
+     */
+    void WriteNodalResultsNonHistorical( Variable<bool> const& rVariable, NodesContainerType& rNodes, double SolutionTag)
+    {
+
+        Timer::Start("Writing Results");
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetValue(rVariable) );
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+
+    ///functions for writing nodal results
+    /**
+     * writes nodal results for variables of type double
+     */
+    void WriteNodalResultsNonHistorical( Variable<double> const& rVariable, NodesContainerType& rNodes, double SolutionTag)
+    {
+
+        Timer::Start("Writing Results");
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Scalar,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for ( NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetValue(rVariable) );
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+    /**
+     * writes nodal results for variables of type array_1d<double, 3>
+     * (e.g. DISPLACEMENT)
+     */
+    void WriteNodalResultsNonHistorical( Variable<array_1d<double, 3> > const& rVariable, NodesContainerType& rNodes, double SolutionTag)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult(mResultFile,(char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Vector,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            array_1d<double, 3>& temp = i_node->GetValue( rVariable);
+            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+
+    /**
+     * writes nodal results for variables of type Vector
+     * (note that only vectors with 3 components can be printed)
+     */
+    void WriteNodalResultsNonHistorical( Variable<Vector> const& rVariable, NodesContainerType& rNodes, double SolutionTag )
+    {
+
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Matrix,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            Vector& tempVector = i_node->GetSolutionStepValue(rVariable);
+            if (tempVector.size() ==3 )
+                GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
+            else if (tempVector.size() == 6 )
+                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2),
+                                    tempVector(3), tempVector(4), tempVector(5) );
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+    /**
+     * writes nodal results for variables of type Matrix
+     */
+    void WriteNodalResultsNonHistorical( Variable<Matrix> const& rVariable, NodesContainerType& rNodes, double SolutionTag)
+    {
+
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_Matrix,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable);
+            //Matrix& tempMatrix = i_node->GetValue(rVariable);
+            if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
+            {
+                GiD_fWrite3DMatrix( mResultFile,  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
+                                    tempMatrix(2,2), tempMatrix(0,1), tempMatrix(1,2),
+                                    tempMatrix(0,2) );
+            }
+            else if (tempMatrix.size1() ==2 && tempMatrix.size2() ==2)
+            {
+                GiD_fWrite2DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(1,1), tempMatrix(0,1));
+            }
+
+            else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==3)
+            {
+
+                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), 0.00,
+                                   tempMatrix(0,2), 0.00, 0.00);
+            }
+            else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==6)
+            {
+                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), tempMatrix(0,2),
+                                   tempMatrix(0,3), tempMatrix(0,4), tempMatrix(0,5) );
+            }
+            //i_node->GetValue(rVariable) = tempMatrix;
+
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+   void WriteLocalAxesOnNodesNonHistorical( Variable<array_1d<double, 3> > const& rVariable, NodesContainerType& rNodes, double SolutionTag)
+    {
+        Timer::Start("Writing Results");
+
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_LocalAxes,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable);
+            GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+        }
+        GiD_fEndResult(mResultFile);
+
+        Timer::Stop("Writing Results");
+
+    }
+
+
+
+
+
+
+
 
     ///mesh writing functions
     /**
