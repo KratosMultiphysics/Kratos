@@ -1022,20 +1022,18 @@ class DEMIo(object):
             print_list.append(name)
 
     def AddGlobalVariables(self):
-        # Global Variables
         self.PushPrintVar(self.PostDisplacement,     DISPLACEMENT,                 self.global_variables)
         self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
         
     def AddSpheresVariables(self):
-        # Spheres Variables
         self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
-        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)
-        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)
+        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
+        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
@@ -1043,8 +1041,6 @@ class DEMIo(object):
         # NANO
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
-
-        #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
         # Spheres Rotation
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
@@ -1065,18 +1061,17 @@ class DEMIo(object):
         #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
     
     def AddArlequinVariables(self):
-         self.PushPrintVar( 1, DISTANCE, self.global_variables)
-         self.PushPrintVar( 1, BORDER, self.global_variables)
-         self.PushPrintVar( 1, SOLUTION, self.global_variables)
-         self.PushPrintVar( 1, ARLEQUIN_DUMMY_1, self.global_variables)
-         self.PushPrintVar( 1, ARLEQUIN_DUMMY_2, self.global_variables)
-         self.PushPrintVar( 1, ARLEQUIN_DUMMY_3, self.global_variables)
-         self.PushPrintVar( 1, ALPHA_ARLEQUIN, self.global_variables)
-         self.PushPrintVar( 1, NODAL_MASS, self.global_variables)
-         self.PushPrintVar( 1, TOTAL_FORCES, self.global_variables)
+        self.PushPrintVar( 1, DISTANCE, self.global_variables)
+        self.PushPrintVar( 1, BORDER, self.global_variables)
+        self.PushPrintVar( 1, SOLUTION, self.global_variables)
+        self.PushPrintVar( 1, ARLEQUIN_DUMMY_1, self.global_variables)
+        self.PushPrintVar( 1, ARLEQUIN_DUMMY_2, self.global_variables)
+        self.PushPrintVar( 1, ARLEQUIN_DUMMY_3, self.global_variables)
+        self.PushPrintVar( 1, ALPHA_ARLEQUIN, self.global_variables)
+        self.PushPrintVar( 1, NODAL_MASS, self.global_variables)
+        self.PushPrintVar( 1, TOTAL_FORCES, self.global_variables)
      
     def AddFEMBoundaryVariables(self):
-        
         self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostContactForces,            CONTACT_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostPressure,                 DEM_PRESSURE, self.fem_boundary_variables)
