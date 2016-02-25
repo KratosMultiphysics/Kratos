@@ -2,6 +2,7 @@
 #define KRATOS_BFECC_UTILS
 
 #include <cstddef>
+#include <vector>
 
 enum BFECCFLAGS {
   FIXED_VELOCITY_X = 0x01,
@@ -25,7 +26,7 @@ public:
 
   static std::size_t Index(
       const std::size_t & i, const std::size_t & j, const std::size_t & k,
-      const std::size_t * numCells, const std::size_t * borderWidth ) {
+      const std::vector<std::size_t> numCells, const std::vector<std::size_t> borderWidth ) {
     return k * (numCells[2] + borderWidth[2] * 2) * (numCells[1] + borderWidth[1] * 2) + j * (numCells[1] + borderWidth[1] * 2) + i;
   }
 

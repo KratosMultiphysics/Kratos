@@ -30,6 +30,9 @@ public:
 
   BfeccSolverStrategy(ModelPart& model_part) :
       SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, true),
+      mCellSize(std::vector<double>(3)),     // Size of the cells
+      mNumCells(std::vector<std::size_t>(3)),     // Number of cells
+      mBorderWidth(std::vector<std::size_t>(3)),  // Size of the border
       mConditionsModelPart(model_part) {
   }
 
@@ -69,19 +72,23 @@ public:
     std::cout << "Defining grids..." << std::endl;
 
     std::vector<std::string> gridNames = {
+      "VARIABLE",
+      "VARIABLE_BUFFER_1",
       "VELOCITY",
+      "VELOCITY_BUFFER_1",
+      "ACCELERATION",
       "PRESSURE",
-      "AUXGRID0",
-      "TESTVARI",
-      "SWAPAUXM"
+      "PRESSURE_BUFFER_1"
     };
 
-    mDt = 1.0f/8.0f;
+
+    // mDt = 1.0f/32.0f;
 
     for(std::size_t i = 0; i < 3; i++) {
-      mNumCells[i] = 8;
+      // mNumCells[i] = 32;
       mCellSize[i] = 1.0f/mNumCells[i];
-      mBorderWidth[i] = 1;
+      std::cout << "CellSize for " << i << ": " << mCellSize[i] << std::endl;
+      // mBorderWidth[i] = 1;
     }
 
     std::cout << "Creating grids..." << std::endl;
@@ -139,20 +146,29 @@ public:
     // Map the BC from the model to our cell
     for(auto elem: mConditionsModelPart.Conditions()) {
 
-      double lcMin[3] = {DBL_MAX};
-      double lcMax[3] = {DBL_MIN};
+      double lcMin[3] = {DBL_MAX, DBL_MAX, DBL_MAX};
+      double lcMax[3] = {DBL_MIN, DBL_MIN, DBL_MIN};
 
-      bool fixedPress = true;
+      bool fixedPressure = false;
+      std::vector<bool> fixedVelocity = {false, false, false};
+
+      // std::cout << "Condition: " << elem.Id() << std::endl;
 
       for(auto point: elem.GetGeometry().Points()) {
         for(std::size_t i = 0; i < 3 ; i++) {
-          fixedPress &= point.IsFixed(PRESSURE);
+          fixedPressure    = fixedPressure    | point.IsFixed(PRESSURE);
+          fixedVelocity[0] = fixedVelocity[0] | point.IsFixed(VELOCITY_X);
+          fixedVelocity[1] = fixedVelocity[1] | point.IsFixed(VELOCITY_Y);
+          fixedVelocity[2] = fixedVelocity[2] | point.IsFixed(VELOCITY_Z);
+
           lcMin[i] = point[i] < lcMin[i] ? point[i] : lcMin[i];
           lcMax[i] = point[i] > lcMax[i] ? point[i] : lcMax[i];
         }
       }
 
-      if(fixedPress) {
+      if(fixedPressure    || fixedVelocity[0] ||
+         fixedVelocity[1] || fixedVelocity[2]) {
+
         double condBegin[3] = {
           (lcMin[0] - bbMin[0]) / bbSize[0],
           (lcMin[1] - bbMin[1]) / bbSize[1],
@@ -191,12 +207,17 @@ public:
         std::cout << "Condition marking for:" << std::endl;
         std::cout << "\t" << cellBegin[0] << " " << cellBegin[1] << " " << cellBegin[2] << std::endl;
         std::cout << "\t" << cellEnd[0] << " " << cellEnd[1] << " " << cellEnd[2] << std::endl;
+        std::cout << "\t" << fixedPressure << " " << fixedVelocity[0] << " " << fixedVelocity[1] << " " << fixedVelocity[2] << std::endl;
 
         for(std::size_t i = cellBegin[0]; i < cellEnd[0]; i++) {
           for(std::size_t j = cellBegin[1]; j < cellEnd[1]; j++) {
             for(std::size_t k = cellBegin[2]; k < cellEnd[2]; k++) {
               std::size_t cellIndex = BfeccUtils::Index(i, j, k, mNumCells, mBorderWidth);
-              mFlags[cellIndex] |= FIXED_PRESSURE;
+              // std::cout << cellIndex << " " << fixedPressure << " " << fixedVelocity[0] << " " << fixedVelocity[1] << " " << fixedVelocity[2] << std::endl;
+              mFlags[cellIndex] |= FIXED_PRESSURE   * fixedPressure;
+              mFlags[cellIndex] |= FIXED_VELOCITY_X * fixedVelocity[0];
+              mFlags[cellIndex] |= FIXED_VELOCITY_Y * fixedVelocity[1];
+              mFlags[cellIndex] |= FIXED_VELOCITY_Z * fixedVelocity[2];
             }
           }
         }
@@ -222,12 +243,12 @@ public:
       }
     }
 
-    WriteHeatFocus(mGrids["TESTVARI"]);
+    WriteHeatFocus(mGrids["VARIABLE"]);
 
     mPrinter->WriteGidResultsBinary3D(mGrids["VELOCITY"],0,"VELOCITY");
-    mPrinter->WriteGidResultsBinary3D(mGrids["AUXGRID0"],0,"AUXGRID0");
-    mPrinter->WriteGidResultsBinary3D(mGrids["SWAPAUXM"],0,"SWAPAUXM");
-    mPrinter->WriteGidResultsBinary3D(mGrids["TESTVARI"],0,"TESTVARI");
+    mPrinter->WriteGidResultsBinary3D(mGrids["VARIABLE"],0,"VARIABLE");
+    mPrinter->WriteGidResultsBinary3D(mGrids["VARIABLE_BUFFER_1"],0,"BFECC_CONVECTED_VAR");
+    mPrinter->WriteGidResultsBinary3D(mGrids["PRESSURE"],0,"PRESSURE");
     mPrinter->WriteGidResultsBinary1D(mFlags,0,"FLAGS");
   }
 
@@ -274,43 +295,69 @@ public:
 
   virtual bool SolveSolutionStep() {
 
-    // auto & variable = mGrids["VELOCITY"];
-    auto & velocity = mGrids["VELOCITY"];
-    // auto & pressure = mGrids["PRESSURE"];
-    auto & auxgrida = mGrids["AUXGRID0"];
-    auto & testvari = mGrids["TESTVARI"];
-    auto & swapauxm = mGrids["SWAPAUXM"];
+    auto & variable = mGrids["VARIABLE"];
+    auto & convVar  = mGrids["VARIABLE_BUFFER_1"];
+    auto & initVel  = mGrids["VELOCITY"];
+    auto & auxgrid  = mGrids["VELOCITY_BUFFER_1"];
 
     BfeccConvecter bfecc(mFlags, mNumCells, mBorderWidth, mDt, mCellSize[0], 3);
+    // FractionalStepExplicitSolver fractional(mFlags, mNumCells, mBorderWidth, mDt, mGrids, mCellSize[0]);
 
-    bfecc.Convect(testvari, auxgrida, velocity, swapauxm);
+    bfecc.Convect(variable, auxgrid, initVel, convVar);
+    // fractional.Solve();
 
-    static int a = 1;
-
-    auto tmp = testvari;
-    testvari = swapauxm;
-    swapauxm = tmp;
-
-    if(!(a%100)) {
-      mPrinter->WriteGidResultsBinary3D(velocity,a,"VELOCITY");
-      mPrinter->WriteGidResultsBinary3D(auxgrida,a,"AUXGRID0");
-      mPrinter->WriteGidResultsBinary3D(swapauxm,a,"SWAPAUXM");
-      mPrinter->WriteGidResultsBinary3D(testvari,a,"TESTVARI");
-      mPrinter->WriteGidResultsBinary1D(mFlags,a,"FLAGS");
-    }
-
-    a++;
+    // Swap
+    auto tmp = variable;
+    variable = convVar;
+    convVar  = tmp;
 
     return true;
+  }
+
+  virtual void WriteResults(double timeStep) {
+
+    std::vector<std::string> resultList = {
+      "VELOCITY",
+      "VARIABLE",
+    };
+
+    for(auto res: resultList) {
+      mPrinter->WriteGidResultsBinary3D(mGrids[res],timeStep,res);
+    }
+    mPrinter->WriteGidResultsBinary1D(mFlags,timeStep,"FLAGS");
+  }
+
+  double GetDt() {
+    return mDt;
+  }
+
+  void SetDt(double dt) {
+    mDt = dt;
+  }
+
+  std::vector<std::size_t> GetNumCells() {
+    return mNumCells;
+  }
+
+  void SetNumCells(std::vector<std::size_t> numCells) {
+    mNumCells = numCells;
+  }
+
+  std::vector<std::size_t> GetBorderWidth() {
+    return mBorderWidth;
+  }
+
+  void SetBorderWidth(std::vector<std::size_t> borderWidth) {
+    mBorderWidth = borderWidth;
   }
 
 private:
 
   double      mDt;
   int  *      mFlags;
-  double      mCellSize[3];     // Size of the cells
-  std::size_t mNumCells[3];   // Number of cells
-  std::size_t mBorderWidth[3];  // Size of the border
+  std::vector<double> mCellSize;     // Size of the cells
+  std::vector<std::size_t> mNumCells;     // Number of cells
+  std::vector<std::size_t> mBorderWidth;  // Size of the border
 
   std::unordered_map<std::string,double*> mGrids; // Buffers
 

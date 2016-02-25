@@ -73,11 +73,12 @@ void  AddCustomUtilitiesToPython() {
 	// typedef UblasSpace<double, Matrix, Vector>              LocalSpaceType;
 	// typedef LinearSolver<SparseSpaceType, LocalSpaceType >  LinearSolverType;
 
-  class_< GridPrinter, bases<>, boost::noncopyable> (
-    "GridPrinter", init<double, std::size_t *, std::size_t *>())
-      .def("WriteGidMeshWithSkinBinary",  &GridPrinter::WriteGidMeshWithSkinBinary)
-      .def("WriteGidMeshBinary",          &GridPrinter::WriteGidMeshBinary)
-    ;
+  // Is part of the strategy
+  // class_< GridPrinter, bases<>, boost::noncopyable> (
+  //   "GridPrinter", init<double, std::vector<std::size_t>, std::vector<std::size_t>())
+  //     .def("WriteGidMeshWithSkinBinary",  &GridPrinter::WriteGidMeshWithSkinBinary)
+  //     .def("WriteGidMeshBinary",          &GridPrinter::WriteGidMeshBinary)
+  //   ;
 }
 
 }  // namespace Python.
