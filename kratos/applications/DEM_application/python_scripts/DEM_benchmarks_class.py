@@ -1484,7 +1484,7 @@ class Benchmark10: ########## LINEAR THORNTON
                 
         error_file.write("DEM Benchmark 10:")
                 
-        if (error1 < 2.0 and error2 < 2.0 and error3 < 2.0):
+        if (error1 < 5.0 and error2 < 5.0 and error3 < 5.0):
             error_file.write(" OK!........ Test 10 (e=" + coeff_of_rest + ") SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 10 (e=" + coeff_of_rest + ") FAILED\n")
@@ -1741,7 +1741,7 @@ class Benchmark11: ########## HERTZIAN THORNTON
         
         error_file.write("DEM Benchmark 11:")
                 
-        if (error1 < 5.0 and error2 < 5.0 and error3 < 5.0):
+        if (error1 < 6.0 and error2 < 6.0 and error3 < 6.0):
             error_file.write(" OK!........ Test 11 (e=" + coeff_of_rest + ") SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 11 (e=" + coeff_of_rest + ") FAILED\n")
@@ -1998,8 +1998,7 @@ class Benchmark20:
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
-        print("hola")
-        #pass
+        pass
 
     def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
 
@@ -2459,7 +2458,7 @@ class Benchmark24:
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
-            print("hola2")
+            
             if (time < 3.8e-5 ) :
 
                 #while ( time < self.DEM_parameters.FinalTime):
@@ -2617,7 +2616,7 @@ class Benchmark25:   # es perd energia al rotar
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
-            print("hola3")
+
             if (time < 3.8e-5 ) :
 
                 #while ( time < self.DEM_parameters.FinalTime):
