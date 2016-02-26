@@ -74,9 +74,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
 
-        # OTHERS
-
-        self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -88,6 +85,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.cluster_model_part = self.cluster_model_part
 
         self.cplusplus_strategy = VerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                    self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+                                    self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)

@@ -102,7 +102,7 @@ namespace Kratos {
                 double kt_el);
 
         virtual void InitializeContact(SphericParticle * const element1, SphericParticle * const element2, const double ini_delta = 0.0);
-        virtual void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
+        virtual void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
         
         virtual void GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt);
         
@@ -156,16 +156,8 @@ namespace Kratos {
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
         virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
 
-        virtual void CalculateViscoDampingForce(double LocalRelVel[3],
-                                                double ViscoDampingLocalContactForce[3],
-                                                SphericParticle * const element1,
-                                                SphericParticle * const element2);                                                
-        virtual void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                                    double ViscoDampingLocalContactForce[3],
-                                                    bool sliding,
-                                                    SphericParticle* const element,
-                                                    DEMWall* const wall,
-                                                    double indentation);
+        virtual void CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle * const element1, SphericParticle * const element2);                                                
+        virtual void CalculateViscoDampingForceWithFEM(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element, DEMWall* const wall);
         
     private:
 

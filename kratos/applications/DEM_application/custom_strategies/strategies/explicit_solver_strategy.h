@@ -67,28 +67,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
-
-  ///@name Kratos Globals
-  ///@{
-
-  ///@}
-  ///@name Type Definitions
-  ///@{
-
-  ///@}
-  ///@name  Enum's
-  ///@{
-
-  ///@}
-  ///@name  Functions
-  ///@{
-
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-    
+  
   class ExplicitSolverSettings {
   public:
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverSettings);
@@ -101,20 +80,7 @@ namespace Kratos
         ModelPart::Pointer inlet_model_part;
       };
 
-  /*bool compare_ids(const Element::WeakPointer& i, const Element::WeakPointer& j) {
-    
-     if( (i.lock())->Id() <  (j.lock())->Id()) return true;
-     if( (i.lock())->Id() >  (j.lock())->Id()) return false;
-  
-     std::cout<<"Two elements with the same Id!! problems can occur here!!"<<std::endl<<std::flush;           
-     return false;               
-     
-         
-  }  */
-    
-  /// Short class definition.
-  /** Detail class definition.
-  */
+ 
   template<
   class TSparseSpace,
   class TDenseSpace,
@@ -171,8 +137,6 @@ namespace Kratos
                              const int n_step_search,
                              const double safety_factor,
                              const int delta_option,
-                             const double search_tolerance,
-                             const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename DEMIntegrationScheme::Pointer pScheme,
@@ -182,8 +146,6 @@ namespace Kratos
       {
 
           mDeltaOption                   = delta_option;
-          mSearchTolerance               = search_tolerance;
-          mCoordinationNumber            = coordination_number;
           mpParticleCreatorDestructor    = p_creator_destructor;
           mpDemFemSearch                 = p_dem_fem_search;
           mpScheme                       = pScheme;
@@ -422,7 +384,7 @@ namespace Kratos
           
           // Search Neighbours and related operations                             
           SetOriginalRadius(r_model_part);
-          SetSearchRadius(r_model_part, 1.0);          
+
           SearchNeighbours();
           
           if(mDeltaOption == 2) {            
@@ -538,6 +500,7 @@ namespace Kratos
          
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box                   
               
+
             if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
                 BoundingBoxUtility();
             }
@@ -545,7 +508,6 @@ namespace Kratos
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
               
-            SetSearchRadius(r_model_part, 1.0);        
             SearchNeighbours();
 
             this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
@@ -767,10 +729,13 @@ namespace Kratos
       
     void SetCoordinationNumber(ModelPart& r_model_part) 
     {
-      double in_coordination_number = mCoordinationNumber;
+      ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();  
+        
+      const double in_coordination_number = rCurrentProcessInfo[COORDINATION_NUMBER];
       double out_coordination_number = ComputeCoordinationNumber();
       int iteration = 0;
       int maxiteration = 100;
+      double& added_search_distance = rCurrentProcessInfo[SEARCH_TOLERANCE];
       
       std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
  
@@ -781,13 +746,12 @@ namespace Kratos
       while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 ) {              
           if(iteration>=maxiteration) break;
           iteration++;
-          mSearchTolerance *= in_coordination_number/out_coordination_number;
-          SetSearchRadius(r_model_part, 1.0);
-          SearchNeighbours();
+          added_search_distance *= in_coordination_number/out_coordination_number;
+          SearchNeighbours(); //rCurrentProcessInfo[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
           out_coordination_number = ComputeCoordinationNumber();
       }//while
 
-      if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << mSearchTolerance <<". "<<"\n"<<std::endl;
+      if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << added_search_distance <<". "<<"\n"<<std::endl;
       else {   
           std::cout << "Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
           KRATOS_THROW_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
@@ -1154,7 +1118,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
-    void SetSearchRadius(ModelPart& r_model_part, double amplification)
+    void SetSearchRadius(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0)
     {
         KRATOS_TRY
             
@@ -1167,7 +1131,7 @@ namespace Kratos
 	#pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++ ){
 
-            this->GetRadius()[i] = amplification*(mSearchTolerance + mListOfSphericParticles[i]->GetSearchRadius());
+            this->GetRadius()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
 
         }
 
@@ -1198,14 +1162,19 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    virtual void SearchNeighbours()
+    virtual void SearchNeighbours(const double amplification = 1.0)
     {
         KRATOS_TRY
 
-        ModelPart& r_model_part               = BaseType::GetModelPart();        
+        ModelPart& r_model_part            = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+        const double added_search_distance = rCurrentProcessInfo[SEARCH_TOLERANCE];        
+        
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if(!number_of_elements) return; 
 
+        SetSearchRadius(r_model_part, added_search_distance, amplification);
+        
         r_model_part.GetCommunicator().GhostMesh().ElementsArray().clear();
         
         GetResults().resize(number_of_elements);
@@ -1382,8 +1351,7 @@ namespace Kratos
 
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
         for( int i=0; i<number_of_particles; i++ ){
-            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
-            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetSearchRadius() - indentations_list[i]);
+            mListOfSphericParticles[i]->SetInteractionRadius(mListOfSphericParticles[i]->GetInteractionRadius() - indentations_list[i]);
         }
 
         SynchronizeSolidMesh(BaseType::GetModelPart());
@@ -1391,8 +1359,7 @@ namespace Kratos
 
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
         for( int i=0; i<number_of_ghost_particles; i++ ){
-            mListOfGhostSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list_ghost[i];
-            mListOfGhostSphericParticles[i]->SetRadius(mListOfGhostSphericParticles[i]->GetSearchRadius() - indentations_list_ghost[i]);
+            mListOfGhostSphericParticles[i]->SetInteractionRadius(mListOfGhostSphericParticles[i]->GetInteractionRadius() - indentations_list_ghost[i]);
         }
        
         #pragma omp parallel for
@@ -1528,8 +1495,6 @@ namespace Kratos
     double&                                      GetSafetyFactor(){return (mSafetyFactor);}
     
     int&                                         GetDeltaOption(){return (mDeltaOption);}
-    double&                                      GetSearchTolerance(){return (mSearchTolerance);}
-    double&                                      GetCoordinationNumber(){return (mCoordinationNumber);}
     vector<unsigned int>&                        GetNeighbourCounter(){return(mNeighbourCounter);}
                                            
     int&                                         GetNumberOfElementsOldRadiusList(){return (mNumberOfElementsOldRadiusList);}
@@ -1573,8 +1538,6 @@ namespace Kratos
     double                                       mSafetyFactor;
     
     int                                          mDeltaOption;
-    double                                       mSearchTolerance;
-    double                                       mCoordinationNumber;
     vector<unsigned int>                         mNeighbourCounter;
           
     vector<unsigned int>                         mElementPartition;

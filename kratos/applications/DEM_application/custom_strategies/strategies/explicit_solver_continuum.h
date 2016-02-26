@@ -60,13 +60,11 @@ namespace Kratos
                              const int n_step_search,
                              const double safety_factor,
                              const int delta_option,
-                             const double search_tolerance,
-                             const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
-      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
+      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {                    
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;                            
       }
@@ -110,8 +108,7 @@ namespace Kratos
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
           
-          BaseType::SetSearchRadius(r_model_part, rcurrent_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
-          BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
+          BaseType::SearchNeighbours(rcurrent_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]); //the amplification factor has been modified after the first search.
           
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
@@ -196,7 +193,6 @@ namespace Kratos
         }                       
         
         BaseType::SetOriginalRadius(r_model_part);
-        BaseType::SetSearchRadius(r_model_part, 1.0);
 
         // 3. Search Neighbors with tolerance (after first repartition process)
         BaseType::SearchNeighbours();
@@ -237,9 +233,6 @@ namespace Kratos
           SetInitialFemContacts();
           BaseType::ComputeNewRigidFaceNeighboursHistoricalData();        
         }
-        
-        //the search radius is modified for the next steps.
-        BaseType::SetSearchRadius(r_model_part, rcurrent_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
         
         if(rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {   
             CreateContactElements();
@@ -618,7 +611,6 @@ namespace Kratos
       #pragma omp parallel for
       for ( int i = 0; i<number_of_particles; i++){
           mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(rcurrent_process_info);
-          //mListOfSphericContinuumParticles[i]->SetInitialSphereContacts_old(rcurrent_process_info);
           mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws(rcurrent_process_info);
           mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
       }            

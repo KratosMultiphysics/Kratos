@@ -243,7 +243,7 @@ namespace Kratos {
                     theta[1] = rotated_angle[1] * 0.5;
                     theta[2] = rotated_angle[2] * 0.5;
 
-                    double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
+                    double thetaMag = DEM_MODULUS_3(theta);
                     if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON) { //Taylor: low angle                      
                         Orientation_real = 1 + thetaMag * thetaMag / 2;
                         Orientation_imag[0] = theta[0] * (1 - thetaMag * thetaMag / 6);
@@ -355,7 +355,7 @@ namespace Kratos {
 
                     UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
-                    double ang = sqrt(delta_rotation[0] * delta_rotation[0] + delta_rotation[1] * delta_rotation[1] + delta_rotation[2] * delta_rotation[2]);
+                    double ang = DEM_MODULUS_3(delta_rotation);
                     if (ang) {
 
                         array_1d<double, 3 > e1, e2;

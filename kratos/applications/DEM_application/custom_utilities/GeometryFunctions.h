@@ -92,7 +92,7 @@ namespace Kratos {
 
     static inline void normalize(array_1d<double,3>& Vector, double& distance)
     {
-            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            distance = DEM_MODULUS_3(Vector);
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
 
             Vector[0] = Vector[0] * inv_distance;
@@ -102,7 +102,7 @@ namespace Kratos {
 
     static inline void normalize(double Vector[3], double& distance)
     {
-            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            distance = DEM_MODULUS_3(Vector);
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
 
             Vector[0] = Vector[0] * inv_distance;
@@ -112,7 +112,7 @@ namespace Kratos {
 
     static inline void normalize(array_1d<double,3>& Vector)
     {
-            double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            double distance = DEM_MODULUS_3(Vector);
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
 
             Vector[0] = Vector[0] * inv_distance;
@@ -122,22 +122,22 @@ namespace Kratos {
 
     static inline void module(const array_1d<double,3>& Vector, double& distance)
     {
-            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            distance = DEM_MODULUS_3(Vector);
     }
 
     static inline double module(const double Vector[3])
     {
-            return sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            return DEM_MODULUS_3(Vector);
     }
 
     static inline void module(const double Vector[3], double& distance)
     {
-            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            distance = DEM_MODULUS_3(Vector);
     }
 
     static inline double module(const array_1d<double,3>& Vector)
     {
-            double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            double distance = DEM_MODULUS_3(Vector);
             return distance;
     }
 
@@ -428,7 +428,7 @@ namespace Kratos {
         }
 
         //normalize(Vector0);
-        double distance0 = sqrt(LocalCoordSystem[0][0] * LocalCoordSystem[0][0] + LocalCoordSystem[0][1] * LocalCoordSystem[0][1] + LocalCoordSystem[0][2] * LocalCoordSystem[0][2]);
+        double distance0 = DEM_MODULUS_3(LocalCoordSystem[0]);
         double inv_distance0 = (distance0 != 0.0) ? 1.0 / distance0 : 0.0;
         LocalCoordSystem[0][0] = LocalCoordSystem[0][0] * inv_distance0;
         LocalCoordSystem[0][1] = LocalCoordSystem[0][1] * inv_distance0;
@@ -1308,7 +1308,7 @@ namespace Kratos {
         }
 
         CrossProduct(Vector1, Vector2, Vector0);
-        area = sqrt(Vector0[0] * Vector0[0] + Vector0[1] * Vector0[1] + Vector0[2] * Vector0[2]) / 2.0;
+        area = DEM_MODULUS_3(Vector0) / 2.0;
     }
 
     //TriAngle Weight, coord1,coord2,coord3,testcoord,weight

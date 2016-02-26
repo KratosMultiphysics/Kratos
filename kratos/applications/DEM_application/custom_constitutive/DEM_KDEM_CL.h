@@ -101,6 +101,11 @@ namespace Kratos {
                                               double calculation_area,
                                               double LocalCoordSystem[3][3],
                                               array_1d<double, 3>& mContactMoment);
+        
+        void AddPoissonContribution(const double equiv_poisson, 
+                                    double LocalCoordSystem[3][3], 
+                                    double& normal_force, 
+                                    double calculation_area, Matrix* mSymmStressTensor);
 
     private:
 

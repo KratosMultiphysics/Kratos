@@ -31,13 +31,12 @@ namespace Kratos
                              const double n_step_search,
                              const double safety_factor,
                              const int delta_option,
-                             const double search_tolerance,
-                             const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
-      :TBaseStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
+
+      :TBaseStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {}
 
       /// Destructor.

@@ -21,6 +21,7 @@ namespace Kratos
 #define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
 #define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
 #define DEM_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+#define DEM_MODULUS_2(a)                            sqrt(a[0] * a[0] + a[1] * a[1])
 #define DEM_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 #define DEM_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
 
@@ -42,7 +43,8 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, ROTATION_OPTION)
   KRATOS_DEFINE_VARIABLE(int, CRITICAL_TIME_OPTION)
   KRATOS_DEFINE_VARIABLE(int, VIRTUAL_MASS_OPTION)
-  KRATOS_DEFINE_VARIABLE(int, SEARCH_CONTROL)
+  KRATOS_DEFINE_VARIABLE(int, SEARCH_CONTROL) 
+  KRATOS_DEFINE_VARIABLE(double, COORDINATION_NUMBER)
   KRATOS_DEFINE_VARIABLE(vector<int>, SEARCH_CONTROL_VECTOR)
   KRATOS_DEFINE_VARIABLE(int, CLEAN_INDENT_OPTION)
   KRATOS_DEFINE_VARIABLE(int, TRIHEDRON_OPTION)

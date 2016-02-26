@@ -50,8 +50,8 @@ class ExplicitStrategy:
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
-        
-        self.IntegrationSchemeName = 'none'
+        self.case_option = 3
+        self.search_control                 = 1        
         
         if (hasattr(Param, "LocalResolutionMethod")):
             if(Param.LocalResolutionMethod == "hierarchical"):
@@ -73,16 +73,7 @@ class ExplicitStrategy:
         elif (Param.DeltaOption == "Coordination_Number"):
             self.delta_option = 2
             self.coordination_number = Param.CoordinationNumber
-            self.search_tolerance = 0.01 * Param.MeanRadius
-            
-        self.deactivate_search = 0
-        self.case_option = 3
-
-        # MODEL
-        self.model_part = model_part
-        self.fem_model_part = fem_model_part
-        self.cluster_model_part = cluster_model_part
-        self.inlet_model_part = inlet_model_part
+            self.search_tolerance = 0.01 * Param.MeanRadius            
 
         # TIME RELATED PARAMETERS
         self.delta_time = Param.MaxTimeStep
@@ -110,13 +101,19 @@ class ExplicitStrategy:
         else:
             self.bounding_box_stop_time  = Param.BoundingBoxStopTime
         
+        # MODEL
+        self.model_part = model_part
+        self.fem_model_part = fem_model_part
+        self.cluster_model_part = cluster_model_part
+        self.inlet_model_part = inlet_model_part
+        self.contact_model_part = ModelPart("ContactModelPart")
+
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
         self.gravity[0] = Param.GravityX
         self.gravity[1] = Param.GravityY
         self.gravity[2] = Param.GravityZ
 
-        # GLOBAL MATERIAL PROPERTIES
         self.virtual_mass_option            = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
@@ -134,8 +131,6 @@ class ExplicitStrategy:
 
         # CREATOR-DESTRUCTOR
         self.creator_destructor = creator_destructor
-        
-        #DEMFEM SEARCH
         self.dem_fem_search = dem_fem_search
 
         # STRATEGIES
@@ -152,15 +147,14 @@ class ExplicitStrategy:
             self.time_integration_scheme = NewmarkBetaScheme(0.5, 0.25)
         elif (Param.IntegrationScheme == 'Verlet_Velocity'):
             self.time_integration_scheme = VerletVelocityScheme()
-            self.IntegrationSchemeName = 'Verlet_Velocity'
         else:
             print('scheme not defined')
-
     
-    def Initialize(self):
-
+    
+    def SetVariablesAndOptions(self):
+        
         # Setting ProcessInfo variables
-
+        
         # SIMULATION FLAGS
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
@@ -168,14 +162,14 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
+        self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
-        self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, 1)
         self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
-        
+
         # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
@@ -183,51 +177,51 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
 
         # SEARCH-RELATED
-        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)  # needed in ProcessInfo for MPISearch
-        self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)  
-        
+        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
+        self.model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
+        self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
+
         # PRINTING VARIABLES
 
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)            
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
         
         for properties in self.model_part.Properties:            
             self.ModifyProperties(properties)
             
         for properties in self.inlet_model_part.Properties:            
             self.ModifyProperties(properties)
-            
+                    
         for properties in self.cluster_model_part.Properties:            
             self.ModifyProperties(properties)
-                                            
-        self.contact_model_part = ModelPart("dummy")
-        
+
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
         self.settings = ExplicitSolverSettings()
         self.settings.r_model_part = self.model_part
         self.settings.contact_model_part = self.contact_model_part
         self.settings.fem_model_part = self.fem_model_part
-        self.settings.inlet_model_part = self.inlet_model_part   
-        self.settings.cluster_model_part = self.cluster_model_part   
+        self.settings.inlet_model_part = self.inlet_model_part
+        self.settings.cluster_model_part = self.cluster_model_part
+
+    def Initialize(self):  
+    
+        self.SetVariablesAndOptions()
                 
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
+
           self.cplusplus_strategy = VerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                                                self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+                                                                                self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
         else:
           self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
-        
-        #self.cplusplus_strategy = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor,
-         #                                    self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
+                                             self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
 
-        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
-   
-        #Setting the constitutive LAWS
- 
+
+        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python) 
+    
     
     def Solve(self):
         (self.cplusplus_strategy).Solve()
@@ -237,8 +231,10 @@ class ExplicitStrategy:
 
     
     def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
-       pass
+        pass
             
+    def AddClusterVariables(self, model_part, Param):
+        pass
     
     def AddDofs(self, model_part):
 

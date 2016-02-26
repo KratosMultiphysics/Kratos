@@ -13,12 +13,10 @@
 namespace Kratos {
 void NanoParticle::CustomInitialize()
 {
-    mSearchRadius = GetGeometry()[0].GetSolutionStepValue(RADIUS);
+    mInteractionRadius = GetGeometry()[0].GetSolutionStepValue(RADIUS);
     mRadius = 1e-7;
-    double density            = GetDensity();
-    double added_mass_coefficient = 1;
-    mRealMass                 = added_mass_coefficient * density * GetVolume();
-    GetGeometry()[0].GetSolutionStepValue(NODAL_MASS) = mRealMass;
+    double added_mass_coefficient = 1.0;
+    SetMass(added_mass_coefficient * GetDensity() * GetVolume());
 }
 
 void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
@@ -45,9 +43,14 @@ double NanoParticle::GetVolume()
     return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
 }
 
-double NanoParticle::GetSearchRadius()
+double NanoParticle::GetInteractionRadius()
 {
-    return mSearchRadius;
+    return mInteractionRadius;
+}
+
+void NanoParticle::SetInteractionRadius(const double radius)
+{
+    mInteractionRadius = radius;
 }
     
 } // namespace Kratos

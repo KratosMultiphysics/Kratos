@@ -48,15 +48,11 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-          double density            = GetDensity();
-
-          double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-          mass                      = density * GetVolume();
-          mRealMass                 = mass;
+          SetRadius(GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
+          SetMass(GetDensity() * GetVolume());
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
-            double moment_of_inertia = 0.5 * mass * GetRadius() * GetRadius();   
+            double moment_of_inertia = 0.5 * GetMass() * GetRadius() * GetRadius();   
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }                                                                        
 
@@ -147,8 +143,7 @@ namespace Kratos
 
               array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
               const double &other_radius = neighbour_iterator->GetRadius();
-              double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                      other_to_me_vect[1] * other_to_me_vect[1]);
+              double distance = DEM_MODULUS_3(other_to_me_vect);
               double radius_sum = GetRadius() + other_radius;
               double initial_delta = mNeighbourDelta[i_neighbour_count]; //*
               double initial_dist = (radius_sum - initial_delta);
@@ -302,10 +297,9 @@ namespace Kratos
               double GlobalContactForce[3] = {0.0};
 
               //if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson,
-              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i_neighbour_count < mContinuumInitialNeighborsSize)) {AddPoissonContribution(equiv_poisson,
-                                                                                          LocalCoordSystem,
-                                                                                          LocalElasticContactForce[2],
-                                                                                          calculation_area);}
+              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i_neighbour_count < mContinuumInitialNeighborsSize)) {
+                  mContinuumConstitutiveLawArray[i_neighbour_count]->AddPoissonContribution(equiv_poisson,LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor);
+              }
 
               AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                       GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, rElasticForce, rContactForce, i_neighbour_count);

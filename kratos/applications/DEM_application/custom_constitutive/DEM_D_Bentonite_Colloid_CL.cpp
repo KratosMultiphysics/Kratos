@@ -95,9 +95,9 @@ namespace Kratos {
         //InitializeContact(element1, element2, indentation);
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
-        double distance = element1->GetSearchRadius() + element2->GetSearchRadius() - indentation;
+        double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
         double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetSearchRadius() + element2->GetSearchRadius()));
+        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
         LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
 //Z
         cohesive_force              = CalculateCohesiveNormalForce(element1, element2, indentation);
@@ -178,9 +178,9 @@ namespace Kratos {
                                                               DEMWall* const wall,
                                                               bool& sliding) {
         //InitializeContactWithFEM(element, wall, indentation);
-        double distance = element->GetSearchRadius() - indentation;
+        double distance = element->GetInteractionRadius() - indentation;
         double cation_concentration = element->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetSearchRadius() + element2->GetSearchRadius()));
+        double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
         LocalElasticContactForce[2] = smoother * CalculateNormalForce(distance, cation_concentration);
         //LocalElasticContactForce[2]  = smoother * (CalculateVanDerWaalsForce(distance) - 0.0000001 * CalculateVanDerWaalsForce(pow(distance, 1.2))) ;
 
