@@ -1,3 +1,7 @@
+//
+// Authors: Ferran Arrufat farrufat@cimne.upc.edu,
+//          Guillermo Casas gcasas@cimne.upc.edu
+//
 
 #if !defined(KRATOS_VERLET_SOLVER_STRATEGY)
 #define  KRATOS_VERLET_SOLVER_STRATEGY
@@ -10,19 +14,10 @@
 
 namespace Kratos
 {
-
-  template<
-  class TSparseSpace,
-  class TDenseSpace,
-  class TLinearSolver>
-  class VerletVelocitySolverStrategy: public ContinuumExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+  template<class TBaseStrategy>
+  class VerletVelocitySolverStrategy: public TBaseStrategy
   {
       public:
-
-      typedef ContinuumExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>   ContinuumType;
-
-
-
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(VerletVelocitySolverStrategy);
@@ -42,7 +37,7 @@ namespace Kratos
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
-      :ContinuumExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
+      :TBaseStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, search_tolerance, coordination_number, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {}
 
       /// Destructor.
@@ -57,7 +52,7 @@ namespace Kratos
         
         KRATOS_TRY
         ModelPart& r_model_part = this->GetModelPart();
-        ContinuumType::Initialize();
+        TBaseStrategy::Initialize();
         this->InitializeSolutionStep();
         this->ForceOperations(r_model_part);
         this->FinalizeSolutionStep();  
@@ -65,10 +60,10 @@ namespace Kratos
         KRATOS_CATCH("")        
       }     
 
-      virtual double Solve()
+      double Solve()
       {
           KRATOS_TRY
-          ModelPart& r_model_part            = this->GetModelPart();
+          ModelPart& r_model_part = this->GetModelPart();
 
           bool has_mpi = false;
           VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
@@ -90,16 +85,8 @@ namespace Kratos
           return 0.0;
 
       }//Solve()
-
-    protected:
     
-    bool   mcontinuum_simulating_option;
-    int    mFixSwitch;
-    //bool   mDempackOption;
-    std::vector<SphericContinuumParticle*>  mListOfSphericContinuumParticles;
-    std::vector<SphericContinuumParticle*>  mListOfGhostSphericContinuumParticles;
-
-  }; // Class VerletVelocitySolverStrategy
+  }; // Class VerletVelocitySolverStrategy<TBaseStrategy>
 
 
 }  // namespace Kratos.
