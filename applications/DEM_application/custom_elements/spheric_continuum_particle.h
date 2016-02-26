@@ -30,9 +30,9 @@ namespace Kratos
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
         /// Default constructor
-        SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
-        SphericContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
-        SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+        SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry);
+        SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes);
+        SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
       
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
          
@@ -50,7 +50,6 @@ namespace Kratos
         void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
         void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
         void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
-        using SphericParticle::ComputeNewNeighboursHistoricalData; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         
