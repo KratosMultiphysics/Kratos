@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="procs" pn="procs" includeContainer="No">
+
+	
+		  <proc n='CheckNodalConditionState' args='args'>
+	  <![CDATA[
+	  # Overwritten the base function to add Solution Type restrictions
+		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+	    if {[spdAux::getRoute $parts_un] ne ""} {
+			set conditionId [$domNode @n]
+			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSoluType]] v]
+			set params [list analysis_type $solutionType]
+			if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+	  ]]>
+	</proc>
+	
+	  <proc n='ActiveIfAnyPartState' args='args'>
+	  <![CDATA[
+	  set parts ""
+	  catch {
+		set parts [$domNode selectNodes "[spdAux::getRoute SMParts]/group"]
+		}
+		if {$parts ne ""} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='SolStratParamState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::SolStratParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='SchemeParamState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::SchemeParamState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>	   
+	  <proc n='ConstLawOutputState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::CheckConstLawOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  <proc n='ElementOutputState' args='args'>
+	  <![CDATA[
+		set resp [::spdAux::CheckElementOutputState $domNode]
+		if {$resp} {return "normal"} else {return "hidden"}
+	  ]]>
+	</proc>
+	  
+	  <proc n='getIntervals' args='args'>
+	  <![CDATA[
+		set lista [::spdAux::getIntervals]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n='getTimeFunctions' args='args'>
+	  <![CDATA[
+		set lista [::spdAux::getTimeFunctions]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n='getFields' args='args'>
+	  <![CDATA[
+		set lista [::spdAux::getFields]
+		if {[$domNode @v] eq "" || [$domNode @v] ni $lista} {
+			$domNode setAttribute v [lindex $lista 0]
+		}
+		set res [spdAux::ListToValues $lista]
+		return $res
+	  ]]>
+	</proc>
+	  <proc n="loads_function_time" args="load_name">
+		<![CDATA[
+      return [spdAux::chk_loads_function_time $domNode $load_name]
+	  ]]>
+    </proc>
+
+
+
+
+</container>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <container n="Structural" pn="Structural" icon="units" tree_state="open">
+    <include n="StageInfo" active="1" path="apps/Structural/xml/StageInfo.spd"/>
+    <include n="Parts" active="1" path="apps/Structural/xml/Parts.spd"/>
+    <include n="Intervals" active="0" path="apps/Structural/xml/Intervals.spd"/>
+    <include n="TimeFunctions" active="0" path="apps/Structural/xml/Functions.spd"/>
+    <include n="Fields" active="0" path="apps/Structural/xml/Fields.spd"/>
+    <include n="BoundaryConditions" active="1" path="apps/Structural/xml/BoundaryConditions.spd"/>
+    <include n="Loads" active="1" path="apps/Structural/xml/Loads.spd"/>
+    <include n="Processes" active="1" path="apps/Structural/xml/Processes.spd"/>
+    <include n="SolutionStrategy" active="1" path="apps/Structural/xml/SolutionStrategy.spd"/>
+    <include n="Results" active="1" path="apps/Structural/xml/Results.spd"/>
+    <include n="materials" active="1" path="apps/Structural/xml/Materials.spd"/> 
+  </container>

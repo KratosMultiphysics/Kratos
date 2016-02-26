@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ElementList>
+  <!--structural elements-->
+  <!--beam elements-->
+  <ElementItem n="BeamElement" pn="Small Displacement Beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
+	       help="This element implements a small displacement timoshenko beam structural model"
+		   ElementType="Beam" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Line" nodes="2" KratosName="SmallDisplacementBeamElement3D2N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="1D"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="SECTION_TYPE" pn="Section type"/>
+    </inputs>
+    <outputs>
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor"/>
+    </outputs>
+  </ElementItem>
+
+  <!--membrane elements-->
+  <ElementItem n="MembraneElement" pn="Membrane Element" ImplementedInFile="membrane_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       help="This element it implements a membrane structural model"
+		   ElementType="Membrane" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="MembraneElement3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="2D"/>
+      <filter field="StrainSize" value="3"/>
+      <filter field="HybridType" value="False"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+
+  <!--shell elements-->
+  <!--small displacements-->
+  <ElementItem n="ShellElement" pn="Isotropic Shell" ImplementedInFile="isotropic_shell_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       help="This element it implements a DKT element + OPT membrane model"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="IsotropicShellElement3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness"  unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="ShellThinElement" pn="Thin Shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
+	       help="This element it implements an element for thin shells in a small displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="ShellThinElement3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="ShellThickElement" pn="Thick Shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
+	       help="This element it implements an element for thick shells in a small displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="ShellThickElement3D4N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+
+  <!--large displacements-->
+  <ElementItem n="ShellThinCorotationalElement" pn="Thin Shell Corotational" ImplementedInFile="shell_thin_element_3D3N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
+	       help="This element it implements a corotational element for thin shells in a large displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Triangle" nodes="3" KratosName="ShellThinElementCorotational3D3N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+  <ElementItem n="ShellThickCorotationalElement" pn="Thick Shell Corotational" ImplementedInFile="shell_thick_element_3D4N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
+	       help="This element it implements a corotational element for thick shells in a large displacements approach"
+		   ElementType="Shell" >
+
+    <!--here we could add a list of all of the possible geometries-->
+    <TopologyFeatures>
+      <item GeometryType="Quadrilateral" nodes="4" KratosName="ShellThickElementCorotational3D4N"/>
+    </TopologyFeatures>
+    
+    <!-- here we add the block of features which we require from the constitutive law-->
+    <ConstitutiveLaw_FilterFeatures>
+      <filter field="Type" value="PlaneStress"/>
+      <filter field="Dimension" value="3D"/>
+      <filter field="StrainSize" value="6"/>
+      <filter field="HybridType" value="D-R"/>
+    </ConstitutiveLaw_FilterFeatures>
+    
+    <!--define list of NodalConditions-->
+    <NodalConditions>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+    </NodalConditions>
+
+    <inputs>
+      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+    </inputs>
+    <outputs>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+    </outputs>
+  </ElementItem>
+
+
+</ElementList>

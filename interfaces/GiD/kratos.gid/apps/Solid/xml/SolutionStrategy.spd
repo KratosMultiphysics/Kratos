@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="SolStrat" pn="Solution" un="SMStratSection" help="Solution Strategy">
+      <container n="TimeParameters" pn="Time parameters" un="SMTimeParameters" help="Problem parameters" state="normal" >
+			<value n="StartTime" pn="Start time" v="0.0" help=""/>
+			<value n="EndTime" pn="End time" v="0.1" help=""/>
+			<value n="DeltaTime"  pn="Delta time" v="0.1" help=""/>
+			<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>
+      </container>
+	  <container n="StratParams" pn="Strategy parameters" un="SMStratParams" icon="groupsTreeNew.gif"  state="normal" >
+			<dynamicnode command="injectSolStratParams" args=""/>
+	  </container>
+	  <container n="ParallelType" pn="Parallel type" un="SMParallelization" help="Parallel type"  icon="groupsTreeNew.gif"  state="normal" >
+			<value n="ParallelSolutionType" pn="Parallelization" un="SMParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1"/>
+			<value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName SMParallelType MPI]"/>
+			<value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName SMParallelType OpenMP]"/>
+      </container>
+	  <dynamicnode command="injectSolvers" args=""/>
+    </container>
