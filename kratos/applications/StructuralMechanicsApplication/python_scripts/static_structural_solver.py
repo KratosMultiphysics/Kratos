@@ -1,37 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics as kratoscore
-import KratosMultiphysics.SolidMechanicsApplication as solid_app
-import KratosMultiphysics.StructuralMechanicsApplication as structural_app
+import KratosMultiphysics.SolidMechanicsApplication as solid_application
+import KratosMultiphysics.StructuralMechanicsApplication as structural_application
 
 # Check that KratosMultiphysics was imported in the main script
 kratoscore.CheckForPreviousImport()
-
-###here the default settings
-
-class default_settings:
-    solver_type = "static_structural_solver"
-    domain_size = 3   
-    echo_level = 1
-    RotationDofs = False          
-    PressureDofs = False          
-    problem_is_linear = False
-
-    displacement_relative_tolerance = 1e-4
-    displacement_relative_tolerance = 1e-9
-    residual_relative_tolerance = 1e-4
-    residual_absolute_tolerance = 1e-9
-    max_iteration = 30
-    
-    class linear_solver_settings:
-        solver_type = "Super LU" 
-        max_iteration = 500
-        tolerance = 1e-9
-        scaling = False  #false->False
-        verbosity = 1
-
-
-
 
 
 
@@ -73,43 +47,94 @@ def CreateSolver(model_part, settings=default_settings):
 
 class StaticSolver:
     
-    def __init__(self, model_part, settings): 
-        self.settings = settings
-
+    ##here set the defaults
+    self.settings = {
+        "solver_type" : "static_structural_solver",
+        "domain_size" :  3,
+        "echo_level" :  1,
+        "RotationDofs" :  False,          
+        "PressureDofs" :  False,          
+        "problem_is_linear" : = False,
+        "displacement_relative_tolerance" :  1e-4,
+        "displacement_relative_tolerance" :  1e-9,
+        "residual_relative_tolerance" :  1e-4,
+        "residual_absolute_tolerance" :  1e-9,
+        "max_iteration" :  30,
+        "linear_solver_settings" : 
+            {
+            "solver_type" : "Super LU" 
+            "max_iteration" : 500
+            "tolerance" : 1e-9
+            "scaling" : False  #false->False
+            "verbosity" : 1 
+            }
+        }  
+            
+    
+    #TODO: this shall be in the base class
+    def apply_settings(self,custom_settings,settings):
+        
+        unexpected_parameter = []
+        for param in self.custom_settings:
+            if self.settings.has(param.Name()) == False:
+                unexpected_parameter.append(param )
+            else:
+                self.settings[param.Name()] = param.Value()
+                
+        if(len(unexpected_parameter) != 0):
+            for wrong_param in unexpected_parameter:
+                print ("unexpected parameter : ", wrong_param.Name(), " with value ", wrong_param.Value())
+            
+            print("   setting currently employed : "
+            print(self.settings)
+            
+            
+    
+    def __init__(self, model_part, custom_settings=None): 
+        
+        if(custom_settings != None):
+            apply_settings(custom_settings, self.settings)
+        
+        #TODO: shall obtain the model_part from the MODEL once the object is implemented
         self.model_part = model_part
-               
-        #note that all settingsuration parameters MUST be passed. 
-        self.domain_size = settings.domain_size
-        self.displacement_relative_tolerance = settings.displacement_relative_tolerance
-        self.residual_relative_tolerance = settings.residual_relative_tolerance
-        self.residual_absolute_tolerance = settings.residual_absolute_tolerance
-        self.max_iter = settings.max_iteration
-        self.echo_level = settings.echo_level
-        self.compute_reactions = settings.compute_reactions
-        self.reform_dofs_at_each_step = settings.reform_dofs_at_each_step
         
         #construct the linear solver
         import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
+        linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
                 
-        self.time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme() 
+        time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme() 
         
         builder_and_solver = kratoscore.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         
         move_mesh_flag = False #user should NOT configure this
         
         if(problem_is_linear == True):
-            self.solver = kratoscore.ResidualBasedLinearStrategy(self.model_part, self.time_scheme, self.linear_solver, builder_and_solver, self.compute_reactions, self.reform_dofs_at_each_step, move_mesh_flag)
+            self.solver = kratoscore.ResidualBasedLinearStrategy(self.model_part, 
+                                                                 time_scheme, 
+                                                                 linear_solver, 
+                                                                 builder_and_solver, 
+                                                                 self.settings["compute_reactions"], 
+                                                                 self.settings["reform_dofs_at_each_step"], 
+                                                                 move_mesh_flag)
         else: #nonlinear case
             
             #TODO: we shall construct a factory for the convergence criteria, like what is done for the linear solver
-            self.conv_criteria = kratoscore.DisplacementCriteria(self.displacement_relative_tolerance, self.displacement_absoulute_tolerance)
+            conv_criteria = kratoscore.DisplacementCriteria(
+                                                                 self.settings["displacement_relative_tolerance"],
+                                                                 self.settings["displacement_absoulute_tolerance"]
+                                                                 )
                     
-            self.solver = kratoscore.ResidualBasedNewtonRaphsonStrategy(
-                self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
-                builder_and_solver, self.max_iter, self.compute_reactions, self.reform_dofs_at_each_step, move_mesh_flag)
+            self.solver = kratoscore.ResidualBasedNewtonRaphsonStrategy(self.model_part, 
+                                                                 time_scheme, 
+                                                                 linear_solver, 
+                                                                 conv_criteria,
+                                                                 builder_and_solver, 
+                                                                 self.settings["max_iter"], 
+                                                                 self.settings["compute_reactions"], 
+                                                                 self.settings["reform_dofs_at_each_step"], 
+                                                                 move_mesh_flag)
             
-        (self.solver).SetEchoLevel(self.echo_level)
+        (self.solver).SetEchoLevel(self.settings["echo_level"])
         self.solver.Check()
 
         print("Construction Static Solver finished")
@@ -117,22 +142,30 @@ class StaticSolver:
     def GetMinimumBufferSize(self):
         return 1;
 
-    def ReadModel(self):
+    def ImportModelPart(self):
         #here it would be the place to import restart data if required
         ModelPartIO(self.settings.input_filename).ReadModelPart(self.model_part)
         
         # set the constitutive law
         import constitutive_law_python_utility as constitutive_law_utils
-        constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
+        constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, self.settings["domain_size"]);
         constitutive_law.Initialize();
         
         print ("model reading finished")
+        
+    def GetOutputVariables(self):
+        pass
+        
+    def ComputeDeltaTime(self):
+        pass
         
     def SaveRestart(self):
         pass #one should write the restart file here
         
     def Initialize(self):
         print ("Initialization stokes solver finished")
+        
+    def (self):
     
     def Solve(self):
         self.solver.Solve()
