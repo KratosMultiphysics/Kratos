@@ -864,12 +864,7 @@ namespace Kratos {
             SymmetrizeTensor(rCurrentProcessInfo);
             return;
         }
-        ////////////////////////////////////////////////////////////////////////
-        if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
-        {
-            //CheckPairWiseBreaking();
-            return;
-        }
+
         ////////////////////////////////////////////////////////////////////////
 
         //        if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
