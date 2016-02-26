@@ -8,14 +8,14 @@
 # Problem Type directory = ${3}
 
 
-rm "${2}/${1}.info"
-rm "${2}/${1}.err"
+rm -f "${2}/${1}.info"
+rm -f "${2}/${1}.err"
 
 mv "${2}/${1}.dat" "${2}/${1}.mdpa"
 mv "${2}/${1}-1.dat" "${2}/ProjectParameters.py"
 cp "${3}/../../python_scripts/main_script.py" "${2}/"
 
-# Warning: one must properly set the following paths before running this file
+# WARNING: one must properly set the following paths before running this file
 
 #Linux
 #Setting PATHs for kratos
