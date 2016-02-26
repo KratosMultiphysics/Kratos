@@ -231,7 +231,6 @@ namespace Kratos {
         double external_sphere_area = 4 * KRATOS_M_PI * GetRadius()*GetRadius();
         double total_equiv_area = 0.0;
 
-        //int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
         int cont_ini_neighbours_size = mContinuumInitialNeighborsSize;
 
         for (int i = 0; i < cont_ini_neighbours_size; i++) {
@@ -241,7 +240,7 @@ namespace Kratos {
             total_equiv_area += area;
         } //for every neighbor
 
-        if (cont_ini_neighbours_size >= 4) { //more than 4 neighbors.         
+        if (cont_ini_neighbours_size >= 4) { //more than 3 neighbors
             if (!*mSkinSphere) {
                 AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha);
                 for (unsigned int i = 0; i < mContIniNeighArea.size(); i++) {
@@ -524,113 +523,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-    
-    /*
-    //VELL:
-    
-    void SphericContinuumParticle::ComputeNewNeighboursHistoricalData(std::vector<unsigned int>& mTempNeighboursIds, //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
-            std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-            std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
-            std::vector<SphericParticle*>& mTempNeighbourElements,
-            std::vector<double>& mTempNeighboursDelta,
-            std::vector<int>& mTempNeighboursFailureId,
-            std::vector<int>& mTempNeighboursMapping,
-            std::vector<int>& mTempContNeighboursMapping) {
-
-        KRATOS_TRY
-        mTempNeighbourElements.swap(mNeighbourElements);
-
-        unsigned int temp_size = mTempNeighbourElements.size();
-
-        mNeighbourElements.clear(); //////////////////////////////////////              
-
-        mTempNeighboursIds.resize(temp_size);
-        mTempNeighboursDelta.resize(temp_size);
-        mTempNeighboursFailureId.resize(temp_size);
-        mTempNeighbourElasticContactForces.resize(temp_size);
-        mTempNeighbourTotalContactForces.resize(temp_size);
-        mTempNeighboursMapping.resize(temp_size);
-        mTempContNeighboursMapping.resize(temp_size);
-
-        array_1d<double, 3> vector_of_zeros = ZeroVector(3);
-
-        unsigned int neighbour_counter = 0; //Not increased at every iteration!! only if found as a real neighbor.
-
-        for (unsigned int i = 0; i < mTempNeighbourElements.size(); i++) {
-            
-            SphericParticle* i_neighbour = mTempNeighbourElements[i];
-            // init nou
-            double ini_delta = 0.0;  // init nou
-            int failure_id = 1; 
-            array_1d<double, 3> neigh_elastic_forces = vector_of_zeros;
-            array_1d<double, 3> neigh_total_forces = vector_of_zeros;
-            int mapping_new_ini  = -1;
-            int mapping_new_cont = -1;
-
-            //Loop Over Initial Neighbors        
-
-            for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) {
-                if (static_cast<int> ((i_neighbour)->Id()) == mIniNeighbourIds[k]) {
-                    ini_delta = mIniNeighbourDelta[k];
-                    failure_id = mIniNeighbourFailureId[k];
-                    mapping_new_ini = k;
-                    mapping_new_cont = mIniNeighbourToIniContinuum[k];
-                    break;
-                }
-            }
-
-            //Loop Over Last time-step Neighbors
-            for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++) {
-                if ((i_neighbour)->Id() == mOldNeighbourIds[j]) {
-                    neigh_elastic_forces = mNeighbourElasticContactForces[j];
-                    neigh_total_forces = mNeighbourTotalContactForces[j];
-                    break;
-                }
-            }
-
-            //Judge if it is neighbor            
-            double other_radius = i_neighbour->GetRadius();
-            double radius_sum = GetRadius() + other_radius;
-            array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
-            double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-            double indentation = radius_sum - distance - ini_delta;
-
-            if (indentation > 0.0 || failure_id == 0) //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10  // cerca ampliada
-            {
-                mNeighbourElements.push_back(i_neighbour); ////////////////////////////////
-
-                mTempNeighboursIds[neighbour_counter] = (i_neighbour)->Id();
-                mTempNeighboursDelta[neighbour_counter] = ini_delta;
-                mTempNeighboursFailureId[neighbour_counter] = failure_id;
-                mTempNeighbourElasticContactForces[neighbour_counter] = neigh_elastic_forces;
-                mTempNeighbourTotalContactForces[neighbour_counter] = neigh_total_forces;
-                mTempNeighboursMapping[neighbour_counter] = mapping_new_ini;
-                mTempContNeighboursMapping[neighbour_counter] = mapping_new_cont;
-
-                neighbour_counter++;
-            }
-        }//for ParticleWeakIteratorType i
-
-        int final_size = mNeighbourElements.size();
-        mTempNeighboursIds.resize(final_size);
-        mTempNeighboursDelta.resize(final_size);
-        mTempNeighboursFailureId.resize(final_size);
-        mTempNeighbourElasticContactForces.resize(final_size);
-        mTempNeighbourTotalContactForces.resize(final_size);
-        mTempNeighboursMapping.resize(final_size);
-        mTempContNeighboursMapping.resize(final_size);
-
-        mMappingNewIni.swap(mTempNeighboursMapping);
-        mMappingNewCont.swap(mTempContNeighboursMapping);
-        mOldNeighbourIds.swap(mTempNeighboursIds);
-        mNeighbourDelta.swap(mTempNeighboursDelta);
-        mNeighbourFailureId.swap(mTempNeighboursFailureId);
-        mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
-        mNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
-
-        KRATOS_CATCH("")
-    } //ComputeNewNeighboursHistoricalData
-    */
+ 
     /*
      //RIC!!!!!
      void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
