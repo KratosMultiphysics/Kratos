@@ -354,7 +354,7 @@ namespace Kratos
             std::vector<SphericParticle*>     TempNeighbourElements;
             
             const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
-        
+         
             #pragma omp for
             for(int i=0; i<number_of_particles; i++){
                 mListOfSphericContinuumParticles[i]->ReorderAndRecoverInitialPositionsAndFilter(TempNeighbourElements);
@@ -366,45 +366,13 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-      
-    void DebugOperations(ModelPart& r_model_part)
-    
-    {
-          
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-          ProcessInfo& rcurrent_process_info    = r_model_part.GetProcessInfo();
-         
-          int time_step = rcurrent_process_info[TIME_STEPS];
-         
-          if(time_step == 2)
-          {
-            
-            std::vector<double> total_area_vector (mNumberOfThreads);
-            
-            double total_area = 0.0;
-            
-            BaseType::AreaDebugging(total_area_vector);
-
-            for (int i=0 ; i<mNumberOfThreads; i++)
-            {
-              total_area += total_area_vector[i];
-              
-            //std::cout<<"The total measured area is: "<<total_area_vector[OpenMPUtils::ThisThread()]<<std::endl;
-            }
-            
-            std::cout<<"The total measured area is: "<<total_area<<std::endl;
-            std::cout<<" "<<std::endl;
-          }          
-
-    } 
-    
     
     void CreateContactElements() //better not to apply OMP parallelization since it is creation of spheres
     {                
         KRATOS_TRY        
                 
         ElementsArrayType rElements;
-        ( (*mpContact_model_part).Elements() ).swap(rElements);
+        ((*mpContact_model_part).Elements()).swap(rElements);
         
         int index_new_ids = 1;                    
         std::string ElementName;
@@ -416,22 +384,20 @@ namespace Kratos
           //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
           //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
                      
-        Properties::Pointer properties =  (*mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
+        Properties::Pointer properties = (*mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
         
         const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
         
         #pragma omp parallel for 
-        for ( int i = 0; i<number_of_particles; i++){
-            for ( unsigned int j=0; j<mListOfSphericContinuumParticles[i]->mBondElements.size(); j++ ) {
+        for (int i = 0; i < number_of_particles; i++) {
+            for (unsigned int j=0; j<mListOfSphericContinuumParticles[i]->mBondElements.size(); j++) {
                 mListOfSphericContinuumParticles[i]->mBondElements[j] = NULL;
             }            
         }                
         
         //#pragma omp parallel for //TODO
-        for ( int i = 0; i<number_of_particles; i++){
-                       
-                       
-                
+        for (int i = 0; i < number_of_particles; i++) {
+             
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
             unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
             mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
@@ -468,7 +434,7 @@ namespace Kratos
         } //for all Spheric Continuum Particles
         
         //#pragma omp parallel for //TODO
-        for ( int i = 0; i<number_of_particles; i++) {
+        for (int i = 0; i<number_of_particles; i++) {
             
 
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
@@ -529,7 +495,6 @@ namespace Kratos
     
     void ContactInitializeSolutionStep()
     {
-       
           ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);      
           ProcessInfo& rcurrent_process_info  = (*mpContact_model_part).GetProcessInfo();
          
@@ -538,7 +503,7 @@ namespace Kratos
           OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
           #pragma omp parallel for
           
-          for(int k=0; k<mNumberOfThreads; k++)
+          for (int k = 0; k < mNumberOfThreads; k++)
           {
               typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
               typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
@@ -562,7 +527,7 @@ namespace Kratos
 
         #pragma omp parallel for
 
-        for(int k=0; k<mNumberOfThreads; k++)
+        for (int k = 0; k < mNumberOfThreads; k++)
         { 
             typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
             typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
