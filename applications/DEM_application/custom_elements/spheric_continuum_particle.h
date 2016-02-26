@@ -29,19 +29,18 @@ namespace Kratos
         typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-        /// Default constructor. 
+        /// Default constructor
         SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
         SphericContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
         SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
       
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
          
-        /// Destructor.
+        /// Destructor
         virtual ~SphericContinuumParticle();
        
         void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
         void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
-        //void SetInitialSphereContacts_old(ProcessInfo& rCurrentProcessInfo);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo);
         void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);    
@@ -52,16 +51,7 @@ namespace Kratos
         void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
         void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
         using SphericParticle::ComputeNewNeighboursHistoricalData; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
-        /*
-        void ComputeNewNeighboursHistoricalData(std::vector<unsigned int>&         mTempNeighboursIds, 
-                                                std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-                                                std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
-                                                std::vector<SphericParticle*>&     mTempNeighbourElements,
-                                                std::vector<double>&               mTempNeighboursDelta,
-                                                std::vector<int>&                  mTempNeighboursFailureId,
-                                                std::vector<int>&                  mTempNeighboursMapping,
-                                                std::vector<int>&                  mTempContNeighboursMapping);
-        */
+
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
@@ -74,7 +64,7 @@ namespace Kratos
         virtual void ContactAreaWeighting();
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
-        /// Turn back information as a string.
+        /// Turn back information as a string
         virtual std::string Info() const
         {
             std::stringstream buffer;
@@ -82,14 +72,12 @@ namespace Kratos
             return buffer.str();
         }
       
-        /// Print information about this object.
+        /// Print information about this object
         virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericContinuumParticle";}
 
-        /// Print object's data.
+        /// Print object's data
         virtual void PrintData(std::ostream& rOStream) const {}
 
-        //static int counter;
-      
         //member variables DEM_CONTINUUM
         int mContinuumGroup;
         std::vector<Particle_Contact_Element*> mBondElements;
@@ -99,14 +87,11 @@ namespace Kratos
         
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
-                
-        ///@}
-      
+
     protected:
 
         SphericContinuumParticle();
         
-        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo);
         virtual void CustomInitialize();	
         virtual double GetInitialDeltaWithFEM(int index);              
@@ -123,13 +108,9 @@ namespace Kratos
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
 
-        //double mFinalPressureTime;
-        //double mFinalSimulationTime;
-     
         int* mSkinSphere; 
 
         //sphere neighbor information
-        
         std::vector<double>         mContIniNeighArea;        
         std::vector<double>         mIniNeighbourDelta;                        
                   
@@ -146,8 +127,6 @@ namespace Kratos
         void ComputeParticleBlockContactForce_Without_Rotation();
         void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int& RightFace, double LocalCoordSystem[3][3], double Coeff[4], double& DistPToB);       
 
-        //double distances_squared;
-        
     private:
 
         friend class Serializer;
@@ -166,35 +145,16 @@ namespace Kratos
             //rSerializer.load("mContinuumGroup",mContinuumGroup);
             //rSerializer.load("mIniNeighbourIds",mIniNeighbourIds);
             //rSerializer.load("mSymmStressTensor",mSymmStressTensor);
-            mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
+            mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
         }
             
-        /*
-        /// Assignment operator.
-        SphericContinuumParticle& operator=(SphericContinuumParticle const& rOther)
-        {
-        return *this;
-        }
-
-        /// Copy constructor.
-        SphericContinuumParticle(SphericContinuumParticle const& rOther)
-        {
-        *this = rOther;
-        }
+        /* Assignment operator
+        SphericContinuumParticle& operator=(SphericContinuumParticle const& rOther) { return *this; }
+        Copy constructor
+        SphericContinuumParticle(SphericContinuumParticle const& rOther) { *this = rOther; }
         */
-        
-        ///@}    
-        
-    }; // Class SphericContinuumParticle 
 
-    ///@} 
-    ///@name Type Definitions       
-    ///@{ 
-  
-  
-    ///@} 
-    ///@name Input and output 
-    ///@{ 
+    }; // Class SphericContinuumParticle 
         
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, SphericContinuumParticle& rThis) {return rIStream;}
@@ -206,10 +166,6 @@ namespace Kratos
         rThis.PrintData(rOStream);
         return rOStream;
     }
-    ///@}
-
-    ///@} addtogroup block
-  
 } // namespace Kratos
 
 #endif // KRATOS_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED defined 
