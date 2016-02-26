@@ -5,7 +5,8 @@
   </units>
   <hiddenfield n="activeapp" active="0" v="" state="disabled"/>
   <hiddenfield n="nDim" un="nDim" v="3D" state="disabled"/>
-  <appLink n="SolidMechanics" pn="Structural" active="0" appid="SolidMechanics"/>
+  <appLink n="Structural" pn="Structural" active="0" appid="Structural"/>
+  <appLink n="Solid" pn="Solid" active="0" appid="Solid"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid"/>
   <appLink n="BaseApp" pn="BaseApp" active="0" appid="BaseApp"/>
   <blockdata n="units" pn="Units" icon="units">
