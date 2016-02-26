@@ -7,7 +7,6 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp> 
 
-
 // Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -20,7 +19,6 @@
 #include "custom_strategies/strategies/explicit_solver_continuum.h"
 #include "custom_strategies/strategies/iterative_solver_strategy.h"
 #include "custom_strategies/strategies/verlet_solver_strategy.h"
-
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -50,7 +48,6 @@
 
 namespace Kratos
 {
-
     namespace Python
     {   
         using namespace boost::python;
