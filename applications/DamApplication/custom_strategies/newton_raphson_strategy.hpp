@@ -145,7 +145,10 @@ public:
         TSystemVectorType& mb0 = *mpb0;
         TSparseSpace::SetToZero(mb0);
         mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb0);
-        
+
+        if(TSparseSpace::TwoNorm(mb0) < 1.0e-20)
+            KRATOS_THROW_ERROR( std::logic_error, "Norm of the initial residual < 1.0e-20. One must initialize the strategy with some external load applied", "" )
+            
         TSystemVectorType& mTotalx = *mpTotalx;
         TSparseSpace::SetToZero(mTotalx);
 
