@@ -19,7 +19,6 @@
 #include "kratos_DEMApplication_export_dll.h"
 #include "../custom_utilities/properties_proxies.h"
 
-
 namespace Kratos
 {
 
@@ -278,7 +277,6 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
-
 //const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
 
 //const double* mSearchControl;
@@ -340,9 +338,6 @@ rThis.PrintData(rOStream);
 
 return rOStream;
 }
-///@}
-
-///@} addtogroup block
 
 }  // namespace Kratos.
 
