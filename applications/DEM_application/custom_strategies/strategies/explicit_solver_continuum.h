@@ -57,7 +57,7 @@ namespace Kratos
       ContinuumExplicitSolverStrategy(
                              ExplicitSolverSettings& settings,
                              const double max_delta_time,
-                             const double n_step_search,
+                             const int n_step_search,
                              const double safety_factor,
                              const int delta_option,
                              const double search_tolerance,
