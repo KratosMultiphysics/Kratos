@@ -4,8 +4,6 @@
 //   Date:                $Date: 20151209
 //   Revision:            $Revision: 1.2 $
 //
-//
-
 
 #if !defined(KRATOS_DEM_APPLICATION_H_INCLUDED)
 #define KRATOS_DEM_APPLICATION_H_INCLUDED
@@ -14,14 +12,11 @@
 #include <string>
 #include <iostream>
 
-// External includes
-
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
-
 #include "includes/variables.h"
 #include "custom_elements/cylinder_particle.h"
 #include "custom_elements/cylinder_continuum_particle.h"
@@ -56,7 +51,6 @@
 #include "custom_elements/thermal_spheric_particle.h"
 
 //Constitutive laws
-
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "custom_constitutive/DEM_Dempack_CL.h"
@@ -69,50 +63,17 @@ namespace Kratos
 class KratosDEMApplication : public KratosApplication
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
 
     /// Pointer definition of KratosDEMSpheresApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosDEMApplication);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
+    /// Default constructor
     KratosDEMApplication();
 
-    /// Destructor.
+    /// Destructor
     virtual ~KratosDEMApplication() {}
 
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
     virtual void Register();
-
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const
@@ -140,54 +101,10 @@ public:
         KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
+
     const CylinderParticle mCylinderParticle2D;
     const CylinderContinuumParticle mCylinderContinuumParticle2D;
     const SphericParticle mSphericParticle3D;
@@ -221,64 +138,15 @@ private:
     const Ballast6Cluster3D  mBallast6Cluster3D;
     const MAPcond    mMapCon3D3N;
 
-    //       static const ApplicationCondition  msApplicationCondition;
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-//      const Elem2D   mElem2D;
-//      const Elem3D   mElem3D;
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
+    /// Assignment operator
     KratosDEMApplication& operator=(KratosDEMApplication const& rOther);
 
-    /// Copy constructor.
+    /// Copy constructor
     KratosDEMApplication(KratosDEMApplication const& rOther);
-
-
-    ///@}
 
 }; // Class KratosDEMApplication
 
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
-
-}  // namespace Kratos.
+}  // namespace Kratos
 
 #endif // KRATOS_DEM_APPLICATION_H_INCLUDED  defined 
 
