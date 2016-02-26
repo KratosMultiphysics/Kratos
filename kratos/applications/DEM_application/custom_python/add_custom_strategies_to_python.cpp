@@ -116,7 +116,6 @@ namespace Kratos
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
           typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
-          typedef VerletVelocitySolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > VerletVelocitySolverStrategy;
           
           class_< ExplicitSolverSettings, boost::noncopyable >
           (
@@ -148,11 +147,18 @@ namespace Kratos
           
           ;
          
-          class_< VerletVelocitySolverStrategy, bases< ContinuumExplicitSolverStrategyType >,  boost::noncopyable>
+          class_< VerletVelocitySolverStrategy<ExplicitSolverStrategyType>,  boost::noncopyable>
           (
           "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                                          
           ;
+
+          class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategyType>,  boost::noncopyable>
+          (
+          "ContinuumVerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+
+          ;
+
 
         }
 
