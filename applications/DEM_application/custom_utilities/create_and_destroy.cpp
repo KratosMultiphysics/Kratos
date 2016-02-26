@@ -67,7 +67,7 @@ namespace Kratos {
         }        
         
         //normalize(normal_1);
-        double distance0 = sqrt(normal_1[0] * normal_1[0] + normal_1[1] * normal_1[1] + normal_1[2] * normal_1[2]);
+        double distance0 = DEM_MODULUS_3(normal_1);
         double inv_distance0 = (distance0 != 0.0) ?  1.0 / distance0 : 0.00;
         normal_1[0] = normal_1[0] * inv_distance0;
         normal_1[1] = normal_1[1] * inv_distance0;

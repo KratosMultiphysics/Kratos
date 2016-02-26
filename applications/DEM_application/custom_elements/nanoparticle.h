@@ -24,7 +24,6 @@ public:
 
     using SphericParticle::GetGeometry;
     using SphericParticle::GetDensity;
-    using SphericParticle::mRealMass;
     using SphericParticle::mRadius;
 
     NanoParticle():SphericParticle()
@@ -66,13 +65,15 @@ public:
                                  const array_1d<double,3>& gravity);
 
     double GetVolume();
-    double GetSearchRadius();
+    
+    double GetInteractionRadius();
+    void SetInteractionRadius(const double radius);
 
 
 protected:
 
     double mThicknessOverRadius;
-    double mSearchRadius;
+    double mInteractionRadius;
 
 private:
 

@@ -69,7 +69,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
     }
     
-    void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta) {
+    void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
     }
     
@@ -125,13 +125,13 @@ namespace Kratos {
                                                                 DEMWall* const wall,
                                                                 bool& sliding) {
         
-        InitializeContactWithFEM(element, wall);
+        InitializeContactWithFEM(element, wall, indentation);
                 
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
         cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
 
         CalculateTangentialForceWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
-        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
+        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
     }
     
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(const double indentation, SphericParticle* element1, SphericParticle* element2) {        
@@ -186,12 +186,7 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForce) should not be called.","")
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                                    double ViscoDampingLocalContactForce[3],
-                                                    bool sliding,
-                                                    SphericParticle* const element,
-                                                    DEMWall* const wall,
-                                                    double indentation){
+    void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element, DEMWall* const wall){
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM) should not be called.","")
     }
     
@@ -309,12 +304,12 @@ namespace Kratos {
         
         KRATOS_TRY 
         double aux_norm_to_tang = 0.0;
-        const double mRealMass = element1->GetMass();
+        const double my_mass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
 //        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
         const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
 
-        equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+        equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (my_mass + other_real_mass)) * (sqrt(my_mass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
         KRATOS_CATCH("")  
     }   

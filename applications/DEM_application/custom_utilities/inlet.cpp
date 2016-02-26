@@ -16,6 +16,7 @@ namespace Kratos {
     inline double CalculateNormalizedIndentation(SphericParticle& elem_it_1, SphericParticle& elem_it_2) {
         const array_1d<double,3>& coordinates_1 = elem_it_1.GetGeometry()[0].Coordinates();
         const array_1d<double,3>& coordinates_2 = elem_it_2.GetGeometry()[0].Coordinates();
+        
         const double distance = sqrt((coordinates_1[0]- coordinates_2[0]) * (coordinates_1[0] - coordinates_2[0]) +
                                      (coordinates_1[1]- coordinates_2[1]) * (coordinates_1[1] - coordinates_2[1]) +
                                      (coordinates_1[2]- coordinates_2[2]) * (coordinates_1[2] - coordinates_2[2]));

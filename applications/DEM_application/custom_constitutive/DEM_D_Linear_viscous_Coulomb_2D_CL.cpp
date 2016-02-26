@@ -152,7 +152,7 @@ namespace Kratos {
         LocalElasticContactForce[2] = CalculateNormalForce(indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
         
-        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
+        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
         
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
                 
@@ -299,10 +299,8 @@ namespace Kratos {
     
     void DEM_D_Linear_viscous_Coulomb2D::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                 double ViscoDampingLocalContactForce[3],
-                                                                bool sliding,
                                                                 SphericParticle* const element,
-                                                                DEMWall* const wall,
-                                                                double indentation){                                        
+                                                                DEMWall* const wall){                                        
         
         const double my_mass    = element->GetMass();              
         const double gamma = element->GetProperties()[DAMPING_GAMMA];

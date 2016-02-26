@@ -33,7 +33,6 @@ namespace Kratos {
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
-
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
 
         void CalculateForces(ProcessInfo& rCurrentProcessInfo,
@@ -63,15 +62,9 @@ namespace Kratos {
                                     bool& sliding);
 
 
-        double CalculateNormalForce(const double indentation);
-        
-        double CalculateCohesiveNormalForce(SphericParticle* const element1,
-                                            SphericParticle* const element2,
-                                            const double indentation);
-
-        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                            DEMWall* const wall,
-                                            const double indentation);
+        double CalculateNormalForce(const double indentation);        
+        double CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
 
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
@@ -85,16 +78,8 @@ namespace Kratos {
                                             double indentation,
                                             double previous_indentation);
 
-        void CalculateViscoDampingForce(double LocalRelVel[3],
-                                        double ViscoDampingLocalContactForce[3],
-                                        SphericParticle * const element1,
-                                        SphericParticle* const element2);
-
-        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                        double ViscoDampingLocalContactForce[3],
-                                        SphericParticle* const element,
-                                        DEMWall* const wall);
-        
+        void CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle * const element1, SphericParticle* const element2);
+        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element, DEMWall* const wall);        
         
     private:
         

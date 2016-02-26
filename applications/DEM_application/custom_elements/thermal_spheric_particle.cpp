@@ -92,9 +92,7 @@ namespace Kratos
 
             array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             
-            double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                    other_to_me_vect[1] * other_to_me_vect[1] +
-                    other_to_me_vect[2] * other_to_me_vect[2]);
+            double distance = DEM_MODULUS_3(other_to_me_vect);
             double inv_distance = 1.0 / distance;  
             mConductiveHeatFlux += - mThermalConductivity * inv_distance * calculation_area * (mTemperature - other_temperature);                                                      
         }       //for each neighbor
@@ -158,7 +156,7 @@ namespace Kratos
     
     void ThermalSphericParticle::UpdateTemperature(const ProcessInfo& rCurrentProcessInfo) { 
         
-            double thermal_inertia = mRealMass * mSpecificHeat;
+            double thermal_inertia = GetMass() * mSpecificHeat;
             
             double dt = rCurrentProcessInfo[DELTA_TIME];
             double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;

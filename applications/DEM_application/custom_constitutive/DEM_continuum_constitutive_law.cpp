@@ -67,4 +67,11 @@ namespace Kratos {
                                                                        array_1d<double, 3>& mContactMoment) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) should not be called.","")
     }
+    
+    void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, 
+                                                            double LocalCoordSystem[3][3], 
+                                                            double& normal_force, 
+                                                            double calculation_area, Matrix* mSymmStressTensor){    
+    }
+    
 } //kratos

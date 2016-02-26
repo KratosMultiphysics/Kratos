@@ -129,7 +129,7 @@ namespace Kratos
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareElementsForPrinting", &ExplicitSolverStrategyType::PrepareElementsForPrinting)
@@ -137,25 +137,25 @@ namespace Kratos
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  
           ;
          
           class_< IterativeSolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
           
           ;
          
           class_< VerletVelocitySolverStrategy<ExplicitSolverStrategyType>,  boost::noncopyable>
           (
-          "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                                          
           ;
 
           class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategyType>,  boost::noncopyable>
           (
-          "ContinuumVerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, double, double, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumVerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 
           ;
 
