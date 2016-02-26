@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="DegreesOfFreedom" pn="Boundary conditions" un="SMDoFs" >
-	  <dynamicnode command="injectNodalConditions" args=""/>
-</container>
