@@ -1005,9 +1005,9 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
 
     for (unsigned int inode = 0; inode < FE_size; inode++) {
 
-        if (Weight[inode] > 1.0e-6){
+        if (Weight[inode] > 1.0e-6) {
           
-            for (unsigned int j = 0; j<3; j++)
+            for (unsigned int j = 0; j < 3; j++)
             {
                 Coord[inode][j] = wall->GetGeometry()[inode].Coordinates()[j];
             }
@@ -1015,7 +1015,6 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
             points++;
             if (points == 1) {inode1 = inode;}
             if (points == 2) {inode2 = inode;}
-            
         }
 
         if (fabs(total_weight - 1.0) < 1.0e-6){
@@ -1390,12 +1389,7 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     
     if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);
     else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
-    
-    if (r_process_info[ROTATION_SPRING_OPTION])  this->Set(DEMFlags::HAS_ROTATION_SPRING, true);
-    else                                         this->Set(DEMFlags::HAS_ROTATION_SPRING, false);
-    
-    //KRATOS_WATCH(r_process_info[STRESS_STRAIN_OPTION])
-    
+
     if (r_process_info[STRESS_STRAIN_OPTION]) {
         
         mStressTensor  = new Matrix(3,3);
