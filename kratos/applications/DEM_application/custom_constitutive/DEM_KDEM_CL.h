@@ -27,6 +27,7 @@ namespace Kratos {
 
         void CalculateContactArea(double radius, double other_radius, double& calculation_area);
         double CalculateContactArea(double radius, double other_radius, std::vector<double>& v);
+        void GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area);
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,

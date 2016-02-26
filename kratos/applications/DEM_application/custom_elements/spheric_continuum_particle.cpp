@@ -280,7 +280,7 @@ namespace Kratos {
             double calculation_area = 0.0;
             
             if (i < mContinuumInitialNeighborsSize) {
-                mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, calculation_area);
+                mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, mContIniNeighArea, i, calculation_area);
                 mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
             } 
              
@@ -575,7 +575,7 @@ namespace Kratos {
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(r_neighbours[i]);
             
             if (r_continuum_ini_neighbour == NULL) continue; //The initial neighbor was deleted at some point in time!!
-            //TODO: SHOULD WE CHECK HERE THAT BOTH BELONG TO THE SAME CONTINUUM GROUP??? It is done in other places.
+
             Particle_Contact_Element* bond_i = mBondElements[i];
             double other_partition_index = 0.0;
             if (has_mpi) other_partition_index = r_continuum_ini_neighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
