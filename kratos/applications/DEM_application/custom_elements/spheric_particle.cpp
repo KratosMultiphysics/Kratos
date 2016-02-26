@@ -1175,18 +1175,11 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
     KRATOS_TRY
 
     mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case that someone is overwriting the Radius from Python
+    
+    this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
 
-    if (r_process_info[STRESS_STRAIN_OPTION]) {
-
-        this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
-
-        for (int i = 0; i < 3; i++) {
-
-            for (int j = 0; j < 3; j++) {
-
-                (*mStressTensor)(i,j) = 0.0;
-            }
-        }          
+    if (r_process_info[STRESS_STRAIN_OPTION]) {       
+        for (int i = 0; i < 3; i++) { for (int j = 0; j < 3; j++) { (*mStressTensor)(i,j) = 0.0;  }  }          
     }
 
     KRATOS_CATCH("")
