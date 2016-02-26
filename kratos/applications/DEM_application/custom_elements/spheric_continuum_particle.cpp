@@ -288,7 +288,7 @@ namespace Kratos {
             rInitialRotaMoment[1] = RotaAcc[1] * moment_of_inertia;
             rInitialRotaMoment[2] = RotaAcc[2] * moment_of_inertia;
         }
-               
+                        
         for (unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
             
             if (mNeighbourElements[i_neighbour_count] == NULL) continue;
@@ -299,7 +299,7 @@ namespace Kratos {
             
             array_1d<double, 3> other_to_me_vect;
             noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-                        
+                            
             const double& other_radius = neighbour_iterator->GetRadius();
  
             double distance = DEM_MODULUS_3(other_to_me_vect);
@@ -407,7 +407,7 @@ namespace Kratos {
             temp_force[0] = GlobalContactForce[0];
             temp_force[1] = GlobalContactForce[1];
             temp_force[2] = GlobalContactForce[2];
-            
+
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i_neighbour_count < mContinuumInitialNeighborsSize) {       
@@ -427,11 +427,10 @@ namespace Kratos {
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
 
-        }   //  for each neighbor
+        } // for each neighbor
 
             KRATOS_CATCH("")
-
-    }       //  ComputeBallToBallContactForce
+    } //  ComputeBallToBallContactForce
 
 
     void SphericContinuumParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo) {
@@ -517,13 +516,12 @@ namespace Kratos {
 
                 if (indentation > 0.0) {
                     TempNeighbourElements.push_back(i_neighbour);
-                    break;
                 }
             }
         }
-                      
+                                  
         mNeighbourElements.swap(TempNeighbourElements);
-    
+
         KRATOS_CATCH("")
     }
     
