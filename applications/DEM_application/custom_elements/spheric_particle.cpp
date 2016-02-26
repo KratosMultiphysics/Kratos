@@ -1214,7 +1214,7 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
 
 void SphericParticle::AddContributionToRepresentativeVolume(const double distance,
                                                             const double radius_sum,
-                                                            const double contact_area) {
+                                                            const double contact_area) { //TODO: move to continuum particle
 
         KRATOS_TRY
 

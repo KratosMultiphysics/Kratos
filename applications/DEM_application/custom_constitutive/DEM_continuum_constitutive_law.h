@@ -65,6 +65,16 @@ namespace Kratos {
                 std::vector<double> & v) {            
             return 0.0;
         };
+        
+        virtual void GetContactArea(const double radius, 
+                                    const double other_radius, 
+                                    const std::vector<double> & vector_of_initial_areas, 
+                                    const int neighbour_position, 
+                                    double& calculation_area){
+            
+            CalculateContactArea(radius, other_radius, calculation_area);
+            
+        }
 
         virtual void CalculateElasticConstants(double &kn_el,
                 double &kt_el,
