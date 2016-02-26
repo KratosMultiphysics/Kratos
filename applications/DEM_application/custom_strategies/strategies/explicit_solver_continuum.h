@@ -587,50 +587,26 @@ namespace Kratos
              } //loop over CONTACT ELEMENTS
           }// loop threads OpenMP
     } //ContactCalculateArea
-    
-      void Contact_Debug() {
 
-            ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-            ProcessInfo& rcurrent_process_info = *mpContact_model_part.GetProcessInfo();
-            double Output = 0.0;
+    void ParticleAreaCalculate(const bool first) {
 
-            vector<unsigned int> contact_element_partition;
+        KRATOS_TRY
 
-            OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        ModelPart& r_model_part = GetModelPart();
+        ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
 
-            #pragma omp parallel for          
+        bool has_mpi = false;
+        Check_MPI(has_mpi);
 
-            for (int k = 0; k < mNumberOfThreads; k++) {
-                typename ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-                typename ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+        const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
-                for (typename ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                    (it_contact)->Calculate(DUMMY_DEBUG_DOUBLE, Output, rcurrent_process_info);
-                } //loop over CONTACT ELEMENTS
-            }// loop threads OpenMP
+        #pragma omp parallel for 
+        for (int i = 0; i < number_of_particles; i++) { //Do not do this for the ghost particles!
+            mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, rcurrent_process_info, first);
+        }
 
-        } //Contact_InitializeSolutionStep       
-
-        void ParticleAreaCalculate(const bool first) {
-
-            KRATOS_TRY
-
-            ModelPart& r_model_part = GetModelPart();
-            ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
-
-            bool has_mpi = false;
-            Check_MPI(has_mpi);
-            
-            const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
-
-            #pragma omp parallel for 
-            for (int i = 0; i < number_of_particles; i++) { //Do not do this for the ghost particles!
-                mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, rcurrent_process_info, first);
-            }
-
-            KRATOS_CATCH("")
-
-        } //ParticleAreaCalculate
+        KRATOS_CATCH("")
+    } //ParticleAreaCalculate
  
     void SetInitialDemContacts()
     {           
