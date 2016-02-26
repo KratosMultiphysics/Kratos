@@ -529,7 +529,7 @@ namespace Kratos
       }//Solve()
 
       
-        void SearchOperations(ModelPart& r_model_part)
+        void SearchOperations(ModelPart& r_model_part, bool has_mpi = true)
       {
          
          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
