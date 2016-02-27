@@ -103,32 +103,32 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {}
+    void LineCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
   
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) {}
+    void LineCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {}
+    void LineCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {}
+    void LineCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {}
+    void LineCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
+    void LineCluster3D::InitializeSolutionStep(ProcessInfo& r_process_info) {
         
         KRATOS_TRY
 
@@ -139,12 +139,12 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {}
+    void LineCluster3D::FinalizeSolutionStep(ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
     
-    void LineCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void LineCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
           
         KRATOS_TRY
 
@@ -155,13 +155,13 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo) {}
+    void LineCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void LineCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-    void LineCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+    void LineCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
+    void LineCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
     double LineCluster3D::SlowGetDensity()                                        { return GetProperties()[PARTICLE_DENSITY];}
 
 }  // namespace Kratos.

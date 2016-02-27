@@ -99,32 +99,32 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {}
+    void RingCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
   
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) {}
+    void RingCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {}
+    void RingCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {}
+    void RingCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {}
+    void RingCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
+    void RingCluster3D::InitializeSolutionStep(ProcessInfo& r_process_info) {
         
         KRATOS_TRY
 
@@ -135,12 +135,12 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {}
+    void RingCluster3D::FinalizeSolutionStep(ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
     
-    void RingCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void RingCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
           
         KRATOS_TRY
 
@@ -151,13 +151,13 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo) {}
+    void RingCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void RingCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-    void RingCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+    void RingCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
+    void RingCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
     double RingCluster3D::SlowGetDensity()                                        { return GetProperties()[PARTICLE_DENSITY];}
 
 }  // namespace Kratos.
