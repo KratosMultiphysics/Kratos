@@ -27,71 +27,7 @@ namespace Kratos {
 
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
 
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
-
-        void CalculateForces(ProcessInfo& r_process_info,
-                             const double OldLocalContactForce[3],
-                            double LocalElasticContactForce[3],
-                            double LocalDeltDisp[3],
-                            double LocalRelVel[3],            
-                            double indentation,
-                            double previous_indentation,
-                            double ViscoDampingLocalContactForce[3],
-                            double& cohesive_force,
-                            SphericParticle* element1,
-                            SphericParticle* element2);
-        
-        void CalculateForcesWithFEM(ProcessInfo& r_process_info,
-                                    const double OldLocalContactForce[3],
-                                    double LocalElasticContactForce[3],
-                                    double LocalDeltDisp[3],
-                                    double LocalRelVel[3],            
-                                    double indentation,
-                                    double previous_indentation,
-                                    double ViscoDampingLocalContactForce[3],
-                                    double& cohesive_force,
-                                    SphericParticle* const element,
-                                    DEMWall* const wall,
-                                    bool& sliding);
-
-
-        double CalculateNormalForce(const double indentation);
-        
-        double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
-        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
-
-        void CalculateTangentialForce(const double normal_contact_force,
-                                    const double OldLocalContactForce[3],
-                                    double LocalElasticContactForce[3],
-                                    double ViscoDampingLocalContactForce[3],
-                                    const double LocalDeltDisp[3],            
-                                    bool& sliding,
-                                    SphericParticle* const element1,
-                                    SphericParticle* const element2,
-                                    double indentation,
-                                    double previous_indentation);
-
-        void CalculateTangentialForceWithFEM(const double normal_contact_force,
-                                            const double OldLocalContactForce[3],
-                                            double LocalElasticContactForce[3],
-                                            double ViscoDampingLocalContactForce[3],
-                                            const double LocalDeltDisp[3],            
-                                            bool& sliding,
-                                            SphericParticle* const element,
-                                            DEMWall* const wall,
-                                            double indentation,
-                                            double previous_indentation);
-
-        void CalculateViscoDampingForce(double LocalRelVel[3],
-                                        double ViscoDampingLocalContactForce[3],
-                                        SphericParticle * const element1,
-                                        SphericParticle* const element2);
-
-        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
-                                        double ViscoDampingLocalContactForce[3],
-                                        SphericParticle* const element,
-                                        DEMWall* const wall);
-
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);  
 
     private:
         
