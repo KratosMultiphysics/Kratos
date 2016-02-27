@@ -152,7 +152,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
     }
 
     else {
-        const double volume = TBaseElement::GetVolume();
+        const double volume = TBaseElement::CalculateVolume();
 
         if (mDragForceType == 2){ // Weatherford
             noalias(buoyancy) =  - gravity *  mFluidDensity * volume;
@@ -197,7 +197,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
     }
 
     else {
-        const double volume                     = TBaseElement::GetVolume();
+        const double volume                     = TBaseElement::CalculateVolume();
         const double delta_t_inv                = 1 / r_current_process_info[DELTA_TIME];
         const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 1));
