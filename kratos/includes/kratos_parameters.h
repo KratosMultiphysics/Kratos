@@ -62,7 +62,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ParameterValue);
         
     //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-    ParameterValue(rapidjson::Value& rvalue): mrvalue(rvalue)
+    ParameterValue(rapidjson::Value& rvalue, rapidjson::Document &rdoc): mrvalue(rvalue),mrdoc(rdoc)
     {
     }
     
@@ -88,17 +88,17 @@ public:
     ParameterValue GetValue(const std::string entry)
     {
         if( mrvalue.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return ParameterValue(mrvalue[entry.c_str()]);
+        return ParameterValue(mrvalue[entry.c_str()],mrdoc);
     }
     ParameterValue operator[](const std::string entry)
     {
-        return ParameterValue(mrvalue[entry.c_str()]);
+        return ParameterValue(mrvalue[entry.c_str()],mrdoc);
     }
     void SetValue(const std::string entry, const ParameterValue& other_value)
     {
-        KRATOS_THROW_ERROR(std::logic_error,"it is not allowed to set directly a value ","")
-//         rapidjson::ParseResult ok = mrvalue.Parse<0>(other_value.WriteJsonString().c_str());
+        mrvalue = rapidjson::Value(other_value.GetUnderlyingStorage(), mrdoc.GetAllocator());
     }
+    
     //*******************************************************************************************************
     bool Has(const std::string entry)
     {
@@ -190,21 +190,34 @@ public:
         {
             if(index >= mrvalue.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-            return ParameterValue(mrvalue[index]);
+            return ParameterValue(mrvalue[index],mrdoc);
         }
     }
      
     void SetArrayItem(unsigned int index, const ParameterValue& other_array_item)
     {
-        KRATOS_THROW_ERROR(std::logic_error,"not allowed to set directly an array value","")
-    }
-       
+        if(mrvalue.IsArray() == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
+        else
+        {
+            if(index >= mrdoc.Size())
+                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+            mrvalue[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), mrdoc.GetAllocator());
+        }        
+    }   
     ParameterValue operator[](unsigned int index)
     {
         return this->GetArrayItem(index);
     }
+    
+    //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
+    rapidjson::Value& GetUnderlyingStorage() const
+    {
+        return mrvalue;
+    }
 private:
     rapidjson::Value& mrvalue;
+    rapidjson::Document& mrdoc;
 };
 
 /// Short class definition.
@@ -283,18 +296,18 @@ public:
     ParameterValue GetValue(const std::string entry)
     {
         if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return ParameterValue(md[entry.c_str()]);        
+        return ParameterValue(md[entry.c_str()],md);        
     }
     
     void SetValue(const std::string entry, const ParameterValue& other_value)
     {
-        KRATOS_THROW_ERROR(std::logic_error,"it is not allowed to set directly a value ","")
+        md[entry.c_str()] = rapidjson::Value(other_value.GetUnderlyingStorage(), md.GetAllocator());
     }
     
     ParameterValue operator[](const std::string entry)
     {
         if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return ParameterValue(md[entry.c_str()]);    
+        return ParameterValue(md[entry.c_str()],md);    
     }
 
     bool Has(const std::string entry)
@@ -310,13 +323,20 @@ public:
         {
             if(index >= md.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-            return ParameterValue(md[index]);
+            return ParameterValue(md[index],md);
         }
     }
      
     void SetArrayItem(unsigned int index, const ParameterValue& other_array_item)
     {
-        KRATOS_THROW_ERROR(std::logic_error,"not allowed to set directly an array value","")
+        if(md.IsArray() == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
+        else
+        {
+            if(index >= md.Size())
+                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+            md[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
+        }        
     }
        
     ParameterValue operator[](unsigned int index)
