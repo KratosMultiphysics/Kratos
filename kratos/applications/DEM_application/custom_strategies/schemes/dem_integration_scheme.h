@@ -36,6 +36,8 @@ namespace Kratos {
         virtual void AddSpheresVariables(ModelPart & r_model_part);
         virtual void AddClustersVariables(ModelPart & r_model_part);
         
+        void SetRotationOption(const int rotation_option);
+        
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part);         
         virtual void Calculate(ModelPart& model_part, int StepFlag = -1);
                 
@@ -103,6 +105,8 @@ namespace Kratos {
         protected:
 
         private:
+            
+        bool mRotationOption;
 
         DEMIntegrationScheme& operator=(DEMIntegrationScheme const& rOther) {
             return *this;

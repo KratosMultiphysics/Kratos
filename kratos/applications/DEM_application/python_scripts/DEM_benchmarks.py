@@ -56,20 +56,6 @@ else:
 
     print("Running under OpenMP........")
     
-#Getting chosen scheme:
-
-if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
-    scheme = ForwardEulerScheme()
-elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
-    scheme = SymplecticEulerScheme()
-elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
-    scheme = MidPointScheme()
-elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
-    scheme = NewmarkBetaScheme(0.5, 0.25)
-elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
-    scheme = VerletVelocityScheme()
-else:
-    KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
 ########################################################## CHUNG, OOI BENCHMARKS
     
@@ -117,6 +103,23 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         
         # Creating a solver object and set the search strategy
         solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+
+        #Getting chosen scheme:
+
+        if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
+            scheme = ForwardEulerScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
+            scheme = SymplecticEulerScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
+            scheme = MidPointScheme()
+        elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
+            scheme = NewmarkBetaScheme(0.5, 0.25)
+        elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
+            scheme = VerletVelocityScheme()
+        else:
+            KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+
+        scheme.SetRotationOption(solver.rotation_option)
         
         # Add variables
         procedures.AddCommonVariables(spheres_model_part, DEM_parameters)

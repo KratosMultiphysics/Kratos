@@ -20,10 +20,10 @@ namespace Kratos {
     
     void NewmarkBetaScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
         KRATOS_TRY
-        ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
-        double delta_t = rCurrentProcessInfo[DELTA_TIME];
-        double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        ProcessInfo& r_process_info = model_part.GetProcessInfo();
+        double delta_t = r_process_info[DELTA_TIME];
+        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+        bool if_virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double force_reduction_factor = 1.0;
         if (if_virtual_mass_option) {
             force_reduction_factor = 1.0 - virtual_mass_coeff;

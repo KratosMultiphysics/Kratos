@@ -51,13 +51,13 @@ namespace Kratos
      {
         KRATOS_TRY
         
-	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
+	ProcessInfo& r_process_info  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	//double aux          = 0;
         array_1d<double, 3 >  new_accel;
         array_1d<double, 3 >  prev_accel;
-	double delta_t      =  CurrentProcessInfo[DELTA_TIME];
+	double delta_t      =  r_process_info[DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	//NodesArrayType::iterator it_begin = pNodes.ptr_begin();

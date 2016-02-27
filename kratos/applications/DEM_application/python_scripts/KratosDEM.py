@@ -93,6 +93,8 @@ elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
+scheme.SetRotationOption(solver.rotation_option)
+solver.time_integration_scheme = scheme
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)

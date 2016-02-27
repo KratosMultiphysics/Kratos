@@ -137,19 +137,6 @@ class ExplicitStrategy:
 
         self.search_strategy = OMP_DEMSearch()            
         
-        if (Param.IntegrationScheme == 'Forward_Euler'):
-            self.time_integration_scheme = ForwardEulerScheme()
-        elif (Param.IntegrationScheme == 'Symplectic_Euler'):
-            self.time_integration_scheme = SymplecticEulerScheme()    
-        elif (Param.IntegrationScheme == 'Taylor_Scheme'):
-            self.time_integration_scheme = TaylorScheme()
-        elif (Param.IntegrationScheme == 'Newmark_Beta_Method'):
-            self.time_integration_scheme = NewmarkBetaScheme(0.5, 0.25)
-        elif (Param.IntegrationScheme == 'Verlet_Velocity'):
-            self.time_integration_scheme = VerletVelocityScheme()
-        else:
-            print('scheme not defined')
-    
     
     def SetVariablesAndOptions(self):
         
