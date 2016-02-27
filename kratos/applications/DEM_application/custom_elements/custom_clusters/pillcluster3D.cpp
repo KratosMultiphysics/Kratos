@@ -145,32 +145,32 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {}
+    void PillCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
   
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) {}
+    void PillCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {}
+    void PillCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {}
+    void PillCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {}
+    void PillCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
+    void PillCluster3D::InitializeSolutionStep(ProcessInfo& r_process_info) {
         
         KRATOS_TRY
 
@@ -181,12 +181,12 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {}
+    void PillCluster3D::FinalizeSolutionStep(ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
     
-    void PillCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void PillCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
           
         KRATOS_TRY
 
@@ -197,13 +197,13 @@ namespace Kratos {
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo) {}
+    void PillCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info) {}
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    void PillCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-    void PillCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+    void PillCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
+    void PillCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
     double PillCluster3D::SlowGetDensity()                                        { return GetProperties()[PARTICLE_DENSITY];}
 
 }  // namespace Kratos.
