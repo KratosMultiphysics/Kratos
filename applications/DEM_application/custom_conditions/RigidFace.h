@@ -55,20 +55,12 @@ public:
     void Initialize();
     void CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo );
+    ProcessInfo& r_process_info );
 		
-    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& rCurrentProcessInfo);
+    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info);
     void CalculateNormal(array_1d<double, 3>& rnormal);
-    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
+    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
+    void FinalizeSolutionStep(ProcessInfo& r_process_info);
 
 protected:
   

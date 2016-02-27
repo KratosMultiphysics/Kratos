@@ -64,14 +64,14 @@ public:
 
 
     virtual void Initialize();
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );		
-    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );		
+    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
+    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
     
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                  const Variable<VectorType>& rRHSVariable,
                                  Variable<array_1d<double,3> >& rDestinationVariable,
-                                 const ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& r_process_info);
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     
@@ -80,7 +80,7 @@ public:
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rCurrentProcessInfo
+     * @param r_process_info
      */
 
 

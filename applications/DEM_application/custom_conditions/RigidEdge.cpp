@@ -84,7 +84,7 @@ void RigidEdge3D::Initialize() {
 
 
 
-void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) 
+void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) 
 {
     //calculation flags
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -137,7 +137,7 @@ void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
     }
 }
 
-void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& rCurrentProcessInfo) 
+void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) 
 {
     //calculation flags
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -203,7 +203,7 @@ void RigidEdge3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
 
 
-void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
 {
   if (rVariable == RIGID_FACE_COMPUTE_MOVEMENT)
   {
@@ -216,25 +216,25 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 	}
 	Output = ZeroVector(MatSize); 
 	  
-	double delta_t     = rCurrentProcessInfo[DELTA_TIME];
-	double CyclePerSec = rCurrentProcessInfo[RIGID_FACE_ROTA_SPEED];
-	double NormalV     = rCurrentProcessInfo[RIGID_FACE_AXIAL_SPEED];
+	double delta_t     = r_process_info[DELTA_TIME];
+	double CyclePerSec = r_process_info[RIGID_FACE_ROTA_SPEED];
+	double NormalV     = r_process_info[RIGID_FACE_AXIAL_SPEED];
 
-	double GXvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][0];
-	double GYvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][1];
-	double GZvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][2];
+	double GXvel       = r_process_info[RIGID_FACE_ROTA_GLOBAL_VELOCITY][0];
+	double GYvel       = r_process_info[RIGID_FACE_ROTA_GLOBAL_VELOCITY][1];
+	double GZvel       = r_process_info[RIGID_FACE_ROTA_GLOBAL_VELOCITY][2];
 
-	double Xnormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][0];
-	double Ynormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][1];
-	double Znormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][2];
+	double Xnormal     = r_process_info[RIGID_FACE_ROTA_AXIAL_DIR][0];
+	double Ynormal     = r_process_info[RIGID_FACE_ROTA_AXIAL_DIR][1];
+	double Znormal     = r_process_info[RIGID_FACE_ROTA_AXIAL_DIR][2];
 
-	double  Xorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][0];   
-	double  Yorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][1];
-	double  Zorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][2]; 
+	double  Xorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][0];   
+	double  Yorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][1];
+	double  Zorigin    = r_process_info[RIGID_FACE_ROTA_ORIGIN_COORD][2]; 
 	
 	///movement of the original point
-	int time_step           = rCurrentProcessInfo[TIME_STEPS];			
-	double begin_time       = rCurrentProcessInfo[RIGID_FACE_BEGIN_TIME];
+	int time_step           = r_process_info[TIME_STEPS];			
+	double begin_time       = r_process_info[RIGID_FACE_BEGIN_TIME];
 	double real_rota_time   = delta_t * time_step - begin_time;
 			
 	
@@ -318,7 +318,7 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
-void RigidEdge3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
+void RigidEdge3D::FinalizeSolutionStep(ProcessInfo& r_process_info)   
 {
 
 

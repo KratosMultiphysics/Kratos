@@ -70,15 +70,15 @@ void DEMWall::Initialize()
 
 void DEMWall::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
+    ProcessInfo& r_process_info) {
 }
 
 void DEMWall::CalculateElasticForces(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
+    ProcessInfo& r_process_info) {
 }
 
-void DEMWall::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
+void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
 }
 
 
@@ -90,7 +90,7 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
                          Variable<array_1d<double,3> >& rDestinationVariable,
-                         const ProcessInfo& rCurrentProcessInfo)
+                         const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
@@ -144,12 +144,12 @@ double DEMWall::GetTgOfFrictionAngle()                                          
 double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
  
 
-void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
 {
     
 }
 
-void DEMWall::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
+void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)   
 {  
   
 }
