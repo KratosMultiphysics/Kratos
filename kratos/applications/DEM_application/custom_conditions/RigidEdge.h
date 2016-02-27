@@ -70,12 +70,12 @@ public:
 
     void Initialize();
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo);
+                                 ProcessInfo& r_process_info);
     
-    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& rCurrentProcessInfo);
+    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info);
     void CalculateNormal(array_1d<double, 3>& rnormal);
-    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
+    void FinalizeSolutionStep(ProcessInfo& r_process_info);
 
 
     /**

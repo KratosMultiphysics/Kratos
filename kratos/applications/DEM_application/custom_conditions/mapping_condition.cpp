@@ -70,7 +70,7 @@ void MAPcond::Initialize()
 
 void MAPcond::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    ProcessInfo& r_process_info)
 {
     
  }
@@ -79,7 +79,7 @@ void MAPcond::CalculateRightHandSide(
  void MAPcond::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,
                          Variable<array_1d<double,3> >& rDestinationVariable,
-                         const ProcessInfo& rCurrentProcessInfo)
+                         const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
@@ -90,12 +90,12 @@ void MAPcond::CalculateRightHandSide(
  
  
 
-void MAPcond::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void MAPcond::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
 {
     
 }
 
-void MAPcond::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
+void MAPcond::FinalizeSolutionStep(ProcessInfo& r_process_info)   
 {  
   
 }
