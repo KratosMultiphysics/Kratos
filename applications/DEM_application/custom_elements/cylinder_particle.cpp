@@ -40,95 +40,20 @@ namespace Kratos
       }
 
       /// Destructor.
-      CylinderParticle::~CylinderParticle() {}
+      CylinderParticle::~CylinderParticle() {}      
 
-      void CylinderParticle::Initialize()
-      {
-          KRATOS_TRY
-
-          SetRadius(GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
-          SetMass(GetDensity() * GetVolume());
-
-          //if (mRotationOption){
-          if (this->Is(DEMFlags::HAS_ROTATION) ){
-              double& moment_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-              moment_of_inertia = 0.5 * GetMass() * GetRadius() * GetRadius();   
-              GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
-          }                                                                        
-
-          CustomInitialize();
-
-          KRATOS_CATCH( "" )
-      }
-
-      //**************************************************************************************************************************************************
-      //**************************************************************************************************************************************************
-
-      void CylinderParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity, int search_control)
-      {
-          KRATOS_TRY
-
-          array_1d<double, 3> additionally_applied_force;
-          array_1d<double, 3> additionally_applied_moment;
-          array_1d<double, 3> initial_rotation_moment;     
-          array_1d<double, 3>& elastic_force       = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
-          array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
-          array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
-
-          mContactForce.clear();
-          mContactMoment.clear();
-          additionally_applied_force.clear();
-          additionally_applied_moment.clear();
-          initial_rotation_moment.clear();
-          elastic_force.clear();
-          contact_force.clear();
-          rigid_element_force.clear();
-
-          bool multi_stage_RHS = false;
-
-          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, contact_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
-
-          //Cfeng,RigidFace
-          
-          if (mFemOldNeighbourIds.size() > 0)
-          {
-            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, contact_force, initial_rotation_moment, rigid_element_force, rCurrentProcessInfo, dt, search_control);
-          }
-              
-          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);
-
-          
-          rRightHandSideVector[0] = mContactForce[0]  + additionally_applied_force[0];
-          rRightHandSideVector[1] = mContactForce[1]  + additionally_applied_force[1];
-          rRightHandSideVector[2] = mContactForce[2]  + additionally_applied_force[2];
-          rRightHandSideVector[3] = mContactMoment[0] + additionally_applied_moment[0];
-          rRightHandSideVector[4] = mContactMoment[1] + additionally_applied_moment[1];
-          rRightHandSideVector[5] = mContactMoment[2] + additionally_applied_moment[2];
-          
-          array_1d<double,3>& total_forces  = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
-          array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-
-          for (int i = 0; i < 3; i++){
-              total_forces[i] = rRightHandSideVector[i];
-              total_moment[i] = rRightHandSideVector[3 + i];
-          }	  
-
-          KRATOS_CATCH( "" )
-      }
-      
-      double CylinderParticle::GetVolume(){
+      double CylinderParticle::CalculateVolume(){
           return KRATOS_M_PI * GetRadius() * GetRadius();
       }
+      
+      double CylinderParticle::CalculateMomentOfInertia() {
+          return 0.5 * GetMass() * GetRadius() * GetRadius(); 
+      }
 
-      //**************************************************************************************************************************************************
-      //**************************************************************************************************************************************************
-      void CylinderParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo){}
-      void CylinderParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo){}
-      void CylinderParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-      void CylinderParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
-
-      //**************************************************************************************************************************************************
-      //**************************************************************************************************************************************************
+      void CylinderParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
+      void CylinderParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info){}
+      void CylinderParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
+      void CylinderParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
 
 }  // namespace Kratos.
 

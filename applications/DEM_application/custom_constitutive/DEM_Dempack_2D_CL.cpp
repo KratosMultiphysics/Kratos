@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-    void DEM_Dempack2D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEM_Dempack2D::Initialize(const ProcessInfo& r_process_info) {
         
     KRATOS_TRY  
     

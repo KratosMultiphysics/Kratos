@@ -420,7 +420,7 @@ namespace Kratos
                 }
                 
                 Element* raw_p_contact_element = p_contact_element.get();
-                Particle_Contact_Element* p_bond = dynamic_cast<Particle_Contact_Element*>( raw_p_contact_element );     
+                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( raw_p_contact_element );     
                 mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;                                                                  
             }            
       
@@ -452,7 +452,7 @@ namespace Kratos
                     //if (r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k]->Id() == mListOfSphericContinuumParticles[i]->Id()) {
                     if (neighbour_element->mNeighbourElements[k]->Id() == mListOfSphericContinuumParticles[i]->Id()) {
                         
-                        Particle_Contact_Element* bond = neighbour_element->mBondElements[k];
+                        ParticleContactElement* bond = neighbour_element->mBondElements[k];
                         mListOfSphericContinuumParticles[i]->mBondElements[j] = bond; 
                         break;
                     }
@@ -527,7 +527,7 @@ namespace Kratos
 
             for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact) {
                 Element* raw_p_contact_element = &(*it_contact);
-                Particle_Contact_Element* p_bond = dynamic_cast<Particle_Contact_Element*>( raw_p_contact_element );    
+                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( raw_p_contact_element );    
                 p_bond->PrepareForPrinting();
             } //loop over CONTACT ELEMENTS
         }// loop threads OpenMP        
@@ -575,7 +575,7 @@ namespace Kratos
               
             for (typename ElementsArrayType::iterator it= it_contact_begin; it!=it_contact_end; ++it) {
                 Element* raw_p_contact_element = &(*it);
-                Particle_Contact_Element* p_bond = dynamic_cast<Particle_Contact_Element*>( raw_p_contact_element );    
+                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( raw_p_contact_element );    
                 p_bond->CalculateMeanContactArea(has_mpi);                
              } //loop over CONTACT ELEMENTS
           }// loop threads OpenMP

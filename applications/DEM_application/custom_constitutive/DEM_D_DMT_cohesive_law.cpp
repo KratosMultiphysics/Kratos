@@ -13,7 +13,7 @@ namespace Kratos {
     
     DEM_D_DMT_Cohesive_Law::~DEM_D_DMT_Cohesive_Law() {}
     
-    void DEM_D_DMT_Cohesive_Law::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
+    void DEM_D_DMT_Cohesive_Law::Initialize(const ProcessInfo& r_process_info) {}
 
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_DMT_Cohesive_Law::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_DMT_Cohesive_Law(*this));

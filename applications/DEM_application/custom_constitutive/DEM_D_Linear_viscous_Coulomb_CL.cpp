@@ -5,7 +5,7 @@
 
 namespace Kratos {
 
-    void DEM_D_Linear_viscous_Coulomb::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
+    void DEM_D_Linear_viscous_Coulomb::Initialize(const ProcessInfo& r_process_info) {}
 
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_viscous_Coulomb::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_viscous_Coulomb(*this));
@@ -54,7 +54,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;       
     }
     
-    void DEM_D_Linear_viscous_Coulomb::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Linear_viscous_Coulomb::CalculateForces(ProcessInfo& r_process_info,
                                                        const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
@@ -146,7 +146,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }    
     
-    void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                               const double OldLocalContactForce[3],
                                                               double LocalElasticContactForce[3],
                                                               double LocalDeltDisp[3],

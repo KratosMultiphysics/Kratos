@@ -20,10 +20,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
-#include "includes/element.h"
 #include "geometries/geometry.h"
 #include "includes/properties.h"
-#include "includes/process_info.h"
 #include "utilities/indexed_object.h"
 #include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
@@ -34,10 +32,9 @@
 
 namespace Kratos
 {
-
-  /// Short class definition.
-  /** Detail class definition.
-  */
+    class Element;
+    class ProcessInfo;
+    
     class Ballast3Cluster3D : public Cluster3D
     {
     public:

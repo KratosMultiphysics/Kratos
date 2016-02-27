@@ -145,7 +145,7 @@ namespace Kratos
          * matrix and the right hand side
          * @param rLeftHandSideMatrix: the elemental left hand side matrix
          * @param rRightHandSideVector: the elemental right hand side
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param r_process_info: the current process info instance
          */
 
         virtual void ResetConstitutiveLaw()
@@ -157,10 +157,10 @@ namespace Kratos
          * this is called during the assembling process in order
          * to calculate the elemental right hand side vector only
          * @param rRightHandSideVector: the elemental right hand side vector
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param r_process_info: the current process info instance
          */
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                ProcessInfo& rCurrentProcessInfo)
+                ProcessInfo& r_process_info)
         {
             if (rRightHandSideVector.size() != 0)
                 rRightHandSideVector.resize(0);
@@ -168,7 +168,7 @@ namespace Kratos
 
        
         virtual void EquationIdVector(EquationIdVectorType& rResult,
-                ProcessInfo& rCurrentProcessInfo)
+                ProcessInfo& r_process_info)
         {
             if (rResult.size() != 0)
                 rResult.resize(0);
@@ -178,16 +178,16 @@ namespace Kratos
          * this is called during the assembling process in order
          * to calculate the elemental mass matrix
          * @param rMassMatrix: the elemental mass matrix
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param r_process_info: the current process info instance
          */
-        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info)
         {
             if (rMassMatrix.size1() != 0)
                 rMassMatrix.resize(0, 0);
         }
 
         
-        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info)
         {
             if (rDampingMatrix.size1() != 0)
                 rDampingMatrix.resize(0, 0);
@@ -195,7 +195,7 @@ namespace Kratos
 
 
         virtual void GetDofList(DofsVectorType& ElementalDofList,
-                ProcessInfo& CurrentProcessInfo)
+                ProcessInfo& r_process_info)
         {
             if (ElementalDofList.size() != 0)
                 ElementalDofList.resize(0);
@@ -204,14 +204,14 @@ namespace Kratos
         /**
          * this is called in the beginning of each solution step
          */
-        virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+        virtual void InitializeSolutionStep(ProcessInfo& r_process_info)
         {
         }
 
         /**
          * this is called at the end of each solution step
          */
-        virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info)
         {
         }
 
@@ -239,25 +239,25 @@ namespace Kratos
 
         virtual void Calculate(const Variable<double>& rVariable,
                 double& Output,
-                const ProcessInfo& rCurrentProcessInfo)
+                const ProcessInfo& r_process_info)
         {
         }
 
         virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                 array_1d<double, 3 > & Output,
-                const ProcessInfo& rCurrentProcessInfo)
+                const ProcessInfo& r_process_info)
         {
         }
 
         virtual void Calculate(const Variable<Vector >& rVariable,
                 Vector& Output,
-                const ProcessInfo& rCurrentProcessInfo)
+                const ProcessInfo& r_process_info)
         {
         }
 
         virtual void Calculate(const Variable<Matrix >& rVariable,
                 Matrix& Output,
-                const ProcessInfo& rCurrentProcessInfo)
+                const ProcessInfo& r_process_info)
         {
         }
 

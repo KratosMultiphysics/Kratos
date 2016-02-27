@@ -10,7 +10,7 @@
 
 #include <cmath>
 #include "utilities/openmp_utils.h"
-
+#include "includes/model_part.h"
 #include "DEM_application_variables.h"
 
 namespace Kratos {

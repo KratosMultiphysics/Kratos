@@ -42,29 +42,7 @@ namespace Kratos
       }
 
       /// Destructor.
-      CylinderContinuumParticle::~CylinderContinuumParticle(){}
-
-      void CylinderContinuumParticle::Initialize()
-      {
-          KRATOS_TRY
-
-          SetRadius(GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
-          SetMass(GetDensity() * GetVolume());
-
-          if (this->Is(DEMFlags::HAS_ROTATION) ){
-            double moment_of_inertia = 0.5 * GetMass() * GetRadius() * GetRadius();   
-            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
-          }                                                                        
-
-          CustomInitialize();
-
-          KRATOS_CATCH( "" )
-      }
-
-      //**************************************************************************************************************************************************
-      //**************************************************************************************************************************************************
-
-           
+      CylinderContinuumParticle::~CylinderContinuumParticle(){} 
       
         void CylinderContinuumParticle::ContactAreaWeighting() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
         { 
@@ -99,248 +77,14 @@ namespace Kratos
                 }           //skin particles.
             }               //if 3 neighbours or more.
         }                 //Contact Area Weighting
+               
       
-      
-
-
-      void CylinderContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-              array_1d<double, 3 > & rContactForce,
-              array_1d<double, 3>& rInitialRotaMoment,
-              ProcessInfo& rCurrentProcessInfo,
-              double dt,
-              const bool multi_stage_RHS) {
-          KRATOS_TRY
-
-          const double dt_i = 1 / dt;
-          const int time_steps = rCurrentProcessInfo[TIME_STEPS];
-
-          int& search_control = rCurrentProcessInfo[SEARCH_CONTROL];
-          vector<int>& search_control_vector = rCurrentProcessInfo[SEARCH_CONTROL_VECTOR];
-
-          /* Initializations */
-
-          const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-          const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          double RotaAcc[3] = {0.0};
-
-          if (this->Is(DEMFlags::HAS_ROTATION)) {
-              RotaAcc[0] = 0;
-              RotaAcc[1] = 0;
-              RotaAcc[2] = ang_vel[2] * dt_i;
-
-              rInitialRotaMoment[0] = 0;
-              rInitialRotaMoment[1] = 0;
-              rInitialRotaMoment[2] = RotaAcc[2] * moment_of_inertia;
-          }
-
-          for (unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
-
-              SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i_neighbour_count]);
-
-              unsigned int neighbour_iterator_id = neighbour_iterator->Id();
-
-              array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-              const double &other_radius = neighbour_iterator->GetRadius();
-              double distance = DEM_MODULUS_3(other_to_me_vect);
-              double radius_sum = GetRadius() + other_radius;
-              double initial_delta = mNeighbourDelta[i_neighbour_count]; //*
-              double initial_dist = (radius_sum - initial_delta);
-              double indentation = initial_dist - distance; //#1
-              double myYoung = GetYoung();
-              double myPoisson = GetPoisson();
-
-              double kn_el;
-              double kt_el;
-              double DeltDisp[3] = {0.0};
-              double RelVel[3] = {0.0};
-              double LocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
-              double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
-              bool sliding = false;
-
-              //const int mapping_new_cont = mMappingNewCont[i_neighbour_count];
-
-              double contact_tau = 0.0;
-              double contact_sigma = 0.0;
-              double failure_criterion_state = 0.0;
-              double acumulated_damage = 0.0;
-
-              // Getting neighbor properties
-              double other_young = neighbour_iterator->GetYoung();
-              double other_poisson = neighbour_iterator->GetPoisson();
-              double equiv_poisson;
-              if ((myPoisson + other_poisson) != 0.0) {
-                  equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
-              } else {
-                  equiv_poisson = 0.0;
-              }
-
-              double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
-              double calculation_area = 0.0;
-
-              //if (mapping_new_cont != -1) {
-              if (i_neighbour_count < mContinuumInitialNeighborsSize) {
-                  mContinuumConstitutiveLawArray[i_neighbour_count]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);
-                  mContinuumConstitutiveLawArray[i_neighbour_count]-> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
-              } else {
-                  mDiscontinuumConstitutiveLaw -> CalculateContactArea(GetRadius(), other_radius, calculation_area);
-                  mDiscontinuumConstitutiveLaw -> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
-              }
-
-              EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
-
-              if (this->Is(DEMFlags::HAS_ROTATION)) {
-                  DisplacementDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
-              }
-
-              double LocalDeltDisp[3] = {0.0};
-              double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
-              double GlobalElasticContactForce[3] = {0.0};
-
-              GlobalElasticContactForce[0] = mNeighbourElasticContactForces[i_neighbour_count][0];
-              GlobalElasticContactForce[1] = mNeighbourElasticContactForces[i_neighbour_count][1];
-              GlobalElasticContactForce[2] = 0;
-
-              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
-              //recover old local forces projected over new coordinates
-              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
-              
-              int failure_id = mIniNeighbourFailureId[i_neighbour_count];
-              
-              /* Translational Forces */
-
-              if (indentation > 0.0 || (mIniNeighbourFailureId[i_neighbour_count] == 0))       //#3
-              {
-                  //if (mapping_new_cont != -1) {                                             //Normal Forces
-                  if (i_neighbour_count < mContinuumInitialNeighborsSize) {
-                      mContinuumConstitutiveLawArray[i_neighbour_count]-> CalculateForces(
-                              rCurrentProcessInfo,
-                              LocalElasticContactForce,
-                              LocalDeltDisp,
-                              kn_el,
-                              kt_el,
-                              contact_sigma,
-                              contact_tau,
-                              failure_criterion_state,
-                              equiv_young,
-                              indentation,
-                              calculation_area,
-                              acumulated_damage,
-                              this,
-                              neighbour_iterator,
-                              i_neighbour_count,
-                              rCurrentProcessInfo[TIME_STEPS],
-                              sliding,
-                              search_control,
-                              search_control_vector);
-                  } else {
-                      mDiscontinuumConstitutiveLaw -> CalculateForces(
-                              rCurrentProcessInfo,
-                              LocalElasticContactForce,
-                              LocalDeltDisp,
-                              kn_el,
-                              kt_el,
-                              indentation,
-                              failure_criterion_state,
-                              sliding,
-                              this,
-                              neighbour_iterator,
-                              mIniNeighbourFailureId[i_neighbour_count]/*, mapping_new_cont*/);
-                  }
-              } // compression or cohesive contact
-
-              //  Viscodamping (applied locally)
-              double ViscoDampingLocalContactForce[3] = {0.0};
-              double equiv_visco_damp_coeff_normal;
-              double equiv_visco_damp_coeff_tangential;
-
-              if (indentation > 0.0 || (mIniNeighbourFailureId[i_neighbour_count] == 0)) {
-
-                  double LocalRelVel[3] = {0.0};
-                  GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
-                  //if (mapping_new_cont != -1) {
-                  if (i_neighbour_count < mContinuumInitialNeighborsSize) {
-                      mContinuumConstitutiveLawArray[i_neighbour_count]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              this,
-                              neighbour_iterator,
-                              kn_el,
-                              kt_el);
-
-                      mContinuumConstitutiveLawArray[i_neighbour_count]->CalculateViscoDamping(LocalRelVel,
-                              ViscoDampingLocalContactForce,
-                              indentation,
-                              equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              sliding,
-                              failure_id);
-                  } else {
-                      mDiscontinuumConstitutiveLaw -> CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              this,
-                              neighbour_iterator,
-                              kn_el,
-                              kt_el);
-
-                      mDiscontinuumConstitutiveLaw -> CalculateViscoDamping(LocalRelVel,
-                              ViscoDampingLocalContactForce,
-                              indentation,
-                              equiv_visco_damp_coeff_normal,
-                              equiv_visco_damp_coeff_tangential,
-                              sliding);
-                  }
-              }
-
-              // Transforming to global forces and adding up
-              double LocalContactForce[3] = {0.0};
-              double GlobalContactForce[3] = {0.0};
-
-              //if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson,
-              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i_neighbour_count < mContinuumInitialNeighborsSize)) {
-                  mContinuumConstitutiveLawArray[i_neighbour_count]->AddPoissonContribution(equiv_poisson,LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor);
-              }
-
-              AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                      GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, rElasticForce, rContactForce, i_neighbour_count);
-
-              array_1d<double, 3> temp_force = ZeroVector(3);
-
-              temp_force[0] = GlobalContactForce[0];
-              temp_force[1] = GlobalContactForce[1];
-              temp_force[2] = 0;
-
-              if (this->Is(DEMFlags::HAS_ROTATION)) {
-                  ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
-              }
-
-              if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (i_neighbour_count < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
-
-                  CalculateOnContactElements(i_neighbour_count,
-                                             LocalElasticContactForce,
-                                             contact_sigma,
-                                             contact_tau,
-                                             failure_criterion_state,
-                                             acumulated_damage,
-                                             time_steps);
-              }
-
-              if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i_neighbour_count < mContinuumInitialNeighborsSize)) {
-                  AddNeighbourContributionToStressTensor(GlobalElasticContactForce,
-                                                          LocalCoordSystem[2],distance, radius_sum);}
-
-              AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
-
-
-
-          } //for each neighbor
-
-          KRATOS_CATCH("")
-
-      } //ComputeBallToBallContactForce
-      
-      double CylinderContinuumParticle::GetVolume(){
+      double CylinderContinuumParticle::CalculateVolume(){
           return KRATOS_M_PI * GetRadius() * GetRadius();
+      }
+      
+      double CylinderContinuumParticle::CalculateMomentOfInertia() {
+          return 0.5 * GetMass() * GetRadius() * GetRadius(); 
       }
 
 
@@ -351,7 +95,7 @@ namespace Kratos
 //                                                                            const double &radius_sum,
 //                                                                            const double &calculation_area,
 //                                                                            ParticleWeakIteratorType neighbour_iterator,
-//                                                                            ProcessInfo& rCurrentProcessInfo,
+//                                                                            ProcessInfo& r_process_info,
 //                                                                            double &rRepresentative_Volume){
 //        double gap  = distance - radius_sum;
 //        array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
@@ -375,10 +119,10 @@ namespace Kratos
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
-//       void CylinderContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo){}
-//       void CylinderContinuumParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo){}
-//       void CylinderContinuumParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-//       void CylinderContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+//       void CylinderContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
+//       void CylinderContinuumParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info){}
+//       void CylinderContinuumParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
+//       void CylinderContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************

@@ -33,7 +33,7 @@ namespace Kratos {
     }
 //Z
 
-    void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& rCurrentProcessInfo) {}
+    void DEM_D_Bentonite_Colloid::Initialize(const ProcessInfo& r_process_info) {}
 
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Bentonite_Colloid::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Bentonite_Colloid(*this));
@@ -79,7 +79,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Bentonite_Colloid::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Bentonite_Colloid::CalculateForces(ProcessInfo& r_process_info,
                                                        const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
@@ -165,7 +165,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Bentonite_Colloid::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                               const double OldLocalContactForce[3],
                                                               double LocalElasticContactForce[3],
                                                               double LocalDeltDisp[3],

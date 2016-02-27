@@ -7,7 +7,9 @@
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/serializer.h"
-#include "includes/properties.h"
+//#include "includes/properties.h"
+
+
 #include "containers/flags.h"
 
 #include "custom_utilities/GeometryFunctions.h"
@@ -15,15 +17,11 @@
 #include "../custom_elements/Particle_Contact_Element.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
-//#include "../custom_elements/spheric_continuum_particle.h"
 
 
 namespace Kratos {
 
-    /**
-     * Base class of constitutive laws.
-     */
-
+    class Properties; //forward declaration
     class SphericContinuumParticle; // forward declaration of spheric cont particle
 
     class /*__declspec( dllexport )*/ DEMContinuumConstitutiveLaw : public Flags {
@@ -36,7 +34,7 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw& rReferenceContinuumConstitutiveLaw);
 
-        virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
+        virtual void Initialize(const ProcessInfo& r_process_info);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
         
@@ -94,7 +92,7 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
 
-        virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+        virtual void CalculateForces(ProcessInfo& r_process_info,
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,

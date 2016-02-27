@@ -54,22 +54,8 @@ namespace Kratos {
 
       SphericContinuumParticle::~SphericContinuumParticle(){}
 
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-      
-    void SphericContinuumParticle::FullInitialize(const ProcessInfo& r_process_info) {
-        KRATOS_TRY        
-        MemberDeclarationFirstStep(r_process_info);
-        ContinuumSphereMemberDeclarationFirstStep(r_process_info);
-        Initialize();
-        CreateDiscontinuumConstitutiveLaws(r_process_info);
-        KRATOS_CATCH("")
-    }
-
     
-    void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
          
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
         std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
@@ -124,7 +110,7 @@ namespace Kratos {
         }
     }//SetInitialSphereContacts    
     
-    void SphericContinuumParticle::CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info) {
         
         //unsigned int cont_neigh_size = mContinuumIniNeighbourElements.size();
         unsigned int continuous_neighbor_size = mContinuumInitialNeighborsSize;
@@ -133,7 +119,7 @@ namespace Kratos {
         for (unsigned int i = 0; i < continuous_neighbor_size; i++) {
             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
-            mContinuumConstitutiveLawArray[i]->Initialize(rCurrentProcessInfo);
+            mContinuumConstitutiveLawArray[i]->Initialize(r_process_info);
         }
     }
 
@@ -198,32 +184,18 @@ namespace Kratos {
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                                  array_1d<double, 3 > & rContactForce,
                                                                  array_1d<double, 3>& rInitialRotaMoment,
-                                                                 ProcessInfo& rCurrentProcessInfo,
+                                                                 ProcessInfo& r_process_info,
                                                                  double dt,
                                                                  const bool multi_stage_RHS) {
         KRATOS_TRY
 
-        const double dt_i = 1.0 / dt;
-        const int time_steps = rCurrentProcessInfo[TIME_STEPS];
-
-        int& search_control = rCurrentProcessInfo[SEARCH_CONTROL];
-        vector<int>& search_control_vector = rCurrentProcessInfo[SEARCH_CONTROL_VECTOR];
+        const int time_steps = r_process_info[TIME_STEPS];
+        int& search_control = r_process_info[SEARCH_CONTROL];
+        vector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
 
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-        double RotaAcc[3] = {0.0};
-
-        if (this->Is(DEMFlags::HAS_ROTATION)) {
-            RotaAcc[0] = ang_vel[0] * dt_i;
-            RotaAcc[1] = ang_vel[1] * dt_i;
-            RotaAcc[2] = ang_vel[2] * dt_i;
-
-            rInitialRotaMoment[0] = RotaAcc[0] * moment_of_inertia;
-            rInitialRotaMoment[1] = RotaAcc[1] * moment_of_inertia;
-            rInitialRotaMoment[2] = RotaAcc[2] * moment_of_inertia;
-        }
                         
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             
@@ -314,10 +286,10 @@ namespace Kratos {
 
             if (i < mContinuumInitialNeighborsSize) {
                 int failure_id = mIniNeighbourFailureId[i];
-                mContinuumConstitutiveLawArray[i]->CalculateForces(rCurrentProcessInfo, LocalElasticContactForce, LocalDeltDisp, kn_el, kt_el,
+                mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info, LocalElasticContactForce, LocalDeltDisp, kn_el, kt_el,
                                                                                     contact_sigma, contact_tau, failure_criterion_state, equiv_young, indentation,
                                                                                     calculation_area, acumulated_damage, this, neighbour_iterator, i,
-                                                                                    rCurrentProcessInfo[TIME_STEPS], sliding, search_control, search_control_vector);
+                                                                                    r_process_info[TIME_STEPS], sliding, search_control, search_control_vector);
 
                 mContinuumConstitutiveLawArray[i]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, this, neighbour_iterator, kn_el, kt_el);
                 mContinuumConstitutiveLawArray[i]->CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding, failure_id);
@@ -325,14 +297,14 @@ namespace Kratos {
             } else if (indentation > 0.0) { 
                 double cohesive_force =  0.0;                
                 const double previous_indentation = indentation + LocalDeltDisp[2];
-                mDiscontinuumConstitutiveLaw->CalculateForces(rCurrentProcessInfo, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding);                      
+                mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, neighbour_iterator, sliding);                      
             }
         
             // Transforming to global forces and adding up
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
 
-            if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) {   //We leave apart the discontinuum neighbours (the same for the walls). The neighbour wouldn't be able to do the same if we activate it. 
+            if (r_process_info[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) {   //We leave apart the discontinuum neighbours (the same for the walls). The neighbour wouldn't be able to do the same if we activate it. 
                 mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor);
             }
 
@@ -345,6 +317,10 @@ namespace Kratos {
             temp_force[2] = GlobalContactForce[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
+                if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
+                    const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
+                    noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
+                }   
                 ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i < mContinuumInitialNeighborsSize) {       
                     if (mIniNeighbourFailureId[i] == 0) {
@@ -353,11 +329,11 @@ namespace Kratos {
                 }
             }
          
-            if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+            if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
-            if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) {
+            if (r_process_info[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum);
             }
 
@@ -366,30 +342,9 @@ namespace Kratos {
         } // for each neighbor
 
             KRATOS_CATCH("")
-    } //  ComputeBallToBallContactForce
+    } //  ComputeBallToBallContactForce   
 
-
-    void SphericContinuumParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo) {
-
-        KRATOS_TRY
-
-        array_1d<double, 3 > & RotaMoment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-        double RotaDampRatio = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO);
-
-        // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL COORDINATES).        
-        for (int iDof = 0; iDof < 3; iDof++) {
-            if (this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0) {
-                RotaMoment[iDof] = RotaMoment[iDof] - RotaDampRatio * fabs(RotaMoment[iDof]);
-            } else {
-                RotaMoment[iDof] = RotaMoment[iDof] + RotaDampRatio * fabs(RotaMoment[iDof]);
-            }
-        }
-
-        KRATOS_CATCH("")
-
-    } //ApplyLocalMomentsDamping      
-
-    void SphericContinuumParticle::SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo) //MSIMSI10
+    void SphericContinuumParticle::SymmetrizeTensor(const ProcessInfo& r_process_info) //MSIMSI10
     {
 
         KRATOS_TRY
@@ -397,26 +352,26 @@ namespace Kratos {
         KRATOS_CATCH("")
     } //SymmetrizeTensor
 
-    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {         
+    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {         
         KRATOS_TRY
         
-        SphericParticle::InitializeSolutionStep(rCurrentProcessInfo);
+        SphericParticle::InitializeSolutionStep(r_process_info);
         
         KRATOS_CATCH("")
     }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 
-    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
 
         KRATOS_TRY
-        SphericParticle::FinalizeSolutionStep(rCurrentProcessInfo);
+        SphericParticle::FinalizeSolutionStep(r_process_info);
                 
         //Update sphere mass and inertia taking into acount the real volume of the represented volume:
         SetMass(this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * GetDensity());
         if (this->Is(DEMFlags::HAS_ROTATION) ){
-            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = 0.4 * GetMass() * GetRadius() * GetRadius();
+            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
         
-        if (rCurrentProcessInfo[PRINT_SKIN_SPHERE] == 1) {
+        if (r_process_info[PRINT_SKIN_SPHERE] == 1) {
             this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(*mSkinSphere);
         }        
 
@@ -560,7 +515,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo, const bool first) {
+    void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info, const bool first) {
         int my_id = this->Id();
         double my_partition_index = 0.0;
         if (has_mpi) my_partition_index = this->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
@@ -576,7 +531,7 @@ namespace Kratos {
             
             if (r_continuum_ini_neighbour == NULL) continue; //The initial neighbor was deleted at some point in time!!
 
-            Particle_Contact_Element* bond_i = mBondElements[i];
+            ParticleContactElement* bond_i = mBondElements[i];
             double other_partition_index = 0.0;
             if (has_mpi) other_partition_index = r_continuum_ini_neighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
 
@@ -625,24 +580,24 @@ namespace Kratos {
         return;
     }
 
-    void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
 
         if (rVariable == DELTA_TIME) {
 
-            double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+            double coeff = r_process_info[NODAL_MASS_COEFF];
             double mass = GetMass();
 
             if (coeff > 1.0) {
                 KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", coeff)
             }
-            else if ((coeff == 1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])) {
+            else if ((coeff == 1.0) && (r_process_info[VIRTUAL_MASS_OPTION])) {
                 Output = 9.0E09;
             }
             else {
 
-                if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]) {
+                if (r_process_info[VIRTUAL_MASS_OPTION]) {
                     mass /= 1 - coeff;
                 }
 
@@ -650,22 +605,16 @@ namespace Kratos {
 
                 Output = 0.34 * sqrt(mass / K);
 
-                if (rCurrentProcessInfo[ROTATION_OPTION] == 1) {
+                if (r_process_info[ROTATION_OPTION] == 1) {
                     Output = Output * 0.5; //factor for critical time step when rotation is allowed.
                 }
             }
             return;
         }//CRITICAL DELTA CALCULATION
-        ////////////////////////////////////////////////////////////////////////
-        if (rVariable == PARTICLE_ROTATION_DAMP_RATIO) {
-            //ApplyLocalMomentsDamping( rCurrentProcessInfo ); MSIMSI
-            return;
-        }
-        ////////////////////////////////////////////////////////////////////////
 
         if (rVariable == DEM_STRESS_XX) //operations with the stress_strain tensors
         {
-            SymmetrizeTensor(rCurrentProcessInfo);
+            SymmetrizeTensor(r_process_info);
             return;
         }
 
@@ -673,7 +622,7 @@ namespace Kratos {
 
         //        if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
         //        {
-        //            SetInitialSphereContacts(rCurrentProcessInfo);
+        //            SetInitialSphereContacts(r_process_info);
 
         //            CreateContinuumConstitutiveLaws();
         //            return;
@@ -688,33 +637,33 @@ namespace Kratos {
 
     }//Calculate
 
-    void SphericContinuumParticle::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info) {
     }//calculate Output vector
 
-    void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info) {
     }
 
-    void SphericContinuumParticle::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info) {
     }
 
     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
             array_1d<double, 3>& additionally_applied_moment,
-            ProcessInfo& rCurrentProcessInfo,
+            ProcessInfo& r_process_info,
             const array_1d<double, 3>& gravity) {
 
         KRATOS_TRY
-        SphericParticle::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);
+        SphericParticle::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_process_info, gravity);
         
-        if (rCurrentProcessInfo[TRIAXIAL_TEST_OPTION] && *mSkinSphere) { //could be applied to selected particles.
-            ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
+        if (r_process_info[TRIAXIAL_TEST_OPTION] && *mSkinSphere) { //could be applied to selected particles.
+            ComputePressureForces(additionally_applied_force, r_process_info);
         }        
 
         KRATOS_CATCH("")
     }
 
     void SphericContinuumParticle::CustomInitialize() {
-        //distances_squared = 0.0;           
-        //counter = 0;
+        mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
+        mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
     }
 
     double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {
@@ -730,7 +679,7 @@ namespace Kratos {
                                                               int time_steps) {
         KRATOS_TRY
 
-        Particle_Contact_Element* bond = mBondElements[i];
+        ParticleContactElement* bond = mBondElements[i];
 
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
@@ -751,12 +700,12 @@ namespace Kratos {
 
     }//CalculateOnContactElements                                     
 
-    void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo) {
+    void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& r_process_info) {
 
         noalias(externally_applied_force) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
 
         /*
-         double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
+         double time_now = r_process_info[TIME]; //MSIMSI 1 I tried to do a *mpTIME
 
          if( mFinalPressureTime <= 1e-10 )
          {
@@ -782,17 +731,6 @@ namespace Kratos {
          */
 
     } //SphericContinuumParticle::ComputePressureForces
-
-    void SphericContinuumParticle::ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo) {
-
-        KRATOS_TRY
-
-        mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
-        mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
-
-        KRATOS_CATCH("")
-
-    } //ContinuumSphereMemberDeclarationFirstStep
 
 } // namespace Kratos
 

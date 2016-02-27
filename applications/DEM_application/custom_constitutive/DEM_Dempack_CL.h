@@ -28,7 +28,7 @@ namespace Kratos {
         double mHistoryShearFlag;
 
 
-        virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
+        virtual void Initialize(const ProcessInfo& r_process_info);
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
@@ -47,7 +47,7 @@ namespace Kratos {
                 double kn_el,
                 double kt_el);
 
-        virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+        virtual void CalculateForces(ProcessInfo& r_process_info,
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,

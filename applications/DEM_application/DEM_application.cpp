@@ -6,8 +6,6 @@
 //
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "DEM_application.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"

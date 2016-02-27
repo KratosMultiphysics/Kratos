@@ -19,7 +19,7 @@ namespace Kratos {
     //        //std::cout << " DEMDiscontinuumConstitutiveLaw copy constructor..." << std::endl;
     //    }
 
-    void DEMDiscontinuumConstitutiveLaw::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEMDiscontinuumConstitutiveLaw::Initialize(const ProcessInfo& r_process_info) {
     }
 
     void DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
@@ -81,7 +81,7 @@ namespace Kratos {
       
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& r_process_info,
                                                         const double OldLocalContactForce[3],
                                                         double LocalElasticContactForce[3],
                                                         double LocalDeltDisp[3],
@@ -112,7 +112,7 @@ namespace Kratos {
         
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                                 const double OldLocalContactForce[3],
                                                                 double LocalElasticContactForce[3],
                                                                 double LocalDeltDisp[3],
@@ -195,7 +195,7 @@ namespace Kratos {
     /////// LIBRARY OF CALCULATION FUNCTIONS ///////
     ////////////////////////////////////////////////                
               
-    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& r_process_info,
                                                          double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             double kn_el,

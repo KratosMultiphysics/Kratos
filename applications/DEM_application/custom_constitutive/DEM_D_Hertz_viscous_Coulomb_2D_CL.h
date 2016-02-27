@@ -10,9 +10,10 @@
 #include "DEM_application.h"
 #include "includes/define.h"
 #include "DEM_D_Hertz_viscous_Coulomb_CL.h"
-#include "../custom_elements/spheric_particle.h"
 
 namespace Kratos {
+    
+    class SphericParticle;
 
     class DEM_D_Hertz_viscous_Coulomb2D : public DEM_D_Hertz_viscous_Coulomb {
     public:
@@ -22,7 +23,7 @@ namespace Kratos {
         DEM_D_Hertz_viscous_Coulomb2D() {
         }
       
-        void Initialize(const ProcessInfo& rCurrentProcessInfo);         
+        void Initialize(const ProcessInfo& r_process_info);         
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
@@ -35,7 +36,7 @@ namespace Kratos {
         
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
         
-        void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+        void CalculateForces(ProcessInfo& r_process_info,
                             const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],
@@ -47,7 +48,7 @@ namespace Kratos {
                             SphericParticle* element1,
                             SphericParticle* element2); 
         
-        void CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+        void CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                     const double OldLocalContactForce[3],
                                     double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3],

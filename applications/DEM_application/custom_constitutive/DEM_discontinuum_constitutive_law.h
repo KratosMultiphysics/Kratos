@@ -7,22 +7,20 @@
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/serializer.h"
-#include "includes/properties.h"
 #include "containers/flags.h"
 
-#include "custom_utilities/GeometryFunctions.h"
+#include "../custom_utilities/GeometryFunctions.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/Particle_Contact_Element.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
-#include "../custom_conditions/dem_wall.h"
+
 
 namespace Kratos {
-    /**
-     * Base class of constitutive laws.
-     */
-
+    
+    class Properties;
     class SphericParticle; // forward declaration of spheric cont particle
+    class DEMWall; //forward declaration
 
     class /*__declspec( dllexport )*/ DEMDiscontinuumConstitutiveLaw : public Flags {
     public:
@@ -36,7 +34,7 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
 
-        virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
+        virtual void Initialize(const ProcessInfo& r_process_info);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
         
@@ -56,7 +54,7 @@ namespace Kratos {
                 double calculation_area);
 
 
-        virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+        virtual void CalculateForces(ProcessInfo& r_process_info,
                                      double LocalElasticContactForce[3],
                                      double LocalDeltDisp[3],
                                      double kn_el,
@@ -106,7 +104,7 @@ namespace Kratos {
         
         virtual void GetContactStiffness(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta, double& kn,double& kt);
         
-        virtual void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+        virtual void CalculateForces(ProcessInfo& r_process_info,
                                                         const double OldLocalContactForce[3],
                                                         double LocalElasticContactForce[3],
                                                         double LocalDeltDisp[3],
@@ -119,7 +117,7 @@ namespace Kratos {
                                                         SphericParticle* element2,
                                                         bool& sliding);
         
-        virtual void CalculateForcesWithFEM( ProcessInfo& rCurrentProcessInfo,
+        virtual void CalculateForcesWithFEM( ProcessInfo& r_process_info,
                                             const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
                                             double LocalDeltDisp[3],
