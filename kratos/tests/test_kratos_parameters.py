@@ -46,6 +46,7 @@ pretty_out_after_change = """{
     }
 }"""
 
+
 class TestKratosParameters(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -101,10 +102,20 @@ class TestKratosParameters(KratosUnittest.TestCase):
         self.assertEqual(self.kp["int_value"].GetInt(), 10)
         # self.assertEqual(other_copy["int_value").GetString(),-1)
 
+    def test_set_value(self):
+        kp = KratosParameters(json_string)
+        kp1 =  KratosParameters(pretty_out_after_change)
+        
+        kp["bool_value"] = kp1["level1"]
+        kp["bool_value"].PrettyPrintJsonString()
+        self.assertEqual(kp["bool_value"].PrettyPrintJsonString() , kp1["level1"].PrettyPrintJsonString())
+        
+        
     def test_kratos_wrong_parameters(self):
         # should check which errors are thrown!!
         with self.assertRaisesRegex(RuntimeError, "kratos"):
             self.kp["no_value"].GetInt()
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
