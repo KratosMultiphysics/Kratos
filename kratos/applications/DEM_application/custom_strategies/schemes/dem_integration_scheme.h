@@ -12,14 +12,13 @@
 #include <string>
 #include <iostream> 
 
-
 // External includes 
-
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
+#include "kratos_DEMApplication_export_dll.h"
 
 namespace Kratos {
 

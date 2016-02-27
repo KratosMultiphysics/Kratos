@@ -14,16 +14,15 @@
 #include "utilities/openmp_utils.h"
 
 //Database includes
-#include "custom_utilities/discrete_particle_configure.h"
-#include "discrete_particle_configure.h"
+#include "../custom_utilities/discrete_particle_configure.h"
 
 // Project includes
 #include "includes/define.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/spheric_particle.h"
 #include "../custom_elements/spheric_continuum_particle.h"
-#include "custom_utilities/GeometryFunctions.h"
-#include "custom_utilities/AuxiliaryFunctions.h"
+#include "../custom_utilities/GeometryFunctions.h"
+#include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../DEM_application_variables.h"
 
 

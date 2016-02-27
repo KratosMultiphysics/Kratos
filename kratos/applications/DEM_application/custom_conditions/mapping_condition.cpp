@@ -3,7 +3,6 @@
 //
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/mapping_condition.h"
 #include "DEM_application.h"
 

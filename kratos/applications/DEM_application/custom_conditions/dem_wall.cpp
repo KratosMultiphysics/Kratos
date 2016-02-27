@@ -3,7 +3,6 @@
 //
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/dem_wall.h"
 #include "DEM_application.h"
 

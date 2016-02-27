@@ -11,7 +11,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "cylinder_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"

@@ -17,7 +17,6 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
-#include <iostream>
 
 /* External includes */
 #ifdef _OPENMP

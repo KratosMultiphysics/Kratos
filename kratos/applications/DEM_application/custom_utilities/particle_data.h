@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/define.h"
 #include "includes/model_part.h"
 
 //Database includes

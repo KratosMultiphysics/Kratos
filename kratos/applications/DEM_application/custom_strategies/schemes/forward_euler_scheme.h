@@ -11,11 +11,10 @@
 #include <cfloat>
 
 // Project includes
-#include "dem_integration_scheme.h"
 #include "includes/define.h"
+#include "dem_integration_scheme.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 #include "DEM_application.h"
 
 namespace Kratos {

@@ -1,6 +1,4 @@
 
-
-#include "DEM_application.h"
 #include "newmark_beta_scheme.h"
 
 namespace Kratos {

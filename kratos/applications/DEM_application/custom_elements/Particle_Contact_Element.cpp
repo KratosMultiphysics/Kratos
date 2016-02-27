@@ -3,13 +3,9 @@
 //
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "utilities/math_utils.h"
-//#include "includes/constitutive_law.h"
 #include "DEM_application.h"
-
-//#include <omp.h>
 
 namespace Kratos
 {
