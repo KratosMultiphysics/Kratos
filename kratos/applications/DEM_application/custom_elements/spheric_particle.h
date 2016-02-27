@@ -48,8 +48,8 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 /// Destructor.
 virtual ~SphericParticle();
 
-virtual void Initialize();
-virtual void FullInitialize(const ProcessInfo& r_process_info);
+using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
+virtual void Initialize(const ProcessInfo& r_process_info);
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
 using DiscreteElement::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
 virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control);
@@ -59,7 +59,7 @@ virtual void FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt,
 virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info);
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
-virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
+virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
@@ -74,11 +74,12 @@ void  SetClusterId(const int Id);
 
 double GetRadius();
 void   SetRadius(double radius);
-virtual double GetVolume();
+virtual double CalculateVolume();
 virtual double GetInteractionRadius();
 virtual void SetInteractionRadius(const double radius);
 virtual double GetMass();
 void   SetMass(double real_mass);
+virtual double   CalculateMomentOfInertia();
 double GetYoung();
 void   SetYoungFromProperties(double* young);
 double GetRollingFriction();
@@ -259,7 +260,6 @@ virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel
                          double mTimeStep, double density, bool sliding, double inverse_of_volume,
                          double LocalElasticContactForce, DEMWall* cast_neighbour);
 
-virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
 virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticContactForce[3],

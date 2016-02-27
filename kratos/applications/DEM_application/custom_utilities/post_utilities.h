@@ -152,7 +152,7 @@ public:
     }
     
     
-    double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& rCurrentProcessInfo ){
+    double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& r_process_info ){
         
         double adimensional_value = 0.0;
 
@@ -162,7 +162,7 @@ public:
   
         array_1d<double,3> particle_forces;
         
-        const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
+        const array_1d<double,3>& gravity = r_process_info[GRAVITY];
         
         double total_force = 0.0;
         

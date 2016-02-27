@@ -15,7 +15,7 @@ namespace Kratos {
 
         DEM_D_JKR_Cohesive_Law();
 
-        void Initialize(const ProcessInfo& rCurrentProcessInfo);
+        void Initialize(const ProcessInfo& r_process_info);
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 

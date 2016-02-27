@@ -7,22 +7,25 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h" 
+#include "includes/define.h"
 
-#include "custom_constitutive/DEM_discontinuum_constitutive_law.h" 
-#include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
-#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
-#include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
-#include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
-#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
-#include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
-#include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"    
+#include "../custom_constitutive/DEM_continuum_constitutive_law.h" 
+#include "../custom_constitutive/DEM_compound_constitutive_law.h" 
 
-#include "custom_constitutive/DEM_continuum_constitutive_law.h" 
-#include "custom_constitutive/DEM_Dempack_CL.h"
-#include "custom_constitutive/DEM_Dempack_2D_CL.h"
-#include "custom_constitutive/DEM_KDEM_CL.h"
-#include "custom_constitutive/DEM_ExponentialHC_CL.h"
+#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h" 
+#include "../custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
+#include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
+#include "../custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
+#include "../custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
+#include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
+#include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
+#include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
+
+#include "../custom_constitutive/DEM_Dempack_CL.h"
+#include "../custom_constitutive/DEM_Dempack_2D_CL.h"
+#include "../custom_constitutive/DEM_KDEM_CL.h"
+#include "../custom_constitutive/DEM_ExponentialHC_CL.h"
 
 
 

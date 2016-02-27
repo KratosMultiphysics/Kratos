@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-    void DEM_Dempack::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEM_Dempack::Initialize(const ProcessInfo& r_process_info) {
         
     KRATOS_TRY  
     mHistoryMaxInd              = 0.0; //maximum indentation achieved
@@ -77,7 +77,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_Dempack::CalculateForces(ProcessInfo& r_process_info,
                                       double LocalElasticContactForce[3],
                                       double LocalDeltDisp[3],
                                       const double kn_el,

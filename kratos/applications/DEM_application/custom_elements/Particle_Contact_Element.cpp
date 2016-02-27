@@ -15,40 +15,38 @@ namespace Kratos
 {
 //************************************************************************************
 //************************************************************************************
-Particle_Contact_Element::Particle_Contact_Element( IndexType NewId, GeometryType::Pointer pGeometry )
+ParticleContactElement::ParticleContactElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); //fa falta???
     //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
 //************************************************************************************
-Particle_Contact_Element::Particle_Contact_Element( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+ParticleContactElement::ParticleContactElement( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//fa falta???
 }
 
 //create contact elements instances.
 
-Element::Pointer Particle_Contact_Element::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
+Element::Pointer ParticleContactElement::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new Particle_Contact_Element( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Element::Pointer( new ParticleContactElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
-Particle_Contact_Element::~Particle_Contact_Element()
+ParticleContactElement::~ParticleContactElement()
 {
 }
 
-std::string Particle_Contact_Element::Info() const
+std::string ParticleContactElement::Info() const
 {
     std::stringstream buffer;
     buffer << "Particle Contact Element" << std::endl;
     return buffer.str();
 }
 
-void Particle_Contact_Element::Initialize() {
+void ParticleContactElement::Initialize() {
     KRATOS_TRY
     
     mMeanContactArea = 0.0;    
@@ -77,7 +75,7 @@ void Particle_Contact_Element::Initialize() {
     KRATOS_CATCH( "" )
 }
 
-void Particle_Contact_Element::PrepareForPrinting() {
+void ParticleContactElement::PrepareForPrinting() {
     KRATOS_TRY
             
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = mLocalContactForce[0];
@@ -92,7 +90,7 @@ void Particle_Contact_Element::PrepareForPrinting() {
     KRATOS_CATCH( "" )    
 }
 
-void Particle_Contact_Element::CalculateMeanContactArea(const bool has_mpi)
+void ParticleContactElement::CalculateMeanContactArea(const bool has_mpi)
 {
     KRATOS_TRY
             
@@ -102,33 +100,26 @@ void Particle_Contact_Element::CalculateMeanContactArea(const bool has_mpi)
     KRATOS_CATCH( "" )
 }
 
-void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void ParticleContactElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info)
 {
     //if(rVariable == LOCAL_CONTACT_FORCE) {  //3D VARIABLE WITH COMPONENTS                   
     rOutput.resize(1);
-    const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); //To ensure we don't set the value here
+    const ParticleContactElement* const_this = dynamic_cast< const ParticleContactElement* >(this); //To ensure we don't set the value here
     rOutput[0][0] = const_this->GetValue(rVariable)[0];
     rOutput[0][1] = const_this->GetValue(rVariable)[1];
     rOutput[0][2] = const_this->GetValue(rVariable)[2];        
     //}    
 }
  
-void Particle_Contact_Element::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo) {        
+void ParticleContactElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) {        
     Output.resize(1);
-    const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); //To ensure we don't set the value here                
+    const ParticleContactElement* const_this = dynamic_cast< const ParticleContactElement* >(this); //To ensure we don't set the value here                
     Output[0] = double(const_this->GetValue(rVariable)); 
 } 
     
+void ParticleContactElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
 
-
-//************************************************************************************
-//************************************************************************************
-void Particle_Contact_Element::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {}
-
-////************************************************************************************
-////************************************************************************************
-
-void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void ParticleContactElement::InitializeSolutionStep( ProcessInfo& r_process_info )
 {
     mContactTau           = 0.0;
     mContactSigma         = 0.0;    
@@ -142,9 +133,9 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
 
 ////************************************************************************************
 ////************************************************************************************
-void Particle_Contact_Element::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {}
+void ParticleContactElement::FinalizeSolutionStep(ProcessInfo& r_process_info) {}
 
-void Particle_Contact_Element::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {}
+void ParticleContactElement::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {}
 
 } // Namespace Kratos
 

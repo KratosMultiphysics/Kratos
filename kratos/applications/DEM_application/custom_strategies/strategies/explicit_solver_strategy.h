@@ -273,17 +273,17 @@ namespace Kratos
       
       void SendProcessInfoToClustersModelPart(){
           
-          ProcessInfo& rCurrentProcessInfo         = mpDem_model_part->GetProcessInfo();
-          ProcessInfo& rClustersCurrentProcessInfo = mpCluster_model_part->GetProcessInfo();
+          ProcessInfo& r_process_info         = mpDem_model_part->GetProcessInfo();
+          ProcessInfo& rClustersr_process_info = mpCluster_model_part->GetProcessInfo();
           
-          rCurrentProcessInfo[CONTAINS_CLUSTERS] = false;
-          rClustersCurrentProcessInfo[CONTAINS_CLUSTERS] = true;
+          r_process_info[CONTAINS_CLUSTERS] = false;
+          rClustersr_process_info[CONTAINS_CLUSTERS] = true;
                   
-          rClustersCurrentProcessInfo[ROTATION_OPTION]     = rCurrentProcessInfo[ROTATION_OPTION];    
-          rClustersCurrentProcessInfo[DELTA_TIME]          = rCurrentProcessInfo[DELTA_TIME];
-          rClustersCurrentProcessInfo[VIRTUAL_MASS_OPTION] = rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
-          rClustersCurrentProcessInfo[TRIHEDRON_OPTION]    = rCurrentProcessInfo[TRIHEDRON_OPTION];
-          rClustersCurrentProcessInfo[NODAL_MASS_COEFF]    = rCurrentProcessInfo[NODAL_MASS_COEFF];                        
+          rClustersr_process_info[ROTATION_OPTION]     = r_process_info[ROTATION_OPTION];    
+          rClustersr_process_info[DELTA_TIME]          = r_process_info[DELTA_TIME];
+          rClustersr_process_info[VIRTUAL_MASS_OPTION] = r_process_info[VIRTUAL_MASS_OPTION];
+          rClustersr_process_info[TRIHEDRON_OPTION]    = r_process_info[TRIHEDRON_OPTION];
+          rClustersr_process_info[NODAL_MASS_COEFF]    = r_process_info[NODAL_MASS_COEFF];                        
       }
       
       void UpdateMaxIdOfCreatorDestructor(){
@@ -346,7 +346,7 @@ namespace Kratos
 
           ModelPart& r_model_part            = BaseType::GetModelPart();
           
-          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
           SendProcessInfoToClustersModelPart();          
                     
           // Omp initializations
@@ -365,10 +365,10 @@ namespace Kratos
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
                    
-          GetBoundingBoxOption()    = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
-          GetSearchControl()        = rCurrentProcessInfo[SEARCH_CONTROL];
-          GetBoundingBoxStartTime() = rCurrentProcessInfo[BOUNDING_BOX_START_TIME];
-          GetBoundingBoxStopTime()  = rCurrentProcessInfo[BOUNDING_BOX_STOP_TIME];
+          GetBoundingBoxOption()    = r_process_info[BOUNDING_BOX_OPTION];
+          GetSearchControl()        = r_process_info[SEARCH_CONTROL];
+          GetBoundingBoxStartTime() = r_process_info[BOUNDING_BOX_START_TIME];
+          GetBoundingBoxStopTime()  = r_process_info[BOUNDING_BOX_STOP_TIME];
           
           InitializeDEMElements();           
           InitializeFEMElements();
@@ -401,15 +401,15 @@ namespace Kratos
           
           // Finding overlapping of initial configurations
 
-          if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]) {
+          if (r_process_info[CLEAN_INDENT_OPTION]) {
               for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
           }
 
-          if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]) {
+          if (r_process_info[CRITICAL_TIME_OPTION]) {
               InitialTimeStepCalculation();
           }
           
-          double& total_friccional_work       = rCurrentProcessInfo[PARTICLE_INELASTIC_FRICTIONAL_WORK];
+          double& total_friccional_work       = r_process_info[PARTICLE_INELASTIC_FRICTIONAL_WORK];
           total_friccional_work = 0.0;
           
            // 5. Finalize Solution Step.
@@ -448,8 +448,8 @@ namespace Kratos
 
             KRATOS_TRY
                     
-            ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
-            const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY]; 
+            ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
+            const array_1d<double,3>& gravity = r_process_info[GRAVITY]; 
 
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();  
             const int number_of_clusters = pElements.size();
@@ -494,9 +494,9 @@ namespace Kratos
         void SearchOperations(ModelPart& r_model_part, bool has_mpi = true)
       {
          
-         ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
-         int time_step = rCurrentProcessInfo[TIME_STEPS];
-         double time = rCurrentProcessInfo[TIME];
+         ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
+         int time_step = r_process_info[TIME_STEPS];
+         double time = r_process_info[TIME];
          
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box                   
               
@@ -520,7 +520,7 @@ namespace Kratos
             ComputeNewNeighboursHistoricalData();  
             
             SetOriginalRadius(r_model_part);              
-            SearchRigidFaceNeighbours(rCurrentProcessInfo[LOCAL_RESOLUTION_METHOD]);
+            SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
             ComputeNewRigidFaceNeighboursHistoricalData();
             mSearchControl = 2; // Search is active and has been performed during this time step
             //ReorderParticles();
@@ -564,19 +564,19 @@ namespace Kratos
           KRATOS_TRY
 
           ModelPart& r_model_part             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           ElementsIterator it_begin = pElements.ptr_begin();
           ElementsIterator it_end   = pElements.ptr_end();
 
-          double& process_info_delta_time = rCurrentProcessInfo[DELTA_TIME];
+          double& process_info_delta_time = r_process_info[DELTA_TIME];
           process_info_delta_time         = mMaxTimeStep;
           double temp_time_step           = std::numeric_limits<double>::infinity();
           double elem_critical_time_step  = temp_time_step;
 
           for (ElementsIterator it = it_begin; it != it_end; it++){
-              it->Calculate(DELTA_TIME, elem_critical_time_step, rCurrentProcessInfo);
+              it->Calculate(DELTA_TIME, elem_critical_time_step, r_process_info);
 
               if (elem_critical_time_step < temp_time_step){
                   temp_time_step = elem_critical_time_step;
@@ -599,9 +599,9 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
-          double dt = rCurrentProcessInfo[DELTA_TIME];
-          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];             
+          ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo();
+          double dt = r_process_info[DELTA_TIME];
+          const array_1d<double,3>& gravity = r_process_info[GRAVITY];             
 
           const int number_of_particles = (int)mListOfSphericParticles.size();
           
@@ -613,7 +613,7 @@ namespace Kratos
             
             for (int i = 0; i < number_of_particles; i++){
                               
-                mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity, mSearchControl);  
+                mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, r_process_info, dt, gravity, mSearchControl);  
             }
           }
 
@@ -624,24 +624,24 @@ namespace Kratos
       {
           KRATOS_TRY
           
-          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
-          double dt = rCurrentProcessInfo[DELTA_TIME];
-          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
+          ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo();
+          double dt = r_process_info[DELTA_TIME];
+          const array_1d<double,3>& gravity = r_process_info[GRAVITY];
           const int number_of_particles = (int)mListOfSphericParticles.size();
 
           #pragma omp parallel
           {
               #pragma omp for
               for(int i=0; i<number_of_particles; i++){ 
-                  mListOfSphericParticles[i]->FirstCalculateRightHandSide(rCurrentProcessInfo, dt, mSearchControl); 
+                  mListOfSphericParticles[i]->FirstCalculateRightHandSide(r_process_info, dt, mSearchControl); 
               }
               #pragma omp for
               for(int i=0; i<number_of_particles; i++){ 
-                  mListOfSphericParticles[i]->CollectCalculateRightHandSide(rCurrentProcessInfo); 
+                  mListOfSphericParticles[i]->CollectCalculateRightHandSide(r_process_info); 
               }
               #pragma omp for
               for(int i=0; i<number_of_particles; i++){ 
-                  mListOfSphericParticles[i]->FinalCalculateRightHandSide(rCurrentProcessInfo, dt, gravity); 
+                  mListOfSphericParticles[i]->FinalCalculateRightHandSide(r_process_info, dt, gravity); 
               }
 
           }
@@ -666,7 +666,7 @@ namespace Kratos
           // SPHERE MODEL PART
 
           ModelPart& r_model_part             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();                    
           
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
@@ -677,7 +677,7 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                (it)->InitializeSolutionStep(rCurrentProcessInfo); 
+                (it)->InitializeSolutionStep(r_process_info); 
                 
               } // loop over particles
           } // loop threads OpenMP
@@ -707,7 +707,7 @@ namespace Kratos
           KRATOS_TRY
 
           ModelPart& r_model_part             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
@@ -718,7 +718,7 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                  (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+                  (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts.
               } //loop over particles
 
           } // loop threads OpenMP
@@ -729,13 +729,13 @@ namespace Kratos
       
     void SetCoordinationNumber(ModelPart& r_model_part) 
     {
-      ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();  
+      ProcessInfo& r_process_info      = r_model_part.GetProcessInfo();  
         
-      const double in_coordination_number = rCurrentProcessInfo[COORDINATION_NUMBER];
+      const double in_coordination_number = r_process_info[COORDINATION_NUMBER];
       double out_coordination_number = ComputeCoordinationNumber();
       int iteration = 0;
       int maxiteration = 100;
-      double& added_search_distance = rCurrentProcessInfo[SEARCH_TOLERANCE];
+      double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
       
       std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
  
@@ -747,7 +747,7 @@ namespace Kratos
           if(iteration>=maxiteration) break;
           iteration++;
           added_search_distance *= in_coordination_number/out_coordination_number;
-          SearchNeighbours(); //rCurrentProcessInfo[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
+          SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
           out_coordination_number = ComputeCoordinationNumber();
       }//while
 
@@ -822,11 +822,11 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info      = r_model_part.GetProcessInfo();
         const int number_of_particles = (int)mListOfSphericParticles.size();
         #pragma omp parallel for
         for(int i=0; i<number_of_particles; i++){
-            mListOfSphericParticles[i]->FullInitialize(rCurrentProcessInfo);
+            mListOfSphericParticles[i]->Initialize(r_process_info);
         }
                 
         KRATOS_CATCH("")
@@ -860,7 +860,7 @@ namespace Kratos
       
         Clear_forces_FEM();
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
-        ProcessInfo& CurrentProcessInfo = GetFemModelPart().GetProcessInfo();
+        ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         
         Vector rhs_cond;
         Vector rhs_cond_elas;
@@ -878,9 +878,9 @@ namespace Kratos
                 
                 Condition::GeometryType& geom = it->GetGeometry();            
                 double Element_Area = geom.Area();                     
-                it->CalculateRightHandSide(rhs_cond, CurrentProcessInfo);
+                it->CalculateRightHandSide(rhs_cond, r_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*>(&(*it));
-                p_wall->CalculateElasticForces(rhs_cond_elas, CurrentProcessInfo);
+                p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element;
                 p_wall->CalculateNormal(Normal_to_Element);                                                                                       
                 const unsigned int& dim = geom.WorkingSpaceDimension();
@@ -998,8 +998,8 @@ namespace Kratos
     void ApplyPrescribedBoundaryConditions() {
       
         KRATOS_TRY
-        ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
-        double time = rCurrentProcessInfo[TIME];
+        ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo();
+        double time = r_process_info[TIME];
 
         bool impose = false; double vel_x = 0.0;  double vel_y = 0.0;  double vel_z = 0.0;
         double ang_vel_x = 0.0; double ang_vel_y = 0.0; double ang_vel_z = 0.0;
@@ -1167,8 +1167,8 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part            = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
-        const double added_search_distance = rCurrentProcessInfo[SEARCH_TOLERANCE];        
+        ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
+        const double added_search_distance = r_process_info[SEARCH_TOLERANCE];        
         
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if(!number_of_elements) return; 
@@ -1380,7 +1380,7 @@ namespace Kratos
     
     void PrepareElementsForPrinting() {
        
-        ProcessInfo& rCurrentProcessInfo    = (*mpDem_model_part).GetProcessInfo();
+        ProcessInfo& r_process_info    = (*mpDem_model_part).GetProcessInfo();
         ElementsArrayType& pElements        = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
                
         vector<unsigned int> element_partition;
@@ -1397,7 +1397,7 @@ namespace Kratos
             for (typename ElementsArrayType::iterator it= it_begin; it!=it_end; ++it) {
                 Element* raw_p_element = &(*it);
                 SphericParticle* p_sphere = dynamic_cast<SphericParticle*>( raw_p_element );    
-                p_sphere->PrepareForPrinting(rCurrentProcessInfo);
+                p_sphere->PrepareForPrinting(r_process_info);
             } //loop over ELEMENTS
         }// loop threads OpenMP        
     } //PrepareElementsForPrinting
@@ -1412,10 +1412,10 @@ namespace Kratos
      {
           KRATOS_TRY
 
-          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
+          ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo();
                   
-          double& total_elastic_energy        = rCurrentProcessInfo[PARTICLE_ELASTIC_ENERGY];
-          double& total_damping_energy        = rCurrentProcessInfo[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
+          double& total_elastic_energy        = r_process_info[PARTICLE_ELASTIC_ENERGY];
+          double& total_damping_energy        = r_process_info[PARTICLE_INELASTIC_VISCODAMPING_ENERGY];
 
           total_elastic_energy        = 0.0;
           total_damping_energy        = 0.0;

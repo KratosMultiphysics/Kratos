@@ -12,7 +12,7 @@
 
 namespace Kratos {
 
-    void DEM_ExponentialHC::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEM_ExponentialHC::Initialize(const ProcessInfo& r_process_info) {
         
 
         KRATOS_TRY
@@ -84,7 +84,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_ExponentialHC::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_ExponentialHC::CalculateForces(ProcessInfo& r_process_info,
                                             double LocalElasticContactForce[3],
                                             double LocalDeltDisp[3],
                                             const double kn_el,
@@ -278,10 +278,10 @@ namespace Kratos {
             int i_neighbour_count,
             int time_steps) {
 
-        //        mGamma1 = rCurrentProcessInfo[DONZE_G1];
-        //        mGamma2 = rCurrentProcessInfo[DONZE_G2];
-        //        mGamma3 = rCurrentProcessInfo[DONZE_G3];
-        //        mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
+        //        mGamma1 = r_process_info[DONZE_G1];
+        //        mGamma2 = r_process_info[DONZE_G2];
+        //        mGamma3 = r_process_info[DONZE_G3];
+        //        mMaxDef = r_process_info[DONZE_MAX_DEF];
         
         
         KRATOS_TRY
@@ -294,7 +294,7 @@ namespace Kratos {
         //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
         int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
         //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
-        double &mNeighbourDelta_count = element1->mNeighbourDelta[i_neighbour_count];
+        double &mNeighbourDelta_count = element1->mIniNeighbourDelta[i_neighbour_count];
 
         const double mDamageMaxDisplacementFactor = element1->GetProperties()[DAMAGE_FACTOR];
         const double mTensionLimit = element1->GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2
@@ -392,10 +392,10 @@ namespace Kratos {
 //        double max_dist,
 //        double initial_dist) {
 //
-//    //mGamma1 = rCurrentProcessInfo[DONZE_G1];
-//    //mGamma2 = rCurrentProcessInfo[DONZE_G2];
-//    //mGamma3 = rCurrentProcessInfo[DONZE_G3];
-//    //mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
+//    //mGamma1 = r_process_info[DONZE_G1];
+//    //mGamma2 = r_process_info[DONZE_G2];
+//    //mGamma3 = r_process_info[DONZE_G3];
+//    //mMaxDef = r_process_info[DONZE_MAX_DEF];
 //
 //    //sabemos que double indentation = initial_dist - distance;
 //

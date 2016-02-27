@@ -76,21 +76,22 @@ SphericParticle::~SphericParticle(){
     }
 }
 
-void SphericParticle::Initialize()
+void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
+    MemberDeclarationFirstStep(r_process_info);
+    
     NodeType& node = GetGeometry()[0];
 
     SetRadius(node.GetSolutionStepValue(RADIUS));
-    SetMass(GetDensity() * GetVolume());
+    SetMass(GetDensity() * CalculateVolume());
 
     if (this->IsNot(BLOCKED)) node.GetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
     
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION)) {
-        double moment_of_inertia = 0.4 * GetMass() * GetRadius() * GetRadius();
-        node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+        node.GetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
     }
 
     else {
@@ -110,19 +111,9 @@ void SphericParticle::Initialize()
     else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);}
     if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
     else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}
-
-    //this->GetGeometry()[0].FastGetSolutionStepValue(SPRAYED_MATERIAL) = 0.0;
     
-    CustomInitialize();    
-
-    KRATOS_CATCH( "" )
-}
-
-void SphericParticle::FullInitialize(const ProcessInfo& r_process_info)
-{
-    KRATOS_TRY
-    MemberDeclarationFirstStep(r_process_info);
-    Initialize();   
+    CustomInitialize(); 
+    
     CreateDiscontinuumConstitutiveLaws(r_process_info);    
     KRATOS_CATCH( "" )
 }
@@ -701,6 +692,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
     const array_1d<double, 3>& velocity     = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     const array_1d<double, 3>& ang_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
     
     double LocalCoordSystem[3][3]    = {{0.0}, {0.0}, {0.0}};
     double OldLocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
@@ -1145,7 +1137,7 @@ void SphericParticle::CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_pr
 
 void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info){}
 
-void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
@@ -1257,7 +1249,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     KRATOS_TRY
 
     double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-    const double sphere_volume = GetVolume();
+    const double sphere_volume = CalculateVolume();
     if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
         rRepresentative_Volume = sphere_volume;
     }    
@@ -1385,10 +1377,7 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         
         mStressTensor     = NULL;
         mSymmStressTensor = NULL;
-    }
-
-    AdditionalMemberDeclarationFirstStep(r_process_info);
-    
+    }    
 }
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) //only available in continuum_particle
@@ -1479,18 +1468,18 @@ void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable,
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
 void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
 
-void SphericParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info) {}
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
 int    SphericParticle::GetClusterId()                                                   { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;   }
 double SphericParticle::GetRadius()                                                      { return mRadius;         }
-double SphericParticle::GetVolume()                                                      { return 4 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
+double SphericParticle::CalculateVolume()                                                { return 4 * KRATOS_M_PI_3 * mRadius * mRadius * mRadius;     }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
 double SphericParticle::GetInteractionRadius()                                           { return mRadius;         }
 void   SphericParticle::SetInteractionRadius(const double radius)                        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
 double SphericParticle::GetMass()                                                        { return mRealMass;       }
 void   SphericParticle::SetMass(double real_mass)                                        { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
+double SphericParticle::CalculateMomentOfInertia()                                       {return 0.4 * GetMass() * GetRadius() * GetRadius(); }
 
 double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                     }
 double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();           }

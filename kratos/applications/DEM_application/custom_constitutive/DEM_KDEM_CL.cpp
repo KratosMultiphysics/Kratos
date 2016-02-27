@@ -10,7 +10,7 @@
 
 namespace Kratos {
 
-    void DEM_KDEM::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEM_KDEM::Initialize(const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
         KRATOS_CATCH("")  
@@ -78,7 +78,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
     
-    void DEM_KDEM::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_KDEM::CalculateForces(ProcessInfo& r_process_info,
                                    double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             const double kn_el,

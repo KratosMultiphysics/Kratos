@@ -64,7 +64,7 @@ public:
                                  ProcessInfo& r_current_process_info,
                                  const array_1d<double,3>& gravity);
 
-    double GetVolume();
+    double CalculateVolume();
     
     double GetInteractionRadius();
     void SetInteractionRadius(const double radius);

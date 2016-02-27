@@ -213,11 +213,10 @@ namespace Kratos {
             
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
             array_1d<double, 3>& particle_forces = sphere_node.FastGetSolutionStepValue(TOTAL_FORCES);  
-            //noalias(center_forces) += particle_forces;   
             center_forces[0] += particle_forces[0];
             center_forces[1] += particle_forces[1];
             center_forces[2] += particle_forces[2];
-            //noalias(center_torque) += sphere_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+            
             array_1d<double, 3>& particle_torque = sphere_node.FastGetSolutionStepValue(PARTICLE_MOMENT); 
             center_torque[0] += particle_torque[0];
             center_torque[1] += particle_torque[1];
@@ -225,12 +224,10 @@ namespace Kratos {
                         
             //Now adding the torque due to the eccentric forces (spheres are not on the center of the cluster)
             array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
-            //noalias(center_to_sphere_vector) = sphere_position - central_node.Coordinates();
             center_to_sphere_vector[0] = sphere_position[0] - central_node.Coordinates()[0];
             center_to_sphere_vector[1] = sphere_position[1] - central_node.Coordinates()[1];
             center_to_sphere_vector[2] = sphere_position[2] - central_node.Coordinates()[2];
             GeometryFunctions::CrossProduct( center_to_sphere_vector, particle_forces, additional_torque );
-            //noalias(center_torque) += additional_torque;
             center_torque[0] += additional_torque[0];
             center_torque[1] += additional_torque[1];
             center_torque[2] += additional_torque[2];
@@ -246,91 +243,6 @@ namespace Kratos {
     void Cluster3D::ComputeAdditionalForces(const array_1d<double,3>& gravity){
         const double mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += mass * gravity;                        
-    }
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {}
-  
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
-        
-        KRATOS_TRY
-
-        ElementalDofList.resize(0);
-
-//      for (unsigned int i = 0; i < GetGeometry().size(); i++){
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
-//          if (GetGeometry().WorkingSpaceDimension() == 3) {
-//              ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
-//          }
-// 
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_X));
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_Y));
-//          if (GetGeometry().WorkingSpaceDimension() == 3) {
-//              ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_Z));
-//          }
-// 
-//      }
-
-        KRATOS_CATCH("")    
-    }
-
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
-        
-        KRATOS_TRY
-
-        KRATOS_CATCH("")    
-    }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-    
-    void Cluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo) {
-          
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-
-    }// Calculate
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void Cluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-    void Cluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}       
-
+    }    
 }  // namespace Kratos.
 

@@ -55,16 +55,15 @@ namespace Kratos
        
     
       double GetTemperature();     
-      void ComputeConductiveHeatFlux(const ProcessInfo& rCurrentProcessInfo);   
-      void ComputeConvectiveHeatFlux(const ProcessInfo& rCurrentProcessInfo);  
+      void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
+      void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
       void CalculateRightHandSide(VectorType& r_right_hand_side_vector, 
                                   ProcessInfo& r_current_process_info,
                                   double dt, 
                                   const array_1d<double,3>& gravity,
                                   int search_control);  
-      void ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
-      void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo); 
-      void UpdateTemperature(const ProcessInfo& rCurrentProcessInfo); 
+      void FinalizeSolutionStep(ProcessInfo& r_process_info); 
+      void UpdateTemperature(const ProcessInfo& r_process_info); 
           
     
       /// Turn back information as a string.
@@ -86,14 +85,14 @@ namespace Kratos
 //      //member variables DEM_CONTINUUM
 //      int mContinuumGroup;
 //      std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
-//      std::vector<Particle_Contact_Element*> mBondElements;
+//      std::vector<ParticleContactElement*> mBondElements;
 //      std::vector<int> mIniNeighbourIds;
 //      
 //      
 //      //member variables DEM_THERMAL
 //      int mThermalGroup;
 //      std::vector<ThermalSphericParticle*> mThermalIniNeighbourElements;
-//      std::vector<Particle_Contact_Element*> mBondElements;
+//      std::vector<ParticleContactElement*> mBondElements;
 //      std::vector<int> mIniNeighbourIds;
             
       

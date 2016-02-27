@@ -120,6 +120,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
             KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
         scheme.SetRotationOption(solver.rotation_option)
+        solver.time_integration_scheme = scheme
         
         # Add variables
         procedures.AddCommonVariables(spheres_model_part, DEM_parameters)

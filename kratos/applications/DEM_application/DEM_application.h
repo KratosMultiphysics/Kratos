@@ -25,6 +25,7 @@
 #include "custom_elements/nanoparticle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
+#include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/custom_clusters/linecluster3D.h"
 #include "custom_elements/custom_clusters/cubecluster3D.h"
 #include "custom_elements/custom_clusters/pillcluster3D.h"
@@ -45,17 +46,10 @@
 #include "custom_elements/custom_clusters/ballast5cluster3D.h"
 #include "custom_elements/custom_clusters/ballast6cluster3D.h"
 #include "custom_conditions/mapping_condition.h"
-#include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
-#include "custom_elements/thermal_spheric_particle.h"
-
-//Constitutive laws
-#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
-#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
-#include "custom_constitutive/DEM_compound_constitutive_law.h"
 
 namespace Kratos
 {
@@ -111,7 +105,7 @@ private:
     const NanoParticle mNanoParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D; 
     const ThermalSphericParticle mThermalSphericContinuumParticle3D;  
-    const Particle_Contact_Element mParticleContactElement;
+    const ParticleContactElement mParticleContactElement;
     const VariablesList mVariablesList;
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;

@@ -16,7 +16,7 @@ void NanoParticle::CustomInitialize()
     mInteractionRadius = GetGeometry()[0].GetSolutionStepValue(RADIUS);
     mRadius = 1e-7;
     double added_mass_coefficient = 1.0;
-    SetMass(added_mass_coefficient * GetDensity() * GetVolume());
+    SetMass(added_mass_coefficient * GetDensity() * CalculateVolume());
 }
 
 void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
@@ -38,7 +38,7 @@ void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_app
     KRATOS_CATCH( "" )
 }
 
-double NanoParticle::GetVolume()
+double NanoParticle::CalculateVolume()
 {
     return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
 }

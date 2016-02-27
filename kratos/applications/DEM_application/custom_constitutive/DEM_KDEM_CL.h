@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_KDEM() {
         }    
 
-        void Initialize(const ProcessInfo& rCurrentProcessInfo);
+        void Initialize(const ProcessInfo& r_process_info);
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
@@ -37,7 +37,7 @@ namespace Kratos {
                 double kn_el,
                 double kt_el);
 
-        void CalculateForces(ProcessInfo& rCurrentProcessInfo,
+        void CalculateForces(ProcessInfo& r_process_info,
                              double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,

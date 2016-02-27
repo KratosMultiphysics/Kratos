@@ -303,7 +303,7 @@ namespace Kratos {
         if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
         else spheric_p_particle->Set(DEMFlags::HAS_ROTATION, false);
 
-        spheric_p_particle->FullInitialize(r_modelpart.GetProcessInfo()); 
+        spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
 
         r_modelpart.Elements().push_back(p_particle);
     }
@@ -370,7 +370,6 @@ namespace Kratos {
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
-        //p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
 
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
@@ -813,10 +812,10 @@ namespace Kratos {
 
                 Element* p_element = particle_pointer_it->get();
                 SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*> (p_element);
-                std::vector<Particle_Contact_Element*>& node_to_neigh_element_pointer = p_continuum_spheric_particle->mBondElements;
+                std::vector<ParticleContactElement*>& node_to_neigh_element_pointer = p_continuum_spheric_particle->mBondElements;
                 unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
                 for (unsigned int i = 0; i < number_of_contact_elements; i++) {
-                    Particle_Contact_Element* p_to_contact_element = node_to_neigh_element_pointer[i];
+                    ParticleContactElement* p_to_contact_element = node_to_neigh_element_pointer[i];
                     if (p_to_contact_element != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
                         p_to_contact_element->Set(TO_ERASE);
                     }

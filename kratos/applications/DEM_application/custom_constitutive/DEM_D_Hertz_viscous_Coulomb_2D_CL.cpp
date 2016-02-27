@@ -5,7 +5,7 @@
 
 namespace Kratos {
 
-    void DEM_D_Hertz_viscous_Coulomb2D::Initialize(const ProcessInfo& rCurrentProcessInfo){}
+    void DEM_D_Hertz_viscous_Coulomb2D::Initialize(const ProcessInfo& r_process_info){}
 
     DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Hertz_viscous_Coulomb2D::Clone() const {
         DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Hertz_viscous_Coulomb2D(*this));
@@ -39,7 +39,7 @@ namespace Kratos {
         mKt = mKn * ((1-my_poisson)/(1-0.5*my_poisson)) ;
     }
     
-    void DEM_D_Hertz_viscous_Coulomb2D::CalculateForces(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Hertz_viscous_Coulomb2D::CalculateForces(ProcessInfo& r_process_info,
                                                       const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
@@ -166,7 +166,7 @@ namespace Kratos {
 
     }
     
-    void DEM_D_Hertz_viscous_Coulomb2D::CalculateForcesWithFEM(ProcessInfo& rCurrentProcessInfo,
+    void DEM_D_Hertz_viscous_Coulomb2D::CalculateForcesWithFEM(ProcessInfo& r_process_info,
                                                       const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
