@@ -68,6 +68,7 @@ namespace Kratos
                     ("DEMIntegrationScheme", init< >())
             .def("AddSpheresVariables",&DEMIntegrationScheme::AddSpheresVariables)
             .def("AddClustersVariables",&DEMIntegrationScheme::AddClustersVariables)
+            .def("SetRotationOption",&DEMIntegrationScheme::SetRotationOption)
                   ;
 
           class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>

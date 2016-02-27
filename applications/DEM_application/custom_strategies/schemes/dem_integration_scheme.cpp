@@ -18,11 +18,13 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
         r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);   
         
+        if (mRotationOption){
         r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA); 
         r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
         r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
         r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
         r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);         
+    }
     }
     
     void DEMIntegrationScheme::AddClustersVariables(ModelPart & r_model_part){
@@ -33,12 +35,19 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES);
         r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);     
         
+        if (mRotationOption){
         r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA); 
         r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
         r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
         r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
         r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
         r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
+    }
+    }
+    
+    void DEMIntegrationScheme::SetRotationOption(const int rotation_option) {
+        if(rotation_option) mRotationOption = true;
+        else mRotationOption = false;
     }
 
     void DEMIntegrationScheme::UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart & rcluster_model_part) { //must be done AFTER the translational motion!
@@ -67,20 +76,20 @@ namespace Kratos {
     
     void DEMIntegrationScheme::Calculate(ModelPart& model_part, int StepFlag) {
         KRATOS_TRY
-        ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
+        ProcessInfo& r_process_info = model_part.GetProcessInfo();
         NodesArrayType& pLocalNodes = model_part.GetCommunicator().LocalMesh().Nodes();
         NodesArrayType& pGhostNodes = model_part.GetCommunicator().GhostMesh().Nodes();
         CalculateTranslationalMotion(model_part, pLocalNodes, StepFlag);
         CalculateTranslationalMotion(model_part, pGhostNodes, StepFlag);
 
-        if (!rCurrentProcessInfo[CONTAINS_CLUSTERS]) {
-            if (rCurrentProcessInfo[ROTATION_OPTION] != 0) {
+        if (!r_process_info[CONTAINS_CLUSTERS]) {
+            if (mRotationOption) {
                 CalculateRotationalMotion(model_part, pLocalNodes, StepFlag);
                 CalculateRotationalMotion(model_part, pGhostNodes, StepFlag);
             }
         } else {
 
-            if (rCurrentProcessInfo[ROTATION_OPTION] == 0) {
+            if (!mRotationOption) {
                 UpdateLinearDisplacementAndVelocityOfSpheres(model_part);
             } else {
                 CalculateRotationalMotionOfClusters(model_part, StepFlag);
@@ -108,10 +117,10 @@ namespace Kratos {
     
     void DEMIntegrationScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
         KRATOS_TRY
-        ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
-        double delta_t = rCurrentProcessInfo[DELTA_TIME];
-        double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        ProcessInfo& r_process_info = model_part.GetProcessInfo();
+        double delta_t = r_process_info[DELTA_TIME];
+        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double force_reduction_factor = 1.0;
         if (virtual_mass_option) {
             force_reduction_factor = 1.0 - virtual_mass_coeff;
@@ -133,18 +142,7 @@ namespace Kratos {
                 if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
                 array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
                 array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
-                //array_1d<double, 3 >& displ_ant = i.FastGetSolutionStepValue(DISPLACEMENT,2);
                 array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                /*
-                if(i.Id()==1)
-                {
-                KRATOS_WATCH("  ")
-                KRATOS_WATCH(delta_displ)
-                KRATOS_WATCH(displ)
-                KRATOS_WATCH(displ_ant)
-                KRATOS_WATCH(displ-displ_ant)
-                }
-                */
                 array_1d<double, 3 >& coor = i.Coordinates();
                 array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
                 array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
@@ -190,12 +188,12 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
-        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+        ProcessInfo& r_process_info = model_part.GetProcessInfo();
+        double delta_t = r_process_info[DELTA_TIME];
         vector<unsigned int> node_partition;
-        bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
-        double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
+        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double moment_reduction_factor = 1.0;
         if (virtual_mass_option) {
             moment_reduction_factor = 1.0 - virtual_mass_coeff;
@@ -297,11 +295,11 @@ namespace Kratos {
 
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ElementsArrayType::iterator ElementIterator;
-        ProcessInfo& rCurrentProcessInfo = rcluster_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info = rcluster_model_part.GetProcessInfo();
 
-        double delta_t = rCurrentProcessInfo[DELTA_TIME];
-        double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-        bool virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+        double delta_t = r_process_info[DELTA_TIME];
+        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double moment_reduction_factor = 1.0;
         if (virtual_mass_option) {
             moment_reduction_factor = 1.0 - virtual_mass_coeff;
