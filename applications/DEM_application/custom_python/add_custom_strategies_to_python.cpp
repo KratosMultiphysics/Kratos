@@ -6,12 +6,10 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp> 
+#include "spaces/ublas_space.h"
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
-#include "spaces/ublas_space.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"

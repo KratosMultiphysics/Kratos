@@ -2,22 +2,17 @@
 #if !defined(KRATOS_CONSTANT_ACERAGE_ACCELERATION_SCHEME_H_INCLUDED )
 #define  KRATOS_CONSTANT_ACERAGE_ACCELERATION_SCHEME_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream> 
 
-
 // External includes 
-
 
 // Project includes
 #include "dem_integration_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {

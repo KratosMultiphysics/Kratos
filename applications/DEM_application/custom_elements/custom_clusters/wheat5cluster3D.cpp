@@ -14,7 +14,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "wheat5cluster3D.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"

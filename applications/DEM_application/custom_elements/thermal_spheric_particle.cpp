@@ -15,8 +15,6 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "spheric_particle.h"
 #include "thermal_spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"

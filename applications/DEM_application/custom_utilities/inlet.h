@@ -24,7 +24,7 @@
 #include "utilities/indexed_object.h"
 #include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
-#include "custom_utilities/create_and_destroy.h"
+//#include "custom_utilities/create_and_destroy.h"
 
 #include "includes/condition.h"
 #include "../custom_elements/discrete_element.h"
@@ -34,6 +34,8 @@
 
 namespace Kratos {
 
+    class ParticleCreatorDestructor;
+    
     class DEM_Inlet {
         
         typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;

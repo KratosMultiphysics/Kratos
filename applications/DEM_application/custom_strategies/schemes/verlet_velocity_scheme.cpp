@@ -1,6 +1,4 @@
 // Project includes
-
-#include "DEM_application.h"
 #include "verlet_velocity_scheme.h"
 
 namespace Kratos {

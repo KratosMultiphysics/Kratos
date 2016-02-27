@@ -6,9 +6,6 @@
 //
 
 // Project includes
-#include "utilities/timer.h"
-#include "includes/variables.h"
-#include "DEM_application.h"
 
 // System includes
 #include <limits>
@@ -21,9 +18,6 @@
 #endif
 
 // Project includes
-#include "includes/define.h"
-#include "utilities/openmp_utils.h"
-#include "GeometryFunctions.h"
 #include "dem_fem_utilities.h"
 
 namespace Kratos

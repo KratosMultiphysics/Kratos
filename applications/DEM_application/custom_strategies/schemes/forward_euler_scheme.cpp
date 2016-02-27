@@ -1,6 +1,5 @@
 
 
-#include "DEM_application.h"
 #include "forward_euler_scheme.h"
 
 namespace Kratos {

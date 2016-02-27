@@ -342,7 +342,9 @@ namespace Kratos
  
   /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, 
-                    SoyBeanCluster3D& rThis);
+                    SoyBeanCluster3D& rThis){
+        return rIStream;
+    }
 
   /// output stream function
     inline std::ostream& operator << (std::ostream& rOStream, 

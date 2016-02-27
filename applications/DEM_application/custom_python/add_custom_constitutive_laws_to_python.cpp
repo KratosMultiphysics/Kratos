@@ -13,7 +13,6 @@
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h" 
 #include "../custom_constitutive/DEM_compound_constitutive_law.h" 
 
-#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h" 
 #include "../custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"

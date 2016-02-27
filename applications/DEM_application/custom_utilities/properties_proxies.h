@@ -85,8 +85,9 @@ namespace Kratos {
 
         virtual void save(Serializer& rSerializer) const;
 
-        virtual void load(Serializer& rSerializer);
+        virtual void load(Serializer& rSerializer);       
     }; // class PropertiesProxy
+    
         void AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies,
                                                          ModelPart& rModelPart,
                                                          int& properties_counter);  
