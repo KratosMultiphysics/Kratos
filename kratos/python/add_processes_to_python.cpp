@@ -59,6 +59,7 @@
 #include "processes/levelset_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
+#include "processes/check_skin_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -189,7 +190,11 @@ void  AddProcessesToPython()
             .def_readonly("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
             .def_readonly("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
     ; 
-    
+
+    class_<CheckSkinProcess , bases<Process>, boost::noncopyable >("CheckSkinProcess",
+            init<ModelPart&, Flags>())
+    ; 
+        
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 
