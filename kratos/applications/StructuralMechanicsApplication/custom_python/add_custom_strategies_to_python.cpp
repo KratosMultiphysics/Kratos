@@ -27,10 +27,10 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
 
 
 namespace Kratos

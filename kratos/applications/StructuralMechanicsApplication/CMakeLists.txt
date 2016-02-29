@@ -3,18 +3,20 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosStructuralMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication ) 
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}//structural_mechanics_application.cpp 
-        ${CMAKE_CURRENT_SOURCE_DIR}//structural_mechanics_application_variables.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}//structural_mechanics_application_variables.cpp 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
         
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
