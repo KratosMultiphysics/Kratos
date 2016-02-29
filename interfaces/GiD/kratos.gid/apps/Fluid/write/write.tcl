@@ -62,21 +62,15 @@ proc Fluid::write::writeParametersEvent { } {
     printSolvers 4
     
     printInitialConditions 0
-    return ""
     printConds 0
-    
-    printResults 0
     
     # GiD output configuration
     write::WriteString "class GidOutputConfiguration:"
-    write::WriteString "    GiDPostMode = \"[write::getValue SMResults GiDPostMode]\""
-    write::WriteString "    GiDWriteMeshFlag = [write::getStringBinaryValue SMResults GiDWriteMeshFlag]"
-    write::WriteString "    GiDWriteConditionsFlag = [write::getStringBinaryValue SMResults GiDWriteConditionsFlag]"
-    write::WriteString "    GiDWriteParticlesFlag = [write::getStringBinaryValue SMResults GiDWriteParticlesFlag]"
-    write::WriteString "    GiDMultiFileFlag = \"[write::getValue SMResults GiDMultiFileFlag]\""
+    write::WriteString "    GiDPostMode = \"[write::getValue FLResults GiDPostMode]\""
+    write::WriteString "    GiDMultiFileFlag = \"[write::getValue FLResults GiDMultiFileFlag]\""
 
     write::WriteString ""   
-    write::WriteString "GiDWriteFrequency = [write::getValue SMResults OutputDeltaTime]"
+    write::WriteString "GiDWriteFrequency = [write::getValue FLResults OutputDeltaTime]"
     write::WriteString ""
     write::WriteString "# graph_options"
     write::WriteString "PlotGraphs = \"False\""
@@ -209,7 +203,137 @@ proc Fluid::write::printInitialConditions {spacing} {
     if {[llength $groups]} {set str [string range $str 0 end-1]}
     write::WriteString $str
     write::WriteString "]"
+}
+
+
+proc Fluid::write::printConds {spacing} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set s [write::getSpacing $spacing]
+
+    write::WriteString "#Loads Data"
+    write::WriteString "#################################################"
+    write::WriteString "${s}loads_process_list = \["
+    set xp1 "[apps::getRoute "FLBC"]/condition/group"
+    set groups [$root selectNodes $xp1]
+    set str ""
+    foreach group $groups {
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        #W "$cid $groupName"
+        set groupId [::write::getMeshId $cid $groupName]
+        set condId [[$group parent] @n]
+        set condition [::Model::getCondition $condId]
+        set type [$condition getProcessFormat]
+        set processName [$condition getProcessName]
+        #W "type $type pron $processName"
+        
+        if {$type eq "vector"} {
+            set FixX False
+            set FixY False
+            set FixZ False
+            if {[$group find n FixX] ne ""} {
+                set FixX [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
+            }
+            if {[$group find n FixY] ne ""} {
+                set FixY [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
+            }
+            if {[$group find n FixZ] ne ""} {
+                set FixZ [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
+            }
+            set ValX [get_domnode_attribute [$group find n ValX] v] 
+            set ValY [get_domnode_attribute [$group find n ValY] v] 
+            set ValZ [get_domnode_attribute [$group find n ValZ] v] 
+            set factornode [$group find n FACTOR]
+            set Factor 1
+            if {$factornode ne ""} {
+                set Factor [get_domnode_attribute $factornode v]
+            }
+            
+            append str "{ \"process_name\" : \"ApplyConstantVectorValueProcess\",
+              \"implemented_in_module\" : \"KratosMultiphysics\",
+              \"implemented_in_file\": \"process_factory\",
+              
+              \"parameters\" : { 
+                \"mesh_id\": $groupId,
+                  \"model_part_name\" : ModelPartName,
+                  \"variable_name\": \"$processName\",
+                  \"factor\": $Factor,
+                  \"value\": \[$ValX,$ValY,$ValZ\],
+                  \"is_fixed_x\" : $FixX,
+                  \"is_fixed_y\" : $FixY,
+                  \"is_fixed_z\" : $FixZ,
+                  }
+            }, "
+        } elseif {$type eq "double"} {
+            set Value [get_domnode_attribute [$group firstChild] v] 
+            set Fixed True
+            
+            append str "{ \"process_name\" : \"ApplyConstantScalarValueProcess\",
+            \"implemented_in_python\" : True,
+            \"implemented_in_module\" : \"KratosMultiphysics\",
+            \"implemented_in_file\": \"process_factory\",
+                        
+            \"parameters\" : { 
+				\"mesh_id\": $groupId,
+                \"model_part_name\" : ModelPartName,
+                \"variable_name\": \"$processName\",
+                \"value\": $Value,
+                \"is_fixed\": $Fixed
+                }
+          }, "
+        }
     
+    }
+    # Quitar la coma
+    if {[llength $groups]} {set str [string range $str 0 end-1]}
+    write::WriteString $str
+    write::WriteString "]"
+}
+
+
+
+
+proc Fluid::write::printResults {spacing} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set s [write::getSpacing $spacing]
+
+    write::WriteString "#PostProcess Data"
+    write::WriteString "#################################################"
+    
+    set xp1 "[apps::getRoute "SMNodalResults"]/value"
+    set results [$root selectNodes $xp1]
+    set min 0
+    set str "nodal_results=\["
+    foreach res $results {
+        if {[get_domnode_attribute $res v] eq "Yes"} {
+            set min 1
+            set name [get_domnode_attribute $res n]
+            append str "\"$name\","
+        }
+    }
+    
+    if {$min} {set str [string range $str 0 end-1]}
+    append str "]"
+    write::WriteString $str
+    
+    set xp1 "[apps::getRoute "SMElementResults"]/value"
+    set results [$root selectNodes $xp1]
+    set min 0
+    set str "gauss_points_results=\["
+    foreach res $results {
+        if {[get_domnode_attribute $res v] in [list "Yes" "True"] && [get_domnode_attribute $res state] eq "normal"} {
+            set min 1
+            set name [get_domnode_attribute $res n]
+            append str "\"$name\","
+        }
+    }
+    
+    if {$min} {set str [string range $str 0 end-1]}
+    append str "]"
+    write::WriteString $str
+    write::WriteString ""
 }
 
 proc Fluid::write::writeCustomFilesEvent { } {
