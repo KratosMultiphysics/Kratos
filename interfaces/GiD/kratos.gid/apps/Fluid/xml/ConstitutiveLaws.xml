@@ -5,7 +5,7 @@
 	  help="Newtonian fluid" >
         <inputs>
 		  <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
-		  <parameter n="VISCOSITY" pn="Viscosity" unit_magnitude="Viscosity" units="kg/(m*s)" />
+		  <parameter n="VISCOSITY" pn="Viscosity" help="Expressed in Pa*s"/>
         </inputs>
         <outputs>
             
