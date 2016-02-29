@@ -1,23 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="BoundaryConditions" pn="Boundary Conditions" un="FLBC" icon="constraints16" >
-	  
 	  <dynamicnode command="injectConditions" args=""/>
-	  <!--<condition n="InletVelocity" pn="Inlet velocity" un="FLInlet" ov="point,line,surface,volume" ovm="node,element" icon="shells16" help="Nodal displacements">
-			<value n="FixX" pn="X Fix" v="1" values="1,0" help=""/>
-			<value n="FixY" pn="Y Fix" v="1" values="1,0" help=""/>
-			<value n="FixZ" pn="Z Fix" v="1" values="1,0" help=""/>
-			<value n="ValX" wn="INLET_VELOCITY_X" state="[Fixity]" pn="X Value" v="0.0" help="" unit_magnitude="Velocity" units="m/s"/>
-			<value n="ValY" wn="INLET_VELOCITY_Y" state="[Fixity]" pn="Y Value" v="0.0" help="" unit_magnitude="Velocity" units="m/s"/>
-			<value n="ValZ" wn="INLET_VELOCITY_Z" state="[Fixity]" pn="Z Value" v="0.0" help="" unit_magnitude="Velocity" units="m/s"/>
-	  </condition>
-	  <condition n="OutletPressure" pn="Outlet pressure" un="FLOutletPressure" ov="point,line,surface" ovm="node,element" icon="shells16" help="Nodal displacements">
-			<value n="FixX" pn="Pressure fix" v="1" values="1,0" help=""/>
-			<value n="ValX" wn="OUTLET_PRESSURE" state="[Fixity]" pn="Pressure Value" v="0.0" help="" unit_magnitude="P" units="Pa"/>
-	  </condition>
-	  <condition n="IsSlip" pn="IS-Slip" un="FLIsSlip" ov="point,line,surface" ovm="node,element" icon="shells16" help="Nodal displacements">
-	  </condition>
-	  <condition n="NoSlip" pn="No Slip" un="FLWallLaw" ov="point,line,surface" ovm="node,element" icon="shells16" help="Nodal displacements">
-			<value n="Val" wn="NO_SLIP" pn="No slip value" v="0.0" help=""/>
-			<value n="FixX" pn="Fix" v="1" values="1,0" help=""/>
-	  </condition>-->
 </container>

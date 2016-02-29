@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Results" pn="Results" state="normal" open="1">
+<container n="Results" pn="Results" state="normal" un="FLResults" >
     <value n="VolumeOutput" pn="Volume Output" v="True" values="True,False" help="Volume output"/>
     <value n="OutputDeltaTime" pn="Output delta time" v="0.1" help="Output delta time"/>
     <value n="PrintInLayer" pn="Print in layer" v="True" values="True,False" help="Print In Layer"/>
