@@ -394,7 +394,6 @@ namespace Kratos
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
             unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
             mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
-                
 
             for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
                 
@@ -407,7 +406,6 @@ namespace Kratos
                 Geometry<Node<3> >::PointsArrayType  NodeArray(2);
                 
                 NodeArray.GetContainer()[0] = mListOfSphericContinuumParticles[i]->GetGeometry()(0);
-                //NodeArray.GetContainer()[1] = r_continuum_ini_neighbours[j]->GetGeometry()(0);
                 NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
                 
                 Element::Pointer p_contact_element;
@@ -428,7 +426,6 @@ namespace Kratos
         
         //#pragma omp parallel for //TODO
         for (int i = 0; i<number_of_particles; i++) {
-            
 
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
             unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
