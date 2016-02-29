@@ -550,9 +550,10 @@ namespace Kratos
         
         GetClustersForce();
         
-        Calculate_Conditions_RHS_and_Add(); //TODO: flag to disable this part
-        
-        Calculate_Nodal_Pressures_and_Stresses(); //TODO: flag to disable this part
+        if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
+            CalculateConditionsRHSAndAdd();
+            CalculateNodalPressuresAndStressesOnWalls();
+        }
                   
         // 4. Synchronize (should be just FORCE and TORQUE)
         SynchronizeSolidMesh(r_model_part);
@@ -586,7 +587,7 @@ namespace Kratos
 
           temp_time_step /= mSafetyFactor;
 
-          if(temp_time_step < mMaxTimeStep) process_info_delta_time = temp_time_step;
+          if (temp_time_step < mMaxTimeStep) process_info_delta_time = temp_time_step;
 
           std::cout << std::scientific;
           std::cout << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
@@ -607,14 +608,14 @@ namespace Kratos
           
           #pragma omp parallel
           {
-            Vector rhs_elem;
-            rhs_elem.resize(6);
-            #pragma omp for schedule(dynamic, 100) //schedule(guided)
+              Vector rhs_elem;
+              rhs_elem.resize(6);
+              #pragma omp for schedule(dynamic, 100) //schedule(guided)
             
-            for (int i = 0; i < number_of_particles; i++){
+              for (int i = 0; i < number_of_particles; i++) {
                               
-                mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, r_process_info, dt, gravity, mSearchControl);  
-            }
+                  mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, r_process_info, dt, gravity, mSearchControl);  
+              }
           }
 
           KRATOS_CATCH("")
@@ -632,15 +633,15 @@ namespace Kratos
           #pragma omp parallel
           {
               #pragma omp for
-              for(int i=0; i<number_of_particles; i++){ 
+              for (int i = 0; i < number_of_particles; i++) { 
                   mListOfSphericParticles[i]->FirstCalculateRightHandSide(r_process_info, dt, mSearchControl); 
               }
               #pragma omp for
-              for(int i=0; i<number_of_particles; i++){ 
+              for (int i = 0; i < number_of_particles; i++) { 
                   mListOfSphericParticles[i]->CollectCalculateRightHandSide(r_process_info); 
               }
               #pragma omp for
-              for(int i=0; i<number_of_particles; i++){ 
+              for (int i = 0; i < number_of_particles; i++) { 
                   mListOfSphericParticles[i]->FinalCalculateRightHandSide(r_process_info, dt, gravity); 
               }
 
@@ -653,7 +654,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          GetScheme()->Calculate(BaseType::GetModelPart(),StepFlag);
+          GetScheme()->Calculate(BaseType::GetModelPart(), StepFlag);
           GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
 
           KRATOS_CATCH("")
@@ -665,18 +666,18 @@ namespace Kratos
 
           // SPHERE MODEL PART
 
-          ModelPart& r_model_part             = BaseType::GetModelPart();
-          ProcessInfo& r_process_info    = r_model_part.GetProcessInfo();
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();                    
+          ModelPart& r_model_part      = BaseType::GetModelPart();
+          ProcessInfo& r_process_info  = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();                    
           
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
-          for (int k = 0; k < mNumberOfThreads; k++){
+          for (int k = 0; k < mNumberOfThreads; k++) {
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
                 (it)->InitializeSolutionStep(r_process_info); 
                 
               } // loop over particles
@@ -695,12 +696,11 @@ namespace Kratos
           ModelPart& r_model_part = BaseType::GetModelPart();          
           mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);        
           mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
-          
 
           KRATOS_CATCH("")
       }
 
-      void MoveMesh(){}
+      void MoveMesh() {}
 
       void FinalizeSolutionStep()
       {
@@ -713,11 +713,11 @@ namespace Kratos
           OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
-          for (int k = 0; k < mNumberOfThreads; k++){
+          for (int k = 0; k < mNumberOfThreads; k++) {
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
                   (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts.
               } //loop over particles
 
@@ -729,34 +729,34 @@ namespace Kratos
       
     void SetCoordinationNumber(ModelPart& r_model_part) 
     {
-      ProcessInfo& r_process_info      = r_model_part.GetProcessInfo();  
-        
-      const double in_coordination_number = r_process_info[COORDINATION_NUMBER];
-      double out_coordination_number = ComputeCoordinationNumber();
-      int iteration = 0;
-      int maxiteration = 100;
-      double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
-      
-      std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
- 
-      if(in_coordination_number <= 0.0) {
-        KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
-      }
-      
-      while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 ) {              
-          if(iteration>=maxiteration) break;
-          iteration++;
-          added_search_distance *= in_coordination_number/out_coordination_number;
-          SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
-          out_coordination_number = ComputeCoordinationNumber();
-      }//while
+        ProcessInfo& r_process_info      = r_model_part.GetProcessInfo();  
 
-      if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << added_search_distance <<". "<<"\n"<<std::endl;
-      else {   
-          std::cout << "Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
-          KRATOS_THROW_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
-          //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
-      }                  
+        const double in_coordination_number = r_process_info[COORDINATION_NUMBER];
+        double out_coordination_number = ComputeCoordinationNumber();
+        int iteration = 0;
+        int maxiteration = 100;
+        double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
+
+        std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
+
+        if(in_coordination_number <= 0.0) {
+            KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
+        }
+
+        while (fabs(out_coordination_number/in_coordination_number - 1.0) > 1e-3) {              
+            if (iteration>=maxiteration) break;
+            iteration++;
+            added_search_distance *= in_coordination_number/out_coordination_number;
+            SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
+            out_coordination_number = ComputeCoordinationNumber();
+        }//while
+
+        if (iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << added_search_distance <<". "<<"\n"<<std::endl;
+        else {   
+            std::cout << "Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
+            KRATOS_THROW_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
+            //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
+        }                  
       
     } //SetCoordinationNumber
     
@@ -774,7 +774,7 @@ namespace Kratos
         {
             mNeighbourCounter[OpenMPUtils::ThisThread()] = 0;        
             #pragma omp for
-            for(int i=0; i<number_of_particles; i++){              
+            for (int i = 0; i < number_of_particles; i++) {              
                   mNeighbourCounter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
             }
         }                                      
@@ -854,11 +854,11 @@ namespace Kratos
     }
     
 
-    void Calculate_Conditions_RHS_and_Add() {
+    void CalculateConditionsRHSAndAdd() {
       
         KRATOS_TRY
       
-        Clear_forces_FEM();
+        ClearFEMForces();
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         
@@ -913,7 +913,6 @@ namespace Kratos
                     noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
                     
                     geom[i].UnSetLock();
-                    
                 }                                 
             }          
         }
@@ -922,7 +921,7 @@ namespace Kratos
     }
     
     
-    void Clear_forces_FEM() {
+    void ClearFEMForces() {
         
         KRATOS_TRY
 
@@ -961,7 +960,7 @@ namespace Kratos
     }
     
     
-    void Calculate_Nodal_Pressures_and_Stresses() {
+    void CalculateNodalPressuresAndStressesOnWalls() {
         
         KRATOS_TRY
 
@@ -986,9 +985,7 @@ namespace Kratos
 
                 node_pressure = node_pressure/node_area;
                 shear_stress = GeometryFunctions::module(node_rhs_tang)/node_area;
-                 
             }
-            
         }
 
         KRATOS_CATCH("")
@@ -1238,8 +1235,8 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        ElementsArrayType&   pElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
-        ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        ElementsArrayType&   pElements    = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
+        ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
 
         if (pTConditions.size() > 0) {
         
