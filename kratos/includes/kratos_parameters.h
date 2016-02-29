@@ -96,7 +96,11 @@ public:
     }
     void SetValue(const std::string entry, const ParameterValue& other_value)
     {
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+        mrvalue = rapidjson::Value(other_value.GetUnderlyingStorage(), mrdoc.GetAllocator());
+#else
         mrvalue.CopyFrom(other_value.GetUnderlyingStorage(), mrdoc.GetAllocator());
+#endif
     }
 
     //*******************************************************************************************************
@@ -202,7 +206,11 @@ public:
         {
             if(index >= mrdoc.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+            mrvalue[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), mrdoc.GetAllocator());
+#else
             mrvalue[index].CopyFrom(other_array_item.GetUnderlyingStorage(), mrdoc.GetAllocator());
+#endif
         }
     }
     ParameterValue operator[](unsigned int index)
@@ -301,7 +309,11 @@ public:
 
     void SetValue(const std::string entry, const ParameterValue& other_value)
     {
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+        md[entry.c_str()] = rapidjson::Value(other_value.GetUnderlyingStorage(), md.GetAllocator());
+#else
         md[entry.c_str()].CopyFrom(other_value.GetUnderlyingStorage(), md.GetAllocator());
+#endif
     }
 
     ParameterValue operator[](const std::string entry)
@@ -335,7 +347,11 @@ public:
         {
             if(index >= md.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+  #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+            md[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
+  #else
             md[index].CopyFrom(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
+  #endif
         }
     }
 
