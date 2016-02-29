@@ -219,9 +219,9 @@ class Procedures(object):
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
         # KINEMATIC        
-        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that noone accesses them in c++ without checking the rotation option
-        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that noone accesses them in c++ without checking the rotation option
-        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that noone accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
+        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
          
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -617,9 +617,9 @@ class DEMFEMProcedures(object):
         if self.graph_frequency < 1:
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
         os.chdir(self.graphs_path)
-        #self.graph_forces = open(self.DEM_parameters.problem_name +"_force_graph.grf", 'w')                
+        #self.graph_forces = open(self.DEM_parameters.problem_name +"_force_graph.grf", 'w')
         
-        def open_graph_files(self,RigidFace_model_part):
+        def open_graph_files(self, RigidFace_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                 if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
@@ -627,16 +627,42 @@ class DEMFEMProcedures(object):
         
         self.graph_forces = {}  
                                 
-        def open_balls_graph_files(self,spheres_model_part):
+        def open_balls_graph_files(self, spheres_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
-                 self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
+                if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
+        
+        def evaluate_computation_of_fem_results(DEM_parameters, spheres_model_part, RigidFace_model_part):
+        
+            elastic_forces            = Var_Translator(DEM_parameters.PostElasticForces)
+            tangential_elastic_forces = Var_Translator(DEM_parameters.PostTangentialElasticForces)
+            dem_pressure              = Var_Translator(DEM_parameters.PostPressure)
+            if not (hasattr(DEM_parameters, "PostContactForces")):
+                contact_forces = 0
+            else:   
+                contact_forces = Var_Translator(DEM_parameters.PostContactForces)
+            if not (hasattr(DEM_parameters, "PostContactForces")):
+                shear_stress = 0
+            else:   
+                shear_stress = Var_Translator(DEM_parameters.PostShearStress)
+            if not (hasattr(DEM_parameters, "PostContactForces")):
+                dem_nodal_area = 0
+            else:   
+                dem_nodal_area = Var_Translator(DEM_parameters.PostNodalArea)
+            integration_groups        = False
+            if RigidFace_model_part.NumberOfMeshes() > 1:
+                for mesh_number in range(1, RigidFace_model_part.NumberOfMeshes()):
+                    if (RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        integration_groups = True
+                        break
+            if (elastic_forces or contact_forces or dem_pressure or tangential_elastic_forces or shear_stress or dem_nodal_area or integration_groups):
+                spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 1)
         
         self.particle_graph_forces = {}      
                
         if self.TestType == "None":  
-            open_graph_files(self,RigidFace_model_part)            
+            open_graph_files(self, RigidFace_model_part)            
             open_balls_graph_files(self,spheres_model_part)   
 
         # SIMULATION SETTINGS
@@ -646,15 +672,17 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters.Dimension
         self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)        
         self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
+
+        evaluate_computation_of_fem_results(DEM_parameters, spheres_model_part, RigidFace_model_part)
                        
     def close_graph_files(self, RigidFace_model_part):
         for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-            if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+            if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                 self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
                     
     def close_balls_graph_files(self, spheres_model_part):
         for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-            if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+            if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                 self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].close()            
     
     def MeasureForces(self):    # not used atm
@@ -662,7 +690,7 @@ class DEMFEMProcedures(object):
         if self.TestType == "None":
             if self.RigidFace_model_part.NumberOfMeshes() > 1:
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                    if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                         self.fem_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
                         self.total_force_x = 0.0
                         self.total_force_y = 0.0
@@ -1389,7 +1417,6 @@ class DEMIo(object):
           BBMinX = 0.0
           BBMinY = 0.0
           BBMinZ = 0.0
-          
         
         # BB Nodes:
         node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
@@ -1418,7 +1445,6 @@ class DEMIo(object):
     
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
 
-      
         
 class ParallelUtils(object):
 
