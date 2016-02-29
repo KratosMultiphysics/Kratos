@@ -3619,7 +3619,13 @@ namespace Kratos
 				{
 					nested_block_names.pop_back();
 					if(nested_block_names.empty())
+                    {
 						break;
+                    }
+                    else
+                    {
+                        Block += "End ";
+                    }
 				}
 
                 Block += word;
@@ -3635,10 +3641,9 @@ namespace Kratos
 				if (word == "Begin")
 				{
 					Block += word;
+                    Block += c;
 					ReadWord(word);
 					nested_block_names.push_back(word);
-
-					Block += word;
 				}
 					
 				Block += word;
