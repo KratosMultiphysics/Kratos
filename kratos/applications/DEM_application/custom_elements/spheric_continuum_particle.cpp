@@ -112,7 +112,6 @@ namespace Kratos {
     
     void SphericContinuumParticle::CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info) {
         
-        //unsigned int cont_neigh_size = mContinuumIniNeighbourElements.size();
         unsigned int continuous_neighbor_size = mContinuumInitialNeighborsSize;
         mContinuumConstitutiveLawArray.resize(continuous_neighbor_size);
 
@@ -220,7 +219,7 @@ namespace Kratos {
                 initial_delta = 0.0;
             }
             
-            double initial_dist = (radius_sum - initial_delta);
+            double initial_dist = radius_sum - initial_delta;
             double indentation = initial_dist - distance;
             double myYoung = GetYoung();
             double myPoisson = GetPoisson();
