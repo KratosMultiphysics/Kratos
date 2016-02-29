@@ -276,6 +276,8 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
                                                 const double distance,
                                                 const double contact_area);
 
+virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces);
+
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
 //const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
