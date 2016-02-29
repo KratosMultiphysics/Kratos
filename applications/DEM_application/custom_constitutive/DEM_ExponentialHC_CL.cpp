@@ -146,13 +146,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-
-        //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
-        //int &mapping_new_cont = element1->mMappingNewCont[i_neighbour_count];
-
         int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
-        //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
-
 
         const double other_tg_of_fri_angle = element2->GetTgOfFrictionAngle();
         const double myTgOfFrictionAngle = element1->GetTgOfFrictionAngle();
@@ -165,7 +159,6 @@ namespace Kratos {
 
         double degradation = 1.0; //Tangential. With degradation:
 
-        //if (mapping_new_cont != -1) {
         if (i_neighbour_count < int(element1->mContinuumInitialNeighborsSize)) {
             if (indentation >= 0.0) { //COMPRESSION              
                 degradation = mHistoryDegradation;
@@ -222,7 +215,6 @@ namespace Kratos {
 
                 if (damage_tau >= 1.0) {
                     mNeighbourFailureId_count = 2; // shear
-                    //mIniNeighbourFailureId_mapping = 2;
                     //failure_criterion_state = 1.0;
                     sliding = true;
                 }
@@ -291,9 +283,7 @@ namespace Kratos {
         mGamma3 = 0.275;
         mMaxDef = 0.002;
 
-        //int &mapping_new_ini = element1->mMappingNewIni[i_neighbour_count];
         int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
-        //int &mIniNeighbourFailureId_mapping = element1->mIniNeighbourFailureId[mapping_new_ini];
         double &mNeighbourDelta_count = element1->mIniNeighbourDelta[i_neighbour_count];
 
         const double mDamageMaxDisplacementFactor = element1->GetProperties()[DAMAGE_FACTOR];
@@ -354,7 +344,6 @@ namespace Kratos {
 
             if (fabs(indentation) > u2) { // FULL DAMAGE 
                 mNeighbourFailureId_count = 4; //tension failure
-                //mIniNeighbourFailureId_mapping = 4;
                 acumulated_damage = 1.0;
                 fn = 0.0;
             } else {
