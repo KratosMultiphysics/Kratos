@@ -85,7 +85,7 @@ if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
 elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
     scheme = SymplecticEulerScheme()
 elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
-    scheme = MidPointScheme()
+    scheme = TaylorScheme()
 elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
     scheme = NewmarkBetaScheme(0.5, 0.25)
 elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
