@@ -92,15 +92,15 @@ public:
     ///@{
 
     /// Constructor for CheckSkinProcess Process
-    CheckSkinProcess(ModelPart& rModelPart,
-                     const KratosParameters& parameters,
-                     Flags options
-                    ):
-        Process(),
-        mrModelPart(rModelPart),
-        mrOptions(options)
-    {
-    }
+//     CheckSkinProcess(ModelPart& rModelPart,
+//                      KratosParameters& parameters
+//                     ):
+//         Process(),
+//         mrModelPart(rModelPart),
+//         mrOptions(Flags()),
+//         mrParameters(parameters)
+//     {
+//     }
     /// Constructor for CheckSkinProcess Process
     CheckSkinProcess(ModelPart& rModelPart,
                      Flags options
@@ -244,6 +244,7 @@ private:
 
     ModelPart& mrModelPart;
     Flags mrOptions;
+
 
     ///@}
     ///@name Private Operations
