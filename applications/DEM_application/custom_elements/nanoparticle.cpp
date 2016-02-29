@@ -38,6 +38,11 @@ void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_app
     KRATOS_CATCH( "" )
 }
 
+void NanoParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_info) {
+    SphericParticle::MemberDeclarationFirstStep(r_process_info);
+    SetInteractionRadius(GetRadius() + r_process_info[SEARCH_TOLERANCE]);
+}
+
 double NanoParticle::CalculateVolume()
 {
     return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
