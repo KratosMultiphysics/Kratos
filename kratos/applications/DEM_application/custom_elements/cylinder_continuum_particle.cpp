@@ -49,11 +49,9 @@ namespace Kratos
             double alpha = 1.0;
             double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();       
             double total_equiv_perimeter = 0.0;
-            //int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
             unsigned int continuous_initial_neighbours_size = mContinuumInitialNeighborsSize;
         
             for (unsigned int i = 0; i < continuous_initial_neighbours_size; i++) {
-                //SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
                 SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
                 double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                 double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.         
@@ -77,16 +75,13 @@ namespace Kratos
             }               //if 3 neighbours or more.
         }                 //Contact Area Weighting
                
-      
-      double CylinderContinuumParticle::CalculateVolume(){
+      double CylinderContinuumParticle::CalculateVolume() {
           return KRATOS_M_PI * GetRadius() * GetRadius();
       }
       
       double CylinderContinuumParticle::CalculateMomentOfInertia() {
           return 0.5 * GetMass() * GetRadius() * GetRadius(); 
       }
-
-
 
 //      void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
 //                                                                            array_1d<double,3> &other_to_me_vect,
