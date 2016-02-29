@@ -231,6 +231,8 @@ proc Fluid::write::writeConditions { } {
 
 proc Fluid::write::writeBoundaryConditions { } {
     variable FluidConditions
+    
+    # Write the conditions
     set dict_group_intervals [write::writeConditions "FLBC"]
     
     # Vamos a construir el array que nos permite escribir submodel parts y la malla de condiciones de contorno
@@ -259,22 +261,9 @@ proc Fluid::write::writeDrags { } {
 
 proc Fluid::write::writeMeshes { } {
     write::writePartMeshes
-    writeNodalConditionsMesh
+    write::writeNodalConditionsMesh "FLNodalConditions"
     writeConditionsMesh
     writeSkinMesh
-}
-
-proc Fluid::write::writeNodalConditionsMesh { } {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    set xp1 "[apps::getRoute "FLNodalConditions"]/condition/group"
-    #W "Conditions $xp1 [$root selectNodes $xp1]"
-    foreach group [$root selectNodes $xp1] {
-        set cid [[$group parent] @n]
-        set groupid [$group @n]
-        #W "cid $cid gid $groupid"
-        ::write::writeGroupMesh $cid $groupid "nodal"
-    }
 }
 
 proc Fluid::write::writeConditionsMesh { } {

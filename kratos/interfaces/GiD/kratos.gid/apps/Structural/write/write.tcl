@@ -93,7 +93,7 @@ proc Structural::write::writeParametersEvent { } {
 proc Structural::write::printResults {spacing} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set s [getSpacing $spacing]
+    set s [write::getSpacing $spacing]
 
     write::WriteString "#PostProcess Data"
     write::WriteString "#################################################"
@@ -135,7 +135,7 @@ proc Structural::write::printResults {spacing} {
 proc Structural::write::printConstraints {spacing} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set s [getSpacing $spacing]
+    set s [write::getSpacing $spacing]
 
     write::WriteString "#Constraints Data"
     write::WriteString "#################################################"
@@ -145,7 +145,8 @@ proc Structural::write::printConstraints {spacing} {
     set str ""
     foreach group $groups {
         set groupName [$group @n]
-        set groupId [::write::getMeshId $groupName]
+        set cid [[$group parent] @n]
+        set groupId [::write::getMeshId $cid $groupName]
         #W [[$group parent] @type]
         if {[[$group parent] @type] eq "vector"} {
             set FixX [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
@@ -205,7 +206,7 @@ proc Structural::write::printConstraints {spacing} {
 proc Structural::write::printLoads {spacing} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set s [getSpacing $spacing]
+    set s [write::getSpacing $spacing]
 
     write::WriteString "#Loads Data"
     write::WriteString "#################################################"
@@ -215,7 +216,8 @@ proc Structural::write::printLoads {spacing} {
     set str ""
     foreach group $groups {
         set groupName [$group @n]
-        set groupId [::write::getMeshId $groupName]
+        set cid [[$group parent] @n]
+        set groupId [::write::getMeshId $cid $groupName]
         set condId [[$group parent] @n]
         set condition [::Model::getCondition $condId]
         set type [$condition getProcessFormat]
@@ -279,7 +281,7 @@ proc Structural::write::printSolutionStrategy {spacing} {
     set sol [::Model::GetSolutionStrategy $solstratName]
     set sch [$sol getScheme $schemeName]
     
-    set spaces [getSpacing $spacing]
+    set spaces [write::getSpacing $spacing]
     write::WriteString "${spaces}scheme_type = \"[$sch getName]\""
     write::WriteString "${spaces}RotationDofs = False"
     write::WriteString "${spaces}PressureDofs = False"
@@ -295,8 +297,8 @@ proc Structural::write::printSolutionStrategy {spacing} {
 proc Structural::write::printSolvers {spacing} {
     set solstratName [write::getValue SMSolStrat]
     set sol [::Model::GetSolutionStrategy $solstratName]
-    set spaces [getSpacing $spacing]
-    set spaces2 [getSpacing [expr $spacing +4]]
+    set spaces [write::getSpacing $spacing]
+    set spaces2 [write::getSpacing [expr $spacing +4]]
     foreach se [$sol getSolversEntries] {
         set un "SM$solstratName[$se getName]"
         set solverName [write::getValue $un Solver]
@@ -307,12 +309,6 @@ proc Structural::write::printSolvers {spacing} {
             write::WriteString "$spaces2$n = [write::getValue $un $n ]"
         }
     }
-}
-
-proc Structural::write::getSpacing {number} {
-    set r ""
-    for {set i 0} {$i<$number} {incr i} {append r " "}
-    return $r
 }
 
 proc Structural::write::writeCustomFilesEvent { } {
@@ -327,6 +323,8 @@ proc Structural::write::writeCustomFilesEvent { } {
 
 proc Structural::write::writeModelPartEvent { } {
     write::initWriteData "SMParts" "SMMaterials"
+    write::setGroupsTypeName "Mesh"
+    
     write::writeModelPartData
     write::WriteString "Begin Properties 0"
     write::WriteString "End Properties"
@@ -342,156 +340,35 @@ proc Structural::write::writeModelPartEvent { } {
 
 proc Structural::write::writeConditions { } {
     variable ConditionsDictGroupIterators
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    set xp1 "[apps::getRoute "SMLoads"]/condition/group"
-    set iter 1
-    foreach group [$root selectNodes $xp1] {
-        set condid [[$group parent] @n]
-        set groupid [$group @n]
-        set ov [[$group parent] @ov]
-        set cond [::Model::getCondition $condid]
-        lassign [write::getEtype $ov] etype nnodes
-        set kname [$cond getTopologyKratosName $etype $nnodes]
-        #W "$groupid $ov -> $etype $nnodes $kname"
-        if {$kname ne ""} {
-            write::WriteString "Begin Conditions $kname// GUI group identifier: $groupid"
-            if {$etype eq "Point"} {
-                set formats [dict create $groupid "%0d "]
-                set tope [write_calc_data nodes -count $formats]
-                set obj [write_calc_data nodes -return $formats]
-            } {
-                set formats [write::GetFormatDict $groupid 0 $nnodes]
-                #set formats [dict create $groupid "%0d "]
-                #W $formats
-                set elems [write_calc_data connectivities -return $formats]
-                set obj [list ]
-                foreach {e v n1 n2 n3} $elems {lappend obj "$n1 $n2 $n3"}
-                
-                #W "tope $tope elems $elems obj $obj"
-            }
-            set initial $iter
-            for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
-                set nids [lindex $obj $i]
-                write::WriteString "$iter 0 $nids"
-            }
-            set final [expr $iter -1]
-            dict set ConditionsDictGroupIterators $groupid [list $initial $final]
-            write::WriteString "End Conditions"
-            write::WriteString ""
-        }
-    }
+    set ConditionsDictGroupIterators [write::writeConditions "SMLoads"]
 }
 
 proc Structural::write::writeMeshes { } {
     
-    writePartMeshes
+    write::writePartMeshes
     
     # Solo Malla , no en conditions
-    writeDoFs
+    write::writeNodalConditions "SMDoFs"
     
     # A Condition y a meshes-> salvo lo que no tenga topologia
     writeLoads
 }
 
-proc Structural::write::writePartMeshes { } {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    set xp1 "[spdAux::getRoute "SMParts"]/group"
-    foreach group [$root selectNodes $xp1] {
-        ::write::writeGroupMesh [$group @n] "Elements"
-    } 
-}
-
-proc Structural::write::writeDoFs { } {
-    variable nodalwrite
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    set xp1 "[apps::getRoute "SMDoFs"]/condition/group"
-    #W "Conditions [$root selectNodes $xp1]"
-    
-    if {$nodalwrite} {
-        foreach group [$root selectNodes $xp1] {
-            ::write::writeNodalDataGroupNode $group
-        }
-    } else {
-        foreach group [$root selectNodes $xp1] {
-            ::write::writeGroupMesh [$group @n] "nodal"
-        }
-    }
-}
-
-
-
 proc Structural::write::writeLoads { } {
-    #writeGravity "SMGravity"
-    variable nodalwrite
     variable ConditionsDictGroupIterators
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    if {$nodalwrite} {
-        set nodalCondList {"SMPointLoad" "SMLineLoad" "SMSurfaceLoad" "SMPointMoment"}
-        foreach cond $nodalCondList {
-            write::writeNodalData $cond
-        }
-        set nodalPressureList {"SMLinePressure" "SMSurfacePressure"}
-        foreach cond $nodalPressureList {
-            writePressureNodalData $cond 
-        }
-    } else {
-        set xp1 "[apps::getRoute "SMLoads"]/condition/group"
-        foreach group [$root selectNodes $xp1] {
-            set groupid [$group @n]
-            #W "Writing mesh of Load $groupid"
-            if {$groupid in [dict keys $ConditionsDictGroupIterators]} {
-                ::write::writeGroupMesh $groupid "Conditions" [dict get $ConditionsDictGroupIterators $groupid]
-            } else {
-                ::write::writeGroupMesh $groupid "nodal"
-            }
-        }
-    }
-    
-    
-    
-}
-proc Structural::write::writePressureNodalData { uniqueName } {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    # Get all childs of uniquename Groups
-    set xp1 "[apps::getRoute $uniqueName]/group"
+    set xp1 "[apps::getRoute "SMLoads"]/condition/group"
     foreach group [$root selectNodes $xp1] {
-        W "group $group [$group @n]"
-        set fixity [$group selectNodes {string(./value[@n='FixPressure']/@v)}]
-        set type [$group selectNodes {string(./value[@n='PressureType']/@v)}]
-        set wn [$group selectNodes {string(./value[@n='PressureType']/@wn)}]
-        set valnode [$group selectNodes {string(./value[@n='PressureValue'])}]
-        W "BIEN"
-        W "Valnode $valnode"
-        set value [gid_groups_conds::convert_value_to_default $valnode] 
-        W "f $fixity t $type v $value"
-        set keyword [string toupper ${type}${wn}]
-        
-        # Create the dictionary formats
-        set gpropd [dict create]
-        set groupname [$group @n]
-        
-        # For X
-        set f "%10i [format "%4i" $fixity] [format "%10.5f" $value]\n"
-        set f [subst $f]
-        dict set gpropd $groupname $f
-         
-        if {[write_calc_data nodes -count $gpropd]>0} {
-           # X Component
-           WriteString "Begin NodalData $keyword"
-           write_calc_data nodes -sorted $gpropd
-           WriteString "End NodalData"
-           WriteString ""          
+        set groupid [$group @n]
+        #W "Writing mesh of Load $groupid"
+        if {$groupid in [dict keys $ConditionsDictGroupIterators]} {
+            ::write::writeGroupMesh [[$group parent] @n] $groupid "Conditions" [dict get $ConditionsDictGroupIterators $groupid]
+        } else {
+            ::write::writeGroupMesh [[$group parent] @n] $groupid "nodal"
         }
     }
 }
-
 
 proc Structural::write::writeCustomBlock { } {
     write::WriteString "Begin Custom"

@@ -318,8 +318,15 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
     }
 }
 
-proc write::GetTopologyInfo { } {
-    return [list "Point" 1]
+proc write::writeNodalConditions { keyword } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set xp1 "[apps::getRoute $keyword]/condition/group"
+    foreach group [$root selectNodes $xp1] {
+        set cid [[$group parent] @n]
+        set groupid [$group @n]
+        ::write::writeGroupMesh $cid $groupid "nodal"
+    }
 }
 
 proc write::GetFormatDict { groupid n num} {
