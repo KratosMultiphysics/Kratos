@@ -347,11 +347,11 @@ public:
         {
             if(index >= md.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-  #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
             md[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
-  #else
+#else
             md[index].CopyFrom(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
-  #endif
+#endif
         }
     }
 
