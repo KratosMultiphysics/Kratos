@@ -385,7 +385,6 @@ proc spdAux::injectSolvers {basenode} {
     set paramspuestos [list ]
     set paramsnodes ""
     set params [::Model::GetAllSolversParams]
-    
     foreach {parname par} $params {
         if {$parname ni $paramspuestos} {
             lappend paramspuestos $parname
@@ -425,7 +424,8 @@ proc spdAux::injectSolvers {basenode} {
             set n [$se getName]
             set pn [$se getPublicName]
             set help [$se getHelp]
-            set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$stn$n\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\">"
+            set un [ExecuteOnCurrentApp getUniqueName "$stn$n"]
+            set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$un\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\">"
             # Inject solvers combo
             append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\">"
             append container "<dependencies node=\"../value\" actualize=\"1\"/> </value>"
@@ -550,7 +550,6 @@ proc spdAux::injectNodalConditions { basenode } {
             append node "<value n=\"Value\" pn=\"Value\" v=\"1\" units=\"$units\"  unit_magnitude=\"$um\" help=\"$help\"/>"
         }
         append node "</condition>"
-        #W $node
         $conds appendXML $node
     }
     $basenode delete
@@ -572,6 +571,7 @@ proc spdAux::injectConditions { basenode } {
             set type [$in getType]
             set dv [$in getDv]
             set fix [$in getFixity]
+            set help [$in getHelp]
             if {$type eq "vector"} {
                 if {$fix ne 0} {
                     append node "
@@ -580,15 +580,15 @@ proc spdAux::injectConditions { basenode } {
                         <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
                     }
                 append node "
-                <value n=\"ValX\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"ValY\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"ValZ\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"ValX\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"ValY\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"ValZ\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
                     append node "<value n=\"Fix\" pn=\"$fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
                 }
-                append node "<value n=\"$inName\" pn=\"$inPn\" v=\"$dv\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"\"/>"
+                append node "<value n=\"$inName\" pn=\"$inPn\" v=\"$dv\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"$help\"/>"
             }
         }
         append node "</condition>"
@@ -605,7 +605,8 @@ proc spdAux::injectElementInputs { basenode } {
         set pn [$in getPublicName]
         set units [$in getUnits]
         set um [$in getUnitMagnitude]
-        set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ElemParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" />"
+        set help [$in getHelp] 
+        set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ElemParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
         catch {$parts appendXML $node}
     }
     $basenode delete
@@ -620,7 +621,8 @@ proc spdAux::injectConstitutiveLawInputs { basenode } {
             set pn [$in getPublicName]
             set units [$in getUnits]
             set um [$in getUnitMagnitude]
-            set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ConstLawParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" />"
+            set help [$in getHelp]
+            set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ConstLawParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
             catch {$parts appendXML $node}
         }
     }

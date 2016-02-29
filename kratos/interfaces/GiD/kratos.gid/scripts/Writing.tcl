@@ -4,6 +4,7 @@ namespace eval write {
     variable parts
     variable matun
     variable meshes
+    variable groups_type_name
 }
 
 proc write::Init { } {
@@ -11,11 +12,13 @@ proc write::Init { } {
     variable dir
     variable parts
     variable meshes
+    variable groups_type_name
     
     set mat_dict ""
     set dir ""
     set parts ""
     set meshes [dict create]
+    set groups_type_name "SubModelPart"
 }
 
 proc write::initWriteData {partes mats} {
@@ -27,6 +30,11 @@ proc write::initWriteData {partes mats} {
     
     set meshes [dict create]
     processMaterials
+}
+
+proc write::setGroupsTypeName {name} {
+    variable groups_type_name
+    set groups_type_name $name
 }
 
 # Write Events
@@ -175,6 +183,7 @@ proc write::processMaterials {  } {
     }
 }
 
+
 proc write::writeElementConnectivities { } {
     variable parts
     set doc $gid_groups_conds::doc
@@ -194,7 +203,6 @@ proc write::writeElementConnectivities { } {
             #W "$group $ov -> $etype $nnodes"
             if {$nnodes ne ""} {
                 set formats [GetFormatDict $group $mid $nnodes]
-                
                 if {$etype ne "none"} {
                     set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
                     set elem [::Model::getElement $kelemtype]
@@ -202,146 +210,111 @@ proc write::writeElementConnectivities { } {
                     set top [$elem getTopologyFeature $etype $nnodes]
                     if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
                     set kratosElemName [$top getKratosName]
-                    #W "Writing $formats"
                     WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
                     write_calc_data connectivities $formats
                     WriteString "End Elements"
                     WriteString ""     
-                } else {
-                    W "Error on $group -  no known element type"
-                    # error [= "Only Triangle elements are allowed in this version of the problemtype"]
                 } 
-            }    
+            } else {
+                error [= "Error on $group -  no known element type"]
+            } 
         }
     } 
 }
-proc write::getMeshId {group} {
+
+proc write::writeConditions { baseUN } {
+    set dictGroupsIterators [dict create]
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set xp1 "[apps::getRoute $baseUN]/condition/group"
+    set iter 1
+    foreach group [$root selectNodes $xp1] {
+        set condid [[$group parent] @n]
+        set groupid [get_domnode_attribute $group n]
+        set ov [[$group parent] @ov]
+        set cond [::Model::getCondition $condid]
+        lassign [write::getEtype $ov] etype nnodes
+        set kname [$cond getTopologyKratosName $etype $nnodes]
+        if {$kname ne ""} {
+            WriteString "Begin Conditions $kname// GUI group identifier: $groupid"
+            if {$etype eq "Point"} {
+                set formats [dict create $groupid "%0d "]
+                set tope [write_calc_data nodes -count $formats]
+                set obj [write_calc_data nodes -return $formats]
+            } {
+                # Metemos las caras
+                lassign [GiD_EntitiesGroups get $groupid faces] elems faces
+                set obj [list ]
+                for {set i 0} {$i < [llength $elems]} {incr i} {
+                    set elem_id [lindex $elems $i]
+                    set face_id [lindex $faces $i]
+                    set bc_nodes [write::GetNodesFromElementFace $elem_id $face_id]
+                    lappend obj [join $bc_nodes " "]
+                }
+                # Si alguien ha mallado, tambien lo incluimos
+                set formats [write::GetFormatDict $groupid 0 $nnodes]
+                set elems [write_calc_data connectivities -return $formats]
+                foreach {e v n1 n2 n3} $elems {lappend obj "$n1 $n2 $n3"}
+            }
+            set initial $iter
+            for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
+                set nids [lindex $obj $i]
+                WriteString "$iter 0 $nids"
+            }
+            set final [expr $iter -1]
+            WriteString "End Conditions"
+            WriteString ""
+            dict set dictGroupsIterators $groupid [list $initial $final]
+        }
+    }
+    return $dictGroupsIterators
+}
+
+proc write::getMeshId {cid group} {
     variable meshes
-    if {[dict exists $meshes $group]} {
-        return [dict get $meshes $group]
+    if {[dict exists $meshes {$cid $group}]} {
+        return [dict get $meshes {$cid $group}]
     } {
         return 0
     }
-    
 }
 
-proc write::writeGroupMesh { group {what "Elements"} {iniend ""} } {
+proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
     variable meshes
-    #W "Print Mesh - group $group $what"
-    # Ojo, Si se comparte el mismo grupo en Parts y en Loads/DoF
-    if {![dict exists $meshes $group]} {
+    variable groups_type_name
+    
+    set gtn $groups_type_name
+    if {![dict exists $meshes [list $cid ${group}]]} {
         set mid [expr [llength [dict keys $meshes]] +1]
-        dict set meshes $group $mid
+        dict set meshes [list $cid ${group}] $mid
         set gdict [dict create]
         set f "%10i\n"
         set f [subst $f]
         dict set gdict $group $f
-        #W "Group Mesh $group"
-        WriteString "Begin Mesh $mid // Group $group"
-        WriteString "Begin MeshNodes"
+        WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
+        WriteString "Begin ${gtn}Nodes"
         write_calc_data nodes -sorted $gdict
-        WriteString "End MeshNodes"
-        WriteString "Begin MeshElements"
+        WriteString "End ${gtn}Nodes"
+        WriteString "Begin ${gtn}Elements"
         if {$what eq "Elements"} {
             write_calc_data elements -sorted $gdict
         }
-        WriteString "End MeshElements"
-        WriteString "Begin MeshConditions"
+        WriteString "End ${gtn}Elements"
+        WriteString "Begin ${gtn}Conditions"
         if {$what eq "Conditions"} {
             #write_calc_data elements -sorted $gdict
             if {$iniend ne ""} {
-                lassign $iniend ini end
-                for {set i $ini} {$i<=$end} {incr i} {
-                    WriteString $i
+                #W $iniend
+                foreach {ini end} $iniend {
+                    for {set i $ini} {$i<=$end} {incr i} {
+                        WriteString [format %10d $i]
+                    }
                 }
             }
         }
-        WriteString "End MeshConditions"
-        WriteString "End Mesh"
-    }
-}
-
-proc write::writeNodalData { uniqueName } {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    # Get all childs of uniquename Groups
-    set xp1 "[apps::getRoute $uniqueName]/group"
-    foreach group [$root selectNodes $xp1] {
-        writeNodalDataGroupNode $group
-    }
-}
-
-proc write::writeNodalDataGroupNode { group } {
-    # W "group $group [$group @n]"
-    
-    lassign {1 1 1 0 0 0 X Y Z} fix_x fix_y fix_z xval yval zval wx wy wz
-    foreach prop [$group childNodes] {
-        set name [get_domnode_attribute $prop n]
-       
-        switch $name {
-            "FixX" {
-                set fix_x [get_domnode_attribute $prop v]
-            }
-            "FixY" {
-                set fix_y [get_domnode_attribute $prop v]
-            }
-            "FixZ" {
-                set fix_z [get_domnode_attribute $prop v]
-            }
-            "ValX" {
-                set xval [gid_groups_conds::convert_value_to_default $prop] 
-                set wx [$prop @wn]
-                if {$wx eq ""} {set wx [$prop @n]}
-            }
-            "ValY" {
-                set yval [gid_groups_conds::convert_value_to_default $prop] 
-                set wy [$prop @wn]
-            }
-            "ValZ" {
-                set zval [gid_groups_conds::convert_value_to_default $prop] 
-                set wz [$prop @wn]
-            }
-        }
-    }
-    
-    # Create the dictionary formats
-    set gpropdx [dict create]
-    set gpropdy [dict create]
-    set gpropdz [dict create]
-    set groupname [$group @n]
-    
-    # For X
-    set f "%10i [format "%4i" $fix_x] [format "%10.5f" $xval]\n"
-    set f [subst $f]
-    dict set gpropdx $groupname $f
-    # For Y
-    set f "%10i [format "%4i" $fix_y] [format "%10.5f" $yval]\n"
-    set f [subst $f]
-    dict set gpropdy $groupname $f
-    # For Z
-    set f "%10i [format "%4i" $fix_z] [format "%10.5f" $zval]\n"
-    set f [subst $f]
-    dict set gpropdz $groupname $f
-    
-    if {[write_calc_data nodes -count $gpropdx]>0} {
-        # X Component
-        WriteString "Begin NodalData $wx"
-        write_calc_data nodes -sorted $gpropdx
-        WriteString "End NodalData"
-        WriteString ""        
-    
-        # Y Component
-        WriteString "Begin NodalData $wy"
-        write_calc_data nodes -sorted $gpropdy
-        WriteString "End NodalData"
-        WriteString ""        
-    
-        # Z Component
-        WriteString "Begin NodalData $wz"
-        write_calc_data nodes -sorted $gpropdz
-        WriteString "End NodalData"
-        WriteString ""        
+        WriteString "End ${gtn}Conditions"
+        WriteString "End $gtn"
     }
 }
 
@@ -458,6 +431,42 @@ proc write::isquadratic {} {
     return $isquadratic
 }
 
+# GiD_Mesh get element $elem_id face $face_id
+proc write::GetNodesFromElementFace {elem_id face_id} {
+    set inf [GiD_Mesh get element $elem_id]
+    set elem_type [lindex $inf 1]
+    set nnodes [lindex $inf 2]
+    set nodes [list ]
+    switch $elem_type {
+        Tetrahedra {
+            set matrix {{1 2 3 5 6 7} {2 4 3 9 10 6} {3 4 1 10 8 7} {4 2 1 9 5 8}}
+        }
+        Triangle {
+            set matrix {{1 2 4} {2 3 5} {1 3 6}}
+        }
+    }
+    # Decrementamos porque la cara con id 1 corresponde a la posicion 0 de la matriz
+    incr face_id -1
+    set face_matrix [lindex $matrix $face_id]
+    foreach node_index $face_matrix {
+        set node [lindex $inf [expr $node_index +2]]
+        if {$node ne ""} {lappend nodes $node}
+    }
+    return $nodes
+}
+
+
+proc write::writePartMeshes { } {
+    variable parts
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set xp1 "[spdAux::getRoute $parts]/group"
+    foreach group [$root selectNodes $xp1] {
+        writeGroupMesh Parts [$group @n] "Elements"
+    } 
+}
+
 
 proc write::WriteProcess {procid params} {
 	W "$procid $params"
@@ -481,7 +490,7 @@ proc write::Duration { int_time } {
  
 proc write::getValue { name { it "" } } {
     set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
+    set root [$gid_groups_conds::doc documentElement]
     
     set xp [apps::getRoute $name]
     set node [$root selectNodes $xp]
@@ -519,6 +528,12 @@ proc write::WriteString {str} {
 proc write::getMatDict {} {
     variable mat_dict
     return $mat_dict
+}
+
+proc write::getSpacing {number} {
+    set r ""
+    for {set i 0} {$i<$number} {incr i} {append r " "}
+    return $r
 }
 
 proc write::CopyFileIntoModel { filepath } {

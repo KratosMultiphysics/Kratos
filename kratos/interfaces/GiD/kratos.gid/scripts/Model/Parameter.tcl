@@ -34,7 +34,7 @@ oo::class create Parameter {
         set type $t
         set dv $v
         my setHelp $h
-        
+        #if {$h ne ""} {W "$n $h [my getHelp]"}
         set depname ""
         set depv ""
         
