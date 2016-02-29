@@ -93,7 +93,7 @@
   <!--<ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="line_load_2D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Load on lines, load vector referred to global axes">
+	ElementType="Line" help="Load on lines, load vector referred to global axes">
 
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
@@ -112,7 +112,7 @@
   <ConditionItem n="LineLoad2DAxisym" pn="Load on lines axisymmetric" ImplementedInFile="line_load_2D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Load on lines, load vector referred to global axes">
+	ElementType="Line" help="Load on lines, load vector referred to global axes">
 
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="AxisymLineLoadCondition2D2N"/>
@@ -131,7 +131,7 @@
   <ConditionItem n="LineLoad3D" pn="Load on lines" ImplementedInFile="line_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Global load on lines">
+	ElementType="Line" help="Global load on lines">
 
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition3D2N"/>
@@ -172,7 +172,7 @@
   <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="line_load_2D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Normal pressure on lines, oriented pointing against the line outer normal">
+	ElementType="Line" help="Normal pressure on lines, oriented pointing against the line outer normal">
 
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
