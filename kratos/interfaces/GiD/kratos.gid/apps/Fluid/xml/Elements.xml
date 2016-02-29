@@ -8,6 +8,7 @@
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Triangle" nodes="3" KratosName="FractionalStep2D3N"/>
+      <item GeometryType="Triangle" nodes="6" KratosName="FractionalStep2D6N"/>
     </TopologyFeatures>
 	    <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
@@ -16,8 +17,8 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY" pn="Initial Velocity" type="vector" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="PRESSURE" pn="Initial Pressure" type="double" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="INITIAL_VELOCITY" pn="Initial Velocity" type="vector" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="INITIAL_PRESSURE" pn="Initial Pressure" type="double" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -41,8 +42,8 @@
 	</ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY" pn="Initial Velocity" type="vector" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="PRESSURE" pn="Initial Pressure" type="double" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="INITIAL_VELOCITY" pn="Initial Velocity" type="vector" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="INITIAL_PRESSURE" pn="Initial Pressure" type="double" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
