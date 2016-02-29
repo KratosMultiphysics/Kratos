@@ -152,7 +152,6 @@ namespace Kratos {
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;          
         }
-                
         else { //tension            
             if (failure_type == 0) {             
                 LocalElasticContactForce[2] = kn_el * indentation;
