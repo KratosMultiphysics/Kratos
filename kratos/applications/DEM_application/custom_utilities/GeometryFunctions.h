@@ -573,7 +573,6 @@ namespace Kratos {
                 LocalCoordSystem[2][ia] = -Normal [ia];
             }
         }
-
     }
     
     //MSIMSI this one is being used only for distributed... adapt it
@@ -718,7 +717,6 @@ namespace Kratos {
         p1[2] = JudgeCoord[2] - coor[2];
         DEM_SET_TO_CROSS_OF_FIRST_TWO_3(b, p1, coor)
 
-
         if (DEM_INNER_PRODUCT_3(coor, normal_element) >= 0){
             area = 0.5 * DEM_MODULUS_3(coor);
             return true;
@@ -767,7 +765,9 @@ namespace Kratos {
                 Weight[i] = (Area[(i+1)%facet_size]*Area[(i+2)%facet_size])/total_discriminant;
             }
         }
-        else{KRATOS_WATCH("WEIGHTS FOR N-SIZE POLYGONAL FE TO BE IMPLEMENTED")}
+        else {
+            KRATOS_WATCH("WEIGHTS FOR N-SIZE POLYGONAL FE TO BE IMPLEMENTED")
+        }
     }//WeightsCalculation
     
     static inline bool FastFacetCheck(std::vector< array_1d <double,3> >Coord, double Particle_Coord[3], double rad, double &DistPToB, unsigned int &current_edge_index) 
@@ -821,13 +821,12 @@ namespace Kratos {
 
             int facet_size = Coord.size();
 
-            for (int i = 0; i < facet_size; i++){
+            for (int i = 0; i < facet_size; i++) {
                 double this_area = 0.0;
 
                 if (InsideOutside(Coord[i], Coord[(i+1)%facet_size], IntersectionCoord, N, this_area) == false){
                     current_edge_index = i;
                     return false;
-
                 }
             }
             return true;
@@ -1070,7 +1069,7 @@ namespace Kratos {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////******The four Functions BELOW are used to calculate the weight coefficient for quadrilateral*******///////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    static inline void Coord_transform(double origin[3],double coordsystem[3][3],double Coord[3],double TransCoord[3])
+    static inline void Coord_transform(double origin[3], double coordsystem[3][3], double Coord[3], double TransCoord[3])
     {
       	TransCoord[0]=0.0;
       	TransCoord[1]=0.0;
@@ -1158,7 +1157,6 @@ namespace Kratos {
                     exisp = g0;
                 }
             }
-
       	}
       	x_exisp=exisp;
       	y_etasp=etasp;
@@ -1355,7 +1353,6 @@ namespace Kratos {
      
     static inline void AreaAndCentroidCircularSector(double C[3], double Radius, double P1[3], double P2[3], double Normal[3], double& Area, double CoMSC[3])
     {
-
         double a[3]           = {0.0};
         double c[3]           = {0.0};
         double bisection[3]   = {0.0};
