@@ -261,7 +261,7 @@ proc Fluid::write::writeDrags { } {
 
 proc Fluid::write::writeMeshes { } {
     write::writePartMeshes
-    write::writeNodalConditionsMesh "FLNodalConditions"
+    write::writeNodalConditions "FLNodalConditions"
     writeConditionsMesh
     writeSkinMesh
 }
