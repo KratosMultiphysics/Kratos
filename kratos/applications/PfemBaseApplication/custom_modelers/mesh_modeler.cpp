@@ -63,6 +63,48 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
+  void MeshModeler::InitializeMeshGeneration(ModelPart& rModelPart,
+					     MeshingParametersType& rMeshingVariables,
+					     ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+    
+    //Refine and Remove nodes processes
+    ////////////////////////////////////////////////////////////
+    if( mPreMeshingProcesses.size() )
+      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++)
+	mPreMeshingProcesses[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::FinalizeMeshGeneration(ModelPart& rModelPart,
+					   MeshingParametersType& rMeshingVariables,
+					   ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+
+    //Rebuild Boundary processes
+    ////////////////////////////////////////////////////////////
+    if( mPostMeshingProcesses.size() )
+      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++)
+	mPostMeshingProcesses[i]->Execute();
+    ////////////////////////////////////////////////////////////
+
+ 
+    KRATOS_CATCH( "" )
+
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
   void MeshModeler::SetMeshingParameters( MeshingParametersType::Pointer& rMeshingParameters, ModelPart::IndexType MeshId  )
   {
     KRATOS_TRY
@@ -403,6 +445,69 @@ namespace Kratos
   }
 
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MeshModeler::SetElementNeighbours(ModelPart& rModelPart,
+					 MeshingParametersType & rMeshingVariables,
+					 ModelPart::IndexType MeshId)
+  {
+    KRATOS_TRY
+
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
+      std::cout<<"   Initial Faces : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    }
+
+    ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin(MeshId);
+	
+    int facecounter=0;
+    for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(MeshId);
+	iii != rModelPart.ElementsEnd(MeshId); iii++)
+      {
+
+	int Id= iii->Id() - 1;
+	//std::cout<<" Id ELNEIG "<<Id<<std::endl;
+
+	(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+	WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+
+	int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
+
+	for(int i = 0; i<number_of_faces; i++)
+	  {
+	    int index = rMeshingVariables.NeighbourList[Id][i];
+				
+	    if(index > 0)
+	      {
+		//std::cout<<" Element "<<Id<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;			    
+		//std::cout<<" Index pre "<<index<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;
+		index = rMeshingVariables.PreservedElements[index-1];
+		//std::cout<<" Index post "<<index<<std::endl;
+	      }
+
+	    if(index > 0)
+	      {
+		neighb(i) = *((el_begin + index -1 ).base());
+	      }
+	    else
+	      {
+		//neighb(i) = Element::WeakPointer();
+		neighb(i) = *(iii.base());
+		facecounter++;
+	      }
+	  }
+      }
+	
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   Final Faces : "<<facecounter<<std::endl;
+      std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+
+  }
 
 } // Namespace Kratos
 

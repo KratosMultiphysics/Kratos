@@ -88,10 +88,10 @@ public:
 
     /// Pointer definition of TriGenCDT
     KRATOS_CLASS_POINTER_DEFINITION( TriangularMesh2DModeler );
-
-    typedef ModelerUtilities::InfoParameters         InfoParametersType;
-    typedef ModelerUtilities::MeshingParameters   MeshingParametersType;
-    typedef ModelerUtilities::RefiningParameters   RefineParametersType;
+ 
+    typedef ModelerUtilities::InfoParameters                     InfoParametersType;
+    typedef ModelerUtilities::MeshingParameters               MeshingParametersType;
+    typedef ModelerUtilities::RefiningParameters               RefineParametersType;
 
     typedef Node<3>                                                       PointType;
     typedef std::vector<PointType>                                      PointVector;
@@ -189,20 +189,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void InitializeMeshGeneration(ModelPart& rModelPart,
-				  MeshingParametersType& rMeshingVariables,
-				  ModelPart::IndexType MeshId=0);
-
-    //*******************************************************************************************
-    //*******************************************************************************************
-    void FinalizeMeshGeneration(ModelPart& rModelPart,
-				MeshingParametersType& rMeshingVariables,
-				ModelPart::IndexType MeshId=0);
-
-  
     //*******************************************************************************************
     //*******************************************************************************************
     void PerformTransferOnly(ModelPart& rModelPart,
@@ -265,13 +251,14 @@ protected:
 			       struct triangulateio& out);
   
     //Free memory of the mesher
+    void ClearTrianglesList  ( struct triangulateio& tr );
+
     void DeleteTrianglesList ( struct triangulateio& tr );
     
     void DeletePointsList    ( struct triangulateio& tr );
 
-    void ClearTrianglesList  ( struct triangulateio& tr );
-
     void FreeTrianglesList   ( struct triangulateio& tr );
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -355,12 +342,6 @@ private:
 			     ModelPart::IndexType MeshId=0 );
   
   
-    //Set element neighbours
-    void SetElementNeighbours ( ModelPart& rModelPart, 
-				MeshingParametersType& rMeshingVariables,
-				ModelPart::IndexType MeshId=0 );
-
-
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -391,7 +372,6 @@ private:
     void WriteTriangles      ( struct triangulateio& tr );
     void WritePoints         ( struct triangulateio& tr );
 
- 
    ///@}
 
 }; // Class TriangularMesh2DModeler
@@ -431,22 +411,7 @@ private:
 
 
 
-
-
 //************************************************************************************
-//************************************************************************************
-//************************************************************************************
-//************************************************************************************
-//************************************************************************************
-
-
-
-
-
-//************************************************************************************
-
-
-
 // Command line switches for TRIANGLE:
 
 // To run Triangle, the command line syntax is

@@ -282,14 +282,14 @@ protected:
      */
     virtual void InitializeMeshGeneration(ModelPart& rModelPart,
 					  MeshingParametersType& rMeshingVariables,
-					  ModelPart::IndexType MeshId=0){};
+					  ModelPart::IndexType MeshId=0);
 
     /**
      * Mesh Modeler :: Process to be done at the end of the Generation
      */
     virtual void FinalizeMeshGeneration(ModelPart& rModelPart,
 					MeshingParametersType& rMeshingVariables,
-					ModelPart::IndexType MeshId=0){};
+					ModelPart::IndexType MeshId=0);
   
     /**
      * Mesh Modeler :: Variables Transfer without remeshing
@@ -326,6 +326,15 @@ protected:
 			      MeshingParametersType& rMeshingVariables,
 			      ModelPart::IndexType MeshId=0){};
         
+
+
+    /**
+     * Mesh Modeler :: Set Element Neighbours
+     */
+    virtual void SetElementNeighbours(ModelPart& rModelPart, 
+				      MeshingParametersType& rMeshingVariables,
+				      ModelPart::IndexType MeshId=0);
+
 
     ///@}
     ///@name Protected  Access
