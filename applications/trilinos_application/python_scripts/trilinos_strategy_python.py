@@ -169,7 +169,7 @@ class SolvingStrategyPython:
 
         # build and solve the problem
 
-        self.builder_and_solver.BuildAndSolve(self.scheme, self.model_part, self.A, self.Dx, self.b)
+        self.builder_and_solver.BuildAndSolve(self.scheme, self.model_part, self.pA, self.pDx, self.pb)
 
         # full output if needed
         if(echo_level >= 3):
