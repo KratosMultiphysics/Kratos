@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPfemBaseApplication ****")
 
+add_definitions( -DTETGEN143 )
+add_definitions( -DTETLIBRARY )
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle )
@@ -38,7 +41,7 @@ set( KRATOS_PFEM_BASE_APPLICATION_SOURCES
 	##modelers
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/mesh_modeler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/triangular_mesh_2D_modeler.cpp
-
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/tetrahedral_mesh_3D_modeler.cpp
 
 )
 
