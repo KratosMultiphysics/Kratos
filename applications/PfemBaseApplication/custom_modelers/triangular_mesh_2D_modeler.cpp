@@ -24,49 +24,6 @@ namespace Kratos
 
   //*******************************************************************************************
   //*******************************************************************************************
-
-  void TriangularMesh2DModeler::InitializeMeshGeneration(ModelPart& rModelPart,
-							 MeshingParametersType& rMeshingVariables,
-							 ModelPart::IndexType MeshId)
-  {
-    KRATOS_TRY
-    
-    //Refine and Remove nodes processes
-    ////////////////////////////////////////////////////////////
-    if( mPreMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++)
-	mPreMeshingProcesses[i]->Execute();
-    ////////////////////////////////////////////////////////////
-
-    KRATOS_CATCH( "" )
-  }
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void TriangularMesh2DModeler::FinalizeMeshGeneration(ModelPart& rModelPart,
-						       MeshingParametersType& rMeshingVariables,
-						       ModelPart::IndexType MeshId)
-  {
-    KRATOS_TRY
-
-    //Rebuild Boundary processes
-    ////////////////////////////////////////////////////////////
-    if( mPostMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++)
-	mPostMeshingProcesses[i]->Execute();
-    ////////////////////////////////////////////////////////////
-
- 
-    KRATOS_CATCH( "" )
-
-  }
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
   void TriangularMesh2DModeler::PerformTransferOnly(ModelPart& rModelPart,
 						    MeshingParametersType& rMeshingVariables,
 						    ModelPart::IndexType MeshId)
@@ -119,7 +76,6 @@ namespace Kratos
 	
     for(unsigned int el = 0; el<rModelPart.Elements(MeshId).size(); el++)
       {
-	// Geometry<Node<3> >& geom = (elem_begin+el)->GetGeometry();
 	WeakPointerVector<Element >& rE = (elem_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
 
 	for(int pn=0; pn<3; pn++){
@@ -198,7 +154,6 @@ namespace Kratos
       //*********************************************************************
 
     }
-
 
     ////////////////////////////////////////////////////////////
     //Creating the containers for the input and output
@@ -463,7 +418,6 @@ namespace Kratos
 					    ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
-
 
     //configuration Options false: CONSTRAINED
     //configuration Options true : REMESH, REFINE
@@ -1618,68 +1572,6 @@ namespace Kratos
 
 
   //*******************************************************************************************
-  //*******************************************************************************************
-
-  void TriangularMesh2DModeler::SetElementNeighbours(ModelPart& rModelPart,
-						     MeshingParametersType & rMeshingVariables,
-						     ModelPart::IndexType MeshId)
-  {
-    KRATOS_TRY
-
-    if( this->GetEchoLevel() > 0 ){
-      std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
-      std::cout<<"   Initial Faces : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
-    }
-
-    ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin(MeshId);
-	
-    int facecounter=0;
-    for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(MeshId);
-	iii != rModelPart.ElementsEnd(MeshId); iii++)
-      {
-
-	int Id= iii->Id() - 1;
-	//std::cout<<" Id ELNEIG "<<Id<<std::endl;
-
-	(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
-	WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
-
-	for(int i = 0; i<3; i++)
-	  {
-	    int index = rMeshingVariables.NeighbourList[Id][i];
-				
-	    if(index > 0)
-	      {
-		//std::cout<<" Element "<<Id<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;			    
-		//std::cout<<" Index pre "<<index<<" size "<<rMeshingVariables.PreservedElements.size()<<std::endl;
-		index = rMeshingVariables.PreservedElements[index-1];
-		//std::cout<<" Index post "<<index<<std::endl;
-	      }
-
-	    if(index > 0)
-	      {
-		neighb(i) = *((el_begin + index -1 ).base());
-	      }
-	    else
-	      {
-		//neighb(i) = Element::WeakPointer();
-		neighb(i) = *(iii.base());
-		facecounter++;
-	      }
-	  }
-      }
-	
-    if( this->GetEchoLevel() > 0 ){
-      std::cout<<"   Final Faces : "<<facecounter<<std::endl;
-      std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-
-  }
-
-
-  //*******************************************************************************************
   //METHODS CALLED BEFORE REFINING THE TESSELLATION
   //*******************************************************************************************
 
@@ -2032,8 +1924,7 @@ namespace Kratos
 		Node<3>::DofType& rDof = *iii;
 		Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
-		(p_new_dof)->FreeDof();
-	
+		(p_new_dof)->FreeDof();	
 	      }
 		
 	    j++;
@@ -2065,7 +1956,6 @@ namespace Kratos
 
     array_1d<double,3> N;
     array_1d<double,3> x1,x2,x3,xc;
-
 
     int point_base;
     unsigned int       MaximumNumberOfResults = list_of_new_nodes.size();
