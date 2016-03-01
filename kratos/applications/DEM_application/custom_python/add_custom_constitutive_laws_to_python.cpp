@@ -7,7 +7,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define.h" 
 
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"    
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h" 
@@ -25,7 +25,7 @@
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
-
+#include "custom_constitutive/DEM_Dempack_torque_CL.h"
 
 
 
@@ -97,6 +97,9 @@ namespace Kratos {
                     ;
 
             class_<DEM_Dempack2D, bases< DEM_Dempack >, boost::noncopyable >("DEM_Dempack2D",init<>())
+                    ;
+
+            class_<DEM_Dempack_torque, bases< DEM_Dempack >, boost::noncopyable >("DEM_Dempack_torque",init<>())
                     ;
 
             class_<DEM_KDEM, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_KDEM",init<>())
