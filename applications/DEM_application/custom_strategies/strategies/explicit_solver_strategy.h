@@ -1041,9 +1041,9 @@ namespace Kratos
                 impose = true;
             }
 
-            double linear_vel_start = (*mesh_it)[VELOCITY_START_TIME];
-            double linear_vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
-            if(time<linear_vel_start || time>linear_vel_stop){
+            double vel_start = (*mesh_it)[VELOCITY_START_TIME];
+            double vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
+            if(time<vel_start || time>vel_stop){
                 impose = false;
             }
 
