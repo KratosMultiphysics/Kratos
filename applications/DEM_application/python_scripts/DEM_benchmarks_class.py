@@ -136,8 +136,8 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==25:          # Shear + radius expansion
 
         final_time                      = 8e-5
-        dt                              = 1e-6
-        output_time_step                = 1e-6
+        dt                              = 1e-7
+        output_time_step                = 1e-7
         number_of_points_in_the_graphic = 1
     
     elif benchmark_number==26:          # Tensile with indentation
