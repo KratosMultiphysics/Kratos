@@ -1,9 +1,9 @@
-//
-//   Project Name:        Kratos
 //   Last Modified by:    $Author: Salva Latorre
 //   Date:                $Date: 20151209
 //   Revision:            $Revision: 1.2 $
 //
+//
+
 
 #if !defined(KRATOS_DEM_APPLICATION_H_INCLUDED)
 #define KRATOS_DEM_APPLICATION_H_INCLUDED
@@ -12,7 +12,7 @@
 #include <string>
 #include <iostream>
 
-// Project includes
+// External includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/kratos_flags.h"
@@ -50,6 +50,7 @@
 #include "custom_conditions/RigidEdge.h"
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
+#include "custom_constitutive/DEM_Dempack_torque_CL.h"
 
 namespace Kratos
 {
@@ -57,14 +58,14 @@ namespace Kratos
 class KratosDEMApplication : public KratosApplication
 {
 public:
-
-    /// Pointer definition of KratosDEMSpheresApplication
+    ///@name Type Definitions
+    ///@{
     KRATOS_CLASS_POINTER_DEFINITION(KratosDEMApplication);
 
-    /// Default constructor
+    /// Default constructor.
     KratosDEMApplication();
 
-    /// Destructor
+    /// Destructor.
     virtual ~KratosDEMApplication() {}
 
     virtual void Register();
@@ -132,15 +133,15 @@ private:
     const Ballast6Cluster3D  mBallast6Cluster3D;
     const MAPcond    mMapCon3D3N;
 
-    /// Assignment operator
+    //       static const ApplicationCondition  msApplicationCondition;
     KratosDEMApplication& operator=(KratosDEMApplication const& rOther);
 
-    /// Copy constructor
+    /// Copy constructor.
     KratosDEMApplication(KratosDEMApplication const& rOther);
 
 }; // Class KratosDEMApplication
 
-}  // namespace Kratos
+}  // namespace Kratos.
 
 #endif // KRATOS_DEM_APPLICATION_H_INCLUDED  defined 
 
