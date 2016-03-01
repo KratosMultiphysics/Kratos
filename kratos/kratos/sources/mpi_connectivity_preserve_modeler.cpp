@@ -41,6 +41,9 @@ void MPIConnectivityPreserveModeler::GenerateModelPart(ModelPart &rOriginModelPa
     rDestinationModelPart.SetProcessInfo( rOriginModelPart.pGetProcessInfo() );
     rDestinationModelPart.SetProperties( rOriginModelPart.pProperties() );
 
+    // Copy tables
+    rDestinationModelPart.Tables() = rOriginModelPart.Tables();
+
     // Copy the node list so that both model parts share the same nodes
     rDestinationModelPart.SetNodes( rOriginModelPart.pNodes() );
 
