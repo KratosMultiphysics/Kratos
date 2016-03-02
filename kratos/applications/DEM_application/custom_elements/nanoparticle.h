@@ -61,7 +61,7 @@ public:
 
     void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                  array_1d<double, 3>& additionally_applied_moment,
-                                 ProcessInfo& r_current_process_info,
+                                 const ProcessInfo& r_current_process_info,
                                  const array_1d<double,3>& gravity);
 
     void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);

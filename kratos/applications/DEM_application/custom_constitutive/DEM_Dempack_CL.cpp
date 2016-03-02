@@ -77,7 +77,7 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack::CalculateForces(ProcessInfo& r_process_info,
+    void DEM_Dempack::CalculateForces(const ProcessInfo& r_process_info,
                                       double LocalElasticContactForce[3],
                                       double LocalDeltDisp[3],
                                       const double kn_el,

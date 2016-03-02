@@ -60,7 +60,7 @@ virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_proc
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
-virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
+virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info);
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
@@ -139,7 +139,7 @@ std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector<array_1d<double, 3> > mNeighbourTotalContactForces;
 
-virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
+virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
 
 array_1d<double, 3> mContactForce; //SLS
@@ -183,7 +183,7 @@ virtual void UpdateRF_Pram(DEMWall* rObj_2,
                            const double Weight[4], 
                            const int ContactType);
 
-virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
+virtual void InitializeSolutionStep(const ProcessInfo& r_process_info);
 
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
@@ -191,7 +191,7 @@ virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                      array_1d<double, 3>& rContactForce,
                                      array_1d<double, 3>& InitialRotaMoment,
                                      ProcessInfo& r_process_info,
-                                     double dt,
+                                     const double dt,
                                      const bool multi_stage_RHS);
 
 virtual void EvaluateDeltaDisplacement(double DeltDisp[3],

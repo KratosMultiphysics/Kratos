@@ -21,7 +21,7 @@ void NanoParticle::CustomInitialize()
 
 void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                              array_1d<double, 3>& additionally_applied_moment,
-                             ProcessInfo& r_current_process_info,
+                             const ProcessInfo& r_current_process_info,
                              const array_1d<double,3>& gravity){
     KRATOS_TRY
 

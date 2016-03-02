@@ -680,7 +680,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
                                                     array_1d<double, 3>& r_contact_force,
                                                     array_1d<double, 3>& rInitialRotaMoment,
                                                     ProcessInfo& r_process_info,
-                                                    double dt,
+                                                    const double dt,
                                                     const bool multi_stage_RHS)
 {
     KRATOS_TRY
@@ -1148,7 +1148,7 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
     KRATOS_CATCH("")
 }
 
-void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
+void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
@@ -1235,7 +1235,7 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
     KRATOS_CATCH("")
 }
 
-void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
+void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
     
     KRATOS_TRY
 
@@ -1278,7 +1278,7 @@ void SphericParticle::CustomInitialize() {}
 
 void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
                                               array_1d<double, 3>& externally_applied_moment,
-                                              ProcessInfo& r_process_info,
+                                              const ProcessInfo& r_process_info,
                                               const array_1d<double,3>& gravity)
 {
     KRATOS_TRY

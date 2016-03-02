@@ -51,7 +51,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
     
-    void DEM_D_Hertz_viscous_Coulomb::CalculateForces(ProcessInfo& r_process_info,
+    void DEM_D_Hertz_viscous_Coulomb::CalculateForces(const ProcessInfo& r_process_info,
                                                       const double OldLocalElasticContactForce[3],
                                                       double LocalElasticContactForce[3],
                                                       double LocalDeltDisp[3],

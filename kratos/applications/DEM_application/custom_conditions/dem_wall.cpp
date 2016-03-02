@@ -77,7 +77,7 @@ void DEMWall::CalculateElasticForces(
     ProcessInfo& r_process_info) {
 }
 
-void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
+void DEMWall::InitializeSolutionStep(const ProcessInfo& r_process_info){
 }
 
 
@@ -148,7 +148,7 @@ void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, cons
     
 }
 
-void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)   
+void DEMWall::FinalizeSolutionStep(const ProcessInfo& r_process_info)   
 {  
   
 }

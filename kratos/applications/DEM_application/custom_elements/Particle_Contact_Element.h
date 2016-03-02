@@ -56,15 +56,15 @@ public:
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
 
-    void InitializeSolutionStep( ProcessInfo& r_process_info );
+    void InitializeSolutionStep(const ProcessInfo& r_process_info );
 
-    void FinalizeSolutionStep( ProcessInfo& r_process_info );
+    void FinalizeSolutionStep(const ProcessInfo& r_process_info );
 
-    void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info);
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info);
   
-    void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info );
+    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info );
     
     void PrepareForPrinting();
     

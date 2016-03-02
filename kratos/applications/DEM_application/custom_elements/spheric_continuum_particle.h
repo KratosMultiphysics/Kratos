@@ -42,8 +42,8 @@ namespace Kratos
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info);
-        void InitializeSolutionStep(ProcessInfo& r_process_info);    
-        void FinalizeSolutionStep(ProcessInfo& r_process_info);     
+        void InitializeSolutionStep(const ProcessInfo& r_process_info);    
+        void FinalizeSolutionStep(const ProcessInfo& r_process_info);     
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
         void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
         void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
@@ -58,7 +58,7 @@ namespace Kratos
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            
         virtual void ContactAreaWeighting();
-        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
+        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 
         /// Turn back information as a string
         virtual std::string Info() const
@@ -95,13 +95,13 @@ namespace Kratos
                                                    array_1d<double, 3>& rContactForce, 
                                                    array_1d<double, 3>& InitialRotaMoment, 
                                                    ProcessInfo& r_process_info, 
-                                                   double dt,
+                                                   const double dt,
                                                    const bool multi_stage_RHS);         
 
-        void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& r_process_info);
+        void ComputePressureForces(array_1d<double, 3>& externally_applied_force, const ProcessInfo& r_process_info);
         void CharacteristicParticleFailureId(const ProcessInfo& r_process_info );                
         void ComputeParticleBlockContactForce(const ProcessInfo& r_process_info);
-        void ComputeParticleSurfaceContactForce(ProcessInfo& r_process_info);
+        void ComputeParticleSurfaceContactForce(const ProcessInfo& r_process_info);
 
         int* mSkinSphere; 
 

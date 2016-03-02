@@ -184,13 +184,14 @@ namespace Kratos {
                                                                  array_1d<double, 3 > & rContactForce,
                                                                  array_1d<double, 3>& rInitialRotaMoment,
                                                                  ProcessInfo& r_process_info,
-                                                                 double dt,
+                                                                 const double dt,
                                                                  const bool multi_stage_RHS) {
         KRATOS_TRY
 
         const int time_steps = r_process_info[TIME_STEPS];
-        int& search_control = r_process_info[SEARCH_CONTROL];
+        const int& search_control = r_process_info[SEARCH_CONTROL];
         vector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
+        const int stress_strain_option= r_process_info[STRESS_STRAIN_OPTION];
 
         const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -308,7 +309,7 @@ namespace Kratos {
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
 
-            if (r_process_info[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it. 
+            if (stress_strain_option && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it. 
                 mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor);
             }
 
@@ -334,7 +335,7 @@ namespace Kratos {
                 CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
 
-            if (r_process_info[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) {
+            if (stress_strain_option && (i < mContinuumInitialNeighborsSize)) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum);
             }
 
@@ -353,15 +354,15 @@ namespace Kratos {
         KRATOS_CATCH("")
     } //SymmetrizeTensor
 
-    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {         
+    void SphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {         
         KRATOS_TRY
         
         SphericParticle::InitializeSolutionStep(r_process_info);
         
         KRATOS_CATCH("")
-    }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
+    }//void SphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
 
-    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
         SphericParticle::FinalizeSolutionStep(r_process_info);
@@ -649,7 +650,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
             array_1d<double, 3>& additionally_applied_moment,
-            ProcessInfo& r_process_info,
+            const ProcessInfo& r_process_info,
             const array_1d<double, 3>& gravity) {
 
         KRATOS_TRY
@@ -701,7 +702,7 @@ namespace Kratos {
 
     }//CalculateOnContactElements                                     
 
-    void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, const ProcessInfo& r_process_info) {
 
         noalias(externally_applied_force) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
 

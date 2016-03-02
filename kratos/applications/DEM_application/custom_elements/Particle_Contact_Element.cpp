@@ -115,7 +115,7 @@ void ParticleContactElement::GetValueOnIntegrationPoints(const Variable<double>&
     
 void ParticleContactElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
 
-void ParticleContactElement::InitializeSolutionStep( ProcessInfo& r_process_info )
+void ParticleContactElement::InitializeSolutionStep(const ProcessInfo& r_process_info )
 {
     mContactTau           = 0.0;
     mContactSigma         = 0.0;    
@@ -129,7 +129,7 @@ void ParticleContactElement::InitializeSolutionStep( ProcessInfo& r_process_info
 
 ////************************************************************************************
 ////************************************************************************************
-void ParticleContactElement::FinalizeSolutionStep(ProcessInfo& r_process_info) {}
+void ParticleContactElement::FinalizeSolutionStep(const ProcessInfo& r_process_info) {}
 
 void ParticleContactElement::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {}
 
