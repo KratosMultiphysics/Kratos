@@ -56,13 +56,13 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class ParameterValue
+class Parameters
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(ParameterValue);
+    KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
     //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-    ParameterValue(rapidjson::Value& rvalue, rapidjson::Document &rdoc): mrvalue(rvalue),mrdoc(rdoc)
+    Parameters(rapidjson::Value& rvalue, rapidjson::Document &rdoc): mrvalue(rvalue),mrdoc(rdoc)
     {
     }
 
@@ -85,16 +85,16 @@ public:
 
 
     //*******************************************************************************************************
-    ParameterValue GetValue(const std::string entry)
+    Parameters GetValue(const std::string entry)
     {
         if( mrvalue.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return ParameterValue(mrvalue[entry.c_str()],mrdoc);
+        return Parameters(mrvalue[entry.c_str()],mrdoc);
     }
-    ParameterValue operator[](const std::string entry)
+    Parameters operator[](const std::string entry)
     {
-        return ParameterValue(mrvalue[entry.c_str()],mrdoc);
+        return Parameters(mrvalue[entry.c_str()],mrdoc);
     }
-    void SetValue(const std::string entry, const ParameterValue& other_value)
+    void SetValue(const std::string entry, const Parameters& other_value)
     {
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
         mrvalue = rapidjson::Value(other_value.GetUnderlyingStorage(), mrdoc.GetAllocator());
@@ -186,7 +186,7 @@ public:
         return mrvalue.Size();
     }
 
-    ParameterValue GetArrayItem(unsigned int index)
+    Parameters GetArrayItem(unsigned int index)
     {
         if(mrvalue.IsArray() == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
@@ -194,11 +194,11 @@ public:
         {
             if(index >= mrvalue.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-            return ParameterValue(mrvalue[index],mrdoc);
+            return Parameters(mrvalue[index],mrdoc);
         }
     }
 
-    void SetArrayItem(unsigned int index, const ParameterValue& other_array_item)
+    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
     {
         if(mrvalue.IsArray() == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
@@ -213,7 +213,7 @@ public:
 #endif
         }
     }
-    ParameterValue operator[](unsigned int index)
+    Parameters operator[](unsigned int index)
     {
         return this->GetArrayItem(index);
     }
@@ -301,13 +301,13 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    ParameterValue GetValue(const std::string entry)
+    Parameters GetValue(const std::string entry)
     {
         if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return ParameterValue(md[entry.c_str()],md);
+        return Parameters(md[entry.c_str()],md);
     }
 
-    void SetValue(const std::string entry, const ParameterValue& other_value)
+    void SetValue(const std::string entry, const Parameters& other_value)
     {
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
         md[entry.c_str()] = rapidjson::Value(other_value.GetUnderlyingStorage(), md.GetAllocator());
@@ -316,10 +316,10 @@ public:
 #endif
     }
 
-    ParameterValue operator[](const std::string entry)
+    Parameters operator[](const std::string entry)
     {
         if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return ParameterValue(md[entry.c_str()],md);
+        return Parameters(md[entry.c_str()],md);
     }
 
     bool Has(const std::string entry)
@@ -327,7 +327,7 @@ public:
        return md.HasMember(entry.c_str());
     }
 
-    ParameterValue GetArrayItem(unsigned int index)
+    Parameters GetArrayItem(unsigned int index)
     {
         if(md.IsArray() == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
@@ -335,11 +335,11 @@ public:
         {
             if(index >= md.Size())
                  KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-            return ParameterValue(md[index],md);
+            return Parameters(md[index],md);
         }
     }
 
-    void SetArrayItem(unsigned int index, const ParameterValue& other_array_item)
+    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
     {
         if(md.IsArray() == false)
             KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
@@ -355,7 +355,7 @@ public:
         }
     }
 
-    ParameterValue operator[](unsigned int index)
+    Parameters operator[](unsigned int index)
     {
         return this->GetArrayItem(index);
     }
