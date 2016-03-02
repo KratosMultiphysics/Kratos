@@ -53,7 +53,7 @@ namespace Kratos
         
             for (unsigned int i = 0; i < continuous_initial_neighbours_size; i++) {
                 SphericParticle* ini_cont_neighbour_iterator = mNeighbourElements[i];
-                double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                double other_radius     = ini_cont_neighbour_iterator->GetInteractionRadius();
                 double area = mContinuumConstitutiveLawArray[i]->CalculateContactArea(GetRadius(), other_radius, mContIniNeighArea); //This call fills the vector of areas only if the Constitutive Law wants.         
                 total_equiv_perimeter += area;
             } //for every neighbour
