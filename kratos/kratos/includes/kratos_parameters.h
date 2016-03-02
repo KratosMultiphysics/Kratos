@@ -87,7 +87,7 @@ public:
     //*******************************************************************************************************
     Parameters GetValue(const std::string entry)
     {
-        if( mrvalue.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
+        //if( mrvalue.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
         return Parameters(mrvalue[entry.c_str()],mrdoc);
     }
     Parameters operator[](const std::string entry)
@@ -248,7 +248,7 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosParameters(std::string json_string)
+    KratosParameters(std::string json_string) 
     {
         rapidjson::ParseResult ok = md.Parse<0>(json_string.c_str());
         if( !ok )
@@ -263,7 +263,7 @@ public:
     }
 
     /// Assignment operator.
-    KratosParameters& operator=(KratosParameters const& rOther)
+    KratosParameters& operator=(KratosParameters const& rOther) 
     {
         rapidjson::ParseResult ok = md.Parse<0>(rOther.WriteJsonString().c_str());
         if( !ok )
@@ -279,7 +279,7 @@ public:
         return *this;
     }
     /// Copy constructor.
-    KratosParameters(KratosParameters const& rOther)
+    KratosParameters(KratosParameters const& rOther) 
     {
         rapidjson::ParseResult ok = md.Parse<0>(rOther.WriteJsonString().c_str());
         if( !ok )
@@ -301,6 +301,11 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    Parameters GetRoot()
+    {
+        return Parameters(md,md);
+    }
+    
     Parameters GetValue(const std::string entry)
     {
         if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
