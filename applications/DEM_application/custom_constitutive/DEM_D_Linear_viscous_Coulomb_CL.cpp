@@ -55,17 +55,17 @@ namespace Kratos {
     }
     
     void DEM_D_Linear_viscous_Coulomb::CalculateForces(ProcessInfo& r_process_info,
-                                                       const double OldLocalContactForce[3],
-                                                             double LocalElasticContactForce[3],
-                                                             double LocalDeltDisp[3],
-                                                             double LocalRelVel[3],            
-                                                             double indentation,
-                                                             double previous_indentation,
-                                                             double ViscoDampingLocalContactForce[3],
-                                                             double& cohesive_force,
-                                                             SphericParticle* element1,
-                                                             SphericParticle* element2,
-                                                             bool& sliding) {
+                                                       const double OldLocalElasticContactForce[3],
+                                                       double LocalElasticContactForce[3],
+                                                       double LocalDeltDisp[3],
+                                                       double LocalRelVel[3],            
+                                                       double indentation,
+                                                       double previous_indentation,
+                                                       double ViscoDampingLocalContactForce[3],
+                                                       double& cohesive_force,
+                                                       SphericParticle* element1,
+                                                       SphericParticle* element2,
+                                                       bool& sliding) {
         
         InitializeContact(element1, element2, indentation);
         
@@ -81,7 +81,7 @@ namespace Kratos {
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
         
-        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
+        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element1, element2, indentation, previous_indentation);
         
     }
@@ -147,7 +147,7 @@ namespace Kratos {
     }    
     
     void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(ProcessInfo& r_process_info,
-                                                              const double OldLocalContactForce[3],
+                                                              const double OldLocalElasticContactForce[3],
                                                               double LocalElasticContactForce[3],
                                                               double LocalDeltDisp[3],
                                                               double LocalRelVel[3],            
@@ -172,14 +172,14 @@ namespace Kratos {
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
         
-        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
+        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element, wall, indentation, previous_indentation);
     }
         
     template<class NeighbourClassType>
 
     void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForceWithNeighbour(const double normal_contact_force,
-                                                                      const double OldLocalContactForce[3],
+                                                                      const double OldLocalElasticContactForce[3],
                                                                       double LocalElasticContactForce[3],
                                                                       double ViscoDampingLocalContactForce[3],
                                                                       const double LocalDeltDisp[3],            
@@ -189,8 +189,8 @@ namespace Kratos {
                                                                       double indentation,
                                                                       double previous_indentation) {
                                                                         
-        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
+        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - mKt * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - mKt * LocalDeltDisp[1];
         
         const double my_tg_of_friction_angle   = element->GetTgOfFrictionAngle();
         const double wall_tg_of_friction_angle = neighbour->GetTgOfFrictionAngle();
@@ -266,7 +266,6 @@ namespace Kratos {
     double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){        
         return 0.0;
     }
-    
     
     double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
         return 0.0;
