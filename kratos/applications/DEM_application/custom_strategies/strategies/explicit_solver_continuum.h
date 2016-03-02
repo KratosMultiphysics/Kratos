@@ -192,8 +192,6 @@ namespace Kratos
           BaseType::GetRigidFaceResultsDistances().resize(number_of_elements);
         }                       
         
-        BaseType::SetOriginalRadius(r_model_part);
-
         // 3. Search Neighbors with tolerance (after first repartition process)
         BaseType::SearchNeighbours();
         
@@ -314,7 +312,6 @@ namespace Kratos
 
                     ComputeNewNeighboursHistoricalData();
 
-                    BaseType::SetOriginalRadius(r_model_part);
                     BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
                     rcurrent_process_info[SEARCH_CONTROL] = 2;
