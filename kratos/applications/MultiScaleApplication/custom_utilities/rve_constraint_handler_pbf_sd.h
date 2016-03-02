@@ -185,19 +185,6 @@ namespace Kratos
 		{
 			const ProcessInfo& pinfo = mp.GetProcessInfo();
 			Vector E = -macroScaleData.StrainVector();
-			double E_temp = (macroScaleData.homogen_alpha()*macroScaleData.Delta_Temp());
-			if(E_temp != 0.0) {
-				if(geom.Dimension() == 2) {
-					Vector I2(3,1.0);
-					I2(2) = 0.0;
-					E += E_temp*I2;
-				}
-				else {
-					Vector I3(6,1.0);
-					I3(3) = 0.0; I3(4) = 0.0; I3(5) = 0.0;
-					E += E_temp*I3;
-				}
-			}
 
 			std::vector< Vector > strain_array;
 			for(ModelPart::ElementIterator elem_iter = mp.ElementsBegin(); elem_iter != mp.ElementsEnd(); ++elem_iter)

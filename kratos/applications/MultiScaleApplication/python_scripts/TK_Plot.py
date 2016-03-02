@@ -257,10 +257,96 @@ class GNUPlot_Elemental:
 				yy = my[self.ComponentY]
 			self.ofile.write(str(xx) + "   " + str(yy) + '\n')
 			self.ofile.flush()
+
 	
 	def Finalize(self, Model):
 		self.ofile.close()
 
+class Plot_StrainHistory:
+
+	def __init__(self,
+				 BaseName=None,
+				 Name=None,
+				 Dim=None,
+				 VarX=None,
+				 VarY=None,
+				 ComponentX=None,
+				 ComponentY=None,
+				 ElementID=None,
+				 GpID=None,
+				 Frequency = None,
+				 ):
+		self.BaseName = BaseName
+		self.Name = Name
+		self.Dim = Dim
+		self.VarX = VarX
+		self.VarY = VarY
+		self.ElementID = ElementID
+		self.GpID = GpID
+		self.ofile = None
+		self.ComponentX = ComponentX
+		self.ComponentY = ComponentY
+		self.Frequency = Frequency
+		self.Tn = None
+	
+	def __check_write_freq(self,t):
+		r = True
+		f = self.Frequency
+		if(f is not None):
+			if(self.Tn is None):
+				self.Tn = t
+			else:
+				dt = t-self.Tn
+				if(dt >= f):
+					self.Tn = t
+				else:
+					r = False
+		return r
+		
+	def Initialize(self, Model):
+		if not os.path.exists(self.BaseName):
+			os.mkdir(self.BaseName)
+		filename = self.BaseName + os.sep + self.Name + "_" + str(self.ElementID) + "_" + str(self.GpID) + ".txt"
+		self.ofile = open(filename, "w+")
+		if(self.Dim == 2):
+			self.ofile.write("%10.4e"% (0.0000) + "  " + "%10.4e"% (0.0000) + "  " + "%10.4e"% (0.0000) + "    " + "%10.4e"% (0.0000) + "  " + "%10.4e"% (0.0000) + "  " + "%10.4e"% (0.0000) + '\n')
+		else:
+			self.ofile.write("%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "    " + "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + "  " +  "%10.4e"% (0.0000) + '\n')
+		# self.ofile.write(str(xx) + "   " + str(yy) + '\n')
+		self.ofile.flush()
+		self.Tn = Model.ProcessInfo[TIME]
+	
+	def OnBeforeSolutionStep(self, Model):
+		pass
+	
+	def OnSolutionStepCompleted(self, Model):
+		t = Model.ProcessInfo[TIME]
+		if( (t == Model.ProcessInfo[END_TIME]) or (self.__check_write_freq(t)) ):
+			allx = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(self.VarX, Model.ProcessInfo)
+			ally = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(self.VarY, Model.ProcessInfo)
+			mx = allx[self.GpID]
+			my = ally[self.GpID]
+			allz = Model.Elements[self.ElementID].GetValuesOnIntegrationPoints(INITIAL_STRAIN, Model.ProcessInfo)
+			mz = allz[self.GpID]
+			if self.ComponentX is None:
+				xx = mx + mz
+			else:
+				xx = mx[self.ComponentX]
+			if self.ComponentY is None:
+				yy = my
+			else:
+				yy = my[self.ComponentY]
+			if(self.Dim == 2):
+				self.ofile.write("%10.4e"% (xx[0]) + "  " + "%10.4e"% (xx[3]) + "  " + "%10.4e"% (xx[1]) +"    " + "%10.4e"% (yy[0]) + "  " + "%10.4e"% (yy[3]) + "  " + "%10.4e"% (yy[1]) + '\n')
+				#self.ofile.write(str(xx) + "   " + str(yy) + '\n')
+				#self.ofile.write(str(xz) + "   " + str(yy) + '\n')
+			else:
+				self.ofile.write("%10.4e"% (xx[0]) + "  " + "%10.4e"% (xx[4]) + "  " + "%10.4e"% (xx[8]) + "  " + "%10.4e"% (xx[1]) + "  " + "%10.4e"% (xx[5]) + "  " + "%10.4e"% (xx[2]) +"    " + "%10.4e"% (yy[0]) + "  " + "%10.4e"% (yy[4]) + "  " + "%10.4e"% (yy[8]) +"  " + "%10.4e"% (yy[1]) + "  " + "%10.4e"% (yy[5]) + "  " + "%10.4e"% (yy[2]) + '\n')
+			self.ofile.flush()
+	
+	def Finalize(self, Model):
+		self.ofile.close()
+		
 class Plot_StrainVsStress:
 
 	def __init__(self,

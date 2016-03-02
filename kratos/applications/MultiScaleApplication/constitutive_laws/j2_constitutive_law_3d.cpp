@@ -53,6 +53,9 @@ namespace Kratos
 	J2ConstitutiveLaw3D::J2ConstitutiveLaw3D() 
 		: ConstitutiveLaw()
 		, m_initialized(false)
+		, m_error_code(0.0)
+		, m_lch(0.0)
+		, m_lch_multiplier(1.0)
 		, m_init_strain()
 	{
 	}
@@ -103,6 +106,8 @@ namespace Kratos
 	double& J2ConstitutiveLaw3D::GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
 		rValue = 0.0;
+		if (rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
+			rValue = m_error_code;
 		if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN) 
 			rValue = m_xi;
 		return rValue;
@@ -142,6 +147,8 @@ namespace Kratos
 		const double& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
+		if (rVariable == CHARACTERISTIC_LENGTH_MULTIPLIER)
+			m_lch_multiplier = rValue;
 	}
 
 	void J2ConstitutiveLaw3D::SetValue(const Variable<Vector >& rVariable,
@@ -207,11 +214,13 @@ namespace Kratos
 	{
 		if(!m_initialized)
 		{
+			m_error_code = 0.0;
 			m_xi = 0.0;
 			m_xi_converged = 0.0;
 			m_eps_pl.clear();
 			m_eps_pl_converged.clear();
 			m_lch = rElementGeometry.Length();
+			m_lch_multiplier = 1.0;
 			m_init_strain = ZeroVector(this->GetStrainSize());
 			m_initialized = true;
 		}
@@ -266,10 +275,20 @@ namespace Kratos
 
 	void J2ConstitutiveLaw3D::CalculateMaterialResponseCauchy (Parameters& rValues)
 	{
+		m_error_code = 0.0;
 		// get some references
 		const Properties& props = rValues.GetMaterialProperties();
 		//const Vector& eps = rValues.GetStrainVector();
 		Vector eps = rValues.GetStrainVector();
+
+		// Subtract Initial_Strain
+		noalias(eps) -= m_init_strain;
+
+		// Subtract Temperature_Strain
+		double DeltaTemp = 0.0;
+		Vector temp_strain(eps.size(), 0.0);
+		CalculateStrainTemperature(rValues, props, DeltaTemp, temp_strain);
+		noalias(eps) -= temp_strain;
 
 		// get a reference of the output stress vector and tangent operator
 		// and initialize them
@@ -303,11 +322,9 @@ namespace Kratos
 		double dt = rValues.GetProcessInfo()[DELTA_TIME];
 		double eta_over_dt = dt > 0.0 ? eta/dt : 0.0;
 
-		// Subtract Initial_Strain
-		noalias(eps) -= m_init_strain;
-
 		// Compute volumetric and deviatoric strain split
 		double trace_eps = eps(0) + eps(1) + eps(2);
+
 		array_1d<double, 6> eps_dev;
 		eps_dev(0) = eps(0) - trace_eps / 3.0;
 		eps_dev(1) = eps(1) - trace_eps / 3.0;
@@ -371,6 +388,7 @@ namespace Kratos
 			}
 
 			if(iter == max_iter) {
+				m_error_code = -1.0;
 				std::cout << "J2 Constitutive Law 3D - Integration algorithm did not converge\n";
 			}
 
@@ -434,13 +452,93 @@ namespace Kratos
 	{
 		if(m_initialized)
 		{
+			m_error_code = 0.0;
 			m_xi = 0.0;
 			m_xi_converged = 0.0;
 			m_eps_pl.clear();
 			m_eps_pl_converged.clear();
 			m_lch = 0.0;
+			m_lch_multiplier = 1.0;
 			m_initialized = false;
 		}
+	}
+
+	//******************************* COMPUTE DOMAIN TEMPERATURE  ************************
+	//************************************************************************************
+
+
+	double &  J2ConstitutiveLaw3D::CalculateDomainTemperature(Parameters& rValues,
+		double& rDeltaTemperature)
+	{
+
+		//1.-Temperature from nodes
+		const GeometryType& DomainGeometry = rValues.GetElementGeometry();
+		//GeometryType aaa = DomainGeometry;
+		const Vector& ShapeFunctionsValues = rValues.GetShapeFunctionsValues();
+		const unsigned int number_of_nodes = DomainGeometry.size();
+		double ambient_T = 0.0; // Set to Zero by default
+
+		double iterpolated_temp = 0.0;
+
+		for (unsigned int j = 0; j < number_of_nodes; j++)
+		{
+			if (DomainGeometry[j].SolutionStepsDataHas(TEMPERATURE))
+			{
+				if (DomainGeometry[j].SolutionStepsDataHas(RVE_FULL_TEMPERATURE))
+				{
+					//std::cout << "Is RVE_FULL_TEMPERATURE" << std::endl;
+					iterpolated_temp += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(RVE_FULL_TEMPERATURE);
+				}
+				else
+				{
+					//std::cout << "Is TEMPERATURE" << std::endl;
+					iterpolated_temp += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
+				}
+			}
+			else
+			{
+				//std::cout << "IsNotTemperature" << std::endl;
+				iterpolated_temp = 0.0;
+			}
+		}
+
+		rDeltaTemperature = iterpolated_temp - ambient_T;
+
+		//std::cout << TEMPERATURE << std::endl;
+		//std::cout << "------------MEC-------------";
+		//aaa[0].SolutionStepData().PrintData(std::cout);
+		//std::cout << std::endl;
+		//std::cout << "rDeltaTemperature = " << rDeltaTemperature << std::endl;
+
+		return rDeltaTemperature;
+	}
+
+	//******************************* COMPUTE STRAIN TEMPERATURE  ************************
+	//************************************************************************************
+
+
+	Vector &  J2ConstitutiveLaw3D::CalculateStrainTemperature(Parameters& rValues,
+		const Properties& rMaterialProperties,
+		double& rDeltaTemperature,
+		Vector & rStrainTemp)
+	{
+		double DeltaT = CalculateDomainTemperature(rValues, rDeltaTemperature);
+		double strain_size = this->GetStrainSize();
+
+		double alpha = rMaterialProperties.Has(COEFFICIENT_THERMAL_EXPANSION) ? rMaterialProperties[COEFFICIENT_THERMAL_EXPANSION] : 0.0;
+
+		// calculate Emod = -(- alpha * Delta_Temp)
+		Vector Emod(strain_size, 0.0);
+		Emod[0] = alpha * DeltaT;
+		Emod[1] = alpha * DeltaT;
+		Emod[2] = alpha * DeltaT;
+		Emod[3] = 0.0;
+		Emod[4] = 0.0;
+		Emod[5] = 0.0;
+
+		noalias(rStrainTemp) = Emod;
+
+		return rStrainTemp;
 	}
 
 	void J2ConstitutiveLaw3D::GetLawFeatures(Features& rFeatures)

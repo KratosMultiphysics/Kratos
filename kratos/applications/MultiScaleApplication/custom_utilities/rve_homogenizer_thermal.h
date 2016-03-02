@@ -57,6 +57,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "rve_linear_system_of_equations.h"
+#include "rve_utilities.h"
+
+//#define RVE_OPTIMIZATION 0 // sigma = 1/V(int(sigma_i))
+//#define RVE_OPTIMIZATION 1 // sigma = 1/V(sum(boundary_F X))
+#define  RVE_OPTIMIZATION 2 // sigma = 1/V(sum(boundary_F X))(with build rhs reduced)
 
 namespace Kratos
 {
@@ -64,29 +69,34 @@ namespace Kratos
 	template<class TSparseSpace, 
 			 class TDenseSpace,
 			 class TReorderer = Reorderer<TSparseSpace, TDenseSpace> >
-	class RveHomogenizerThermal
+	class RveHomogenizerThermal : public RveHomogenizer<TSparseSpace, TDenseSpace, TReorderer>
 	{
 
 	public:
 
 		KRATOS_CLASS_POINTER_DEFINITION( RveHomogenizerThermal );
-		typedef RveLinearSystemOfEquations<TSparseSpace, TDenseSpace, TReorderer> RveLinearSystemOfEquationsType;
-		typedef typename RveLinearSystemOfEquationsType::Pointer RveLinearSystemOfEquationsPointerType;
-		typedef typename TSparseSpace::MatrixType SparseMatrixType;
-		typedef typename TSparseSpace::VectorType VectorType;
-		typedef typename TDenseSpace::MatrixType  DenseMatrixType;
-		typedef Scheme<TSparseSpace,TDenseSpace> SchemeType;
-		typedef typename SchemeType::Pointer SchemePointerType;
-		typedef ModelPart::DofsArrayType DofsArrayType;
-		typedef ModelPart::NodesContainerType NodesArrayType;
-		typedef ModelPart::ElementsContainerType ElementsArrayType;
-		typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-		typedef RveConstraintHandler<TSparseSpace, TDenseSpace> RveConstraintHandlerType;
-		typedef typename RveConstraintHandlerType::Pointer RveConstraintHandlerPointerType;
+
+		typedef RveHomogenizer < TSparseSpace, TDenseSpace, TReorderer > BaseType;
+
+
+		typedef typename BaseType::RveLinearSystemOfEquationsType RveLinearSystemOfEquationsType;
+		typedef typename BaseType::RveLinearSystemOfEquationsPointerType RveLinearSystemOfEquationsPointerType;
+		typedef typename BaseType::SparseMatrixType SparseMatrixType;
+		typedef typename BaseType::VectorType VectorType;
+		typedef typename BaseType::DenseMatrixType  DenseMatrixType;
+		typedef typename BaseType::SchemeType SchemeType;
+		typedef typename BaseType::SchemePointerType SchemePointerType;
+		typedef typename BaseType::DofsArrayType DofsArrayType;
+		typedef typename BaseType::NodesArrayType NodesArrayType;
+		typedef typename BaseType::ElementsArrayType ElementsArrayType;
+		typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+		typedef typename BaseType::RveConstraintHandlerType RveConstraintHandlerType;
+		typedef typename BaseType::RveConstraintHandlerPointerType RveConstraintHandlerPointerType;
 
 	public:
 		
 		RveHomogenizerThermal()
+			: BaseType()
 		{
 		}
 
@@ -94,62 +104,186 @@ namespace Kratos
 		{
 		}
 		
-		virtual void HomogenizeHeatFluxVector(ModelPart& mp, 
-											  const RveGeometryDescriptor& geomDescriptor,
-											  RveLinearSystemOfEquationsPointerType& soe,
-											  RveConstraintHandlerPointerType& constraintHandler,
-											  Vector& q)
+		virtual void HomogenizeStressTensor(ModelPart& mp,
+											const RveGeometryDescriptor& geomDescriptor,
+											RveLinearSystemOfEquationsPointerType& soe,
+											RveConstraintHandlerPointerType& constraintHandler,
+											RveMacroscaleData& macroScaleData,
+											Vector& S)
 		{
-			if(geomDescriptor.Dimension() == 2)
-				this->HomogenizeHeatFluxVector_2D(mp, geomDescriptor, soe, constraintHandler, q);
+			ProcessInfo& processInfo = mp.GetProcessInfo();
+
+			size_t ndim = geomDescriptor.Dimension(); // 2D or 3D
+			if (S.size() != ndim) S.resize(ndim, false);
+			noalias(S) = ZeroVector(ndim);
+
+#if RVE_OPTIMIZATION == 0
+			double totalVolume(0.0);
+
+			std::vector<Vector> stressTensors;
+
+			for (ModelPart::ElementIterator it = mp.ElementsBegin(); it != mp.ElementsEnd(); ++it)
+			{
+				Element& ielem = *it;
+				Element::GeometryType& igeom = ielem.GetGeometry();
+				Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
+				const Element::GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
+
+				ielem.GetValueOnIntegrationPoints(FLUX_RVE, stressTensors, processInfo);
+				if (stressTensors.size() != ipts.size()) continue;
+
+				for (size_t point_id = 0; point_id < ipts.size(); point_id++)
+				{
+					double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
+					Vector& igpStressTensor = stressTensors[point_id];
+
+					for (size_t i = 0; i < ndim; i++)
+						S(i) += igpStressTensor(i) * dV;
+
+					totalVolume += dV;
+				}
+			}
+
+			if (totalVolume == 0.0)
+				noalias(S) = ZeroVector(ndim);
 			else
-				this->HomogenizeHeatFluxVector_3D(mp, geomDescriptor, soe, constraintHandler, q);
+				S /= totalVolume;
+
+#else // TODO: -> MODIFY FOR THE TEMPERATURE REACTION
+			double totalVolume = geomDescriptor.DomainSize();
+			//ModelPart::NodeType& ref_node = mp.GetNode(geomDescriptor.ReferenceNodeID()); // NOW ALWAYS (0,0)
+			array_1d<double, 2> X;
+			array_1d<double, 2> f;
+			Matrix Sig(2, 2, 0.0);
+			for (RveGeometryDescriptor::IndexContainerType::const_iterator it =
+				geomDescriptor.BoundaryNodesIDs().begin(); it != geomDescriptor.BoundaryNodesIDs().end(); ++it)
+			{
+				RveGeometryDescriptor::IndexType index = *it;
+				ModelPart::NodeType& bnd_node = mp.GetNode(index);
+				X[0] = bnd_node.X0() /*- ref_node.X0()*/;
+				X[1] = bnd_node.Y0() /*- ref_node.Y0()*/;
+				ModelPart::NodeType::DofType& dof = bnd_node.GetDof(TEMPERATURE);
+				f[0] = dof.GetSolutionStepReactionValue();
+				f[1] = dof.GetSolutionStepReactionValue();
+				Sig += outer_prod(f, X);
+			}
+			S(0) = Sig(0, 0);
+			S(1) = Sig(1, 1);
+
+			if (totalVolume == 0.0)
+				noalias(S) = ZeroVector(ndim);
+			else
+				S /= totalVolume;
+#endif
 		}
-		
-		virtual void HomogenizeTengentConductivityMatrix(ModelPart& mp, 
+
+		void SaveSolutionVector(Vector& U, ModelPart& mp)
+		{
+			size_t counter = 0;
+			for (ModelPart::NodeIterator node_iter = mp.NodesBegin();
+				node_iter != mp.NodesEnd();
+				++node_iter)
+			{
+				ModelPart::NodeType& iNode = *node_iter;
+				for (ModelPart::NodeType::DofsContainerType::iterator dof_iter = iNode.GetDofs().begin();
+					dof_iter != iNode.GetDofs().end();
+					++dof_iter)
+				{
+					ModelPart::DofType& iDof = *dof_iter;
+					U(counter++) = iDof.GetSolutionStepValue();
+				}
+			}
+		}
+
+		void RestoreSolutionVector(const Vector& U, ModelPart& mp)
+		{
+			size_t counter = 0;
+			for (ModelPart::NodeIterator node_iter = mp.NodesBegin();
+				node_iter != mp.NodesEnd();
+				++node_iter)
+			{
+				ModelPart::NodeType& iNode = *node_iter;
+				for (ModelPart::NodeType::DofsContainerType::iterator dof_iter = iNode.GetDofs().begin();
+					dof_iter != iNode.GetDofs().end();
+					++dof_iter)
+				{
+					ModelPart::DofType& iDof = *dof_iter;
+					iDof.GetSolutionStepValue() = U(counter++);
+				}
+			}
+		}
+
+		size_t CalculateTotalNumberOfDofs(ModelPart& mp)
+		{
+			size_t n(0);
+			for (ModelPart::NodeIterator node_iter = mp.NodesBegin();
+				node_iter != mp.NodesEnd();
+				++node_iter)
+			{
+				ModelPart::NodeType& iNode = *node_iter;
+				n += iNode.GetDofs().size();
+			}
+			return n;
+		}
+
+		virtual void HomogenizeTengentConstitutiveTensor(ModelPart& mp,
 														 const RveGeometryDescriptor& geomDescriptor,
 														 RveLinearSystemOfEquationsPointerType& soe,
 														 RveConstraintHandlerPointerType& constraintHandler,
-														 RveMacroscaleTemperatureData& macroScaleTempData,
+														 RveMacroscaleData& macroScaleData,
 														 SchemePointerType& pScheme,
-														 const Vector& q,
-														 Matrix& K,
+														 const Vector& S,
+														 Matrix& C,
+														 const Vector& U,
 														 bool move_mesh)
 		{
-			size_t hflux_size = geomDescriptor.Dimension() == 2 ? 3 : 6;
+			size_t strain_size = geomDescriptor.Dimension();
 
-			Vector saved_hflux_vector(hflux_size);
-			noalias(saved_hflux_vector) = macroScaleTempData.HFluxVector();
+			Vector saved_strain_vector(strain_size);
+			noalias(saved_strain_vector) = macroScaleData.StrainVector();
+			Vector pert_stress_vector(strain_size);
 
-			Vector pert_hflux_vector(hflux_size);
-
-			if (K.size1() != hflux_size || K.size2() != hflux_size)
-				K.resize(hflux_size, hflux_size, false);
-			noalias(K) = ZeroMatrix(hflux_size, hflux_size);
+			if (C.size1() != strain_size || C.size2() != strain_size)
+				C.resize(strain_size, strain_size, false);
+			noalias(C) = ZeroMatrix(strain_size, strain_size);
 
 			// compute the perturbation parameters
-			double norm_hflux = norm_1(saved_hflux_vector);
-			double perturbation = 1.0E-6*norm_hflux;
+			double perturbation = 1.0E-6*norm_1(macroScaleData.StrainVectorOld());
+			if(perturbation < 1.0e-7)
+				perturbation = 1.0e-7;
 
-			for (size_t j = 0; j < hflux_size; j++)
+			for(size_t j = 0; j < strain_size; j++)
 			{
+				if(j > 0) RveUtilities::RestoreSolutionVector(mp, U);
 				// apply perturbed strain vector
-				noalias(macroScaleTempData.HFluxVector()) = saved_hflux_vector;
-				macroScaleTempData.HFluxVector()(j) += perturbation;
-				constraintHandler->ApplyMacroScaleData(mp, geomDescriptor, macroScaleTempData);
+				noalias(macroScaleData.StrainVector()) = saved_strain_vector;
+				macroScaleData.StrainVector()(j) += perturbation;
+				constraintHandler->ApplyMacroScaleData(mp, geomDescriptor, macroScaleData);
 
 				soe->BuildRHS(mp, pScheme);
 				soe->Solve();
-				pScheme->Update(mp, soe->DofSet(), soe->A(), soe->X(), soe->B());
-				if(move_mesh) this->MoveMesh(mp);
+				constraintHandler->Update(mp,geomDescriptor,macroScaleData, 
+				                        soe->TransformedEquationIds(), *pScheme,
+				                        soe->DofSet(), soe->A(), soe->X(), soe->B(),
+										soe->R(), soe->EquationSystemSize());
+				if (move_mesh) this->MoveMesh(mp);
 
-				this->HomogenizeHeatFluxVector(mp, geomDescriptor, soe, constraintHandler, pert_hflux_vector);
+#if RVE_OPTIMIZATION == 1
+				soe->BuildRHS(mp, pScheme);
+#elif RVE_OPTIMIZATION == 2
+				soe->BuildRHS_Reduced(mp, pScheme, geomDescriptor.BoundaryElementsIDs());
+#endif
+				constraintHandler->PostUpdate(mp,geomDescriptor,macroScaleData, 
+				                        soe->TransformedEquationIds(), *pScheme,
+				                        soe->DofSet(), soe->A(), soe->X(), soe->B(),
+										soe->R(), soe->EquationSystemSize());
+				this->HomogenizeStressTensor(mp, geomDescriptor, soe, constraintHandler, macroScaleData, pert_stress_vector);
 				
-				for (size_t i = 0; i < hflux_size; i++)
-					K(i, j) = (pert_hflux_vector(i) - q(i)) / perturbation;
+				for (size_t i = 0; i < strain_size; i++)
+					C(i, j) = (pert_stress_vector(i) - S(i)) / perturbation;
 			}
 			// reset stored strain vector
-			noalias(macroScaleTempData.HFluxVector()) = saved_hflux_vector;
+			noalias(macroScaleData.StrainVector()) = saved_strain_vector;
 		}
 		
 		virtual void HomogenizeVariable(ModelPart& mp, 
@@ -211,6 +345,7 @@ namespace Kratos
 					if(rValue.size() == 0) 
 					{
 						rValue.resize(i_gp_value.size(),false);
+						rValue.clear();
 						rValue += i_gp_value * dV;
 						totalVolume += dV;
 					}
@@ -257,6 +392,7 @@ namespace Kratos
 					if(rValue.size1() == 0 && rValue.size2() == 0) 
 					{
 						rValue.resize(i_gp_value.size1(), i_gp_value.size2(),false);
+						rValue.clear();
 						rValue += i_gp_value * dV;
 						totalVolume += dV;
 					}
@@ -342,130 +478,11 @@ namespace Kratos
 
 	protected:
 
-		virtual void HomogenizeHeatFluxVector_2D(ModelPart& mp,
-											   const RveGeometryDescriptor& geomDescriptor,
-											   RveLinearSystemOfEquationsPointerType& soe,
-											   RveConstraintHandlerPointerType& constraintHandler,
-											   Vector& q)
-		{
-			ProcessInfo& processInfo = mp.GetProcessInfo();
-
-			if(S.size() != 3) q.resize(3, false);
-			noalias(q) = ZeroVector(3);
-
-			double totalVolume(0.0);
-
-			// std::vector< Matrix > hfluxVector;
-		
-			for(ModelPart::ElementIterator it = mp.ElementsBegin(); it != mp.ElementsEnd(); ++it)
-			{
-				Element& ielem = *it;
-				Element::GeometryType& igeom = ielem.GetGeometry();
-				Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
-				const Element::GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
-
-				hfluxVector += igeom[i].FastGetSolutionStepValue(rSourceVar);
-				ielem.GetValueOnIntegrationPoints(PK2_STRESS_TENSOR, hfluxVector, processInfo);
-				if (hfluxVector.size() != ipts.size()) continue;
-
-				for(size_t point_id = 0; point_id < ipts.size(); point_id++)
-				{
-					double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
-					//Matrix& igpHFluxVector = hfluxVector[point_id];
-					
-					q(0) += hfluxVector(0) * dV;
-					q(1) += hfluxVector(1) * dV;
-					q(2) += hfluxVector(2) * dV;
-
-					totalVolume += dV;
-				}
-			}
-
-			if(totalVolume == 0.0)
-				noalias(q) = ZeroVector(3);
-			else
-				q /= totalVolume;
-
-			/*Vector s2(3,0.0);
-			array_1d<double,2> iX;
-			array_1d<double,2> iF;
-			Matrix ms2(2,2,0.0);
-			for(RveGeometryDescriptor::IndexContainerType::const_iterator it =
-				geomDescriptor.CornerNodesIDs().begin(); it != geomDescriptor.CornerNodesIDs().end(); ++it)
-			{
-				ModelPart::NodeType& inode = mp.GetNode(*it);
-				iX[0] = inode.X0();
-				iX[1] = inode.Y0();
-				iF[0] = inode.GetDof(DISPLACEMENT_X).GetSolutionStepReactionValue();
-				iF[1] = inode.GetDof(DISPLACEMENT_Y).GetSolutionStepReactionValue();
-				ms2 += outer_prod(iF, iX);
-			}
-			ms2 /= totalVolume;
-			s2(0) = ms2(0,0);
-			s2(1) = ms2(1,1);
-			s2(2) = (ms2(0,1)+ms2(1,0))/2.0;
-			KRATOS_WATCH(S);
-			KRATOS_WATCH(ms2);*/
-		}
-
-		virtual void HomogenizeHeatFluxVector_3D(ModelPart& mp,
-											   const RveGeometryDescriptor& geomDescriptor,
-											   RveLinearSystemOfEquationsPointerType& soe,
-											   RveConstraintHandlerPointerType& constraintHandler,
-											   Vector& q)
-		{
-			ProcessInfo& processInfo = mp.GetProcessInfo();
-
-			if(q.size() != 6) q.resize(6, false);
-			noalias(q) = ZeroVector(6);
-
-			double totalVolume(0.0);
-
-			std::vector< Matrix > hfluxVector;
-		
-			for(ModelPart::ElementIterator it = mp.ElementsBegin(); it != mp.ElementsEnd(); ++it)
-			{
-				Element& ielem = *it;
-				Element::GeometryType& igeom = ielem.GetGeometry();
-				Element::IntegrationMethod intmethod = ielem.GetIntegrationMethod();
-				const Element::GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
-
-				ielem.GetValueOnIntegrationPoints(PK2_STRESS_TENSOR, hfluxVector, processInfo);
-				if (hfluxVector.size() != ipts.size()) continue;
-
-				for(size_t point_id = 0; point_id < ipts.size(); point_id++)
-				{
-					double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
-					Matrix& igpHFluxVector = hfluxVector[point_id];
-					
-					q(0) += hfluxVector(0) * dV;
-					q(1) += hfluxVector(1) * dV;
-					q(2) += hfluxVector(2) * dV;
-					q(3) += hfluxVector(3) * dV;
-					q(4) += hfluxVector(4) * dV;
-					q(5) += hfluxVector(5) * dV;
-
-					totalVolume += dV;
-				}
-			}
-
-			if(totalVolume == 0.0)
-				noalias(q) = ZeroVector(6);
-			else
-				q /= totalVolume;
-		}
-
 		/**
 		* Updates the nodal coordinates if necessary
 		*/
 		virtual void MoveMesh(ModelPart& mp)
 		{
-			// Not necessary ??
-			//for (ModelPart::NodeIterator i = mp.NodesBegin(); i != mp.NodesEnd(); ++i)
-			//{
-			//	ModelPart::NodeType& node = *i;
-			//	noalias(node.GetInitialPosition()) = node.GetInitialPosition() + node.FastGetSolutionStepValue(DISPLACEMENT);
-			//}
 		}
 
 	};

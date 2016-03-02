@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRYLOV_SUBSPACE_ACCELERATOR_EIGENLIB_UTILITIES_H_INCLUDED
 
 #include <iostream>
-#include "Eigen/Dense"
+#include "./external_includes/eigen-3.2.7/Eigen/Dense"
 
 namespace Kratos
 {

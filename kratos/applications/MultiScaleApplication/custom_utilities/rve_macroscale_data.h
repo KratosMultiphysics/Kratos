@@ -84,9 +84,7 @@ namespace Kratos
         
         RveMacroscaleData()
 			: mStrainVector(0)
-			, mGrad_T()
 			, mMean_Temp(0.0)
-			, mDelta_Temp(0.0)
 			, mhomogen_alpha(0.0)
 			, mHasTemperature(false)
 			, mHasTemperatureChecked(false)
@@ -104,7 +102,6 @@ namespace Kratos
 					 const RveGeometryDescriptor& geomdes)
 		{
 			mStrainVector = param_macro.GetStrainVector();
-			
 			/**
 			we can get also other stuff like:
 			TEMPERATURE on nodes (geom[i].FastGet,....) and interpolate them with (params.GetShapeFunc...)
@@ -128,6 +125,7 @@ namespace Kratos
 			}
 			if(mHasTemperature)
 			{
+				mhomogen_alpha = 0.0;
 				double alpha(0.0);
 				double totalVolume(0.0);
 				double iterpolated_temp = 0.0;
@@ -139,24 +137,16 @@ namespace Kratos
 				{
 					iterpolated_temp += geom_macro[i].FastGetSolutionStepValue(TEMPERATURE) * N[i];
 				}
+				//std::cout << "iterpolated_temp = " << iterpolated_temp << std::endl;
 
-				mMean_Temp = iterpolated_temp;
-				mGrad_T = ZeroMatrix(3,3);
-				mDelta_Temp = mMean_Temp - T0;
-
-				// Apply to all the nodes of the micro_mdpa the temperature value
-				/*for (ModelPart::NodeIterator it = modp_micro.Nodes().begin(); it != modp_micro.Nodes().end(); ++it)
-				{
-					ModelPart::IndexType index = *it;
-					it->FastGetSolutionStepValue(TEMPERATURE) = mDelta_Temp;
-				}*/
+				mMean_Temp = iterpolated_temp - T0;
 
 				// Calcutate alpha only for homogenize this properties!! Change it if alpha is function of temperature
 				for (ModelPart::ElementIterator it = modp_micro.ElementsBegin(); it != modp_micro.ElementsEnd(); ++it)
 				{
 					Element& ielem = *it;
 					const Properties& props = ielem.GetProperties();
-					double ialpha = props[COEFFICIENT_THERMAL_EXPANSION]; // alpha = CTE
+					double ialpha = props.Has(COEFFICIENT_THERMAL_EXPANSION) ? props[COEFFICIENT_THERMAL_EXPANSION] : 0.0; // alpha = CTE
 					// Homogenize alpha = CTE
 					double ivolume = ielem.GetGeometry().DomainSize();
 					mhomogen_alpha += ialpha * ivolume;
@@ -179,14 +169,8 @@ namespace Kratos
 		inline VectorType&       StrainVectorOld()     {return mStrainVectorOld;}
 
 		// BEGIN MOD STEFANO
-		inline const Matrix Grad_T()const{ return mGrad_T; }
-		inline Matrix&      Grad_T()     { return mGrad_T; }
-		inline const double Mean_Temp()const{ return mMean_Temp; }
-		inline double&      Mean_Temp()     { return mMean_Temp; }
-		inline const double Delta_Temp()const{ return mDelta_Temp; }
-		inline double&      Delta_Temp()     { return mDelta_Temp; }
-		inline const double homogen_alpha()const{ return mhomogen_alpha; }
-		inline double&      homogen_alpha()     { return mhomogen_alpha; }
+		inline double Mean_Temp()    const{ return mMean_Temp; }
+		inline double homogen_alpha()const{ return mhomogen_alpha; }
 		// END MOD STEFANO
 
         std::string GetInfo()const
@@ -212,9 +196,7 @@ namespace Kratos
 		VectorType mStrainVectorOld;
 
 		// BEGIN MOD STEFANO
-		Matrix mGrad_T;
 		double mMean_Temp;
-		double mDelta_Temp;
 		double mhomogen_alpha;
 		// END MOD STEFANO
 

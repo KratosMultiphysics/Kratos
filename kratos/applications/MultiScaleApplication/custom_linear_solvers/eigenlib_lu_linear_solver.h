@@ -67,8 +67,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/direct_solver.h"
 #include <iostream>
 
-#include "Eigen\Dense"
-#include "Eigen\Sparse"
+#include "./external_includes/eigen-3.2.7/Eigen/Dense"
+#include "./external_includes/eigen-3.2.7/Eigen/Sparse"
 
 namespace Kratos
 {

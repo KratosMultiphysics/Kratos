@@ -267,6 +267,7 @@ namespace Kratos
 			m_lch            = rElementGeometry.Length();
 			m_lch_multiplier = 1.0;
 			m_initial_strain = ZeroVector(this->GetStrainSize());
+			m_temp_strain = ZeroVector(this->GetStrainSize());
 			m_initialized    = true;
 
 #ifdef DAM_ISO_2D_IMPLEX
@@ -349,11 +350,21 @@ namespace Kratos
 		this->m_strain = rValues.GetStrainVector();
 #endif // DAM_ISO_2D_IMPLEX
 
-		const Vector& strain_vector       = rValues.GetStrainVector();
+		Vector& strain_vector = rValues.GetStrainVector();
 		Vector&       stress_vector       = rValues.GetStressVector();
 
 		CalculationData data;
 		this->InitializeCalculationData(props, geom, rValues.GetShapeFunctionsValues(), pinfo, data);
+
+		//-1.- Initial & Thermal Strain
+		// Subtract Initial_Strain
+		noalias(strain_vector) -= m_initial_strain;
+
+		// Subtract Temperature_Strain
+		double DeltaTemp = 0.0;
+		Vector temp_strain(strain_vector.size(), 0.0);
+		CalculateStrainTemperature(rValues, props, DeltaTemp, temp_strain);
+		noalias(strain_vector) -= temp_strain;
 
 		this->CalculateMaterialResponseInternal(strain_vector, stress_vector, data);
 
@@ -369,6 +380,8 @@ namespace Kratos
 		return;
 #endif // DAM_ISO_2D_IMPLEX
 
+		if (m_error_code != 0.0) return;
+		
 		if(rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR))
 		{
 			size_t n = GetStrainSize();
@@ -442,6 +455,7 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues)
 	{
+		m_error_code = 0.0;
 		m_r = 0.0;
 		m_r_converged = 0.0;
 		m_damage = 0.0;
@@ -777,7 +791,7 @@ namespace Kratos
 
 		m_r = m_r_converged;
 
-		noalias(data.S) = prod(data.C0, strain_vector - m_initial_strain);
+		noalias(data.S) = prod(data.C0, strain_vector);
 
 		if(std::abs(data.S(0)) < DAM_ISO_PREC) data.S(0) = 0.0;
 		if(std::abs(data.S(1)) < DAM_ISO_PREC) data.S(1) = 0.0;
@@ -842,6 +856,79 @@ namespace Kratos
 		// calculation of stress tensor
 
 		noalias(stress_vector)  = (1.0 - m_damage)*data.S;
+	}
+	
+	double &  DamageIsoPlaneStress2DLaw::CalculateDomainTemperature(Parameters& rValues,
+		double& rDeltaTemperature)
+	{
+
+		//1.-Temperature from nodes
+		const GeometryType& DomainGeometry = rValues.GetElementGeometry();
+		//GeometryType aaa = DomainGeometry;
+		const Vector& ShapeFunctionsValues = rValues.GetShapeFunctionsValues();
+		const unsigned int number_of_nodes = DomainGeometry.size();
+		double ambient_T = 0.0; // Set to Zero by default
+
+		double iterpolated_temp = 0.0;
+
+		for (unsigned int j = 0; j < number_of_nodes; j++)
+		{
+			if (DomainGeometry[j].SolutionStepsDataHas(TEMPERATURE))
+			{
+				if (DomainGeometry[j].SolutionStepsDataHas(RVE_FULL_TEMPERATURE))
+				{
+					//std::cout << "Is RVE_FULL_TEMPERATURE" << std::endl;
+					iterpolated_temp += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(RVE_FULL_TEMPERATURE);
+				}
+				else
+				{
+					//std::cout << "Is TEMPERATURE" << std::endl;
+					iterpolated_temp += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(TEMPERATURE);
+				}
+			}
+			else
+			{
+				//std::cout << "IsNotTemperature" << std::endl;
+				iterpolated_temp = 0.0;
+			}
+		}
+
+		rDeltaTemperature = iterpolated_temp - ambient_T;
+
+		//std::cout << TEMPERATURE << std::endl;
+		//std::cout << "------------MEC-------------";
+		//aaa[0].SolutionStepData().PrintData(std::cout);
+		//std::cout << std::endl;
+		//std::cout << "rDeltaTemperature = " << rDeltaTemperature << std::endl;
+
+		return rDeltaTemperature;
+	}
+
+	//******************************* COMPUTE STRAIN TEMPERATURE  ************************
+	//************************************************************************************
+
+
+	Vector &  DamageIsoPlaneStress2DLaw::CalculateStrainTemperature(Parameters& rValues,
+		const Properties& rMaterialProperties,
+		double& rDeltaTemperature,
+		Vector & rStrainTemp)
+	{
+		double DeltaT = CalculateDomainTemperature(rValues, rDeltaTemperature);
+		double strain_size = this->GetStrainSize();
+
+		double alpha = rMaterialProperties.Has(COEFFICIENT_THERMAL_EXPANSION) ? rMaterialProperties[COEFFICIENT_THERMAL_EXPANSION] : 0.0;
+
+		// calculate Emod = -(- alpha * Delta_Temp)
+		Vector Emod(strain_size, 0.0);
+
+		Emod[0] = alpha * DeltaT;
+		Emod[1] = alpha * DeltaT;
+		Emod[2] = 0.0;
+
+		noalias(rStrainTemp) = Emod;
+
+		return rStrainTemp;
+		// END MOD STEFANO
 	}
 
 

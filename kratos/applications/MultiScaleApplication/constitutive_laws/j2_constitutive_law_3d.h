@@ -444,6 +444,27 @@ namespace Kratos
 
 		///@name Protected Operations
 		///@{
+
+		/**
+		* Calculates the Temperature of the domain (element)
+		* @param rElementGeometry the element geometry
+		* @param rShapeFunctions the element shape functions
+		* @param rTemperature the calculated temperature to be returned
+		*/
+		virtual double& CalculateDomainTemperature(Parameters& rValues,
+			double & rDeltaTemperature);
+
+		/**
+		* Calculates the Strain values obtained from the Temperature of the domain (element)
+		* @param rElementGeometry the element geometry
+		* @param rShapeFunctions the element shape functions
+		* @param rTemperature the calculated temperature to be returned
+		*/
+		virtual Vector &  CalculateStrainTemperature(Parameters& rValues,
+			const Properties& rMaterialProperties,
+			double& rDeltaTemperature,
+			Vector & rStrainTemp);
+
 		///@}
 
 
@@ -457,8 +478,10 @@ namespace Kratos
 		array_1d<double, 6> m_eps_pl;
 		array_1d<double, 6> m_eps_pl_converged;
 		double m_lch;
+		double m_lch_multiplier;
 		bool m_initialized;
 
+		double m_error_code;
 		///@}
 
 		///@name Member Variables
@@ -471,19 +494,15 @@ namespace Kratos
 		inline double HardeningFunction(double xi, double sy, double sinf, double Hi, double Gf)
 		{
 			//return sy;
-			/*double A = std::abs(sy-sinf)*m_lch/Gf;
-			return sy + (sinf-sy)*(1.0-std::exp(-A*xi))+Hi*xi;*/
-			double delta = sy/50.0;
-			return sy + (sinf-sy)*(1.0-std::exp(-delta*xi))+Hi*xi;
+			double A = std::abs(sy - sinf)*(m_lch*m_lch_multiplier)/ Gf;
+			return sy + (sinf-sy)*(1.0-std::exp(-A*xi))+Hi*xi;
 		}
 
 		inline double HardeningDerivative(double xi, double sy, double sinf, double Hi, double Gf)
 		{
 			//return 0.0;
-			/*double A = std::abs(sy-sinf)*m_lch/Gf;
-			return Hi + A*(sinf-sy)/std::exp(A*xi);*/
-			double delta = sy/50.0;
-			return Hi + delta*(sinf-sy)/std::exp(delta*xi);
+			double A = std::abs(sy - sinf)*(m_lch*m_lch_multiplier) / Gf;
+			return Hi + A*(sinf-sy)/std::exp(A*xi);
 		}
 
 		///@}

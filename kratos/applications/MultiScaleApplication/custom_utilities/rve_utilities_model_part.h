@@ -304,6 +304,87 @@ void ReorientQuadsY(ModelPart& mp, Properties::IndexType id)
 	ss << "        Number of reoriented quadrilaterals: " << num_mod << std::endl;
 	std::cout << ss.str();
 }
+	
+void CloneModelPart2Physics(ModelPart& source, ModelPart& clone_primary, ModelPart& clone)
+{
+	typedef ModelPart::NodeType NodeType;
+	typedef NodeType::DofsContainerType DofsContainerType;
+
+	// Tables
+	//if(clone.NumberOfTables() > 0) clone.TablesArray().clear();
+	//for(ModelPart::TableIterator table_iter = source.TablesBegin(); table_iter != source.TablesEnd(); ++table_iter)
+	//{
+	//	ModelPart::TableType::Pointer& itable = *(table_iter.base());
+	//	clone.AddTable(0, itable);
+	//}
+
+	// Properties
+	if (clone.NumberOfProperties() > 0) clone.PropertiesArray().clear();
+	for (ModelPart::PropertiesConstantIterator prop_iter = source.PropertiesBegin(); prop_iter != source.PropertiesEnd(); ++prop_iter)
+	{
+		clone.AddProperties(*prop_iter.base());
+	}
+
+	// Variable list
+	const VariablesList& primary_vlist = clone_primary.GetNodalSolutionStepVariablesList();
+	clone.GetNodalSolutionStepVariablesList() = primary_vlist;
+	clone.Nodes() = clone_primary.Nodes();
+	//if (clone_vlist.size() > 0) clone_vlist.clear();
+	//for (VariablesList::const_iterator varlist_iter = primary_vlist.begin(); varlist_iter != primary_vlist.end(); ++varlist_iter)
+	//{
+	//	clone_vlist.Add(*varlist_iter);
+	//}
+
+	// copy elements
+	if (clone.ElementsArray().size() > 0) clone.ElementsArray().clear();
+	for (ModelPart::ElementConstantIterator elem_iter = source.ElementsBegin(); elem_iter != source.ElementsEnd(); ++elem_iter)
+	{
+		const Element::Pointer& source_elem = *(elem_iter.base());
+		const Element::GeometryType& source_geom = source_elem->GetGeometry();
+
+		Element::NodesArrayType clone_nodes_array;
+		for (size_t i = 0; i < source_geom.size(); i++)
+		{
+			IndexedObject::IndexType source_node_id = source_geom[i].GetId();
+			ModelPart::NodesContainerType::iterator found_node_iter = clone.Nodes().find(source_node_id);
+			if (found_node_iter != clone.Nodes().end())
+			{
+				clone_nodes_array.push_back(*(found_node_iter.base()));
+			}
+		}
+
+		Element::Pointer clone_elem = source_elem->Create(source_elem->GetId(), clone_nodes_array, source_elem->pGetProperties());
+		clone.AddElement(clone_elem);
+	}
+
+	// copy conditions
+	if (clone.ConditionsArray().size() > 0) clone.ConditionsArray().clear();
+	for (ModelPart::ConditionConstantIterator elem_iter = source.ConditionsBegin(); elem_iter != source.ConditionsEnd(); ++elem_iter)
+	{
+		const Condition::Pointer& source_cond = *(elem_iter.base());
+		const Condition::GeometryType& source_geom = source_cond->GetGeometry();
+
+		Condition::NodesArrayType clone_nodes_array;
+		for (size_t i = 0; i < source_geom.size(); i++)
+		{
+			IndexedObject::IndexType source_node_id = source_geom[i].GetId();
+			ModelPart::NodesContainerType::iterator found_node_iter = clone.Nodes().find(source_node_id);
+			if (found_node_iter != clone.Nodes().end())
+			{
+				clone_nodes_array.push_back(*(found_node_iter.base()));
+			}
+		}
+
+		Condition::Pointer clone_cond = source_cond->Create(source_cond->GetId(), clone_nodes_array, source_cond->pGetProperties());
+		clone.AddCondition(clone_cond);
+	}
+
+	// clone nodal variable list
+	clone.SetNodalSolutionStepVariablesList();
+
+	// Buffer size
+	clone.SetBufferSize(source.GetBufferSize());
+}
 
 }
 

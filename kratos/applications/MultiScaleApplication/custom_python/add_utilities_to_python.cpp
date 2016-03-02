@@ -75,12 +75,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/rve_linear_system_of_equations.h"
 #include "custom_utilities/rve_constraint_handler.h"
 #include "custom_utilities/rve_constraint_handler_zbf_sd.h"
+#include "custom_utilities/rve_constraint_handler_zbf_sd_thermal.h"
 #include "custom_utilities/rve_constraint_handler_pbf_sd.h"
-#include "custom_utilities/rve_constraint_handler_wpbf_sd.h"
 #include "custom_utilities/rve_constraint_handler_pbf_sd_thermal.h"
+#include "custom_utilities/rve_constraint_handler_wpbf_sd.h"
+#include "custom_utilities/rve_constraint_handler_wpbf_sd_thermal.h"
 #include "custom_utilities/rve_homogenizer.h"
 #include "custom_utilities/rve_homogenizer_thermal.h"
 
+#include "custom_utilities/rve_predictor_calculator.h"
 #include "custom_conditions/periodic_condition_lm_2D2N.h"
 #include "geometries/line_2d_2.h"
 
@@ -286,6 +289,8 @@ void AddUtilitiesToPython()
 	// ===============================================================================
 
 
+	def("RveCloneModelPart", &RveUtilities::CloneModelPart);
+	def("RveCloneModelPart2Physics", &RveUtilities::CloneModelPart2Physics);
 	typedef UblasSpace<double, CompressedMatrix, Vector>   SparseSpaceType;
 	typedef UblasSpace<double, Matrix, Vector>			   LocalSpaceType;
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType>  LinearSolverBaseType;
@@ -304,6 +309,12 @@ void AddUtilitiesToPython()
 		.def("Build", &RveGeometryDescriptor::Build)
 		.def("SetUserCornerNodes", &RveGeometryDescriptor_SetUserCornerNodes_Helper)
 		.def(self_ns::str(self))
+		;
+
+	class_<RvePredictorCalculator, RvePredictorCalculator::Pointer,
+		boost::noncopyable>(
+		"RvePredictorCalculator",
+		init<std::string&, ModelPart&>())
 		;
 
 	typedef RveConstraintHandler<SparseSpaceType, LocalSpaceType> RveConstraintHandlerBaseType;
@@ -334,6 +345,14 @@ void AddUtilitiesToPython()
 		init<>())
 		;
 
+	typedef RveConstraintHandler_PBF_SD_THERMAL<SparseSpaceType, LocalSpaceType> RveConstraintHandler_PBF_SD_THERMAL_Type;
+	class_<RveConstraintHandler_PBF_SD_THERMAL_Type, RveConstraintHandler_PBF_SD_THERMAL_Type::Pointer,
+		bases<RveConstraintHandlerBaseType>,
+		boost::noncopyable>(
+		"RveConstraintHandler_PBF_SD_THERMAL",
+		init<>())
+		;
+
 	typedef RveLinearSystemOfEquations<SparseSpaceType, LocalSpaceType> RveLinearSystemOfEquationsType;
 	class_<RveLinearSystemOfEquationsType, RveLinearSystemOfEquationsType::Pointer, 
 		boost::noncopyable>(
@@ -346,6 +365,83 @@ void AddUtilitiesToPython()
 		boost::noncopyable>(
 		"RveHomogenizer",
 		init<>())
+		;
+	typedef RveHomogenizerThermal<SparseSpaceType, LocalSpaceType> RveHomogenizerThermalType;
+	class_<RveHomogenizerThermalType, RveHomogenizerThermalType::Pointer,
+		bases<RveHomogenizerType>,
+		boost::noncopyable>(
+		"RveHomogenizerThermal",
+		init<>())
+		;
+
+	// Thermal 2D
+
+	typedef RveAdapterV2<SparseSpaceType, LocalSpaceType, RveAdapterSettings_Thermal_2D> RveThermal2DAdapterV2Type;
+	class_<RveThermal2DAdapterV2Type, RveThermal2DAdapterV2Type::Pointer, boost::noncopyable>(
+		"RveThermal2DAdapterV2",
+		init<>())
+		.def("SetRveData", &RveThermal2DAdapterV2Type::SetRveData)
+		.def("RveGenerated", &RveThermal2DAdapterV2Type::RveGenerated)
+		.def("RveGenerationRequested", &RveThermal2DAdapterV2Type::RveGenerationRequested)
+		.def("WorkingSpaceDimension", &RveThermal2DAdapterV2Type::WorkingSpaceDimension)
+		.def("GetStrainSize", &RveThermal2DAdapterV2Type::GetStrainSize)
+		.def(self_ns::str(self))
+		.def("TestMaterialResponse", &RveThermal2DAdapterV2Type::TestMaterialResponse)
+		;
+
+	typedef ConstitutiveLawAdapter<RveThermal2DAdapterV2Type> RveConstitutiveLawV2Thermal2DBaseType;
+	class_<RveConstitutiveLawV2Thermal2DBaseType, RveConstitutiveLawV2Thermal2DBaseType::Pointer, bases<ConstitutiveLaw>, boost::noncopyable>(
+		"RveConstitutiveLawV2Thermal2DBase", no_init)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal2DBaseType, double>)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal2DBaseType, Vector>)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal2DBaseType, Matrix>)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal2DBaseType, array_1d<double, 3> >)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal2DBaseType, array_1d<double, 6> >)
+		;
+
+	typedef RveConstitutiveLaw<RveThermal2DAdapterV2Type> RveConstitutiveLawV2Thermal2DType;
+	class_<RveConstitutiveLawV2Thermal2DType, RveConstitutiveLawV2Thermal2DType::Pointer,
+		bases<RveConstitutiveLawV2Thermal2DBaseType>,
+		boost::noncopyable>(
+		"RveConstitutiveLawV2Thermal2D",
+		init<const RveThermal2DAdapterV2Type::Pointer&>())
+		.def("GetModelPart", &RveConstitutiveLawV2Thermal2DType::GetModelPart)
+		.def("TestMaterialResponse", &RveConstitutiveLawV2Thermal2DType::TestMaterialResponse)
+		;
+
+	// Thermal 3D
+
+	typedef RveAdapterV2<SparseSpaceType, LocalSpaceType, RveAdapterSettings_Thermal_3D> RveThermal3DAdapterV2Type;
+	class_<RveThermal3DAdapterV2Type, RveThermal3DAdapterV2Type::Pointer, boost::noncopyable>(
+		"RveThermal3DAdapterV2",
+		init<>())
+		.def("SetRveData", &RveThermal3DAdapterV2Type::SetRveData)
+		.def("RveGenerated", &RveThermal3DAdapterV2Type::RveGenerated)
+		.def("RveGenerationRequested", &RveThermal3DAdapterV2Type::RveGenerationRequested)
+		.def("WorkingSpaceDimension", &RveThermal3DAdapterV2Type::WorkingSpaceDimension)
+		.def("GetStrainSize", &RveThermal3DAdapterV2Type::GetStrainSize)
+		.def(self_ns::str(self))
+		.def("TestMaterialResponse", &RveThermal3DAdapterV2Type::TestMaterialResponse)
+		;
+
+	typedef ConstitutiveLawAdapter<RveThermal3DAdapterV2Type> RveConstitutiveLawV2Thermal3DBaseType;
+	class_<RveConstitutiveLawV2Thermal3DBaseType, RveConstitutiveLawV2Thermal3DBaseType::Pointer, bases<ConstitutiveLaw>, boost::noncopyable>(
+		"RveConstitutiveLawV2Thermal3DBase", no_init)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal3DBaseType, double>)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal3DBaseType, Vector>)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal3DBaseType, Matrix>)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal3DBaseType, array_1d<double, 3> >)
+		.def("GetValue", ConstitutiveLawGetValue<RveConstitutiveLawV2Thermal3DBaseType, array_1d<double, 6> >)
+		;
+
+	typedef RveConstitutiveLaw<RveThermal3DAdapterV2Type> RveConstitutiveLawV2Thermal3DType;
+	class_<RveConstitutiveLawV2Thermal3DType, RveConstitutiveLawV2Thermal3DType::Pointer,
+		bases<RveConstitutiveLawV2Thermal3DBaseType>,
+		boost::noncopyable>(
+		"RveConstitutiveLawV2Thermal3D",
+		init<const RveThermal3DAdapterV2Type::Pointer&>())
+		.def("GetModelPart", &RveConstitutiveLawV2Thermal3DType::GetModelPart)
+		.def("TestMaterialResponse", &RveConstitutiveLawV2Thermal3DType::TestMaterialResponse)
 		;
 
 	// PLANE STRESS

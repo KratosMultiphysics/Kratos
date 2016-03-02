@@ -480,6 +480,8 @@ namespace Kratos
 			double grank_a;
 			double grank_b;
 			double grank_c;
+
+			double damage_limit;
 		};
 
 	protected:

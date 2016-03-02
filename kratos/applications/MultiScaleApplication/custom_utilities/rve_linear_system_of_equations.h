@@ -139,7 +139,7 @@ namespace Kratos
 						   SchemePointerType& pScheme, 
 						   RveConstraintHandlerPointerType& chandler)
 		{
-			if(m_initialized)return;
+			//if(m_initialized)return; //COMMENTED BY STEFANO
 			if(m_initialized)
 				this->End();
 
@@ -327,13 +327,13 @@ namespace Kratos
 		{
 			//TSparseSpace::SetToZero(m_x);
 			if(TSparseSpace::Size(m_x) == 0) return;
-			this->m_lin_solver->PerformSolutionStep(m_A,m_x,m_b);
-			//this->m_lin_solver->Solve(m_A,m_x,m_b); // TODO: dire a ricc se si puo splittare initi/solve/fin
+			//this->m_lin_solver->PerformSolutionStep(m_A,m_x,m_b); //COMMENTED BY STEFANO
+			this->m_lin_solver->Solve(m_A,m_x,m_b); // TODO: dire a ricc se si puo splittare initi/solve/fin
 		}
 
 		virtual void End()
 		{
-			return;
+			//return; //COMMENTED BY STEFANO
 			if(m_initialized)
 			{
 				this->m_lin_solver->FinalizeSolutionStep(m_A,m_x,m_b);

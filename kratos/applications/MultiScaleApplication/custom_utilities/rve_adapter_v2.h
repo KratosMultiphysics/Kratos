@@ -77,6 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rve_macroscale_data.h"
 #include "rve_macroscale_temperature_data.h"
 #include "rve_geometry_descriptor.h"
+#include "rve_predictor_calculator.h"
 #include "rve_constraint_handler.h"
 #include "rve_linear_system_of_equations.h"
 #include "rve_homogenizer.h"
@@ -225,13 +226,15 @@ public:
 		: mpModelPart(ModelPart::Pointer())
 		, mpMacroscaleData(RveMacroscaleData::Pointer())
 		, mpGeometryDescriptor(RveGeometryDescriptor::Pointer())
+		, mpPredictorCalculator(RvePredictorCalculator::Pointer())
 		, mpConstraintHandler(RveConstraintHandlerPointerType())
 		, mpLinearSOE(RveLinearSystemOfEquationsPointerType())
 		, mpHomogenizer(RveHomogenizerPointerType())
 		, mpScheme(SchemePointerType())
 		, mpConvergenceCriteria(ConvergenceCriteriaPointerType())
 		, mRveGenerated(false)
-		, mRveGenerationRequested(true)
+		, mRveGenerationRequested(true) //ZStefano need->(false)
+		, mRveNonLinearFlag(0.0)
 		, mMacroCharacteristicLength(0.0)
 		, mMicroCharacteristicLength(0.0)
 		, mInitialized(false)
@@ -348,7 +351,7 @@ public:
 		mpScheme              = pNewScheme;
 		mpConvergenceCriteria = pNewConvergenceCriteria;
 
-		mRveGenerated = true;
+		mRveGenerated = true; //ZStefano need->false;
 		mRveGenerationRequested = false;
 
 		if(mInitialized)
@@ -457,12 +460,18 @@ public:
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
 		rValue = 0.0;
-		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE) {
+		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			rValue = mIntegrationErrorCode;
-		}
-		else {
+		else if (rThisVariable == HOMOGENIZED_CTE)
+			rValue = mpMacroscaleData->homogen_alpha();
+		else if (rThisVariable == HOMOGENIZED_CONDUCTIVITY)
+			rValue = mHomoConduct;
+		else if (rThisVariable == EQUIVALENT_DAMAGE)
+			rValue = mEquivalentDamage;
+		else if (rThisVariable == RVE_NON_LINEAR_FLAG)
+			rValue = mRveNonLinearFlag;
+		else
 			mpHomogenizer->HomogenizeVariable(*mpModelPart, *mpGeometryDescriptor, rThisVariable, rValue);
-		}
 		return rValue;
 	}
 
@@ -507,8 +516,17 @@ public:
 	{
 		if(rThisVariable == PK2_STRESS_TENSOR || rThisVariable == CAUCHY_STRESS_TENSOR)
 			StressVectorToTensor(mStressVector, rValue);
-		else if(rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
+		else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
 			StrainVectorToTensor(mStrainVectorOld, rValue);
+		else if (rThisVariable == RVE_GENERAL_STRESS_TENSOR)
+			StressVectorToTensor(mRveGeneralStressVector, rValue);
+		else if (rThisVariable == HOMOGENIZED_CONST_TENS)
+		{
+			rValue = mConstitutiveTensor;
+			//std::cout << "-- rValue->mConstitutiveTensor = " << rValue << std::endl;
+		}
+		else if (rThisVariable == INVERSE_HOMOGENIZED_CONST_TENS)
+			rValue = mInvConstitutiveTensor;
 		else
 			mpHomogenizer->HomogenizeVariable(*mpModelPart, *mpGeometryDescriptor, rThisVariable, rValue);
 		return rValue;
@@ -668,6 +686,7 @@ public:
 			mStrainVectorOld = ZeroVector(strain_size);
 			mStrainVectorOld_trial = ZeroVector(strain_size);
 			mConstitutiveTensor = ZeroMatrix(strain_size,strain_size);
+			mInvConstitutiveTensor = ZeroMatrix(strain_size, strain_size);
 
 			mIntegrationErrorCode = 0.0;
 			mInitialized = true;
@@ -1040,7 +1059,10 @@ protected:
 		// bifurcation analysis
 		m_localized = false;
 		m_localization_angle = 0.0;
-
+		
+		// Damage Prediction
+		size_t strain_size = GetStrainSize();
+		mC0 = ZeroMatrix(strain_size, strain_size);
 		// random imperfections
 
 		/*ModelPart::NodeType& n00 = model.GetNode( mpGeometryDescriptor->CornerNodesIDs()[0] );
@@ -1083,6 +1105,10 @@ protected:
 		}
 
 		mpConstraintHandler->AddConditions(model, *mpGeometryDescriptor);
+
+		//if (!mpPredictorCalculator)
+		//	if (strain_size == 3)
+		//		mpPredictorCalculator = RvePredictorCalculator::Pointer(new RvePredictorCalculator("ciccio"));
 
 		if(!mpScheme->SchemeIsInitialized())
 			mpScheme->Initialize(model);
@@ -1168,12 +1194,13 @@ protected:
 		if(rValues.GetProcessInfo()[NL_ITERATION_NUMBER] < 3)
 			this->RevertToLastStep();
 
-		if(this->PredictorCalculation(rValues)) {
+		ModelPart& model = *mpModelPart;
+
+		if(this->PredictorCalculation(rValues, model)) {
 			mStrainVectorOld_trial = rValues.GetStrainVector();
 			return;
 		}
 
-		ModelPart& model = *mpModelPart;
 		RveGeometryDescriptor& geomdescriptor = *mpGeometryDescriptor;
 		RveMacroscaleData& macrodata = *mpMacroscaleData;
 
@@ -1250,16 +1277,91 @@ protected:
 				mU,
 				mMoveMesh);
 			noalias(mConstitutiveTensor) = tangent_matrix;
+			//std::cout << "--------  mConstitutiveTensor = " << mConstitutiveTensor << std::endl;
+
+			// INVERT CONSTITUTIVE TENSOR
+			SizeType strain_size = GetStrainSize();
+			Matrix mConstitutiveTensor_copy(mConstitutiveTensor);
+			Matrix inv_mConstitutiveTensor(strain_size, strain_size, false);
+			permutation_matrix<Matrix::size_type> pm(strain_size);
+			lu_factorize(mConstitutiveTensor_copy, pm);
+			noalias(inv_mConstitutiveTensor) = IdentityMatrix(strain_size, strain_size);
+			lu_substitute(mConstitutiveTensor_copy, pm, inv_mConstitutiveTensor);
+			noalias(mInvConstitutiveTensor) = inv_mConstitutiveTensor;
+
+			//std::stringstream ss;
+			//ss << "mConstitutiveTensor_copy = " << mConstitutiveTensor_copy << ", " << std::endl;
+			//ss << "mInvConstitutiveTensor = " << mInvConstitutiveTensor << ", " << std::endl;
+			//std::cout << ss.str();
+
+			mHomoConduct = tangent_matrix(0,0);
+
 			RveUtilities::RestoreSolutionVector(model, mU);
 			mpLinearSOE->BuildRHS(model, mpScheme);
 		}
-
+		mHomoCTE = macrodata.homogen_alpha();
+		
 #ifdef RVE_TIMER_ON
 		timer.stop();
 		double t_04 = timer.value();  
 #endif // RVE_TIMER_ON
 
 		mpLinearSOE->End();
+
+		//int calc_damage_surf_flag = rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_FLAG];
+		int calc_damage_surf_flag = rValues.GetProcessInfo().Has(RVE_DAMAGE_SURFACE_FLAG) ? rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_FLAG] : 0;
+		//std::cout << "calc_damage_surf_flag :" << calc_damage_surf_flag << std::endl;
+		
+		if (calc_damage_surf_flag == 1)
+		{
+			if (mStrainVectorOld.size() == 3)
+			{
+				//std::cout << "mStrainVectorOld = " << mStrainVectorOld << ", " << std::endl;
+				//std::cout << "mStrainVectorOld_trial = " << mStrainVectorOld_trial << ", " << std::endl;
+				//std::cout << ss.str();
+
+				bool calc_elastic_mat = (rValues.GetProcessInfo()[TIME_STEPS] == 1 && rValues.GetProcessInfo()[NL_ITERATION_NUMBER] == 1);
+
+				if (calc_elastic_mat)
+				{
+					//std::cout << "norm_2(mStrainVectorOld) = " << norm_2(mStrainVectorOld) << ", " << std::endl;
+					if (norm_2(mStrainVectorOld) > 0)
+					{
+						SizeType strain_size = GetStrainSize();
+						if (stress_vector.size() != strain_size)
+							stress_vector.resize(strain_size, false);
+						if (tangent_matrix.size1() != strain_size || tangent_matrix.size2() != strain_size)
+							tangent_matrix.resize(strain_size, strain_size, false);
+						noalias(stress_vector) = ZeroVector(strain_size);
+						noalias(tangent_matrix) = IdentityMatrix(strain_size, strain_size);
+						mIntegrationErrorCode = -1.0;
+						mStrainVectorOld_trial = rValues.GetStrainVector();
+						return;
+					}
+					mC0 = tangent_matrix;
+					//std::cout << "mC0 :" << mC0 << std::endl;
+				}
+				double damage_surf_limit = rValues.GetProcessInfo().Has(RVE_DAMAGE_SURFACE_LIMIT) ? rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_LIMIT] : 10.0;
+				std::cout << "damage_surf_limit :" << damage_surf_limit << std::endl;
+
+				bool damaged = this->CheckEquivalentDamage(rValues, damage_surf_limit);
+				std::cout << "damaged = " << damaged << ", " << std::endl;
+				if (damaged)
+				{
+					std::cout << "IsDamaged <<<<<<<<<<<<<<<<<<<<<<<<\n";
+					SizeType strain_size = GetStrainSize();
+					if (stress_vector.size() != strain_size)
+						stress_vector.resize(strain_size, false);
+					if (tangent_matrix.size1() != strain_size || tangent_matrix.size2() != strain_size)
+						tangent_matrix.resize(strain_size, strain_size, false);
+					noalias(stress_vector) = ZeroVector(strain_size);
+					noalias(tangent_matrix) = IdentityMatrix(strain_size, strain_size);
+					mIntegrationErrorCode = -1.0;
+					mStrainVectorOld_trial = rValues.GetStrainVector();
+					return;
+				}
+			}
+		}
 
 		mStrainVectorOld_trial = rValues.GetStrainVector();
 
@@ -1287,6 +1389,42 @@ protected:
 		std::cout << "Skwe Grad U = " << skew_grad_u << std::endl;
 #endif // RVE_V2_CHECK_HOMG_STRAIN
 
+	}
+
+	/**
+	* Returns true if the RVE has been reached the limit,
+	* False otherwise
+	*/
+	virtual bool CheckEquivalentDamage(ConstitutiveLaw::Parameters& rValues, double& damage_surf_limit)
+	{
+		// Initialize parameters
+		double equivalent_damage = 0;
+		Vector strain_vector = rValues.GetStrainVector();
+		Vector elastic_stress = prod(strain_vector, mC0);
+		Vector stress_vector = rValues.GetStressVector();
+		mRveGeneralStressVector = stress_vector;
+
+		// Calculate norm
+		double norm_elastic_stress = norm_2(elastic_stress);
+		double norm_stress_difference = norm_2(stress_vector - elastic_stress);
+
+		// Calculate equivalent damage
+		equivalent_damage = norm_stress_difference / norm_elastic_stress;
+		mEquivalentDamage = equivalent_damage;
+
+		//std::cout << "mC0 = " << mC0 << ", " << std::endl;
+		std::cout << "equivalent_damage = " << equivalent_damage << ", " << std::endl;
+		//std::cout << "elastic_stress = " << elastic_stress << ", " << std::endl;
+		//std::cout << "stress_vector = " << stress_vector << ", " << std::endl;
+
+		if (equivalent_damage > damage_surf_limit)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -1334,36 +1472,59 @@ protected:
 	* @param rValues material parameters
 	* @return true, if this RveAdapterV2 succesfully performed the calculations without the micro-model, false otherwise.
 	*/
-	virtual bool PredictorCalculation(ConstitutiveLaw::Parameters& rValues)
+	virtual bool PredictorCalculation(ConstitutiveLaw::Parameters& rValues, ModelPart& modelPart)
 	{
+		std::cout << "IN - PredictorCalculation\n";
+		mRveGenerated = false; // for testing
+		if (!mRveGenerated) //The Rve it is not Generated -> Now we check if we are in Elastic or InElastic case
+		{
+			//CLawMap = modelPart.GetProcessInfo()[RVE_CLAW_MAP];
+			SizeType strain_size = GetStrainSize();
+			Vector StrainVector = rValues.GetStrainVector();
+			std::cout << "StrainVector: " << StrainVector << std::endl;
+
+			Vector& StressVector = rValues.GetStressVector();
+			if(StressVector.size() != strain_size)
+				StressVector.resize(strain_size, false);
+			noalias(StressVector) = ZeroVector(strain_size);
+
+			Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+			if(ConstitutiveMatrix.size1() != strain_size || ConstitutiveMatrix.size2() != strain_size)
+				ConstitutiveMatrix.resize(strain_size, strain_size, false);
+			noalias(ConstitutiveMatrix) = ZeroMatrix(strain_size, strain_size);
+
+			//if (!mpPredictorCalculator->Predict(CLawMap, StrainVector))
+			if (!mpPredictorCalculator->Predict(StrainVector))
+			{
+				if (strain_size == 3) //Only 2D
+				{
+					mRveNonLinearFlag = 1.0;
+				}
+#ifdef RVE_PREDICTOR_INFO
+				//std::cout << "Prediction -> Non-Linear - The Rve will be be generated\n";
+#endif // RVE_PREDICTOR_INFO
+			}
+			else
+			{
+				if (strain_size == 3) //Only 2D
+				{
+					mRveNonLinearFlag = 0.0;
+				}
+#ifdef RVE_PREDICTOR_INFO
+				//std::cout << "Prediction -> Linear - The Macro Scale do not needs the Rve\n";
+#endif // RVE_PREDICTOR_INFO
+			}
+			//Prediction of the StressVector
+			//noalias(StressVector) = prod(ConstitutiveMatrix, StrainVector);
+
+			return false;
+		}
+		else
+		{
+			return false;
+		}
+		mRveGenerated = true; // for testing
 		return false;
-		//if(!mRveGenerated)
-		//{
-		//	SizeType strain_size = GetStrainSize();
-
-		//	Vector& StressVector = rValues.GetStressVector();
-		//	if(StressVector.size() != strain_size)
-		//		StressVector.resize(strain_size, false);
-		//	noalias(StressVector) = ZeroVector(strain_size);
-
-		//	Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-		//	if(ConstitutiveMatrix.size1() != strain_size || ConstitutiveMatrix.size2() != strain_size)
-		//		ConstitutiveMatrix.resize(strain_size, strain_size, false);
-		//	noalias(ConstitutiveMatrix) = ZeroMatrix(strain_size, strain_size);
-
-		//	std::stringstream ss;
-		//	ss << "RveAdapterV2: Cannot calculate the material response without a micromodel" << std::endl;
-		//	std::cout << ss.str();
-
-		//	// we need to solve the micro-problem
-		//	// but we don't have a micro-model.
-		//	// This should NEVER happen.
-		//	// If this happens it means that there's a bug in the RveModeler
-		//	return true;
-		//}
-
-		//// we need to solve the micro-problem
-		//return false;
 	}
 
 	/**
@@ -1719,6 +1880,7 @@ protected:
 	ModelPart::Pointer                    mpModelPart;
 	RveMacroscaleData::Pointer            mpMacroscaleData;
 	RveGeometryDescriptor::Pointer        mpGeometryDescriptor;
+	RvePredictorCalculator::Pointer		  mpPredictorCalculator;
 	RveConstraintHandlerPointerType       mpConstraintHandler;
 	RveLinearSystemOfEquationsPointerType mpLinearSOE;
 	RveHomogenizerPointerType             mpHomogenizer;
@@ -1750,9 +1912,19 @@ protected:
 	Vector mStrainVectorOld_trial;
 	Vector mStressVector;
 	Matrix mConstitutiveTensor;
+	Matrix mInvConstitutiveTensor;
 	Vector mU;
 	size_t mNDofs;
 
+	Matrix mC0;
+
+	Vector mRveGeneralStressVector;
+	double mEquivalentDamage;
+
+	double mHomoCTE;
+	double mHomoConduct;
+	double mRveNonLinearFlag;
+	
 	// Bifurcation analysis
 
 	bool m_localized;

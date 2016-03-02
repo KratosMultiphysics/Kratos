@@ -66,6 +66,7 @@ class Builder:
 		
 		# set buffer size here
 		self.ModelPart_Mechanical.SetBufferSize(self.BufferSize)
+		self.ModelPart_Thermal.SetBufferSize(self.BufferSize)
 		
-		
-		model_part_io_2 = ModelPartIO_ConnPreserve(self.FileName_Thermal, self.ModelPart_Mechanical)
+		model_part_io_conn_preserv = ModelPartIOConnPreserver(self.FileName_Thermal, self.ModelPart_Mechanical)
+		model_part_io_conn_preserv.ReadModelPart(self.ModelPart_Thermal)

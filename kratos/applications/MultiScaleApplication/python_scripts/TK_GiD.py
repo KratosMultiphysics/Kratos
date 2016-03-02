@@ -89,3 +89,99 @@ class ResultsIO:
 											 theCurrentTime)
 			
 			self.myIO.Flush();
+			
+class ResultsIO_2Physics:
+	
+	# ==================================================================================
+	
+	def __init__(self, 
+				 ModelPartA,
+				 ModelPartB,				 
+				 OutputFileName,
+				 ResultsOnNodes = [], 
+				 ResultsOnGaussPoints_ModA = [],
+				 ResultsOnGaussPoints_ModB = [],
+				 Frequency = None):
+		
+		self.ModelPartA = ModelPartA
+		self.ModelPartB = ModelPartB
+		self.OutputFileName = OutputFileName
+		self.MeshName = 0.0
+		
+		self.ResultsOnNodes = ResultsOnNodes
+		self.ResultsOnGaussPoints_ModA = ResultsOnGaussPoints_ModA
+		self.ResultsOnGaussPoints_ModB = ResultsOnGaussPoints_ModB
+		
+		self.myIO = GidIO(
+			OutputFileName,
+			GiDPostMode.GiD_PostBinary,
+			MultiFileFlag.SingleFile,
+			WriteDeformedMeshFlag.WriteUndeformed, 
+			WriteConditionsFlag.WriteElementsOnly)
+		
+		self.IsInitialized = False
+		
+		self.Frequency = Frequency
+		self.Tn = None
+		
+	# ==================================================================================
+	
+	def Initialize(self):
+		
+		if(self.IsInitialized == False):
+			
+			self.myIO.InitializeMesh(self.MeshName);
+			self.myIO.WriteMesh(self.ModelPartA.GetMesh());
+			self.myIO.FinalizeMesh()
+			self.myIO.InitializeResults(self.MeshName, self.ModelPartA.GetMesh())
+			self.myIO.InitializeResults(self.MeshName, self.ModelPartB.GetMesh())
+			
+			self.IsInitialized = True
+			
+	# ==================================================================================
+	
+	def Finalize(self):
+		
+		if(self.IsInitialized):
+			
+			self.myIO.FinalizeResults()
+			self.IsInitialized = False
+			
+	# ==================================================================================
+	
+	def __check_write_freq(self,t):
+		r = True
+		f = self.Frequency
+		if(f is not None):
+			if(self.Tn is None):
+				self.Tn = t
+			else:
+				dt = t-self.Tn
+				if(dt >= f):
+					self.Tn = t
+				else:
+					r = False
+		return r
+			
+	# ==================================================================================
+	
+	def Write(self, theCurrentTime):
+		
+		if(self.IsInitialized and self.__check_write_freq(theCurrentTime)):
+			
+			for result in self.ResultsOnNodes:
+				self.myIO.WriteNodalResults(result, 
+											self.ModelPartA.Nodes, 
+											theCurrentTime, 0)
+			
+			for result in self.ResultsOnGaussPoints_ModA:
+				self.myIO.PrintOnGaussPoints(result, 
+											 self.ModelPartA, 
+											 theCurrentTime)
+											
+			for result in self.ResultsOnGaussPoints_ModB:
+				self.myIO.PrintOnGaussPoints(result, 
+											 self.ModelPartB, 
+											 theCurrentTime)
+			
+			self.myIO.Flush();

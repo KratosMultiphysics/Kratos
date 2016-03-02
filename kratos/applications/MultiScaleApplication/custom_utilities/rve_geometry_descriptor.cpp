@@ -660,7 +660,9 @@ void RveGeometryDescriptor::FindPeriodicNodes_2D(ModelPart& modelPart)
 		KRATOS_WATCH(edge_left.size());
 		KRATOS_WATCH(edge_right.size());
 		KRATOS_TRY
-		KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
+			//std::cout << "edge_bottom.size() " << edge_bottom.size() << " - edge_top.size() " << edge_top.size() << " - edge_left.size() " << edge_left.size() << " - edge_right.size() " << edge_right.size() << std::endl;
+			std::cout << "THE MESH SEEMS TO BE NON - PERIODIC" << std::endl;
+			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
 		KRATOS_CATCH("")
 	}
 
@@ -889,6 +891,7 @@ void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 		if(edges[index+1].size() != nn || edges[index+2].size() != nn || edges[index+3].size() != nn)
 		{
 			KRATOS_TRY
+			std::cout << "THE MESH SEEMS TO BE NON-PERIODIC IN THE EDGES" << std::endl;
 			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC IN THE EDGES", "");
 			KRATOS_CATCH("")
 		}
@@ -897,6 +900,7 @@ void RveGeometryDescriptor::FindPeriodicNodes_3D(ModelPart& modelPart)
 	if(face_bottom.size() != face_top.size() || face_left.size() != face_right.size() || face_front.size() != face_back.size())
 	{
 		KRATOS_TRY
+		std::cout << "THE MESH SEEMS TO BE NON-PERIODIC IN THE FACES" << std::endl;
 		KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC IN THE FACES", "");
 		KRATOS_CATCH("")
 	}
