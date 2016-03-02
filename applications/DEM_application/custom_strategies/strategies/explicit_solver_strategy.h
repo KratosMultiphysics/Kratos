@@ -383,8 +383,6 @@ namespace Kratos
           // ApplyPrescribedBoundaryConditions();
           
           // Search Neighbours and related operations                             
-          SetOriginalRadius(r_model_part);
-
           SearchNeighbours();
           
           if(mDeltaOption == 2) {            
@@ -518,8 +516,7 @@ namespace Kratos
             RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
             ComputeNewNeighboursHistoricalData();  
-            
-            SetOriginalRadius(r_model_part);              
+                                     
             SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
             ComputeNewRigidFaceNeighboursHistoricalData();
             mSearchControl = 2; // Search is active and has been performed during this time step
@@ -1115,7 +1112,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
-    void SetSearchRadius(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0)
+    void SetArrayOfAmplifiedRadii(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0)
     {
         KRATOS_TRY
             
@@ -1123,41 +1120,17 @@ namespace Kratos
         
         mNumberOfElementsOldRadiusList = number_of_elements;
         
-        this->GetRadius().resize(number_of_elements);                
+        this->GetArrayOfAmplifiedRadii().resize(number_of_elements);                
 
 	#pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++ ){
 
-            this->GetRadius()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
+            this->GetArrayOfAmplifiedRadii()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
 
         }
 
         KRATOS_CATCH("")
-    }
-    
-       
-      
-    void SetOriginalRadius(ModelPart& r_model_part)
-    {
-        KRATOS_TRY
-     
-        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-        
-        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        
-        this->GetOriginalRadius().resize(number_of_elements);
-
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_elements; i++ ){
-        
-            SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin() + i;
- 
-            this->GetOriginalRadius()[i] = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-
-        }
-
-        KRATOS_CATCH("")
-    }
+    }                     
 
     virtual void SearchNeighbours(const double amplification = 1.0)
     {
@@ -1165,19 +1138,18 @@ namespace Kratos
 
         ModelPart& r_model_part            = BaseType::GetModelPart();
         ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
-        const double added_search_distance = r_process_info[SEARCH_TOLERANCE];        
         
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if(!number_of_elements) return; 
 
-        SetSearchRadius(r_model_part, added_search_distance, amplification);
+        SetArrayOfAmplifiedRadii(r_model_part, r_process_info[SEARCH_TOLERANCE], amplification);
         
         r_model_part.GetCommunicator().GhostMesh().ElementsArray().clear();
         
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);                              
         
-        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
+        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
         const int number_of_particles = (int)mListOfSphericParticles.size();
         
         #pragma omp for schedule(dynamic, 100) //schedule(guided)
@@ -1239,6 +1211,9 @@ namespace Kratos
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
 
         if (pTConditions.size() > 0) {
+            
+            ModelPart& r_model_part = BaseType::GetModelPart();
+            SetArrayOfAmplifiedRadii(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
         
             const int number_of_particles = (int)mListOfSphericParticles.size();
             
@@ -1250,7 +1225,7 @@ namespace Kratos
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
                 mListOfSphericParticles[i]->mNeighbourRigidFacesPram.resize(0);
             }
-            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
+            mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetArrayOfAmplifiedRadii(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
             
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
@@ -1478,8 +1453,7 @@ namespace Kratos
     
     VectorResultElementsContainerType&           GetResults(){return(mResults);}
     VectorDistanceType&                          GetResultsDistances(){return(mResultsDistances);}
-    RadiusArrayType&                             GetRadius(){return(mRadius);}
-    RadiusArrayType&                             GetOriginalRadius(){return(mOriginalRadius);}
+    RadiusArrayType&                             GetArrayOfAmplifiedRadii(){return(mArrayOfAmplifiedRadii);}
     
     int&                                         GetNStepSearch(){return (mNStepSearch);}
     int&                                         GetSearchControl(){return mSearchControl;}
@@ -1520,8 +1494,7 @@ namespace Kratos
 
     VectorResultElementsContainerType            mResults;
     VectorDistanceType                           mResultsDistances;
-    RadiusArrayType                              mRadius;
-    RadiusArrayType                              mOriginalRadius;
+    RadiusArrayType                              mArrayOfAmplifiedRadii;
 
     int                                          mNStepSearch;
     int                                          mSearchControl;
