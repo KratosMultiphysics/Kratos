@@ -111,7 +111,7 @@ class DEM_FEM_Search : public SpatialSearch
   void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
       ElementsContainerType   const& rElements,
       ConditionsContainerType const& rConditions,
-      const RadiusArrayType & Radius_in,
+      const RadiusArrayType & r_vector_of_radii,
       VectorResultConditionsContainerType& rResults,
       VectorDistanceType& rResultsDistance)
     {
@@ -189,7 +189,7 @@ class DEM_FEM_Search : public SpatialSearch
             Elem_iter it = elements_sear.begin() + p;
             GeometryType &pGeometry = (*it)->GetGeometry();
             aux_coor                = pGeometry[0].Coordinates();
-            radius                  = pGeometry[0].FastGetSolutionStepValue(RADIUS);
+            radius                  = r_vector_of_radii[p];
             Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
 
             for(std::size_t i = 0; i < 3; i++) {
@@ -312,7 +312,7 @@ class DEM_FEM_Search : public SpatialSearch
             bool search_particle = true;
 
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
-            double Rad = go_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+            double Rad = r_vector_of_radii[p];
 
             for(unsigned int i = 0; i < 3; i++ ) {
               search_particle &= !(aux_coor[i]  < (mGlobal_BB_LowPoint[i] - Rad) ) || (aux_coor[i]  > (mGlobal_BB_HighPoint[i] + Rad) ); //amplify the BBX with the radius for every particle
