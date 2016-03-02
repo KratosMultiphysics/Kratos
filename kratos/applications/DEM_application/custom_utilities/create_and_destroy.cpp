@@ -668,40 +668,7 @@ namespace Kratos {
         }
         KRATOS_CATCH("")
     }
-    /*
-    void ParticleCreatorDestructor::MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part) { //TODO To be removed
 
-        KRATOS_TRY
-
-                typedef ModelPart::ElementsContainerType ElementsArrayType;
-        //        typedef ElementsArrayType::iterator ElementsIterator;
-
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin(); particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it) {
-
-            if (!(*particle_pointer_it)->Is(TO_ERASE)) continue;
-
-            Element* p_element = particle_pointer_it->get();
-            SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*> (p_element);
-
-            for (unsigned int i = 0; i < p_continuum_spheric_particle->mContinuumIniNeighbourElements.size(); i++) {
-                SphericContinuumParticle* neighbour_i = p_continuum_spheric_particle->mContinuumIniNeighbourElements[i];
-                if (neighbour_i == NULL) continue;
-                for (unsigned int j = 0; j < neighbour_i->mContinuumIniNeighbourElements.size(); j++) {
-                    if (neighbour_i->mContinuumIniNeighbourElements[j] == p_continuum_spheric_particle) {
-                        neighbour_i->mContinuumIniNeighbourElements[j] = NULL;
-                        break;
-                    }
-                }
-            }
-
-        }
-
-        KRATOS_CATCH("")
-    }
-    */
-    
     void ParticleCreatorDestructor::MarkDistantParticlesForErasing(ModelPart& r_model_part) {
         MarkParticlesForErasingGivenBoundingBox(r_model_part, mLowPoint, mHighPoint);
     }
