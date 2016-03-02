@@ -68,7 +68,7 @@ namespace Kratos
       virtual ~SphericSwimmingParticle(){};
 
       
-      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
+      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
       std::vector<Node<3>::Pointer> mNeighbourNodes;
       std::vector<double>   mNeighbourNodesDistances;
@@ -89,13 +89,13 @@ namespace Kratos
 
     protected:
         
-        void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, ProcessInfo& r_current_process_info);
-        void ComputeDragForce(array_1d<double, 3>& drag_force, ProcessInfo& r_current_process_info);
-        void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, ProcessInfo& r_current_process_info);
-        void ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, ProcessInfo& r_current_process_info);
-        void ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, ProcessInfo& r_current_process_info);
-        void ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, ProcessInfo& r_current_process_info);
-        void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info);
+        void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
+        void ComputeDragForce(array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
+        void ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
+        void ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
+        void ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info);
         void ComputeParticleReynoldsNumber(double& r_reynolds);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
@@ -140,7 +140,7 @@ namespace Kratos
 
     private:
 
-        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, ProcessInfo& r_current_process_info);
+        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const ProcessInfo& r_current_process_info);
         double ComputeDragCoefficient(const ProcessInfo& r_current_process_info);
         double ComputeStokesDragCoefficient();
         double ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info);
@@ -155,7 +155,7 @@ namespace Kratos
         double ComputeBeetstraDragCoefficient();
         void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
         void ApplyDragPorosityModification(double& drag_coeff);
-        double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& r_current_process_info);
+        double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);
         double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
         void CustomInitialize();
         ///@name Static Member Variables
