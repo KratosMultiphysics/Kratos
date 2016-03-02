@@ -21,7 +21,7 @@ namespace Kratos {
                                      (coordinates_1[1]- coordinates_2[1]) * (coordinates_1[1] - coordinates_2[1]) +
                                      (coordinates_1[2]- coordinates_2[2]) * (coordinates_1[2] - coordinates_2[2]));
 
-        const double radius_sum = elem_it_1.GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + elem_it_2.GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        const double radius_sum = elem_it_1.GetInteractionRadius() + elem_it_2.GetInteractionRadius();
         double indentation = radius_sum - distance;
 
         indentation /= radius_sum;

@@ -66,7 +66,8 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  const double& particle_radius = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                  SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
+                  const double particle_radius = r_spheric_particle.GetRadius();
                   added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
               }
 
@@ -193,7 +194,8 @@ class SphericElementGlobalPhysicsCalculator
               particle_counter = mElementsPartition[k];
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  radii[particle_counter] = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                  SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
+                  radii[particle_counter] = r_spheric_particle.GetRadius();
                   particle_counter++;
                 }
 
