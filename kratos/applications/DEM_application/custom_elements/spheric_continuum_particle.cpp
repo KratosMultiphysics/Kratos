@@ -264,24 +264,29 @@ namespace Kratos {
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double GlobalElasticContactForce[3] = {0.0};
+            double OldLocalElasticContactForce[3] = {0.0};
             
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+            
+            RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);
+            
+            // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
+        
             GlobalElasticContactForce[0] = mNeighbourElasticContactForces[i][0];
             GlobalElasticContactForce[1] = mNeighbourElasticContactForces[i][1];
             GlobalElasticContactForce[2] = mNeighbourElasticContactForces[i][2];
-
-            GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
+			
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
             //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
-            GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
-
+            
+            
             double ViscoDampingLocalContactForce[3] = {0.0};
             double equiv_visco_damp_coeff_normal;
             double equiv_visco_damp_coeff_tangential;
                 
             double LocalRelVel[3] = {0.0};
-            GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
-            
-            double OldLocalElasticContactForce[3] = {0.0};
-            GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce); // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary                        
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
             if (i < mContinuumInitialNeighborsSize) {
                 int failure_id = mIniNeighbourFailureId[i];
@@ -303,31 +308,28 @@ namespace Kratos {
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
 
-            if (r_process_info[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) {   //We leave apart the discontinuum neighbours (the same for the walls). The neighbour wouldn't be able to do the same if we activate it. 
+            if (r_process_info[STRESS_STRAIN_OPTION] && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it. 
                 mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor);
             }
 
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                                   GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, rElasticForce, rContactForce, i);
 
-            array_1d<double, 3> temp_force = ZeroVector(3);
-            temp_force[0] = GlobalContactForce[0];
-            temp_force[1] = GlobalContactForce[1];
-            temp_force[2] = GlobalContactForce[2];
-
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
                     const double coeff_acc      = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
-                    noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
+                    noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in a single time step
                 }   
-                ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
+                ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i < mContinuumInitialNeighborsSize) {       
                     if (mIniNeighbourFailureId[i] == 0) {
                         mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area, LocalCoordSystem, mContactMoment);
                     }
                 }
             }
-         
+        
+                    
+            
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
             }
