@@ -432,6 +432,13 @@
 		if {$parts ne ""} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
+	  
+	  <proc n='Updateme' args='args'>
+	  <![CDATA[
+	  gid_groups_conds::actualize_conditions_window
+	  ]]>
+	</proc>
+	  
 	<dynamicnode command="injectProcs" args=""/>
   </procs>
   <translations>

@@ -425,10 +425,11 @@ proc spdAux::injectSolvers {basenode} {
             set pn [$se getPublicName]
             set help [$se getHelp]
             set un [ExecuteOnCurrentApp getUniqueName "$stn$n"]
-            set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$un\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\">"
+            set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$un\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\" >"
             # Inject solvers combo
-            append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\">"
-            append container "<dependencies node=\"../value\" actualize=\"1\"/> </value>"
+            append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\" update_proc=\"Updateme\"/>"
+            #append container "<dependencies node=\"../value\" actualize=\"1\"/>"
+            #append container "</value>"
             append container $paramsnodes
             append container "</container>"
             $contnode appendXML $container
@@ -710,6 +711,7 @@ proc spdAux::SolStratParamState {outnode} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set solstrat_un [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    #W $solstrat_un
     if {[get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] v] eq ""} {
         get_domnode_attribute [$root selectNodes [spdAux::getRoute $solstrat_un]] values
     }

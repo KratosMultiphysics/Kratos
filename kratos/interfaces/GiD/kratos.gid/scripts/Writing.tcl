@@ -298,15 +298,15 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
         set f [subst $f]
         dict set gdict $group $f
         WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
-        WriteString "Begin ${gtn}Nodes"
+        WriteString "    Begin ${gtn}Nodes"
         write_calc_data nodes -sorted $gdict
-        WriteString "End ${gtn}Nodes"
-        WriteString "Begin ${gtn}Elements"
+        WriteString "    End ${gtn}Nodes"
+        WriteString "    Begin ${gtn}Elements"
         if {$what eq "Elements"} {
             write_calc_data elements -sorted $gdict
         }
-        WriteString "End ${gtn}Elements"
-        WriteString "Begin ${gtn}Conditions"
+        WriteString "    End ${gtn}Elements"
+        WriteString "    Begin ${gtn}Conditions"
         if {$what eq "Conditions"} {
             #write_calc_data elements -sorted $gdict
             if {$iniend ne ""} {
@@ -318,7 +318,7 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
                 }
             }
         }
-        WriteString "End ${gtn}Conditions"
+        WriteString "    End ${gtn}Conditions"
         WriteString "End $gtn"
     }
 }

@@ -7,7 +7,7 @@
 				  <value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName FLParallelType OpenMP]"/>
 			</container>
 			<dynamicnode command="injectSolvers" args=""/>
-			<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif"  state="normal" >
+			<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" >
 				  <dynamicnode command="injectSolStratParams" args=""/>
 			</container>
             <container n="Avanced" pn="Avanced" help="Avanced Solver Parameters">
