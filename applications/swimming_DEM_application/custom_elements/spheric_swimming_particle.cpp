@@ -45,7 +45,7 @@ namespace Kratos
 template< class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                                       array_1d<double, 3>& additionally_applied_moment,
-                                                      ProcessInfo& r_current_process_info,
+                                                      const ProcessInfo& r_current_process_info,
                                                       const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
@@ -113,7 +113,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
                                                 const array_1d<double, 3>& virtual_mass_force,
                                                 const array_1d<double, 3>& saffman_lift_force,
                                                 const array_1d<double, 3>& magnus_lift_force,
-                                                ProcessInfo& r_current_process_info)
+                                                const ProcessInfo& r_current_process_info)
 {
     noalias(GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE))      = hydrodynamic_force;
     noalias(GetGeometry()[0].FastGetSolutionStepValue(BUOYANCY))                = buoyancy;
@@ -144,7 +144,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
 //**************************************************************************************************************************************************
 
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double, 3>& gravity, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double, 3>& gravity, const ProcessInfo& r_current_process_info)
 {
     if (mBuoyancyForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null buoyancy
         noalias(buoyancy) = ZeroVector(3);
@@ -169,7 +169,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
 //**************************************************************************************************************************************************
 
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>& drag_force, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info)
 {
     if (mDragForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null drag force
         noalias(drag_force) = ZeroVector(3);
@@ -189,7 +189,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
 {
     if (mVirtualMassForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(virtual_mass_force) = ZeroVector(3);
@@ -230,7 +230,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
 {
     if (mSaffmanForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null lift force
         noalias(lift_force) = ZeroVector(3);
@@ -273,7 +273,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<dou
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
 {
     if (mMagnusForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
         noalias(lift_force) = ZeroVector(3);
@@ -317,7 +317,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<doub
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info)
 {
     if (mHydrodynamicTorqueType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
         noalias(hydro_torque) = ZeroVector(3);
@@ -356,7 +356,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<d
 //**************************************************************************************************************************************************
 
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info)
 {
     if (mBrownianMotionType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
         noalias(brownian_motion_force) = ZeroVector(3);
@@ -864,7 +864,7 @@ void SphericSwimmingParticle<TBaseElement>::ApplyDragPorosityModification(double
 template< class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeElSamniLiftCoefficient(const double norm_of_shear_rate,
                                                               const double vorticity_norm,
-                                                              ProcessInfo& r_current_process_info)
+                                                              const ProcessInfo& r_current_process_info)
 {
     if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
          const double yield_stress   = 0.0; // we are considering a Bingham type fluid
