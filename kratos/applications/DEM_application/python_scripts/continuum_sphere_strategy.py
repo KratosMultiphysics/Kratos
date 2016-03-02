@@ -53,6 +53,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
+        else:
+            self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 0)
+            
             
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
