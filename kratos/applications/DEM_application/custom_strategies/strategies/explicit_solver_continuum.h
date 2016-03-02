@@ -172,7 +172,7 @@ namespace Kratos
         BaseType::GetBoundingBoxOption()     = rcurrent_process_info[BOUNDING_BOX_OPTION];
         BaseType::GetSearchControl()         = rcurrent_process_info[SEARCH_CONTROL];
               
-        //BaseType::InitializeSolutionStep();  SLS      
+        //BaseType::InitializeSolutionStep();  //SLS      
         BaseType::InitializeDEMElements();
         BaseType::InitializeFEMElements();                
         BaseType::InitializeSolutionStep(); //SLS
@@ -277,24 +277,18 @@ namespace Kratos
           
       }
           //ContactInitializeSolutionStep();
+      
       void SearchOperations(ModelPart& r_model_part, bool has_mpi)
       {
           
          ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
                                   
-          if(rcurrent_process_info[SEARCH_CONTROL]==0)
-          {            
-            for (int i = 0; i < mNumberOfThreads; i++)
-            {
-              if(rcurrent_process_info[SEARCH_CONTROL_VECTOR][i]==1)
-              {
-                #pragma omp critical
-                {
-                rcurrent_process_info[SEARCH_CONTROL]=1;
-                }                
+          if(rcurrent_process_info[SEARCH_CONTROL]==0) {  
+            for (int i = 0; i < mNumberOfThreads; i++) {
+              if(rcurrent_process_info[SEARCH_CONTROL_VECTOR][i]==1) {                
+                rcurrent_process_info[SEARCH_CONTROL]=1;                          
                 std::cout << "From now on, the search is activated because some failure occurred " <<std::endl;   
-                break;
-                
+                break;                
                }
              }             
           }
@@ -380,17 +374,19 @@ namespace Kratos
         
         #pragma omp parallel for 
         for (int i = 0; i < number_of_particles; i++) {
+            unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+            mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
             for (unsigned int j=0; j<mListOfSphericContinuumParticles[i]->mBondElements.size(); j++) {
+                
                 mListOfSphericContinuumParticles[i]->mBondElements[j] = NULL;
             }            
         }                
         
-        //#pragma omp parallel for //TODO
+        #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
              
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
             unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
-            mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
 
             for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
                 
@@ -421,7 +417,7 @@ namespace Kratos
       
         } //for all Spheric Continuum Particles
         
-        //#pragma omp parallel for //TODO
+        #pragma omp parallel for
         for (int i = 0; i<number_of_particles; i++) {
 
             std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
