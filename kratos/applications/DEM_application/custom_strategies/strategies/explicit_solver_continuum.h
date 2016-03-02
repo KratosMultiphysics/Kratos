@@ -351,7 +351,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
-    void CreateContactElements() //better not to apply OMP parallelization since it is creation of spheres
+    void CreateContactElements() // TODO: Re-use existing bonds, because allocating and de-allocating all of them takes a lot of time and it is not parallel!!
     {                
         KRATOS_TRY        
                 
