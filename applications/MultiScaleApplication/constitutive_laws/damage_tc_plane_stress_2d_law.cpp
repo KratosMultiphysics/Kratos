@@ -524,6 +524,8 @@ namespace Kratos
 	{
 		if(!m_initialized)
 		{
+			m_error_code = 0.0;
+
 			// random imperfections
 			double impf = ImperfectionUtilties::CalculateRandomImperfectionScaleFactor(
 				rElementGeometry,rShapeFunctionsValues);
@@ -674,6 +676,9 @@ namespace Kratos
 		this->InitializeCalculationData(props, geom, rValues.GetShapeFunctionsValues(), pinfo, data);
 
 		this->CalculateMaterialResponseInternal(strain_vector, stress_vector, data);
+
+		if (m_error_code != 0.0) return;
+
 		if(rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
 			if(props.Has(DAMAGE_SECANT_MATRIX)) {
 				if(props[DAMAGE_SECANT_MATRIX] > 0) {
@@ -781,6 +786,7 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues)
 	{
+		m_error_code = 0.0;
 		m_rt = 0.0;
 		m_rt_converged = 0.0;
 		m_rc = 0.0;
@@ -975,6 +981,9 @@ namespace Kratos
 		data.grank_a = props.Has(GENRANKINE_SURFACE_PARAM_A) ? props[GENRANKINE_SURFACE_PARAM_A] : 20.0;
 		data.grank_b = props.Has(GENRANKINE_SURFACE_PARAM_B) ? props[GENRANKINE_SURFACE_PARAM_B] : 10.0;
 		data.grank_c = props.Has(GENRANKINE_SURFACE_PARAM_C) ? props[GENRANKINE_SURFACE_PARAM_C] :  3.0;
+		
+		// For Damage Limit Surface
+		data.damage_limit = props.Has(CLAW_LIMIT_DAMAGE) ? props[CLAW_LIMIT_DAMAGE] : 10.0;
 	}
 
 	void DamageTCPlaneStress2DLaw::CalculateElasticityMatrix(CalculationData& data)
@@ -1685,6 +1694,9 @@ namespace Kratos
 																	 Vector& stress_vector,
 																	 CalculationData& data)
 	{
+		// Initialize error_code to 0
+		m_error_code = 0.0;
+
 		size_t strain_size = this->GetStrainSize();
 
 		if(stress_vector.size() != strain_size)
@@ -1763,7 +1775,7 @@ namespace Kratos
 		}
 
 		// check explicit error
-		m_error_code = 0.0;
+		//m_error_code = 0.0;
 
 		/*double dam_t_old, dam_c_old;
 		this->CalculateDamageTension(data, m_rt_converged, dam_t_old);
@@ -1773,7 +1785,11 @@ namespace Kratos
 		double dd = std::max(d1,d2);
 		if(dd > 0.01) {
 			m_error_code = -1.0;
+			std::cout << "damage[std::max(d1,d2)] > 0.01\n";
 		}*/
+
+		
+
 #else
 
 		if(rt_trial > m_rt)
@@ -1789,6 +1805,15 @@ namespace Kratos
 		// calculation of stress tensor
 		noalias(stress_vector)  = (1.0 - m_damage_t)*data.ST;
 		noalias(stress_vector) += (1.0 - m_damage_c)*data.SC;
+		
+		double d1 = m_damage_t;
+		double d2 = m_damage_c;
+		double dd = std::max(d1, d2);
+		//std::cout << "m_damage_limit :" << m_damage_limit << std::endl;
+		//if (dd > data.damage_limit) {
+		//	m_error_code = -1.0;
+		//	//std::cout << "damage[std::max(d1,d2)] > 0.01\n";
+		//}
 
 	}
 

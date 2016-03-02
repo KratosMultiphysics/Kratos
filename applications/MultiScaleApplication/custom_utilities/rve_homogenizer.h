@@ -455,10 +455,11 @@ namespace Kratos
 			if(S.size() != 6) S.resize(6, false);
 			noalias(S) = ZeroVector(6);
 
+#if RVE_OPTIMIZATION == 0
 			double totalVolume(0.0);
 
 			std::vector< Matrix > stressTensors;
-		
+
 			for(ModelPart::ElementIterator it = mp.ElementsBegin(); it != mp.ElementsEnd(); ++it)
 			{
 				Element& ielem = *it;
@@ -467,13 +468,14 @@ namespace Kratos
 				const Element::GeometryType::IntegrationPointsArrayType& ipts = igeom.IntegrationPoints(intmethod);
 
 				ielem.GetValueOnIntegrationPoints(PK2_STRESS_TENSOR, stressTensors, processInfo);
+				
 				if(stressTensors.size() != ipts.size()) continue;
 
 				for(size_t point_id = 0; point_id < ipts.size(); point_id++)
 				{
 					double dV = igeom.DeterminantOfJacobian(point_id, intmethod) * ipts[point_id].Weight();
 					Matrix& igpStressTensor = stressTensors[point_id];
-					
+
 					S(0) += igpStressTensor(0,0) * dV;
 					S(1) += igpStressTensor(1,1) * dV;
 					S(2) += igpStressTensor(2,2) * dV;
@@ -489,6 +491,39 @@ namespace Kratos
 				noalias(S) = ZeroVector(6);
 			else
 				S /= totalVolume;
+#else
+			double totalVolume = geomDescriptor.DomainSize();
+			ModelPart::NodeType& ref_node = mp.GetNode(geomDescriptor.ReferenceNodeID());
+			array_1d<double, 3> X;
+			array_1d<double, 3> f;
+			Matrix Sig(3, 3, 0.0);
+			for (RveGeometryDescriptor::IndexContainerType::const_iterator it =
+				geomDescriptor.BoundaryNodesIDs().begin(); it != geomDescriptor.BoundaryNodesIDs().end(); ++it)
+			{
+				RveGeometryDescriptor::IndexType index = *it;
+				ModelPart::NodeType& bnd_node = mp.GetNode(index);
+				X[0] = bnd_node.X0() - ref_node.X0();
+				X[1] = bnd_node.Y0() - ref_node.Y0();
+				X[2] = bnd_node.Z0() - ref_node.Z0();
+				ModelPart::NodeType::DofType& dof_x = bnd_node.GetDof(DISPLACEMENT_X);
+				ModelPart::NodeType::DofType& dof_y = bnd_node.GetDof(DISPLACEMENT_Y);
+				ModelPart::NodeType::DofType& dof_z = bnd_node.GetDof(DISPLACEMENT_Z);
+				f[0] = dof_x.GetSolutionStepReactionValue();
+				f[1] = dof_y.GetSolutionStepReactionValue();
+				f[2] = dof_z.GetSolutionStepReactionValue();
+				Sig += outer_prod(f, X);
+			}
+			S(0) = Sig(0, 0);
+			S(1) = Sig(1, 1);
+			S(2) = Sig(2, 2);
+			S(3) = 0.5*(Sig(0, 1) + Sig(1, 0));
+			S(4) = 0.5*(Sig(1, 2) + Sig(2, 1));
+			S(5) = 0.5*(Sig(0, 2) + Sig(2, 0));
+			if (totalVolume == 0.0)
+				noalias(S) = ZeroVector(6);
+			else
+				S /= totalVolume;
+#endif
 		}
 
 		/**

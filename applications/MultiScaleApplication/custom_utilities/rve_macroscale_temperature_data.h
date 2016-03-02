@@ -98,17 +98,9 @@ namespace Kratos
 			// Reed T_Data
 			double alpha(0.0);
 			double totalVolume(0.0);
-			double iterpolated_temp = 0.0;
 			double T0 = param_macro.GetMaterialProperties()[AMBIENT_TEMPERATURE]; // TODO: reference temp!!!!
 			const Vector& N = param_macro.GetShapeFunctionsValues();
 
-			const Element::GeometryType& geom_macro = param_macro.GetElementGeometry();
-			for (size_t i = 0; geom_macro.size(); i++)
-			{
-				iterpolated_temp += geom_macro[i].FastGetSolutionStepValue(TEMPERATURE) * N[i];
-			}
-
-			double Delta_Temp = iterpolated_temp - T0;
 
 			//ProcessInfo& procInfo = modp_micro.GetProcessInfo();
 			//size_t strain_size = geomdes.Dimension();
@@ -140,14 +132,6 @@ namespace Kratos
 				mHCTE << HCTE.str();
 				mHCTE.close();
 			}
-				
-
-			// Calculate T_Strain
-			double therm_strain = -alpha * Delta_Temp; // NEGATIVO perchè nella micro sarà settato come INITIAL_STRAIN
-			mStrainVector[0] += therm_strain;
-			mStrainVector[1] += therm_strain;
-			if (mStrainVector.size() == 6)
-				mStrainVector[2] += therm_strain;
 			
 			// TODO: CALL HOMOGENIZE - K = [alpha     0  ;
 			//								  0   ; alpha]

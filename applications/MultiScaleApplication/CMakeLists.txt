@@ -43,7 +43,25 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
-	message("MUMPS and OpenBLAS will not be configured")
+	message("MUMPS will not be configured")
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		message("OpenBLAS will be configured")
+		message(${MULTISCALE_APPLICATION_OPENBLAS_DIR})
+		set( OPENBLAS_LIB_DIR  ${MULTISCALE_APPLICATION_OPENBLAS_DIR} )
+		set( OPENBLAS_LIB ${OPENBLAS_LIB_DIR}/libopenblas.lib )
+		set( OPENBLAS_INSTALL_FILES
+			${OPENBLAS_LIB_DIR}/libopenblas.dll
+			${OPENBLAS_LIB_DIR}/libgcc_s_sjlj_64-1.dll
+			${OPENBLAS_LIB_DIR}/libgfortran_64-3.dll
+			${OPENBLAS_LIB_DIR}/libquadmath_64-0.dll
+			${OPENBLAS_LIB_DIR}/pthreadGC2_64.dll
+		)
+	else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		message("BLAS will be configured")
+		message(${MULTISCALE_APPLICATION_BLAS_DIR})
+		set( BLAS_LIB_DIR  ${MULTISCALE_APPLICATION_BLAS_DIR})
+		set( BLAS_INSTALL_FILES ${BLAS_LIB_DIR}/libblas.so)
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
@@ -56,14 +74,14 @@ endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
-	message("include MUMPS")
+	message("MUMPS will be included")
 	include_directories( ${MUMPS_INCLUDE_DIR} )
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 	message("MUMPS will not be included")
 endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 if(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
-	message("include Eigen")
+	message("Eigen will be included")
 	include_directories( ${MULTISCALE_APPLICATION_EIGEN_DIR} )
 else(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 	message("Eigen will not be included")
@@ -77,22 +95,32 @@ endif(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 
 set( KRATOS_MULTISCALE_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_constitutive_law_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_3d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_plane_stress_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/j2_constitutive_law_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_iso_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_3d_law.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/scalar_damage_interface_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/scalar_damage_interface_3d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_interface_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_interface_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plastic_damage_interface_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_interface_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/opt_triangle_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_quad_element_v2.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/q4ristab_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/convdiff_interface_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/convdiff_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ebst_element_2d3n.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/agq4_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/periodic_condition_lm_2D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rve_weak_periodic_condition_2D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_geometry_descriptor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_predictor_calculator.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/multiscale_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_conditions_to_python.cpp
@@ -120,10 +148,12 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
-	message("MUMPS and OpenBLAS will not be linked")
+	message("MUMPS will not be linked")
 	target_link_libraries( KratosMultiScaleApplication 
 						   KratosCore
-						   ${BLAS_LIBRARIES} )
+						   ${BLAS_LIBRARIES}
+						   ${LAPACK_LIBRARIES}
+						   )
 
 endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
@@ -168,7 +198,21 @@ if(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
 else(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 
-	message("MUMPS and OpenBLAS will not be installed")
+	message("MUMPS will not be installed")
+	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		message("install OPENBLAS")
+		install( FILES 
+				${OPENBLAS_INSTALL_FILES}
+				DESTINATION 
+				  libs )
+	else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+		message("install BLAS")
+		install( FILES 
+				${BLAS_INSTALL_FILES}
+				DESTINATION 
+				  libs )
+	endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	
 
 endif(${MULTISCALE_APPLICATION_USE_MUMPS} MATCHES ON)
 

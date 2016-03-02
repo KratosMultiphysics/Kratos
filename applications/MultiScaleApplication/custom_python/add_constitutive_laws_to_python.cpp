@@ -58,12 +58,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "add_constitutive_laws_to_python.h"
+#include "constitutive_laws/conv_diff_constitutive_law_3d.h"
+#include "constitutive_laws/conv_diff_anisotropic_3d_law.h"
+#include "constitutive_laws/conv_diff_plane_stress_2d_law.h"
+#include "constitutive_laws/conv_diff_anisotropic_2d_law.h"
 #include "constitutive_laws/j2_constitutive_law_3d.h"
 #include "constitutive_laws/damage_iso_plane_stress_2d_law.h"
 #include "constitutive_laws/damage_tc_plane_stress_2d_law.h"
 #include "constitutive_laws/damage_tc_3d_law.h"
 #include "constitutive_laws/scalar_damage_interface_2d_law.h"
 #include "constitutive_laws/scalar_damage_interface_3d_law.h"
+#include "constitutive_laws/conv_diff_interface_2d_law.h"
+#include "constitutive_laws/conv_diff_interface_3d_law.h"
 #include "constitutive_laws/plastic_damage_interface_2d_law.h"
 #include "constitutive_laws/shell_from_3d_constitutive_law_adapter.h"
 #include "constitutive_laws/planestress_from_3d_constitutive_law_adapter.h"
@@ -81,6 +87,26 @@ using namespace boost::python;
 void AddConstitutiveLawsToPython()
 {
 
+	class_< ConvDiffConstitutiveLaw3D, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"ConvDiffConstitutiveLaw3D",
+		init<>())
+		; 
+
+	class_< ConvDiffAnisotropic3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"ConvDiffAnisotropic3DLaw",
+		init<>())
+		;
+	
+	class_< ConvDiffPlaneStress2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"ConvDiffPlaneStress2DLaw",
+		init<>())
+		; 
+
+	class_< ConvDiffAnisotropic2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"ConvDiffAnisotropic2DLaw",
+		init<>())
+		;
+	
 	class_< J2ConstitutiveLaw3D, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"J2ConstitutiveLaw3D",
 		init<>())
@@ -108,6 +134,16 @@ void AddConstitutiveLawsToPython()
 	
 	class_< ScalarDamageInterface3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
 		"ScalarDamageInterface3DLaw",
+		init<>())
+		;
+
+	class_< ConvDiffInterface2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"ConvDiffInterface2DLaw",
+		init<>())
+		;
+
+	class_< ConvDiffInterface3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >(
+		"ConvDiffInterface3DLaw",
 		init<>())
 		;
 

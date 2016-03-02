@@ -471,6 +471,7 @@ namespace Kratos
 		double m_lch;
 		double m_lch_multiplier;
 		Vector m_initial_strain;
+		Vector m_temp_strain;
 
 #ifdef DAM_ISO_2D_IMPLEX
 		// testing: for IMPLEX
@@ -504,6 +505,27 @@ namespace Kratos
 		void CalculateDamage(CalculationData& data, double r, double& d);
 
 		void CalculateMaterialResponseInternal(const Vector& strain_vector, Vector& stress_vector, CalculationData& data);
+
+
+		/**
+		* Calculates the Temperature of the domain (element)
+		* @param rElementGeometry the element geometry
+		* @param rShapeFunctions the element shape functions
+		* @param rTemperature the calculated temperature to be returned
+		*/
+		virtual double& CalculateDomainTemperature(Parameters& rValues,
+			double & rTemperature);
+
+		/**
+		* Calculates the Strain values obtained from the Temperature of the domain (element)
+		* @param rElementGeometry the element geometry
+		* @param rShapeFunctions the element shape functions
+		* @param rTemperature the calculated temperature to be returned
+		*/
+		virtual Vector &  CalculateStrainTemperature(Parameters& rValues,
+			const Properties& rMaterialProperties,
+			double& rDeltaTemperature,
+			Vector & rStrainTemp);
 
 		///@}
 

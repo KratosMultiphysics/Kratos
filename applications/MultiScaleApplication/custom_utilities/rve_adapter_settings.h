@@ -57,6 +57,44 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+struct RveAdapterSettings_Thermal_2D
+{
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 2; }
+	static SizeType WorkingSpaceDimension() { return 2; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set(ConstitutiveLaw::PLANE_STRESS_LAW);
+		rFeatures.mOptions.Set(ConstitutiveLaw::INFINITESIMAL_STRAINS);
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
+struct RveAdapterSettings_Thermal_3D
+{
+	typedef ConstitutiveLaw::SizeType SizeType;
+
+	static SizeType GetStrainSize() { return 3; }
+	static SizeType WorkingSpaceDimension() { return 3; }
+	static void GetLawFeatures(ConstitutiveLaw::Features rFeatures)
+	{
+		rFeatures.mOptions.Set(ConstitutiveLaw::THREE_DIMENSIONAL_LAW);
+		rFeatures.mOptions.Set(ConstitutiveLaw::INFINITESIMAL_STRAINS);
+
+		rFeatures.mStrainMeasures.push_back(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+
+		rFeatures.mStrainSize = GetStrainSize();
+
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+	}
+};
+
 struct RveAdapterSettings_PlaneStress
 {
 	typedef ConstitutiveLaw::SizeType SizeType;

@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* External includes */
 
 /* Project includes */
+#include "multiscale_application.h"
 #include "constitutive_law_adapter.h"
 
 #define CHECK_STRAIN_CALCULATION \
@@ -92,6 +93,7 @@ public:
 	PlaneStressFrom3DConstitutiveLawAdapter(const TAdapterPointer& theAdaptee)
 		: MyBase(theAdaptee)
 		, mInitialized(false)
+		, m_init_strain()
 	{
 	}
 	
@@ -140,10 +142,35 @@ public:
      */
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue)
 	{
-		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
-			return m_error_code;
+		if (rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
+		{
+			if (m_error_code != 0.0)
+				return m_error_code;
+			else
+				return MyBase::GetValue(rThisVariable, rValue);
+		}
 		else
 			return MyBase::GetValue(rThisVariable, rValue);
+	}
+
+	/**
+	* sets the value of a specified variable
+	* @param rVariable the variable to be returned
+	* @param rValue new value of the specified variable
+	* @param rCurrentProcessInfo the process info
+	*/
+	virtual void SetValue(const Variable<Vector >& rVariable,
+		const Vector& rValue,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		if (rVariable == INITIAL_STRAIN) {
+			if (rValue.size() == m_init_strain.size())
+				noalias(m_init_strain) = rValue;
+		}
+		else
+		{
+			MyBase::mpAdaptee->SetValue(rVariable, rValue, rCurrentProcessInfo);
+		}
 	}
 
     /**
@@ -164,6 +191,7 @@ public:
 			mEz.clear();
 			mEz_converged.clear();
 			m_error_code = 0.0;
+			m_init_strain = ZeroVector(this->GetStrainSize());
 			mInitialized = true;
 		}
 	}
@@ -322,6 +350,7 @@ private:
 	array_1d<double, 3> mEz;
 	array_1d<double, 3> mEz_converged;
 	double m_error_code;
+	Vector m_init_strain;
 
     ///@}
     
@@ -335,7 +364,7 @@ private:
 	void CalculateAdaptedMaterialResponse(ConstitutiveLaw::Parameters& rValues, ConstitutiveLaw::StressMeasure rStressMeasure)
 	{
 		CHECK_STRAIN_CALCULATION;
-
+		
 		m_error_code = 0.0;
 
 		// some parameters
@@ -344,7 +373,8 @@ private:
 		const double always_converged_tolerance = 1.0E-9;
 
 		// get references (for the adapted shell material)
-		Vector& StrainVector = rValues.GetStrainVector();
+		/*Vector&*/ Vector StrainVector = rValues.GetStrainVector();
+		noalias(StrainVector) -= m_init_strain;
 		Vector& StressVector = rValues.GetStressVector();
 		Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 		if(StressVector.size() != 3)
@@ -353,25 +383,24 @@ private:
 			ConstitutiveMatrix.resize(3, 3, false);
 
 	    // construct the parameters for the 3D adaptee
-		ConstitutiveLaw::Parameters rValues3D( rValues );
-		/*ConstitutiveLaw::Parameters rValues3D;
+		//ConstitutiveLaw::Parameters rValues3D( rValues );
+		ConstitutiveLaw::Parameters rValues3D;
 		rValues3D.SetProcessInfo(rValues.GetProcessInfo());
 		rValues3D.SetMaterialProperties(rValues.GetMaterialProperties());
 		rValues3D.SetElementGeometry(rValues.GetElementGeometry());
 		rValues3D.SetShapeFunctionsValues(rValues.GetShapeFunctionsValues());
-		rValues3D.SetShapeFunctionsDerivatives(rValues.GetShapeFunctionsDerivatives());*/
 
 		Vector strain_3d(6);
 		Matrix tangent_3d(6,6,0.0);
 		Vector stress_3d(6, 0.0);
-
+		
 		strain_3d(0) = StrainVector(0);
 		strain_3d(1) = StrainVector(1);
 		strain_3d(2) = mEz(0);
 		strain_3d(3) = StrainVector(2);
 		strain_3d(4) = mEz(1);
 		strain_3d(5) = mEz(2);
-		
+
 		rValues3D.SetStrainVector(strain_3d);
 		rValues3D.SetStressVector(stress_3d);
 		rValues3D.SetConstitutiveMatrix(tangent_3d);
@@ -426,7 +455,6 @@ private:
 			//std::cout << "PlaneStress from 3d material adapter - Maximum iteration reached!\n";
 			m_error_code = 1.0;
 		}
-
 		/*std::stringstream ss;
 		ss << "Ez: " << mEz(0) << ", " << mEz(1) << ", " << mEz(2) << std::endl;
 		ss << "Sz: " << Szz(0) << ", " << Szz(1) << ", " << Szz(2) << std::endl;
@@ -456,8 +484,16 @@ private:
 		StressVector(0) = stress_3d(0);
 		StressVector(1) = stress_3d(1);
 		StressVector(2) = stress_3d(3);
-		noalias(StressVector) += prod( LTinvC, Szz );
-
+		noalias(StressVector) += prod(LTinvC, Szz);
+		/*std::stringstream ss;
+		ss << "ConstitutiveMatrix: " << ConstitutiveMatrix << std::endl;
+		ss << "LT: " << stress_3d << std::endl;
+		ss << "invCzz: " << stress_3d << std::endl;
+		ss << "stress_3d: " << stress_3d << std::endl;
+		ss << "LTinvC: " << LTinvC << std::endl;
+		ss << "Szz: " << Szz << std::endl;
+		ss << "StressVector: " << StressVector << std::endl;
+		std::cout << ss.str();*/
 	}
 
     ///@}

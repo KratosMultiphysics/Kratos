@@ -3,9 +3,7 @@ import datetime
 import time
 import TK_TimeLines
 from KratosMultiphysics import *
-from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.MultiScaleApplication import *
-from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 # ======================================================================================
@@ -216,9 +214,13 @@ class SolutionStage:
 	# ==================================================================================
 	
 	def Initialize(self):
+		print(" ")
+		print(" #------------------------ CustomOpMechanical ------------------------# ")
 		if(self.CustomOpMechanical is not None):
 			for cop in self.CustomOpMechanical:
 				cop.Initialize(self.ModelPartMechanical)
+		print(" ")
+		print(" #------------------------ CustomOpThermal ------------------------# ")
 		if(self.CustomOpThermal is not None):
 			for cop in self.CustomOpThermal:
 				cop.Initialize(self.ModelPartThermal)
@@ -253,6 +255,11 @@ class SolutionStage:
 		increment_min = self.TimeLine.MinIncrement
 		increment_max = self.TimeLine.MaxIncrement
 		
+		counter = 0 #Counter for the damaged surfaces
+		#damage_limit_surf = [0.002]
+		# damage_limit_surf = [0.001,0.05,0.1,0.5,0.6,0.8,1.0];
+		damage_limit_surf = self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT];
+		num_surf = len([damage_limit_surf])
 		# begin time incrementation loop
 		while True:
 			
@@ -272,6 +279,12 @@ class SolutionStage:
 			self.ModelPartMechanical.ProcessInfo[DELTA_TIME] = current_delta_time
 			self.ModelPartThermal.ProcessInfo = self.ModelPartMechanical.ProcessInfo
 			
+			#Stefano mod for multiple damage surface					
+			# self.ModelPartMechanical.ProcessInfo[RVE_DAMAGE_SURFACE_LIMIT] = damage_limit_surf[counter]
+			# filename = "d" + str(damage_limit_surf[counter]) + "_25.txt"
+			filename = "d" + str(damage_limit_surf) + "_25.txt"
+			########
+			
 			# custom operations
 			for cop in self.CustomOpMechanical:
 				cop.OnBeforeSolutionStep(self.ModelPartMechanical)
@@ -280,13 +293,15 @@ class SolutionStage:
 			
 			# solve the current time step
 			temp_converged_flag = False
+			print(" #------------------------ SOLVE THERMAL PART ------------------------# ")
 			self.SolverThermal.Solve()
 			temp_converged_flag = self.SolverThermal.IsConverged()
-			temp_nl_iter_number = float(self.SolverThermal.ProcessInfo[NL_ITERATION_NUMBER])
+			temp_nl_iter_number = float(self.ModelPartThermal.ProcessInfo[NL_ITERATION_NUMBER])
 			if(temp_converged_flag):
+				print(" #----------------------- SOLVE MECHANIC PART ------------------------# ")
 				self.SolverMechanical.Solve()
 				temp_converged_flag = self.SolverMechanical.IsConverged()
-				temp_nl_iter_number = max(temp_nl_iter_number,float(self.SolverMechanical.ProcessInfo[NL_ITERATION_NUMBER]))
+				temp_nl_iter_number = max(temp_nl_iter_number,float(self.ModelPartMechanical.ProcessInfo[NL_ITERATION_NUMBER]))
 			
 			if(temp_converged_flag):
 				
@@ -309,6 +324,8 @@ class SolutionStage:
 				if(self.AdaptiveIncrementation):
 					target_iter = float(self.DesiredIterations)
 					needed_iter = temp_nl_iter_number
+					if(needed_iter == 0):
+						needed_iter = 1
 					if(needed_iter > 0):
 						increment_mult *= target_iter/needed_iter
 					new_delta_time = delta_time * increment_mult
@@ -328,19 +345,76 @@ class SolutionStage:
 					new_delta_time = delta_time * increment_mult
 					
 					if(new_delta_time < increment_min):
-						
+						ofile = open(filename, "a")
+						ofile2 = open("FailedAnalysis_" + filename, "a")
+						print("num_surf: ",num_surf,"	counter: ",counter)
+						if(counter == num_surf-1):
 						# exit the time incrementation loop
-						print("")
-						print("TIME", current_time, " - ERROR: ")
-						print(" The iteration process did not converge.")
-						print(" The current increment (", new_delta_time,
-							") is less than the minimum (", increment_min, ")")
-						print(" The solution cannot continue")
-						print("")
-						break;
-						
+							print("")
+							print("TIME", current_time, " - ERROR: ")
+							print(" The iteration process did not converge.")
+							print(" The current increment (", new_delta_time,
+								") is less than the minimum (", increment_min, ")")
+							print(" The solution cannot continue")
+							print("")
+							print ("------------------------------------------------------------------------")
+							print("")
+							print("")
+							print("")
+							# print("             Final Damage: ", damage_limit_surf[counter], " Reached!")
+							print("             Final Damage: ", damage_limit_surf, " Reached!")
+							print("")
+							print("")
+							print("")
+							print ("------------------------------------------------------------------------")
+							# Print Results
+							strain = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, self.ModelPartMechanical.ProcessInfo)
+							stress = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(RVE_GENERAL_STRESS_TENSOR, self.ModelPartMechanical.ProcessInfo)
+							C 	   = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(HOMOGENIZED_CONST_TENS, self.ModelPartMechanical.ProcessInfo)
+							tag = self.ModelPartMechanical.ProcessInfo[ACTUAL_TAG]
+							reached_damage = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(EQUIVALENT_DAMAGE, self.ModelPartMechanical.ProcessInfo)
+							print(reached_damage)
+							# if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
+							if (reached_damage[0][0] >= 0.99*damage_limit_surf) & (reached_damage[0][0] <= 1.01*damage_limit_surf):
+								ofile.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
+								ofile.flush()
+								ofile.close()
+							else:
+								ofile2.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
+								ofile2.flush()
+								ofile2.close()
+							break;
+						else:
+							print ("------------------------------------------------------------------------")
+							print("")
+							print("")
+							print("")
+							# print("             Damage: ", damage_limit_surf[counter], " Reached!")
+							print("             Damage: ", damage_limit_surf, " Reached!")
+							print("")
+							print("")
+							print("")
+							print ("------------------------------------------------------------------------")
+							# Print Results
+							strain = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, self.ModelPartMechanical.ProcessInfo)
+							stress = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(RVE_GENERAL_STRESS_TENSOR, self.ModelPartMechanical.ProcessInfo)
+							C 	   = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(HOMOGENIZED_CONST_TENS, self.ModelPartMechanical.ProcessInfo)
+							tag = self.ModelPartMechanical.ProcessInfo[ACTUAL_TAG]
+							reached_damage = self.ModelPartMechanical.Elements[1].GetValuesOnIntegrationPoints(EQUIVALENT_DAMAGE, self.ModelPartMechanical.ProcessInfo)
+							print(reached_damage)
+							# if (reached_damage[0][0] >= 0.99*damage_limit_surf[counter]) & (reached_damage[0][0] <= 1.01*damage_limit_surf[counter]):
+							if (reached_damage[0][0] >= 0.99*damage_limit_surf) & (reached_damage[0][0] <= 1.01*damage_limit_surf):
+								ofile.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
+								ofile.flush()
+								ofile.close()
+							else:
+								ofile2.write(str(reached_damage[0]) + "   " + str(tag[0]) + "," + str(tag[1]) + "   " + str(strain[0][0]) + " " + str(strain[0][3]) + " " + str(strain[0][1]) + "   " + str(stress[0][0]) + " " + str(stress[0][3]) + " " + str(stress[0][1]) + "   " + str(C[0])+ '\n')
+								ofile2.flush()
+								ofile2.close()
+							counter = counter + 1
+							current_time = delta_time
+								
 					else:
-						
 						print("")
 						print("TIME", current_time, " - WARNING: ")
 						print(" The iteration process did not converge.")
