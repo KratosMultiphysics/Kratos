@@ -633,37 +633,38 @@ class DEMFEMProcedures(object):
                 if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                     self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
         
-        def evaluate_computation_of_fem_results(DEM_parameters, spheres_model_part, RigidFace_model_part):
+        def evaluate_computation_of_fem_results():
         
-            elastic_forces            = Var_Translator(DEM_parameters.PostElasticForces)
-            tangential_elastic_forces = Var_Translator(DEM_parameters.PostTangentialElasticForces)
-            dem_pressure              = Var_Translator(DEM_parameters.PostPressure)
-            if not (hasattr(DEM_parameters, "PostContactForces")):
+            self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 0)
+            elastic_forces            = Var_Translator(self.DEM_parameters.PostElasticForces)
+            tangential_elastic_forces = Var_Translator(self.DEM_parameters.PostTangentialElasticForces)
+            dem_pressure              = Var_Translator(self.DEM_parameters.PostPressure)
+            if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 contact_forces = 0
             else:   
-                contact_forces = Var_Translator(DEM_parameters.PostContactForces)
-            if not (hasattr(DEM_parameters, "PostContactForces")):
+                contact_forces = Var_Translator(self.DEM_parameters.PostContactForces)
+            if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 shear_stress = 0
             else:   
-                shear_stress = Var_Translator(DEM_parameters.PostShearStress)
-            if not (hasattr(DEM_parameters, "PostContactForces")):
+                shear_stress = Var_Translator(self.DEM_parameters.PostShearStress)
+            if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 dem_nodal_area = 0
             else:   
-                dem_nodal_area = Var_Translator(DEM_parameters.PostNodalArea)
+                dem_nodal_area = Var_Translator(self.DEM_parameters.PostNodalArea)
             integration_groups        = False
-            if RigidFace_model_part.NumberOfMeshes() > 1:
-                for mesh_number in range(1, RigidFace_model_part.NumberOfMeshes()):
-                    if (RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+            if self.RigidFace_model_part.NumberOfMeshes() > 1:
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                         integration_groups = True
                         break
             if (elastic_forces or contact_forces or dem_pressure or tangential_elastic_forces or shear_stress or dem_nodal_area or integration_groups):
-                spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 1)
+                self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 1)
         
         self.particle_graph_forces = {}      
                
         if self.TestType == "None":  
             open_graph_files(self, RigidFace_model_part)            
-            open_balls_graph_files(self,spheres_model_part)   
+            open_balls_graph_files(self, spheres_model_part)   
 
         # SIMULATION SETTINGS
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
@@ -673,7 +674,7 @@ class DEMFEMProcedures(object):
         self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)        
         self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
 
-        evaluate_computation_of_fem_results(DEM_parameters, spheres_model_part, RigidFace_model_part)
+        evaluate_computation_of_fem_results()
                        
     def close_graph_files(self, RigidFace_model_part):
         for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
