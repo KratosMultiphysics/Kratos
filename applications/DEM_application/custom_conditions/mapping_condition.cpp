@@ -94,7 +94,7 @@ void MAPcond::Calculate(const Variable<Vector >& rVariable, Vector& Output, cons
     
 }
 
-void MAPcond::FinalizeSolutionStep(ProcessInfo& r_process_info)   
+void MAPcond::FinalizeSolutionStep(const ProcessInfo& r_process_info)   
 {  
   
 }

@@ -79,7 +79,7 @@ namespace Kratos {
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
-    void DEM_D_Bentonite_Colloid::CalculateForces(ProcessInfo& r_process_info,
+    void DEM_D_Bentonite_Colloid::CalculateForces(const ProcessInfo& r_process_info,
                                                        const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],

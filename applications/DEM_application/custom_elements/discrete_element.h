@@ -204,14 +204,14 @@ namespace Kratos
         /**
          * this is called in the beginning of each solution step
          */
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info)
+        virtual void InitializeSolutionStep(const ProcessInfo& r_process_info)
         {
         }
 
         /**
          * this is called at the end of each solution step
          */
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info)
+        virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info)
         {
         }
 

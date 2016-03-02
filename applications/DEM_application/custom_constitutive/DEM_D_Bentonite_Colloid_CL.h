@@ -36,7 +36,7 @@ namespace Kratos {
 
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
 
-        void CalculateForces(ProcessInfo& r_process_info,
+        void CalculateForces(const ProcessInfo& r_process_info,
                              const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],

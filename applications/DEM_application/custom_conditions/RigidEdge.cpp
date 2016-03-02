@@ -317,7 +317,7 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
-void RigidEdge3D::FinalizeSolutionStep(ProcessInfo& r_process_info)   
+void RigidEdge3D::FinalizeSolutionStep(const ProcessInfo& r_process_info)   
 {
 
 

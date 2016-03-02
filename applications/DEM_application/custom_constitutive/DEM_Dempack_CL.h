@@ -47,7 +47,7 @@ namespace Kratos {
                 double kn_el,
                 double kt_el);
 
-        virtual void CalculateForces(ProcessInfo& r_process_info,
+        virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,

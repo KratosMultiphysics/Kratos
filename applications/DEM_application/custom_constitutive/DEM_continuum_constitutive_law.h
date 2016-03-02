@@ -92,7 +92,7 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
 
-        virtual void CalculateForces(ProcessInfo& r_process_info,
+        virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,

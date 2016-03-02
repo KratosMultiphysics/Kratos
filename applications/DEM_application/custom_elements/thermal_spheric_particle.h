@@ -62,7 +62,7 @@ namespace Kratos
                                   double dt, 
                                   const array_1d<double,3>& gravity,
                                   int search_control);  
-      void FinalizeSolutionStep(ProcessInfo& r_process_info); 
+      void FinalizeSolutionStep(const ProcessInfo& r_process_info); 
       void UpdateTemperature(const ProcessInfo& r_process_info); 
           
     

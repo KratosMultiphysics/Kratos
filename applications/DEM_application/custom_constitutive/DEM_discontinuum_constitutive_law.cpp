@@ -81,7 +81,7 @@ namespace Kratos {
       
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& r_process_info,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForces(const ProcessInfo& r_process_info,
                                                         const double OldLocalContactForce[3],
                                                         double LocalElasticContactForce[3],
                                                         double LocalDeltDisp[3],
@@ -195,7 +195,7 @@ namespace Kratos {
     /////// LIBRARY OF CALCULATION FUNCTIONS ///////
     ////////////////////////////////////////////////                
               
-    void DEMDiscontinuumConstitutiveLaw::CalculateForces(ProcessInfo& r_process_info,
+    void DEMDiscontinuumConstitutiveLaw::CalculateForces(const ProcessInfo& r_process_info,
                                                          double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             double kn_el,

@@ -66,8 +66,8 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );		
     virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
     virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-    virtual void InitializeSolutionStep(ProcessInfo& r_process_infor_process_info);  
-    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);          
+    virtual void InitializeSolutionStep(const ProcessInfo& r_process_info);  
+    virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info);          
     virtual void CalculateNormal(array_1d<double, 3>& rnormal);   
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                  const Variable<VectorType>& rRHSVariable,
