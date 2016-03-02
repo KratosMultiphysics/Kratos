@@ -41,7 +41,7 @@ proc Fluid::xml::getSolvers { } {
 }
 
 proc Fluid::xml::getUniqueName {name} {
-    return FL$name
+    return [concat $::Fluid::prefix $name]
 }
 
 Fluid::xml::Init
