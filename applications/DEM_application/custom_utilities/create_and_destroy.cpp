@@ -514,12 +514,12 @@ namespace Kratos {
                 Configure::ElementsContainerType Elements = r_balls_model_part.GetCommunicator().LocalMesh().Elements();
 
                 ref_radius = (*(Elements.begin().base()))->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-                array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()[0].Coordinates();
-                mStrictLowPoint = coor;
-                mStrictHighPoint = coor;
+                const array_1d<double, 3 >& ini_coor = (*(Elements.begin().base()))->GetGeometry()[0].Coordinates();
+                mStrictLowPoint = ini_coor;
+                mStrictHighPoint = ini_coor;
 
                 for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it) {
-                    coor = (*(particle_pointer_it.base()))->GetGeometry()[0].Coordinates();
+                    const array_1d<double, 3 >& coor = (*(particle_pointer_it.base()))->GetGeometry()[0].Coordinates();
                     double radius = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                     ref_radius = (ref_radius < radius) ? radius : ref_radius;
 
@@ -571,7 +571,8 @@ namespace Kratos {
             r_balls_model_part.GetCommunicator().MaxAll(ref_radius);
             
              
-            array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
+            array_1d<double, 3 > midpoint;
+            noalias(midpoint) = 0.5 * (mStrictHighPoint + mStrictLowPoint);
             mHighPoint = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
             mLowPoint = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
             
@@ -764,7 +765,7 @@ namespace Kratos {
 
             if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
 
-            array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
+            const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
             bool include = true;
 
             for (unsigned int i = 0; i < 3; i++) {
@@ -782,7 +783,7 @@ namespace Kratos {
                 node_pointer_it != rNodes.ptr_end(); ++node_pointer_it) {
 
             if ((*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-            array_1d<double, 3 > coor = (*node_pointer_it)->Coordinates();
+            const array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
             bool include = true;
 
             for (unsigned int i = 0; i < 3; i++) {
