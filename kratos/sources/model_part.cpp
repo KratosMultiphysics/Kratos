@@ -133,9 +133,9 @@ namespace Kratos
 	ModelPart::IndexType ModelPart::CloneSolutionStep()
 	{
 		if (IsSubModelPart())
-		  KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
-		  //Todo KRATOS_ERROR << "Calling the CloneSolutionStep method of the sub model part " << Name()
-		    //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+          //Todo KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
+          KRATOS_ERROR << "Calling the CloneSolutionStep method of the sub model part " << Name()
+                << " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		for (NodeIterator node_iterator = NodesBegin(); node_iterator != NodesEnd(); node_iterator++)
 			node_iterator->CloneSolutionStepData();
