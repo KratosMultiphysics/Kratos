@@ -730,25 +730,21 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         double ViscoDampingLocalContactForce[3] = {0.0};
         double cohesive_force                   =  0.0;
 
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);   
-        
-        double OldLocalElasticContactForce[3] = {0.0};
-        
-        RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);
-
-        // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
-
-        const double previous_indentation = indentation + LocalDeltDisp[2];
-        
         if (indentation > 0.0) {
+            double OldLocalElasticContactForce[3] = {0.0};
+            RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);// still in global coordinates
+            // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);  
+            const double previous_indentation = indentation + LocalDeltDisp[2];
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);            
             mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour, sliding);                      
         }
         
         // Transforming to global forces and adding up
-        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
+        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+                              GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
                 
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
@@ -1285,7 +1281,9 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
                                               ProcessInfo& r_process_info,
                                               const array_1d<double,3>& gravity)
 {
+    KRATOS_TRY
     noalias(externally_applied_force) += GetMass() * gravity;
+    KRATOS_CATCH("")
 }
 
 void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
