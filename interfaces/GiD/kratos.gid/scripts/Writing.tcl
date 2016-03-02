@@ -287,6 +287,11 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
     set gtn $groups_type_name
     if {![dict exists $meshes [list $cid ${group}]]} {
         set mid [expr [llength [dict keys $meshes]] +1]
+        if {$gtn ne "Mesh"} {
+            set underscoredGroup [string map {" " " "} $group]
+            regsub -all { +} $group "_" underscoredGroup
+            set mid "${cid}_${underscoredGroup}"
+        }
         dict set meshes [list $cid ${group}] $mid
         set gdict [dict create]
         set f "%10i\n"

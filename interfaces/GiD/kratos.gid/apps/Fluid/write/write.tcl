@@ -72,7 +72,7 @@ proc Fluid::write::writeMeshes { } {
     write::writePartMeshes
     write::writeNodalConditions "FLNodalConditions"
     writeConditionsMesh
-    writeSkinMesh
+    #writeSkinMesh
 }
 
 proc Fluid::write::writeConditionsMesh { } {
