@@ -1,7 +1,7 @@
 from KratosStructuralMechanicsApplication import *
 application = KratosStructuralMechanicsApplication()
 application_name = "KratosStructuralMechanicsApplication"
-application_folder = "structural_mechanics_application"
+application_folder = "StructuralMechanicsApplication"
 
 # The following lines are common for all applications
 from . import application_importer
