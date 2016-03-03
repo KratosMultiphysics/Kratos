@@ -304,15 +304,15 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
 message("boost python lib used = " ${Boost_PYTHON_LIBRARY_RELEASE})
-#install(FILES ${Boost_PYTHON_LIBRARY_RELEASE} DESTINATION libs)
-#install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${Boost_PYTHON_LIBRARY_RELEASE} DESTINATION libs)
+install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 #install blas and lapack
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	message("installed blas = " ${BLAS_LIBRARIES})
-#	install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+	install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
 	message("installed lapack = " ${LAPACK_LIBRARIES})
-#	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ################################################################################
