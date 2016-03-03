@@ -103,12 +103,12 @@ namespace Kratos
           KRATOS_TRY
                   
           ModelPart& r_model_part           = GetModelPart();
-          ProcessInfo& rcurrent_process_info  = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info  = r_model_part.GetProcessInfo();
           
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
           
-          BaseType::SearchNeighbours(rcurrent_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]); //the amplification factor has been modified after the first search.
+          BaseType::SearchNeighbours(r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]); //the amplification factor has been modified after the first search.
           
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
@@ -138,7 +138,7 @@ namespace Kratos
 
         ModelPart& r_model_part             = GetModelPart();
         ModelPart& fem_model_part           = GetFemModelPart();
-        ProcessInfo& rcurrent_process_info    = r_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info    = r_model_part.GetProcessInfo();
         
         // Omp initializations
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
@@ -155,8 +155,8 @@ namespace Kratos
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
         
-        rcurrent_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
-        for (int i=0; i<mNumberOfThreads; i++) rcurrent_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
+        r_process_info[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
+        for (int i=0; i<mNumberOfThreads; i++) r_process_info[SEARCH_CONTROL_VECTOR][i] = 0;
         BaseType::GetNeighbourCounter().resize(mNumberOfThreads);
 
         CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *mpInlet_model_part, *mpCluster_model_part);
@@ -167,10 +167,10 @@ namespace Kratos
         BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
         BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
         
-        //mDempackOption    = bool(rcurrent_process_info[DEMPACK_OPTION]);
+        //mDempackOption    = bool(r_process_info[DEMPACK_OPTION]);
         
-        BaseType::GetBoundingBoxOption()     = rcurrent_process_info[BOUNDING_BOX_OPTION];
-        BaseType::GetSearchControl()         = rcurrent_process_info[SEARCH_CONTROL];
+        BaseType::GetBoundingBoxOption()     = r_process_info[BOUNDING_BOX_OPTION];
+        BaseType::GetSearchControl()         = r_process_info[SEARCH_CONTROL];
               
         //BaseType::InitializeSolutionStep();  //SLS      
         BaseType::InitializeDEMElements();
@@ -220,19 +220,19 @@ namespace Kratos
         }
         
         // 4. Set Initial Contacts        
-        if( rcurrent_process_info[CASE_OPTION] !=0 ) {            
+        if( r_process_info[CASE_OPTION] !=0 ) {            
           SetInitialDemContacts();
         }   
         
         ComputeNewNeighboursHistoricalData();                    
         
         if(fem_model_part.Nodes().size()>0) {        
-          BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
+          BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
           SetInitialFemContacts();
           BaseType::ComputeNewRigidFaceNeighboursHistoricalData();        
         }
         
-        if(rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {   
+        if(r_process_info[CONTACT_MESH_OPTION] == 1) {   
             CreateContactElements();
             InitializeContactElements();
             ParticleAreaCalculate(true); //first time;
@@ -280,22 +280,22 @@ namespace Kratos
       
       void SearchOperations(ModelPart& r_model_part, bool has_mpi)
       {
-          ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
                                   
-          if(rcurrent_process_info[SEARCH_CONTROL]==0) {  
+          if(r_process_info[SEARCH_CONTROL]==0) {  
             for (int i = 0; i < mNumberOfThreads; i++) {
-              if(rcurrent_process_info[SEARCH_CONTROL_VECTOR][i]==1) {                
-                rcurrent_process_info[SEARCH_CONTROL]=1;                          
+              if(r_process_info[SEARCH_CONTROL_VECTOR][i]==1) {                
+                r_process_info[SEARCH_CONTROL]=1;                          
                 std::cout << "From now on, the search is activated because some failure occurred " <<std::endl;   
                 break;                
                }
              }             
           }
 
-          const int time_step = rcurrent_process_info[TIME_STEPS];
+          const int time_step = r_process_info[TIME_STEPS];
           const double time = r_process_info[TIME];
           
-            if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
+            if (r_process_info[SEARCH_CONTROL] > 0) {
 
                 if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
 
@@ -312,11 +312,11 @@ namespace Kratos
 
                     ComputeNewNeighboursHistoricalData();
 
-                    BaseType::SearchRigidFaceNeighbours(rcurrent_process_info[LOCAL_RESOLUTION_METHOD]);
+                    BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
-                    rcurrent_process_info[SEARCH_CONTROL] = 2;
+                    r_process_info[SEARCH_CONTROL] = 2;
                     if (BaseType::GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-                        if (rcurrent_process_info[CONTACT_MESH_OPTION] == 1) {                            
+                        if (r_process_info[CONTACT_MESH_OPTION] == 1) {                            
                             CreateContactElements();
                             InitializeContactElements();
                             ParticleAreaCalculate(true); //first time;
@@ -326,11 +326,11 @@ namespace Kratos
                     }
                 }
                 else{
-                    rcurrent_process_info[SEARCH_CONTROL] = 1;
+                    r_process_info[SEARCH_CONTROL] = 1;
                 }
           }
           //Synch this var.
-          r_model_part.GetCommunicator().MaxAll(rcurrent_process_info[SEARCH_CONTROL]);
+          r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
       }
       
     void ComputeNewNeighboursHistoricalData() {
@@ -485,7 +485,7 @@ namespace Kratos
     void ContactInitializeSolutionStep()
     {
           ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);      
-          ProcessInfo& rcurrent_process_info  = (*mpContact_model_part).GetProcessInfo();
+          ProcessInfo& r_process_info  = (*mpContact_model_part).GetProcessInfo();
          
           vector<unsigned int> contact_element_partition;
           
@@ -499,7 +499,7 @@ namespace Kratos
               
               for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)               
               {                             
-                (it_contact)->InitializeSolutionStep(rcurrent_process_info); 
+                (it_contact)->InitializeSolutionStep(r_process_info); 
               } //loop over CONTACT ELEMENTS
               
           }// loop threads OpenMP
@@ -535,12 +535,12 @@ namespace Kratos
           KRATOS_TRY
                             
           ModelPart& r_model_part = GetModelPart();
-          ProcessInfo& rcurrent_process_info    = r_model_part.GetProcessInfo();
+          ProcessInfo& r_process_info    = r_model_part.GetProcessInfo();
           ParticleCreatorDestructor::Pointer& p_creator_destructor=BaseType::GetParticleCreatorDestructor();
                     
           p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
           //p_creator_destructor->MarkInitialNeighboursThatAreBeingRemoved(r_model_part);
-          if(rcurrent_process_info[CONTACT_MESH_OPTION] == 1)
+          if(r_process_info[CONTACT_MESH_OPTION] == 1)
               p_creator_destructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
           p_creator_destructor->DestroyParticles(r_model_part);
           p_creator_destructor->DestroyContactElements(*mpContact_model_part);
@@ -582,7 +582,7 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         bool has_mpi = false;
         Check_MPI(has_mpi);
@@ -591,7 +591,7 @@ namespace Kratos
 
         #pragma omp parallel for 
         for (int i = 0; i < number_of_particles; i++) { //Do not do this for the ghost particles!
-            mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, rcurrent_process_info, first);
+            mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, r_process_info, first);
         }
 
         KRATOS_CATCH("")
@@ -601,13 +601,13 @@ namespace Kratos
     {           
       KRATOS_TRY
       
-      ProcessInfo& rcurrent_process_info  = GetModelPart().GetProcessInfo();
+      ProcessInfo& r_process_info  = GetModelPart().GetProcessInfo();
       const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
 
       #pragma omp parallel for
       for ( int i = 0; i<number_of_particles; i++){
-          mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(rcurrent_process_info);
-          mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws(rcurrent_process_info);
+          mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info);
+          mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws(r_process_info);
           mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
       }            
            
@@ -640,7 +640,7 @@ namespace Kratos
       KRATOS_TRY
       
       ConditionsArrayType& pConditions      = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
-      ProcessInfo& rcurrent_process_info  = GetFemModelPart().GetProcessInfo();
+      ProcessInfo& r_process_info  = GetFemModelPart().GetProcessInfo();
       Vector rhs_cond;
       vector<unsigned int> condition_partition;
       OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
@@ -651,7 +651,7 @@ namespace Kratos
           typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
 
           for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it){
-              it->FinalizeSolutionStep(rcurrent_process_info);              
+              it->FinalizeSolutionStep(r_process_info);              
           }
       }
 
