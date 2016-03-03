@@ -184,7 +184,7 @@ class DEM_FEM_Search : public SpatialSearch
         }
             
         #pragma omp for 
-        for (unsigned int p = 0; p < elements_sear.size(); p++) {
+        for (int p = 0; p <(int) elements_sear.size(); p++) {
           
             Elem_iter it = elements_sear.begin() + p;
             GeometryType &pGeometry = (*it)->GetGeometry();
@@ -232,7 +232,7 @@ class DEM_FEM_Search : public SpatialSearch
         array_1d<double, 3> rLowPoint;
 
         #pragma omp for private(rHighPoint,rLowPoint)
-        for (unsigned int c = 0; c < conditions_bins.size(); c++) {
+        for (int c = 0; c < (int)conditions_bins.size(); c++) {
         
           Cond_iter it = conditions_bins.begin() + c;
         
@@ -304,7 +304,7 @@ class DEM_FEM_Search : public SpatialSearch
         std::size_t                           NumberOfResults = 0;
 
         #pragma omp for
-        for (unsigned int p = 0; p < elements_sear.size(); p++) {
+        for (int p = 0; p < (int)elements_sear.size(); p++) {
          
           Elem_iter it = elements_sear.begin() + p;
                   
