@@ -38,6 +38,7 @@ void  AddKratosParametersToPython()
         .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)
         .def("Has", &Parameters::Has)
         .def("Clone", &Parameters::Clone)
+        .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
         //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
         .def("IsNumber", &Parameters::IsNumber)
         .def("IsDouble", &Parameters::IsDouble)
