@@ -47,10 +47,10 @@ pretty_out_after_change = """{
 }"""
 
 
-class TestKratosParameters(KratosUnittest.TestCase):
+class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.kp = KratosParameters(json_string)
+        self.kp = Parameters(json_string)
         self.compact_expected_output = """{"int_value":10,"double_value":2.0,"bool_value":true,"string_value":"hello","level1":{"list_value":[3,"hi",false],"tmp":5.0}}"""
 
 
@@ -91,7 +91,7 @@ class TestKratosParameters(KratosUnittest.TestCase):
     def test_kratos_copy_parameters(self):
         # try to make a copy
         original_out = self.kp.PrettyPrintJsonString()
-        other_copy = KratosParameters(self.kp)      
+        other_copy = self.kp.Clone()      
 
         self.assertEqual(
             other_copy.PrettyPrintJsonString(),
@@ -103,8 +103,8 @@ class TestKratosParameters(KratosUnittest.TestCase):
         # self.assertEqual(other_copy["int_value").GetString(),-1)
 
     def test_set_value(self):
-        kp = KratosParameters(json_string)
-        kp1 =  KratosParameters(pretty_out_after_change)
+        kp = Parameters(json_string)
+        kp1 =  Parameters(pretty_out_after_change)
         
         kp["bool_value"] = kp1["level1"]
         kp["bool_value"].PrettyPrintJsonString()
