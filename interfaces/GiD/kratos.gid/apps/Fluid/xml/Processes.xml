@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProcessList>
+  <Process n="ApplyInletProcess" pn="Vector value" ImplementedInFile="apply_constant_inlet_process"
+		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <inputs>
+      <parameter n="value" pn="Velocity" type="vector" fixity="Imposed" v="0.0,0.0,-9.81" unit_magnitude="Velocity" units="m/s"  />
+    </inputs>
+  </Process>
+  <Process n="ApplyOutletProcess" pn="Scalar value" ImplementedInFile="apply_outlet_process"
+		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <inputs>
+      <parameter n="value" pn="Pressure" type="double" fixity="Imposed" unit_magnitude="P" units="Pa"/>
+    </inputs>
+  </Process>
+  <Process n="ApplySlipProcess" pn="Scalar value" ImplementedInFile="apply_slip_process"
+		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <inputs>
+    </inputs>
+  </Process>
+  <Process n="ApplyNoSlipProcess" pn="Scalar value" ImplementedInFile="apply_noslip_process"
+		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+    <inputs>
+    </inputs>
+  </Process>
+</ProcessList>

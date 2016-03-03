@@ -46,6 +46,5 @@ proc Model::ParseProcessNode { node } {
 proc Model::getAllProcs { } {
     variable Processes
     return $Processes
-	
 }
 

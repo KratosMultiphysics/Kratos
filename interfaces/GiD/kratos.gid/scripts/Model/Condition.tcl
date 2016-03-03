@@ -3,7 +3,6 @@ catch {Condition destroy}
 oo::class create Condition {
     superclass Entity
     variable processName
-    variable processFormat
     variable TopologyFeatures
     
     constructor {n} {
@@ -35,7 +34,6 @@ oo::class create Condition {
         variable TopologyFeatures
         set ret ""
         foreach top $TopologyFeatures {
-             #W "[$top getGeometry] -> $geo"
             if {[string match [$top getGeometry]* $geo] && [$top getNodes] eq $nod} {set ret $top; break}
         }
         return $ret
@@ -52,16 +50,7 @@ oo::class create Condition {
     method getProcessName { } {
         variable processName
         return $processName
-    }
-    method setProcessFormat {pn} {
-        variable processFormat
-        set processFormat $pn
-    }
-    method getProcessFormat { } {
-        variable processFormat
-        return $processFormat
-    }
-        
+    }  
 }
 }
 proc Model::GetConditions {args} { 
@@ -99,30 +88,29 @@ proc Model::ParseConditions { doc } {
 proc Model::ParseCondNode { node } {
     set name [$node getAttribute n]
     
-    set el [::Model::Condition new $name]
-    $el setPublicName [$node getAttribute pn]
-    $el setHelp [$node getAttribute help]
+    set cnd [::Model::Condition new $name]
+    $cnd setPublicName [$node getAttribute pn]
+    $cnd setHelp [$node getAttribute help]
+    $cnd setProcessName [$node getAttribute ProcessName]
     
     foreach att [$node attributes] {
-        $el setAttribute $att [split [$node getAttribute $att] ","]
+        $cnd setAttribute $att [split [$node getAttribute $att] ","]
         #W "$att : [$el getAttribute $att]"
     }
     foreach top [[$node getElementsByTagName TopologyFeatures] childNodes]  {
-        set el [ParseTopologyNode $el $top]
+        set cnd [ParseTopologyNode $cnd $top]
     }
     set inputsNode [$node getElementsByTagName inputs]
     foreach in [$inputsNode childNodes]  {
-        set el [ParseInputParamNode $el $in]
+        set cnd [ParseInputParamNode $cnd $in]
     }
     
     foreach out [[$node getElementsByTagName outputs] childNodes] {
         set n [$out @n]
         set pn [$out @pn]
-        $el addOutput $n $pn
+        $cnd addOutput $n $pn
     }
-    $el setProcessName [$inputsNode @ProcessVariableName]
-    $el setProcessFormat [$inputsNode @ProcessFormat]
-    return $el
+    return $cnd
 }
 
 proc Model::getCondition {cid} { 

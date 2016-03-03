@@ -7,12 +7,6 @@ namespace eval Model {
     variable Processes
     
     variable dir
-    variable SolutionStrategyFileName
-    variable ElementsFileName
-    variable ConditionsFileName
-    variable ConstitutiveLawsFileName
-    variable SolversFileName
-    variable ProcessesFileName
 }
 
 proc Model::Init { } {
@@ -40,10 +34,8 @@ proc Model::InitVariables {varName varValue} {
     }
 }
 
-
-proc Model::getSolutionStrategies { } {
+proc Model::getSolutionStrategies { SolutionStrategyFileName } {
     variable SolutionStrategies
-    variable SolutionStrategyFileName
     variable dir
     
     set SolutionStrategies [list ]
@@ -52,9 +44,8 @@ proc Model::getSolutionStrategies { } {
     ParseSolutionStrategies $doc
 }
 
-proc Model::getElements { } {
+proc Model::getElements { ElementsFileName } {
     variable Elements
-    variable ElementsFileName
     variable dir
     
     set Elements [list ]
@@ -62,9 +53,8 @@ proc Model::getElements { } {
     
     ParseElements $doc
 }
-proc Model::getConditions { } {
+proc Model::getConditions { ConditionsFileName } {
     variable Conditions
-    variable ConditionsFileName
     variable dir
     
     set Conditions [list ]
@@ -73,9 +63,8 @@ proc Model::getConditions { } {
     ParseConditions $doc
 }
 
-proc Model::getConstitutiveLaws { } {
+proc Model::getConstitutiveLaws { ConstitutiveLawsFileName } {
     variable ConstitutiveLaws
-    variable ConstitutiveLawsFileName
     variable dir
     
     set ConstitutiveLaws [list ]
@@ -84,9 +73,8 @@ proc Model::getConstitutiveLaws { } {
     ParseConstitutiveLaws $doc
 }
 
-proc Model::getSolvers { } {
+proc Model::getSolvers { SolversFileName } {
     variable Solvers
-    variable SolversFileName
     variable dir
     
     set Solvers [list ]
@@ -95,9 +83,8 @@ proc Model::getSolvers { } {
     ParseSolvers $doc
 }
 
-proc Model::getProcesses { } {
+proc Model::getProcesses { ProcessesFileName } {
     variable Processes
-    variable ProcessesFileName
     variable dir
     
     set Processes [list ]
