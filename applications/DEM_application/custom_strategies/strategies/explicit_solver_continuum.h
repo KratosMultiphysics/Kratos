@@ -280,8 +280,7 @@ namespace Kratos
       
       void SearchOperations(ModelPart& r_model_part, bool has_mpi)
       {
-          
-         ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
+          ProcessInfo& rcurrent_process_info = r_model_part.GetProcessInfo();
                                   
           if(rcurrent_process_info[SEARCH_CONTROL]==0) {  
             for (int i = 0; i < mNumberOfThreads; i++) {
@@ -293,12 +292,14 @@ namespace Kratos
              }             
           }
 
-          int time_step                      = rcurrent_process_info[TIME_STEPS];
+          const int time_step = rcurrent_process_info[TIME_STEPS];
+          const double time = r_process_info[TIME];
+          
             if (rcurrent_process_info[SEARCH_CONTROL] > 0) {
 
                 if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
 
-                    if (BaseType::GetBoundingBoxOption() == 1) {
+                    if (BaseType::GetBoundingBoxOption() == 1 && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
                         BoundingBoxUtility();                        
                     }
                     else {

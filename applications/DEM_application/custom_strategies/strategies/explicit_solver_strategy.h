@@ -494,7 +494,7 @@ namespace Kratos
 
          ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
          int time_step = r_process_info[TIME_STEPS];
-         double time = r_process_info[TIME];
+         const double time = r_process_info[TIME];
 
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box
 
