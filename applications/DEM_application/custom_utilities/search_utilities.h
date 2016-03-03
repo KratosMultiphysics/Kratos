@@ -135,8 +135,8 @@ namespace Kratos
       template<class TVariableType>
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
-          KRATOS_TRY
-          
+          KRATOS_TRY                  
+          //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);          
           if(rSearchNodes.size() && rBinsNodes.size())
           {
               std::size_t node_size = rSearchNodes.size();

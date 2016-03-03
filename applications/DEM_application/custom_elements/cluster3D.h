@@ -52,6 +52,8 @@ namespace Kratos
         virtual ~Cluster3D();
       
         virtual void Initialize();
+        virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
+        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
         virtual void CustomInitialize();
         virtual void SetOrientation(const array_1d<double, 3>& euler_angles);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part);
