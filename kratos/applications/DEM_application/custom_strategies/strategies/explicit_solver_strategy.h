@@ -502,6 +502,10 @@ namespace Kratos
             if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
                 BoundingBoxUtility();
             }
+            else {
+                mpParticleCreatorDestructor->DestroyParticles(*mpCluster_model_part);
+                mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+            }
 
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
