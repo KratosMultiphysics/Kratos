@@ -66,7 +66,7 @@ public:
     virtual void Initialize();
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );		
     virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-    virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info);
+    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
     
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                  const Variable<VectorType>& rRHSVariable,

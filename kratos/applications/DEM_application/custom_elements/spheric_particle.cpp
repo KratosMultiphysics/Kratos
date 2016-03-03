@@ -1148,7 +1148,7 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
     KRATOS_CATCH("")
 }
 
-void SphericParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
+void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 {
     KRATOS_TRY
 
@@ -1235,7 +1235,7 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
     KRATOS_CATCH("")
 }
 
-void SphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info){
+void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     
     KRATOS_TRY
 

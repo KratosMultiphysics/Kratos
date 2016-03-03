@@ -354,15 +354,15 @@ namespace Kratos {
         KRATOS_CATCH("")
     } //SymmetrizeTensor
 
-    void SphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {         
+    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {         
         KRATOS_TRY
         
         SphericParticle::InitializeSolutionStep(r_process_info);
         
         KRATOS_CATCH("")
-    }//void SphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info)
+    }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 
-    void SphericContinuumParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
+    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
 
         KRATOS_TRY
         SphericParticle::FinalizeSolutionStep(r_process_info);

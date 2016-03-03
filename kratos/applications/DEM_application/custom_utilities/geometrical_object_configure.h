@@ -121,6 +121,7 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {    
+        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
         rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
         double radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
@@ -151,6 +152,7 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
+        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
         array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
@@ -163,6 +165,7 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
+        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
         array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
         
@@ -180,7 +183,8 @@ public:
     {
  
 //        double separation_from_particle_radius_ratio = 0.1;
-
+        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
+        
         array_1d<double, 3> center_of_particle = rObject->GetGeometry()[0];
  
         const double& radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);

@@ -42,8 +42,8 @@ namespace Kratos
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info);
-        void InitializeSolutionStep(const ProcessInfo& r_process_info);    
-        void FinalizeSolutionStep(const ProcessInfo& r_process_info);     
+        void InitializeSolutionStep(ProcessInfo& r_process_info);    
+        void FinalizeSolutionStep(ProcessInfo& r_process_info);     
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
         void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
         void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);

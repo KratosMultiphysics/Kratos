@@ -987,127 +987,124 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-      
-
-    void ApplyPrescribedBoundaryConditions() {
-      
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
+    void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array){
         KRATOS_TRY
-        ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo();
-        double time = r_process_info[TIME];
-
-        bool impose = false; double vel_x = 0.0;  double vel_y = 0.0;  double vel_z = 0.0;
-        double ang_vel_x = 0.0; double ang_vel_y = 0.0; double ang_vel_z = 0.0;
-
+        #pragma omp parallel for
+        for (int i=0; i<(int)r_nodes_array.size(); i++) {
+            typename NodesArrayType::iterator node_i=r_nodes_array.ptr_begin()+i;
+            node_i->FastGetSolutionStepValue(r_variable_to_set) = value;                
+            node_i->Set(r_flag_name, true);
+        } 
+        KRATOS_CATCH("")
+    }
+    
+    void SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array){
+        KRATOS_TRY
+        #pragma omp parallel for
+        for (int i=0; i<(int)r_nodes_array.size(); i++) {
+            typename NodesArrayType::iterator node_i=r_nodes_array.ptr_begin()+i;
+            node_i->FastGetSolutionStepValue(r_variable_to_set) = value;                
+        } 
+        KRATOS_CATCH("")
+    }
+  
+    void ResetPrescribedMotionFlags(){
+        KRATOS_TRY
         ModelPart& r_model_part = BaseType::GetModelPart();
+        
+        NodesArrayType& r_model_part_nodes = r_model_part.Nodes();
 
+        #pragma omp parallel for
+        for (int i=0; i<(int)r_model_part_nodes.size(); i++) {
+            typename NodesArrayType::iterator node_i=r_model_part_nodes.ptr_begin()+i;
+            node_i->Set(DEMFlags::FIXED_VEL_X, false);
+            node_i->Set(DEMFlags::FIXED_VEL_Y, false);
+            node_i->Set(DEMFlags::FIXED_VEL_Z, false);
+            node_i->Set(DEMFlags::FIXED_ANG_VEL_X, false);
+            node_i->Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+            node_i->Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        }  
+        KRATOS_CATCH("")
+    }
+    
+    void ApplyPrescribedBoundaryConditions() {
+        KRATOS_TRY                        
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        const ProcessInfo& r_process_info    = BaseType::GetModelPart().GetProcessInfo();	
+        const double time = r_process_info[TIME];
+        
         for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
-          
-            bool has_vel_x = (*mesh_it).Has(IMPOSED_VELOCITY_X_VALUE);
-            if(has_vel_x){
-                vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
-                impose = true;
-            }
             
-            bool has_vel_y = (*mesh_it).Has(IMPOSED_VELOCITY_Y_VALUE);
-            if(has_vel_y){
-                vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];
-                impose = true;
-            }
-
-            bool has_vel_z = (*mesh_it).Has(IMPOSED_VELOCITY_Z_VALUE);
-            if(has_vel_z){
-                vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];
-                impose = true;
-            }
-
-            bool has_ang_vel_x = (*mesh_it).Has(IMPOSED_VELOCITY_X_VALUE);
-            if(has_ang_vel_x){
-                vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
-                impose = true;
-            }
-
-            bool has_ang_vel_y = (*mesh_it).Has(IMPOSED_VELOCITY_Y_VALUE);
-            if(has_ang_vel_y){
-                vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];
-                impose = true;
-            }
-
-            bool has_ang_vel_z = (*mesh_it).Has(IMPOSED_VELOCITY_Z_VALUE);
-            if(has_ang_vel_z){
-                vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];
-                impose = true;
-            }
-
-            double vel_start = (*mesh_it)[VELOCITY_START_TIME];
-            double vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
-            if(time<vel_start || time>vel_stop){
-                impose = false;
-            }
-
+            const double vel_start = (*mesh_it)[VELOCITY_START_TIME];
+            const double vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
+             
+            if(time<vel_start || time>vel_stop) continue;
+            
             NodesArrayType& pNodes = mesh_it->Nodes();
-            vector<unsigned int> node_partition;
-            OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
 
-            #pragma omp parallel for
+            if((*mesh_it).Has(IMPOSED_VELOCITY_X_VALUE)){
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, (*mesh_it)[IMPOSED_VELOCITY_X_VALUE], pNodes);                
+            }
 
-            for (int k=0; k<mNumberOfThreads; k++) {
+            if((*mesh_it).Has(IMPOSED_VELOCITY_Y_VALUE)){
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Y, VELOCITY_Y, (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE], pNodes);
+            }
 
-                typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-                typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+            if((*mesh_it).Has(IMPOSED_VELOCITY_Z_VALUE)){
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Z, VELOCITY_Z, (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE], pNodes);
+            }
 
-                for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
+            if((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)){
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_X, ANGULAR_VELOCITY_X, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_X_VALUE], pNodes);
+            }
 
-                      i->Set(DEMFlags::FIXED_VEL_X, false);
-                      i->Set(DEMFlags::FIXED_VEL_Y, false);
-                      i->Set(DEMFlags::FIXED_VEL_Z, false);
-                      i->Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                      i->Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                      i->Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+            if((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)){
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Y, ANGULAR_VELOCITY_Y, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE], pNodes);
+            }
 
-                } // loop over particles
-            } // loop threads OpenMP
+            if((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)){
+                SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
+            }
+           
+        } // for each mesh
+      
+        KRATOS_CATCH("")
+    }
+    
+    void ApplyInitialBoundaryConditions() {
+        KRATOS_TRY                        
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        
+        for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
+                        
+            NodesArrayType& pNodes = mesh_it->Nodes();
 
-            if(impose){
-              #pragma omp parallel for
-            
-              for (int k=0; k<mNumberOfThreads; k++) {
-                      
-                  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-                  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+            if((*mesh_it).Has(INITIAL_VELOCITY_X_VALUE)){
+                SetVariableToNodes(VELOCITY_X, (*mesh_it)[INITIAL_VELOCITY_X_VALUE], pNodes);                
+            }
 
-                  for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
-                      
-                      array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
-                      array_1d<double, 3>& angular_velocity = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            if((*mesh_it).Has(INITIAL_VELOCITY_Y_VALUE)){
+                SetVariableToNodes(VELOCITY_Y, (*mesh_it)[INITIAL_VELOCITY_Y_VALUE], pNodes);
+            }
 
-                      if(has_vel_x){
-                        velocity[0] = vel_x;
-                        i->Set(DEMFlags::FIXED_VEL_X, true);}
+            if((*mesh_it).Has(INITIAL_VELOCITY_Z_VALUE)){
+                SetVariableToNodes(VELOCITY_Z, (*mesh_it)[INITIAL_VELOCITY_Z_VALUE], pNodes);
+            }
 
-                      if(has_vel_y){
-                        velocity[1] = vel_y;
-                        i->Set(DEMFlags::FIXED_VEL_Y, true);}
-                      
-                      if(has_vel_z){
-                        velocity[2] = vel_z;
-                        i->Set(DEMFlags::FIXED_VEL_Z, true);}
+            if((*mesh_it).Has(INITIAL_ANGULAR_VELOCITY_X_VALUE)){
+                SetVariableToNodes(ANGULAR_VELOCITY_X, (*mesh_it)[INITIAL_ANGULAR_VELOCITY_X_VALUE], pNodes);
+            }
 
-                      if(has_ang_vel_x){
-                        angular_velocity[0] = ang_vel_x;
-                        i->Set(DEMFlags::FIXED_ANG_VEL_X, true);}
+            if((*mesh_it).Has(INITIAL_ANGULAR_VELOCITY_Y_VALUE)){
+                SetVariableToNodes(ANGULAR_VELOCITY_Y, (*mesh_it)[INITIAL_ANGULAR_VELOCITY_Y_VALUE], pNodes);
+            }
 
-                      if(has_ang_vel_y){
-                        angular_velocity[1] = ang_vel_y;
-                        i->Set(DEMFlags::FIXED_ANG_VEL_Y, true);}
-
-                      if(has_ang_vel_z){
-                        angular_velocity[2] = ang_vel_z;
-                        i->Set(DEMFlags::FIXED_ANG_VEL_Z, true);}
-
-                  }     // loop over particles
-              }         // loop threads OpenMP
-            }           // If there is some value to be imposed
-        }               // for each mesh
+            if((*mesh_it).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)){
+                SetVariableToNodes(ANGULAR_VELOCITY_Z, (*mesh_it)[INITIAL_ANGULAR_VELOCITY_Z_VALUE], pNodes);
+            }
+           
+        } // for each mesh
       
         KRATOS_CATCH("")
     }

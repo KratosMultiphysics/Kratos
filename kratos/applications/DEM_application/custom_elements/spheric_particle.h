@@ -60,7 +60,7 @@ virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_proc
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
-virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info);
+virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
@@ -121,7 +121,7 @@ buffer << "SphericParticle" ;
 return buffer.str();
 }
 
-/// Print information about this object.
+/// Print information about this object. 
 virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericParticle";}
 
 /// Print object's data.
@@ -183,7 +183,7 @@ virtual void UpdateRF_Pram(DEMWall* rObj_2,
                            const double Weight[4], 
                            const int ContactType);
 
-virtual void InitializeSolutionStep(const ProcessInfo& r_process_info);
+virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
 
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);

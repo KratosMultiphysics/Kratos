@@ -122,7 +122,8 @@ public:
     //******************************************************************************************************************
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
-    {    
+    { 
+        // KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0); //Doesn't matter cause it's only for the construction of the bins.
         rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
         double radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
@@ -153,6 +154,7 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
+        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
         array_1d<double, 3> rObj_2_to_rObj_1;
         noalias(rObj_2_to_rObj_1) = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         
@@ -167,6 +169,7 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
+        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
         //array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         const array_1d<double, 3>& coor1 = rObj_1->GetGeometry()[0];
         const array_1d<double, 3>& coor2 = rObj_2->GetGeometry()[0];
@@ -188,6 +191,7 @@ public:
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
  
+       // KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0); //Doesn't matter cause it's only for the construction of the bins.
 //        double separation_from_particle_radius_ratio = 0.1;
 
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];

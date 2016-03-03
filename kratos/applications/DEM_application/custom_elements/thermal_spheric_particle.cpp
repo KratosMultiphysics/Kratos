@@ -142,7 +142,7 @@ namespace Kratos
         ThermalSphericParticle::ComputeConductiveHeatFlux(r_current_process_info);        
     }
           
-    void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
+    void ThermalSphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
             SphericContinuumParticle::FinalizeSolutionStep(r_process_info);
             ThermalSphericParticle::UpdateTemperature(r_process_info);  
     }

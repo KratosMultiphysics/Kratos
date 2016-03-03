@@ -25,8 +25,7 @@
 namespace Kratos
 {
     
-class ParticleContactElement
-    : public Element
+class ParticleContactElement: public Element
 {
 
 public:
@@ -50,15 +49,13 @@ public:
 
     Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
-    void Initialize();
-
-    
+    void Initialize();   
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
 
-    void InitializeSolutionStep(const ProcessInfo& r_process_info );
+    void InitializeSolutionStep(ProcessInfo& r_process_info );
 
-    void FinalizeSolutionStep(const ProcessInfo& r_process_info );
+    void FinalizeSolutionStep(ProcessInfo& r_process_info );
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info);
 
