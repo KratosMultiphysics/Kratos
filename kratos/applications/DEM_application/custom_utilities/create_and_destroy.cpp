@@ -801,12 +801,6 @@ namespace Kratos {
         DestroyParticles(r_model_part);
     }
 
-    void ParticleCreatorDestructor::DestroyContinuumParticlesOutsideBoundingBox(ModelPart& r_model_part) {
-        MarkDistantParticlesForErasing(r_model_part);
-        //MarkInitialNeighboursThatAreBeingRemoved(r_model_part);
-        DestroyParticles(r_model_part);
-    }
-
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
         DestroyContactElements(mcontacts_model_part);

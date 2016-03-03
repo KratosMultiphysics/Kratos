@@ -139,8 +139,6 @@ public:
 
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
 
-    void DestroyContinuumParticlesOutsideBoundingBox(ModelPart& r_model_part);
-
     void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
 
     array_1d<double, 3> GetHighNode();
