@@ -301,6 +301,11 @@ namespace Kratos
                     if (BaseType::GetBoundingBoxOption() == 1) {
                         BoundingBoxUtility();                        
                     }
+                    else {
+                        ParticleCreatorDestructor::Pointer& p_creator_destructor=BaseType::GetParticleCreatorDestructor();
+                        p_creator_destructor->DestroyParticles(r_model_part);
+                        p_creator_destructor->DestroyContactElements(*mpContact_model_part);
+                    }
 
                     SearchNeighboursInContinuum(has_mpi); 
 
