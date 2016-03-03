@@ -15,7 +15,6 @@
 #define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
 
-
 // System includes
 
 #include <string>
@@ -152,8 +151,20 @@ public:
     }
     void SetValue(const std::string entry, const Parameters& other_value)
     {
+        if(this->Has(entry) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value must exist to be set. Use AddValue instead","");
         Parameters tmp(&(*mpvalue)[entry.c_str()],mpdoc);
         tmp.InternalSetValue(other_value);
+    }
+
+    void AddValue(const std::string entry, const Parameters& other_value)
+    {
+        if(this->Has(entry) == false)
+        {
+            rapidjson::Value tmp;
+            tmp.CopyFrom(*(other_value.GetUnderlyingStorage()), mpdoc->GetAllocator()); //this will be moved away
+            rapidjson::Value name(entry.c_str(), mpdoc->GetAllocator()); //rhis will be moved away
+            this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
+        }
     }
 
 
@@ -272,6 +283,90 @@ public:
     {
         return this->GetArrayItem(index);
     }
+
+    void ValidateAndAssignDefaults(Parameters& defaults)
+    {
+        KRATOS_TRY
+
+
+        //first verifies that all the enries in the current parameters
+        //have a correspondance in the defaults.
+        //if it is not the case throw an error
+        for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
+        {
+            std::string item_name = itr->name.GetString();
+
+            if(!defaults.Has(item_name) )
+            {
+                std::stringstream msg;
+                msg << "the item with name " << item_name << "is present in this Parameters but not in the default values" << std::endl;
+                msg << "parameters being validated are : " << std::endl;
+                msg << this->PrettyPrintJsonString() << std::endl;
+                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << defaults.PrettyPrintJsonString() << std::endl;
+                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+            }
+
+            bool type_coincides = false;
+            rapidjson::Value* value_defaults = (defaults[item_name.c_str()]).GetUnderlyingStorage();
+            if(itr->value.IsInt() && value_defaults->IsInt()) type_coincides = true;
+            if(itr->value.IsBool() && value_defaults->IsBool()) type_coincides = true;
+            if(itr->value.IsDouble() && value_defaults->IsDouble()) type_coincides = true;
+            if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
+            if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
+            if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
+
+            if(type_coincides == false)
+            {
+                std::stringstream msg;
+                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "parameters being validated are : " << std::endl;
+                msg << this->PrettyPrintJsonString() << std::endl;
+                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << defaults.PrettyPrintJsonString() << std::endl;
+                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+            }
+            //now walk the tree recursively
+            if(itr->value.IsObject())
+            {
+                Parameters subobject = (*this)[item_name];
+                Parameters defaults_subobject = defaults[item_name];
+                subobject.ValidateAndAssignDefaults(defaults_subobject);
+            }
+        }
+
+
+
+        //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
+        //add an item copying its value
+        if(defaults.IsSubParameter())
+        {
+            for (rapidjson::Value::MemberIterator itr = defaults.mpvalue->MemberBegin(); itr != defaults.mpvalue->MemberEnd(); ++itr)
+            {
+                std::string item_name = itr->name.GetString();
+                if(!this->Has(item_name))
+                {
+                    rapidjson::Value* pvalue = &itr->value;
+
+                    this->AddValue(item_name, Parameters(pvalue, defaults.mpdoc));
+                }
+
+                //now walk the tree recursively
+                if(itr->value.IsObject())
+                {
+                    Parameters subobject = (*this)[item_name];
+                    Parameters defaults_subobject = defaults[item_name];
+                    subobject.ValidateAndAssignDefaults(defaults_subobject);
+                }
+            }
+        }
+
+
+        KRATOS_CATCH("")
+    }
+
+
+
 
     //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
     rapidjson::Value* GetUnderlyingStorage() const
