@@ -232,7 +232,7 @@ namespace Kratos
 #endif
 
       template <class T>
-      void RebuildListOfSphericParticles(const ElementsArrayType& pElements, std::vector<T*>& rCustomListOfParticles){
+      void RebuildListOfSphericParticles(ElementsArrayType& pElements, std::vector<T*>& rCustomListOfParticles){
 
           KRATOS_TRY
 
@@ -380,7 +380,7 @@ namespace Kratos
 
           InitializeSolutionStep();
 
-          // ApplyPrescribedBoundaryConditions();
+          ApplyInitialConditions();
 
           // Search Neighbours and related operations
           SearchNeighbours();
@@ -1072,7 +1072,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void ApplyInitialBoundaryConditions() {
+    void ApplyInitialConditions() {
         KRATOS_TRY
         ModelPart& r_model_part = BaseType::GetModelPart();
 
