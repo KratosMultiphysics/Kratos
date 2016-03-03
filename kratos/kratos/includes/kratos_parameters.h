@@ -62,195 +62,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
     //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
-    Parameters(rapidjson::Value& rvalue, rapidjson::Document &rdoc): mrvalue(rvalue),mrdoc(rdoc)
+    Parameters(rapidjson::Value* pvalue, boost::shared_ptr<rapidjson::Document> pdoc): mpvalue(pvalue),mpdoc(pdoc)
     {
     }
 
-    const std::string WriteJsonString() const
+    Parameters(std::string json_string)
     {
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        mrvalue.Accept(writer);
-        return buffer.GetString();
-    }
 
+        mpdoc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
+        rapidjson::ParseResult ok = mpdoc->Parse<0>(json_string.c_str());
 
-    const  std::string PrettyPrintJsonString() const
-    {
-        rapidjson::StringBuffer buffer;
-        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-        mrvalue.Accept(writer);
-        return buffer.GetString();
-    }
-
-
-    //*******************************************************************************************************
-    Parameters GetValue(const std::string entry)
-    {
-        //if( mrvalue.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return Parameters(mrvalue[entry.c_str()],mrdoc);
-    }
-    Parameters operator[](const std::string entry)
-    {
-        return Parameters(mrvalue[entry.c_str()],mrdoc);
-    }
-    void SetValue(const std::string entry, const Parameters& other_value)
-    {
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
-        mrvalue = rapidjson::Value(other_value.GetUnderlyingStorage(), mrdoc.GetAllocator());
-#else
-        mrvalue.CopyFrom(other_value.GetUnderlyingStorage(), mrdoc.GetAllocator());
-#endif
-    }
-
-    //*******************************************************************************************************
-    bool Has(const std::string entry)
-    {
-       return mrvalue.HasMember(entry.c_str());
-    }
-
-
-    bool IsNumber()
-    {
-        return mrvalue.IsNumber();
-    }
-    bool IsDouble()
-    {
-        return mrvalue.IsDouble();
-    }
-    bool IsInt()
-    {
-        return mrvalue.IsInt();
-    }
-    bool IsBool()
-    {
-        return mrvalue.IsBool();
-    }
-    bool IsString()
-    {
-        return mrvalue.IsString();
-    }
-    bool IsArray()
-    {
-        return mrvalue.IsArray();
-    }
-    bool IsSubParameter()
-    {
-        return mrvalue.IsObject();
-    }
-    double GetDouble()
-    {
-        if(mrvalue.IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
-        return mrvalue.GetDouble();
-    }
-    int GetInt()
-    {
-        if(mrvalue.IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
-        return mrvalue.GetInt();
-    }
-    bool GetBool()
-    {
-        if(mrvalue.IsBool() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a bool","");
-        return mrvalue.GetBool();
-    }
-    std::string GetString()
-    {
-        if(mrvalue.IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
-        return mrvalue.GetString();
-    }
-
-    void SetDouble(const double value)
-    {
-        mrvalue.SetDouble(value);
-    }
-    void SetInt(const int value)
-    {
-        mrvalue.SetInt(value);
-    }
-    void SetBool(const bool value)
-    {
-        mrvalue.SetBool(value);
-    }
-    void SetString(const std::string value)
-    {
-         mrvalue.SetString(rapidjson::StringRef(value.c_str()));
-    }
-
-
-    //*******************************************************************************************************
-    //methods for array
-    unsigned int size()
-    {
-        if(mrvalue.IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"size can only be queried if the value if of Array type","");
-        return mrvalue.Size();
-    }
-
-    Parameters GetArrayItem(unsigned int index)
-    {
-        if(mrvalue.IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
-        else
-        {
-            if(index >= mrvalue.Size())
-                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-            return Parameters(mrvalue[index],mrdoc);
-        }
-    }
-
-    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
-    {
-        if(mrvalue.IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
-        else
-        {
-            if(index >= mrdoc.Size())
-                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
-            mrvalue[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), mrdoc.GetAllocator());
-#else
-            mrvalue[index].CopyFrom(other_array_item.GetUnderlyingStorage(), mrdoc.GetAllocator());
-#endif
-        }
-    }
-    Parameters operator[](unsigned int index)
-    {
-        return this->GetArrayItem(index);
-    }
-
-    //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
-    rapidjson::Value& GetUnderlyingStorage() const
-    {
-        return mrvalue;
-    }
-private:
-    rapidjson::Value& mrvalue;
-    rapidjson::Document& mrdoc;
-};
-
-/// Short class definition.
-/** This class provides a wrapper to Json
- * the idea is to abstract the kratos from the underlying implementation of the json reader
- *
- * initially using rapidjson lib, but may well vary in the future
-*/
-class KratosParameters
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of KratosParameters
-    KRATOS_CLASS_POINTER_DEFINITION(KratosParameters);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    KratosParameters(std::string json_string) 
-    {
-        rapidjson::ParseResult ok = md.Parse<0>(json_string.c_str());
         if( !ok )
         {
             std::stringstream msg;
@@ -260,28 +81,30 @@ public:
             msg << json_string;
             KRATOS_THROW_ERROR(std::invalid_argument, "error found in parsing the json_string, the value of the json string was: \n", msg.str());
         }
+
+        mpvalue = (mpdoc.get());
+
     }
 
     /// Assignment operator.
-    KratosParameters& operator=(KratosParameters const& rOther) 
+    Parameters& operator=(Parameters const& rOther)
     {
-        rapidjson::ParseResult ok = md.Parse<0>(rOther.WriteJsonString().c_str());
-        if( !ok )
-        {
-            std::stringstream msg;
-            msg << rapidjson::GetParseError_En(ok.Code()) << " offset of the error from the beginning of the string = " << ok.Offset() << std::endl;
-            msg << "a much more explicative error message can be obtained by analysing the input string " << std::endl;
-            msg << "with an online analyzer such for example json lint" << std::endl;
-            msg << "the value of the string that was attempted to parse is :" << std::endl << std::endl;
-            msg << rOther.WriteJsonString();
-            KRATOS_THROW_ERROR(std::invalid_argument, "error found in parsing the json_string, the value of the json string was: \n", msg.str());
-        }
+        mpvalue->CopyFrom(*(rOther.GetUnderlyingStorage()), mpdoc->GetAllocator());
+
         return *this;
     }
     /// Copy constructor.
-    KratosParameters(KratosParameters const& rOther) 
+    Parameters(Parameters const& rOther)
     {
-        rapidjson::ParseResult ok = md.Parse<0>(rOther.WriteJsonString().c_str());
+        mpdoc =  rOther.mpdoc;
+        mpvalue = rOther.mpvalue;
+    }
+
+    //generates a clone of the current document
+    Parameters Clone()
+    {
+        boost::shared_ptr<rapidjson::Document> pnew_cloned_doc =  boost::shared_ptr<rapidjson::Document>(new rapidjson::Document() );
+        rapidjson::ParseResult ok = pnew_cloned_doc->Parse<0>(this->WriteJsonString().c_str());
         if( !ok )
         {
             std::stringstream msg;
@@ -289,100 +112,20 @@ public:
             msg << "a much more explicative error message can be obtained by analysing the input string " << std::endl;
             msg << "with an online analyzer such for example json lint" << std::endl;
             msg << "the value of the string that was attempted to parse is :" << std::endl << std::endl;
-            msg << rOther.WriteJsonString();
+            msg << this->WriteJsonString();
             KRATOS_THROW_ERROR(std::invalid_argument, "error found in parsing the json_string, the value of the json string was: \n", msg.str());
         }
+        return Parameters(pnew_cloned_doc.get(),pnew_cloned_doc);
     }
 
     /// Destructor.
-    virtual ~KratosParameters() {}
+    virtual ~Parameters() {}
 
-
-    ///@}
-    ///@name Operators
-    ///@{
-    Parameters GetRoot()
-    {
-        return Parameters(md,md);
-    }
-    
-    Parameters GetValue(const std::string entry)
-    {
-        if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return Parameters(md[entry.c_str()],md);
-    }
-
-    void SetValue(const std::string entry, const Parameters& other_value)
-    {
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
-        md[entry.c_str()] = rapidjson::Value(other_value.GetUnderlyingStorage(), md.GetAllocator());
-#else
-        md[entry.c_str()].CopyFrom(other_value.GetUnderlyingStorage(), md.GetAllocator());
-#endif
-    }
-
-    Parameters operator[](const std::string entry)
-    {
-        if( md.HasMember(entry.c_str()) == false) KRATOS_THROW_ERROR(std::invalid_argument,"value is not in the database. entry string : ",entry);
-        return Parameters(md[entry.c_str()],md);
-    }
-
-    bool Has(const std::string entry)
-    {
-       return md.HasMember(entry.c_str());
-    }
-
-    Parameters GetArrayItem(unsigned int index)
-    {
-        if(md.IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
-        else
-        {
-            if(index >= md.Size())
-                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-            return Parameters(md[index],md);
-        }
-    }
-
-    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
-    {
-        if(md.IsArray() == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
-        else
-        {
-            if(index >= md.Size())
-                 KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
-#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
-            md[index] = rapidjson::Value(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
-#else
-            md[index].CopyFrom(other_array_item.GetUnderlyingStorage(), md.GetAllocator());
-#endif
-        }
-    }
-
-    Parameters operator[](unsigned int index)
-    {
-        return this->GetArrayItem(index);
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
     const std::string WriteJsonString() const
     {
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        md.Accept(writer);
+        mpvalue->Accept(writer);
         return buffer.GetString();
     }
 
@@ -391,109 +134,175 @@ public:
     {
         rapidjson::StringBuffer buffer;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-        md.Accept(writer);
+        mpvalue->Accept(writer);
         return buffer.GetString();
     }
 
 
-    ///@}
-    ///@name Input and output
-    ///@{
+    //*******************************************************************************************************
+    Parameters GetValue(const std::string entry)
+    {
+        rapidjson::Value* pvalue = &((*mpvalue)[entry.c_str()]);
+
+        return Parameters(pvalue, mpdoc);
+    }
+    Parameters operator[](const std::string entry)
+    {
+        return Parameters(&(*mpvalue)[entry.c_str()],mpdoc);
+    }
+    void SetValue(const std::string entry, const Parameters& other_value)
+    {
+        Parameters tmp(&(*mpvalue)[entry.c_str()],mpdoc);
+        tmp.InternalSetValue(other_value);
+    }
+
+
+
+    //*******************************************************************************************************
+    bool Has(const std::string entry)
+    {
+        return mpvalue->HasMember(entry.c_str());
+    }
+
+
+    bool IsNumber()
+    {
+        return mpvalue->IsNumber();
+    }
+    bool IsDouble()
+    {
+        return mpvalue->IsDouble();
+    }
+    bool IsInt()
+    {
+        return mpvalue->IsInt();
+    }
+    bool IsBool()
+    {
+        return mpvalue->IsBool();
+    }
+    bool IsString()
+    {
+        return mpvalue->IsString();
+    }
+    bool IsArray()
+    {
+        return mpvalue->IsArray();
+    }
+    bool IsSubParameter()
+    {
+        return mpvalue->IsObject();
+    }
+    double GetDouble()
+    {
+        if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
+        return mpvalue->GetDouble();
+    }
+    int GetInt()
+    {
+        if(mpvalue->IsNumber() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a number","");
+        return mpvalue->GetInt();
+    }
+    bool GetBool()
+    {
+        if(mpvalue->IsBool() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a bool","");
+        return mpvalue->GetBool();
+    }
+    std::string GetString()
+    {
+        if(mpvalue->IsString() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
+        return mpvalue->GetString();
+    }
+
+    void SetDouble(const double value)
+    {
+        mpvalue->SetDouble(value);
+    }
+    void SetInt(const int value)
+    {
+        mpvalue->SetInt(value);
+    }
+    void SetBool(const bool value)
+    {
+        mpvalue->SetBool(value);
+    }
+    void SetString(const std::string value)
+    {
+        mpvalue->SetString(rapidjson::StringRef(value.c_str()));
+    }
+
+
+    //*******************************************************************************************************
+    //methods for array
+    unsigned int size()
+    {
+        if(mpvalue->IsArray() == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"size can only be queried if the value if of Array type","");
+        return mpvalue->Size();
+    }
+
+    Parameters GetArrayItem(unsigned int index)
+    {
+        if(mpvalue->IsArray() == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"GetArrayItem only makes sense if the value if of Array type","")
+            else
+            {
+                if(index >= mpvalue->Size())
+                    KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+                    return Parameters(&(*mpvalue)[index],mpdoc);
+            }
+    }
+
+    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
+    {
+        if(mpvalue->IsArray() == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"SetArrayItem only makes sense if the value if of Array type","")
+            else
+            {
+                if(index >= mpdoc->Size())
+                    KRATOS_THROW_ERROR(std::invalid_argument,"index exceeds array size. Index value is : ",index)
+#if RAPIDJSON_HAS_CXX11_RVALUE_REFS
+                    (*mpvalue)[index] = rapidjson::Value(*other_array_item.GetUnderlyingStorage(), mpdoc->GetAllocator());
+#else
+                    (*mpvalue)[index].CopyFrom(*other_array_item.GetUnderlyingStorage(), mpdoc->GetAllocator());
+#endif
+            }
+    }
+    Parameters operator[](unsigned int index)
+    {
+        return this->GetArrayItem(index);
+    }
+
+    //ATTENTION: please DO NOT use this method. It is a low level accessor, and may change in the future
+    rapidjson::Value* GetUnderlyingStorage() const
+    {
+        return mpvalue;
+    }
 
     /// Turn back information as a string.
-    virtual std::string Info() const {return this->PrettyPrintJsonString();}
+    virtual std::string Info() const
+    {
+        return this->PrettyPrintJsonString();
+    }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "KratosParameters Object " << Info();}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Parameters Object " << Info();
+    }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {};
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
-    ///@{
+    rapidjson::Value* mpvalue;
+    boost::shared_ptr<rapidjson::Document> mpdoc;
 
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-    rapidjson::Document md;
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-
-
-    ///@}
-
-}; // Class KratosParameters
+    void InternalSetValue(const Parameters& other_value)
+    {
+        mpvalue->CopyFrom(*(other_value.GetUnderlyingStorage()), mpdoc->GetAllocator());
+    }
+};
 
 ///@}
 
@@ -508,11 +317,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  KratosParameters& rThis) {return rIStream;}
+                                  Parameters& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const KratosParameters& rThis)
+                                  const Parameters& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
