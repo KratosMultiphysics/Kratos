@@ -188,7 +188,7 @@ proc Fluid::write::printBoundaryConditions {spacing} {
     set root [$doc documentElement]
     set s [write::getSpacing $spacing]
 
-    write::WriteString "#Loads Data"
+    write::WriteString "#Boundary Conditions Data"
     write::WriteString "#################################################"
     write::WriteString "${s}boundary_conditions_process_list = \["
     set xp1 "[apps::getRoute "FLBC"]/condition/group"
