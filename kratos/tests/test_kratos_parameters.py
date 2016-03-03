@@ -46,6 +46,51 @@ pretty_out_after_change = """{
     }
 }"""
 
+defaults = """
+{
+	"int_value": 10,
+	"double_value": 2.0,
+	"bool_value": false,
+	"string_value": "hello",
+	"level1": {
+		"list_value": [
+			3,
+			"hi",
+			false
+		],
+		"tmp": "here we expect a string"
+	},
+	"new_default_value": -123.0,
+	"new_default_obj": {
+		"aaa": "string",
+		"bbb": false,
+		"ccc": 22
+	}
+}
+"""
+
+
+expected_validation_output = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": {
+        "list_value": [
+            3,
+            "hi",
+            false
+        ],
+        "tmp": 5.0
+    },
+    "new_default_value": -123.0,
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    }
+}"""
+
 
 class TestParameters(KratosUnittest.TestCase):
 
@@ -116,6 +161,24 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "kratos"):
             self.kp["no_value"].GetInt()
 
+    def test_validation_fails_due_to_wrong_type(self):
+        kp = Parameters(json_string)
+        defaults_params =  Parameters(defaults)
+        
+        # should check which errors are thrown!!
+        with self.assertRaisesRegex(RuntimeError, "kratos"):
+            kp.ValidateAndAssignDefaults(defaults_params)
+     
+    def test_validation_succeeds(self):
+        kp = Parameters(json_string)
+        defaults_params =  Parameters(defaults)
+        defaults_params["level1"]["tmp"].SetDouble(2.0) ##this does not coincide with the value in kp, but is of the same type 
+        
+        kp.ValidateAndAssignDefaults(defaults_params)
+        self.assertEqual(kp.PrettyPrintJsonString() , expected_validation_output)
 
+        self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0) ##not 2, since kp overwrites the defaults
+     
+            
 if __name__ == '__main__':
     KratosUnittest.main()
