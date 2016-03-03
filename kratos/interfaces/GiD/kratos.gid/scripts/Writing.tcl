@@ -273,8 +273,9 @@ proc write::writeConditions { baseUN } {
 
 proc write::getMeshId {cid group} {
     variable meshes
-    if {[dict exists $meshes {$cid $group}]} {
-        return [dict get $meshes {$cid $group}]
+    
+    if {[dict exists $meshes [list $cid ${group}]]} {
+        return [dict get $meshes [list $cid ${group}]]
     } {
         return 0
     }
@@ -434,8 +435,7 @@ proc write::getEtype {ov} {
     
     return $ret
 }
-proc write::isquadratic {} {     
-    
+proc write::isquadratic {} {  
     set err [catch { GiD_Set Model(QuadraticType) } isquadratic]
     if { $err } {
         set isquadratic [lindex [GiD_Info Project] 5]
@@ -479,9 +479,27 @@ proc write::writePartMeshes { } {
     } 
 }
 
+proc write::dict2json {dictVal} {
+    # XXX: Currently this API isn't symmetrical, as to create proper
+    # XXX: JSON text requires type knowledge of the input data
+    set json ""
+    dict for {key val} $dictVal {
+        # key must always be a string, val may be a number, string or
+        # bare word (true|false|null)
+        if {0 && ![string is double -strict $val]
+            && ![regexp {^(?:true|false|null)$} $val]} {
+                set val "\"$val\""
+            }
+            if {[isDict $val]} {set val [dict2json $val]; set val "\[${val}\]"} {set val \"$val\"}
+            append json "\"$key\": $val," \n
+    }
+    if {[string range $json end-1 end] eq ",\n"} {set json [string range $json 0 end-2]}
+    return "\{${json}\}"
+}
 
-proc write::WriteProcess {procid params} {
-	W "$procid $params"
+proc write::WriteProcess {processDict} {
+    #W [dict2json $processDict]
+    WriteString [dict2json $processDict]
 }
 
 # Auxiliar
@@ -540,6 +558,10 @@ proc write::WriteString {str} {
 proc write::getMatDict {} {
     variable mat_dict
     return $mat_dict
+}
+
+proc write::isDict {value} {
+    return [expr {[string is list $value] && ([llength $value]&1) == 0}]
 }
 
 proc write::getSpacing {number} {

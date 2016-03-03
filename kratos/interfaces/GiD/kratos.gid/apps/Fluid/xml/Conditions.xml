@@ -3,14 +3,13 @@
   <ConditionItem n="Inlet2D" pn="Inlet velocity" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
-	ElementType="Line" help="">
+	ElementType="Line" ProcessName="ApplyInletProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="VELOCITY" ProcessFormat="vector">
-	  <parameter n="Velocity" pn="Velocity" type="vector" units="m/s" fixity="Imposed" unit_magnitude="Velocity"/>
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -18,14 +17,13 @@
   <ConditionItem n="Inlet3D" pn="Inlet velocity" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
-	ElementType="Surface" help="">
+	ElementType="Surface" ProcessName="ApplyInletProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="VELOCITY" ProcessFormat="vector">
-	  <parameter n="Velocity" pn="Velocity" type="vector" units="m/s" fixity="Imposed" unit_magnitude="Velocity"/>
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -33,14 +31,13 @@
   <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
-	ElementType="Line" help="">
+	ElementType="Line" ProcessName="ApplyOutletProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="PRESSURE" ProcessFormat="double">
-	  <parameter n="Pressure" pn="Pressure" type="double" units="Pa" unit_magnitude="P"/>
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -48,14 +45,13 @@
   <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
-	ElementType="Surface" help="">
+	ElementType="Surface" ProcessName="ApplyOutletProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="PRESSURE" ProcessFormat="double">
-	  <parameter n="Pressure" pn="Pressure" type="double" units="Pa" unit_magnitude="P"/>
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -63,13 +59,13 @@
   <ConditionItem n="Slip2D" pn="Slip" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
-	ElementType="Line" help="">
+	ElementType="Line" ProcessName="ApplySlipProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs  ProcessVariableName="" ProcessFormat="">
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -77,13 +73,13 @@
   <ConditionItem n="Slip3D" pn="Slip" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
-	ElementType="Surface" help="">
+	ElementType="Surface" ProcessName="ApplySlipProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="" ProcessFormat="">
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -91,13 +87,13 @@
   <ConditionItem n="NoSlip2D" pn="No Slip" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
-	ElementType="Line" help="">
+	ElementType="Line" ProcessName="ApplyNoSlipProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs  ProcessVariableName="" ProcessFormat="">
+    <inputs>
     </inputs>
     <outputs>
     </outputs>
@@ -105,13 +101,13 @@
   <ConditionItem n="NoSlip3D" pn="No Slip" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
-	ElementType="Surface" help="">
+	ElementType="Surface" ProcessName="ApplyNoSlipProcess" help="">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="" ProcessFormat="">
+    <inputs>
     </inputs>
     <outputs>
     </outputs>

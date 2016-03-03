@@ -4,7 +4,7 @@ proc Fluid::write::writeParametersEvent { } {
     write::WriteString ""
     write::WriteString "#Problem Data"
     write::WriteString "#################################################"
-    write::WriteString "ModelPartName = \"Structure\""
+    write::WriteString "ModelPartName = \"Fluid\""
     write::WriteString "DomainSize = [string range [write::getValue nDim] 0 0]"
     
      # Parallelization
@@ -38,8 +38,8 @@ proc Fluid::write::writeParametersEvent { } {
     printSolutionStrategy 4
     printSolvers 4
     
-    printInitialConditions 0
-    printConds 0
+    #printInitialConditions 0
+    printBoundaryConditions 0
     
     # GiD output configuration
     write::WriteString "class GidOutputConfiguration:"
@@ -183,88 +183,80 @@ proc Fluid::write::printInitialConditions {spacing} {
 }
 
 
-proc Fluid::write::printConds {spacing} {
+proc Fluid::write::printBoundaryConditions {spacing} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set s [write::getSpacing $spacing]
 
     write::WriteString "#Loads Data"
     write::WriteString "#################################################"
-    write::WriteString "${s}loads_process_list = \["
+    write::WriteString "${s}boundary_conditions_process_list = \["
     set xp1 "[apps::getRoute "FLBC"]/condition/group"
     set groups [$root selectNodes $xp1]
     set str ""
     foreach group $groups {
         set groupName [$group @n]
         set cid [[$group parent] @n]
-        #W "$cid $groupName"
         set groupId [::write::getMeshId $cid $groupName]
+        #W "$cid $groupName $groupId"
         set condId [[$group parent] @n]
         set condition [::Model::getCondition $condId]
-        set type [$condition getProcessFormat]
         set processName [$condition getProcessName]
+        set process [::Model::GetProcess $processName]
         #W "type $type pron $processName"
+        set processDict [dict create]
+        set paramDict [dict create]
+        dict set paramDict mesh_id 0
+        dict set paramDict model_part_name $groupId
         
-        if {$type eq "vector"} {
-            set FixX False
-            set FixY False
-            set FixZ False
-            if {[$group find n FixX] ne ""} {
-                set FixX [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
-            }
-            if {[$group find n FixY] ne ""} {
-                set FixY [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
-            }
-            if {[$group find n FixZ] ne ""} {
-                set FixZ [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
-            }
-            set ValX [get_domnode_attribute [$group find n ValX] v] 
-            set ValY [get_domnode_attribute [$group find n ValY] v] 
-            set ValZ [get_domnode_attribute [$group find n ValZ] v] 
-            set factornode [$group find n FACTOR]
-            set Factor 1
-            if {$factornode ne ""} {
-                set Factor [get_domnode_attribute $factornode v]
-            }
-            
-            append str "{ \"process_name\" : \"ApplyConstantVectorValueProcess\",
-              \"implemented_in_module\" : \"KratosMultiphysics\",
-              \"implemented_in_file\": \"process_factory\",
-              
-              \"parameters\" : { 
-                \"mesh_id\": $groupId,
-                  \"model_part_name\" : ModelPartName,
-                  \"variable_name\": \"$processName\",
-                  \"factor\": $Factor,
-                  \"value\": \[$ValX,$ValY,$ValZ\],
-                  \"is_fixed_x\" : $FixX,
-                  \"is_fixed_y\" : $FixY,
-                  \"is_fixed_z\" : $FixZ,
-                  }
-            }, "
-        } elseif {$type eq "double"} {
-            set Value [get_domnode_attribute [$group firstChild] v] 
-            set Fixed True
-            
-            append str "{ \"process_name\" : \"ApplyConstantScalarValueProcess\",
-            \"implemented_in_python\" : True,
-            \"implemented_in_module\" : \"KratosMultiphysics\",
-            \"implemented_in_file\": \"process_factory\",
-                        
-            \"parameters\" : { 
-				\"mesh_id\": $groupId,
-                \"model_part_name\" : ModelPartName,
-                \"variable_name\": \"$processName\",
-                \"value\": $Value,
-                \"is_fixed\": $Fixed
+        set process_attributes [$process getAttributes]
+        set process_parameters [$process getInputs]
+        
+        dict set process_attributes process_name [dict get $process_attributes n]
+        dict unset process_attributes n
+        dict unset process_attributes pn
+        
+        set processDict [dict merge $processDict $process_attributes]
+        foreach {inputName in_obj} $process_parameters {
+            set in_type [$in_obj getType]
+            if {$in_type eq "vector"} {
+                set is_fixed_x False
+                set is_fixed_y False
+                set is_fixed_z False
+                if {[$group find n FixX] ne ""} {
+                    set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
                 }
-          }, "
+                if {[$group find n FixY] ne ""} {
+                    set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
+                }
+                if {[$group find n FixZ] ne ""} {
+                    set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
+                }
+                set ValX [get_domnode_attribute [$group find n ValX] v] 
+                set ValY [get_domnode_attribute [$group find n ValY] v]
+                set ValZ 0.0
+                catch {set ValZ [get_domnode_attribute [$group find n ValZ] v]}
+                
+                dict set paramDict is_fixed_x $is_fixed_x
+                dict set paramDict is_fixed_y $is_fixed_y
+                dict set paramDict is_fixed_z $is_fixed_z
+                dict set paramDict value "\[${ValX},${ValY},${ValZ}\]"
+            } elseif {$in_type eq "double"} {
+                set value [get_domnode_attribute [$group find n value] v] 
+                set is_fixed True
+                if {[$group find n Fix] ne ""} {
+                    set is_fixed_x [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
+                }
+                dict set paramDict is_fixed $is_fixed
+                dict set paramDict value $value
+            }
         }
+        
+        dict set processDict Parameters $paramDict
+        write::WriteProcess $processDict
     
+        if {[lindex $groups end] ne $group} {write::WriteString ","}
     }
-    # Quitar la coma
-    if {[llength $groups]} {set str [string range $str 0 end-1]}
-    write::WriteString $str
     write::WriteString "]"
 }
 
