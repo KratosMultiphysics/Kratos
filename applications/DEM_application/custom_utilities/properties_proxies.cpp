@@ -135,9 +135,6 @@ namespace Kratos {
             aux_pointer = &( props_it->GetValue(COEFFICIENT_OF_RESTITUTION) );
             vector_of_proxies[properties_counter].SetCoefficientOfRestitutionFromProperties(aux_pointer);
 
-            //aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
-            //vector_of_proxies[properties_counter].SetLnOfRestitCoeffFromProperties(aux_pointer);
-             
             aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
             vector_of_proxies[properties_counter].SetDensityFromProperties(aux_pointer);
               
