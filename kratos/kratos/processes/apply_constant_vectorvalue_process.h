@@ -1,29 +1,14 @@
-// Kratos Multi-Physics
-// 
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 
@@ -43,6 +28,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
@@ -72,6 +58,76 @@ public:
     ///@{
 
     /// Default constructor.
+    ApplyConstantVectorValueProcess(ModelPart& model_part, 
+                                    Parameters& parameters
+                                   ) : Process(Flags()), mr_model_part(model_part)
+    {
+        KRATOS_TRY
+        
+//         KratosParameters default_parameters( std::string("
+//         {
+//             \"mesh_id\\": 0,
+//             \"variable_name\": \"PLEASE_PRESCRIBE_VARIABLE_NAME\",
+//             \"is_fixed_x\": false,
+//             \"is_fixed_y\": false,
+//             \"is_fixed_z\": false,
+//             \"factor\" : 1.0,
+//             \"value\" : 1.0,
+//             \"direction\": [1.0, 0.0, 0.0]
+//         }"
+//         ) ) 
+        
+        
+        //read from the parameters and assign to the values
+        mmesh_id = parameters["mesh_id"].GetInt();
+        
+        this->Set(X_COMPONENT_FIXED,  parameters["is_fixed_x"].GetBool());
+        this->Set(Y_COMPONENT_FIXED,  parameters["is_fixed_y"].GetBool());
+        this->Set(Z_COMPONENT_FIXED,  parameters["is_fixed_z"].GetBool());
+        
+        //get the 
+        mvariable_name = parameters["variable_name"].GetString();
+        mfactor = parameters["factor"].GetDouble();
+//         mvalue = parameters["value"].GetDouble();
+        
+        if( parameters["direction"].size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
+            
+        mdirection.resize(3,false);
+        mdirection[0] = parameters["direction"][0].GetDouble();
+        mdirection[1] = parameters["direction"][1].GetDouble();
+        mdirection[2] = parameters["direction"][2].GetDouble();
+        
+        if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name)
+        Variable<array_1d<double,3> > rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
+       
+        
+        if(mmesh_id >= model_part.NumberOfMeshes())
+            KRATOS_THROW_ERROR(std::runtime_error,"mesh does not exist in model_part: mesh id is --> ",mmesh_id)
+  
+        
+        if( model_part.GetNodalSolutionStepVariablesList().Has(rVariable) == false )
+         {
+             std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
+             KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
+         }
+        
+        if(mdirection.size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
+            
+        typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_X"))
+        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Y")) == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Y"))
+        if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
+            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
+
+         
+         
+        KRATOS_CATCH("")
+    }
+    
+    
     ApplyConstantVectorValueProcess(ModelPart& model_part, 
                               const Variable< array_1d<double, 3 > >& rVariable, 
                               const double factor,
@@ -233,8 +289,8 @@ protected:
     
     ModelPart& mr_model_part;
     std::string mvariable_name;
-    const double mfactor;
-    const Vector mdirection;
+    double mfactor;
+    Vector mdirection;
     std::size_t mmesh_id;
 
 private:
