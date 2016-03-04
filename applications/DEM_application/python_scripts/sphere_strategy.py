@@ -3,6 +3,7 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import math
+import time
 
 
 def Var_Translator(variable):
@@ -29,7 +30,7 @@ def AddDofs(model_part):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param, procedures,):
 
         # Initialization of member variables
 
@@ -41,6 +42,7 @@ class ExplicitStrategy:
         self.rotation_option      = Var_Translator(Param.RotationOption)
         self.bounding_box_option  = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities_flag  = 0
+        self.Procedures = procedures
         
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
         self.contact_mesh_option           = Var_Translator(Param.ContactMeshOption)
@@ -114,10 +116,11 @@ class ExplicitStrategy:
         self.gravity[1] = Param.GravityY
         self.gravity[2] = Param.GravityZ
 
-        self.virtual_mass_option            = 0
+        self.virtual_mass_option = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
-        if(self.nodal_mass_coeff != 1.00):
-           self.virtual_mass_option            = 1
+        
+        if (self.nodal_mass_coeff != 1.00):
+            self.virtual_mass_option = 1
             
         self.rolling_friction_option = Var_Translator(Param.RollingFrictionOption)
 
@@ -175,7 +178,7 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-        
+
         for properties in self.model_part.Properties:            
             self.ModifyProperties(properties)
             
@@ -194,19 +197,44 @@ class ExplicitStrategy:
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
 
+    def CheckMomentumConservation(self):
+        
+        previous_discontinuum_constitutive_law_string = ""
+        current_discontinuum_constitutive_law_string = ""
+        output_message = "\n*********************************************************************************************\n"+\
+                           "*********************************************************************************************\n"+\
+                           "WARNING:                                                                                     \n"+\
+                           "A mix of constitutive laws is being used. The momentum conservation law will not be fulfilled\n"+\
+                           "in the interaction of particles of different constitutive laws. Please, cancel the simulation\n"+\
+                           "if that fact represents a problem. Otherwise, computations will resume in a moment.          \n"+\
+                           "*********************************************************************************************\n"+\
+                           "*********************************************************************************************\n"
+        counter = 0
+        for properties in self.model_part.Properties:
+            current_discontinuum_constitutive_law_string = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+            if ((counter > 0) and (previous_discontinuum_constitutive_law_string != current_discontinuum_constitutive_law_string)):
+                self.Procedures.KRATOSprint(output_message)
+                time.sleep(20) # Inserting a delay of 20 seconds so the user has ample time to read the message
+                break
+            previous_discontinuum_constitutive_law_string = current_discontinuum_constitutive_law_string
+            counter += 1
+ 
+     
     def Initialize(self):  
     
         self.SetVariablesAndOptions()
                 
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
-
-          self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                                                self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.time_integration_scheme, self.search_strategy)
         else:
-          self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                             self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+            self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                             self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                             self.time_integration_scheme, self.search_strategy)
 
-
+        self.CheckMomentumConservation()
+        
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python) 
     
     
@@ -279,10 +307,10 @@ class ExplicitStrategy:
     
     def GammaForHertzThornton(self, e):
             
-        if e<0.001 :                
+        if e < 0.001:                
             e = 0.001
             
-        if e>0.999 :
+        if e > 0.999:
             return 0.0
         
         h1  = -6.918798
@@ -311,13 +339,13 @@ class ExplicitStrategy:
                     
         write_gamma = False
         
-        if  ( type_of_law == 'Linear' ) :                        
+        if (type_of_law == 'Linear'):                        
             gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
             write_gamma = True
             
-        elif ( type_of_law == 'Hertz' ) :
-             gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-             write_gamma = True
+        elif (type_of_law == 'Hertz'):
+            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+            write_gamma = True
             
         else:
             pass
