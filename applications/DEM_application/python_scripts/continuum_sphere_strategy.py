@@ -19,9 +19,9 @@ def Var_Translator(variable):
 
 class ExplicitStrategy(BaseExplicitStrategy):   
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param, procedures):
 
-        BaseExplicitStrategy.__init__(self,model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param, procedures)
         
         
         self.print_export_skin_sphere = Var_Translator(Param.PostExportSkinSphere)
@@ -98,6 +98,3 @@ class ExplicitStrategy(BaseExplicitStrategy):
         ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()        
         ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
 
-        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
-        self.ln_of_restitution_coeff = math.log(coefficient_of_restitution)
-        properties[LN_OF_RESTITUTION_COEFF] = self.ln_of_restitution_coeff
