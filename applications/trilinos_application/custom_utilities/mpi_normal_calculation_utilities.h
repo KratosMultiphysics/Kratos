@@ -15,11 +15,12 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
+#include "processes/process.h"
 
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -42,7 +43,7 @@ namespace Kratos
 ///@{
 
 /// Some tools to calculate face and nodal normals on an MPI partitioned environment
-class MPINormalCalculationUtils
+class MPINormalCalculationUtils : public Process
 {
 public:
     ///@name Type Definitions
