@@ -37,6 +37,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
@@ -178,6 +179,7 @@ void  AddProcessesToPython()
 
     class_<ApplyConstantScalarValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantScalarValueProcess",
             init<ModelPart&, const Variable<double>&, double, std::size_t, Flags>())
+            .def(init< ModelPart&, Parameters& >())
             .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
             .def(init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
@@ -186,6 +188,7 @@ void  AddProcessesToPython()
 
     class_<ApplyConstantVectorValueProcess , bases<Process>, boost::noncopyable >("ApplyConstantVectorValueProcess",
             init<ModelPart&, const Variable<array_1d<double, 3 > >& , const double, const Vector , std::size_t, Flags>())
+            .def(init< ModelPart&, Parameters& >())
             .def_readonly("X_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::X_COMPONENT_FIXED)
             .def_readonly("Y_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Y_COMPONENT_FIXED)
             .def_readonly("Z_COMPONENT_FIXED", &ApplyConstantVectorValueProcess::Z_COMPONENT_FIXED)
