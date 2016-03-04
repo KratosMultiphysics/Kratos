@@ -50,7 +50,7 @@ namespace Kratos {
                                              double equiv_poisson, double calculation_area) {
         
         KRATOS_TRY
-        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); /////////////////// Is this correct??????????????? SLS
+        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); /////////////////// TODO Is this correct??????????????? SLS
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
         KRATOS_CATCH("")  
@@ -324,22 +324,35 @@ namespace Kratos {
     }//ComputeParticleRotationalMoments
     
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, 
-                                                            double LocalCoordSystem[3][3], 
-                                                            double& normal_force, 
-                                                            double calculation_area, Matrix* mSymmStressTensor){   
+                                          double LocalCoordSystem[3][3], 
+                                          double& normal_force, 
+                                          double calculation_area, Matrix* mSymmStressTensor) {
         double force[3];
 
-        for (int i = 0; i < 3; i++) force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[0][0] + (*mSymmStressTensor)(i,1) * LocalCoordSystem[0][1] + (*mSymmStressTensor)(i,2) * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
+        for (int i = 0; i < 3; i++) {
+            
+            force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[0][0] +
+                       (*mSymmStressTensor)(i,1) * LocalCoordSystem[0][1] +
+                       (*mSymmStressTensor)(i,2) * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
+        }
+        double sigma_x = force[0] * LocalCoordSystem[0][0] +
+                         force[1] * LocalCoordSystem[0][1] +
+                         force[2] * LocalCoordSystem[0][2]; // projection to normal to obtain value of the normal stress
 
-        double sigma_x = force[0] * LocalCoordSystem[0][0] + force[1] * LocalCoordSystem[0][1] + force[2] * LocalCoordSystem[0][2]; // projection to normal to obtain value of the normal stress
-
-        for (int i = 0; i < 3; i++) force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[1][0] + (*mSymmStressTensor)(i,1) * LocalCoordSystem[1][1] + (*mSymmStressTensor)(i,2) * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
-
-        double sigma_y = force[0] * LocalCoordSystem[1][0] + force[1] * LocalCoordSystem[1][1] + force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
+        for (int i = 0; i < 3; i++) {
+            
+            force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[1][0] +
+                       (*mSymmStressTensor)(i,1) * LocalCoordSystem[1][1] +
+                       (*mSymmStressTensor)(i,2) * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
+        }
+        double sigma_y = force[0] * LocalCoordSystem[1][0] +
+                         force[1] * LocalCoordSystem[1][1] +
+                         force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
 
         double poisson_force = calculation_area * equiv_poisson * (sigma_x + sigma_y);
 
         normal_force -= poisson_force;
-    }
+    
+    } //AddPoissonContribution
 
 } // namespace Kratos
