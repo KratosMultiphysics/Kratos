@@ -143,13 +143,13 @@ namespace Kratos
           
           ;
          
-          class_< VerletVelocitySolverStrategy<ExplicitSolverStrategyType>,  boost::noncopyable>
+          class_< VerletVelocitySolverStrategy<ExplicitSolverStrategyType>, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
           "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
                                          
           ;
 
-          class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategyType>,  boost::noncopyable>
+          class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategyType>, bases< ContinuumExplicitSolverStrategyType >,  boost::noncopyable>
           (
           "ContinuumVerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 
