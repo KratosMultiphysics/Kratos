@@ -489,7 +489,8 @@ public:
 
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
-		std::cout << "Correction : " << correction << std::endl;
+        if (ThisModelPart.GetCommunicator().MyPID() == 0)
+            std::cout << "Volume correction : " << correction << std::endl;
 
         //std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
@@ -559,7 +560,8 @@ public:
     {
         KRATOS_TRY;
         double net_input = 0.0;
-        int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
+
+/*        int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
         #pragma omp parallel for firstprivate(node_size) reduction(+:net_input)
         for (int ii = 0; ii < node_size; ii++)
         {
@@ -578,6 +580,32 @@ public:
             }
         }
         //syncronoze
+        ThisModelPart.GetCommunicator().SumAll(net_input);*/
+        for (ModelPart::ConditionIterator iCond = ThisModelPart.ConditionsBegin(); iCond != ThisModelPart.ConditionsEnd(); iCond++)
+        {
+            if (iCond->GetValue(IS_INLET) != 0.0)
+            {
+                Geometry< Node<3> >& rGeometry = iCond->GetGeometry();
+                array_1d<double,3> v1, v2, AreaNormal;
+                v1[0] = rGeometry[1].X() - rGeometry[0].X();
+                v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
+                v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
+
+                v2[0] = rGeometry[2].X() - rGeometry[0].X();
+                v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
+                v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
+
+                MathUtils<double>::CrossProduct(AreaNormal,v1,v2);
+                AreaNormal *= 0.5;
+
+                array_1d<double,3> Velocity(3,0.0);
+                for (unsigned int i = 0; i < rGeometry.PointsNumber(); i++)
+                    Velocity += rGeometry[i].FastGetSolutionStepValue(VELOCITY);
+                Velocity /= 3.0;
+
+                net_input += Velocity[0]*AreaNormal[0] + Velocity[1]*AreaNormal[1] + Velocity[2]*AreaNormal[2];
+            }
+        }
         ThisModelPart.GetCommunicator().SumAll(net_input);
 
         ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
@@ -1206,12 +1234,12 @@ private:
             boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
             GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
             //get position of the cut surface
-            Vector distances(4);
-            Matrix Nenriched(6, 1);
-            Vector volumes(6);
-            Matrix coords(4, 3);
-            Matrix Ngauss(6, 4);
-            Vector signs(6);
+            Vector distances = ZeroVector(4);
+            Matrix Nenriched = ZeroMatrix(6, 1);
+            Vector volumes = ZeroVector(6);
+            Matrix coords = ZeroMatrix(4, 3);
+            Matrix Ngauss = ZeroMatrix(6, 4);
+            Vector signs = ZeroVector(6);
             std::vector< Matrix > gauss_gradients(6);
             //fill coordinates
             for (unsigned int i = 0; i < 4; i++)
@@ -1223,7 +1251,10 @@ private:
                     coords(i, j) = xyz[j];
             }
             for (unsigned int i = 0; i < 6; i++)
+            {
                 gauss_gradients[i].resize(1, 3, false);
+                gauss_gradients[i] = ZeroMatrix(1,3);
+            }
                 
             array_1d<double,6> edge_areas;
             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);

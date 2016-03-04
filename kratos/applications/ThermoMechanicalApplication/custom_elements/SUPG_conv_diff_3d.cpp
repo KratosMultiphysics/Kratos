@@ -132,7 +132,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	//Phase change parameters
     double LL = rCurrentProcessInfo[LATENT_HEAT];
 	double solid_T = rCurrentProcessInfo[SOLID_TEMPERATURE];
-	double fluid_T = rCurrentProcessInfo[FLUID_TEMPERATURE];
+    double fluid_T = rCurrentProcessInfo[FLUID_TEMPERATURE];
 	array_1d<double, 4 > phase_change_vec = ZeroVector(4);
 	boost::numeric::ublas::bounded_matrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
 	double mid_T = 0.5*(solid_T + fluid_T);
