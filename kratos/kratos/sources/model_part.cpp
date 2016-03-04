@@ -837,6 +837,11 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
  KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
 		  //	KRATOS_ERROR << "Calling the SetBufferSize method of the sub model part " << Name()
 		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
+ 
+                for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
+                {
+                    i_sub_model_part->mBufferSize = NewBufferSize;
+                }
 
 		mBufferSize = NewBufferSize;
 
