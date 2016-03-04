@@ -1040,8 +1040,9 @@ namespace Kratos
 
         for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
 
-            const double vel_start = (*mesh_it)[VELOCITY_START_TIME];
-            const double vel_stop = (*mesh_it)[VELOCITY_STOP_TIME];
+            double vel_start=0.0, vel_stop=std::numeric_limits<double>::max();
+            if((*mesh_it).Has(VELOCITY_START_TIME)){ vel_start = (*mesh_it)[VELOCITY_START_TIME];}
+            if((*mesh_it).Has(VELOCITY_STOP_TIME)) { vel_stop  = (*mesh_it)[VELOCITY_STOP_TIME]; }
 
             if(time<vel_start || time>vel_stop) continue;
 
