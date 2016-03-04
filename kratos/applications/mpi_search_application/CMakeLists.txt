@@ -16,7 +16,7 @@ set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMPISearchApplication SHARED ${KRATOS_MPI_SEARCH_APPLICATION_SOURCES})
-target_link_libraries(KratosMPISearchApplication KratosCore ${MPI_LIBRARIES})
+target_link_libraries(KratosMPISearchApplication KratosDEMApplication KratosCore ${MPI_LIBRARIES})
 set_target_properties(KratosMPISearchApplication PROPERTIES PREFIX "")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
