@@ -108,7 +108,6 @@ double SlowGetRollingFriction();
 double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetCoefficientOfRestitution();
-double SlowGetLnOfRestitCoeff();
 double SlowGetDensity();
 double SlowGetParticleCohesion();
 int    SlowGetParticleMaterial();
