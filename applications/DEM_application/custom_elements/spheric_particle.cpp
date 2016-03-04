@@ -1025,7 +1025,7 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
       }
     }
  
-    if (points == 2) {
+    else if (points == 2) {
       
         double eta = 0.0;
         contact_exists = GeometryFunctions::EdgeCheck(Coord[inode1], Coord[inode2], node_coor, radius, LocalCoordSystem, DistPToB, eta);
@@ -1035,7 +1035,7 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
         
     }
 
-    if (points == 1) {
+    else if (points == 1) {
         contact_exists = GeometryFunctions::VertexCheck(Coord[inode1], node_coor, radius, LocalCoordSystem, DistPToB);
         Weight[inode1] = 1.0;
     }
@@ -1496,6 +1496,8 @@ double SphericParticle::CalculateVolume()                                       
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;       }
 double SphericParticle::GetInteractionRadius()                                           { return mRadius;         }
 void   SphericParticle::SetInteractionRadius(const double radius)                        { mRadius = radius; GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;}
+double SphericParticle::GetSearchRadius()                                                { return mSearchRadius;   }
+void   SphericParticle::SetSearchRadius(const double radius)                             { mSearchRadius = radius; }
 double SphericParticle::GetMass()                                                        { return mRealMass;       }
 void   SphericParticle::SetMass(double real_mass)                                        { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
 double SphericParticle::CalculateMomentOfInertia()                                       {return 0.4 * GetMass() * GetRadius() * GetRadius(); }

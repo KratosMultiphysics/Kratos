@@ -99,8 +99,6 @@ End Mesh
 
 Begin Mesh 4 // GUI conditionid DEM-VelocityBC group identifier: ball2
   Begin MeshData // GUI Groupid: ball2
-
-    IMPOSED_VELOCITY_X_VALUE  0.0
     FORCE_INTEGRATION_GROUP  1
     TOP  2
     BOTTOM  0

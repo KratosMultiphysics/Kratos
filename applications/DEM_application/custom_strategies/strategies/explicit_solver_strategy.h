@@ -365,10 +365,7 @@ namespace Kratos
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
-          GetBoundingBoxOption()    = r_process_info[BOUNDING_BOX_OPTION];
           GetSearchControl()        = r_process_info[SEARCH_CONTROL];
-          GetBoundingBoxStartTime() = r_process_info[BOUNDING_BOX_START_TIME];
-          GetBoundingBoxStopTime()  = r_process_info[BOUNDING_BOX_STOP_TIME];
 
           InitializeDEMElements();
           InitializeFEMElements();
@@ -398,7 +395,6 @@ namespace Kratos
           mSearchControl = 2;
 
           // Finding overlapping of initial configurations
-
           if (r_process_info[CLEAN_INDENT_OPTION]) {
               for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
           }
@@ -407,8 +403,7 @@ namespace Kratos
               InitialTimeStepCalculation();
           }
 
-          double& total_friccional_work       = r_process_info[PARTICLE_INELASTIC_FRICTIONAL_WORK];
-          total_friccional_work = 0.0;
+          r_process_info[PARTICLE_INELASTIC_FRICTIONAL_WORK] = 0.0;
 
            // 5. Finalize Solution Step.
           //FinalizeSolutionStep();
@@ -499,7 +494,7 @@ namespace Kratos
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box
 
 
-            if (this->GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
+            if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
                 BoundingBoxUtility();
             }
             else {
@@ -1114,7 +1109,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void SetArrayOfAmplifiedRadii(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0)
+    void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0)
     {
         KRATOS_TRY
 
@@ -1128,6 +1123,7 @@ namespace Kratos
         for (int i = 0; i < number_of_elements; i++ ){
 
             this->GetArrayOfAmplifiedRadii()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
+            mListOfSphericParticles[i]->SetSearchRadius(amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius()));
 
         }
 
@@ -1144,7 +1140,7 @@ namespace Kratos
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if(!number_of_elements) return;
 
-        SetArrayOfAmplifiedRadii(r_model_part, r_process_info[SEARCH_TOLERANCE], amplification);
+        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], amplification);
 
         r_model_part.GetCommunicator().GhostMesh().ElementsArray().clear();
 
@@ -1215,7 +1211,7 @@ namespace Kratos
         if (pTConditions.size() > 0) {
 
             ModelPart& r_model_part = BaseType::GetModelPart();
-            SetArrayOfAmplifiedRadii(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
+            SetSearchRadiiOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
 
             const int number_of_particles = (int)mListOfSphericParticles.size();
 
@@ -1459,10 +1455,7 @@ namespace Kratos
 
     int&                                         GetNStepSearch(){return (mNStepSearch);}
     int&                                         GetSearchControl(){return mSearchControl;}
-    int&                                         GetBoundingBoxOption(){return (mBoundingBoxOption);}
     int&                                         GetNumberOfThreads(){return (mNumberOfThreads);}
-    double&                                      GetBoundingBoxStartTime(){return (mBoundingBoxStartTime);}
-    double&                                      GetBoundingBoxStopTime(){return (mBoundingBoxStopTime);}
 
     double&                                      GetMaxTimeStep(){return (mMaxTimeStep);}
     double&                                      GetSafetyFactor(){return (mSafetyFactor);}
@@ -1475,10 +1468,9 @@ namespace Kratos
     vector<unsigned int>&                        GetElementPartition(){return (mElementPartition);}
 
     typename ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor(){return (mpParticleCreatorDestructor);}
-    typename DEMIntegrationScheme::Pointer&         GetScheme(){return (mpScheme);}
+    typename DEMIntegrationScheme::Pointer&      GetScheme(){return (mpScheme);}
     typename SpatialSearch::Pointer&             GetSpSearch(){return (mpSpSearch);}
-
-    //Cfeng
+   
     VectorResultConditionsContainerType&         GetRigidFaceResults(){return(mRigidFaceResults);}
     VectorDistanceType&                          GetRigidFaceResultsDistances(){return(mRigidFaceResultsDistances);}
     vector<unsigned int>&                        GetConditionPartition(){return (mConditionPartition);}
@@ -1492,17 +1484,12 @@ namespace Kratos
 
     protected:
 
-    // Member variables
-
     VectorResultElementsContainerType            mResults;
     VectorDistanceType                           mResultsDistances;
     RadiusArrayType                              mArrayOfAmplifiedRadii;
 
     int                                          mNStepSearch;
     int                                          mSearchControl;
-    int                                          mBoundingBoxOption;
-    double                                       mBoundingBoxStartTime;
-    double                                       mBoundingBoxStopTime;
     int                                          mNumberOfThreads;
     int                                          mNumberOfElementsOldRadiusList;
 
@@ -1519,7 +1506,6 @@ namespace Kratos
     typename SpatialSearch::Pointer              mpSpSearch;
 
 
-    ////Cfeng
     VectorResultConditionsContainerType  mRigidFaceResults;
     VectorDistanceType                   mRigidFaceResultsDistances;
     vector<unsigned int>                 mConditionPartition;

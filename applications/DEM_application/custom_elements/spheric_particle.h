@@ -77,6 +77,8 @@ void   SetRadius(double radius);
 virtual double CalculateVolume();
 virtual double GetInteractionRadius();
 virtual void SetInteractionRadius(const double radius);
+virtual double GetSearchRadius();
+virtual void SetSearchRadius(const double radius);
 virtual double GetMass();
 void   SetMass(double real_mass);
 virtual double   CalculateMomentOfInertia();
@@ -286,6 +288,7 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 //array_1d<double, 3> mContactForce; //SLS
 
 double mRadius;
+double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 std::vector<int> mOldNeighbourIds;

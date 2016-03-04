@@ -69,13 +69,11 @@ public:
     double CalculateVolume();
     
     double GetInteractionRadius();
-    void SetInteractionRadius(const double radius);
-
 
 protected:
 
     double mThicknessOverRadius;
-    double mInteractionRadius;
+    //double mInteractionRadius;
 
 private:
 
