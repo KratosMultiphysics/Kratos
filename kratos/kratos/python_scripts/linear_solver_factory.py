@@ -27,6 +27,28 @@ def ConstructPreconditioner(configuration):
 #
 #
 def ConstructSolver(configuration):
+    
+    ##############################################################
+    ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
+    ###TODO: clean this up!!
+    if(type(configuration) == Parameters):
+        import json
+        tmp = json.loads(configuration.PrettyPrintJsonString())
+        
+        params = configuration
+        
+        class aux(object):
+            pass 
+        
+        configuration = aux()
+        configuration.__dict__.update(tmp)
+    ##############################################################
+            
+        
+        
+    
+    
+    
     solver_type = configuration.solver_type
 
     scaling = False
@@ -201,10 +223,12 @@ def ConstructSolver(configuration):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB
             elif(krylov_type == "CG"):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.CG
+            elif(krylov_type == "BICGSTAB2"):
+                amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB2
             elif(krylov_type == "BICGSTAB_WITH_GMRES_FALLBACK"):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK             
             else:
-                print("ERROR: krylov_type shall be one of \"GMRES\", \"BICGSTAB\", \"CG\", \"BICGSTAB_WITH_GMRES_FALLBACK\", got \"{0}\".\n\"GMRES\" will be used".format(krylov_type))
+                print("ERROR: krylov_type shall be one of \"GMRES\", \"BICGSTAB\", \"CG\", \"BICGSTAB2\", \"BICGSTAB_WITH_GMRES_FALLBACK\", got \"{0}\".\n\"GMRES\" will be used".format(krylov_type))
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
         else:
             print("WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES")
