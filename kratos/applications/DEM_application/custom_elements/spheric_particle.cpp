@@ -756,7 +756,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
             ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
         }
         
-        if (r_process_info[STRESS_STRAIN_OPTION]) {
+        if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], distance, radius_sum);
         }    
         
@@ -956,7 +956,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 ComputeWear(LocalCoordSystem, vel, DeltVel, mTimeStep, density, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
             } //wall->GetProperties()[COMPUTE_WEAR] if 
             
-            if (r_process_info[STRESS_STRAIN_OPTION]) {
+            if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
                 AddWallContributionToStressTensor(GlobalElasticContactForce, LocalCoordSystem[2], actual_distance_to_contact_point, 0.0);
             } 
         } //ContactType if          
@@ -1155,8 +1155,7 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
     
     this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
 
-    if (r_process_info[STRESS_STRAIN_OPTION]) {
-
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 (*mStressTensor)(i,j) = 0.0;
@@ -1242,7 +1241,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
         rRepresentative_Volume = sphere_volume;
     }    
-    if (r_process_info[STRESS_STRAIN_OPTION]) {
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         //Divide Stress Tensor by the total volume:
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -1262,7 +1261,7 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
 
 void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
     
-    if (r_process_info[STRESS_STRAIN_OPTION]) {
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) = (*mSymmStressTensor)(0,0);
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) = (*mSymmStressTensor)(0,1);
         this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XZ) = (*mSymmStressTensor)(0,2);
@@ -1358,8 +1357,11 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     
     if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);
     else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
+    
+    if (r_process_info[STRESS_STRAIN_OPTION])    this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    else                                         this->Set(DEMFlags::HAS_STRESS_TENSOR, false);
 
-    if (r_process_info[STRESS_STRAIN_OPTION]) {
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
         
         mStressTensor  = new Matrix(3,3);
         *mStressTensor = ZeroMatrix(3,3);
