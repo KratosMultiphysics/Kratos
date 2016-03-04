@@ -141,6 +141,7 @@ public:
     //*******************************************************************************************************
     Parameters GetValue(const std::string entry)
     {
+        if(this->Has(entry) == false) KRATOS_THROW_ERROR(std::invalid_argument,"getting a value that does not exist. entry string : ",entry);
         rapidjson::Value* pvalue = &((*mpvalue)[entry.c_str()]);
 
         return Parameters(pvalue, mpdoc);
@@ -166,7 +167,16 @@ public:
             this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
         }
     }
-
+    Parameters AddEmptyValue(const std::string entry)
+    {
+        if(this->Has(entry) == false)
+        {
+            rapidjson::Value tmp;
+            rapidjson::Value name(entry.c_str(), mpdoc->GetAllocator()); //rhis will be moved away
+            this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
+        }
+        return this->GetValue(entry);
+    }
 
 
     //*******************************************************************************************************
@@ -239,7 +249,10 @@ public:
     }
     void SetString(const std::string value)
     {
-        mpvalue->SetString(rapidjson::StringRef(value.c_str()));
+        rapidjson::Value tmp(value.c_str(), mpdoc->GetAllocator());
+        *mpvalue = tmp;
+//         mpvalue->SetString(rapidjson::StringRef(value.c_str()));
+//        mpvalue->SetString(value.c_str(), value.length());
     }
 
 
@@ -299,7 +312,8 @@ public:
             if(!defaults.Has(item_name) )
             {
                 std::stringstream msg;
-                msg << "the item with name " << item_name << "is present in this Parameters but not in the default values" << std::endl;
+                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "hence Validation fails" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "defaults against which the current parameters are validated are :" << std::endl;
