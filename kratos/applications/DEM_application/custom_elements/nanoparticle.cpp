@@ -11,9 +11,7 @@
 #include "nanoparticle.h"
 
 namespace Kratos {
-void NanoParticle::CustomInitialize()
-{
-    mInteractionRadius = GetGeometry()[0].GetSolutionStepValue(RADIUS);
+void NanoParticle::CustomInitialize() {
     mRadius = 1e-7;
     double added_mass_coefficient = 1.0;
     SetMass(added_mass_coefficient * GetDensity() * CalculateVolume());
@@ -50,12 +48,8 @@ double NanoParticle::CalculateVolume()
 
 double NanoParticle::GetInteractionRadius()
 {
-    return mInteractionRadius;
+    return mSearchRadius;
 }
 
-void NanoParticle::SetInteractionRadius(const double radius)
-{
-    mInteractionRadius = radius;
-}
     
 } // namespace Kratos

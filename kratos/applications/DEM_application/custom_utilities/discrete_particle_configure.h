@@ -16,6 +16,7 @@
 #include "spatial_containers/spatial_search.h"
 #include "includes/dem_variables.h"
 #include "DEM_application_variables.h"
+#include "../custom_elements/spheric_particle.h"
 
 namespace Kratos
 {
@@ -123,9 +124,10 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     { 
-        // KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0); //Doesn't matter cause it's only for the construction of the bins.
         rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
-        double radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        
+        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);        
+        double radius = p_particle->GetSearchRadius();        
 
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -154,23 +156,20 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
         array_1d<double, 3> rObj_2_to_rObj_1;
         noalias(rObj_2_to_rObj_1) = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
-        const double& radius_1 = rObj_1->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-        const double& radius_2 = rObj_2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-        double radius_sum      = radius_1 + radius_2;
+        SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
+        SphericParticle* p_particle2 = dynamic_cast<SphericParticle*>(&*rObj_2);
+        double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
     }
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
-        //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);
-        //array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         const array_1d<double, 3>& coor1 = rObj_1->GetGeometry()[0];
         const array_1d<double, 3>& coor2 = rObj_2->GetGeometry()[0];
 
@@ -180,7 +179,9 @@ public:
         difference[2] = coor1[2] - coor2[2];
         double distance_2 = DEM_INNER_PRODUCT_3(difference, difference);
 
-        double radius_sum      = radius_1 + rObj_2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
+        SphericParticle* p_particle2 = dynamic_cast<SphericParticle*>(&*rObj_2);
+        double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
 
         return intersect;
@@ -190,13 +191,10 @@ public:
     
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
- 
-       // KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0); //Doesn't matter cause it's only for the construction of the bins.
-//        double separation_from_particle_radius_ratio = 0.1;
-
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
  
-        const double& radius = rObject->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
+        const double& radius = p_particle->GetSearchRadius();
 
         bool intersect = (
           floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
@@ -207,12 +205,10 @@ public:
           floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
         return  intersect;
- 
     }
 
     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius)
     {
-//        double separation_from_particle_radius_ratio = 0.1;
         const array_1d<double, 3>& center_of_particle = rObject->GetGeometry()[0];
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
@@ -236,21 +232,7 @@ public:
                         (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
     }
      
-    //******************************************************************************************************************
 
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }

@@ -135,8 +135,9 @@ namespace Kratos
       template<class TVariableType>
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
-          KRATOS_TRY                  
-          //KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0);          
+          KRATOS_TRY 
+          KRATOS_THROW_ERROR(std::runtime_error, "This function uses FastGetSolutionStepValue(RADIUS) instead of the list of radii!", 0); 
+
           if(rSearchNodes.size() && rBinsNodes.size())
           {
               std::size_t node_size = rSearchNodes.size();
@@ -185,20 +186,6 @@ namespace Kratos
       
       //TO BE IMPLEMENTED
 
-      ///@}
-      ///@name Access
-      ///@{
-        
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Input and output
-      ///@{
-
       virtual std::string Info() const
       {
           return "";
@@ -217,12 +204,6 @@ namespace Kratos
       }
 
 
-      ///@}
-      ///@name Friends
-      ///@{
-        
-      ///@}
-
     protected:
       
       ///@name Protected static Member rVariables
@@ -236,102 +217,13 @@ namespace Kratos
         
       vector<unsigned int>              mPartition;
 
-      ///@}
-      ///@name Protected member rVariables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-      ///@}
-
     private:
-
-
-      ///@name Static Member rVariables
-      ///@{
-
-
-      ///@}
-      ///@name Member rVariables
-      ///@{
-
-
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
 
       /// Assignment operator.
       DemSearchUtilities & operator=(DemSearchUtilities const& rOther);
 
 
-      ///@}
-
   }; // Class DemSearchUtilities
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// output stream function
-//  template<std::size_t TDim>
-//  inline std::ostream& operator << (std::ostream& rOStream)
-//  {
-//      rThis.PrintInfo(rOStream);
-//      rOStream << std::endl;
-//      rThis.PrintData(rOStream);
-//
-//      return rOStream;
-//  }
-///@}
 
 
 } // namespace Kratos.

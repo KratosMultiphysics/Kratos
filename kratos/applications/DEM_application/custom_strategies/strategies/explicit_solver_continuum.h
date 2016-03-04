@@ -72,35 +72,7 @@ namespace Kratos
            Timer::SetOuputFile("TimesPartialRelease");
            Timer::PrintTimingInformation();
         }      
-
-        void SearchNeighboursInContinuum(const bool has_mpi) {
-            KRATOS_TRY
-
-            ModelPart& r_model_part           = GetModelPart();
-            ProcessInfo& r_process_info  = r_model_part.GetProcessInfo();
-
-            this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
-            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
-
-            BaseType::SearchNeighbours(r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]); //the amplification factor has been modified after the first search.
-
-            this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
-            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
-            this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
-            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-
-            if(has_mpi){
-              BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
-              BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);
-              //RebuildListsOfPointersOfEachParticle(); //Serialized member variables which are pointers are lost, so we rebuild them using Id's
-            }
-
-            BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
-            BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
-
-            KRATOS_CATCH("")
-        }
-      
+        
         virtual void Initialize()
         {
             KRATOS_TRY
@@ -138,12 +110,7 @@ namespace Kratos
             BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
             BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
 
-            //mDempackOption    = bool(r_process_info[DEMPACK_OPTION]);
-
-            BaseType::GetBoundingBoxOption()     = r_process_info[BOUNDING_BOX_OPTION];
             BaseType::GetSearchControl()         = r_process_info[SEARCH_CONTROL];
-            BaseType::GetBoundingBoxStartTime() = r_process_info[BOUNDING_BOX_START_TIME];
-            BaseType::GetBoundingBoxStopTime()  = r_process_info[BOUNDING_BOX_STOP_TIME];      
 
             //BaseType::InitializeSolutionStep();
             BaseType::InitializeDEMElements();
@@ -272,7 +239,7 @@ namespace Kratos
 
                 if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
 
-                    if (BaseType::GetBoundingBoxOption() && ((time >= this->GetBoundingBoxStartTime()) && (time <= this->GetBoundingBoxStopTime()))) {
+                    if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
 
                         BoundingBoxUtility();                        
                     }
@@ -282,14 +249,31 @@ namespace Kratos
                         p_creator_destructor->DestroyContactElements(*mpContact_model_part);
                     }
 
-                    SearchNeighboursInContinuum(has_mpi); 
+                    this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
+                    this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
+
+                    BaseType::SearchNeighbours(r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]); //the amplification factor has been modified after the first search.
+
+                    this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
+                    this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
+                    this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
+                    this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+
+                    if(has_mpi){
+                      BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
+                      BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+                      //RebuildListsOfPointersOfEachParticle(); //Serialized member variables which are pointers are lost, so we rebuild them using Id's
+                    }
+
+                    BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
+                    BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
                     ComputeNewNeighboursHistoricalData();
 
                     BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
                     r_process_info[SEARCH_CONTROL] = 2;
-                    if (BaseType::GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+                    if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
                         if (r_process_info[CONTACT_MESH_OPTION] == 1) {                            
                             CreateContactElements();
                             InitializeContactElements();
