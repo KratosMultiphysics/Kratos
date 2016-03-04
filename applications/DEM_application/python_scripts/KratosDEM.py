@@ -31,16 +31,16 @@ else:
     import DEM_material_test_script
     print("Running under OpenMP........")
 
-# TO_DO: Ugly fix. Change it. I don't like this to be in the main...
+# TODO: Ugly fix. Change it. I don't like this to be in the main...
 # Strategy object
-if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
 elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
     import continuum_sphere_strategy as SolverStrategy
 elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy    
 else:
-    KRATOSprint('Error: Strategy unnavailable. Select a different scheme-element')
+    KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
 
 ##############################################################################
 #                                                                            #
@@ -76,7 +76,7 @@ dem_fem_search = DEM_FEM_Search()
 
 # Creating a solver object and set the search strategy
 
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
 #Getting chosen scheme:
 
