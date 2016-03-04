@@ -1151,7 +1151,6 @@ void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 void SphericParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 {
     KRATOS_TRY
-
     mRadius = this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS); //Just in case someone is overwriting the radius in Python
     
     this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = 0.0;
@@ -1176,9 +1175,8 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
 
     double gap = distance - radius_sum;
     double real_distance = GetInteractionRadius() + 0.5 * gap;
-
-//        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-//        rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
+    //double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+    //rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
 
     array_1d<double, 3> normal_vector_on_contact;
     normal_vector_on_contact[0] = -1 * other_to_me_vect[0]; //outwards
@@ -1186,10 +1184,10 @@ void SphericParticle::AddNeighbourContributionToStressTensor(const double Force[
     normal_vector_on_contact[2] = -1 * other_to_me_vect[2]; //outwards
 
     array_1d<double, 3> x_centroid = real_distance * normal_vector_on_contact;
-
+   
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            (*mStressTensor)(i,j) += x_centroid[j] * Force[i]; //ref: Katalin Bagi 1995 Mean stress tensor                                     
+            (*mStressTensor)(i,j) += x_centroid[j] * Force[i]; //ref: Katalin Bagi 1995 Mean stress tensor
         }
     }        
     KRATOS_CATCH("")
@@ -1244,10 +1242,13 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
     if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
         rRepresentative_Volume = sphere_volume;
     }    
-
     if (r_process_info[STRESS_STRAIN_OPTION]) {
         //Divide Stress Tensor by the total volume:
-        for (int i = 0; i < 3; i++) {  for (int j = 0; j < 3; j++) {  (*mStressTensor)(i,j) /= rRepresentative_Volume;   }  }
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                (*mStressTensor)(i,j) /= rRepresentative_Volume;
+            }
+        }
 
         //The following operation symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
         for (int i = 0; i < 3; i++) {
@@ -1535,7 +1536,6 @@ double SphericParticle::SlowGetRollingFriction()                                
 double SphericParticle::SlowGetPoisson()                                                 { return GetProperties()[POISSON_RATIO];                                           }
 double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                       }
 double SphericParticle::SlowGetCoefficientOfRestitution()                                { return GetProperties()[COEFFICIENT_OF_RESTITUTION];                              }
-double SphericParticle::SlowGetLnOfRestitCoeff()                                         { return GetProperties()[LN_OF_RESTITUTION_COEFF];                                 }
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
 double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
