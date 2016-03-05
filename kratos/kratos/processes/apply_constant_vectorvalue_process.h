@@ -64,19 +64,27 @@ public:
     {
         KRATOS_TRY
         
-//         KratosParameters default_parameters( std::string("
-//         {
-//             \"mesh_id\\": 0,
-//             \"variable_name\": \"PLEASE_PRESCRIBE_VARIABLE_NAME\",
-//             \"is_fixed_x\": false,
-//             \"is_fixed_y\": false,
-//             \"is_fixed_z\": false,
-//             \"factor\" : 1.0,
-//             \"value\" : 1.0,
-//             \"direction\": [1.0, 0.0, 0.0]
-//         }"
-//         ) ) 
+        Parameters default_parameters( R"(
+            {
+                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "mesh_id": 0,
+                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
+                "is_fixed_x": false,
+                "is_fixed_y": false,
+                "is_fixed_z": false,
+                "factor" : 1.0,
+                "direction": [1.0, 0.0, 0.0]
+            }  )" );
         
+        //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        //so that an error is thrown if they don't exist
+        parameters["direction"];
+        parameters["factor"];
+        parameters["variable_name"];
+        parameters["model_part_name"];        
+        
+        //now validate agains defaults -- this also ensures no type mismatch
+        parameters.ValidateAndAssignDefaults(default_parameters);
         
         //read from the parameters and assign to the values
         mmesh_id = parameters["mesh_id"].GetInt();
