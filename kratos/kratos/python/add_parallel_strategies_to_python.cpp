@@ -251,50 +251,6 @@ void  AddParallelStrategiesToPython()
     //Builder and Solver
     typedef BuilderAndSolver< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBuilderAndSolverType;
 
-    void (ParallelBuilderAndSolverType::*ParallelBuilderAndSolverTypeSystemSolve1)(
-        ParallelBuilderAndSolverType::TSystemMatrixType&,
-        ParallelBuilderAndSolverType::TSystemVectorType&,
-        ParallelBuilderAndSolverType::TSystemVectorType&)
-        = &ParallelBuilderAndSolverType::SystemSolve;
-
-    void (ParallelBuilderAndSolverType::*ParallelBuilderAndSolverTypeSystemSolve2)(
-        ParallelBuilderAndSolverType::TSystemMatrixPointerType,
-        ParallelBuilderAndSolverType::TSystemVectorPointerType,
-        ParallelBuilderAndSolverType::TSystemVectorPointerType)
-        = &ParallelBuilderAndSolverType::SystemSolve;
-
-    void (ParallelBuilderAndSolverType::*ParallelBuilderAndSolverTypeBuildAndSolve1)(
-        ParallelBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        ParallelBuilderAndSolverType::TSystemMatrixType&,
-        ParallelBuilderAndSolverType::TSystemVectorType&,
-        ParallelBuilderAndSolverType::TSystemVectorType&)
-        = &ParallelBuilderAndSolverType::BuildAndSolve;
-
-    void (ParallelBuilderAndSolverType::*ParallelBuilderAndSolverTypeBuildAndSolve2)(
-        ParallelBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        ParallelBuilderAndSolverType::TSystemMatrixPointerType,
-        ParallelBuilderAndSolverType::TSystemVectorPointerType,
-        ParallelBuilderAndSolverType::TSystemVectorPointerType)
-        = &ParallelBuilderAndSolverType::BuildAndSolve;
-
-    void (ParallelBuilderAndSolverType::*ParallelBuilderAndSolverTypeBuildRHSAndSolve1)(
-        ParallelBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        ParallelBuilderAndSolverType::TSystemMatrixType&,
-        ParallelBuilderAndSolverType::TSystemVectorType&,
-        ParallelBuilderAndSolverType::TSystemVectorType&)
-        = &ParallelBuilderAndSolverType::BuildRHSAndSolve;
-
-    void (ParallelBuilderAndSolverType::*ParallelBuilderAndSolverTypeBuildRHSAndSolve2)(
-        ParallelBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        ParallelBuilderAndSolverType::TSystemMatrixPointerType,
-        ParallelBuilderAndSolverType::TSystemVectorPointerType,
-        ParallelBuilderAndSolverType::TSystemVectorPointerType)
-        = &ParallelBuilderAndSolverType::BuildRHSAndSolve;
-
     class_< ParallelBuilderAndSolverType::DofsArrayType, boost::noncopyable >("ParallelDofsArrayType",	init<>() );
 
     class_< ParallelBuilderAndSolverType, boost::noncopyable >("ParallelBuilderAndSolver",	init<ParallelLinearSolverType::Pointer>() )
@@ -308,12 +264,9 @@ void  AddParallelStrategiesToPython()
     .def("BuildLHS", &ParallelBuilderAndSolverType::BuildLHS )
     .def("BuildRHS", &ParallelBuilderAndSolverType::BuildRHS )
     .def("Build", &ParallelBuilderAndSolverType::Build )
-    .def("SystemSolve", ParallelBuilderAndSolverTypeSystemSolve1 )
-    .def("BuildAndSolve", ParallelBuilderAndSolverTypeBuildAndSolve1 )
-    .def("BuildRHSAndSolve", ParallelBuilderAndSolverTypeBuildRHSAndSolve1 )
-    .def("SystemSolve", ParallelBuilderAndSolverTypeSystemSolve2 )
-    .def("BuildAndSolve", ParallelBuilderAndSolverTypeBuildAndSolve2 )
-    .def("BuildRHSAndSolve", ParallelBuilderAndSolverTypeBuildRHSAndSolve2 )
+    .def("SystemSolve", &ParallelBuilderAndSolverType::SystemSolve )
+    .def("BuildAndSolve", &ParallelBuilderAndSolverType::BuildAndSolve )
+    .def("BuildRHSAndSolve", &ParallelBuilderAndSolverType::BuildRHSAndSolve )
     .def("ApplyDirichletConditions", &ParallelBuilderAndSolverType::ApplyDirichletConditions )
     .def("SetUpDofSet", &ParallelBuilderAndSolverType::SetUpDofSet )
     .def("GetDofSet", &ParallelBuilderAndSolverType::GetDofSet, return_internal_reference<>() )
