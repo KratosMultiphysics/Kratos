@@ -136,6 +136,8 @@ public:
     {
         KRATOS_TRY;
 
+        if(mrModelPart.Conditions().size() == 0 && mrModelPart.Elements().size() != 0)
+            KRATOS_THROW_ERROR(std::invalid_argument, "the number of conditions is zero and the number of elements is not, hence the skin can not envelope the domain","")
 
         typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
         hashmap edge_map;
