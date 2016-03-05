@@ -46,6 +46,24 @@ pretty_out_after_change = """{
     }
 }"""
 
+#here the level1 var is set to a double so that a validation error should be thrown
+wrong_type = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": 0.0
+}"""
+
+#int value is badly spelt
+wrong_spelling = """{
+    "int_values": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": 0.0
+}"""
+
 defaults = """
 {
 	"int_value": 10,
@@ -162,12 +180,22 @@ class TestParameters(KratosUnittest.TestCase):
             self.kp["no_value"].GetInt()
 
     def test_validation_fails_due_to_wrong_type(self):
-        kp = Parameters(json_string)
+        kp = Parameters(wrong_type)
         defaults_params =  Parameters(defaults)
         
         # should check which errors are thrown!!
         with self.assertRaisesRegex(RuntimeError, "kratos"):
             kp.ValidateAndAssignDefaults(defaults_params)
+
+    def test_validation_fails_due_to_wrong_spelling(self):
+        kp = Parameters(wrong_spelling)
+        defaults_params =  Parameters(defaults)
+        
+        # should check which errors are thrown!!
+        with self.assertRaisesRegex(RuntimeError, "kratos"):
+            kp.ValidateAndAssignDefaults(defaults_params)
+            
+
      
     def test_validation_succeeds(self):
         kp = Parameters(json_string)
