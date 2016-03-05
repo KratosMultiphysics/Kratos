@@ -297,7 +297,91 @@ public:
         return this->GetArrayItem(index);
     }
 
+    /**This function is designed to verify that the parameters under testing match the
+     * form prescribed by the defaults.
+     * If the parameters contain values that do not appear in the defaults, an error is thrown, 
+     * whereas if a parameter is found in the defaults but not in the Parameters been tested,
+     * it is copied to the parameters.
+     * 
+     * this version of the function only walks one level, without descending in the branches
+     */
     void ValidateAndAssignDefaults(Parameters& defaults)
+    {
+        KRATOS_TRY
+
+
+        //first verifies that all the enries in the current parameters
+        //have a correspondance in the defaults.
+        //if it is not the case throw an error
+        for (rapidjson::Value::ConstMemberIterator itr = this->mpvalue->MemberBegin(); itr != this->mpvalue->MemberEnd(); ++itr)
+        {
+            std::string item_name = itr->name.GetString();
+
+            if(!defaults.Has(item_name) )
+            {
+                std::stringstream msg;
+                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "hence Validation fails" << std::endl;
+                msg << "parameters being validated are : " << std::endl;
+                msg << this->PrettyPrintJsonString() << std::endl;
+                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << defaults.PrettyPrintJsonString() << std::endl;
+                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+            }
+
+            bool type_coincides = false;
+            rapidjson::Value* value_defaults = (defaults[item_name.c_str()]).GetUnderlyingStorage();
+            if(itr->value.IsInt() && value_defaults->IsInt()) type_coincides = true;
+            if(itr->value.IsBool() && value_defaults->IsBool()) type_coincides = true;
+            if(itr->value.IsDouble() && value_defaults->IsDouble()) type_coincides = true;
+            if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
+            if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
+            if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
+
+            if(type_coincides == false)
+            {
+                std::stringstream msg;
+                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "parameters being validated are : " << std::endl;
+                msg << this->PrettyPrintJsonString() << std::endl;
+                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << defaults.PrettyPrintJsonString() << std::endl;
+                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+            }
+        }
+
+
+
+        //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
+        //add an item copying its value
+        if(defaults.IsSubParameter())
+        {
+            for (rapidjson::Value::MemberIterator itr = defaults.mpvalue->MemberBegin(); itr != defaults.mpvalue->MemberEnd(); ++itr)
+            {
+                std::string item_name = itr->name.GetString();
+                if(!this->Has(item_name))
+                {
+                    rapidjson::Value* pvalue = &itr->value;
+
+                    this->AddValue(item_name, Parameters(pvalue, defaults.mpdoc));
+                }
+            }
+        }
+
+
+        KRATOS_CATCH("")
+    }
+
+    /**This function is designed to verify that the parameters under testing match the
+     * form prescribed by the defaults.
+     * If the parameters contain values that do not appear in the defaults, an error is thrown, 
+     * whereas if a parameter is found in the defaults but not in the Parameters been tested,
+     * it is copied to the parameters.
+     * 
+     * this version walks and validates the entire json tree below 
+     * the point at which the function is called
+    */
+    void RecursivelyValidateAndAssignDefaults(Parameters& defaults)
     {
         KRATOS_TRY
 
