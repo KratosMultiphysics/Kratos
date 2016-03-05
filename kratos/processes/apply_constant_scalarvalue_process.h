@@ -59,6 +59,26 @@ public:
     {
         KRATOS_TRY
         
+        Parameters default_parameters( R"(
+            {
+                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "mesh_id": 0,
+                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
+                "is_fixed": false,
+                "value" : 1.0
+            }  )" );
+
+        //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        //so that an error is thrown if they don't exist
+        parameters["value"];
+        parameters["variable_name"];
+        parameters["model_part_name"];        
+        
+        //now validate agains defaults -- this also ensures no type mismatch
+        
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+        
+        mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
         this->Set( VARIABLE_IS_FIXED), rParameters["is_fixed"].GetBool();
         
@@ -120,7 +140,7 @@ public:
         
         KRATOS_CATCH("")
     }
-    
+
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
                               const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable, 
                               const double double_value, 
