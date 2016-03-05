@@ -381,50 +381,6 @@ namespace Kratos
             //
 
             //Builder and Solver
-            void (BuilderAndSolverType::*BuilderAndSolverTypeSystemSolve1)(
-                BuilderAndSolverType::TSystemMatrixType&,
-                BuilderAndSolverType::TSystemVectorType&,
-                BuilderAndSolverType::TSystemVectorType&)
-                = &BuilderAndSolverType::SystemSolve;
-
-            void (BuilderAndSolverType::*BuilderAndSolverTypeSystemSolve2)(
-                BuilderAndSolverType::TSystemMatrixPointerType,
-                BuilderAndSolverType::TSystemVectorPointerType,
-                BuilderAndSolverType::TSystemVectorPointerType)
-                = &BuilderAndSolverType::SystemSolve;
-
-            void (BuilderAndSolverType::*BuilderAndSolverTypeBuildAndSolve1)(
-                BuilderAndSolverType::TSchemeType::Pointer,
-                ModelPart&,
-                BuilderAndSolverType::TSystemMatrixType&,
-                BuilderAndSolverType::TSystemVectorType&,
-                BuilderAndSolverType::TSystemVectorType&)
-                = &BuilderAndSolverType::BuildAndSolve;
-
-            void (BuilderAndSolverType::*BuilderAndSolverTypeBuildAndSolve2)(
-                BuilderAndSolverType::TSchemeType::Pointer,
-                ModelPart&,
-                BuilderAndSolverType::TSystemMatrixPointerType,
-                BuilderAndSolverType::TSystemVectorPointerType,
-                BuilderAndSolverType::TSystemVectorPointerType)
-                = &BuilderAndSolverType::BuildAndSolve;
-
-            void (BuilderAndSolverType::*BuilderAndSolverTypeBuildRHSAndSolve1)(
-                BuilderAndSolverType::TSchemeType::Pointer,
-                ModelPart&,
-                BuilderAndSolverType::TSystemMatrixType&,
-                BuilderAndSolverType::TSystemVectorType&,
-                BuilderAndSolverType::TSystemVectorType&)
-                = &BuilderAndSolverType::BuildRHSAndSolve;
-
-            void (BuilderAndSolverType::*BuilderAndSolverTypeBuildRHSAndSolve2)(
-                BuilderAndSolverType::TSchemeType::Pointer,
-                ModelPart&,
-                BuilderAndSolverType::TSystemMatrixPointerType,
-                BuilderAndSolverType::TSystemVectorPointerType,
-                BuilderAndSolverType::TSystemVectorPointerType)
-                = &BuilderAndSolverType::BuildRHSAndSolve;
-
             class_< BuilderAndSolverType::DofsArrayType, boost::noncopyable > ("DofsArrayType", init<>());
 
             class_< BuilderAndSolverType, boost::noncopyable > ("BuilderAndSolver", init<LinearSolverType::Pointer > ())
@@ -438,12 +394,9 @@ namespace Kratos
                     .def("BuildLHS", &BuilderAndSolverType::BuildLHS)
                     .def("BuildRHS", &BuilderAndSolverType::BuildRHS)
                     .def("Build", &BuilderAndSolverType::Build)
-                    .def("SystemSolve", BuilderAndSolverTypeSystemSolve1)
-                    .def("BuildAndSolve", BuilderAndSolverTypeBuildAndSolve1)
-                    .def("BuildRHSAndSolve", BuilderAndSolverTypeBuildRHSAndSolve1)
-                    .def("SystemSolve", BuilderAndSolverTypeSystemSolve2)
-                    .def("BuildAndSolve", BuilderAndSolverTypeBuildAndSolve2)
-                    .def("BuildRHSAndSolve", BuilderAndSolverTypeBuildRHSAndSolve2)
+                    .def("SystemSolve", &BuilderAndSolverType::SystemSolve)
+                    .def("BuildAndSolve", &BuilderAndSolverType::BuildAndSolve)
+                    .def("BuildRHSAndSolve", &BuilderAndSolverType::BuildRHSAndSolve)
                     .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                     .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
                     .def("GetDofSet", &BuilderAndSolverType::GetDofSet, return_internal_reference<>())

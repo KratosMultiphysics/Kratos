@@ -271,52 +271,6 @@ void AddStrategies()
 
     typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverType;
 
-    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeSystemSolve1)(
-        TrilinosBlockBuilderAndSolverType::TSystemMatrixType&,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
-        ModelPart&)
-        = &TrilinosBlockBuilderAndSolverType::SystemSolve;
-
-    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeSystemSolve2)(
-        TrilinosBlockBuilderAndSolverType::TSystemMatrixPointerType,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
-        ModelPart&)
-        = &TrilinosBlockBuilderAndSolverType::SystemSolve;
-
-    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildAndSolve1)(
-        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        TrilinosBlockBuilderAndSolverType::TSystemMatrixType&,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorType&)
-        = &TrilinosBlockBuilderAndSolverType::BuildAndSolve;
-
-    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildAndSolve2)(
-        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        TrilinosBlockBuilderAndSolverType::TSystemMatrixPointerType,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType)
-        = &TrilinosBlockBuilderAndSolverType::BuildAndSolve;
-
-    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve1)(
-        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        TrilinosBlockBuilderAndSolverType::TSystemMatrixType&,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorType&,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorType&)
-        = &TrilinosBlockBuilderAndSolverType::BuildRHSAndSolve;
-    
-    void (TrilinosBlockBuilderAndSolverType::*TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve2)(
-        TrilinosBlockBuilderAndSolverType::TSchemeType::Pointer,
-        ModelPart&,
-        TrilinosBlockBuilderAndSolverType::TSystemMatrixPointerType,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType,
-        TrilinosBlockBuilderAndSolverType::TSystemVectorPointerType)
-        = &TrilinosBlockBuilderAndSolverType::BuildRHSAndSolve;
-
     class_< TrilinosBlockBuilderAndSolverType, boost::noncopyable >
     ( "TrilinosBlockBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     .def( "SetCalculateReactionsFlag", &TrilinosBlockBuilderAndSolverType::SetCalculateReactionsFlag )
@@ -329,12 +283,9 @@ void AddStrategies()
     .def( "BuildLHS", &TrilinosBlockBuilderAndSolverType::BuildLHS )
     .def( "BuildRHS", &TrilinosBlockBuilderAndSolverType::BuildRHS )
     .def( "Build", &TrilinosBlockBuilderAndSolverType::Build )
-    .def( "SystemSolve", TrilinosBlockBuilderAndSolverTypeSystemSolve1 )
-    .def( "BuildAndSolve", TrilinosBlockBuilderAndSolverTypeBuildAndSolve1 )
-    .def( "BuildRHSAndSolve", TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve1 )
-    .def( "SystemSolve", TrilinosBlockBuilderAndSolverTypeSystemSolve2 )
-    .def( "BuildAndSolve", TrilinosBlockBuilderAndSolverTypeBuildAndSolve2 )
-    .def( "BuildRHSAndSolve", TrilinosBlockBuilderAndSolverTypeBuildRHSAndSolve2 )
+    .def( "SystemSolve", &TrilinosBlockBuilderAndSolverType::SystemSolve )
+    .def( "BuildAndSolve", &TrilinosBlockBuilderAndSolverType::BuildAndSolve )
+    .def( "BuildRHSAndSolve", &TrilinosBlockBuilderAndSolverType::BuildRHSAndSolve )
     .def( "ApplyDirichletConditions", &TrilinosBlockBuilderAndSolverType::ApplyDirichletConditions )
     .def( "SetUpDofSet", &TrilinosBlockBuilderAndSolverType::SetUpDofSet )
     .def( "GetDofSet", &TrilinosBlockBuilderAndSolverType::GetDofSet, return_internal_reference<>() )

@@ -110,9 +110,6 @@ public:
      */
     virtual ~MultiLevelSolver()
     {
-      // the preconditioner should be freed before
-      // the system matrix it points to.
-      this->ResetPreconditioner();
     }
 
     void SetScalingType(ScalingType val)
@@ -133,17 +130,21 @@ public:
     void ResetPreconditioner()
     {
       mpMLPrec.reset();
+      mMLPrecIsInitialized = false;
+    }
+
+    void Clear()
+    {
+      ResetPreconditioner();
     }
 
     /**
-     * Deprecated solve method.
-     * This method is deprecated. New code should pass system
-     * matrix and vectors as smart pointers to the overloaded
-     * method. Passing smart pointers instead of references
-     * allows the ml preconditioner to be reused if the system
-     * matrix does not change (e.g. linear structural analysis).
-     * Smart pointers are needed to prevent a dangling pointer
-     * from the ml preconditioner to the system matrix.
+     * Normal solve method.
+     * Solves the linear system Ax=b and puts the result in rX.
+     * rX is also the initial guess for iterative methods.
+     * @param rA. System matrix.
+     * @param rX. Solution vector.
+     * @param rB. Right hand side vector.
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
@@ -164,73 +165,29 @@ public:
         // create the preconditioner now. this is expensive.
         // the preconditioner stores a pointer to the system
         // matrix. if the system matrix is freed from heap
-        // before the preconditioner, an exception can occur
-        // when the preconditioner is freed. this method is
-        // always safe because is frees the preconditioner at
-        // each solve, but it is not efficient for linear
-        // analysis.
-        ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true);
+        // before the preconditioner, a memory error can occur
+        // when the preconditioner is freed. the strategy
+        // should take care to Clear() the linear solver
+        // before the system matrix.
+        if (mReformPrecAtEachStep == true ||
+            mMLPrecIsInitialized == false)
+        {
+          MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true));
+          mpMLPrec.swap(tmp);
+          mMLPrecIsInitialized = true;
+        }
 
         // create an AztecOO solver
         AztecOO aztec_solver(AztecProblem);
         aztec_solver.SetParameters(mAztecParameterList);
 
         // set preconditioner and solve
-        aztec_solver.SetPrecOperator(MLPrec);
+        aztec_solver.SetPrecOperator(&(*mpMLPrec));
  
         aztec_solver.Iterate(mmax_iter, mtol);
-        delete MLPrec;
 
         return true;
         KRATOS_CATCH("");
-    }
-
-     /**
-     * Normal solve method.
-     * Solves the linear system Ax=b and puts the result in pX.
-     * pX is also the initial guess for iterative methods.
-     * @param pA. System matrix pointer.
-     * @param pX. Solution vector pointer.
-     * @param pB. Right hand side vector pointer.
-     */
-    bool Solve(SparseMatrixPointerType pA, VectorPointerType pX, VectorPointerType pB)
-    {
-      KRATOS_TRY
-      Epetra_LinearProblem AztecProblem(&(*pA),&(*pX),&(*pB));
-
-      if (mScalingType == LeftScaling)
-      {
-        // don't use this with conjugate gradient
-        // it destroys the symmetry
-        Epetra_Vector scaling_vect(pA->RowMap());
-        pA->InvColSums(scaling_vect);
-        AztecProblem.LeftScale(scaling_vect);
-      }
-
-      mMLParameterList.set("PDE equations", mndof);
-
-      if (mReformPrecAtEachStep == true ||
-          mMLPrecIsInitialized == false)
-      {
-        // store the smart pointer to the system matrix
-        // that ml preconditioner points to. this prevents
-        // problems with dangling pointers in trilinos.
-        mpA = pA;
-        // create the preconditioner now. this is expensive.
-        MLPreconditionerPointerType tmp(new ML_Epetra::MultiLevelPreconditioner(*pA, mMLParameterList, true));
-        mpMLPrec.swap(tmp);
-        mMLPrecIsInitialized = true;
-      }
-
-      AztecOO aztec_solver(AztecProblem);
-      aztec_solver.SetParameters(mAztecParameterList);
-
-      aztec_solver.SetPrecOperator(&(*mpMLPrec));
- 
-      aztec_solver.Iterate(mmax_iter, mtol);
-
-      return true;
-      KRATOS_CATCH("");
     }
 
     /**

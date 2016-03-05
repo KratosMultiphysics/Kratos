@@ -100,7 +100,6 @@ public:
     typedef typename TSparseSpace::MatrixPointerType TSystemMatrixPointerType;
     typedef typename TSparseSpace::VectorPointerType TSystemVectorPointerType;
 
-
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
@@ -283,6 +282,11 @@ public:
         return mEquationSystemSize;
     }
 
+    typename TLinearSolver::Pointer GetLinearSystemSolver()
+    {
+      return mpLinearSystemSolver;
+    }
+
     /**
             Function to perform the building of the LHS, depending on the implementation choosen
             the size of the matrix could be equal to the total number of Dofs or to the number
@@ -353,23 +357,6 @@ public:
     {
     }
 
-    /** Solve a linear system of equations.
-     *  Solves the linear system of equations Ax=b with system
-     *  matrix and vectors passed as pointers. If a subclass does
-     *  not implement this method, it calls the overloaded system
-     *  solve method with parameters passed by reference.
-     */
-    virtual void SystemSolve(
-        TSystemMatrixPointerType pA,
-        TSystemVectorPointerType pDx,
-        TSystemVectorPointerType pb)
-    {
-      TSystemMatrixType& rA = *pA;
-      TSystemVectorType& rDx = *pDx;
-      TSystemVectorType& rb = *pb;
-      this->SystemSolve(rA,rDx,rb);
-    }
-
     /**
             Function to perform the building and solving phase at the same time.
             It is ideally the fastest and safer function to use when it is possible to solve
@@ -384,25 +371,6 @@ public:
     {
     }
 
-    /** Build and solve a linear problem.
-     *  Builds and solves the linear problem with system matrix
-     *  and vectors passed as pointers. If a subclass does not
-     *  implement this method, it calls the overloaded build and
-     *  solve method with parameters passed by reference.
-     */
-    virtual void BuildAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixPointerType pA,
-        TSystemVectorPointerType pDx,
-        TSystemVectorPointerType pb)
-    {
-      TSystemMatrixType& rA = *pA;
-      TSystemVectorType& rDx = *pDx;
-      TSystemVectorType& rb = *pb;
-      this->BuildAndSolve(pScheme,r_model_part,rA,rDx,rb);
-    }
-     
     /**
             corresponds to the previews, but the System's matrix is considered already built
             and only the RHS is built again
@@ -414,26 +382,6 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
-    }
-
-    /** Build right-hand side and solve a linear problem.
-     *  Builds right-hand side and solves the linear problem
-     *  with system matrix and vectors passed as pointers. If
-     *  a subclass does not implement this method, it calls
-     *  the overloaded BuildRHSAndSolve method with parameters
-     *  passed by reference.
-     */
-    virtual void BuildRHSAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixPointerType pA,
-        TSystemVectorPointerType pDx,
-        TSystemVectorPointerType pb)
-    {
-      TSystemMatrixType& rA = *pA;
-      TSystemVectorType& rDx = *pDx;
-      TSystemVectorType& rb = *pb;
-      this->BuildRHSAndSolve(pScheme,r_model_part,rA,rDx,rb);
     }
 
     /**

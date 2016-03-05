@@ -230,6 +230,10 @@ public:
      */
     virtual ~ResidualBasedLinearStrategy()
     {
+      // in trilinos third party library, the linear solver's
+      // preconditioner should be freed before the system matrix.
+      // we control the deallocation order with Clear().
+      this->Clear();
     }
 
     /** Destructor.
@@ -385,14 +389,14 @@ public:
             // passing smart pointers instead of references here
             // to prevent dangling pointer to system matrix when
             // reusing ml preconditioners in the trilinos tpl
-            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mpA, mpDx, mpb);
+            pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             BaseType::mStiffnessMatrixIsBuilt = true;
         }
         else
         {
             TSparseSpace::SetToZero(mDx);
             TSparseSpace::SetToZero(mb);
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mpA, mpDx, mpb);
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
 
         if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
@@ -722,39 +726,22 @@ private:
 
     void Clear()
     {
-        KRATOS_TRY
-        std::cout << "strategy Clear function used" << std::endl;
-
-
-
-
+        KRATOS_TRY;
+        // if the preconditioner is saved between solves, it
+        // should be cleared here.
+        GetBuilderAndSolver()->GetLinearSystemSolver()->Clear();
 
         if (mpA != NULL)
-        {
-            //			  TSystemMatrixType& mA = *mpA;
             SparseSpaceType::Clear(mpA);
-            //			  SparseSpaceType::Resize(mA,0,0);
-        }
         if (mpDx != NULL)
-        {
-            //			  TSystemVectorType& mDx = *mpDx;
             SparseSpaceType::Clear(mpDx);
-            //			  SparseSpaceType::Resize(mDx,0);
-        }
         if (mpb != NULL)
-        {
-            //			  TSystemVectorType& mb = *mpb;
             SparseSpaceType::Clear(mpb);
-            //			  SparseSpaceType::Resize(mb,0);
-        }
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-
         GetBuilderAndSolver()->Clear();
-
         GetScheme()->Clear();
-
 
         KRATOS_CATCH("");
     }
