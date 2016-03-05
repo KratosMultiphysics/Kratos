@@ -70,9 +70,9 @@ public:
 
         //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         //so that an error is thrown if they don't exist
-        parameters["value"];
-        parameters["variable_name"];
-        parameters["model_part_name"];        
+        rParameters["value"];
+        rParameters["variable_name"];
+        rParameters["model_part_name"];        
         
         //now validate agains defaults -- this also ensures no type mismatch
         
