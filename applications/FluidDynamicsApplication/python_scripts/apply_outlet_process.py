@@ -11,6 +11,8 @@ def Factory(settings, Model):
 class ApplyOutletProcess(KratosMultiphysics.ApplyConstantScalarValueProcess):
     def __init__(self, Model, Parameters ):
         model_part = Model[Parameters["model_part_name"].GetString()]
-        Parameters.AddEmptyValue("variable_name").SetString("EXTERNAL_PRESSURE")
-        KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, Parameters)
+        Parameters.AddEmptyValue("variable_name").SetString("PRESSURE")
+        KratosMultiphysics.ApplyConstantScalarValueProcess.__init__(self,model_part, Parameters)
+        
+        #TODO: check if the EXTERNAL_PRESSURE variable exists, and if so, prescribe it to the same value
         

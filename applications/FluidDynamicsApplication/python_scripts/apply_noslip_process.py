@@ -10,9 +10,9 @@ def Factory(settings, Model):
 class ApplyNoSlipProcess(KratosMultiphysics.ApplyConstantVectorValueProcess):
     def __init__(self, Model, Parameters ):
         model_part = Model[Parameters["model_part_name"].GetString()]
-        Parameters["variable_name"].SetString("VELOCITY")
-        Parameters["is_fixed_x"].SetBool(True)
-        Parameters["is_fixed_y"].SetBool(True)
-        Parameters["is_fixed_z"].SetBool(True)
-        KratosMultiphysics.ApplyConstantVectorValueProcess(model_part, Parameters)
+        Parameters.AddEmptyValue("variable_name").SetString("VELOCITY")
+        Parameters.AddEmptyValue("is_fixed_x").SetBool(True)
+        Parameters.AddEmptyValue("is_fixed_y").SetBool(True)
+        Parameters.AddEmptyValue("is_fixed_z").SetBool(True)
+        KratosMultiphysics.ApplyConstantVectorValueProcess.__init__(self,model_part, Parameters)
         

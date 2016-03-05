@@ -11,5 +11,5 @@ class ApplyConstantInletProcess(KratosMultiphysics.ApplyConstantVectorValueProce
     def __init__(self, Model, Parameters ):
         model_part = Model[Parameters["model_part_name"].GetString()]
         Parameters.AddEmptyValue("variable_name").SetString("VELOCITY")
-        KratosMultiphysics.ApplyConstantVectorValueProcess(model_part, Parameters)
+        KratosMultiphysics.ApplyConstantVectorValueProcess.__init__(self,model_part, Parameters)
         

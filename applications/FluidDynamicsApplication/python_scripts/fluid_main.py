@@ -47,8 +47,8 @@ solver.Initialize()
 ##HUGE CHAPUZA! let our auxiliary model know of all the model_parts and submodel_parts
 Model.update({"Inlet3D_Inlet_velocity_Auto1": main_model_part, #"Inlet3D_Inlet_velocity_Auto1"),
              "Outlet3D_Outlet_pressure_Auto1":main_model_part, #.GetSubModelPart("Outlet3D_Outlet_pressure_Auto1"),
-             "Slip3D_No_Slip_Auto1":main_model_part.GetSubModelPart("Slip3D_No_Slip_Auto1"),
-             "NoSlip3D_No_Slip_Auto1":main_model_part.GetSubModelPart("NoSlip3D_No_Slip_Auto1")})
+             "Slip3D_No_Slip_Auto1":main_model_part, #.GetSubModelPart("Slip3D_No_Slip_Auto1"),
+             "NoSlip3D_No_Slip_Auto1":main_model_part}) #.GetSubModelPart("NoSlip3D_No_Slip_Auto1")})
 print("PLEASE CORRECT THIS HUGE CHAPUZA")
 
 
@@ -67,8 +67,9 @@ for i in range(process_definition.size()):
             
 
 for process in list_of_processes:
+    print("a")
     process.ExecuteInitialize()
-
+    print("b")
 
 #TODO: think if there is a better way to do this
 fluid_model_part = solver.GetComputeModelPart()
@@ -123,11 +124,19 @@ while(time <= end_time):
             process.ExecuteBeforeOutputStep()
     
         if(output_time <= out):
+            #TODO: following lines shall not be needed once the gid_io is adapted to using the parameters
+            nodal_results = []
+            for i in range(output_settings["nodal_results"].size()):
+                nodal_results.append(output_settings["nodal_results"][i].GetString())
+            gauss_points_results = []
+            for i in range(output_settings["gauss_points_results"].size()):
+                gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
+                
             gid_io.write_results(
                 time,
                 fluid_model_part,
-                output_settings["nodal_results"],
-                output_settings["gauss_points_results"])
+                nodal_results,
+                gauss_points_results)
             out = 0
         
         
