@@ -10,16 +10,16 @@ kratoscore.CheckForPreviousImport()
 def AddVariables(model_part, settings=None):
     model_part.AddNodalSolutionStepVariable(kratoscore.VELOCITY)
     model_part.AddNodalSolutionStepVariable(kratoscore.PRESSURE)
-    model_part.AddNodalSolutionStepVariable(kratoscore.VISCOSITY)
+    #model_part.AddNodalSolutionStepVariable(kratoscore.VISCOSITY)
     model_part.AddNodalSolutionStepVariable(kratoscore.DENSITY)
-    model_part.AddNodalSolutionStepVariable(kratoscore.BODY_FORCE)
-    #model_part.AddNodalSolutionStepVariable(kratoscore.REACTION) #in case this variable could be removed if no reactions must be computed
+    model_part.AddNodalSolutionStepVariable(kratoscore.BODY_FORCE) #TODO: decide if it is needed. if constant it could be passed in properties
+    model_part.AddNodalSolutionStepVariable(kratoscore.REACTION) #in case this variable could be removed if no reactions must be computed
     #model_part.AddNodalSolutionStepVariable(kratoscore.REACTION_WATER_PRESSURE) #in case this variable could be removed if no reactions must be computed
     model_part.AddNodalSolutionStepVariable(kratoscore.EXTERNAL_PRESSURE)
     model_part.AddNodalSolutionStepVariable(kratoscore.NORMAL) #TODO: this variable is not strictly needed by the solver - may be needed by other utilities
-    model_part.AddNodalSolutionStepVariable(kratoscore.IS_STRUCTURE) #TODO: remove as deprecated!!
-    model_part.AddNodalSolutionStepVariable(kratoscore.MESH_VELOCITY) #TODO: remove. needed because of the Condition used
-    model_part.AddNodalSolutionStepVariable(kratoscore.ACCELERATION) #TODO: remove! needed because of the Condition used
+    #model_part.AddNodalSolutionStepVariable(kratoscore.IS_STRUCTURE) #TODO: remove as deprecated!!
+    #model_part.AddNodalSolutionStepVariable(kratoscore.MESH_VELOCITY) #TODO: remove. needed because of the Condition used
+    #model_part.AddNodalSolutionStepVariable(kratoscore.ACCELERATION) #TODO: remove! needed because of the Condition used
     print("variables for the  monolithic solver symbolic added correctly")
 
 

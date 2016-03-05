@@ -7,24 +7,39 @@ def Factory(settings, Model):
     return ApplySlipProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class ApplySlipProcess(KratosMultiphysics.ApplyConstantVectorValueProcess):
-    def __init__(self, Model, Parameters ):
-        self.model_part = Model[Parameters["model_part_name"].GetString()]
-        self.avoid_recomputing_normals = Parameters["avoid_recomputing_normals"].GetBool()
+class ApplySlipProcess(KratosMultiphysics.Process):
+    def __init__(self, Model, settings ):
+        KratosMultiphysics.Process.__init__(self)
+        
+        default_parameters = KratosMultiphysics.Parameters( """
+            {
+                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "mesh_id": 0,
+                "avoid_recomputing_normals": false,
+                "DomainSize": 3
+            }  """ );
+
+        #oblige the user to prescribe a parameter - access to it before applying the defaults 
+        settings["DomainSize"]
+        
+        settings.ValidateAndAssignDefaults(default_parameters);
+        
+        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
 
         #compute the normal on the nodes of interest - note that the model part employed here is supposed to
         #only have slip "conditions"
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, settings["DomainSize"].GetInt())
         
         #mark the nodes and conditions with the appropriate slip flag
         #TODO: a flag shall be used here!!!!!
         for cond in self.model_part.Conditions: #TODO: this may well not be needed!
-            cond.SetValue(IS_STRUCTURE,1.0)
+            cond.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             
         #TODO: use a flag!!!
-        KratosMultiphysics.VariableUtils().SetScalarVar(IS_STRUCTURE,1.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.IS_STRUCTURE,1.0, self.model_part.Nodes)
         
     def InitializeSolutionStep(self):
         #recompute the normals
         if self.avoid_recomputing_normals == False:
-            NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.domain_size)
+            NormalCalculationUtils().CalculateOnSimplex(self.model_part, settings["DomainSize"].GetInt())
