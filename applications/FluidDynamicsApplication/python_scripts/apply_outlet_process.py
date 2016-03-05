@@ -15,4 +15,4 @@ class ApplyOutletProcess(KratosMultiphysics.ApplyConstantScalarValueProcess):
         KratosMultiphysics.ApplyConstantScalarValueProcess.__init__(self,model_part, Parameters)
         
         #TODO: check if the EXTERNAL_PRESSURE variable exists, and if so, prescribe it to the same value
-        
+        print("DO NOT FORGET CONSIDERING THE PRESENCE OF EXTERNAL_PRESSURE VARIABLE!! -- needs to check for the existence of such variable")
