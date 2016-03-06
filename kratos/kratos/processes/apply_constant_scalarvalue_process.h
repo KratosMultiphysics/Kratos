@@ -58,7 +58,10 @@ public:
                                    ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-        
+
+//only include validation with c++11 since raw_literals do not exist in c++03
+#if __cplusplus >= 201103L
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
@@ -77,6 +80,7 @@ public:
         //now validate agains defaults -- this also ensures no type mismatch
         
         rParameters.ValidateAndAssignDefaults(default_parameters);
+#endif
         
         mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
