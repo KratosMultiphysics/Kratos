@@ -195,7 +195,7 @@ class Procedures(object):
         self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
         self.arlequin                      = 0
         if (hasattr(DEM_parameters, "arlequin")):
-            self.arlequin                    = Var_Translator(self.DEM_parameters.arlequin)
+            self.arlequin                  = Var_Translator(self.DEM_parameters.arlequin)
         #self.solver = solver
         
         # SIMULATION SETTINGS
@@ -249,7 +249,7 @@ class Procedures(object):
         if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-        if self.DEM_parameters.StressStrainOption:       
+        if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):       
             model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
@@ -671,7 +671,8 @@ class DEMFEMProcedures(object):
         
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
-        self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)        
+        if (hasattr(self.DEM_parameters, "StressStrainOption")):
+            self.self_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)        
         self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
 
         evaluate_computation_of_fem_results()
@@ -1039,10 +1040,10 @@ class DEMIo(object):
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
         
-        if not (hasattr(self.DEM_parameters, "PrintBoundingBox")):
-            self.PrintBoundingBox = 0
+        if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
+            self.PostBoundingBox = 0
         else:
-            self.PrintBoundingBox = getattr(self.DEM_parameters, "PrintBoundingBox", 0)
+            self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
   
@@ -1077,16 +1078,17 @@ class DEMIo(object):
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,  self.spheres_variables)
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
         
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
-        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
+        if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
+            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
         #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
     
     def AddArlequinVariables(self):
@@ -1235,8 +1237,7 @@ class DEMIo(object):
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
-                #contact_model_part.GetProperties(0)[0].Id = 9999
-                contact_model_part.GetProperties(0)[0].Id = 184
+                contact_model_part.GetProperties(0)[0].Id = 9184
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
                 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
@@ -1366,7 +1367,7 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
             
-        if (self.PrintBoundingBox):
+        if (self.PostBoundingBox):
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
         
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
