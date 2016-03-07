@@ -12,7 +12,6 @@
 
 namespace Kratos {
 void NanoParticle::CustomInitialize() {
-    mRadius = 1e-7;
     double added_mass_coefficient = 1.0;
     SetMass(added_mass_coefficient * GetDensity() * CalculateVolume());
 }
@@ -38,13 +37,14 @@ void NanoParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_app
 
 void NanoParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_info) {
     SphericParticle::MemberDeclarationFirstStep(r_process_info);
-    SetInteractionRadius(GetRadius() + r_process_info[SEARCH_TOLERANCE]);
 }
 
 double NanoParticle::CalculateVolume()
 {
     return KRATOS_M_PI * mRadius * mRadius * mRadius * mThicknessOverRadius;
 }
+
+void NanoParticle::SetInteractionRadius(const double radius){}
 
 double NanoParticle::GetInteractionRadius()
 {
