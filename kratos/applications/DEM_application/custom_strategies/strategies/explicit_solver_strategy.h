@@ -422,7 +422,7 @@ namespace Kratos
 
             //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
 
-            #pragma omp for schedule(dynamic, 100) //schedule(guided)
+            #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
             for (int k = 0; k < number_of_clusters; k++) {
 
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -447,7 +447,7 @@ namespace Kratos
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
             const int number_of_clusters = pElements.size();
 
-            #pragma omp for schedule(dynamic, 100) //schedule(guided)
+            #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
             for (int k = 0; k < number_of_clusters; k++) {
 
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -602,18 +602,10 @@ namespace Kratos
 
           const int number_of_particles = (int)mListOfSphericParticles.size();
 
-          #pragma omp parallel
-          {
-              Vector rhs_elem;
-              rhs_elem.resize(6);
-              #pragma omp for schedule(dynamic, 100) //schedule(guided)
-
-              for (int i = 0; i < number_of_particles; i++) {
-
-                  mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, r_process_info, dt, gravity, mSearchControl);
-              }
-          }
-
+          #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)for schedule(dynamic, 100) //schedule(guided)
+          for (int i = 0; i < number_of_particles; i++) {
+              mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity, mSearchControl);
+          }          
           KRATOS_CATCH("")
       }
 
@@ -658,29 +650,19 @@ namespace Kratos
 
       void InitializeSolutionStep()
       {
-          KRATOS_TRY
-
-          // SPHERE MODEL PART
+        KRATOS_TRY
 
           ModelPart& r_model_part      = BaseType::GetModelPart();
           ProcessInfo& r_process_info  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
-
           #pragma omp parallel for
-          for (int k = 0; k < mNumberOfThreads; k++) {
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                (it)->InitializeSolutionStep(r_process_info);
-
-              } // loop over particles
-          } // loop threads OpenMP
+          for (int k = 0; k < (int)pElements.size(); k++) {
+              typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+              (it)->InitializeSolutionStep(r_process_info);
+          } 
 
           ApplyPrescribedBoundaryConditions();
-
 
         KRATOS_CATCH("")
       }
@@ -1117,12 +1099,12 @@ namespace Kratos
 
         mNumberOfElementsOldRadiusList = number_of_elements;
 
-        this->GetArrayOfAmplifiedRadii().resize(number_of_elements);
+        //this->GetArrayOfAmplifiedRadii().resize(number_of_elements);
 
 	#pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++ ){
 
-            this->GetArrayOfAmplifiedRadii()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
+            //this->GetArrayOfAmplifiedRadii()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
             mListOfSphericParticles[i]->SetSearchRadius(amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius()));
 
         }
@@ -1150,7 +1132,7 @@ namespace Kratos
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetArrayOfAmplifiedRadii(), this->GetResults(), this->GetResultsDistances());
         const int number_of_particles = (int)mListOfSphericParticles.size();
 
-        #pragma omp for schedule(dynamic, 100) //schedule(guided)
+        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
         for (int i=0; i<number_of_particles; i++){
             mListOfSphericParticles[i]->mNeighbourElements.clear();
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it){

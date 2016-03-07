@@ -38,6 +38,7 @@ public:
         typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
         typedef PointerVectorSet<Element, IndexedObject>    ElementsContainerType;
+        typedef ModelPart::ElementsContainerType            ElementsArrayType;
         unsigned int mMaxNodeId;
 		
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
@@ -115,7 +116,7 @@ public:
                                          ModelPart& r_rigid_faces_model_part,
                                          double scale_factor,
                                          bool automatic);
-
+    
     void DestroyParticles(ModelPart& r_model_part);
 
     void DestroyContactElements(ModelPart& r_model_part);

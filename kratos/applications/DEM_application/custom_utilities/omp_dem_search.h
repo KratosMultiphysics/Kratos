@@ -194,8 +194,11 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                  
+                  SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
+                  const double radius = p_particle->GetSearchRadius();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -233,8 +236,11 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                  
+                  SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
+                  const double radius = p_particle->GetSearchRadius();
                 
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],radius,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -268,8 +274,11 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
+                  
+                  SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
+                  const double radius = p_particle->GetSearchRadius();
                         
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],radius,ResultsPointer,MaxNumberOfElements);
   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
               } 
@@ -302,8 +311,11 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
+                  
+                  SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*elements_array[i]);
+                  const double radius = p_particle->GetSearchRadius();
                         
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],radius,ResultsPointer,MaxNumberOfElements);
                           
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
               } 

@@ -57,8 +57,7 @@ namespace Kratos
       double GetTemperature();     
       void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
       void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
-      void CalculateRightHandSide(VectorType& r_right_hand_side_vector, 
-                                  ProcessInfo& r_current_process_info,
+      void CalculateRightHandSide(ProcessInfo& r_current_process_info,
                                   double dt, 
                                   const array_1d<double,3>& gravity,
                                   int search_control);  

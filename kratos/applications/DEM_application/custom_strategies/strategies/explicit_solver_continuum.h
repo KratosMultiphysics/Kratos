@@ -112,11 +112,9 @@ namespace Kratos
 
             BaseType::GetSearchControl()         = r_process_info[SEARCH_CONTROL];
 
-            //BaseType::InitializeSolutionStep();
             BaseType::InitializeDEMElements();
             BaseType::InitializeFEMElements();                
             BaseType::InitializeSolutionStep();
-            //BaseType::ApplyPrescribedBoundaryConditions();
 
             this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
             this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -199,7 +197,7 @@ namespace Kratos
             VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
             if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
 
-            InitializeSolutionStep();
+            BaseType::InitializeSolutionStep();
             SearchOperations(r_model_part, has_mpi);
             BaseType::ForceOperations(r_model_part);
             BaseType::PerformTimeIntegrationOfMotion();           
@@ -209,14 +207,8 @@ namespace Kratos
 
             return 0.0;
 
-        }//Solve()
-
-        void InitializeSolutionStep()
-        {
-            BaseType::InitializeSolutionStep();
-
-        }
-            //ContactInitializeSolutionStep();
+        }//Solve()        
+            
 
         void SearchOperations(ModelPart& r_model_part, bool has_mpi)
         {
@@ -310,6 +302,20 @@ namespace Kratos
                                                                                         TempNeighbourElasticContactForces,
                                                                                         TempNeighbourTotalContactForces);
             }
+        }
+
+        KRATOS_CATCH("")
+    }
+    
+    void ComputeNewRigidFaceNeighboursHistoricalData()
+    {
+        KRATOS_TRY
+        const int number_of_particles = (int)mListOfSphericParticles.size();
+
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_particles; i++){
+            mListOfSphericContinuumParticles[i]->ReorderFEMneighbours();
+            mListOfSphericParticles[i]->ComputeNewRigidFaceNeighboursHistoricalData();
         }
 
         KRATOS_CATCH("")

@@ -61,7 +61,7 @@ namespace Kratos {
         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
             ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
             ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
@@ -128,37 +128,30 @@ namespace Kratos {
                 KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
             }
         }                        
-        vector<unsigned int> node_partition;
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-#pragma omp parallel for shared(delta_t)
-        for (int k = 0; k < (int) number_of_threads; k++) {
-            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
+        #pragma omp parallel for shared(delta_t)        
+        for (int k = 0; k < (int) pNodes.size(); k++) {
+            ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
+            Node < 3 > & i = *i_iterator;
+            if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+            array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            array_1d<double, 3 >& coor = i.Coordinates();
+            array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
+            array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
 
-            for (ModelPart::NodeIterator i_iterator = i_begin; i_iterator != i_end; ++i_iterator) {
-                Node < 3 > & i = *i_iterator;
-                if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-                array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
-                array_1d<double, 3 >& displ = i.FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                array_1d<double, 3 >& coor = i.Coordinates();
-                array_1d<double, 3 >& initial_coor = i.GetInitialPosition();
-                array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
+            double mass = i.FastGetSolutionStepValue(NODAL_MASS);                   
 
-                double mass = i.FastGetSolutionStepValue(NODAL_MASS);                   
+            bool Fix_vel[3] = {false, false, false};
 
-                bool Fix_vel[3] = {false, false, false};
+            Fix_vel[0] = i.Is(DEMFlags::FIXED_VEL_X);
+            Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
+            Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
 
-                Fix_vel[0] = i.Is(DEMFlags::FIXED_VEL_X);
-                Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
-                Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
+            UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
 
-                UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
-
-            } //nodes in the thread
-        } //threads
+        } //nodes in the thread
         KRATOS_CATCH(" ")
     }
     
@@ -202,78 +195,70 @@ namespace Kratos {
             }
         }      
 
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        #pragma omp parallel for shared(delta_t)        
+        for (int k = 0; k < (int) pNodes.size(); k++) {
+            ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
+            Node < 3 > & i = *i_iterator;
 
-#pragma omp parallel for
-        for (int k = 0; k < (int) number_of_threads; k++) {
+            double moment_of_inertia = i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
+            array_1d<double, 3 >& angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double, 3 >& torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
+            array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+            array_1d<double, 3 >& delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
+            double Orientation_real;
+            array_1d<double, 3 > Orientation_imag;                    
 
-            for (ModelPart::NodeIterator i_iterator = i_begin; i_iterator != i_end; ++i_iterator) {
-                Node < 3 > & i = *i_iterator;
+            bool Fix_Ang_vel[3] = {false, false, false};
 
-                double moment_of_inertia = i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+            Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+            Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+            Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                array_1d<double, 3 >& angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3 >& torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
-                array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                array_1d<double, 3 >& delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
-                double Orientation_real;
-                array_1d<double, 3 > Orientation_imag;                    
+            array_1d<double, 3 > angular_acceleration;                    
+            CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor,angular_acceleration);
 
-                bool Fix_Ang_vel[3] = {false, false, false};
+            UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-                Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-                Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-                Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+            if (if_trihedron_option) {
+                double theta[3] = {0.0};
 
-                array_1d<double, 3 > angular_acceleration;                    
-                CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor,angular_acceleration);
+                theta[0] = rotated_angle[0] * 0.5;
+                theta[1] = rotated_angle[1] * 0.5;
+                theta[2] = rotated_angle[2] * 0.5;
 
-                UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
+                double thetaMag = DEM_MODULUS_3(theta);
+                if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON) { //Taylor: low angle                      
+                    Orientation_real = 1 + thetaMag * thetaMag / 2;
+                    Orientation_imag[0] = theta[0] * (1 - thetaMag * thetaMag / 6);
+                    Orientation_imag[1] = theta[1] * (1 - thetaMag * thetaMag / 6);
+                    Orientation_imag[2] = theta[2] * (1 - thetaMag * thetaMag / 6);
+                } else {
+                    Orientation_real = cos(thetaMag);
+                    Orientation_imag[0] = (theta[0] / thetaMag) * sin(thetaMag);
+                    Orientation_imag[1] = (theta[1] / thetaMag) * sin(thetaMag);
+                    Orientation_imag[2] = (theta[2] / thetaMag) * sin(thetaMag);
+                }
 
-                if (if_trihedron_option) {
-                    double theta[3] = {0.0};
+                array_1d<double, 3>& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
 
-                    theta[0] = rotated_angle[0] * 0.5;
-                    theta[1] = rotated_angle[1] * 0.5;
-                    theta[2] = rotated_angle[2] * 0.5;
+                double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
 
-                    double thetaMag = DEM_MODULUS_3(theta);
-                    if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON) { //Taylor: low angle                      
-                        Orientation_real = 1 + thetaMag * thetaMag / 2;
-                        Orientation_imag[0] = theta[0] * (1 - thetaMag * thetaMag / 6);
-                        Orientation_imag[1] = theta[1] * (1 - thetaMag * thetaMag / 6);
-                        Orientation_imag[2] = theta[2] * (1 - thetaMag * thetaMag / 6);
-                    } else {
-                        Orientation_real = cos(thetaMag);
-                        Orientation_imag[0] = (theta[0] / thetaMag) * sin(thetaMag);
-                        Orientation_imag[1] = (theta[1] / thetaMag) * sin(thetaMag);
-                        Orientation_imag[2] = (theta[2] / thetaMag) * sin(thetaMag);
-                    }
-
-                    array_1d<double, 3>& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-
-                    double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
-
-                    if (test > 0.49999999) { // singularity at north pole                     
-                        EulerAngles[0] = 2 * atan2(Orientation_imag[0], Orientation_real);
-                        EulerAngles[1] = KRATOS_M_PI;
-                        EulerAngles[2] = 0.0;
-                    } else if (test < -0.49999999) { // singularity at south pole                                       
-                        EulerAngles[0] = -2 * atan2(Orientation_imag[0], Orientation_real);
-                        EulerAngles[1] = -KRATOS_M_PI;
-                        EulerAngles[2] = 0.0;
-                    } else {
-                        EulerAngles[0] = atan2(2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2], 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1]);
-                        EulerAngles[1] = asin(2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0]);
-                        EulerAngles[2] = -atan2(2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1], 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2]);
-                    }
-                }// Trihedron Option                  
-            }//for Node                  
-        }//for OMP            
+                if (test > 0.49999999) { // singularity at north pole                     
+                    EulerAngles[0] = 2 * atan2(Orientation_imag[0], Orientation_real);
+                    EulerAngles[1] = KRATOS_M_PI;
+                    EulerAngles[2] = 0.0;
+                } else if (test < -0.49999999) { // singularity at south pole                                       
+                    EulerAngles[0] = -2 * atan2(Orientation_imag[0], Orientation_real);
+                    EulerAngles[1] = -KRATOS_M_PI;
+                    EulerAngles[2] = 0.0;
+                } else {
+                    EulerAngles[0] = atan2(2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2], 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1]);
+                    EulerAngles[1] = asin(2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0]);
+                    EulerAngles[2] = -atan2(2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1], 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2]);
+                }
+            }// Trihedron Option                  
+        }//for Node                  
 
         KRATOS_CATCH(" ")
 
@@ -312,11 +297,11 @@ namespace Kratos {
         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
 
-#pragma omp parallel
+        #pragma omp parallel
         {
             double rotation_matrix[3][3];
 
-#pragma omp for
+            #pragma omp for
             for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
                 ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
                 ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];

@@ -40,7 +40,7 @@ void ComputeHydrodynamicForces(ModelPart& r_model_part)
         particle.Set(BLOCKED, false);
         array_1d<double, 3> force;
         array_1d<double, 3> moment;
-        array_1d<double, 3> gravity = r_model_part.GetProcessInfo()[GRAVITY];
+        array_1d<double, 3>& gravity = r_model_part.GetProcessInfo()[GRAVITY];
         particle.ComputeAdditionalForces(force, moment, r_model_part.GetProcessInfo(), gravity);
     }
 }
