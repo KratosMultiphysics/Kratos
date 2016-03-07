@@ -110,13 +110,13 @@ public:
 
     //************************************************************************
 
-    Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, CoordinateType CellSize, SizeType BucketSize = 1 )
+    Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, CoordinateType cellsize, SizeType BucketSize = 1 )
         : mPointBegin(PointBegin), mPointEnd(PointEnd)
     {
         if(mPointBegin==mPointEnd)
             return;
         CalculateBoundingBox();
-        CalculateCellSize(CellSize);
+        CalculateCellSize(cellsize);
         AllocateCellsContainer();
         GenerateBins();
     }
