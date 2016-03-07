@@ -1055,10 +1055,10 @@ private:
 	template <typename TEntitiesContainerType> 
 	void AddEntities(TEntitiesContainerType const& Source, TEntitiesContainerType& rDestination, Flags Options)
 	{
-		if (Options->Is(ALL_ENTITIES))
-		{
-			if(Options->Is())
-		}
+		//if (Options->Is(ALL_ENTITIES))
+		//{
+		//	if(Options->Is())
+		//}
 	}
 
     ///@}
