@@ -63,6 +63,7 @@ public:
                                    ) : Process(Flags()), mr_model_part(model_part)
     {
         KRATOS_TRY
+#if __cplusplus >= 201103L
         
         Parameters default_parameters( R"(
             {
@@ -85,6 +86,7 @@ public:
         
         //now validate agains defaults -- this also ensures no type mismatch
         parameters.ValidateAndAssignDefaults(default_parameters);
+#endif
         
         //read from the parameters and assign to the values
         mmesh_id = parameters["mesh_id"].GetInt();
