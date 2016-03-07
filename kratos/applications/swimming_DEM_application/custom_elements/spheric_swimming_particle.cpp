@@ -44,9 +44,9 @@ namespace Kratos
 
 template< class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
-                                                      array_1d<double, 3>& additionally_applied_moment,
-                                                      const ProcessInfo& r_current_process_info,
-                                                      const array_1d<double,3>& gravity)
+                                                                    array_1d<double, 3>& additionally_applied_moment,
+                                                                    const ProcessInfo& r_current_process_info,
+                                                                    const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
 
@@ -90,9 +90,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeMagnusLiftForce(magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
     ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-
     noalias(additionally_applied_force) += drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
-
     UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force, r_current_process_info);
     
     //Now add the contribution of base class function (gravity or other forces added in upper levels):
@@ -928,8 +926,9 @@ void SphericSwimmingParticle<TBaseElement>::CustomInitialize()
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info)
+void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const ProcessInfo& r_process_info)
 {
+    TBaseElement::MemberDeclarationFirstStep(r_process_info);
     mCouplingType           = r_process_info[COUPLING_TYPE];
     mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
     mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
