@@ -382,8 +382,8 @@ namespace Kratos {
             son->GetMinPointNormalized(min_coord);
             son->GetMaxPointNormalized(max_coord);
             pointer_type object;
-            for (int i=0;i<(int)objects_.size();i++){
-              object=objects_[i];
+            for (int j=0;j<(int)objects_.size();j++){
+              object=objects_[j];
             //for (object_container_type::iterator i_object = objects_.begin(); i_object != objects_.end(); i_object++) {
               const int is_intersected = configuration_type::IsIntersected(object,tolerance, min_coord, max_coord);
               if(is_intersected)
