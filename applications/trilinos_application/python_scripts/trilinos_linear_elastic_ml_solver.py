@@ -16,6 +16,7 @@ def MultilevelLinearSolver(tolerance, max_iterations):
     MLList = ParameterList()
     default_settings = EpetraDefaultSetter()
     default_settings.SetDefaults(MLList, "SA")
+    MLList.set("max levels", 3)
     MLList.set("prec type", "MGW")
     MLList.set("smoother: type", "Chebyshev")
     MLList.set("smoother: sweeps", 2);
