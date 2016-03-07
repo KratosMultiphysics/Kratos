@@ -182,10 +182,27 @@ dem_fem_search = DEM_FEM_Search()
 
 # Creating a solver object and set the search strategy
 
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters)
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
-if pp.CFD_DEM.drag_force_type == 9:
+#Getting chosen scheme:
+
+if DEM_parameters.IntegrationScheme == 'Forward_Euler':
+    scheme = ForwardEulerScheme()
+elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
+    scheme = SymplecticEulerScheme()
+elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
+    scheme = TaylorScheme()
+elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
+    scheme = NewmarkBetaScheme(0.5, 0.25)
+elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
+    scheme = VerletVelocityScheme()
+elif pp.CFD_DEM.drag_force_type == 9:
     solver.time_integration_scheme = TerminalVelocityScheme()
+else:
+    KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+
+scheme.SetRotationOption(solver.rotation_option)
+solver.time_integration_scheme = scheme
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
