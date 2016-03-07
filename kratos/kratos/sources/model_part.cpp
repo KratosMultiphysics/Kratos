@@ -24,6 +24,8 @@
 
 namespace Kratos
 {
+	KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
+	KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 0);
 
 	/// Default constructor.
 	ModelPart::ModelPart()
@@ -32,6 +34,7 @@ namespace Kratos
 		, mBufferSize(1)
 		, mpProcessInfo(new ProcessInfo())
 		, mIndices(1, 0)
+		, mpVariablesList(new VariablesList)
 		, mpCommunicator(new Communicator)
 		, mpParentModelPart(NULL)
 		, mSubModelParts()
@@ -49,6 +52,7 @@ namespace Kratos
 		, mBufferSize(1)
 		, mpProcessInfo(new ProcessInfo())
 		, mIndices(1, 0)
+		, mpVariablesList(new VariablesList)
 		, mpCommunicator(new Communicator)
 		, mpParentModelPart(NULL)
 		, mSubModelParts()
@@ -66,6 +70,7 @@ namespace Kratos
 		, mBufferSize(NewBufferSize)
 		, mpProcessInfo(new ProcessInfo())
 		, mIndices(NewBufferSize, 0)
+		, mpVariablesList(new VariablesList)
 		, mpCommunicator(new Communicator)
 		, mpParentModelPart(NULL)
 		, mSubModelParts()
@@ -85,7 +90,7 @@ namespace Kratos
 		, mpProcessInfo(rOther.mpProcessInfo)
 		, mIndices(rOther.mIndices)
 		, mMeshes(rOther.mMeshes)
-		, mVariablesList(rOther.mVariablesList)
+		, mpVariablesList(new VariablesList(*rOther.mpVariablesList))
 		, mpCommunicator(rOther.mpCommunicator)
 		, mpParentModelPart(rOther.mpParentModelPart)
 		, mSubModelParts(rOther.mSubModelParts)
@@ -97,12 +102,15 @@ namespace Kratos
 	{
 		for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); i_node++)
 		{
-			if (i_node->pGetVariablesList() == &mVariablesList)
+			if (i_node->pGetVariablesList() == mpVariablesList)
 				i_node->ClearSolutionStepsData();
 		}
 
 		for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
 			delete i_sub_model_part.base()->second;
+
+		if (!IsSubModelPart())
+			delete mpVariablesList;
 	}
 
 
@@ -119,6 +127,8 @@ namespace Kratos
 		mSubModelParts = rOther.mSubModelParts;
 
 		//KRATOS_THROW_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
+
+		*mpVariablesList = *rOther.mpVariablesList;
 
 		return *this;
 	}
@@ -270,7 +280,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
 
 		// Giving model part's variables list to the node
-		p_new_node->SetSolutionStepVariablesList(&mVariablesList);
+		p_new_node->SetSolutionStepVariablesList(mpVariablesList);
 
 		//set buffer size
 		p_new_node->SetBufferSize(mBufferSize);
@@ -292,7 +302,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 
 		//create a new node
-		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z, &mVariablesList, pThisData, mBufferSize));
+		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z, mpVariablesList, pThisData, mBufferSize));
 
 		//add the new node to the list of nodes
 		GetMesh(ThisIndex).AddNode(p_new_node);
@@ -315,7 +325,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z()));
 
 		// Giving model part's variables list to the node
-		p_new_node->SetSolutionStepVariablesList(&mVariablesList);
+		p_new_node->SetSolutionStepVariablesList(mpVariablesList);
 
 		//set buffer size
 		p_new_node->SetBufferSize(mBufferSize);
@@ -340,7 +350,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 
 		// Giving model part's variables list to the node
-		pThisNode->SetSolutionStepVariablesList(&mVariablesList);
+		pThisNode->SetSolutionStepVariablesList(mpVariablesList);
 
 		//set buffer size
 		pThisNode->SetBufferSize(mBufferSize);
@@ -425,7 +435,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
   //			<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
 
 		for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-			i_node->SetSolutionStepVariablesList(&mVariablesList);
+			i_node->SetSolutionStepVariablesList(mpVariablesList);
 	}
 
 	/** Inserts a Table
@@ -788,6 +798,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		{
 			ModelPart* p_model_part = new ModelPart(NewSubModelPartName);
 			p_model_part->SetParentModelPart(this);
+			p_model_part->mpVariablesList = mpVariablesList;
 			return *(mSubModelParts.insert(p_model_part));
 		}
 		else
@@ -796,6 +807,20 @@ KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model par
 			//KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
 	}
 
+	void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
+	{
+		if (mSubModelParts.find(rThisSubModelPart.Name()) != mSubModelParts.end())
+			// Here a warning would be enough. To be disscussed. Pooyan.
+			KRATOS_ERROR << "There is an already existing sub model part with name \"" << rThisSubModelPart.Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
+			
+		if (IsSubModelPart())
+		{
+			mpParentModelPart->AddSubModelPart(rThisSubModelPart);
+			return;
+		}
+
+		rThisSubModelPart.SetParentModelPart(this);
+	}
 	/** Remove a sub modelpart with given name.
 	*/
 	void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
@@ -940,9 +965,9 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
 		rSerializer.save("Name", mName);
 		rSerializer.save("Buffer Size", mBufferSize);
 		rSerializer.save("ProcessInfo", mpProcessInfo);
-		const VariablesList* p_list = &mVariablesList;
+		//const VariablesList* p_list = &mVariablesList;
 		// I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
-		rSerializer.save("Variables List", p_list);
+		rSerializer.save("Variables List", mpVariablesList);
 		rSerializer.save("Meshes", mMeshes);
 	}
 
@@ -952,8 +977,8 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
 		rSerializer.load("Name", mName);
 		rSerializer.load("Buffer Size", mBufferSize);
 		rSerializer.load("ProcessInfo", mpProcessInfo);
-		VariablesList* p_list = &mVariablesList;
-		rSerializer.load("Variables List", p_list);
+		//VariablesList* p_list = &mVariablesList;
+		rSerializer.load("Variables List", mpVariablesList);
 		rSerializer.load("Meshes", mMeshes);
 	}
 
