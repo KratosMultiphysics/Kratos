@@ -39,6 +39,7 @@ namespace Kratos
         /// Destructor
         virtual ~SphericContinuumParticle();
                
+        void SearchSkinParticles(ProcessInfo& r_process_info);
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info);
