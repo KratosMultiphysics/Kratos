@@ -234,13 +234,7 @@ if (DEM_parameters.dem_inlet_option):
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
   
-#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
-#if (DEM_parameters.PredefinedSkinOption == "ON" ):
-   #ProceduresSetPredefinedSkin(spheres_model_part)
-
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
-
-#Procedures.SetCustomSkin(spheres_model_part)
 
 materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
@@ -254,8 +248,6 @@ report.Prepare(timer, DEM_parameters.ControlTime)
 
 first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
     
-## MODEL DATA #~CHARLIE~#:????
-
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
