@@ -35,25 +35,50 @@
 
 namespace Kratos {
 
-      SphericContinuumParticle::SphericContinuumParticle() : SphericParticle(){}
+    SphericContinuumParticle::SphericContinuumParticle():SphericParticle() {}
 
-      SphericContinuumParticle::SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry) : SphericParticle(NewId, pGeometry){}
+    SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericParticle(NewId, pGeometry){}
 
-      SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-      : SphericParticle(NewId, pGeometry, pProperties){}
+    SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : SphericParticle(NewId, pGeometry, pProperties){}
 
-      SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : SphericParticle(NewId, ThisNodes){}
+    SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes)
+    : SphericParticle(NewId, ThisNodes){}
 
-      Element::Pointer SphericContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-      {
+    Element::Pointer SphericContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    {
         return SphericParticle::Pointer(new SphericContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
-      }
+    }
 
-    /// Destructor.
+    /// Destructor
 
-      SphericContinuumParticle::~SphericContinuumParticle(){}
+    SphericContinuumParticle::~SphericContinuumParticle() {}
 
+    
+    void SphericContinuumParticle::SearchSkinParticles(ProcessInfo& r_process_info) {
+    
+        array_1d<double, 3> other_to_me_vect_total = ZeroVector(3);
+        
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            
+            if (mNeighbourElements[i] == NULL) continue;
+            
+            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            
+            array_1d<double, 3> other_to_me_vect;
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+
+            GeometryFunctions::normalize(other_to_me_vect_total);
+                    
+            DEM_ADD_SECOND_TO_FIRST(other_to_me_vect_total, other_to_me_vect)
+        }
+        
+        double other_to_me_vect_total_modulus = DEM_MODULUS_3(other_to_me_vect_total);
+        
+        if (other_to_me_vect_total_modulus > 0.95) {
+            this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1;
+        }
+    } // SearchSkinParticles
     
     void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
          
@@ -258,7 +283,7 @@ namespace Kratos {
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                DisplacementDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                DisplacementDueToRotation(indentation, DeltDisp, RelVel, LocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             }
 
             double LocalDeltDisp[3] = {0.0};
@@ -268,7 +293,7 @@ namespace Kratos {
             
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
             
-            RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);
+            //RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);
             
             // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
@@ -279,8 +304,7 @@ namespace Kratos {
 			
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
             //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
-            
-            
+                        
             double ViscoDampingLocalContactForce[3] = {0.0};
             double equiv_visco_damp_coeff_normal;
             double equiv_visco_damp_coeff_tangential;
@@ -664,6 +688,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::CustomInitialize() {
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
+        this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 0;
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
     }
 
