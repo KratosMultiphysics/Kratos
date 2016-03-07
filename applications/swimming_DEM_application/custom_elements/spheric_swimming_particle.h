@@ -68,7 +68,7 @@ namespace Kratos
       virtual ~SphericSwimmingParticle(){};
 
       
-      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
+      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity) override;
 
       std::vector<Node<3>::Pointer> mNeighbourNodes;
       std::vector<double>   mNeighbourNodesDistances;
@@ -99,7 +99,7 @@ namespace Kratos
         void ComputeParticleReynoldsNumber(double& r_reynolds);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
-        void AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
+        void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
 
       ///@name Protected static Member Variables
