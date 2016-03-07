@@ -80,21 +80,22 @@ namespace Kratos {
     }
 
     void DEM_D_Bentonite_Colloid::CalculateForces(const ProcessInfo& r_process_info,
-                                                       const double OldLocalContactForce[3],
-                                                             double LocalElasticContactForce[3],
-                                                             double LocalDeltDisp[3],
-                                                             double LocalRelVel[3],
-                                                             double indentation,
-                                                             double previous_indentation,
-                                                             double ViscoDampingLocalContactForce[3],
-                                                             double& cohesive_force,
-                                                             SphericParticle* element1,
-                                                             SphericParticle* element2,
-                                                             bool& sliding) {
+                                                  const double OldLocalContactForce[3],
+                                                  double LocalElasticContactForce[3],
+                                                  double LocalDeltDisp[3],
+                                                  double LocalRelVel[3],
+                                                  double indentation,
+                                                  double previous_indentation,
+                                                  double ViscoDampingLocalContactForce[3],
+                                                  double& cohesive_force,
+                                                  SphericParticle* element1,
+                                                  SphericParticle* element2,
+                                                  bool& sliding){
 
         //InitializeContact(element1, element2, indentation);
 //G
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
+
         double distance = element1->GetInteractionRadius() + element2->GetInteractionRadius() - indentation;
         double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
         double smoother = 1.0;//std::max(1.0, 9.0 * indentation / (element1->GetInteractionRadius() + element2->GetInteractionRadius()));
@@ -146,7 +147,7 @@ namespace Kratos {
 
     void DEM_D_Bentonite_Colloid::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta) {
 
-        const double my_radius        = element->GetRadius(); // Get equivalent Radius
+        const double my_radius        = element->GetInteractionRadius(); // Get equivalent Radius
         const double effective_radius = my_radius - ini_delta;
         const double my_young         = element->GetYoung(); // Get equivalent Young's Modulus
         const double walls_young      = wall->GetYoung();
