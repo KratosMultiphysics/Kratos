@@ -470,7 +470,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
 void SphericParticle::DisplacementDueToRotation(const double indentation,
                                                 double RelDeltDisp[3],
                                                 double RelVel[3],
-                                                double OldLocalCoordSystem[3][3],
+                                                double LocalCoordSystem[3][3],
                                                 const double& other_radius,
                                                 const double& dt,
                                                 const array_1d<double, 3>& my_ang_vel,
@@ -491,15 +491,15 @@ void SphericParticle::DisplacementDueToRotation(const double indentation,
     const double my_arm_length     = GetInteractionRadius()  - indentation * GetInteractionRadius()  * inv_radius_sum;
     const double other_arm_length  = other_radius - indentation * other_radius * inv_radius_sum;
         
-    my_arm_vector[0] = -OldLocalCoordSystem[2][0] * my_arm_length;
-    my_arm_vector[1] = -OldLocalCoordSystem[2][1] * my_arm_length;
-    my_arm_vector[2] = -OldLocalCoordSystem[2][2] * my_arm_length;          
+    my_arm_vector[0] = -LocalCoordSystem[2][0] * my_arm_length;
+    my_arm_vector[1] = -LocalCoordSystem[2][1] * my_arm_length;
+    my_arm_vector[2] = -LocalCoordSystem[2][2] * my_arm_length;          
     
     GeometryFunctions::CrossProduct(my_ang_vel, my_arm_vector, my_vel_at_contact_point_due_to_rotation);    
     
-    other_arm_vector[0] = OldLocalCoordSystem[2][0] * other_arm_length;
-    other_arm_vector[1] = OldLocalCoordSystem[2][1] * other_arm_length;
-    other_arm_vector[2] = OldLocalCoordSystem[2][2] * other_arm_length;    
+    other_arm_vector[0] = LocalCoordSystem[2][0] * other_arm_length;
+    other_arm_vector[1] = LocalCoordSystem[2][1] * other_arm_length;
+    other_arm_vector[2] = LocalCoordSystem[2][2] * other_arm_length;    
     
     GeometryFunctions::CrossProduct(other_ang_vel, other_arm_vector, other_vel_at_contact_point_due_to_rotation);
     
@@ -720,7 +720,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, velocity, delta_displ, ineighbour, distance);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
-            DisplacementDueToRotation(indentation, DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_velocity, ineighbour);
+            DisplacementDueToRotation(indentation, DeltDisp, RelVel, LocalCoordSystem, other_radius, dt, ang_velocity, ineighbour);
         }
 
         double LocalContactForce[3]             = {0.0};
