@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,8 @@ struct spai1 {
     typedef typename Backend::value_type value_type;
     typedef typename Backend::vector     vector;
 
+    typedef typename math::scalar_of<value_type>::type scalar_type;
+
     /// Relaxation parameters.
     struct params {
         params() {}
@@ -71,16 +73,20 @@ struct spai1 {
         typedef typename backend::value_type<Matrix>::type   value_type;
         typedef typename backend::row_iterator<Matrix>::type row_iterator;
 
-        const size_t n = rows(A);
-        const size_t m = cols(A);
+        const size_t n   = backend::rows(A);
+        const size_t m   = backend::cols(A);
+        const size_t nnz = backend::nonzeros(A);
+
+        BOOST_AUTO(Aptr, A.ptr_data());
+        BOOST_AUTO(Acol, A.col_data());
 
         boost::shared_ptr<Matrix> Ainv = boost::make_shared<Matrix>();
         Ainv->nrows = n;
         Ainv->ncols = m;
 
-        Ainv->ptr = A.ptr;
-        Ainv->col = A.col;
-        Ainv->val.assign(A.ptr.back(), 0);
+        Ainv->ptr.assign(Aptr, Aptr + n+1);
+        Ainv->col.assign(Acol, Acol + nnz);
+        Ainv->val.assign(nnz, math::zero<value_type>());
 
 #pragma omp parallel
         {
@@ -102,17 +108,17 @@ struct spai1 {
             amgcl::detail::QR<value_type> qr;
 
             for(size_t i = chunk_start; i < chunk_end; ++i) {
-                ptrdiff_t row_beg = A.ptr[i];
-                ptrdiff_t row_end = A.ptr[i + 1];
+                ptrdiff_t row_beg = Aptr[i];
+                ptrdiff_t row_end = Aptr[i + 1];
 
-                I.assign(A.col.begin() + row_beg, A.col.begin() + row_end);
+                I.assign(Acol + row_beg, Acol + row_end);
 
                 J.clear();
                 for(ptrdiff_t j = row_beg; j < row_end; ++j) {
-                    ptrdiff_t c = A.col[j];
+                    ptrdiff_t c = Acol[j];
 
-                    for(ptrdiff_t jj = A.ptr[c], ee = A.ptr[c + 1]; jj < ee; ++jj) {
-                        ptrdiff_t cc = A.col[jj];
+                    for(ptrdiff_t jj = Aptr[c], ee = Aptr[c + 1]; jj < ee; ++jj) {
+                        ptrdiff_t cc = Acol[jj];
                         if (marker[cc] < 0) {
                             marker[cc] = 1;
                             J.push_back(cc);
@@ -120,22 +126,22 @@ struct spai1 {
                     }
                 }
                 std::sort(J.begin(), J.end());
-                B.assign(I.size() * J.size(), 0);
-                ek.assign(J.size(), 0);
+                B.assign(I.size() * J.size(), math::zero<value_type>());
+                ek.assign(J.size(), math::zero<value_type>());
                 for(size_t j = 0; j < J.size(); ++j) {
                     marker[J[j]] = j;
-                    if (J[j] == static_cast<ptrdiff_t>(i)) ek[j] = 1;
+                    if (J[j] == static_cast<ptrdiff_t>(i)) ek[j] = math::identity<value_type>();
                 }
 
                 for(ptrdiff_t j = row_beg; j < row_end; ++j) {
-                    ptrdiff_t c = A.col[j];
+                    ptrdiff_t c = Acol[j];
 
                     for(row_iterator a = row_begin(A, c); a; ++a)
                         B[marker[a.col()] * I.size() + j - row_beg] = a.value();
                 }
 
-                qr.compute(J.size(), I.size(), B.data(), /*need Q: */false);
-                qr.solve(ek.data(), &Ainv->val[row_beg]);
+                qr.compute(J.size(), I.size(), &B[0], /*need Q: */false);
+                qr.solve(&ek[0], &Ainv->val[row_beg]);
 
                 for(size_t j = 0; j < J.size(); ++j)
                     marker[J[j]] = -1;
@@ -174,7 +180,7 @@ struct spai1 {
                 ) const
         {
             backend::residual(rhs, A, x, tmp);
-            backend::spmv(1, *M, tmp, 1, x);
+            backend::spmv(math::identity<scalar_type>(), *M, tmp, math::identity<scalar_type>(), x);
         }
 
 };

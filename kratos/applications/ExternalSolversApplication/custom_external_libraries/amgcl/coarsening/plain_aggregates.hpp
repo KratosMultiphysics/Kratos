@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include <vector>
 #include <boost/foreach.hpp>
+#include <boost/typeof/typeof.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
 
@@ -111,22 +112,28 @@ struct plain_aggregates {
           strong_connection( backend::nonzeros(A) ),
           id( backend::rows(A) )
     {
-        typedef typename backend::value_type<Matrix>::type V;
-        V eps_squared = prm.eps_strong * prm.eps_strong;
+        typedef typename backend::value_type<Matrix>::type value_type;
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+
+        scalar_type eps_squared = prm.eps_strong * prm.eps_strong;
 
         const size_t n = rows(A);
 
+        BOOST_AUTO(Aptr, A.ptr_data());
+        BOOST_AUTO(Acol, A.col_data());
+        BOOST_AUTO(Aval, A.val_data());
+
         /* 1. Get strong connections */
-        std::vector<V> dia = diagonal(A);
+        std::vector<value_type> dia = diagonal(A);
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-            V eps_dia_i = eps_squared * dia[i];
+            value_type eps_dia_i = eps_squared * dia[i];
 
-            for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j) {
-                ptrdiff_t c = A.col[j];
-                V    v = A.val[j];
+            for(ptrdiff_t j = Aptr[i], e = Aptr[i+1]; j < e; ++j) {
+                ptrdiff_t c = Acol[j];
+                value_type v = Aval[j];
 
-                strong_connection[j] = (c != i) && (v * v > eps_dia_i * dia[c]);
+                strong_connection[j] = (c != i) && (eps_dia_i * dia[c] < v * v);
             }
         }
 
@@ -135,7 +142,7 @@ struct plain_aggregates {
         // Remove lonely nodes.
         size_t max_neib = 0;
         for(size_t i = 0; i < n; ++i) {
-            ptrdiff_t j = A.ptr[i], e = A.ptr[i+1];
+            ptrdiff_t j = Aptr[i], e = Aptr[i+1];
             max_neib    = std::max<size_t>(max_neib, e - j);
 
             ptrdiff_t state = removed;
@@ -162,8 +169,8 @@ struct plain_aggregates {
 
             // Include its neighbors as well.
             neib.clear();
-            for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j) {
-                ptrdiff_t c = A.col[j];
+            for(ptrdiff_t j = Aptr[i], e = Aptr[i+1]; j < e; ++j) {
+                ptrdiff_t c = Acol[j];
                 if (strong_connection[j] && id[c] != removed) {
                     id[c] = cur_id;
                     neib.push_back(c);
@@ -174,8 +181,8 @@ struct plain_aggregates {
             // as members of the aggregate.
             // If nobody claims them later, they will stay here.
             BOOST_FOREACH(ptrdiff_t c, neib) {
-                for(ptrdiff_t j = A.ptr[c], e = A.ptr[c+1]; j < e; ++j) {
-                    ptrdiff_t cc = A.col[j];
+                for(ptrdiff_t j = Aptr[c], e = Aptr[c+1]; j < e; ++j) {
+                    ptrdiff_t cc = Acol[j];
                     if (strong_connection[j] && id[cc] == undefined)
                         id[cc] = cur_id;
                 }

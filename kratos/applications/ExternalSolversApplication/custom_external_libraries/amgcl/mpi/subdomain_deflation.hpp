@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014-2015, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39,10 +39,10 @@ THE SOFTWARE.
 #include <boost/make_shared.hpp>
 #include <boost/range/numeric.hpp>
 #include <boost/multi_array.hpp>
+#include <boost/foreach.hpp>
 
 #include <mpi.h>
 
-#include <amgcl/amgcl.hpp>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/mpi/util.hpp>
@@ -100,37 +100,33 @@ struct constant_deflation {
  * \sa \cite Frank2001
  */
 template <
-    class                         Backend,
-    class                         Coarsening,
-    template <class> class        Relax,
+    class LocalPrecond,
     template <class, class> class IterativeSolver,
-    class                         DirectSolver = mpi::skyline_lu<typename Backend::value_type>
+    class DirectSolver = mpi::skyline_lu<typename LocalPrecond::backend_type::value_type>
     >
 class subdomain_deflation {
     public:
-        typedef amg<
-            Backend, Coarsening, Relax
-            > AMG;
-
+        typedef typename LocalPrecond::backend_type Backend;
         typedef IterativeSolver<
             Backend, detail::mpi_inner_product
             > Solver;
 
         struct params {
-            typename AMG::params          amg;
+            typename Backend::params      backend;
+            typename LocalPrecond::params precond;
             typename Solver::params       solver;
             typename DirectSolver::params direct_solver;
 
             params() {}
 
             params(const boost::property_tree::ptree &p)
-                : AMGCL_PARAMS_IMPORT_CHILD(p, amg),
+                : AMGCL_PARAMS_IMPORT_CHILD(p, precond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, solver),
                   AMGCL_PARAMS_IMPORT_CHILD(p, direct_solver)
             {}
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
-                AMGCL_PARAMS_EXPORT_CHILD(p, path, amg);
+                AMGCL_PARAMS_EXPORT_CHILD(p, path, precond);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, solver);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, direct_solver);
             }
@@ -151,7 +147,7 @@ class subdomain_deflation {
           nrows(backend::rows(Astrip)), ndv(def_vec.dim()),
           dtype( datatype<value_type>::get() ), dv_start(comm.size + 1, 0),
           Z( ndv ), master_rank(0),
-          q( Backend::create_vector(nrows, prm.amg.backend) )
+          q( Backend::create_vector(nrows, prm.backend) )
         {
             MPI_Datatype mpi_ptrdiff_t = mpi::datatype<ptrdiff_t>::get();
 
@@ -168,7 +164,7 @@ class subdomain_deflation {
 
             df.resize(ndv);
             dx.resize(nz);
-            dd = Backend::create_vector(nz, prm.amg.backend);
+            dd = Backend::create_vector(nz, prm.backend);
 
             boost::shared_ptr<build_matrix> aloc = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> arem = boost::make_shared<build_matrix>();
@@ -183,11 +179,11 @@ class subdomain_deflation {
             // Fill deflation vectors.
             TIC("copy deflation vectors");
             {
-                boost::shared_ptr< std::vector<value_type> > z = boost::make_shared< std::vector<value_type> >(nrows);
+                std::vector<value_type> z(nrows);
                 for(int j = 0; j < ndv; ++j) {
                     for(ptrdiff_t i = 0; i < nrows; ++i)
-                        (*z)[i] = def_vec(i, j);
-                    Z[j] = Backend::copy_vector(z, prm.amg.backend);
+                        z[i] = def_vec(i, j);
+                    Z[j] = Backend::copy_vector(z, prm.backend);
                 }
             }
             TOC("copy deflation vectors");
@@ -265,7 +261,7 @@ class subdomain_deflation {
                     );
 
             MPI_Allgather(
-                    num_recv.data(),    comm.size, mpi_ptrdiff_t,
+                    &num_recv[0],    comm.size, mpi_ptrdiff_t,
                     comm_matrix.data(), comm.size, mpi_ptrdiff_t,
                     comm
                     );
@@ -287,7 +283,7 @@ class subdomain_deflation {
             recv.val.resize(rc.size());
             recv.req.resize(rnbr);
 
-            dv = Backend::create_vector( rc.size(), prm.amg.backend );
+            dv = Backend::create_vector( rc.size(), prm.backend );
 
             send.nbr.reserve(snbr);
             send.ptr.reserve(snbr + 1);
@@ -384,8 +380,8 @@ class subdomain_deflation {
             TOC("second pass");
 
             /* Finish communication pattern setup. */
-            MPI_Waitall(recv.req.size(), recv.req.data(), MPI_STATUSES_IGNORE);
-            MPI_Waitall(send.req.size(), send.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
 
             // Shift columns to send to local numbering:
             BOOST_FOREACH(ptrdiff_t &c, send_col) c -= chunk_start;
@@ -400,11 +396,13 @@ class subdomain_deflation {
             zcol_ptr.push_back(0);
 
             for(size_t i = 0; i < recv.nbr.size(); ++i) {
-                ptrdiff_t size = dv_size[recv.nbr[i]] * (recv.ptr[i + 1] - recv.ptr[i]);
+                ptrdiff_t ncols = recv.ptr[i + 1] - recv.ptr[i];
+                ptrdiff_t nvecs = dv_size[recv.nbr[i]];
+                ptrdiff_t size = nvecs * ncols;
                 zrecv_ptr[i + 1] = zrecv_ptr[i] + size;
 
-                for(ptrdiff_t j = 0; j < size; ++j)
-                    zcol_ptr.push_back(zcol_ptr.back() + dv_size[recv.nbr[i]]);
+                for(ptrdiff_t j = 0; j < ncols; ++j)
+                    zcol_ptr.push_back(zcol_ptr.back() + nvecs);
             }
 
             std::vector<value_type> zrecv(zrecv_ptr.back());
@@ -427,7 +425,7 @@ class subdomain_deflation {
                         &zsend[ndv * send.ptr[i]], ndv * (send.ptr[i+1] - send.ptr[i]),
                         dtype, send.nbr[i], tag_exc_vals, comm, &send.req[i]);
 
-            MPI_Waitall(recv.req.size(), recv.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
 
             boost::fill(marker, -1);
 
@@ -463,7 +461,7 @@ class subdomain_deflation {
             az->ptr.front() = 0;
             TOC("A*Z");
 
-            MPI_Waitall(send.req.size(), send.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
 
             /* Build deflated matrix E. */
             TIC("assemble E");
@@ -517,8 +515,8 @@ class subdomain_deflation {
             }
 
             MPI_Gatherv(
-                    &eptr[1], ndv, MPI_INT, Eptr.data() + 1,
-                    const_cast<int*>(ssize.data()), const_cast<int*>(sstart.data()),
+                    &eptr[1], ndv, MPI_INT, &Eptr[0] + 1,
+                    const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
                     MPI_INT, 0, slaves_comm
                     );
 
@@ -572,14 +570,14 @@ class subdomain_deflation {
             }
 
             MPI_Gatherv(
-                    ecol.data(), ecol.size(), MPI_INT, Ecol.data(),
-                    const_cast<int*>(ssize.data()), const_cast<int*>(sstart.data()),
+                    &ecol[0], ecol.size(), MPI_INT, &Ecol[0],
+                    const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
                     MPI_INT, 0, slaves_comm
                     );
 
             MPI_Gatherv(
-                    eval.data(), eval.size(), dtype, Eval.data(),
-                    const_cast<int*>(ssize.data()), const_cast<int*>(sstart.data()),
+                    &eval[0], eval.size(), dtype, &Eval[0],
+                    const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
                     dtype, 0, slaves_comm
                     );
             TOC("assemble E");
@@ -598,22 +596,22 @@ class subdomain_deflation {
 
             TOC("setup deflation");
 
-            // Create local AMG preconditioner.
-            P = boost::make_shared<AMG>( *aloc, prm.amg );
+            // Create local preconditioner.
+            P = boost::make_shared<LocalPrecond>( *aloc, prm.precond, prm.backend );
 
             // Create iterative solver instance.
             solve = boost::make_shared<Solver>(
-                    nrows, prm.solver, prm.amg.backend,
+                    nrows, prm.solver, prm.backend,
                     detail::mpi_inner_product(mpi_comm)
                     );
 
             // Move matrices to backend.
-            Arem = Backend::copy_matrix(arem, prm.amg.backend);
-            AZ   = Backend::copy_matrix(az,   prm.amg.backend);
+            Arem = Backend::copy_matrix(arem, prm.backend);
+            AZ   = Backend::copy_matrix(az,   prm.backend);
 
             // Columns gatherer. Will retrieve columns to send from backend.
             gather = boost::make_shared<typename Backend::gather>(
-                    nrows, send_col, prm.amg.backend);
+                    nrows, send_col, prm.backend);
 
             // Prepare Gatherv configuration for coarse solve
             for(int p = cgroup_beg, i = 0, offset = dv_start[p]; p < cgroup_end; ++p, ++i) {
@@ -635,12 +633,6 @@ class subdomain_deflation {
             if (slaves_comm  != MPI_COMM_NULL) MPI_Comm_free(&slaves_comm);
         }
 
-        /// Fills the property tree with the actual parameters used.
-        void get_params(boost::property_tree::ptree &p) const {
-            P->prm.get(p, "amg.");
-            solve->prm.get(p, "solver.");
-        }
-
         template <class Vec1, class Vec2>
         boost::tuple<size_t, value_type>
         operator()(const Vec1 &rhs, Vec2 &x) const {
@@ -659,7 +651,7 @@ class subdomain_deflation {
         void residual(const Vec1 &f, const Vec2 &x, Vec3 &r) const {
             TIC("top/residual");
             start_exchange(x);
-            backend::residual(f, P->top_matrix(), x, r);
+            backend::residual(f, P->system_matrix(), x, r);
 
             finish_exchange();
 
@@ -685,8 +677,8 @@ class subdomain_deflation {
 
         boost::shared_ptr<matrix> Arem;
 
-        boost::shared_ptr<AMG>    P;
-        boost::shared_ptr<Solver> solve;
+        boost::shared_ptr<LocalPrecond> P;
+        boost::shared_ptr<Solver>       solve;
 
         mutable std::vector<value_type> df, dx, cf, cx;
         std::vector<ptrdiff_t> dv_start;
@@ -726,7 +718,7 @@ class subdomain_deflation {
             TIC("top/spmv");
 
             start_exchange(x);
-            backend::spmv(alpha, P->top_matrix(), x, beta, y);
+            backend::spmv(alpha, P->system_matrix(), x, beta, y);
 
             finish_exchange();
 
@@ -804,8 +796,8 @@ class subdomain_deflation {
         }
 
         void finish_exchange() const {
-            MPI_Waitall(recv.req.size(), recv.req.data(), MPI_STATUSES_IGNORE);
-            MPI_Waitall(send.req.size(), send.req.data(), MPI_STATUSES_IGNORE);
+            MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(send.req.size(), &send.req[0], MPI_STATUSES_IGNORE);
         }
 
         void coarse_solve(std::vector<value_type> &f, std::vector<value_type> &x) const
@@ -813,8 +805,8 @@ class subdomain_deflation {
             TIC("coarse solve");
             TIC("exchange rhs");
             MPI_Gatherv(
-                    f.data(), f.size(), dtype, cf.data(),
-                    const_cast<int*>(ssize.data()), const_cast<int*>(sstart.data()),
+                    &f[0], f.size(), dtype, &cf[0],
+                    const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
                     dtype, 0, slaves_comm
                     );
             TOC("exchange rhs");
@@ -826,15 +818,15 @@ class subdomain_deflation {
 
                 TIC("gather result");
                 MPI_Gatherv(
-                        cx.data(), cx.size(), dtype, x.data(),
-                        const_cast<int*>(msize.data()), const_cast<int*>(mstart.data()),
+                        &cx[0], cx.size(), dtype, &x[0],
+                        const_cast<int*>(&msize[0]), const_cast<int*>(&mstart[0]),
                         dtype, 0, masters_comm
                         );
                 TOC("gather result");
             }
 
             TIC("broadcast result");
-            MPI_Bcast(x.data(), x.size(), dtype, 0, comm);
+            MPI_Bcast(&x[0], x.size(), dtype, 0, comm);
             TOC("broadcast result");
             TOC("coarse solve");
         }
@@ -845,58 +837,48 @@ class subdomain_deflation {
 namespace backend {
 
 template <
-    class                         Backend,
-    class                         Coarsening,
-    template <class> class        Relax,
+    class LocalPrecond,
     template <class, class> class IterativeSolver,
-    class                         DirectSolver,
+    class DirectSolver,
+    class Alpha, class Beta,
     class Vec1,
     class Vec2
     >
 struct spmv_impl<
+    Alpha,
     mpi::subdomain_deflation<
-        Backend,
-        Coarsening,
-        Relax,
+        LocalPrecond,
         IterativeSolver,
         DirectSolver
         >,
-    Vec1, Vec2
+    Vec1, Beta, Vec2
     >
 {
     typedef
         mpi::subdomain_deflation<
-            Backend,
-            Coarsening,
-            Relax,
+            LocalPrecond,
             IterativeSolver,
             DirectSolver
             >
         M;
 
-    typedef typename Backend::value_type V;
-
-    static void apply(V alpha, const M &A, const Vec1 &x, V beta, Vec2 &y)
+    static void apply(Alpha alpha, const M &A, const Vec1 &x, Beta beta, Vec2 &y)
     {
         A.mul_n_project(alpha, x, beta, y);
     }
 };
 
 template <
-    class                         Backend,
-    class                         Coarsening,
-    template <class> class        Relax,
+    class LocalPrecond,
     template <class, class> class IterativeSolver,
-    class                         DirectSolver,
+    class DirectSolver,
     class Vec1,
     class Vec2,
     class Vec3
     >
 struct residual_impl<
     mpi::subdomain_deflation<
-        Backend,
-        Coarsening,
-        Relax,
+        LocalPrecond,
         IterativeSolver,
         DirectSolver
         >,
@@ -905,15 +887,13 @@ struct residual_impl<
 {
     typedef
         mpi::subdomain_deflation<
-            Backend,
-            Coarsening,
-            Relax,
+            LocalPrecond,
             IterativeSolver,
             DirectSolver
             >
         M;
 
-    typedef typename Backend::value_type V;
+    typedef typename LocalPrecond::backend_type::value_type V;
 
     static void apply(const Vec1 &rhs, const M &A, const Vec2 &x, Vec3 &r) {
         A.residual(rhs, x, r);

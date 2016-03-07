@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -58,6 +58,7 @@ struct blaze {
 
     typedef ::blaze::CompressedMatrix<real> matrix;
     typedef ::blaze::DynamicVector<real>    vector;
+    typedef ::blaze::DynamicVector<real>    matrix_diagonal;
     typedef solver::skyline_lu<real>        direct_solver;
 
     /// Backend parameters.
@@ -101,7 +102,7 @@ struct blaze {
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
         boost::shared_ptr<vector> v = boost::make_shared<vector>(
-                x.size(), x.data());
+                x.size(), &x[0]);
         return v;
     }
 
@@ -171,20 +172,18 @@ struct nonzeros_impl< ::blaze::CompressedMatrix<V> > {
     }
 };
 
-template < typename V >
+template < class A, class B, typename V >
 struct spmv_impl<
-    ::blaze::CompressedMatrix<V>,
-    ::blaze::DynamicVector<V>,
-    ::blaze::DynamicVector<V>
+    A, ::blaze::CompressedMatrix<V>, ::blaze::DynamicVector<V>,
+    B, ::blaze::DynamicVector<V>
     >
 {
     typedef ::blaze::CompressedMatrix<V> matrix;
     typedef ::blaze::DynamicVector<V>    vector;
 
-    static void apply(V alpha, const matrix &A, const vector &x,
-            V beta, vector &y)
+    static void apply(A alpha, const matrix &A, const vector &x, B beta, vector &y)
     {
-        if (beta)
+        if (!math::is_zero(beta))
             y = alpha * (A * x) + beta * y;
         else
             y = alpha * (A * x);
@@ -248,28 +247,28 @@ struct inner_product_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct axpby_impl<
-    ::blaze::DynamicVector<V>,
-    ::blaze::DynamicVector<V>
+    A, ::blaze::DynamicVector<V>,
+    B, ::blaze::DynamicVector<V>
     >
 {
     typedef ::blaze::DynamicVector<V> vector;
 
-    static void apply(V a, const vector &x, V b, vector &y)
+    static void apply(A a, const vector &x, B b, vector &y)
     {
-        if (b)
+        if (!math::is_zero(b))
             y = a * x + b * y;
         else
             y = a * x;
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename C, typename V >
 struct axpbypcz_impl<
-    ::blaze::DynamicVector<V>,
-    ::blaze::DynamicVector<V>,
-    ::blaze::DynamicVector<V>
+    A, ::blaze::DynamicVector<V>,
+    B, ::blaze::DynamicVector<V>,
+    C, ::blaze::DynamicVector<V>
     >
 {
     typedef ::blaze::DynamicVector<V> vector;
@@ -280,26 +279,24 @@ struct axpbypcz_impl<
             V c,       vector &z
             )
     {
-        if (c)
+        if (!math::is_zero(c))
             z = a * x + b * y + c * z;
         else
             z = a * x + b * y;
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct vmul_impl<
-    ::blaze::DynamicVector<V>,
-    ::blaze::DynamicVector<V>,
-    ::blaze::DynamicVector<V>
+    A, ::blaze::DynamicVector<V>, ::blaze::DynamicVector<V>,
+    B, ::blaze::DynamicVector<V>
     >
 {
     typedef ::blaze::DynamicVector<V> vector;
 
-    static void apply(V a, const vector &x, const vector &y,
-            V b, vector &z)
+    static void apply(A a, const vector &x, const vector &y, B b, vector &z)
     {
-        if (b)
+        if (!math::is_zero(b))
             z = a * x * y + b * z;
         else
             z = a * x * y;

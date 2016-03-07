@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,11 +39,12 @@ THE SOFTWARE.
 namespace amgcl {
 namespace solver {
 
-/// BiCGStab iterative solver.
-/**
- * \param Backend Backend for temporary structures allocation.
- * \ingroup solvers
- * \sa \cite Barrett1994
+/** BiConjugate Gradient Stabilized (BiCGSTAB) method.
+ * \rst
+ * The BiConjugate Gradient Stabilized method (Bi-CGSTAB) was developed to
+ * solve nonsymmetric linear systems while avoiding the often irregular
+ * convergence patterns of the Conjugate Gradient [Barr94]_.
+ * \endrst
  */
 template <
     class Backend,
@@ -51,9 +52,18 @@ template <
     >
 class bicgstab {
     public:
+        typedef Backend backend_type;
+
         typedef typename Backend::vector     vector;
         typedef typename Backend::value_type value_type;
         typedef typename Backend::params     backend_params;
+
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+
+        typedef typename math::inner_product_impl<
+            typename math::rhs_of<value_type>::type
+            >::return_type coef_type;
+
 
         /// Solver parameters.
         struct params {
@@ -61,9 +71,9 @@ class bicgstab {
             size_t maxiter;
 
             /// Target residual error.
-            value_type tol;
+            scalar_type tol;
 
-            params(size_t maxiter = 100, value_type tol = 1e-8)
+            params(size_t maxiter = 100, scalar_type tol = 1e-8)
                 : maxiter(maxiter), tol(tol)
             {}
 
@@ -78,7 +88,7 @@ class bicgstab {
             }
         };
 
-        /// \copydoc amgcl::solver::cg::cg
+        /// Preallocates necessary data structures for the system of size \p n.
         bicgstab(
                 size_t n,
                 const params &prm = params(),
@@ -97,22 +107,20 @@ class bicgstab {
               inner_product(inner_product)
         { }
 
-        /// Solves the linear system for the given system matrix.
-        /**
-         * \param A   System matrix.
-         * \param P   Preconditioner.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /* Computes the solution for the given system matrix \p A and the
+         * right-hand side \p rhs.  Returns the number of iterations made and
+         * the achieved residual as a ``boost::tuple``. The solution vector
+         * \p x provides initial approximation in input and holds the computed
+         * solution on output.
          *
-         * The system matrix may differ from the matrix used for the AMG
-         * preconditioner construction. This may be used for the solution of
-         * non-stationary problems with slowly changing coefficients. There is
-         * a strong chance that AMG built for one time step will act as a
-         * reasonably good preconditioner for several subsequent time steps
-         * \cite Demidov2012.
+         * The system matrix may differ from the matrix used during
+         * initialization. This may be used for the solution of non-stationary
+         * problems with slowly changing coefficients. There is a strong chance
+         * that a preconditioner built for a time step will act as a reasonably
+         * good preconditioner for several subsequent time steps [DeSh12]_.
          */
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        boost::tuple<size_t, scalar_type> operator()(
                 Matrix  const &A,
                 Precond const &P,
                 Vec1    const &rhs,
@@ -123,21 +131,26 @@ class bicgstab {
 #endif
                 ) const
         {
+            static const coef_type one  = math::identity<coef_type>();
+            static const coef_type zero = math::zero<coef_type>();
+
             backend::residual(rhs, A, x, *r);
 
-            value_type norm_rhs = norm(rhs);
-            if (norm_rhs < amgcl::detail::eps<value_type>(n)) {
+            scalar_type norm_rhs = norm(rhs);
+            if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
                 backend::clear(x);
                 return boost::make_tuple(0, norm_rhs);
             }
 
-            value_type eps = norm_rhs * prm.tol;
+            scalar_type eps = norm_rhs * prm.tol;
 
-            value_type rho1  = 0, rho2  = 0;
-            value_type alpha = 0, omega = 0;
+            coef_type rho1  = zero;
+            coef_type rho2  = zero;
+            coef_type alpha = zero;
+            coef_type omega = zero;
 
-            size_t     iter = 0;
-            value_type res  = norm(*r);
+            size_t      iter = 0;
+            scalar_type res  = norm(*r);
 
             backend::copy(*r, *rh);
 
@@ -150,32 +163,32 @@ class bicgstab {
                     backend::copy(*r, *p);
                     first = false;
                 } else {
-                    precondition(rho2, "Zero rho in BiCGStab");
-                    value_type beta = (rho1 * alpha) / (rho2 * omega);
-                    backend::axpbypcz(1, *r, -beta * omega, *v, beta, *p);
+                    precondition(!math::is_zero(rho2), "Zero rho in BiCGStab");
+                    coef_type beta = (rho1 * alpha) / (rho2 * omega);
+                    backend::axpbypcz(one, *r, -beta * omega, *v, beta, *p);
                 }
 
                 P.apply(*p, *ph);
 
-                backend::spmv(1, A, *ph, 0, *v);
+                backend::spmv(one, A, *ph, zero, *v);
 
                 alpha = rho1 / inner_product(*rh, *v);
 
-                backend::axpbypcz(1, *r, -alpha, *v, 0, *s);
+                backend::axpbypcz(one, *r, -alpha, *v, zero, *s);
 
                 if ((res = norm(*s)) <= eps) {
-                    backend::axpby(alpha, *ph, 1, x);
+                    backend::axpby(alpha, *ph, one, x);
                 } else {
                     P.apply(*s, *sh);
 
-                    backend::spmv(1, A, *sh, 0, *t);
+                    backend::spmv(one, A, *sh, zero, *t);
 
                     omega = inner_product(*t, *s) / inner_product(*t, *t);
 
-                    precondition(omega, "Zero omega in BiCGStab");
+                    precondition(!math::is_zero(omega), "Zero omega in BiCGStab");
 
-                    backend::axpbypcz(alpha, *ph, omega, *sh, 1, x);
-                    backend::axpbypcz(1, *s, -omega, *t, 0, *r);
+                    backend::axpbypcz(alpha, *ph, omega, *sh, one, x);
+                    backend::axpbypcz(one, *s, -omega, *t, zero, *r);
 
                     res = norm(*r);
                 }
@@ -184,14 +197,15 @@ class bicgstab {
             return boost::make_tuple(iter, res / norm_rhs);
         }
 
-        /// Solves the linear system for the same matrix that was used for the AMG preconditioner construction.
-        /**
-         * \param P   AMG preconditioner.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /* Computes the solution for the given right-hand side \p rhs. The
+         * system matrix is the same that was used for the setup of the
+         * preconditioner \p P.  Returns the number of iterations made and the
+         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * provides initial approximation in input and holds the computed
+         * solution on output.
          */
         template <class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        boost::tuple<size_t, scalar_type> operator()(
                 Precond const &P,
                 Vec1    const &rhs,
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
@@ -201,7 +215,7 @@ class bicgstab {
 #endif
                 ) const
         {
-            return (*this)(P.top_matrix(), P, rhs, x);
+            return (*this)(P.system_matrix(), P, rhs, x);
         }
 
 
@@ -223,8 +237,8 @@ class bicgstab {
         InnerProduct inner_product;
 
         template <class Vec>
-        value_type norm(const Vec &x) const {
-            return sqrt(inner_product(x, x));
+        scalar_type norm(const Vec &x) const {
+            return sqrt(math::norm(inner_product(x, x)));
         }
 };
 

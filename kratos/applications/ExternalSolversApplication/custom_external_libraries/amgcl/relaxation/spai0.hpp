@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,9 +48,10 @@ namespace relaxation {
  */
 template <class Backend>
 struct spai0 {
-    typedef typename Backend::value_type value_type;
-    typedef typename Backend::vector     vector;
+    typedef typename Backend::value_type      value_type;
+    typedef typename Backend::matrix_diagonal matrix_diagonal;
 
+    typedef typename math::scalar_of<value_type>::type scalar_type;
     /// Relaxation parameters.
     struct params {
         params() {}
@@ -70,8 +71,8 @@ struct spai0 {
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-            value_type num = 0;
-            value_type den = 0;
+            value_type num = math::zero<value_type>();
+            value_type den = math::zero<value_type>();
 
             for(row_iterator a = backend::row_begin(A, i); a; ++a) {
                 value_type v = a.value();
@@ -79,7 +80,7 @@ struct spai0 {
                 if (a.col() == i) num += v;
             }
 
-            (*m)[i] = num / den;
+            (*m)[i] = math::inverse(den) * num;
         }
 
         M = Backend::copy_vector(m, backend_prm);
@@ -106,15 +107,17 @@ struct spai0 {
     }
 
     private:
-        boost::shared_ptr<vector> M;
+        boost::shared_ptr<matrix_diagonal> M;
 
         template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
         void apply(
                 const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
                 ) const
         {
+            static const scalar_type one = math::identity<scalar_type>();
+
             backend::residual(rhs, A, x, tmp);
-            backend::vmul(1, *M, tmp, 1, x);
+            backend::vmul(one, *M, tmp, one, x);
         }
 
 };

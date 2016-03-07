@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ THE SOFTWARE.
  * \brief  Ruge-Stuben coarsening with direct interpolation.
  */
 
+#include <boost/typeof/typeof.hpp>
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/shared_ptr.hpp>
@@ -97,8 +98,13 @@ struct ruge_stuben {
     transfer_operators(const Matrix &A, const params &prm)
     {
         typedef typename backend::value_type<Matrix>::type Val;
+        typedef typename math::scalar_of<Val>::type        Scalar;
+
         const size_t n = rows(A);
-        const Val eps = amgcl::detail::eps<Val>(1);
+
+        static const Scalar eps = amgcl::detail::eps<Scalar>(1);
+
+        static const Val zero = math::zero<Val>();
 
         std::vector<char> cf(n, 'U');
         backend::crs<char, ptrdiff_t, ptrdiff_t> S;
@@ -126,6 +132,10 @@ struct ruge_stuben {
             Amax.resize(n);
         }
 
+        BOOST_AUTO(Aptr, A.ptr_data());
+        BOOST_AUTO(Acol, A.col_data());
+        BOOST_AUTO(Aval, A.val_data());
+
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
             if (cf[i] == 'C') {
@@ -134,27 +144,27 @@ struct ruge_stuben {
             }
 
             if (prm.do_trunc) {
-                Val amin = 0, amax = 0;
+                Val amin = zero, amax = zero;
 
-                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
-                    if (!S.val[j] || cf[ A.col[j] ] != 'C') continue;
+                for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
+                    if (!S.val[j] || cf[ Acol[j] ] != 'C') continue;
 
-                    amin = std::min(amin, A.val[j]);
-                    amax = std::max(amax, A.val[j]);
+                    amin = std::min(amin, Aval[j]);
+                    amax = std::max(amax, Aval[j]);
                 }
 
                 Amin[i] = (amin *= prm.eps_trunc);
                 Amax[i] = (amax *= prm.eps_trunc);
 
-                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
-                    if (!S.val[j] || cf[A.col[j]] != 'C') continue;
+                for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
+                    if (!S.val[j] || cf[Acol[j]] != 'C') continue;
 
-                    if (A.val[j] <= amin || A.val[j] >= amax)
+                    if (Aval[j] < amin || amax < Aval[j])
                         ++P->ptr[i + 1];
                 }
             } else {
-                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
-                    if (S.val[j] && cf[A.col[j]] == 'C')
+                for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j)
+                    if (S.val[j] && cf[Acol[j]] == 'C')
                         ++P->ptr[i + 1];
             }
         }
@@ -169,29 +179,29 @@ struct ruge_stuben {
 
             if (cf[i] == 'C') {
                 P->col[row_head] = cidx[i];
-                P->val[row_head] = 1;
+                P->val[row_head] = math::identity<Val>();
                 continue;
             }
 
-            Val dia   = 0;
-            Val a_num = 0, a_den = 0;
-            Val b_num = 0, b_den = 0;
-            Val d_neg = 0, d_pos = 0;
+            Val dia   = zero;
+            Val a_num = zero, a_den = zero;
+            Val b_num = zero, b_den = zero;
+            Val d_neg = zero, d_pos = zero;
 
-            for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
-                ptrdiff_t c = A.col[j];
-                Val  v = A.val[j];
+            for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
+                ptrdiff_t c = Acol[j];
+                Val  v = Aval[j];
 
                 if (c == i) {
                     dia = v;
                     continue;
                 }
 
-                if (v < 0) {
+                if (v < zero) {
                     a_num += v;
                     if (S.val[j] && cf[c] == 'C') {
                         a_den += v;
-                        if (prm.do_trunc && v > Amin[i]) d_neg += v;
+                        if (prm.do_trunc && Amin[i] < v) d_neg += v;
                     }
                 } else {
                     b_num += v;
@@ -202,28 +212,31 @@ struct ruge_stuben {
                 }
             }
 
-            Val cf_neg = 1;
-            Val cf_pos = 1;
+            Scalar cf_neg = 1;
+            Scalar cf_pos = 1;
 
             if (prm.do_trunc) {
-                if (fabs(a_den - d_neg) > eps) cf_neg = a_den / (a_den - d_neg);
-                if (fabs(b_den - d_pos) > eps) cf_pos = b_den / (b_den - d_pos);
+                if (math::norm(static_cast<Val>(a_den - d_neg)) > eps)
+                    cf_neg = math::norm(a_den) / math::norm(static_cast<Val>(a_den - d_neg));
+
+                if (math::norm(static_cast<Val>(b_den - d_pos)) > eps)
+                    cf_pos = math::norm(b_den) / math::norm(static_cast<Val>(b_den - d_pos));
             }
 
-            if (b_num > 0 && fabs(b_den) < eps) dia += b_num;
+            if (zero < b_num && math::norm(b_den) < eps) dia += b_num;
 
-            Val alpha = fabs(a_den) > eps ? -cf_neg * a_num / (dia * a_den) : 0;
-            Val beta  = fabs(b_den) > eps ? -cf_pos * b_num / (dia * b_den) : 0;
+            Scalar alpha = math::norm(a_den) > eps ? -cf_neg * math::norm(a_num) / (math::norm(dia) * math::norm(a_den)) : 0;
+            Scalar beta  = math::norm(b_den) > eps ? -cf_pos * math::norm(b_num) / (math::norm(dia) * math::norm(b_den)) : 0;
 
-            for(ptrdiff_t j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j) {
-                ptrdiff_t c = A.col[j];
-                Val  v = A.val[j];
+            for(ptrdiff_t j = Aptr[i], e = Aptr[i + 1]; j < e; ++j) {
+                ptrdiff_t c = Acol[j];
+                Val  v = Aval[j];
 
                 if (!S.val[j] || cf[c] != 'C') continue;
-                if (prm.do_trunc && v > Amin[i] && v < Amax[i]) continue;
+                if (prm.do_trunc && Amin[i] < v && v < Amax[i]) continue;
 
                 P->col[row_head] = cidx[c];
-                P->val[row_head] = (v < 0 ? alpha : beta) * v;
+                P->val[row_head] = (v < zero ? alpha : beta) * v;
                 ++row_head;
             }
         }
@@ -265,43 +278,49 @@ struct ruge_stuben {
             typedef backend::crs<Val, Col, Ptr>                  matrix;
             typedef typename backend::row_iterator<matrix>::type row_iterator;
 
+            typedef typename math::scalar_of<Val>::type Scalar;
+
             const size_t n   = rows(A);
             const size_t nnz = nonzeros(A);
-            const Val eps = amgcl::detail::eps<Val>(1);
+            const Scalar eps = amgcl::detail::eps<Scalar>(1);
 
             S.nrows = S.ncols = n;
             S.ptr.resize( n+1 );
             S.val.resize( nnz );
 
+            BOOST_AUTO(Aptr, A.ptr_data());
+            BOOST_AUTO(Acol, A.col_data());
+            BOOST_AUTO(Aval, A.val_data());
+
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-                Val a_min = 0;
+                Val a_min = math::zero<Val>();
 
                 for(row_iterator a = row_begin(A, i); a; ++a)
                     if (a.col() != i) a_min = std::min(a_min, a.value());
 
-                if (fabs(a_min) < eps) {
+                if (math::norm(a_min) < eps) {
                     cf[i] = 'F';
                     continue;
                 }
 
                 a_min *= eps_strong;
 
-                for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
-                    S.val[j] = (A.col[j] != i && A.val[j] < a_min);
+                for(Ptr j = Aptr[i], e = Aptr[i + 1]; j < e; ++j)
+                    S.val[j] = (Acol[j] != i && Aval[j] < a_min);
             }
 
             // Transposition of S:
             for(size_t i = 0; i < nnz; ++i)
-                if (S.val[i]) ++( S.ptr[ A.col[i] + 1] );
+                if (S.val[i]) ++( S.ptr[ Acol[i] + 1] );
 
             boost::partial_sum(S.ptr, S.ptr.begin());
 
             S.col.resize( S.ptr.back() );
 
             for(size_t i = 0; i < n; ++i)
-                for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; ++j)
-                    if (S.val[j]) S.col[ S.ptr[ A.col[j] ]++ ] = i;
+                for(Ptr j = Aptr[i], e = Aptr[i + 1]; j < e; ++j)
+                    if (S.val[j]) S.col[ S.ptr[ Acol[j] ]++ ] = i;
 
             std::rotate(S.ptr.begin(), S.ptr.end() - 1, S.ptr.end());
             S.ptr.front() = 0;
@@ -316,6 +335,9 @@ struct ruge_stuben {
                 )
         {
             const size_t n = rows(A);
+
+            BOOST_AUTO(Aptr, A.ptr_data());
+            BOOST_AUTO(Acol, A.col_data());
 
             std::vector<Col> lambda(n);
 
@@ -378,10 +400,10 @@ struct ruge_stuben {
                     cf[c] = 'F';
 
                     // Increase lambdas of the newly created F's neighbours.
-                    for(Ptr aj = A.ptr[c], ae = A.ptr[c + 1]; aj < ae; ++aj) {
+                    for(Ptr aj = Aptr[c], ae = Aptr[c + 1]; aj < ae; ++aj) {
                         if (!S.val[aj]) continue;
 
-                        Col ac    = A.col[aj];
+                        Col ac    = Acol[aj];
                         Col lam_a = lambda[ac];
 
                         if (cf[ac] != 'U' || static_cast<size_t>(lam_a) + 1 >= n)
@@ -404,10 +426,10 @@ struct ruge_stuben {
                 }
 
                 // Decrease lambdas of the newly create C's neighbours.
-                for(Ptr j = A.ptr[i], e = A.ptr[i + 1]; j < e; j++) {
+                for(Ptr j = Aptr[i], e = Aptr[i + 1]; j < e; j++) {
                     if (!S.val[j]) continue;
 
-                    Col c   = A.col[j];
+                    Col c   = Acol[j];
                     Col lam = lambda[c];
 
                     if (cf[c] != 'U' || lam == 0) continue;
@@ -430,6 +452,22 @@ struct ruge_stuben {
 };
 
 } // namespace coarsening
+
+namespace backend {
+
+template <class Backend>
+struct coarsening_is_supported<
+    Backend,
+    coarsening::ruge_stuben,
+    typename boost::disable_if<
+            typename boost::is_arithmetic<
+                typename backend::value_type<Backend>::type
+            >::type
+        >::type
+    > : boost::false_type
+{};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

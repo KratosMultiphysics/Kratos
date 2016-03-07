@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,8 @@ class chebyshev {
         typedef typename Backend::value_type value_type;
         typedef typename Backend::vector     vector;
 
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+
         /// Relaxation parameters.
         struct params {
             /// Chebyshev polynomial degree.
@@ -87,26 +89,26 @@ class chebyshev {
         {
             typedef value_type V;
 
-            V hi = spectral_radius(A);
-            V lo = hi * prm.lower;
+            scalar_type hi = spectral_radius(A);
+            scalar_type lo = hi * prm.lower;
 
             // Chebyshev polynomial roots on the interval [lo, hi].
-            std::vector<value_type> roots(prm.degree);
+            std::vector<scalar_type> roots(prm.degree);
             for(unsigned i = 0; i < prm.degree; ++i) {
                 using boost::math::constants::pi;
                 using boost::math::constants::half;
 
-                roots[i] = lo + half<V>() * ( hi - lo ) * (
-                        1 + cos( pi<V>() * ( i + half<V>() ) / prm.degree )
+                roots[i] = lo + half<scalar_type>() * ( hi - lo ) * (
+                        1 + cos( pi<scalar_type>() * ( i + half<scalar_type>() ) / prm.degree )
                         );
             }
 
             // Construct linear system to determine Chebyshev coefficients.
-            boost::multi_array<V, 2> S(boost::extents[prm.degree][prm.degree]);
-            std::vector<V> rhs(prm.degree);
+            boost::multi_array<scalar_type, 2> S(boost::extents[prm.degree][prm.degree]);
+            std::vector<scalar_type> rhs(prm.degree);
             for(unsigned i = 0; i < prm.degree; ++i) {
-                V x = roots[i];
-                V x_to_j = 1;
+                scalar_type x = roots[i];
+                scalar_type x_to_j = 1;
                 for(unsigned j = 0; j < prm.degree; ++j) {
                     S[i][j] = x_to_j;
                     x_to_j *= x;
@@ -117,9 +119,9 @@ class chebyshev {
             // Invert S, compute coefficients.
             amgcl::detail::inverse(prm.degree, S.data());
 
-            value_type const_c = 1;
+            scalar_type const_c = 1;
             for(unsigned i = 0; i < prm.degree; ++i) {
-                value_type c = 0;
+                scalar_type c = 0;
                 for(unsigned j = 0; j < prm.degree; ++j)
                     c += S[i][j] * rhs[j];
                 if (i == 0)
@@ -151,7 +153,7 @@ class chebyshev {
         }
 
     private:
-        std::vector<value_type> C;
+        std::vector<scalar_type> C;
         mutable boost::shared_ptr<vector> p, q;
 
         template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
@@ -159,24 +161,27 @@ class chebyshev {
                 const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &res
                 ) const
         {
-            backend::residual(rhs, A, x, res);
-            backend::axpby(C[0], res, 0, *p);
+            static const scalar_type one  = math::identity<scalar_type>();
+            static const scalar_type zero = math::zero<scalar_type>();
 
-            BOOST_FOREACH(value_type c, boost::make_iterator_range(C.begin() + 1, C.end()))
+            backend::residual(rhs, A, x, res);
+            backend::axpby(C[0], res, zero, *p);
+
+            BOOST_FOREACH(scalar_type c, boost::make_iterator_range(C.begin() + 1, C.end()))
             {
-                backend::spmv(1, A, *p, 0, *q);
-                backend::axpbypcz(c, res, 1, *q, 0, *p);
+                backend::spmv(one, A, *p, zero, *q);
+                backend::axpbypcz(c, res, one, *q, zero, *p);
             }
 
-            backend::axpby(1, *p, 1, x);
+            backend::axpby(one, *p, one, x);
         }
 
         template <class Matrix>
-        static value_type spectral_radius(const Matrix &A) {
+        static scalar_type spectral_radius(const Matrix &A) {
             typedef typename backend::row_iterator<Matrix>::type row_iterator;
             const size_t n = rows(A);
 
-            value_type emax = 0;
+            scalar_type emax = 0;
 
 #pragma omp parallel
             {
@@ -191,12 +196,12 @@ class chebyshev {
                 size_t chunk_start = 0;
                 size_t chunk_end   = n;
 #endif
-                value_type my_emax = 0;
+                scalar_type my_emax = 0;
                 for(size_t i = chunk_start; i < chunk_end; ++i) {
-                    value_type hi = 0;
+                    scalar_type hi = 0;
 
                     for(row_iterator a = backend::row_begin(A, i); a; ++a)
-                        hi += std::fabs( a.value() );
+                        hi += math::norm( a.value() );
 
                     my_emax = std::max(my_emax, hi);
                 }

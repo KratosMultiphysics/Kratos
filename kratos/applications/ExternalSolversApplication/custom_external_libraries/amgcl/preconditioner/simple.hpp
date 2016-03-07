@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2015, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,9 +27,9 @@ THE SOFTWARE.
 */
 
 /**
- * \file   amgcl/preconditioner/cpr.hpp
+ * \file   amgcl/preconditioner/simple.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  CPR (constrained pressure residual) preconditioner implementation.
+ * \brief  SIMPLE preconditioner (Semi-Implicit Method for Pressure-Linked Equations).
  */
 
 #include <vector>
@@ -42,34 +42,89 @@ THE SOFTWARE.
 #include <boost/function.hpp>
 #include <boost/range/irange.hpp>
 #include <boost/range/algorithm.hpp>
-#include <amgcl/amgcl.hpp>
-#include <amgcl/relaxation/ilu0.hpp>
+#include <amgcl/amg.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
 namespace preconditioner {
 
+
+/// SIMPLE preconditioner (Semi-Implicit Method for Pressure-Linked Equations).
+/** \cite caretto1973two */
 template <
-    class Backend,
-    class Coarsening,
-    template <class> class Relax
+    class PressurePrecond,
+    class FlowPrecond
     >
 class simple {
     public:
-        typedef amg<Backend, Coarsening, Relax> AMG;
+        BOOST_STATIC_ASSERT_MSG(
+                (
+                 boost::is_same<
+                     typename PressurePrecond::backend_type,
+                     typename FlowPrecond::backend_type
+                     >::value
+                ),
+                "Backends for pressure and global preconditioners should coinside!"
+                );
 
-        typedef typename Backend::value_type value_type;
-        typedef typename Backend::matrix     matrix;
-        typedef typename Backend::vector     vector;
+        typedef typename PressurePrecond::backend_type backend_type;
 
-        typedef typename AMG::params amg_params;
+        typedef typename backend_type::value_type value_type;
+        typedef typename backend_type::matrix     matrix;
+        typedef typename backend_type::vector     vector;
+        typedef typename backend_type::params     backend_params;
+
+        struct params {
+            typedef typename PressurePrecond::params pressure_params;
+            typedef typename FlowPrecond::params     flow_params;
+
+            pressure_params pressure;
+            flow_params     flow;
+
+            std::vector<char> pmask;
+
+            params() {}
+
+            params(const boost::property_tree::ptree &p)
+                : AMGCL_PARAMS_IMPORT_CHILD(p, pressure),
+                  AMGCL_PARAMS_IMPORT_CHILD(p, flow)
+            {
+                void *pm = 0;
+                size_t n = 0;
+
+                pm = p.get("pmask",     pm);
+                n  = p.get("pmask_size", n);
+
+                precondition(
+                        pm,
+                        "Error in SIMPLE parameters: pmask is not set"
+                        );
+
+                precondition(
+                        n > 0,
+                        "Error in SIMPLE parameters: "
+                        "pmask is set, but pmask_size is not"
+                        );
+
+                pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+            }
+
+            void get(
+                    boost::property_tree::ptree &p,
+                    const std::string &path = ""
+                    ) const
+            {
+                AMGCL_PARAMS_EXPORT_CHILD(p, path, pressure);
+                AMGCL_PARAMS_EXPORT_CHILD(p, path, flow);
+            }
+        } prm;
 
         template <class Matrix>
         simple(
                 const Matrix &M,
-                boost::function<bool(size_t)> pmask,
-                const amg_params &prm = amg_params()
-           ) : aprm(prm), pmask(pmask), n(backend::rows(M))
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+           ) : prm(prm), n(backend::rows(M))
         {
             typedef typename backend::row_iterator<Matrix>::type row_iterator;
 
@@ -78,8 +133,8 @@ class simple {
             //   - Asp,
             //   - Dss = Dia(Ass),
             //   - Aps * Dss^-1
-            const size_t np = boost::count_if(boost::irange<size_t>(0, n), pmask);
-            const size_t ns = n - np;
+            const size_t ns = boost::count(prm.pmask, false);
+            const size_t np = n - ns;
 
             boost::shared_ptr<build_matrix> App = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> Aps = boost::make_shared<build_matrix>();
@@ -104,31 +159,42 @@ class simple {
             Ass->ncols = ns;
             Ass->ptr.resize(ns + 1, 0);
 
-            idx.resize(n);
+            std::vector<size_t> idx(n);
+            std::vector<ptrdiff_t> pix(np);
+            std::vector<ptrdiff_t> six(ns);
 
             for(size_t i = 0, ip = 0, is = 0; i < n; ++i) {
-                if (pmask(i)) {
-                    idx[i] = ip++;
+                if (prm.pmask[i]) {
+                    pix[ip] = i;
+                    idx[i] = ip;
+                    ++ip;
                 } else {
-                    idx[i] = is++;
+                    six[is] = i;
+                    idx[i] = is;
+                    ++is;
                 }
+            }
+
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+                size_t ii = idx[i], in = ii + 1;
 
                 for(row_iterator a = backend::row_begin(M, i); a; ++a) {
-                    size_t j = a.col();
+                    ptrdiff_t j = a.col();
 
-                    if (pmask(i)) {
-                        if (pmask(j)) {
-                            ++App->ptr[ip];
+                    if (prm.pmask[i]) {
+                        if (prm.pmask[j]) {
+                            ++App->ptr[in];
                         } else {
-                            ++Aps->ptr[ip];
+                            ++Aps->ptr[in];
                         }
                     } else {
-                        if (pmask(j)) {
-                            ++Asp->ptr[is];
+                        if (prm.pmask[j]) {
+                            ++Asp->ptr[in];
                         } else {
-                            ++Ass->ptr[is];
+                            ++Ass->ptr[in];
                             if (j == i) {
-                                Dss[idx[i]] = a.value();
+                                Dss[ii] = a.value();
                             }
                         }
                     }
@@ -151,10 +217,11 @@ class simple {
             Ass->col.resize(Ass->ptr.back());
             Ass->val.resize(Ass->ptr.back());
 
-            for(size_t i = 0; i < n; ++i) {
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 size_t ii = idx[i];
 
-                if (pmask(i)) {
+                if (prm.pmask[i]) {
                     size_t p_head = App->ptr[ii];
                     size_t s_head = Aps->ptr[ii];
 
@@ -162,7 +229,7 @@ class simple {
                         size_t j  = a.col();
                         size_t jj = idx[j];
 
-                        if (pmask(j)) {
+                        if (prm.pmask[j]) {
                             App->col[p_head] = jj;
                             App->val[p_head] = a.value();
                             ++p_head;
@@ -180,7 +247,7 @@ class simple {
                         size_t j  = a.col();
                         size_t jj = idx[j];
 
-                        if (pmask(j)) {
+                        if (prm.pmask[j]) {
                             Asp->col[p_head] = jj;
                             Asp->val[p_head] = a.value() / Dss[ii];
                             ++p_head;
@@ -200,40 +267,42 @@ class simple {
             // but we use the simplified form of
             //   Ap = App - Dia(Aps * Dss*-1 * Asp)
             // This allows us to modify App in place.
-            for(size_t i = 0; i < np; ++i) {
+#pragma omp parallel for
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(np); ++i) {
                 typedef typename backend::row_iterator<build_matrix>::type row_iterator;
 
                 // Find the diagonal of App (we need to update it):
-                size_t pp_dia = App->ptr[i];
-                for(; pp_dia < (size_t)App->ptr[i+1]; ++pp_dia)
-                    if ((size_t)App->col[pp_dia] == i) break;
+                ptrdiff_t pp_dia = App->ptr[i];
+                for(; pp_dia < App->ptr[i+1]; ++pp_dia)
+                    if (App->col[pp_dia] == i) break;
                 assert(App->col[pp_dia] == i && "No diagonal in App?");
 
                 // Compute i-th diagonal of Aps * Asp:
                 value_type apsp = 0;
                 for(row_iterator a = backend::row_begin(*Aps, i); a; ++a)
                     for(row_iterator b = backend::row_begin(*Asp, a.col()); b; ++b)
-                        if ((size_t)b.col() == i) apsp += a.value() * b.value();
+                        if (b.col() == i) apsp += a.value() * b.value();
 
                 App->val[pp_dia] -= apsp;
             }
 
             // We are ready to create AMG and ILU preconditioners.
-            K   = Backend::copy_matrix(Ass, aprm.backend);
-            D   = Backend::copy_matrix(Aps, aprm.backend);
-            G   = Backend::copy_matrix(Asp, aprm.backend);
-            bp  = Backend::create_vector(np, aprm.backend);
-            xp  = Backend::create_vector(np, aprm.backend);
-            bs  = Backend::create_vector(ns, aprm.backend);
-            xs  = Backend::create_vector(ns, aprm.backend);
-            tmp = Backend::create_vector(ns, aprm.backend);
+            K   = backend_type::copy_matrix(Ass,  bprm);
+            D   = backend_type::copy_matrix(Aps,  bprm);
+            G   = backend_type::copy_matrix(Asp,  bprm);
+            bp  = backend_type::create_vector(np, bprm);
+            xp  = backend_type::create_vector(np, bprm);
+            bs  = backend_type::create_vector(ns, bprm);
+            xs  = backend_type::create_vector(ns, bprm);
 
-            A = Backend::copy_matrix(boost::make_shared<build_matrix>(M), aprm.backend);
-            P = boost::make_shared<AMG>(*App, aprm);
+            A = backend_type::copy_matrix(boost::make_shared<build_matrix>(M), bprm);
+            P = boost::make_shared<PressurePrecond>(*App, prm.pressure, bprm);
+            I = boost::make_shared<FlowPrecond>(*Ass, prm.flow, bprm);
 
-            iprm.damping = 1;
-
-            I = boost::make_shared<ILU>(*Ass, iprm, aprm.backend);
+            p_gather  = boost::make_shared<typename backend_type::gather >(n, pix, bprm);
+            p_scatter = boost::make_shared<typename backend_type::scatter>(n, pix, bprm);
+            s_gather  = boost::make_shared<typename backend_type::gather >(n, six, bprm);
+            s_scatter = boost::make_shared<typename backend_type::scatter>(n, six, bprm);
         }
 
         template <class Vec1, class Vec2>
@@ -246,19 +315,12 @@ class simple {
 #endif
                 ) const
         {
-            typedef typename backend::row_iterator<matrix>::type row_iterator;
-
             // Split RHS into p and s parts:
-            for(size_t i = 0; i < n; ++i) {
-                if (pmask(i))
-                    (*bp)[idx[i]] = rhs[i];
-                else
-                    (*bs)[idx[i]] = rhs[i];
-            }
+            (*p_gather)(rhs, *bp);
+            (*s_gather)(rhs, *bs);
 
             // Solve for s part:
-            backend::clear(*xs);
-            I->apply_pre(*K, *bs, *xs, *tmp, iprm);
+            I->apply(*bs, *xs);
 
             // Compute RHS for the reduced pressure problem:
             backend::spmv(-1, *D, *xs, 1, *bp);
@@ -270,13 +332,8 @@ class simple {
             backend::spmv(-1, *G, *xp, 1, *xs);
 
             // Expand partial vectors onto complete solution:
-            // TODO: this only works for host-addressable backends now.
-            for(size_t i = 0; i < n; ++i) {
-                if (pmask(i))
-                    x[i] = (*xp)[idx[i]];
-                else
-                    x[i] = (*xs)[idx[i]];
-            }
+            (*p_scatter)(*xp, x);
+            (*s_scatter)(*xs, x);
         }
 
         const matrix& system_matrix() const {
@@ -284,20 +341,18 @@ class simple {
         }
     private:
         typedef typename backend::builtin<value_type>::matrix build_matrix;
-        typedef relaxation::ilu0<Backend> ILU;
-        typedef typename ILU::params ilu_params;
-
-        amg_params aprm;
-        ilu_params iprm;
-
-        boost::function<bool(size_t)> pmask;
 
         size_t n;
-        std::vector<size_t> idx;
+
+        boost::shared_ptr<typename backend_type::gather>  p_gather;
+        boost::shared_ptr<typename backend_type::gather>  s_gather;
+        boost::shared_ptr<typename backend_type::scatter> p_scatter;
+        boost::shared_ptr<typename backend_type::scatter> s_scatter;
+
         boost::shared_ptr<matrix> A, K, D, G;
-        boost::shared_ptr<vector> xp, bp, xs, bs, tmp;
-        boost::shared_ptr<AMG>    P;
-        boost::shared_ptr<ILU>    I;
+        boost::shared_ptr<vector> xp, bp, xs, bs;
+        boost::shared_ptr<PressurePrecond> P;
+        boost::shared_ptr<FlowPrecond>     I;
 };
 
 } // namespace preconditioner

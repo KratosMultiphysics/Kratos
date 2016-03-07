@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -175,7 +175,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
                         std::back_inserter(Bpart)
                         );
 
-            qr.compute(d, nullspace.cols, Bpart.data());
+            qr.compute(d, nullspace.cols, &Bpart[0]);
 
             for(int ii = 0; ii < nullspace.cols; ++ii)
                 for(int jj = 0; jj < nullspace.cols; ++jj)
@@ -187,7 +187,9 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 
                 for(int jj = 0; jj < nullspace.cols; ++jj) {
                     c[jj] = i * nullspace.cols + jj;
-                    v[jj] = qr.Q(ii,jj);
+                    // TODO: this is just a workaround to make non-scalar value
+                    // types compile. Most probably this won't actually work.
+                    v[jj] = qr.Q(ii,jj) * math::identity<value_type>();
                 }
             }
         }
@@ -204,7 +206,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
             if (aggr[i] >= 0) P->col.push_back(aggr[i]);
             P->ptr.push_back( static_cast<ptrdiff_t>(P->col.size()) );
         }
-        P->val.resize(n, static_cast<value_type>(1));
+        P->val.resize(n, math::identity<value_type>());
     }
     TOC("tentative");
 

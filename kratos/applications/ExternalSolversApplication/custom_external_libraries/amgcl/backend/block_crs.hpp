@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -156,6 +156,7 @@ struct block_crs {
 
     typedef bcrs<real, index_type, index_type> matrix;
     typedef typename builtin<real>::vector     vector;
+    typedef typename builtin<real>::vector     matrix_diagonal;
     typedef solver::skyline_lu<value_type>     direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
@@ -243,13 +244,12 @@ struct nonzeros_impl< bcrs<V, C, P> > {
     }
 };
 
-template < typename V, typename C, typename P, class Vec1, class Vec2 >
-struct spmv_impl< bcrs<V, C, P>, Vec1, Vec2 >
+template < typename Alpha, typename Beta, typename V, typename C, typename P, class Vec1, class Vec2 >
+struct spmv_impl< Alpha, bcrs<V, C, P>, Vec1, Beta, Vec2 >
 {
     typedef bcrs<V, C, P>  matrix;
 
-    static void apply(V alpha, const matrix &A, const Vec1 &x,
-            V beta, Vec2 &y)
+    static void apply(Alpha alpha, const matrix &A, const Vec1 &x, Beta beta, Vec2 &y)
     {
         const size_t nb  = A.brows;
         const size_t na  = A.nrows;
@@ -257,7 +257,7 @@ struct spmv_impl< bcrs<V, C, P>, Vec1, Vec2 >
         const size_t b1 = A.block_size;
         const size_t b2 = b1 * b1;
 
-        if (beta) {
+        if (!math::is_zero(beta)) {
             if (beta != 1) {
 #pragma omp parallel for
                 for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(na); ++i) {
@@ -281,7 +281,7 @@ struct spmv_impl< bcrs<V, C, P>, Vec1, Vec2 >
     }
 
     static void block_prod(size_t dim, size_t nx, size_t ny,
-            V alpha, const V *A, const V *x, V *y)
+            Alpha alpha, const V *A, const V *x, V *y)
     {
         for(size_t i = 0; i < ny; ++i, ++y) {
             const V * xx = x;

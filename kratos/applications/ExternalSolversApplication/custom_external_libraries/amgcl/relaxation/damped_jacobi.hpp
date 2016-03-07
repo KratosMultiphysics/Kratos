@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,13 +52,15 @@ namespace relaxation {
  */
 template <class Backend>
 struct damped_jacobi {
+    typedef typename Backend::value_type               value_type;
+    typedef typename math::scalar_of<value_type>::type scalar_type;
+
     /// Relaxation parameters.
     struct params {
         /// Damping factor.
-        typename Backend::value_type damping;
+        scalar_type damping;
 
-        params(typename Backend::value_type damping = 0.72)
-            : damping(damping) {}
+        params(scalar_type damping = 0.72) : damping(damping) {}
 
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
@@ -69,7 +71,7 @@ struct damped_jacobi {
         }
     };
 
-    boost::shared_ptr<typename Backend::vector> dia;
+    boost::shared_ptr<typename Backend::matrix_diagonal> dia;
 
     /// Constructs smoother for the system matrix.
     /**
@@ -128,7 +130,7 @@ struct damped_jacobi {
                 ) const
         {
             backend::residual(rhs, A, x, tmp);
-            backend::vmul(prm.damping, *dia, tmp, 1, x);
+            backend::vmul(prm.damping, *dia, tmp, math::identity<scalar_type>(), x);
         }
 };
 

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -108,36 +108,6 @@ struct cols_impl< boost::tuple<N, PRng, CRng, VRng> >
 };
 
 template < typename N, typename PRng, typename CRng, typename VRng >
-struct ptr_data_impl< boost::tuple<N, PRng, CRng, VRng> > {
-    typedef const typename boost::range_value<
-        typename boost::decay<PRng>::type
-        >::type * type;
-    static type get(const boost::tuple<N, PRng, CRng, VRng> &A) {
-        return &boost::get<1>(A)[0];
-    }
-};
-
-template < typename N, typename PRng, typename CRng, typename VRng >
-struct col_data_impl< boost::tuple<N, PRng, CRng, VRng> > {
-    typedef const typename boost::range_value<
-        typename boost::decay<CRng>::type
-        >::type * type;
-    static type get(const boost::tuple<N, PRng, CRng, VRng> &A) {
-        return &boost::get<2>(A)[0];
-    }
-};
-
-template < typename N, typename PRng, typename CRng, typename VRng >
-struct val_data_impl< boost::tuple<N, PRng, CRng, VRng> > {
-    typedef const typename boost::range_value<
-        typename boost::decay<VRng>::type
-        >::type * type;
-    static type get(const boost::tuple<N, PRng, CRng, VRng> &A) {
-        return &boost::get<3>(A)[0];
-    }
-};
-
-template < typename N, typename PRng, typename CRng, typename VRng >
 struct nonzeros_impl< boost::tuple<N, PRng, CRng, VRng> >
 {
     static size_t get(
@@ -164,8 +134,10 @@ struct row_iterator< boost::tuple<N, PRng, CRng, VRng> >
                          >::type
                 val_type;
 
-            type(const boost::tuple<N, PRng, CRng, VRng> &A,
-                 size_t row)
+            type(const boost::tuple<N, PRng, CRng, VRng> &A, size_t row)
+                : m_col(boost::begin(boost::get<2>(A)))
+                , m_end(boost::begin(boost::get<2>(A)))
+                , m_val(boost::begin(boost::get<3>(A)))
             {
                 typedef
                     typename boost::range_value<
@@ -176,9 +148,9 @@ struct row_iterator< boost::tuple<N, PRng, CRng, VRng> >
                 ptr_type row_begin = boost::get<1>(A)[row];
                 ptr_type row_end   = boost::get<1>(A)[row + 1];
 
-                m_col = boost::begin( boost::get<2>(A) ) + row_begin;
-                m_end = boost::begin( boost::get<2>(A) ) + row_end;
-                m_val = boost::begin( boost::get<3>(A) ) + row_begin;
+                m_col += row_begin;
+                m_end += row_end;
+                m_val += row_begin;
             }
 
             operator bool() const {

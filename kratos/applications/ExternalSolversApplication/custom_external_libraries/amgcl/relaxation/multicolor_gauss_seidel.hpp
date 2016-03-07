@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ THE SOFTWARE.
  * \brief  Multicolor Gauss-Seidel relaxation scheme.
  */
 
+#include <boost/typeof/typeof.hpp>
 #include <boost/graph/sequential_vertex_coloring.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/range/numeric.hpp>
@@ -64,7 +65,7 @@ struct graph {
     typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
     typedef vertex_descriptor vertices_size_type;
 
-    typedef typename std::vector<vertex_descriptor>::const_iterator adjacency_iterator;
+    typedef const vertex_descriptor* adjacency_iterator;
 
     static vertex_descriptor null_vertex() { return -1; }
 
@@ -89,12 +90,15 @@ std::pair<
     typename graph<Matrix>::adjacency_iterator
     >
 adjacent_vertices(ptrdiff_t v, const graph<Matrix> &G) {
-    typename Matrix::ptr_type row_beg = G.A.ptr[v];
-    typename Matrix::ptr_type row_end = G.A.ptr[v + 1];
+    BOOST_AUTO(Aptr, G.A.ptr_data());
+    BOOST_AUTO(Acol, G.A.col_data());
+
+    typename Matrix::ptr_type row_beg = Aptr[v];
+    typename Matrix::ptr_type row_end = Aptr[v + 1];
 
     return std::make_pair(
-            G.A.col.begin() + row_beg,
-            G.A.col.begin() + row_end
+            Acol + row_beg,
+            Acol + row_end
             );
 }
 
@@ -131,7 +135,7 @@ struct multicolor_gauss_seidel {
         const size_t n = backend::rows(A);
 
         std::vector<int> color(n);
-        num_colors = boost::sequential_vertex_coloring(detail::as_graph(A), color.data());
+        num_colors = boost::sequential_vertex_coloring(amgcl::detail::as_graph(A), &color[0]);
 
         ptr.resize(num_colors + 1, 0);
 
@@ -176,14 +180,15 @@ struct multicolor_gauss_seidel {
                 ) const
         {
             typedef typename backend::row_iterator<Matrix>::type row_iterator;
-            typedef typename backend::value_type<Matrix>::type val_type;
+            typedef typename backend::value_type<Matrix>::type    val_type;
+            typedef typename backend::value_type<VectorRHS>::type rhs_type;
 
 #pragma omp parallel for
             for(ptrdiff_t j = ptr[c]; j < ptr[c+1]; ++j) {
                 ptrdiff_t i = order[j];
 
-                val_type temp = rhs[i];
-                val_type diag = 1;
+                rhs_type temp = rhs[i];
+                val_type diag = math::identity<val_type>();
                 for (row_iterator a = backend::row_begin(A, i); a; ++a) {
                     if (a.col() == i)
                         diag = a.value();
@@ -191,7 +196,7 @@ struct multicolor_gauss_seidel {
                         temp -= a.value() * x[a.col()];
                 }
 
-                x[i] = temp / diag;
+                x[i] = math::inverse(diag) * temp;
             }
         }
 };

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include <boost/static_assert.hpp>
 #include <boost/type_traits.hpp>
 
+#include <amgcl/value_type/interface.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -138,7 +139,7 @@ struct row_begin_impl {
 
 /// Implementation for matrix-vector product.
 /** \note Used in spmv() */
-template <class Matrix, class Vector1, class Vector2, class Enable = void>
+template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2, class Enable = void>
 struct spmv_impl {
     typedef typename Matrix::SPMV_NOT_IMPLEMENTED type;
 };
@@ -180,21 +181,21 @@ struct inner_product_impl {
 
 /// Implementation for linear combination of two vectors.
 /** \note Used in axpby() */
-template <class Vector1, class Vector2, class Enable = void>
+template <class A, class Vector1, class B, class Vector2, class Enable = void>
 struct axpby_impl {
     typedef typename Vector1::AXPBY_NOT_IMPLEMENTED type;
 };
 
 /// Implementation for linear combination of three vectors.
 /** \note Used in axpbypcz() */
-template <class Vector1, class Vector2, class Vector3, class Enable = void>
+template <class A, class Vector1, class B, class Vector2, class C, class Vector3, class Enable = void>
 struct axpbypcz_impl {
     typedef typename Vector1::AXPBYPCZ_NOT_IMPLEMENTED type;
 };
 
 /// Implementation for element-wize vector product.
 /** \note Used in vmul() */
-template <class Vector1, class Vector2, class Vector3, class Enable = void>
+template <class Alpha, class Vector1, class Vector2, class Beta, class Vector3, class Enable = void>
 struct vmul_impl {
     typedef typename Vector1::VMUL_NOT_IMPLEMENTED type;
 };
@@ -254,15 +255,15 @@ size_t row_nonzeros(const Matrix &A, size_t row) {
 /**
  * \f[y = \alpha A x + \beta y.\f]
  */
-template <class Matrix, class Vector1, class Vector2>
+template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2>
 void spmv(
-        typename value_type<Matrix>::type alpha,
+        Alpha alpha,
         const Matrix &A,
         const Vector1 &x,
-        typename value_type<Matrix>::type beta,
+        Beta beta,
         Vector2 &y)
 {
-    spmv_impl<Matrix, Vector1, Vector2>::apply(alpha, A, x, beta, y);
+    spmv_impl<Alpha, Matrix, Vector1, Beta, Vector2>::apply(alpha, A, x, beta, y);
 }
 
 /// Computes residual error.
@@ -298,7 +299,9 @@ void copy_to_backend(const std::vector<typename value_type<Vector>::type> &data,
 
 /// Computes inner product of two vectors.
 template <class Vector1, class Vector2>
-typename value_type<Vector1>::type
+typename math::inner_product_impl<
+    typename value_type<Vector1>::type
+    >::return_type
 inner_product(const Vector1 &x, const Vector2 &y)
 {
     return inner_product_impl<Vector1, Vector2>::get(x, y);
@@ -308,47 +311,37 @@ inner_product(const Vector1 &x, const Vector2 &y)
 /**
  * \f[y = ax + by.\f]
  */
-template <class Vector1, class Vector2>
-void axpby(typename value_type<Vector2>::type a, Vector1 const &x,
-           typename value_type<Vector2>::type b, Vector2       &y
-           )
-{
-    axpby_impl<Vector1, Vector2>::apply(a, x, b, y);
+template <class A, class Vector1, class B, class Vector2>
+void axpby(A a, Vector1 const &x, B b, Vector2 &y) {
+    axpby_impl<A, Vector1, B, Vector2>::apply(a, x, b, y);
 }
 
 /// Computes linear combination of three vectors.
 /**
  * \f[z = ax + by + cz.\f]
  */
-template <class Vector1, class Vector2, class Vector3>
-void axpbypcz(
-        typename value_type<Vector3>::type a, Vector1 const &x,
-        typename value_type<Vector3>::type b, Vector2 const &y,
-        typename value_type<Vector3>::type c, Vector3       &z
-        )
-{
-    axpbypcz_impl<Vector1, Vector2, Vector3>::apply(a, x, b, y, c, z);
+template <class A, class Vector1, class B, class Vector2, class C, class Vector3>
+void axpbypcz(A a, Vector1 const &x, B b, Vector2 const &y, C c, Vector3 &z) {
+    axpbypcz_impl<A, Vector1, B, Vector2, C, Vector3>::apply(a, x, b, y, c, z);
 }
 
 /// Computes element-wize vector product.
 /**
  * \f[z = \alpha xy + \beta z.\f]
  */
-template <class Vector1, class Vector2, class Vector3>
-void vmul(
-        typename value_type<Vector3>::type alpha,
-        const Vector1 &x, const Vector2 &y,
-        typename value_type<Vector3>::type beta,
-        Vector3 &z
-        )
+template <class Alpha, class Vector1, class Vector2, class Beta, class Vector3>
+void vmul(Alpha alpha, const Vector1 &x, const Vector2 &y, Beta beta, Vector3 &z)
 {
-    vmul_impl<Vector1, Vector2, Vector3>::apply(alpha, x, y, beta, z);
+    vmul_impl<Alpha, Vector1, Vector2, Beta, Vector3>::apply(alpha, x, y, beta, z);
 }
-
 
 /// Is the relaxation supported by the backend?
 template <class Backend, template <class> class Relaxation, class Enable = void>
 struct relaxation_is_supported : boost::true_type {};
+
+/// Is the coarsening supported by the backend?
+template <class Backend, class Coarsening, class Enable = void>
+struct coarsening_is_supported : boost::true_type {};
 
 } // namespace backend
 } // namespace amgcl

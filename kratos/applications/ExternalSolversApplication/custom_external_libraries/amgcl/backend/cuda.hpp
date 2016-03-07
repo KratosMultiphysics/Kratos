@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ THE SOFTWARE.
 /**
  * \file   amgcl/backend/cuda.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  VexCL backend.
+ * \brief  CUDA backend.
  */
 
 #include <boost/static_assert.hpp>
@@ -48,7 +48,6 @@ THE SOFTWARE.
 
 namespace amgcl {
 namespace backend {
-
 namespace detail {
 
 inline void cuda_check(cusparseStatus_t rc, const char *file, int line) {
@@ -61,6 +60,25 @@ inline void cuda_check(cusparseStatus_t rc, const char *file, int line) {
 
 #define AMGCL_CALL_CUDA(rc)                                                    \
     amgcl::backend::detail::cuda_check(rc, __FILE__, __LINE__)
+
+struct cuda_deleter {
+    void operator()(cusparseMatDescr_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyMatDescr(handle) );
+    }
+
+    void operator()(cusparseHybMat_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyHybMat(handle) );
+    }
+
+    void operator()(csrilu02Info_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyCsrilu02Info(handle) );
+    }
+
+    void operator()(csrsv2Info_t handle) {
+        AMGCL_CALL_CUDA( cusparseDestroyCsrsv2Info(handle) );
+    }
+};
+
 
 } // namespace detail
 
@@ -78,8 +96,8 @@ class cuda_hyb_matrix {
                 cusparseHandle_t handle
                 )
             : nrows(n), ncols(m), nnz(ptr[n]), handle( handle ),
-              desc  ( create_description(), deleter() ),
-              mat   ( create_matrix(),      deleter() )
+              desc  ( create_description(), backend::detail::cuda_deleter() ),
+              mat   ( create_matrix(),      backend::detail::cuda_deleter() )
         {
             fill_matrix(n, m, ptr, col, val);
         }
@@ -124,16 +142,6 @@ class cuda_hyb_matrix {
 
         boost::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> desc;
         boost::shared_ptr<boost::remove_pointer<cusparseHybMat_t>::type>   mat;
-
-        struct deleter {
-            void operator()(cusparseMatDescr_t handle) {
-                AMGCL_CALL_CUDA( cusparseDestroyMatDescr(handle) );
-            }
-
-            void operator()(cusparseHybMat_t handle) {
-                AMGCL_CALL_CUDA( cusparseDestroyHybMat(handle) );
-            }
-        };
 
         static cusparseMatDescr_t create_description() {
             cusparseMatDescr_t desc;
@@ -206,6 +214,7 @@ struct cuda {
     typedef real value_type;
     typedef cuda_hyb_matrix<real>               matrix;
     typedef thrust::device_vector<real>         vector;
+    typedef thrust::device_vector<real>         matrix_diagonal;
     typedef detail::default_direct_solver<cuda> direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
@@ -231,7 +240,7 @@ struct cuda {
     copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
         return boost::make_shared<matrix>(rows(*A), cols(*A),
-                A->ptr.data(), A->col.data(), A->val.data(),
+                A->ptr_data(), A->col_data(), A->val_data(),
                 prm.cusparse_handle
                 );
     }
@@ -289,18 +298,17 @@ struct nonzeros_impl< cuda_hyb_matrix<V> > {
     }
 };
 
-template < typename V >
+template < typename Alpha, typename Beta, typename V >
 struct spmv_impl<
-    cuda_hyb_matrix<V>,
-    thrust::device_vector<V>,
-    thrust::device_vector<V>
+    Alpha, cuda_hyb_matrix<V>, thrust::device_vector<V>,
+    Beta,  thrust::device_vector<V>
     >
 {
     typedef cuda_hyb_matrix<V> matrix;
     typedef thrust::device_vector<V> vector;
 
-    static void apply(V alpha, const matrix &A, const vector &x,
-            V beta, vector &y)
+    static void apply(Alpha alpha, const matrix &A, const vector &x,
+            Beta beta, vector &y)
     {
         A.spmv(alpha, x, beta, y, typename boost::is_same<V, double>::type());
     }
@@ -364,17 +372,18 @@ struct inner_product_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct axpby_impl<
-    thrust::device_vector<V>,
-    thrust::device_vector<V>
+    A, thrust::device_vector<V>,
+    B, thrust::device_vector<V>
     >
 {
     typedef thrust::device_vector<V> vector;
 
     struct functor {
-        V a, b;
-        functor(V a, V b) : a(a), b(b) {}
+        A a;
+        B b;
+        functor(A a, B b) : a(a), b(b) {}
 
         template <class Tuple>
         __host__ __device__ void operator()( Tuple t ) const {
@@ -387,7 +396,7 @@ struct axpby_impl<
         }
     };
 
-    static void apply(V a, const vector &x, V b, vector &y)
+    static void apply(A a, const vector &x, B b, vector &y)
     {
         thrust::for_each(
                 thrust::make_zip_iterator(
@@ -405,18 +414,21 @@ struct axpby_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename C, typename V >
 struct axpbypcz_impl<
-    thrust::device_vector<V>,
-    thrust::device_vector<V>,
-    thrust::device_vector<V>
+    A, thrust::device_vector<V>,
+    B, thrust::device_vector<V>,
+    C, thrust::device_vector<V>
     >
 {
     typedef thrust::device_vector<V> vector;
 
     struct functor {
-        V a, b, c;
-        functor(V a, V b, V c) : a(a), b(b), c(c) {}
+        A a;
+        B b;
+        C c;
+
+        functor(A a, B b, C c) : a(a), b(b), c(c) {}
 
         template <class Tuple>
         __host__ __device__ void operator()( Tuple t ) const {
@@ -430,9 +442,9 @@ struct axpbypcz_impl<
     };
 
     static void apply(
-            V a, const vector &x,
-            V b, const vector &y,
-            V c,       vector &z
+            A a, const vector &x,
+            B b, const vector &y,
+            C c,       vector &z
             )
     {
         thrust::for_each(
@@ -451,18 +463,18 @@ struct axpbypcz_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct vmul_impl<
-    thrust::device_vector<V>,
-    thrust::device_vector<V>,
-    thrust::device_vector<V>
+    A, thrust::device_vector<V>, thrust::device_vector<V>,
+    B, thrust::device_vector<V>
     >
 {
     typedef thrust::device_vector<V> vector;
 
     struct functor {
-        V a, b;
-        functor(V a, V b) : a(a), b(b) {}
+        A a;
+        B b;
+        functor(A a, B b) : a(a), b(b) {}
 
         template <class Tuple>
         __host__ __device__ void operator()( Tuple t ) const {
@@ -475,8 +487,7 @@ struct vmul_impl<
         }
     };
 
-    static void apply(V a, const vector &x, const vector &y,
-            V b, vector &z)
+    static void apply(A a, const vector &x, const vector &y, B b, vector &z)
     {
         thrust::for_each(
                 thrust::make_zip_iterator(
