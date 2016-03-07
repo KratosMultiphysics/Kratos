@@ -67,7 +67,7 @@ public:
     void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
     
     double CalculateVolume();
-    
+    void SetInteractionRadius(double radius);
     double GetInteractionRadius();
 
 protected:
