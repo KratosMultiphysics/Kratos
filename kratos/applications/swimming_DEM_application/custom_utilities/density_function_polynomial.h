@@ -117,7 +117,7 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
         double r = mR;// * pow(nodal_areas[i] * max_nodal_area_inv, 0.3333333333333333333333333333333);
         double weight;
 
-        weight = nodal_areas[i] * (radius_2 > r * r) ? 0.0 : fm6(r) * radius_2 * radius_2 * radius_2 + fm4(r) * radius_2 * radius_2 + fm2(r) * radius_2 + r;
+        weight = nodal_areas[i] * ((radius_2 > r * r) ? 0.0 : fm6(r) * radius_2 * radius_2 * radius_2 + fm4(r) * radius_2 * radius_2 + fm2(r) * radius_2 + r);
         weights[i] = weight;
         sum_of_weights_inv += weight;
     }
