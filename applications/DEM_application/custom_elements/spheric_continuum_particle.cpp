@@ -533,7 +533,6 @@ namespace Kratos {
 
     void SphericContinuumParticle::CustomInitialize() {
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
-        this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 0;
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
     }
     
