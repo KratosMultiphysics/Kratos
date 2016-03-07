@@ -380,11 +380,8 @@ namespace Kratos
           ApplyInitialConditions();
 
           // Search Neighbours and related operations
+          SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE]);
           SearchNeighbours();
-
-          if(mDeltaOption == 2) {
-            SetCoordinationNumber(r_model_part);
-          }
 
           ComputeNewNeighboursHistoricalData();
 
@@ -702,76 +699,7 @@ namespace Kratos
           } // loop threads OpenMP
 
           KRATOS_CATCH("")
-      }
-
-
-    void SetCoordinationNumber(ModelPart& r_model_part)
-    {
-        ProcessInfo& r_process_info      = r_model_part.GetProcessInfo();
-
-        const double in_coordination_number = r_process_info[COORDINATION_NUMBER];
-        double out_coordination_number = ComputeCoordinationNumber();
-        int iteration = 0;
-        int maxiteration = 100;
-        double& added_search_distance = r_process_info[SEARCH_TOLERANCE];
-
-        std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
-
-        if(in_coordination_number <= 0.0) {
-            KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
-        }
-
-        while (fabs(out_coordination_number/in_coordination_number - 1.0) > 1e-3) {
-            if (iteration>=maxiteration) break;
-            iteration++;
-            added_search_distance *= in_coordination_number/out_coordination_number;
-            SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
-            out_coordination_number = ComputeCoordinationNumber();
-        }//while
-
-        if (iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << added_search_distance <<". "<<"\n"<<std::endl;
-        else {
-            std::cout << "Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
-            KRATOS_THROW_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
-            //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
-        }
-
-    } //SetCoordinationNumber
-
-    double ComputeCoordinationNumber()
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part               = BaseType::GetModelPart();
-        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        unsigned int total_contacts = 0;
-        const int number_of_particles = (int)mListOfSphericParticles.size();
-
-        #pragma omp parallel
-        {
-            mNeighbourCounter[OpenMPUtils::ThisThread()] = 0;
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                  mNeighbourCounter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
-            }
-        }
-        for (int i = 0; i < mNumberOfThreads; i++)
-        {
-          total_contacts += mNeighbourCounter[i];
-        }
-
-        int global_total_contacts = total_contacts;
-        r_model_part.GetCommunicator().SumAll(global_total_contacts);
-        int global_number_of_elements = (int)pElements.size();
-        r_model_part.GetCommunicator().SumAll(global_number_of_elements);
-
-        double coord_number = double(global_total_contacts)/double(global_number_of_elements);
-
-        return coord_number;
-
-        KRATOS_CATCH("")
-    }
+      }   
 
     void InitializeElements()
     {
@@ -1112,17 +1040,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    virtual void SearchNeighbours(const double amplification = 1.0)
+    virtual void SearchNeighbours()
     {
         KRATOS_TRY
 
         ModelPart& r_model_part            = BaseType::GetModelPart();
-        ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        if(!number_of_elements) return;
-
-        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], amplification);
+        if(!number_of_elements) return;        
 
         r_model_part.GetCommunicator().GhostMesh().ElementsArray().clear();
 
@@ -1191,10 +1116,6 @@ namespace Kratos
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
 
         if (pTConditions.size() > 0) {
-
-            ModelPart& r_model_part = BaseType::GetModelPart();
-            SetSearchRadiiOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
-
             const int number_of_particles = (int)mListOfSphericParticles.size();
 
             this->GetRigidFaceResults().resize(number_of_particles);
