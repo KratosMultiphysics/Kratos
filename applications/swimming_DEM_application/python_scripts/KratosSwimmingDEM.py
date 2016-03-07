@@ -197,7 +197,7 @@ elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
 elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
 elif pp.CFD_DEM.drag_force_type == 9:
-    solver.time_integration_scheme = TerminalVelocityScheme()
+    scheme = TerminalVelocityScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
