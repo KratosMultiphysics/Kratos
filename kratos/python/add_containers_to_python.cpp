@@ -666,6 +666,8 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VEL_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PR_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOUND_VELOCITY )
+            
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SEARCH_RADIUS );
 
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
