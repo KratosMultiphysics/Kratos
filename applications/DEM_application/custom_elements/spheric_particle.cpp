@@ -485,11 +485,11 @@ void SphericParticle::DisplacementDueToRotation(const double indentation,
     array_1d<double, 3> other_vel_at_contact_point_due_to_rotation;
     array_1d<double, 3> my_delta_disp_at_contact_point_due_to_rotation;
     array_1d<double, 3> other_delta_disp_at_contact_point_due_to_rotation;
+    const double other_young = p_neighbour->GetYoung();
+    const double my_young = GetYoung();
     
-    const double radius_sum        = GetInteractionRadius() + other_radius;
-    const double inv_radius_sum    = 1.0 / radius_sum;
-    const double my_arm_length     = GetInteractionRadius()  - indentation * GetInteractionRadius()  * inv_radius_sum;
-    const double other_arm_length  = other_radius - indentation * other_radius * inv_radius_sum;
+    const double my_arm_length = GetInteractionRadius() - indentation * other_young / (other_young + my_young);
+    const double other_arm_length  = other_radius - indentation * my_young / (other_young + my_young);
         
     my_arm_vector[0] = -LocalCoordSystem[2][0] * my_arm_length;
     my_arm_vector[1] = -LocalCoordSystem[2][1] * my_arm_length;
