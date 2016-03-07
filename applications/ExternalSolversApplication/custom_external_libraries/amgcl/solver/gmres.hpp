@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,11 +45,11 @@ THE SOFTWARE.
 namespace amgcl {
 namespace solver {
 
-/// GMRES iterative solver.
-/**
- * \param Backend Backend for temporary structures allocation.
- * \ingroup solvers
- * \sa \cite Barrett1994
+/** Generalized Minimal Residual (GMRES) method.
+ * \rst
+ * The Generalized Minimal Residual method is an extension of MINRES (which is
+ * only applicable to symmetric systems) to unsymmetric systems [Barr94]_.
+ * \endrst
  */
 template <
     class Backend,
@@ -57,9 +57,15 @@ template <
     >
 class gmres {
     public:
+        typedef Backend backend_type;
+
         typedef typename Backend::vector     vector;
         typedef typename Backend::value_type value_type;
         typedef typename Backend::params     backend_params;
+
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+        typedef typename math::rhs_of<value_type>::type rhs_type;
+        typedef typename math::inner_product_impl<rhs_type>::return_type coef_type;
 
         /// Solver parameters.
         struct params {
@@ -70,9 +76,9 @@ class gmres {
             size_t maxiter;
 
             /// Target residual error.
-            value_type tol;
+            scalar_type tol;
 
-            params(int M = 50, size_t maxiter = 100, value_type tol = 1e-8)
+            params(int M = 50, size_t maxiter = 100, scalar_type tol = 1e-8)
                 : M(M), maxiter(maxiter), tol(tol)
             {
                 precondition(M > 0, "M in GMRES(M) should be >=1");
@@ -91,7 +97,7 @@ class gmres {
             }
         };
 
-        /// \copydoc amgcl::solver::cg::cg
+        /// Preallocates necessary data structures for the system of size \p n.
         gmres(
                 size_t n,
                 const params &prm = params(),
@@ -110,22 +116,20 @@ class gmres {
                 v.push_back( Backend::create_vector(n, backend_prm) );
         }
 
-        /// Solves the linear system for the given system matrix.
-        /**
-         * \param A   System matrix.
-         * \param P   Preconditioner.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /* Computes the solution for the given system matrix \p A and the
+         * right-hand side \p rhs.  Returns the number of iterations made and
+         * the achieved residual as a ``boost::tuple``. The solution vector
+         * \p x provides initial approximation in input and holds the computed
+         * solution on output.
          *
-         * The system matrix may differ from the matrix used for the AMG
-         * preconditioner construction. This may be used for the solution of
-         * non-stationary problems with slowly changing coefficients. There is
-         * a strong chance that AMG built for one time step will act as a
-         * reasonably good preconditioner for several subsequent time steps
-         * \cite Demidov2012.
+         * The system matrix may differ from the matrix used during
+         * initialization. This may be used for the solution of non-stationary
+         * problems with slowly changing coefficients. There is a strong chance
+         * that a preconditioner built for a time step will act as a reasonably
+         * good preconditioner for several subsequent time steps [DeSh12]_.
          */
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        boost::tuple<size_t, scalar_type> operator()(
                 Matrix  const &A,
                 Precond const &P,
                 Vec1    const &rhs,
@@ -134,15 +138,15 @@ class gmres {
         {
             size_t iter = 0;
 
-            value_type norm_rhs = norm(rhs);
-            if (norm_rhs < amgcl::detail::eps<value_type>(n)) {
+            scalar_type norm_rhs = norm(rhs);
+            if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
                 backend::clear(x);
                 return boost::make_tuple(0, norm_rhs);
             }
 
-            value_type eps = prm.tol * norm_rhs;
+            scalar_type eps = prm.tol * norm_rhs;
 
-            value_type res_norm = restart(A, rhs, P, x);
+            scalar_type res_norm = restart(A, rhs, P, x);
             if (res_norm < eps)
                 return boost::make_tuple(0, res_norm / norm_rhs);
 
@@ -163,20 +167,21 @@ class gmres {
             return boost::make_tuple(iter, res_norm / norm_rhs);
         }
 
-        /// Solves the linear system for the same matrix that was used for the AMG preconditioner construction.
-        /**
-         * \param P   AMG preconditioner.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /* Computes the solution for the given right-hand side \p rhs. The
+         * system matrix is the same that was used for the setup of the
+         * preconditioner \p P.  Returns the number of iterations made and the
+         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * provides initial approximation in input and holds the computed
+         * solution on output.
          */
         template <class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        boost::tuple<size_t, scalar_type> operator()(
                 Precond const &P,
                 Vec1    const &rhs,
                 Vec2          &x
                 ) const
         {
-            return (*this)(P.top_matrix(), P, rhs, x);
+            return (*this)(P.system_matrix(), P, rhs, x);
         }
 
     public:
@@ -185,41 +190,41 @@ class gmres {
     private:
         size_t n;
 
-        mutable boost::multi_array<value_type, 2> H;
-        mutable std::vector<value_type> s, cs, sn, y;
+        mutable boost::multi_array<coef_type, 2> H;
+        mutable std::vector<coef_type> s, cs, sn, y;
         boost::shared_ptr<vector> r, w;
         std::vector< boost::shared_ptr<vector> > v;
 
         InnerProduct inner_product;
 
         template <class Vec>
-        value_type norm(const Vec &x) const {
-            return sqrt(inner_product(x, x));
+        scalar_type norm(const Vec &x) const {
+            return std::abs(sqrt(inner_product(x, x)));
         }
 
         static void apply_plane_rotation(
-                value_type &dx, value_type &dy, value_type cs, value_type sn
+                coef_type &dx, coef_type &dy, coef_type cs, coef_type sn
                 )
         {
-            value_type tmp = cs * dx + sn * dy;
+            coef_type tmp = cs * dx + sn * dy;
             dy = -sn * dx + cs * dy;
             dx = tmp;
         }
 
         static void generate_plane_rotation(
-                value_type dx, value_type dy, value_type &cs, value_type &sn
+                coef_type dx, coef_type dy, coef_type &cs, coef_type &sn
                 )
         {
-            if (dy == 0) {
+            if (math::is_zero(dy)) {
                 cs = 1;
                 sn = 0;
-            } else if (fabs(dy) > fabs(dx)) {
-                value_type tmp = dx / dy;
-                sn = 1 / sqrt(1 + tmp * tmp);
+            } else if (std::abs(dy) > std::abs(dx)) {
+                coef_type tmp = dx / dy;
+                sn = math::inverse(sqrt(math::identity<coef_type>() + tmp * tmp));
                 cs = tmp * sn;
             } else {
-                value_type tmp = dy / dx;
-                cs = 1 / sqrt(1 + tmp * tmp);
+                coef_type tmp = dy / dx;
+                cs = math::inverse(sqrt(math::identity<coef_type>() + tmp * tmp));
                 sn = tmp * cs;
             }
         }
@@ -236,14 +241,14 @@ class gmres {
 
             // Unroll the loop
             int j = 0;
-            for (; j <= k; j += 2)
-                backend::axpbypcz(y[j], *v[j], y[j+1], *v[j+1], 1, x);
+            for (; j + 1 <= k; j += 2)
+                backend::axpbypcz(y[j], *v[j], y[j+1], *v[j+1], math::identity<scalar_type>(), x);
             for (; j <= k; ++j)
-                backend::axpby(y[j], *v[j], 1, x);
+                backend::axpby(y[j], *v[j], math::identity<scalar_type>(), x);
         }
 
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        value_type restart(const Matrix &A, const Vec1 &rhs,
+        scalar_type restart(const Matrix &A, const Vec1 &rhs,
                 const Precond &P, const Vec2 &x) const
         {
             backend::residual(rhs, A, x, *w);
@@ -252,26 +257,26 @@ class gmres {
             boost::fill(s, 0);
             s[0] = norm(*r);
 
-            if (s[0])
-                backend::axpby(1 / s[0], *r, 0, *v[0]);
+            if (!math::is_zero(s[0]))
+                backend::axpby(math::inverse(s[0]), *r, math::zero<scalar_type>(), *v[0]);
 
-            return s[0];
+            return std::abs(s[0]);
         }
 
         template <class Matrix, class Precond>
-        value_type iteration(const Matrix &A, const Precond &P, int i) const
+        scalar_type iteration(const Matrix &A, const Precond &P, int i) const
         {
-            backend::spmv(1, A, *v[i], 0, *r);
+            backend::spmv(math::identity<scalar_type>(), A, *v[i], math::zero<scalar_type>(), *r);
             P.apply(*r, *w);
 
             for(int k = 0; k <= i; ++k) {
                 H[k][i] = inner_product(*w, *v[k]);
-                backend::axpby(-H[k][i], *v[k], 1, *w);
+                backend::axpby(-H[k][i], *v[k], math::identity<scalar_type>(), *w);
             }
 
             H[i+1][i] = norm(*w);
 
-            backend::axpby(1 / H[i+1][i], *w, 0, *v[i+1]);
+            backend::axpby(math::inverse(H[i+1][i]), *w, math::zero<scalar_type>(), *v[i+1]);
 
             for(int k = 0; k < i; ++k)
                 apply_plane_rotation(H[k][i], H[k+1][i], cs[k], sn[k]);
@@ -280,7 +285,7 @@ class gmres {
             apply_plane_rotation(H[i][i], H[i+1][i], cs[i], sn[i]);
             apply_plane_rotation(s[i], s[i+1], cs[i], sn[i]);
 
-            return fabs(s[i+1]);
+            return std::abs(s[i+1]);
         }
 };
 

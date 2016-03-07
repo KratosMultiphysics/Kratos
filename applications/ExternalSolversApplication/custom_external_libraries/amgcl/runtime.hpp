@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ THE SOFTWARE.
 #include <boost/property_tree/ptree.hpp>
 #include <boost/noncopyable.hpp>
 
-#include <amgcl/amgcl.hpp>
+#include <amgcl/amg.hpp>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/coarsening/ruge_stuben.hpp>
@@ -49,6 +49,8 @@ THE SOFTWARE.
 #include <amgcl/relaxation/gauss_seidel.hpp>
 #include <amgcl/relaxation/multicolor_gauss_seidel.hpp>
 #include <amgcl/relaxation/ilu0.hpp>
+#include <amgcl/relaxation/parallel_ilu0.hpp>
+#include <amgcl/relaxation/ilut.hpp>
 #include <amgcl/relaxation/damped_jacobi.hpp>
 #include <amgcl/relaxation/spai0.hpp>
 #include <amgcl/relaxation/spai1.hpp>
@@ -58,6 +60,7 @@ THE SOFTWARE.
 #include <amgcl/solver/bicgstab.hpp>
 #include <amgcl/solver/bicgstabl.hpp>
 #include <amgcl/solver/gmres.hpp>
+#include <amgcl/solver/detail/default_inner_product.hpp>
 
 
 namespace amgcl {
@@ -68,10 +71,10 @@ namespace runtime {
 /// Coarsening kinds.
 namespace coarsening {
 enum type {
-    ruge_stuben,
-    aggregation,
-    smoothed_aggregation,
-    smoothed_aggr_emin
+    ruge_stuben,            ///< Ruge-Stueben coarsening
+    aggregation,            ///< Aggregation
+    smoothed_aggregation,   ///< Smoothed aggregation
+    smoothed_aggr_emin      ///< Smoothed aggregation with energy minimization
 };
 
 inline std::ostream& operator<<(std::ostream &os, type c) {
@@ -113,13 +116,15 @@ inline std::istream& operator>>(std::istream &in, type &c)
 /// Relaxation schemes.
 namespace relaxation {
 enum type {
-    gauss_seidel,
-    multicolor_gauss_seidel,
-    ilu0,
-    damped_jacobi,
-    spai0,
-    spai1,
-    chebyshev
+    gauss_seidel,               ///< Gauss-Seidel smoothing
+    multicolor_gauss_seidel,    ///< Multicolor Gauss-seidel
+    ilu0,                       ///< Incoplete LU with zero fill-in
+    parallel_ilu0,              ///< Parallel version of ILU(0)
+    ilut,                       ///< Incomplete LU with thresholding
+    damped_jacobi,              ///< Damped Jacobi
+    spai0,                      ///< Sparse approximate inverse of 0th order
+    spai1,                      ///< Sparse approximate inverse of 1st order
+    chebyshev                   ///< Chebyshev relaxation
 };
 
 inline std::ostream& operator<<(std::ostream &os, type r)
@@ -131,6 +136,10 @@ inline std::ostream& operator<<(std::ostream &os, type r)
             return os << "multicolor_gauss_seidel";
         case ilu0:
             return os << "ilu0";
+        case parallel_ilu0:
+            return os << "parallel_ilu0";
+        case ilut:
+            return os << "ilut";
         case damped_jacobi:
             return os << "damped_jacobi";
         case spai0:
@@ -155,6 +164,10 @@ inline std::istream& operator>>(std::istream &in, type &r)
         r = gauss_seidel;
     else if (val == "ilu0")
         r = ilu0;
+    else if (val == "parallel_ilu0")
+        r = parallel_ilu0;
+    else if (val == "ilut")
+        r = ilut;
     else if (val == "damped_jacobi")
         r = damped_jacobi;
     else if (val == "spai0")
@@ -170,52 +183,6 @@ inline std::istream& operator>>(std::istream &in, type &r)
 }
 
 } // namespace relaxation
-
-/// Iterative solvers.
-namespace solver {
-enum type {
-    cg,
-    bicgstab,
-    bicgstabl,
-    gmres
-};
-
-inline std::ostream& operator<<(std::ostream &os, type s)
-{
-    switch (s) {
-        case cg:
-            return os << "cg";
-        case bicgstab:
-            return os << "bicgstab";
-        case bicgstabl:
-            return os << "bicgstabl";
-        case gmres:
-            return os << "gmres";
-        default:
-            return os << "???";
-    }
-}
-
-inline std::istream& operator>>(std::istream &in, type &s)
-{
-    std::string val;
-    in >> val;
-
-    if (val == "cg")
-        s = cg;
-    else if (val == "bicgstab")
-        s = bicgstab;
-    else if (val == "bicgstabl")
-        s = bicgstabl;
-    else if (val == "gmres")
-        s = gmres;
-    else
-        throw std::invalid_argument("Invalid solver value");
-
-    return in;
-}
-
-} // namespace solver
 
 namespace detail {
 
@@ -257,7 +224,30 @@ template <
     class Coarsening,
     class Func
     >
-inline void process_amg(
+inline
+typename boost::disable_if<
+    typename backend::coarsening_is_supported<Backend, Coarsening>::type,
+    void
+    >::type
+process_amg(
+        runtime::relaxation::type relaxation,
+        const Func &func
+        )
+{
+    throw std::logic_error("The coarsening is not supported by the backend");
+}
+
+template <
+    class Backend,
+    class Coarsening,
+    class Func
+    >
+inline
+typename boost::enable_if<
+    typename backend::coarsening_is_supported<Backend, Coarsening>::type,
+    void
+    >::type
+process_amg(
         runtime::relaxation::type relaxation,
         const Func &func
         )
@@ -282,6 +272,20 @@ inline void process_amg(
                 Backend,
                 Coarsening,
                 amgcl::relaxation::ilu0
+                >(func);
+            break;
+        case runtime::relaxation::parallel_ilu0:
+            process_amg<
+                Backend,
+                Coarsening,
+                amgcl::relaxation::parallel_ilu0
+                >(func);
+            break;
+        case runtime::relaxation::ilut:
+            process_amg<
+                Backend,
+                Coarsening,
+                amgcl::relaxation::ilut
                 >(func);
             break;
         case runtime::relaxation::damped_jacobi:
@@ -354,21 +358,23 @@ inline void process_amg(
     }
 }
 
-template <class Matrix>
+template <class Backend, class Matrix>
 struct amg_create {
     typedef boost::property_tree::ptree params;
+    typedef typename Backend::params backend_params;
 
     void* &handle;
 
     const Matrix &A;
     const params &p;
+    const backend_params &bp;
 
-    amg_create(void* &handle, const Matrix &A, const params &p)
-        : handle(handle), A(A), p(p) {}
+    amg_create(void* &handle, const Matrix &A, const params &p, const backend_params &bp)
+        : handle(handle), A(A), p(p), bp(bp) {}
 
     template <class AMG>
     void process() const {
-        handle = static_cast<void*>( new AMG(A, p) );
+        handle = static_cast<void*>( new AMG(A, p, bp) );
     }
 };
 
@@ -416,15 +422,15 @@ struct amg_apply {
 };
 
 template <class Matrix>
-struct amg_top_matrix {
+struct amg_system_matrix {
     void * handle;
     mutable const Matrix * matrix;
 
-    amg_top_matrix(void * handle) : handle(handle), matrix(0) {}
+    amg_system_matrix(void * handle) : handle(handle), matrix(0) {}
 
     template <class AMG>
     void process() const {
-        matrix = &(static_cast<AMG*>(handle)->top_matrix());
+        matrix = &(static_cast<AMG*>(handle)->system_matrix());
     }
 };
 
@@ -449,7 +455,7 @@ struct amg_get_params {
 
     template <class AMG>
     void process() const {
-        static_cast<AMG*>(handle)->prm.get(p, "amg.");
+        static_cast<AMG*>(handle)->prm.get(p, "precond.");
     }
 };
 
@@ -464,60 +470,48 @@ class amg : boost::noncopyable {
         typedef typename Backend::value_type value_type;
         typedef typename Backend::matrix     matrix;
         typedef typename Backend::vector     vector;
+        typedef typename Backend::params     backend_params;
 
         typedef boost::property_tree::ptree params;
 
-        /// Constructs the AMG hierarchy.
-        /**
-         * \param coarsening Coarsening kind.
-         * \param relaxation Relaxation scheme.
-         * \param A          The system matrix.
-         * \param prm        Parameters.
+        /** Constructs the AMG hierarchy for the system matrix \p A.
+         * \rst
+         * ``prm`` is an instance of ``boost::property_tree::ptree`` class.
+         * The property tree may contain parameters "coarsening.type" and
+         * "relaxation.type". Default values are
+         * ``amgcl::runtime::coarsening::smoothed_aggregation`` and
+         * ``runtime::relaxation::spai0``.
+         * The rest of the property tree should copy the structure of
+         * the corresponding ``amgcl::amg::params`` struct. For example, when
+         * smoothed aggregation is selected for coarsening, one could:
          *
-         * \note The prm argument is an instance of boost::property_tree::ptree
-         * class. The structure of the property tree should copy the structure
-         * of amgcl::AMG::params struct. E.g., one could
-         \code
-         prm.put("coarsening.aggr.eps_strong", 1e-2);
-         \endcode
-         * Any parameters that are not relevant to the current AMG class, are
-         * silently ignored.
+         * .. code-block:: cpp
+         *
+         *   prm.put("coarsening.aggr.eps_strong", 1e-2);
+         *
+         * .. note::
+         *
+         *   Any parameters that are not relevant to the selected AMG
+         *   components are silently ignored.
+         * \endrst
          */
         template <class Matrix>
         amg(
-                runtime::coarsening::type coarsening,
-                runtime::relaxation::type relaxation,
                 const Matrix &A,
-                const params &prm = params()
-           ) : coarsening(coarsening), relaxation(relaxation), handle(0)
+                const params &prm = params(),
+                const backend_params &backend_prm = backend_params()
+           )
+          : coarsening(prm.get("coarsening.type", runtime::coarsening::smoothed_aggregation)),
+            relaxation(prm.get("relaxation.type", runtime::relaxation::spai0)),
+            handle(0)
         {
             runtime::detail::process_amg<Backend>(
                     coarsening, relaxation,
-                    runtime::detail::amg_create<Matrix>(handle, A, prm)
+                    runtime::detail::amg_create<Backend, Matrix>(handle, A, prm, backend_prm)
                     );
         }
 
-        /// Constructs the AMG hierarchy with default coarsening and relaxation.
-        /**
-         * \param A          The system matrix.
-         * \param prm        Parameters.
-         *
-         * \note The default values for coarsening and relaxation are
-         * smoothed_aggregation and spai0 correspondingly.
-         */
-        template <class Matrix>
-        amg(const Matrix &A, const params &prm = params())
-            : coarsening(runtime::coarsening::smoothed_aggregation),
-              relaxation(runtime::relaxation::spai0),
-              handle(0)
-        {
-            runtime::detail::process_amg<Backend>(
-                    coarsening, relaxation,
-                    runtime::detail::amg_create<Matrix>(handle, A, prm)
-                    );
-        }
-
-        /// Destructor.
+        // Destructor.
         ~amg() {
             runtime::detail::process_amg<Backend>(
                     coarsening, relaxation,
@@ -525,7 +519,7 @@ class amg : boost::noncopyable {
                     );
         }
 
-        /// Fills the property tree with the actual parameters used.
+        // Fills the property tree with the actual parameters used.
         void get_params(boost::property_tree::ptree &p) const {
             runtime::detail::process_amg<Backend>(
                     coarsening, relaxation,
@@ -533,10 +527,8 @@ class amg : boost::noncopyable {
                     );
         }
 
-        /// Performs single V-cycle for the given right-hand side and solution.
-        /**
-         * \param rhs Right-hand side vector.
-         * \param x   Solution vector.
+        /** Performs single V-cycle for the given right-hand side \p rhs and
+         * solution \p x.
          */
         template <class Vec1, class Vec2>
         void cycle(const Vec1 &rhs, Vec2 &x) const {
@@ -546,12 +538,9 @@ class amg : boost::noncopyable {
                     );
         }
 
-        /// Performs single V-cycle after clearing x.
-        /**
-         * This is intended for use as a preconditioning procedure.
-         *
-         * \param rhs Right-hand side vector.
-         * \param x   Solution vector.
+        /** Performs single V-cycle for the given right-hand side \p rhs after
+         * clearing \p x.  This is intended for use as a preconditioning
+         * procedure.
          */
         template <class Vec1, class Vec2>
         void apply(const Vec1 &rhs, Vec2 &x) const {
@@ -561,21 +550,21 @@ class amg : boost::noncopyable {
                     );
         }
 
-        /// Returns the system matrix from the finest level.
-        const matrix& top_matrix() const {
-            runtime::detail::amg_top_matrix<matrix> top(handle);
+        /** Returns the system matrix in the backend format */
+        const matrix& system_matrix() const {
+            runtime::detail::amg_system_matrix<matrix> top(handle);
             runtime::detail::process_amg<Backend>(
                     coarsening, relaxation, top
                     );
             return *top.matrix;
         }
 
-        /// Returns problem size at the finest level.
+        /** Returns the problem size at the finest level. */
         size_t size() const {
-            return backend::rows( top_matrix() );
+            return backend::rows( system_matrix() );
         }
 
-        /// Sends information about the AMG hierarchy to output stream.
+        /// Prints some info about the AMG hierarchy to the output stream.
         friend std::ostream& operator<<(std::ostream &os, const amg &a)
         {
             runtime::detail::process_amg<Backend>(
@@ -592,10 +581,57 @@ class amg : boost::noncopyable {
         void *handle;
 };
 
+/// Iterative solvers.
+namespace solver {
+enum type {
+    cg,         ///< Conjugate gradients method
+    bicgstab,   ///< BiConjugate Gradient Stabilized
+    bicgstabl,  ///< BiCGStab(ell)
+    gmres       ///< GMRES
+};
+
+inline std::ostream& operator<<(std::ostream &os, type s)
+{
+    switch (s) {
+        case cg:
+            return os << "cg";
+        case bicgstab:
+            return os << "bicgstab";
+        case bicgstabl:
+            return os << "bicgstabl";
+        case gmres:
+            return os << "gmres";
+        default:
+            return os << "???";
+    }
+}
+
+inline std::istream& operator>>(std::istream &in, type &s)
+{
+    std::string val;
+    in >> val;
+
+    if (val == "cg")
+        s = cg;
+    else if (val == "bicgstab")
+        s = bicgstab;
+    else if (val == "bicgstabl")
+        s = bicgstabl;
+    else if (val == "gmres")
+        s = gmres;
+    else
+        throw std::invalid_argument("Invalid solver value");
+
+    return in;
+}
+
+} // namespace solver
+
 namespace detail {
 
 template <
     class Backend,
+    class InnerProduct,
     class Func
     >
 inline void process_solver(
@@ -606,50 +642,47 @@ inline void process_solver(
     switch (solver) {
         case runtime::solver::cg:
             {
-                typedef amgcl::solver::cg<Backend> Solver;
+                typedef amgcl::solver::cg<Backend, InnerProduct> Solver;
                 func.template process<Solver>();
             }
             break;
         case runtime::solver::bicgstab:
             {
-                typedef amgcl::solver::bicgstab<Backend> Solver;
+                typedef amgcl::solver::bicgstab<Backend, InnerProduct> Solver;
                 func.template process<Solver>();
             }
             break;
         case runtime::solver::bicgstabl:
             {
-                typedef amgcl::solver::bicgstabl<Backend> Solver;
+                typedef amgcl::solver::bicgstabl<Backend, InnerProduct> Solver;
                 func.template process<Solver>();
             }
             break;
         case runtime::solver::gmres:
             {
-                typedef amgcl::solver::gmres<Backend> Solver;
+                typedef amgcl::solver::gmres<Backend, InnerProduct> Solver;
                 func.template process<Solver>();
             }
             break;
     }
 }
 
+template <class Backend>
 struct solver_create {
     typedef boost::property_tree::ptree params;
+    typedef typename Backend::params backend_params;
 
     void * &handle;
-    const params &prm;
     size_t n;
+    const params &sprm;
+    const backend_params &bprm;
 
-    solver_create(void * &handle, const params &prm, size_t n)
-        : handle(handle), prm(prm), n(n) {}
+    solver_create(void * &handle, size_t n, const params &sprm, const backend_params &bprm)
+        : handle(handle), n(n), sprm(sprm), bprm(bprm) {}
 
     template <class Solver>
     void process() const {
-        handle = static_cast<void*>(
-                new Solver(
-                    n,
-                    prm.get_child("solver", amgcl::detail::empty_ptree()),
-                    prm.get_child("amg.backend", amgcl::detail::empty_ptree())
-                    )
-                );
+        handle = static_cast<void*>(new Solver(n, sprm, bprm));
     }
 };
 
@@ -673,35 +706,34 @@ struct solver_get_params {
 
     template <class Solver>
     void process() const {
-        static_cast<Solver*>(handle)->prm.get(p, "solver.");
+        static_cast<Solver*>(handle)->prm.get(p, "");
     }
 };
 
 template <
-    class Backend,
     class Matrix,
+    class Precond,
     class Vec1,
     class Vec2
     >
 struct solver_solve {
-    typedef typename Backend::value_type value_type;
+    typedef typename Precond::backend_type::value_type value_type;
+    typedef typename math::scalar_of<value_type>::type scalar_type;
 
     void * handle;
 
-    runtime::amg<Backend> const &P;
+    Matrix  const &A;
+    Precond const &P;
+    Vec1    const &rhs;
+    Vec2          &x;
 
-    Matrix const &A;
-    Vec1   const &rhs;
-    Vec2         &x;
+    size_t      &iters;
+    scalar_type &resid;
 
-    size_t     &iters;
-    value_type &resid;
-
-    solver_solve(void * handle, const runtime::amg<Backend> &P,
-            const Matrix &A, const Vec1 &rhs, Vec2 &x, size_t &iters,
-            value_type &resid
+    solver_solve(void * handle, const Matrix &A, const Precond &P,
+            const Vec1 &rhs, Vec2 &x, size_t &iters, scalar_type &resid
             )
-        : handle(handle), P(P), A(A), rhs(rhs), x(x),
+        : handle(handle), A(A), P(P), rhs(rhs), x(x),
           iters(iters), resid(resid)
     {}
 
@@ -714,138 +746,120 @@ struct solver_solve {
 
 } // namespace detail
 
-/// Runtime-configurable class that creates a pair of AMG preconditioner and iterative solver
-template <class Backend>
-class make_solver : boost::noncopyable {
+/** This is runtime wrapper around AMGCL iterative solver types. Allows to
+ * select the actual solver at runtime.
+ */
+template <
+    class Backend,
+    class InnerProduct = amgcl::solver::detail::default_inner_product
+    >
+class iterative_solver {
     public:
-        typedef typename Backend::value_type value_type;
-        typedef boost::property_tree::ptree params;
+        typedef Backend backend_type;
+        typedef boost::property_tree::ptree   params;
+        typedef typename Backend::params backend_params;
 
-        /// Constructs the AMG hierarchy and creates iterative solver.
-        /**
-         * \param coarsening Coarsening kind.
-         * \param relaxation Relaxation scheme.
-         * \param solver     Iterative solver.
-         * \param A          The system matrix.
-         * \param prm        Parameters.
+        typedef typename Backend::value_type value_type;
+        typedef typename Backend::vector     vector;
+
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+
+        /** Constructs the iterative solver for the problem size \p n.
+         * \rst
+         * The property tree ``solver_prm`` may contain "type" entry that would
+         * determine the actual type of the iterative solver. Default value:
+         * ``amgcl::runtime::solver::bicgstab``.
          *
-         * \note The prm argument is an instance of boost::property_tree::ptree
-         * class. The structure of the property tree is a union of AMG::params
-         * and Solver::params struct. E.g., one could
-         \code
-         prm.put("coarsening.aggr.eps_strong", 1e-2);
-         prm.put("tol", 1e-6);
-         \endcode
-         * Any parameters that are not relevant to the current AMG or Solver
-         * classes, are silently ignored.
+         * .. note::
+         *
+         *   Any parameters that are not relevant to the selected solver are
+         *   silently ignored.
+         * \endrst
          */
-        template <class Matrix>
-        make_solver(
-                runtime::coarsening::type coarsening,
-                runtime::relaxation::type relaxation,
-                runtime::solver::type     solver,
-                const Matrix &A,
-                const params &prm = params()
+        iterative_solver(
+                size_t n,
+                const params &solver_prm = params(),
+                const backend_params &backend_prm = backend_params()
                 )
-            : P(coarsening, relaxation, A,
-                    prm.get_child("amg", amgcl::detail::empty_ptree())
-               ),
-              solver(solver),
+            : solver(solver_prm.get("type", runtime::solver::bicgstab)),
               handle(0)
         {
-            runtime::detail::process_solver<Backend>(
+            runtime::detail::process_solver<Backend, InnerProduct>(
                     solver,
-                    runtime::detail::solver_create(
-                        handle, prm, amgcl::backend::rows(A)
+                    runtime::detail::solver_create<Backend>(
+                        handle, n, solver_prm, backend_prm
                         )
                     );
         }
 
-        /// Destructor.
-        ~make_solver() {
-            runtime::detail::process_solver<Backend>(
+        // Destructor.
+        ~iterative_solver() {
+            runtime::detail::process_solver<Backend, InnerProduct>(
                     solver,
                     runtime::detail::solver_destroy(handle)
                     );
         }
 
-        /// Fills the property tree with the actual parameters used.
-        void get_params(boost::property_tree::ptree &p) const {
-            P.get_params(p);
-            runtime::detail::process_solver<Backend>(
-                    solver,
-                    runtime::detail::solver_get_params(handle, p)
-                    );
-        }
-
-        /// Solves the linear system for the given system matrix.
-        /**
-         * \param A   System matrix.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /** Computes the solution for the given system matrix \p A and the
+         * right-hand side \p rhs.  Returns the number of iterations made and
+         * the achieved residual as a ``boost::tuple``. The solution vector
+         * \p x provides initial approximation in input and holds the computed
+         * solution on output.
          *
-         * The system matrix may differ from the matrix used for the AMG
-         * preconditioner construction. This may be used for the solution of
-         * non-stationary problems with slowly changing coefficients. There is
-         * a strong chance that AMG built for one time step will act as a
-         * reasonably good preconditioner for several subsequent time steps
-         * \cite Demidov2012.
+         * \rst
+         * The system matrix may differ from the matrix used during
+         * initialization. This may be used for the solution of non-stationary
+         * problems with slowly changing coefficients. There is a strong chance
+         * that a preconditioner built for a time step will act as a reasonably
+         * good preconditioner for several subsequent time steps [DeSh12]_.
+         * \endrst
          */
-        template <class Matrix, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        template <class Matrix, class Precond, class Vec1, class Vec2>
+        boost::tuple<size_t, scalar_type> operator()(
                 Matrix  const &A,
+                Precond const &P,
                 Vec1    const &rhs,
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
                 Vec2          &x
+#else
+                Vec2          &&x
+#endif
                 ) const
         {
-            size_t     iters = 0;
-            value_type resid = 0;
+            size_t      iters = 0;
+            scalar_type resid = 0;
 
-            runtime::detail::process_solver<Backend>(
+            runtime::detail::process_solver<Backend, InnerProduct>(
                     solver,
-                    runtime::detail::solver_solve<Backend, Matrix, Vec1, Vec2>(
-                        handle, P, A, rhs, x, iters, resid)
+                    runtime::detail::solver_solve<Matrix, Precond, Vec1, Vec2>(
+                        handle, A, P, rhs, x, iters, resid)
                     );
 
             return boost::make_tuple(iters, resid);
         }
 
-        /// Solves the linear system for the given right-hand side.
-        /**
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /** Computes the solution for the given right-hand side \p rhs. The
+         * system matrix is the same that was used for the setup of the
+         * preconditioner \p P.  Returns the number of iterations made and the
+         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * provides initial approximation in input and holds the computed
+         * solution on output.
          */
-        template <class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        template <class Precond, class Vec1, class Vec2>
+        boost::tuple<size_t, scalar_type> operator()(
+                Precond const &P,
                 Vec1    const &rhs,
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
                 Vec2          &x
+#else
+                Vec2          &&x
+#endif
                 ) const
         {
-            return (*this)(P.top_matrix(), rhs, x);
+            return (*this)(P.system_matrix(), P, rhs, x);
         }
 
-        /// Acts as a preconditioner.
-        /**
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
-         */
-        template <class Vec1, class Vec2>
-        void apply(const Vec1 &rhs, Vec2 &x) const {
-            backend::clear(x);
-            (*this)(rhs, x);
-        }
-
-        /// Reference to the constructed AMG hierarchy.
-        const runtime::amg<Backend>& amg() const {
-            return P;
-        }
-
-        /// Returns problem size at the finest level.
-        size_t size() const {
-            return P.size();
-        }
     private:
-        runtime::amg<Backend>        P;
         const runtime::solver::type  solver;
         void                        *handle;
 };

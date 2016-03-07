@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,11 +53,10 @@ namespace solver {
  */
 
 
-/// Conjugate Gradients iterative solver.
-/**
- * \param Backend Backend for temporary structures allocation.
- * \ingroup solvers
- * \sa \cite Barrett1994
+/** Conjugate Gradients method.
+ * \rst
+ * An effective method for symmetric positive definite systems [Barr94]_.
+ * \endrst
  */
 template <
     class Backend,
@@ -65,9 +64,17 @@ template <
     >
 class cg {
     public:
+        typedef Backend backend_type;
+
         typedef typename Backend::vector     vector;
         typedef typename Backend::value_type value_type;
         typedef typename Backend::params     backend_params;
+
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+
+        typedef typename math::inner_product_impl<
+            typename math::rhs_of<value_type>::type
+            >::return_type coef_type;
 
         /// Solver parameters.
         struct params {
@@ -75,9 +82,9 @@ class cg {
             size_t maxiter;
 
             /// Target residual error.
-            value_type tol;
+            scalar_type tol;
 
-            params(size_t maxiter = 100, value_type tol = 1e-8)
+            params(size_t maxiter = 100, scalar_type tol = 1e-8)
                 : maxiter(maxiter), tol(tol)
             {}
 
@@ -92,12 +99,7 @@ class cg {
             }
         };
 
-        /// Preallocates necessary data structures
-        /**
-         * \param n           The system size.
-         * \param prm         Solver parameters.
-         * \param backend_prm Backend parameters.
-         */
+        /// Preallocates necessary data structures for the system of size \p n.
         cg(
                 size_t n,
                 const params &prm = params(),
@@ -111,22 +113,20 @@ class cg {
               inner_product(inner_product)
         { }
 
-        /// Solves the linear system for the given system matrix.
-        /**
-         * \param A   System matrix.
-         * \param P   Preconditioner.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /* Computes the solution for the given system matrix \p A and the
+         * right-hand side \p rhs.  Returns the number of iterations made and
+         * the achieved residual as a ``boost::tuple``. The solution vector
+         * \p x provides initial approximation in input and holds the computed
+         * solution on output.
          *
-         * The system matrix may differ from the matrix used for the AMG
-         * preconditioner construction. This may be used for the solution of
-         * non-stationary problems with slowly changing coefficients. There is
-         * a strong chance that AMG built for one time step will act as a
-         * reasonably good preconditioner for several subsequent time steps
-         * \cite Demidov2012.
+         * The system matrix may differ from the matrix used during
+         * initialization. This may be used for the solution of non-stationary
+         * problems with slowly changing coefficients. There is a strong chance
+         * that a preconditioner built for a time step will act as a reasonably
+         * good preconditioner for several subsequent time steps [DeSh12]_.
          */
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        boost::tuple<size_t, scalar_type> operator()(
                 Matrix  const &A,
                 Precond const &P,
                 Vec1    const &rhs,
@@ -137,36 +137,43 @@ class cg {
 #endif
                 ) const
         {
+            static const coef_type one  = math::identity<coef_type>();
+            static const coef_type zero = math::zero<coef_type>();
+
             backend::residual(rhs, A, x, *r);
-            value_type norm_rhs = norm(rhs);
-            if (norm_rhs < amgcl::detail::eps<value_type>(n)) {
+            scalar_type norm_rhs = norm(rhs);
+            if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
                 backend::clear(x);
                 return boost::make_tuple(0, norm_rhs);
             }
 
-            value_type eps  = prm.tol * norm_rhs;
-            value_type eps2 = eps * eps;
-            value_type rho1 = 2 * eps2, rho2 = 0;
-            value_type res_norm = norm(*r);
+            scalar_type eps  = prm.tol * norm_rhs;
+            scalar_type eps2 = eps * eps;
+
+            coef_type rho1 = 2 * eps2 * one;
+            coef_type rho2 = zero;
+            scalar_type res_norm = norm(*r);
 
             size_t iter = 0;
-            for(; iter < prm.maxiter && fabs(rho1) > eps2; ++iter) {
+            for(; iter < prm.maxiter && math::norm(res_norm) > eps2; ++iter) {
                 P.apply(*r, *s);
 
                 rho2 = rho1;
                 rho1 = inner_product(*r, *s);
 
                 if (iter)
-                    backend::axpby(1, *s, rho1 / rho2, *p);
+                    backend::axpby(one, *s, rho1 / rho2, *p);
                 else
                     backend::copy(*s, *p);
 
-                backend::spmv(1, A, *p, 0, *q);
+                backend::spmv(one, A, *p, zero, *q);
 
-                value_type alpha = rho1 / inner_product(*q, *p);
+                coef_type alpha = rho1 / inner_product(*q, *p);
 
-                backend::axpby( alpha, *p, 1,  x);
-                backend::axpby(-alpha, *q, 1, *r);
+                backend::axpby( alpha, *p, one,  x);
+                backend::axpby(-alpha, *q, one, *r);
+
+                res_norm = norm(*r);
             }
 
             backend::residual(rhs, A, x, *r);
@@ -175,14 +182,15 @@ class cg {
             return boost::make_tuple(iter, res_norm / norm_rhs);
         }
 
-        /// Solves the linear system for the same matrix that was used for the AMG preconditioner construction.
-        /**
-         * \param P   AMG preconditioner.
-         * \param rhs Right-hand side.
-         * \param x   Solution vector.
+        /* Computes the solution for the given right-hand side \p rhs. The
+         * system matrix is the same that was used for the setup of the
+         * preconditioner \p P.  Returns the number of iterations made and the
+         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * provides initial approximation in input and holds the computed
+         * solution on output.
          */
         template <class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
+        boost::tuple<size_t, scalar_type> operator()(
                 Precond const &P,
                 Vec1    const &rhs,
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
@@ -192,7 +200,7 @@ class cg {
 #endif
                 ) const
         {
-            return (*this)(P.top_matrix(), P, rhs, x);
+            return (*this)(P.system_matrix(), P, rhs, x);
         }
 
     public:
@@ -209,8 +217,8 @@ class cg {
         InnerProduct inner_product;
 
         template <class Vec>
-        value_type norm(const Vec &x) const {
-            return sqrt(inner_product(x, x));
+        scalar_type norm(const Vec &x) const {
+            return sqrt(math::norm(inner_product(x, x)));
         }
 };
 

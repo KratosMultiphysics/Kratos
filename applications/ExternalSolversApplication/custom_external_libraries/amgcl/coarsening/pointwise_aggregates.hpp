@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <vector>
 #include <cmath>
 
+#include <boost/typeof/typeof.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/range/numeric.hpp>
 
@@ -92,6 +93,8 @@ class pointwise_aggregates {
         pointwise_aggregates(const Matrix &A, const params &prm, unsigned min_aggregate)
             : count(0)
         {
+            typedef typename backend::value_type<Matrix>::type value_type;
+            typedef typename math::scalar_of<value_type>::type scalar_type;
             if (prm.block_size == 1) {
                 plain_aggregates aggr(A, prm);
 
@@ -104,7 +107,7 @@ class pointwise_aggregates {
                 strong_connection.resize( nonzeros(A) );
                 id.resize( rows(A) );
 
-                Matrix Ap = pointwise_matrix(A, prm.block_size);
+                backend::crs<scalar_type> Ap = pointwise_matrix(A, prm.block_size);
 
                 plain_aggregates pw_aggr(Ap, prm);
 
@@ -112,6 +115,9 @@ class pointwise_aggregates {
                         Ap.nrows, prm.block_size, min_aggregate, pw_aggr);
 
                 count = pw_aggr.count * prm.block_size;
+
+                BOOST_AUTO(Aptr, A.ptr_data());
+                BOOST_AUTO(Acol, A.col_data());
 
 #pragma omp parallel
                 {
@@ -136,8 +142,8 @@ class pointwise_aggregates {
                         for(unsigned k = 0; k < prm.block_size; ++k, ++ia) {
                             id[ia] = prm.block_size * pw_aggr.id[ip] + k;
 
-                            for(ptrdiff_t ja = A.ptr[ia], ea = A.ptr[ia+1]; ja < ea; ++ja) {
-                                ptrdiff_t cp = A.col[ja] / prm.block_size;
+                            for(ptrdiff_t ja = Aptr[ia], ea = Aptr[ia+1]; ja < ea; ++ja) {
+                                ptrdiff_t cp = Acol[ja] / prm.block_size;
 
                                 if (marker[cp] < row_beg) {
                                     marker[cp] = row_end;
@@ -189,9 +195,14 @@ class pointwise_aggregates {
         }
 
         template <class Matrix>
-        static backend::crs<typename backend::value_type<Matrix>::type>
+        static backend::crs<
+            typename math::scalar_of<
+                typename backend::value_type<Matrix>::type
+                >::type
+            >
         pointwise_matrix(const Matrix &A, size_t block_size) {
-            typedef typename backend::value_type<Matrix>::type   V;
+            typedef typename backend::value_type<Matrix>::type V;
+            typedef typename math::scalar_of<V>::type S;
             typedef typename backend::row_iterator<Matrix>::type row_iterator;
 
             const size_t n  = backend::rows(A);
@@ -202,7 +213,7 @@ class pointwise_aggregates {
             precondition(n % block_size == 0 && m % block_size == 0,
                     "Matrix size should be divisible by block_size");
 
-            backend::crs<V> Ap;
+            backend::crs<S> Ap;
             Ap.nrows = np;
             Ap.ncols = mp;
             Ap.ptr.resize(np + 1, 0);
@@ -254,7 +265,7 @@ class pointwise_aggregates {
                     for(unsigned k = 0; k < block_size; ++k, ++ia) {
                         for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
                             ptrdiff_t cb = a.col() / block_size;
-                            V    va = fabs(a.value());
+                            S va = math::norm(a.value());
 
                             if (marker[cb] < row_beg) {
                                 marker[cb] = row_end;

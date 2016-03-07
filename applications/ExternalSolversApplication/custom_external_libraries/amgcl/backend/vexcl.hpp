@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,13 +45,13 @@ THE SOFTWARE.
 namespace amgcl {
 namespace backend {
 
-/// VexCL backend
 /**
- * This is a backend that uses types defined in the VexCL GPGPU library
- * (https://github.com/ddemidov/vexcl).
- *
- * \param real Value type.
- * \ingroup backends
+ * The backend uses the <a href="https://github.com/ddemidov/vexcl">VexCL</a>
+ * library for accelerating solution on the modern GPUs and multicore
+ * processors with the help of OpenCL or CUDA technologies.
+ * The VexCL backend stores the system matrix as ``vex::SpMat<real>`` and
+ * expects the right hand side and the solution vectors to be instances of the
+ * ``vex::vector<real>`` type.
  */
 template <typename real>
 struct vexcl {
@@ -60,79 +60,113 @@ struct vexcl {
 
     typedef vex::SpMat<value_type, index_type, index_type> matrix;
     typedef vex::vector<value_type>                        vector;
+    typedef vex::vector<value_type>                        matrix_diagonal;
     typedef detail::default_direct_solver<vexcl>           direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
 
-    /// Backend parameters.
+    /// The VexCL backend parameters.
     struct params {
-        /// Command queues that identify compute devices to use with VexCL.
-        std::vector< vex::backend::command_queue > q;
 
-        params() : q(vex::current_context().queue()) {}
+        std::vector< vex::backend::command_queue > q; ///< Command queues that identify compute devices to use with VexCL.
+
+        params() {}
 
         params(const boost::property_tree::ptree &p) {
             std::vector<vex::backend::command_queue> *ptr = 0;
             ptr = p.get("q", ptr);
-            q = ptr ? *ptr : vex::current_context().queue();
+            if (ptr) q = *ptr;
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             p.put(path + "q", &q);
         }
+
+        const std::vector<vex::backend::command_queue>& context() const {
+            if (q.empty())
+                return vex::current_context().queue();
+            else
+                return q;
+
+        }
     };
 
     static std::string name() { return "vexcl"; }
 
-    /// Copy matrix from builtin backend.
+    // Copy matrix from builtin backend.
     static boost::shared_ptr<matrix>
     copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        precondition(!prm.q.empty(), "Empty VexCL context!");
+        precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        return boost::make_shared<matrix>(prm.q, rows(*A), cols(*A),
-                A->ptr.data(), A->col.data(), A->val.data()
-                );
+        const typename builtin<real>::matrix &a = *A;
+
+        BOOST_AUTO(Aptr, a.ptr_data());
+        BOOST_AUTO(Acol, a.col_data());
+        BOOST_AUTO(Aval, a.val_data());
+
+        return boost::make_shared<matrix>(prm.context(), rows(*A), cols(*A), Aptr, Acol, Aval);
     }
 
-    /// Copy vector from builtin backend.
+    // Copy vector from builtin backend.
     static boost::shared_ptr<vector>
     copy_vector(typename builtin<real>::vector const &x, const params &prm)
     {
-        precondition(!prm.q.empty(), "Empty VexCL context!");
+        precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        return boost::make_shared<vector>(prm.q, x);
+        return boost::make_shared<vector>(prm.context(), x);
     }
 
-    /// Copy vector from builtin backend.
+    // Copy vector from builtin backend.
     static boost::shared_ptr<vector>
     copy_vector(boost::shared_ptr< typename builtin<real>::vector > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
-    /// Create vector of the specified size.
+    // Create vector of the specified size.
     static boost::shared_ptr<vector>
     create_vector(size_t size, const params &prm)
     {
-        precondition(!prm.q.empty(), "Empty VexCL context!");
+        precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        return boost::make_shared<vector>(prm.q, size);
+        return boost::make_shared<vector>(prm.context(), size);
     }
 
     struct gather {
         mutable vex::gather<value_type> G;
+        mutable std::vector<value_type> tmp;
 
         gather(size_t src_size, const std::vector<ptrdiff_t> &I, const params &prm)
-            : G(prm.q, src_size, std::vector<size_t>(I.begin(), I.end())) { }
+            : G(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end())) { }
+
+        void operator()(const vector &src, vector &dst) const {
+            G(src, tmp);
+            vex::copy(tmp, dst);
+        }
 
         void operator()(const vector &vec, std::vector<value_type> &vals) const {
             G(vec, vals);
         }
     };
 
+    struct scatter {
+        mutable vex::scatter<value_type> S;
+        mutable std::vector<value_type> tmp;
 
-    /// Create direct solver for coarse level
+        scatter(size_t size, const std::vector<ptrdiff_t> &I, const params &prm)
+            : S(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
+            , tmp(I.size())
+        { }
+
+        void operator()(const vector &src, vector &dst) const {
+            vex::copy(src, tmp);
+            S(tmp, dst);
+        }
+    };
+
+
+    // Create direct solver for coarse level
     static boost::shared_ptr<direct_solver>
     create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
@@ -164,18 +198,17 @@ struct nonzeros_impl< vex::SpMat<V, C, P> > {
     }
 };
 
-template < typename V, typename C, typename P >
+template < typename Alpha, typename Beta, typename V, typename C, typename P >
 struct spmv_impl<
-    vex::SpMat<V, C, P>,
-    vex::vector<V>,
-    vex::vector<V>
+    Alpha, vex::SpMat<V, C, P>, vex::vector<V>,
+    Beta,  vex::vector<V>
     >
 {
     typedef vex::SpMat<V, C, P> matrix;
     typedef vex::vector<V>      vector;
 
-    static void apply(V alpha, const matrix &A, const vector &x,
-            V beta, vector &y)
+    static void apply(Alpha alpha, const matrix &A, const vector &x,
+            Beta beta, vector &y)
     {
         if (beta)
             y = alpha * (A * x) + beta * y;
@@ -247,12 +280,12 @@ struct inner_product_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct axpby_impl<
-    vex::vector<V>,
-    vex::vector<V>
+    A, vex::vector<V>,
+    B, vex::vector<V>
     > {
-    static void apply(V a, const vex::vector<V> &x, V b, vex::vector<V> &y)
+    static void apply(A a, const vex::vector<V> &x, B b, vex::vector<V> &y)
     {
         if (b)
             y = a * x + b * y;
@@ -261,17 +294,17 @@ struct axpby_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename C, typename V >
 struct axpbypcz_impl<
-    vex::vector<V>,
-    vex::vector<V>,
-    vex::vector<V>
+    A, vex::vector<V>,
+    B, vex::vector<V>,
+    C, vex::vector<V>
     >
 {
     static void apply(
-            V a, const vex::vector<V> &x,
-            V b, const vex::vector<V> &y,
-            V c,       vex::vector<V> &z
+            A a, const vex::vector<V> &x,
+            B b, const vex::vector<V> &y,
+            C c,       vex::vector<V> &z
             )
     {
         if (c)
@@ -281,15 +314,14 @@ struct axpbypcz_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct vmul_impl<
-    vex::vector<V>,
-    vex::vector<V>,
-    vex::vector<V>
+    A, vex::vector<V>, vex::vector<V>,
+    B, vex::vector<V>
     >
 {
-    static void apply(V a, const vex::vector<V> &x, const vex::vector<V> &y,
-            V b, vex::vector<V> &z)
+    static void apply(A a, const vex::vector<V> &x, const vex::vector<V> &y,
+            B b, vex::vector<V> &z)
     {
         if (b)
             z = a * x * y + b * z;

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,26 +43,26 @@ struct use_builtin_matrix_ops : boost::false_type {};
 
 } // namespace detail
 
-template <class Matrix, class Vector1, class Vector2>
+template <class Alpha, class Matrix, class Vector1, class Beta, class Vector2>
 struct spmv_impl<
-    Matrix, Vector1, Vector2,
+    Alpha, Matrix, Vector1, Beta, Vector2,
     typename boost::enable_if<
         typename detail::use_builtin_matrix_ops<Matrix>::type
         >::type
     >
 {
-    typedef typename value_type<Matrix>::type V;
-
     static void apply(
-            V alpha, const Matrix &A, const Vector1 &x, V beta, Vector2 &y
+            Alpha alpha, const Matrix &A, const Vector1 &x, Beta beta, Vector2 &y
             )
     {
+        typedef typename value_type<Vector2>::type V;
+
         const ptrdiff_t n = static_cast<ptrdiff_t>( rows(A) );
 
-        if (beta) {
+        if (!math::is_zero(beta)) {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < n; ++i) {
-                V sum = 0;
+                V sum = math::zero<V>();
                 for(typename row_iterator<Matrix>::type a = row_begin(A, i); a; ++a)
                     sum += a.value() * x[ a.col() ];
                 y[i] = alpha * sum + beta * y[i];
@@ -70,7 +70,7 @@ struct spmv_impl<
         } else {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < n; ++i) {
-                V sum = 0;
+                V sum = math::zero<V>();
                 for(typename row_iterator<Matrix>::type a = row_begin(A, i); a; ++a)
                     sum += a.value() * x[ a.col() ];
                 y[i] = alpha * sum;
@@ -94,13 +94,13 @@ struct residual_impl<
             Vector3       &res
             )
     {
-        typedef typename value_type<Matrix>::type V;
+        typedef typename value_type<Vector3>::type V;
 
         const ptrdiff_t n = static_cast<ptrdiff_t>( rows(A) );
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < n; ++i) {
-            V sum = 0;
+            V sum = math::zero<V>();
             for(typename row_iterator<Matrix>::type a = row_begin(A, i); a; ++a)
                 sum += a.value() * x[ a.col() ];
             res[i] = rhs[i] - sum;

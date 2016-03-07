@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,9 @@ THE SOFTWARE.
 
 #include <vector>
 #include <cmath>
+
 #include <amgcl/util.hpp>
+#include <amgcl/value_type/interface.hpp>
 
 namespace amgcl {
 namespace detail {
@@ -44,94 +46,117 @@ class QR {
     public:
         QR() : m(0), n(0) {}
 
-        void compute(
-                size_t rows, size_t cols, value_type *A,
-                bool needQ = true
-                )
-        {
-            precondition(rows >= cols,
-                    "QR decomposion of wide matrices is not supported"
-                    );
-
+        void compute(unsigned rows, unsigned cols, value_type *A, bool needQ = true) {
             m = rows;
             n = cols;
+            p = std::min(m, n);
+
             r = A;
 
-            resize(d, n);
+            scalar_type absV0, normV, beta;
+            value_type alpha;
 
-            for(size_t j = 0; j < n; ++j) {
-                value_type s = 0;
-                for(size_t i = j; i < m; ++i) s += r[i*n+j] * r[i*n+j];
-                s = sqrt(s);
-                d[j] = r[j*n+j] > 0 ? -s : s;
-                value_type fak = sqrt(s * (s + fabs(r[j*n+j])));
-                r[j*n+j] -= d[j];
-                for(size_t k = j; k < m; ++k) r[k*n+j] /= fak;
-                for(size_t i = j + 1; i < n; ++i) {
-                    value_type s = 0;
-                    for(size_t k = j; k < m; ++k) s += r[k*n+j] * r[k*n+i];
-                    for(size_t k = j; k < m; ++k) r[k*n+i] -= r[k*n+j] * s;
+            if (diagR.size() < p) diagR.resize(p);
+            if (betaR.size() < p) betaR.resize(p);
+
+            for(unsigned k = 0; k < p; ++k) {
+                // Form k-th Housholder vector.
+                normV = 0;
+                for(unsigned i = k; i < m; ++i)
+                    normV += sqr(math::norm(r[i*p+k]));
+                normV = sqrt(normV);
+
+                absV0 = math::norm(r[k*p+k]);
+                alpha = -normV / absV0 * r[k*p+k];
+                beta = 1 / (normV * (normV + absV0));
+                r[k*p+k] -= alpha;
+
+
+                // Apply transformation to remaining columns.
+                for(unsigned j = k + 1; j < n; ++j) {
+                    value_type s = math::zero<value_type>();
+
+                    for(unsigned i = k; i < m; ++i)
+                        s += math::adjoint(r[i*p+k]) * r[i*p+j];
+
+                    s *= beta;
+
+                    for(unsigned i = k; i < m; ++i)
+                        r[i*p+j] -= s * r[i*p+k];
                 }
+
+                diagR[k] = alpha;
+                betaR[k] = beta;
             }
 
-            sign = r[0] < 0 ? -1 : 1;
-
             if (needQ) {
-                resize(q, n * m);
-                for(size_t i = 0; i < n; ++i) {
-                    for(size_t j = 0; j < m; ++j) q[j*n+i] = (j == i);
+                if (q.size() < m * p) q.resize(m * p);
 
-                    for(size_t j = n; j-- > 0; ) {
-                        value_type s = 0;
+                for(unsigned k=p; k --> 0;) {
+                    q[k*p+k] = (1 - betaR[k] * sqr(math::norm(r[k*p+k]))) *
+                        math::identity<value_type>();
 
-                        for(size_t k = j; k < m; ++k) s += r[k*n+j] * q[k*n+i];
-                        for(size_t k = j; k < m; ++k) q[k*n+i] -= r[k*n+j] * s;
+                    for(unsigned i = k+1; i < m; ++i)
+                        q[i*p+k] = -betaR[k] * r[i*p+k] * math::adjoint(r[k*p+k]);
+
+                    for(unsigned j = k+1; j < p; ++j) {
+                        value_type s = math::zero<value_type>();
+
+                        for(unsigned i = k; i < m; ++i)
+                            s += math::adjoint(r[i*p+k]) * q[i*p+j];
+
+                        s *= betaR[k];
+
+                        for(unsigned i = k; i < m; ++i)
+                            q[i*p+j] -= s * r[i*p+k];
                     }
                 }
             }
         }
 
-        value_type R(size_t i, size_t j) const {
-            if (i > j)
-                return value_type(0);
-            if (i == j)
-                return sign * d[i];
-            else
-                return sign * r[i*n+j];
+        value_type R(unsigned i, unsigned j) const {
+            if (j <  i) return math::zero<value_type>();
+            if (j == i) return diagR[i];
+            return r[i * p + j];
         }
 
-        value_type Q(size_t i, size_t j) const {
-            return sign * q[i*n+j];
+        value_type Q(unsigned i, unsigned j) const {
+            return q[i*p+j];
         }
 
         void solve(value_type *f, value_type *x) const {
-            // x = Q' * x;
-            for(size_t j = 0; j < n; ++j) {
-                value_type s = 0;
+            for(unsigned k = 0; k < n; ++k) {
+                value_type s = math::zero<value_type>();
 
-                for(size_t k = j; k < m; ++k) s += r[k*n+j] * f[k];
-                for(size_t k = j; k < m; ++k) f[k] -= r[k*n+j] * s;
+                for(unsigned i = k; i < m; ++i)
+                    s += math::adjoint(r[i*p+k]) * f[i];
+
+                s *= betaR[k];
+
+                for(unsigned i = k; i < m; ++i)
+                    f[i] -= s * r[i*p+k];
             }
 
-            // x = R^-1 x
-            for (size_t i = n; i --> 0; ) {
-                value_type sum = x[i] = f[i];
-                for (size_t j = i + 1; j < n; j++) sum -= r[i*n+j] * x[j];
-                x[i] = sum / d[i];
+            std::copy(f, f + n, x);
+
+            for(unsigned k=n; k --> 0;) {
+                x[k] = math::inverse(diagR[k]) * x[k];
+
+                for(unsigned i = 0; i < k; ++i)
+                    x[i] -= r[i*p+k] * x[k];
             }
         }
     private:
-        size_t m, n;
-        value_type sign;
+        typedef typename math::scalar_of<value_type>::type scalar_type;
+
+        static scalar_type sqr(scalar_type x) { return x * x; }
+
+        unsigned m, n, p;
 
         value_type *r;
-
-        std::vector<value_type> d;
-        std::vector<value_type> q;
-
-        void resize(std::vector<value_type> &v, size_t size) {
-            if (v.size() < size) v.resize(size);
-        }
+        std::vector<value_type>  q;
+        std::vector<value_type>  diagR;
+        std::vector<scalar_type> betaR;
 };
 
 } // namespace detail

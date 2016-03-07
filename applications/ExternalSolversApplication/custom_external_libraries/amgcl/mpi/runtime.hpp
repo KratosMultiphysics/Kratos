@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -90,31 +90,24 @@ namespace mpi {
 namespace detail {
 
 template <
-    class Backend,
-    class Coarsening,
-    template <class> class Relaxation,
+    class LocalPrecond,
     template <class, class> class IterativeSolver,
     class Func
     >
-inline
-typename boost::enable_if<
-    typename backend::relaxation_is_supported<Backend, Relaxation>::type,
-    void
->::type
-process_sdd(
+inline void process_sdd(
         runtime::direct_solver::type direct_solver,
         const Func &func
         )
 {
+    typedef typename LocalPrecond::backend_type::value_type value_type;
+
     switch (direct_solver) {
         case amgcl::runtime::direct_solver::skyline_lu:
             {
                 typedef amgcl::mpi::subdomain_deflation<
-                    Backend,
-                    Coarsening,
-                    Relaxation,
+                    LocalPrecond,
                     IterativeSolver,
-                    amgcl::mpi::skyline_lu<typename Backend::value_type>
+                    amgcl::mpi::skyline_lu<value_type>
                     > SDD;
                 func.template process<SDD>();
             }
@@ -123,11 +116,9 @@ process_sdd(
         case amgcl::runtime::direct_solver::pastix:
             {
                 typedef amgcl::mpi::subdomain_deflation<
-                    Backend,
-                    Coarsening,
-                    Relaxation,
+                    LocalPrecond,
                     IterativeSolver,
-                    amgcl::mpi::PaStiX<typename Backend::value_type>
+                    amgcl::mpi::PaStiX<value_type>
                     > SDD;
                 func.template process<SDD>();
             }
@@ -137,29 +128,7 @@ process_sdd(
 }
 
 template <
-    class Backend,
-    class Coarsening,
-    template <class> class Relaxation,
-    template <class, class> class IterativeSolver,
-    class Func
-    >
-inline
-typename boost::disable_if<
-    typename backend::relaxation_is_supported<Backend, Relaxation>::type,
-    void
->::type
-process_sdd(
-        runtime::direct_solver::type,
-        const Func&
-        )
-{
-    throw std::logic_error("The relaxation scheme is not supported by the backend");
-}
-
-template <
-    class Backend,
-    class Coarsening,
-    template <class> class Relaxation,
+    class LocalPrecond,
     class Func
     >
 inline void process_sdd(
@@ -171,140 +140,27 @@ inline void process_sdd(
     switch (iterative_solver) {
         case runtime::solver::cg:
             process_sdd<
-                Backend,
-                Coarsening,
-                Relaxation,
+                LocalPrecond,
                 amgcl::solver::cg
                 >(direct_solver, func);
             break;
         case runtime::solver::bicgstab:
             process_sdd<
-                Backend,
-                Coarsening,
-                Relaxation,
+                LocalPrecond,
                 amgcl::solver::bicgstab
                 >(direct_solver, func);
             break;
         case runtime::solver::bicgstabl:
             process_sdd<
-                Backend,
-                Coarsening,
-                Relaxation,
+                LocalPrecond,
                 amgcl::solver::bicgstabl
                 >(direct_solver, func);
             break;
         case runtime::solver::gmres:
             process_sdd<
-                Backend,
-                Coarsening,
-                Relaxation,
+                LocalPrecond,
                 amgcl::solver::gmres
                 >(direct_solver, func);
-            break;
-    }
-}
-
-template <
-    class Backend,
-    class Coarsening,
-    class Func
-    >
-inline void process_sdd(
-        runtime::relaxation::type    relaxation,
-        runtime::solver::type        iterative_solver,
-        runtime::direct_solver::type direct_solver,
-        const Func &func
-        )
-{
-    switch (relaxation) {
-        case runtime::relaxation::gauss_seidel:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::gauss_seidel
-                >(iterative_solver, direct_solver, func);
-            break;
-        case runtime::relaxation::multicolor_gauss_seidel:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::gauss_seidel
-                >(iterative_solver, direct_solver, func);
-            break;
-        case runtime::relaxation::ilu0:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::ilu0
-                >(iterative_solver, direct_solver, func);
-            break;
-        case runtime::relaxation::damped_jacobi:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::damped_jacobi
-                >(iterative_solver, direct_solver, func);
-            break;
-        case runtime::relaxation::spai0:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::spai0
-                >(iterative_solver, direct_solver, func);
-            break;
-        case runtime::relaxation::spai1:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::spai1
-                >(iterative_solver, direct_solver, func);
-            break;
-        case runtime::relaxation::chebyshev:
-            process_sdd<
-                Backend,
-                Coarsening,
-                amgcl::relaxation::chebyshev
-                >(iterative_solver, direct_solver, func);
-            break;
-    }
-}
-
-template <
-    class Backend,
-    class Func
-    >
-inline void process_sdd(
-        runtime::coarsening::type    coarsening,
-        runtime::relaxation::type    relaxation,
-        runtime::solver::type        iterative_solver,
-        runtime::direct_solver::type direct_solver,
-        const Func &func
-        )
-{
-    switch (coarsening) {
-        case runtime::coarsening::ruge_stuben:
-            process_sdd<
-                Backend,
-                amgcl::coarsening::ruge_stuben
-                >(relaxation, iterative_solver, direct_solver, func);
-            break;
-        case runtime::coarsening::aggregation:
-            process_sdd<
-                Backend,
-                amgcl::coarsening::aggregation
-                >(relaxation, iterative_solver, direct_solver, func);
-            break;
-        case runtime::coarsening::smoothed_aggregation:
-            process_sdd<
-                Backend,
-                amgcl::coarsening::smoothed_aggregation
-                >(relaxation, iterative_solver, direct_solver, func);
-            break;
-        case runtime::coarsening::smoothed_aggr_emin:
-            process_sdd<
-                Backend,
-                amgcl::coarsening::smoothed_aggr_emin
-                >(relaxation, iterative_solver, direct_solver, func);
             break;
     }
 }
@@ -358,10 +214,8 @@ struct sdd_get_params {
     }
 };
 
-template <class Backend, class Vec1, class Vec2>
+template <typename value_type, class Vec1, class Vec2>
 struct sdd_solve {
-    typedef typename Backend::value_type value_type;
-
     void * handle;
 
     Vec1 const &rhs;
@@ -387,57 +241,26 @@ struct sdd_solve {
 /**
  * \sa \cite Frank2001
  */
-template <class Backend>
+template <class LocalPrecond>
 class subdomain_deflation : boost::noncopyable {
     public:
+        typedef typename LocalPrecond::backend_type Backend;
         typedef typename Backend::value_type value_type;
         typedef boost::property_tree::ptree params;
 
         template <class Matrix, class DefVec>
-        subdomain_deflation(
-                runtime::coarsening::type    coarsening,
-                runtime::relaxation::type    relaxation,
-                runtime::solver::type        iterative_solver,
-                runtime::direct_solver::type direct_solver,
-                MPI_Comm comm,
-                const Matrix &A,
-                const DefVec &def_vec,
-                const params &prm
-                )
-            : coarsening(coarsening),
-              relaxation(relaxation),
-              iterative_solver(iterative_solver),
-              direct_solver(direct_solver),
-              n( backend::rows(A) ),
-              handle(0)
-        {
-            runtime::mpi::detail::process_sdd<Backend>(
-                    coarsening,
-                    relaxation,
-                    iterative_solver,
-                    direct_solver,
-                    runtime::mpi::detail::sdd_create<Matrix, DefVec>(
-                        handle, comm, A, def_vec, prm
-                        )
-                    );
-        }
-
-        template <class Matrix, class DefVec>
-        subdomain_deflation(
-                MPI_Comm comm,
-                const Matrix &A,
-                const DefVec &def_vec,
-                const params &prm
-                )
-            : coarsening(amgcl::runtime::coarsening::smoothed_aggregation),
-              relaxation(amgcl::runtime::relaxation::spai0),
-              iterative_solver(amgcl::runtime::solver::bicgstabl),
-              direct_solver(amgcl::runtime::direct_solver::skyline_lu),
+        subdomain_deflation(MPI_Comm comm, const Matrix &A, const DefVec &def_vec, const params &prm)
+            : iterative_solver(prm.get("solver.type", amgcl::runtime::solver::bicgstabl)),
+              direct_solver(prm.get("direct_solver.type",
+#ifdef AMGCL_HAVE_PASTIX
+                          amgcl::runtime::direct_solver::pastix
+#else
+                          amgcl::runtime::direct_solver::skyline_lu
+#endif
+                          )),
               n( backend::rows(A) ), handle(0)
         {
-            runtime::mpi::detail::process_sdd<Backend>(
-                    coarsening,
-                    relaxation,
+            runtime::mpi::detail::process_sdd<LocalPrecond>(
                     iterative_solver,
                     direct_solver,
                     runtime::mpi::detail::sdd_create<Matrix, DefVec>(
@@ -447,9 +270,7 @@ class subdomain_deflation : boost::noncopyable {
         }
 
         ~subdomain_deflation() {
-            runtime::mpi::detail::process_sdd<Backend>(
-                    coarsening,
-                    relaxation,
+            runtime::mpi::detail::process_sdd<LocalPrecond>(
                     iterative_solver,
                     direct_solver,
                     runtime::mpi::detail::sdd_destroy(handle)
@@ -457,9 +278,7 @@ class subdomain_deflation : boost::noncopyable {
         }
 
         void get_params(boost::property_tree::ptree &p) const {
-            runtime::mpi::detail::process_sdd<Backend>(
-                    coarsening,
-                    relaxation,
+            runtime::mpi::detail::process_sdd<LocalPrecond>(
                     iterative_solver,
                     direct_solver,
                     runtime::mpi::detail::sdd_get_params(handle, p)
@@ -470,15 +289,13 @@ class subdomain_deflation : boost::noncopyable {
         template <class Vec1, class Vec2>
         boost::tuple<size_t, value_type>
         operator()(const Vec1 &rhs, Vec2 &x) const {
-            size_t     iters;
-            value_type resid;
+            size_t     iters = 0;
+            value_type resid = 0;
 
-            runtime::mpi::detail::process_sdd<Backend>(
-                    coarsening,
-                    relaxation,
+            runtime::mpi::detail::process_sdd<LocalPrecond>(
                     iterative_solver,
                     direct_solver,
-                    runtime::mpi::detail::sdd_solve<Backend, Vec1, Vec2>(
+                    runtime::mpi::detail::sdd_solve<value_type, Vec1, Vec2>(
                         handle, rhs, x, iters, resid
                         )
                     );
@@ -490,8 +307,6 @@ class subdomain_deflation : boost::noncopyable {
             return n;
         }
     private:
-        const runtime::coarsening::type    coarsening;
-        const runtime::relaxation::type    relaxation;
         const runtime::solver::type        iterative_solver;
         const runtime::direct_solver::type direct_solver;
 

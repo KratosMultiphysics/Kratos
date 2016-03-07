@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,9 @@ class hpx_matrix {
             index_type n = backend::rows(*A);
             index_type m = backend::cols(*A);
 
+            BOOST_AUTO(Aptr, A->ptr_data());
+            BOOST_AUTO(Acol, A->col_data());
+
             index_type nseg = (n + grain_size - 1) / grain_size;
             index_type mseg = (m + grain_size - 1) / grain_size;
 
@@ -85,14 +88,12 @@ class hpx_matrix {
             hpx::parallel::for_each(
                     hpx::parallel::par,
                     boost::begin(range), boost::end(range),
-                    [this, grain_size, n](index_type seg) {
+                    [this, grain_size, n, Aptr, Acol](index_type seg) {
                         index_type i = seg * grain_size;
-                        index_type beg = base->ptr[i];
-                        index_type end = base->ptr[std::min<index_type>(i + grain_size, n)];
+                        index_type beg = Aptr[i];
+                        index_type end = Aptr[std::min<index_type>(i + grain_size, n)];
 
-                        auto mm = std::minmax_element(
-                                base->col.begin() + beg, base->col.begin() + end
-                                );
+                        auto mm = std::minmax_element(Acol + beg, Acol + end);
 
                         index_type xbeg = *std::get<0>(mm) / grain_size;
                         index_type xend = *std::get<1>(mm) / grain_size + 1;
@@ -235,6 +236,7 @@ struct HPX {
 
     typedef hpx_matrix<value_type>         matrix;
     typedef hpx_vector<value_type>         vector;
+    typedef hpx_vector<value_type>         matrix_diagonal;
 
     struct direct_solver : public solver::skyline_lu<value_type> {
         typedef solver::skyline_lu<value_type> Base;
@@ -257,8 +259,8 @@ struct HPX {
         };
 
         void operator()(const vector &rhs, vector &x) const {
-            const real *fptr = rhs.data();
-            real       *xptr = x.data();
+            const real *fptr = &rhs[0];
+            real       *xptr = &x[0];
 
             using hpx::lcos::local::dataflow;
 
@@ -336,21 +338,20 @@ struct nonzeros_impl< hpx_matrix<real> > {
     }
 };
 
-template < typename real >
+template < typename Alpha, typename Beta, typename real >
 struct spmv_impl<
-    hpx_matrix<real>,
-    hpx_vector<real>,
-    hpx_vector<real>
+    Alpha, hpx_matrix<real>, hpx_vector<real>,
+    Beta,  hpx_vector<real>
     >
 {
     typedef hpx_matrix<real> matrix;
     typedef hpx_vector<real> vector;
 
     struct process_ab {
-        real                    alpha;
+        Alpha                   alpha;
         const hpx_matrix<real> &A;
         const real             *xptr;
-        real                    beta;
+        Beta                    beta;
         real                   *yptr;
 
         ptrdiff_t beg;
@@ -368,7 +369,7 @@ struct spmv_impl<
     };
 
     struct process_a {
-        real                    alpha;
+        Alpha                   alpha;
         const hpx_matrix<real> &A;
         const real             *xptr;
         real                   *yptr;
@@ -392,11 +393,11 @@ struct spmv_impl<
         void operator()(T&&) const {}
     };
 
-    static void apply(real alpha, const matrix &A, const vector &x,
-            real beta, vector &y)
+    static void apply(Alpha alpha, const matrix &A, const vector &x,
+            Beta beta, vector &y)
     {
-        const real *xptr = x.data();
-        real       *yptr = y.data();
+        const real *xptr = &x[0];
+        real       *yptr = &y[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -489,9 +490,9 @@ struct residual_impl<
     static void apply(const vector &f, const matrix &A, const vector &x,
             vector &r)
     {
-        const real *xptr = x.data();
-        const real *fptr = f.data();
-        real       *rptr = r.data();
+        const real *xptr = &x[0];
+        const real *fptr = &f[0];
+        real       *rptr = &r[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -546,7 +547,7 @@ struct clear_impl<
     };
 
     static void apply(vector &x) {
-        real *xptr = x.data();
+        real *xptr = &x[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -590,8 +591,8 @@ struct copy_impl<
 
     static void apply(const vector &x, vector &y)
     {
-        const real *xptr = x.data();
-        real       *yptr = y.data();
+        const real *xptr = &x[0];
+        real       *yptr = &y[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -635,8 +636,8 @@ struct copy_to_backend_impl<
 
     static void apply(const std::vector<real> &x, vector &y)
     {
-        const real *xptr = x.data();
-        real       *yptr = y.data();
+        const real *xptr = &x[0];
+        real       *yptr = &y[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -684,8 +685,8 @@ struct inner_product_impl<
 
     static real get(const vector &x, const vector &y)
     {
-        const real *xptr = x.data();
-        const real *yptr = y.data();
+        const real *xptr = &x[0];
+        const real *yptr = &y[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -708,10 +709,10 @@ struct inner_product_impl<
     }
 };
 
-template < typename real >
+template < typename A, typename B, typename real >
 struct axpby_impl<
-    hpx_vector<real>,
-    hpx_vector<real>
+    A, hpx_vector<real>,
+    B, hpx_vector<real>
     >
 {
     typedef hpx_vector<real> vector;
@@ -719,9 +720,9 @@ struct axpby_impl<
     struct process_ab {
         typedef void result_type;
 
-        real        a;
+        A           a;
         const real *xptr;
-        real        b;
+        B           b;
         real       *yptr;
 
         ptrdiff_t beg;
@@ -737,7 +738,7 @@ struct axpby_impl<
     struct process_a {
         typedef void result_type;
 
-        real        a;
+        A           a;
         const real *xptr;
         real       *yptr;
 
@@ -751,10 +752,10 @@ struct axpby_impl<
         }
     };
 
-    static void apply(real a, const vector &x, real b, vector &y)
+    static void apply(A a, const vector &x, B b, vector &y)
     {
-        const real *xptr = x.data();
-        real       *yptr = y.data();
+        const real *xptr = &x[0];
+        real       *yptr = &y[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -794,21 +795,21 @@ struct axpby_impl<
     }
 };
 
-template < typename real >
+template < typename A, typename B, typename C, typename real >
 struct axpbypcz_impl<
-    hpx_vector<real>,
-    hpx_vector<real>,
-    hpx_vector<real>
+    A, hpx_vector<real>,
+    B, hpx_vector<real>,
+    C, hpx_vector<real>
     >
 {
     typedef hpx_vector<real> vector;
 
     struct process_abc {
-        real        a;
+        A           a;
         const real *xptr;
-        real        b;
+        B           b;
         const real *yptr;
-        real        c;
+        C           c;
         real       *zptr;
 
         ptrdiff_t beg;
@@ -822,9 +823,9 @@ struct axpbypcz_impl<
     };
 
     struct process_ab {
-        real        a;
+        A           a;
         const real *xptr;
-        real        b;
+        B           b;
         const real *yptr;
         real       *zptr;
 
@@ -839,14 +840,14 @@ struct axpbypcz_impl<
     };
 
     static void apply(
-            real a, const vector &x,
-            real b, const vector &y,
-            real c,       vector &z
+            A a, const vector &x,
+            B b, const vector &y,
+            C c,       vector &z
             )
     {
-        const real *xptr = x.data();
-        const real *yptr = y.data();
-        real       *zptr = z.data();
+        const real *xptr = &x[0];
+        const real *yptr = &y[0];
+        real       *zptr = &z[0];
 
         using hpx::lcos::local::dataflow;
 
@@ -888,20 +889,19 @@ struct axpbypcz_impl<
     }
 };
 
-template < typename real >
+template < typename A, typename B, typename real >
 struct vmul_impl<
-    hpx_vector<real>,
-    hpx_vector<real>,
-    hpx_vector<real>
+    A, hpx_vector<real>, hpx_vector<real>,
+    B, hpx_vector<real>
     >
 {
     typedef hpx_vector<real> vector;
 
     struct process_ab {
-        real        a;
+        A           a;
         const real *xptr;
         const real *yptr;
-        real        b;
+        B           b;
         real       *zptr;
 
         ptrdiff_t beg;
@@ -915,7 +915,7 @@ struct vmul_impl<
     };
 
     struct process_a {
-        real        a;
+        A           a;
         const real *xptr;
         const real *yptr;
         real       *zptr;
@@ -930,11 +930,11 @@ struct vmul_impl<
         }
     };
 
-    static void apply(real a, const vector &x, const vector &y, real b, vector &z)
+    static void apply(A a, const vector &x, const vector &y, B b, vector &z)
     {
-        const real *xptr = x.data();
-        const real *yptr = y.data();
-        real       *zptr = z.data();
+        const real *xptr = &x[0];
+        const real *yptr = &y[0];
+        real       *zptr = &z[0];
 
         using hpx::lcos::local::dataflow;
 

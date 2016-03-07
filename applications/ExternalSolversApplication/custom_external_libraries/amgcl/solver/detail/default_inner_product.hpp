@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,9 @@ namespace detail {
 
 struct default_inner_product {
     template <class Vec1, class Vec2>
-    typename backend::value_type<Vec1>::type
+    typename math::inner_product_impl<
+        typename backend::value_type<Vec1>::type
+    >::return_type
     operator()(const Vec1 &x, const Vec2 &y) const {
         return backend::inner_product(x, y);
     }

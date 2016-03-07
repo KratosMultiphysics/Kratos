@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include <limits>
 
+#include <boost/typeof/typeof.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -47,156 +48,6 @@ THE SOFTWARE.
 #include <amgcl/detail/sort_row.hpp>
 
 namespace amgcl {
-namespace coarsening {
-namespace detail {
-
-template <class Base>
-struct sa_emin_filtered_matrix {
-    typedef typename backend::value_type<Base>::type value_type;
-
-    typedef value_type val_type;
-    typedef ptrdiff_t  col_type;
-    typedef ptrdiff_t  ptr_type;
-
-    const Base &base;
-    const std::vector<char> &strong;
-    std::vector<val_type> dia;
-
-    class row_iterator {
-        public:
-            row_iterator(
-                    const col_type * col,
-                    const col_type * end,
-                    const val_type * val,
-                    const char     * str,
-                    col_type row,
-                    val_type dia
-                    )
-                : m_col(col), m_end(end), m_val(val), m_str(str),
-                  m_row(row), m_dia(dia)
-            {}
-
-            operator bool() const {
-                return m_col < m_end;
-            }
-
-            row_iterator& operator++() {
-                do {
-                    ++m_col;
-                    ++m_val;
-                    ++m_str;
-                } while(m_col < m_end && m_col[0] != m_row && !m_str[0]);
-
-                return *this;
-            }
-
-            col_type col() const {
-                return *m_col;
-            }
-
-            val_type value() const {
-                if (m_col[0] == m_row)
-                    return m_dia;
-                else
-                    return m_val[0];
-            }
-
-        private:
-            const col_type * m_col;
-            const col_type * m_end;
-            const val_type * m_val;
-            const char     * m_str;
-
-            col_type m_row;
-            val_type m_dia;
-    };
-
-    sa_emin_filtered_matrix(
-            const Base &base,
-            const std::vector<char> &strong
-            ) : base(base), strong(strong), dia( backend::rows(base) )
-    {
-        const size_t n = backend::rows(base);
-#pragma omp parallel for
-        for(ptrdiff_t i = 0; i < ptrdiff_t(n); ++i) {
-            value_type D = 0;
-            for(ptrdiff_t j = base.ptr[i], e = base.ptr[i + 1]; j < e; ++j) {
-                ptrdiff_t  c = base.col[j];
-                value_type v = base.val[j];
-
-                if (c == i)
-                    D += v;
-                else if (!strong[j])
-                    D -= v;
-            }
-
-            dia[i] = D;
-        }
-    }
-
-    size_t rows() const {
-        return backend::rows(base);
-    }
-
-    size_t cols() const {
-        return backend::cols(base);
-    }
-
-    row_iterator row_begin(size_t row) const {
-        ptr_type b = base.ptr[row];
-        ptr_type e = base.ptr[row + 1];
-
-        const col_type *col = &base.col[b];
-        const col_type *end = &base.col[e];
-        const val_type *val = &base.val[b];
-        const char     *str = &strong[b];
-
-        return row_iterator(col, end, val, str, row, dia[row]);
-    }
-};
-
-} // namespace detail
-} // namespace coarsening
-
-namespace backend {
-
-template <class Base>
-struct rows_impl< coarsening::detail::sa_emin_filtered_matrix<Base> > {
-    typedef coarsening::detail::sa_emin_filtered_matrix<Base> Matrix;
-
-    static size_t get(const Matrix &A) {
-        return A.rows();
-    }
-};
-
-template <class Base>
-struct cols_impl< coarsening::detail::sa_emin_filtered_matrix<Base> > {
-    typedef coarsening::detail::sa_emin_filtered_matrix<Base> Matrix;
-
-    static size_t get(const Matrix &A) {
-        return A.cols();
-    }
-};
-
-template <class Base>
-struct row_iterator< coarsening::detail::sa_emin_filtered_matrix<Base> > {
-    typedef
-        typename coarsening::detail::sa_emin_filtered_matrix<Base>::row_iterator
-        type;
-};
-
-template <class Base>
-struct row_begin_impl< coarsening::detail::sa_emin_filtered_matrix<Base> > {
-    typedef coarsening::detail::sa_emin_filtered_matrix<Base> Matrix;
-
-    static typename row_iterator<Matrix>::type
-    get(const Matrix &matrix, size_t row) {
-        return matrix.row_begin(row);
-    }
-};
-
-} // namespace backend
-
 namespace coarsening {
 
 /// Smoothed aggregation with energy minimization.
@@ -237,6 +88,7 @@ struct smoothed_aggr_emin {
     transfer_operators(const Matrix &A, params &prm)
     {
         typedef typename backend::value_type<Matrix>::type Val;
+        typedef ptrdiff_t Idx;
 
         TIC("aggregates");
         Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
@@ -248,11 +100,72 @@ struct smoothed_aggr_emin {
                 rows(A), aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
 
-        std::vector<Val> omega;
-        detail::sa_emin_filtered_matrix<Matrix> Af(A, aggr.strong_connection);
+        // Filter the system matrix
+        backend::crs<Val> Af;
+        Af.nrows = rows(A);
+        Af.ncols = cols(A);
 
-        boost::shared_ptr<Matrix> P = interpolation(Af, *P_tent, omega);
-        boost::shared_ptr<Matrix> R = restriction  (Af, *P_tent, omega);
+        Af.ptr.resize(Af.nrows + 1);
+        Af.ptr[0] = 0;
+
+        std::vector<Val> dia(Af.nrows);
+
+        BOOST_AUTO(Aptr, backend::ptr_data(A));
+        BOOST_AUTO(Acol, backend::col_data(A));
+        BOOST_AUTO(Aval, backend::val_data(A));
+
+#pragma omp parallel for
+        for(Idx i = 0; i < static_cast<Idx>(Af.nrows); ++i) {
+            Idx row_begin = Aptr[i];
+            Idx row_end   = Aptr[i+1];
+            Idx row_width = row_end - row_begin;
+
+            Val D = math::zero<Val>();
+            for(Idx j = row_begin; j < row_end; ++j) {
+                Idx c = Acol[j];
+                Val v = Aval[j];
+
+                if (c == i)
+                    D += v;
+                else if (!aggr.strong_connection[j]) {
+                    D -= v;
+                    --row_width;
+                }
+            }
+
+            dia[i] = D;
+            Af.ptr[i+1] = row_width;
+        }
+
+        boost::partial_sum(Af.ptr, Af.ptr.begin());
+        Af.col.resize(Af.ptr.back());
+        Af.val.resize(Af.ptr.back());
+
+#pragma omp parallel for
+        for(Idx i = 0; i < static_cast<Idx>(Af.nrows); ++i) {
+            Idx row_begin = Aptr[i];
+            Idx row_end   = Aptr[i+1];
+            Idx row_head  = Af.ptr[i];
+
+            for(Idx j = row_begin; j < row_end; ++j) {
+                Idx c = Acol[j];
+
+                if (c == i) {
+                    Af.col[row_head] = i;
+                    Af.val[row_head] = dia[i];
+                    ++row_head;
+                } else if (aggr.strong_connection[j]) {
+                    Af.col[row_head] = c;
+                    Af.val[row_head] = Aval[j];
+                    ++row_head;
+                }
+            }
+        }
+
+        std::vector<Val> omega;
+
+        boost::shared_ptr<Matrix> P = interpolation(Af, dia, *P_tent, omega);
+        boost::shared_ptr<Matrix> R = restriction  (Af, dia, *P_tent, omega);
         TOC("interpolation");
 
         if (prm.nullspace.cols > 0)
@@ -277,7 +190,7 @@ struct smoothed_aggr_emin {
         template <class AMatrix, typename Val, typename Col, typename Ptr>
         static boost::shared_ptr< backend::crs<Val, Col, Ptr> >
         interpolation(
-                const AMatrix &A,
+                const AMatrix &A, const std::vector<Val> &Adia,
                 const backend::crs<Val, Col, Ptr> &P_tent,
                 std::vector<Val> &omega
                 )
@@ -294,8 +207,8 @@ struct smoothed_aggr_emin {
 
             *AP = product(A, P_tent, /*sort rows: */true);
 
-            omega.resize(nc, Val(0));
-            std::vector<Val> denum(nc, 0);
+            omega.resize(nc, math::zero<Val>());
+            std::vector<Val> denum(nc, math::zero<Val>());
 
 #pragma omp parallel
             {
@@ -326,7 +239,7 @@ struct smoothed_aggr_emin {
                     // Form current row of ADAP matrix.
                     for(Aiterator a = A.row_begin(ia); a; ++a) {
                         Col ca  = a.col();
-                        Val va  = a.value() / A.dia[ca];
+                        Val va  = math::inverse(Adia[ca]) * a.value();
 
                         for(Piterator p = AP->row_begin(ca); p; ++p) {
                             Col c = p.col();
@@ -343,7 +256,7 @@ struct smoothed_aggr_emin {
                     }
 
                     amgcl::detail::sort_row(
-                            adap_col.data(), adap_val.data(), adap_col.size()
+                            &adap_col[0], &adap_val[0], adap_col.size()
                             );
 
                     // Update columnwise scalar products (AP,ADAP) and (ADAP,ADAP).
@@ -362,8 +275,9 @@ struct smoothed_aggr_emin {
                         else if (cb < ca)
                             ++jb;
                         else /*ca == cb*/ {
-#pragma omp atomic
-                            omega[ca] += AP->val[ja] * adap_val[jb];
+                            Val v = AP->val[ja] * adap_val[jb];
+#pragma omp critical
+                            omega[ca] += v;
                             ++ja;
                             ++jb;
                         }
@@ -373,14 +287,15 @@ struct smoothed_aggr_emin {
                     for(size_t j = 0, e = adap_col.size(); j < e; ++j) {
                         Col c = adap_col[j];
                         Val v = adap_val[j];
-#pragma omp atomic
+#pragma omp critical
                         denum[c] += v * v;
                         marker[c] = -1;
                     }
                 }
             }
 
-            boost::transform(omega, denum, omega.begin(), std::divides<Val>());
+            for(size_t i = 0, m = omega.size(); i < m; ++i)
+                omega[i] = math::inverse(denum[i]) * omega[i];
 
             // Update AP to obtain P: P = (P_tent - D^-1 A P Omega)
             /*
@@ -391,7 +306,7 @@ struct smoothed_aggr_emin {
              */
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-                Val dia = 1 / A.dia[i];
+                Val dia = math::inverse(Adia[i]);
 
                 for(Ptr ja = AP->ptr[i],    ea = AP->ptr[i+1],
                         jp = P_tent.ptr[i], ep = P_tent.ptr[i+1];
@@ -422,7 +337,7 @@ struct smoothed_aggr_emin {
         template <typename AMatrix, typename Val, typename Col, typename Ptr>
         static boost::shared_ptr< backend::crs<Val, Col, Ptr> >
         restriction(
-                const AMatrix &A,
+                const AMatrix &A, const std::vector<Val> &Adia,
                 const backend::crs<Val, Col, Ptr> &P_tent,
                 const std::vector<Val> &omega
                 )
@@ -454,7 +369,7 @@ struct smoothed_aggr_emin {
                    )
                 {
                     Col ca = RA->col[ja];
-                    Val va = -w * RA->val[ja] / A.dia[ca];
+                    Val va = -w * math::inverse(Adia[ca]) * RA->val[ja];
 
                     for(; jr < er; ++jr) {
                         Col cr = R_tent.col[jr];

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,7 @@ struct viennacl {
     typedef ptrdiff_t                                  index_type;
     typedef Matrix                                     matrix;
     typedef ::viennacl::vector<value_type>             vector;
+    typedef ::viennacl::vector<value_type>             matrix_diagonal;
     typedef detail::default_direct_solver<viennacl>    direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
@@ -207,7 +208,7 @@ struct viennacl {
             viennacl_matrix_adapter(
                     const typename backend::builtin<value_type>::matrix &A)
                 : rows(A.nrows), cols(A.ncols),
-                  row(A.ptr.data()), col(A.col.data()), val(A.val.data())
+                  row(A.ptr_data()), col(A.col_data()), val(A.val_data())
             { }
 
             const_iterator1 begin1() const {
@@ -308,15 +309,13 @@ struct nonzeros_impl< ::viennacl::hyb_matrix<V> > {
     }
 };
 
-template <class Mtx, class Vec>
+template <class Alpha, class Mtx, class Beta, class Vec>
 struct spmv_impl<
-    Mtx, Vec, Vec,
+    Alpha, Mtx, Vec, Beta, Vec,
     typename boost::enable_if< typename is_viennacl_matrix<Mtx>::type >::type
     >
 {
-    typedef typename value_type<Mtx>::type V;
-
-    static void apply(V alpha, const Mtx &A, const Vec &x, V beta, Vec &y)
+    static void apply(Alpha alpha, const Mtx &A, const Vec &x, Beta beta, Vec &y)
     {
         if (beta)
             y = alpha * ::viennacl::linalg::prod(A, x) + beta * y;
@@ -361,15 +360,15 @@ struct inner_product_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct axpby_impl<
-    ::viennacl::vector<V>,
-    ::viennacl::vector<V>
+    A, ::viennacl::vector<V>,
+    B, ::viennacl::vector<V>
     >
 {
     static void apply(
-            V a, const ::viennacl::vector<V> &x,
-            V b, ::viennacl::vector<V> &y
+            A a, const ::viennacl::vector<V> &x,
+            B b, ::viennacl::vector<V> &y
             )
     {
         if (b)
@@ -379,17 +378,17 @@ struct axpby_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename C, typename V >
 struct axpbypcz_impl<
-    ::viennacl::vector<V>,
-    ::viennacl::vector<V>,
-    ::viennacl::vector<V>
+    A, ::viennacl::vector<V>,
+    B, ::viennacl::vector<V>,
+    C, ::viennacl::vector<V>
     >
 {
     static void apply(
-            V a, const ::viennacl::vector<V> &x,
-            V b, const ::viennacl::vector<V> &y,
-            V c,       ::viennacl::vector<V> &z
+            A a, const ::viennacl::vector<V> &x,
+            B b, const ::viennacl::vector<V> &y,
+            C c,       ::viennacl::vector<V> &z
             )
     {
         if (c)
@@ -399,16 +398,15 @@ struct axpbypcz_impl<
     }
 };
 
-template < typename V >
+template < typename A, typename B, typename V >
 struct vmul_impl<
-    ::viennacl::vector<V>,
-    ::viennacl::vector<V>,
-    ::viennacl::vector<V>
+    A, ::viennacl::vector<V>, ::viennacl::vector<V>,
+    B, ::viennacl::vector<V>
     >
 {
     static void apply(
-            V a, const ::viennacl::vector<V> &x, const ::viennacl::vector<V> &y,
-            V b, ::viennacl::vector<V> &z)
+            A a, const ::viennacl::vector<V> &x, const ::viennacl::vector<V> &y,
+            B b, ::viennacl::vector<V> &z)
     {
         if (b)
             z = a * ::viennacl::linalg::element_prod(x, y) + b * z;
