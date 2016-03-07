@@ -1,11 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: antonia $
-//   Date:                $Date: 2009-01-14 12:09:16 $
-//   Revision:            $Revision: 1.6 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 // System includes
 
@@ -15,6 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "python/add_equation_systems_to_python.h"
 #include "spaces/ublas_space.h"
 //#include "spaces/parallel_ublas_space.h"
@@ -124,6 +128,7 @@ void  AddLinearSolversToPython()
     class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
     .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
+    .def(init<Parameters&>())
     ;
     
    typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;

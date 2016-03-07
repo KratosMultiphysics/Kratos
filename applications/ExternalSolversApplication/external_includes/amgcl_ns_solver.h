@@ -12,7 +12,7 @@
 #include "linear_solvers/iterative_solver.h"
 #include<utility>
 //#include <amgcl/common.hpp>
-#include <amgcl/amgcl.hpp>
+#include <amgcl/amg.hpp>
 #include <boost/utility.hpp>
 // #include <amgcl/operations_ublas.hpp>
 // #include <amgcl/interp_aggr.hpp>
@@ -84,63 +84,63 @@ public:
         mndof = 1;
 
         //choose smoother
-        switch(smoother)
-        {
-        case SPAI0:
-            mrelaxation = amgcl::runtime::relaxation::spai0;
-            break;
-        case ILU0:
-            mrelaxation = amgcl::runtime::relaxation::ilu0;
-            break;
-        case DAMPED_JACOBI:
-            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
-            break;
-        case GAUSS_SEIDEL:
-            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
-            break;
-        case CHEBYSHEV:
-            mrelaxation = amgcl::runtime::relaxation::chebyshev;
-            break;
-        };
-
-        switch(solver)
-        {
-        case GMRES:
-            miterative_solver = amgcl::runtime::solver::gmres;
-            break;
-        case BICGSTAB:
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-            break;
-        case CG:
-            miterative_solver = amgcl::runtime::solver::cg;
-            break;
-        case BICGSTAB2:
-            miterative_solver = amgcl::runtime::solver::bicgstabl;
-            break;
-        case BICGSTAB_WITH_GMRES_FALLBACK:
-        {
-            mfallback_to_gmres=true;
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-            break;
-        }
-        };
-
-        switch(coarsening)
-        {
-        case RUGE_STUBEN:
-            mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
-            break;
-        case AGGREGATION:
-            mcoarsening = amgcl::runtime::coarsening::aggregation;
-            break;
-        case SA:
-            mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-            break;
-        case SA_EMIN:
-            mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
-            break;
-
-        };
+//         switch(smoother)
+//         {
+//         case SPAI0:
+//             mrelaxation = amgcl::runtime::relaxation::spai0;
+//             break;
+//         case ILU0:
+//             mrelaxation = amgcl::runtime::relaxation::ilu0;
+//             break;
+//         case DAMPED_JACOBI:
+//             mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+//             break;
+//         case GAUSS_SEIDEL:
+//             mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+//             break;
+//         case CHEBYSHEV:
+//             mrelaxation = amgcl::runtime::relaxation::chebyshev;
+//             break;
+//         };
+// 
+//         switch(solver)
+//         {
+//         case GMRES:
+//             miterative_solver = amgcl::runtime::solver::gmres;
+//             break;
+//         case BICGSTAB:
+//             miterative_solver = amgcl::runtime::solver::bicgstab;
+//             break;
+//         case CG:
+//             miterative_solver = amgcl::runtime::solver::cg;
+//             break;
+//         case BICGSTAB2:
+//             miterative_solver = amgcl::runtime::solver::bicgstabl;
+//             break;
+//         case BICGSTAB_WITH_GMRES_FALLBACK:
+//         {
+//             mfallback_to_gmres=true;
+//             miterative_solver = amgcl::runtime::solver::bicgstab;
+//             break;
+//         }
+//         };
+// 
+//         switch(coarsening)
+//         {
+//         case RUGE_STUBEN:
+//             mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
+//             break;
+//         case AGGREGATION:
+//             mcoarsening = amgcl::runtime::coarsening::aggregation;
+//             break;
+//         case SA:
+//             mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+//             break;
+//         case SA_EMIN:
+//             mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
+//             break;
+// 
+//         };
 
     }
 
@@ -160,44 +160,44 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         //set block size
-        mprm.put("coarsening.aggr.eps_strong",0.0);
-        //mprm.put("amg.coarsening.aggr.block_size",mndof);
-        mprm.put("tol", mTol);
-        mprm.put("maxiter", mmax_it);
-
-        //construct the mask of pressure
-        pmask pressure_mask(mp);
-
-        typedef amgcl::preconditioner::simple<
-            amgcl::backend::builtin<double>,
-            amgcl::coarsening::smoothed_aggregation,
-            amgcl::relaxation::spai0
-            > PrecondType;
-        typedef amgcl::solver::gmres< amgcl::backend::builtin<double> > SolverType;
-        
-        
-
-        size_t iters;
-        double resid;
-        {
-            //please do not remove this parenthesis!
-            PrecondType P(amgcl::backend::map(rA), pressure_mask, mprm);
-            SolverType  S(rA.size1(), mprm);
-            boost::tie(iters, resid)  = S(P.system_matrix(), P, rB, rX);
-        } //please do not remove this parenthesis!
-
-
-        if(mverbosity > 0)
-        {
-
-            std::cout << "Iterations: " << iters << std::endl
-                      << "Error: " << resid << std::endl
-                      << std::endl;
-        }
-
-        bool is_solved = true;
-        if(resid > mTol)
-            is_solved = false;
+//         mprm.put("coarsening.aggr.eps_strong",0.0);
+//         //mprm.put("amg.coarsening.aggr.block_size",mndof);
+//         mprm.put("tol", mTol);
+//         mprm.put("maxiter", mmax_it);
+// 
+//         //construct the mask of pressure
+//         pmask pressure_mask(mp);
+// 
+//         typedef amgcl::preconditioner::simple<
+//             amgcl::backend::builtin<double>,
+//             amgcl::coarsening::smoothed_aggregation,
+//             amgcl::relaxation::spai0
+//             > PrecondType;
+//         typedef amgcl::solver::gmres< amgcl::backend::builtin<double> > SolverType;
+//         
+//         
+// 
+//         size_t iters;
+//         double resid;
+//         {
+//             //please do not remove this parenthesis!
+//             PrecondType P(amgcl::backend::map(rA), pressure_mask, mprm);
+//             SolverType  S(rA.size1(), mprm);
+//             boost::tie(iters, resid)  = S(P.system_matrix(), P, rB, rX);
+//         } //please do not remove this parenthesis!
+// 
+// 
+//         if(mverbosity > 0)
+//         {
+// 
+//             std::cout << "Iterations: " << iters << std::endl
+//                       << "Error: " << resid << std::endl
+//                       << std::endl;
+//         }
+// 
+         bool is_solved = true;
+//         if(resid > mTol)
+//             is_solved = false;
 
         return is_solved;
     }

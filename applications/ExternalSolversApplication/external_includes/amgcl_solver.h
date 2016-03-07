@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
+
 #if !defined(KRATOS_AMGCL_SOLVER )
 #define  KRATOS_AMGCL_SOLVER
 
@@ -9,21 +21,19 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include<utility>
-//#include <amgcl/common.hpp>
-#include <amgcl/amgcl.hpp>
+
+#include <amgcl/amg.hpp>
 #include <boost/utility.hpp>
-// #include <amgcl/operations_ublas.hpp>
-// #include <amgcl/interp_aggr.hpp>
-// #include <amgcl/aggr_plain.hpp>
-// #include <amgcl/level_cpu.hpp>
-// #include <amgcl/gmres.hpp>
-// #include <amgcl/bicgstab.hpp>
-// #include <amgcl/cg.hpp>
 #include <amgcl/adapter/ublas.hpp>
 #include <amgcl/runtime.hpp>
-
+#include <amgcl/make_solver.hpp>
+#include <amgcl/adapter/zero_copy.hpp>
+#include <amgcl/adapter/block_matrix.hpp>
+#include <amgcl/value_type/static_matrix.hpp>
+#include <amgcl/adapter/crs_tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
 
@@ -64,6 +74,78 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    
+    AMGCLSolver(Parameters& rParameters)
+    {
+        Parameters default_parameters( R"(
+            {
+                "solver_type" : "AMGCL",
+                "smoother_type":"ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation",
+                "max_iteration": 100,
+                "provide_coordinates": false,
+                "gmres_krylov_space_dimension": 100,
+                "verbosity" : 1,
+                "tolerance": 1e-6,
+                "scaling": false,
+                "use_block_matrices_if_possible" : true
+            }  )" );
+             
+        
+        //now validate agains defaults -- this also ensures no type mismatch
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+        
+        //validate if values are admissible
+        std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","bicgstab_with_gmres_fallback"};
+        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
+        
+        std::stringstream msg;
+
+        if(available_smoothers.find(rParameters["smoother_type"].GetString()) == available_smoothers.end())
+        {
+            msg << "currently prescribed smoother_type : " << rParameters["smoother_type"].GetString() << std::endl;
+            msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
+        }
+        if(available_solvers.find(rParameters["krylov_type"].GetString()) == available_solvers.end())
+        {
+            msg << "currently prescribed krylov_type : " << rParameters["krylov_type"].GetString() << std::endl;
+            msg << "admissible values are : gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback"<< std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," krylov_type is invalid: available possibilities are : ",msg.str());
+        }
+        if(available_coarsening.find(rParameters["coarsening_type"].GetString()) == available_coarsening.end())
+        {
+            msg << "currently prescribed krylov_type : " << rParameters["coarsening_type"].GetString() << std::endl;
+            msg << "admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;            
+            KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
+        }
+        
+        mprovide_coordinates = rParameters["provide_coordinates"].GetBool();
+        mTol = rParameters["tolerance"].GetDouble();
+        mmax_it = rParameters["max_iteration"].GetInt();
+        mverbosity=rParameters["verbosity"].GetInt();
+        mgmres_size = rParameters["gmres_krylov_space_dimension"].GetInt();
+
+        if(rParameters["solver_type"].GetString() == "bicgstab_with_gmres_fallback")
+        {
+            mfallback_to_gmres = true;
+            mprm.put("solver.type", "bicgstab");
+        }
+        else
+        {
+            mfallback_to_gmres = false;
+            mprm.put("solver.type", rParameters["krylov_type"].GetString());
+        }
+        mprm.put("precond.relaxation.type", rParameters["smoother_type"].GetString());
+        mprm.put("precond.coarsening.type",  rParameters["coarsening_type"].GetString());
+
+        muse_block_matrices_if_possible = rParameters["use_block_matrices_if_possible"].GetBool();
+        mndof = 1; //this will be computed automatically later on
+         mprm.put("solver.M",  mgmres_size);
+    }
+    
     /**
      * Default constructor - uses ILU+GMRES
      * @param NewMaxTolerance tolerance that will be achieved by the iterative solver
@@ -87,61 +169,79 @@ public:
         mmax_it = NewMaxIterationsNumber;
         mverbosity=verbosity;
         mndof = 1;
+        
+        mgmres_size = gmres_size;
+        mprm.put("solver.M",  mgmres_size);
 
-        //choose smoother
+        
+        //choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
         switch(smoother)
         {
-        case SPAI0:
-            mrelaxation = amgcl::runtime::relaxation::spai0;
-            break;
-        case ILU0:
-            mrelaxation = amgcl::runtime::relaxation::ilu0;
-            break;
-        case DAMPED_JACOBI:
-            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
-            break;
-        case GAUSS_SEIDEL:
-            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
-            break;
-        case CHEBYSHEV:
-            mrelaxation = amgcl::runtime::relaxation::chebyshev;
-            break;
+            case SPAI0:
+            {
+                mprm.put("precond.relaxation.type","spai0");
+                mrelaxation = amgcl::runtime::relaxation::spai0;
+                break;
+            }
+            case ILU0:
+            {
+                mprm.put("precond.relaxation.type","ilu0");
+                mrelaxation = amgcl::runtime::relaxation::ilu0;
+                break;
+            }
+            case DAMPED_JACOBI:
+            {
+                mprm.put("precond.relaxation.type","damped_jacobi");
+                mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+                break;
+            }
+            case GAUSS_SEIDEL:
+            {
+                mprm.put("precond.relaxation.type","gauss_seidel");
+                mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+                break;
+            }
+            case CHEBYSHEV:
+            {
+                mprm.put("precond.relaxation.type","chebyshev");
+                mrelaxation = amgcl::runtime::relaxation::chebyshev;
+                break;
+            }
         };
 
         switch(solver)
         {
-        case GMRES:
-            miterative_solver = amgcl::runtime::solver::gmres;
-            break;
-        case BICGSTAB:
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-            break;
-        case CG:
-            miterative_solver = amgcl::runtime::solver::cg;
-            break;
-        case BICGSTAB2:
-            miterative_solver = amgcl::runtime::solver::bicgstabl;
-            break;
-        case BICGSTAB_WITH_GMRES_FALLBACK:
-        {
-            mfallback_to_gmres=true;
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-            break;
-        }
+            case GMRES:
+            {
+                mprm.put("solver.type", "gmres");
+                break;
+            }
+            case BICGSTAB:
+            {
+                mprm.put("solver.type", "bicgstab");
+                break;
+            }
+            case CG:
+            {
+                mprm.put("solver.type", "cg");
+                break;
+            }
+            case BICGSTAB2:
+            {
+                mprm.put("solver.type", "bicgstabl");
+                break;
+            }
+            case BICGSTAB_WITH_GMRES_FALLBACK:
+            {
+                mprm.put("solver.type", "bicgstab");
+                mfallback_to_gmres=true;
+                break;
+            }
         };
 
-        /*        switch(coarsening)
-                {
-                case RUGE_STUBEN:
-                    mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
-                case AGGREGATION:
-                    mcoarsening = amgcl::runtime::coarsening::aggregation;
-                case SA:
-                    mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-                case SA_EMIN:
-                    mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
-                }; */
-        mcoarsening = amgcl::runtime::coarsening::aggregation;
+        muse_block_matrices_if_possible = false;
+
+        mprm.put("precond.coarsening.type", "aggregation");
 
 
     }
@@ -171,66 +271,100 @@ public:
         mmax_it = NewMaxIterationsNumber;
         mverbosity=verbosity;
         mndof = 1;
+        mgmres_size = gmres_size;
+        mprm.put("solver.M",  mgmres_size);
 
-        //choose smoother
+        
+        //choose smoother in the list "gauss_seidel, multicolor_gauss_seidel, ilu0, parallel_ilu0, ilut, damped_jacobi, spai0, chebyshev"
         switch(smoother)
         {
-        case SPAI0:
-            mrelaxation = amgcl::runtime::relaxation::spai0;
-            break;
-        case ILU0:
-            mrelaxation = amgcl::runtime::relaxation::ilu0;
-            break;
-        case DAMPED_JACOBI:
-            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
-            break;
-        case GAUSS_SEIDEL:
-            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
-            break;
-        case CHEBYSHEV:
-            mrelaxation = amgcl::runtime::relaxation::chebyshev;
-            break;
+            case SPAI0:
+            {
+                mprm.put("precond.relaxation.type","spai0");
+                mrelaxation = amgcl::runtime::relaxation::spai0;
+                break;
+            }
+            case ILU0:
+            {
+                mprm.put("precond.relaxation.type","ilu0");
+                mrelaxation = amgcl::runtime::relaxation::ilu0;
+                break;
+            }
+            case DAMPED_JACOBI:
+            {
+                mprm.put("precond.relaxation.type","damped_jacobi");
+                mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+                break;
+            }
+            case GAUSS_SEIDEL:
+            {
+                mprm.put("precond.relaxation.type","gauss_seidel");
+                mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+                break;
+            }
+            case CHEBYSHEV:
+            {
+                mprm.put("precond.relaxation.type","chebyshev");
+                mrelaxation = amgcl::runtime::relaxation::chebyshev;
+                break;
+            }
         };
 
         switch(solver)
         {
-        case GMRES:
-            miterative_solver = amgcl::runtime::solver::gmres;
-            break;
-        case BICGSTAB:
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-            break;
-        case CG:
-            miterative_solver = amgcl::runtime::solver::cg;
-            break;
-        case BICGSTAB2:
-            miterative_solver = amgcl::runtime::solver::bicgstabl;
-            break;
-        case BICGSTAB_WITH_GMRES_FALLBACK:
-        {
-            mfallback_to_gmres=true;
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-            break;
-        }
+            case GMRES:
+            {
+                mprm.put("solver.type", "gmres");
+                break;
+            }
+            case BICGSTAB:
+            {
+                mprm.put("solver.type", "bicgstab");
+                break;
+            }
+            case CG:
+            {
+                mprm.put("solver.type", "cg");
+                break;
+            }
+            case BICGSTAB2:
+            {
+                mprm.put("solver.type", "bicgstabl");
+                break;
+            }
+            case BICGSTAB_WITH_GMRES_FALLBACK:
+            {
+                mprm.put("solver.type", "bicgstab");
+                mfallback_to_gmres=true;
+                break;
+            }
         };
 
         switch(coarsening)
         {
-        case RUGE_STUBEN:
-            mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
-            break;
-        case AGGREGATION:
-            mcoarsening = amgcl::runtime::coarsening::aggregation;
-            break;
-        case SA:
-            mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-            break;
-        case SA_EMIN:
-            mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
-            break;
-
+            case RUGE_STUBEN:
+            {
+                mprm.put("precond.coarsening.type", "ruge_stuben");
+                break;
+            }
+            case AGGREGATION:
+            {
+                mprm.put("precond.coarsening.type", "aggregation");
+                break;
+            }
+            case SA:
+            {
+                mprm.put("precond.coarsening.type", "smoothed_aggregation");
+                break;
+            }
+            case SA_EMIN:
+            {
+                mprm.put("precond.coarsening.type", "smoothed_aggr_emin");
+                break;
+            }
         };
 
+        muse_block_matrices_if_possible = false;
     }
 
     /**
@@ -249,9 +383,9 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         //set block size
-//         mprm.put("amg.coarse_enough",500);
-        mprm.put("amg.coarsening.aggr.eps_strong",0.0);
-        mprm.put("amg.coarsening.aggr.block_size",mndof);
+//         mprm.put("precond.coarse_enough",500);
+        mprm.put("precond.coarsening.aggr.eps_strong",0.0);
+        mprm.put("precond.coarsening.aggr.block_size",mndof);
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
 
@@ -272,56 +406,34 @@ public:
                     B(i+j, mndof +j*3 + 2) = mcoords[inode][2];
                 }
             }
-            mprm.put("amg.coarsening.nullspace.cols", B.size2());
-            mprm.put("amg.coarsening.nullspace.rows", B.size1());
-            mprm.put("amg.coarsening.nullspace.B",    &(B.data()[0]));
+            mprm.put("precond.coarsening.nullspace.cols", B.size2());
+            mprm.put("precond.coarsening.nullspace.rows", B.size1());
+            mprm.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
         }
-
-        //provide the null space
-//         Matrix B = ZeroMatrix(  rA.size1(), mndof  );
-//         for(unsigned int i=0; i<rA.size1(); i+=mndof)
-//         {
-//             for( unsigned int j=0; j<static_cast<unsigned int>(mndof); j++)
-//             {
-//                 B(i+j,  j) = 1.0;
-//             }
-//         }
-//         mprm.put("amg.coarsening.nullspace.cols", B.size2());
-//         mprm.put("amg.coarsening.nullspace.rows", B.size1());
-//         mprm.put("amg.coarsening.nullspace.B",    &(B.data()[0]));
-
-//         unsigned int ncols = mndof;
-//         Vector B = ZeroVector(  rA.size1() *ncols  );
-//
-//         for( unsigned int j=0; j<static_cast<unsigned int>(ncols); j++)
-//         {
-//             for(unsigned int i=rA.size1()*j+j; i<rA.size1()*(j+1); i+=ncols)
-//                B[i] = 1.0;
-//         }
-//
-//         mprm.put("amg.coarsening.nullspace.cols", ncols);
-//         mprm.put("amg.coarsening.nullspace.rows", rA.size1());
-//         mprm.put("amg.coarsening.nullspace.B",    &(B.data()[0]));
-
-//        const unsigned int n = rA.size1();
-        typedef amgcl::runtime::make_solver< amgcl::backend::builtin<double> > SolverType;
-
+        
         size_t iters;
         double resid;
         {
-            //please do not remove this parenthesis!
-            SolverType solve(mcoarsening, mrelaxation, miterative_solver, amgcl::backend::map(rA), mprm );
-            boost::tie(iters, resid)  = solve(rB, rX);
+            if(mfallback_to_gmres==true) mprm.put("solver.type", "bicgstab"); //first we need to try with bicgstab
+            
+            if(muse_block_matrices_if_possible == true)
+            {
+                if(mndof == 1) ScalarSolve(rA,rX,rB, iters, resid);
+                else if(mndof == 2) BlockSolve<2>(rA,rX,rB, iters, resid);
+                else if(mndof == 3) BlockSolve<3>(rA,rX,rB, iters, resid);
+                else if(mndof == 4) BlockSolve<4>(rA,rX,rB, iters, resid);
+                else if(mndof == 6) BlockSolve<6>(rA,rX,rB, iters, resid);
+            }
+            else
+            {
+                ScalarSolve(rA,rX,rB, iters, resid);
+            }
         } //please do not remove this parenthesis!
 
         if(mfallback_to_gmres==true && resid > mTol )
         {
-
-            std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
-            TSparseSpaceType::SetToZero( rX);
-            SolverType solve(mcoarsening, mrelaxation, miterative_solver = amgcl::runtime::solver::gmres, amgcl::backend::map(rA), mprm );
-            boost::tie(iters, resid)  = solve(rB, rX);
-
+            mprm.put("solver.type", "gmres");
+            ScalarSolve(rA,rX,rB, iters, resid);
         }
 
 
@@ -458,13 +570,61 @@ private:
     unsigned int mgmres_size;
     bool mfallback_to_gmres;
     bool mprovide_coordinates;
+    bool muse_block_matrices_if_possible;
     std::vector<array_1d<double,3> > mcoords;
 
     amgcl::runtime::coarsening::type mcoarsening;
     amgcl::runtime::relaxation::type mrelaxation;
     amgcl::runtime::solver::type miterative_solver;
     boost::property_tree::ptree mprm;
+    
+    
+    
+    void ScalarSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB, size_t& iters, double& resid)
+    {
+        typedef amgcl::backend::builtin<double> Backend;
+            
+        amgcl::make_solver<
+            amgcl::runtime::amg<Backend>,
+            amgcl::runtime::iterative_solver<Backend>
+            > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
+            
+        //compute preconditioner
+//         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
+//         else solve.precond();
+        
+        boost::tie(iters, resid) = solve(rB, rX);
+    }
 
+    template< size_t TBlockSize>
+    void BlockSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB, size_t& iters, double& resid)
+    {
+        mprm.put("precond.coarsening.aggr.block_size",1);
+
+        typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
+        typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
+        typedef amgcl::backend::builtin<value_type> Backend;
+            
+         size_t n = rA.size1();
+
+        amgcl::make_solver<
+            amgcl::runtime::amg<Backend>,
+            amgcl::runtime::iterative_solver<Backend>
+            > solve( amgcl::adapter::block_matrix<TBlockSize, value_type>(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), mprm);
+             
+//         //compute preconditioner
+//         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
+//         else solve.precond();
+        
+        rhs_type* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
+        boost::iterator_range<rhs_type*> x_range = boost::make_iterator_range(x_begin, x_begin + n / TBlockSize);
+        
+        const rhs_type* b_begin = reinterpret_cast<const rhs_type*>(&rB[0]);
+        boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);        
+
+        boost::tie(iters, resid) = solve(b_range, x_range);
+    }
+    
     /**
      * Assignment operator.
      */
