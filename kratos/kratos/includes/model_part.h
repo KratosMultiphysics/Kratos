@@ -225,7 +225,14 @@ public:
 	
 
     ///@}
-    ///@name Life Cycle
+	///@name Flags 
+	///@{ 
+
+	KRATOS_DEFINE_LOCAL_FLAG(ALL_ENTITIES);
+	KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_ENTITIES);
+
+	///@}
+	///@name Life Cycle
     ///@{
 
     /// Default constructor.
@@ -386,24 +393,24 @@ public:
     template<class TDataType>
 	void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
-        mVariablesList.Add(ThisVariable);
+        mpVariablesList->Add(ThisVariable);
     }
 
     VariablesList& GetNodalSolutionStepVariablesList()
     {
-        return mVariablesList;
+        return *mpVariablesList;
     }
 
 	void SetNodalSolutionStepVariablesList();
 
     SizeType GetNodalSolutionStepDataSize()
     {
-        return mVariablesList.DataSize();
+        return mpVariablesList->DataSize();
     }
 
     SizeType GetNodalSolutionStepTotalDataSize()
     {
-        return mVariablesList.DataSize() * mBufferSize;
+        return mpVariablesList->DataSize() * mBufferSize;
     }
 
 
@@ -777,9 +784,18 @@ public:
 	}
 
 	/** Creates a new sub model part with given name.
-		Does nothing if a sub model part with the same name exist.
+	Does nothing if a sub model part with the same name exist.
 	*/
 	ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
+
+	/** Add an existing model part as a sub model part. 
+		All the meshes will be added to the parents.
+		NOTE: The added sub model part should not have 
+		mesh entities with id in conflict with other ones in the parent 
+		In the case of conflict the new one would replace the old one 
+		resulting inconsitency in parent.
+	*/
+	void AddSubModelPart(ModelPart& rThisSubModelPart);
 
 	/** Returns a reference to the sub_model part with given string name
 		In debug gives an error if does not exist.
@@ -1014,7 +1030,7 @@ private:
 
     MeshesContainerType mMeshes;
 
-    VariablesList mVariablesList;
+    VariablesList* mpVariablesList;
 
     Communicator::Pointer mpCommunicator;
 
@@ -1034,6 +1050,15 @@ private:
 	void SetParentModelPart(ModelPart* pParentModelPart)
 	{
 		mpParentModelPart = pParentModelPart;
+	}
+
+	template <typename TEntitiesContainerType> 
+	void AddEntities(TEntitiesContainerType const& Source, TEntitiesContainerType& rDestination, Flags Options)
+	{
+		if (Options->Is(ALL_ENTITIES))
+		{
+			if(Options->Is())
+		}
 	}
 
     ///@}
