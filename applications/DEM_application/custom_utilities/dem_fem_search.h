@@ -172,9 +172,7 @@ class DEM_FEM_Search : public SpatialSearch
       //2. CALCULATE THE DEM BBX
     
       #pragma omp parallel 
-      {
-        
-        array_1d<double, 3 > aux_coor;
+      {                
         double radius = 0.0;
         int k = OpenMPUtils::ThisThread();
       
@@ -187,9 +185,12 @@ class DEM_FEM_Search : public SpatialSearch
         for (int p = 0; p <(int) elements_sear.size(); p++) {
           
             Elem_iter it = elements_sear.begin() + p;
-            GeometryType &pGeometry = (*it)->GetGeometry();
-            aux_coor                = pGeometry[0].Coordinates();
-            radius                  = r_vector_of_radii[p];
+            GeometryType& pGeometry = (*it)->GetGeometry();
+            const array_1d<double, 3 >& aux_coor = pGeometry[0].Coordinates();
+            
+            SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
+            radius = p_particle->GetSearchRadius();
+            //radius                  = r_vector_of_radii[p];
             Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
 
             for(std::size_t i = 0; i < 3; i++) {
@@ -236,9 +237,9 @@ class DEM_FEM_Search : public SpatialSearch
         
           Cond_iter it = conditions_bins.begin() + c;
         
-          GeometryType pGeometry = (*it)->GetGeometry();
-          rLowPoint  = pGeometry[0];
-          rHighPoint = pGeometry[0];
+          const GeometryType& pGeometry = (*it)->GetGeometry();
+          noalias(rLowPoint)  = pGeometry[0];
+          noalias(rHighPoint) = pGeometry[0];
 
           for(unsigned int point = 1; point < pGeometry.size(); point++ ) {
             for(unsigned int i = 0; i < 3; i++ ) {
@@ -312,7 +313,10 @@ class DEM_FEM_Search : public SpatialSearch
             bool search_particle = true;
 
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
-            double Rad = r_vector_of_radii[p];
+            
+            SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
+            double Rad = p_particle->GetSearchRadius();
+            //double Rad = r_vector_of_radii[p];
 
             for(unsigned int i = 0; i < 3; i++ ) {
               search_particle &= !(aux_coor[i]  < (mGlobal_BB_LowPoint[i] - Rad) ) || (aux_coor[i]  > (mGlobal_BB_HighPoint[i] + Rad) ); //amplify the BBX with the radius for every particle
@@ -346,11 +350,9 @@ class DEM_FEM_Search : public SpatialSearch
 
   array_1d<double, 3 > GetBBHighPoint() {
     return (mGlobal_BB_HighPoint);
-    //return (DEM_BB_HighPoint);
   }
   array_1d<double, 3 > GetBBLowPoint() {
     return (mGlobal_BB_LowPoint);
-    //return (DEM_BB_LowPoint);
   }
 
   /// Turn back information as a string.

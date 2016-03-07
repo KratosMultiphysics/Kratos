@@ -51,8 +51,6 @@ public:
 
     void Initialize();   
 
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
-
     void InitializeSolutionStep(ProcessInfo& r_process_info );
 
     void FinalizeSolutionStep(ProcessInfo& r_process_info );

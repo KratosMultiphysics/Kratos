@@ -43,16 +43,13 @@ namespace Kratos
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info);
-        void InitializeSolutionStep(ProcessInfo& r_process_info);    
         void FinalizeSolutionStep(ProcessInfo& r_process_info);     
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
-        void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
-        void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-        void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info);
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
+        void ReorderFEMneighbours();
         
-        virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
+        //virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
       
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info, const bool first);      
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 
@@ -89,8 +86,8 @@ namespace Kratos
 
         SphericContinuumParticle();
         
-        void SymmetrizeTensor(const ProcessInfo& r_process_info);
-        virtual void CustomInitialize();	
+        virtual void CustomInitialize();
+        virtual double GetInitialDelta(int index);	
         virtual double GetInitialDeltaWithFEM(int index);              
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                    array_1d<double, 3>& rContactForce, 
@@ -104,17 +101,10 @@ namespace Kratos
         void ComputeParticleBlockContactForce(const ProcessInfo& r_process_info);
         void ComputeParticleSurfaceContactForce(const ProcessInfo& r_process_info);
 
-        int* mSkinSphere; 
-
-        //sphere neighbor information
+        int*                        mSkinSphere; 
         std::vector<double>         mContIniNeighArea;        
-                  
-        //fem neighbor information
-        std::vector<double>         mFemNeighbourDelta;                        
         std::vector<int>            mFemIniNeighbourIds;
-        std::vector<double>         mFemIniNeighbourDelta;
-        std::vector<int>            mFemMappingNewIni;
-                        
+        std::vector<double>         mFemIniNeighbourDelta;                        
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
 
         //FOR DEM_FEM APP        

@@ -117,8 +117,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     KRATOS_CATCH( "" )
 }
 
-void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vector, ProcessInfo& r_process_info,
-                                             double dt, const array_1d<double,3>& gravity, int search_control)
+void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control)
 {
     KRATOS_TRY           
 
@@ -148,20 +147,15 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
     }
 
-    r_right_hand_side_vector[0] =  mContactForce[0] + additional_forces[0];
-    r_right_hand_side_vector[1] =  mContactForce[1] + additional_forces[1];
-    r_right_hand_side_vector[2] =  mContactForce[2] + additional_forces[2];
-    r_right_hand_side_vector[3] = mContactMoment[0] + additionally_applied_moment[0];
-    r_right_hand_side_vector[4] = mContactMoment[1] + additionally_applied_moment[1];
-    r_right_hand_side_vector[5] = mContactMoment[2] + additionally_applied_moment[2];
-
     array_1d<double,3>& total_forces = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
     array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-
-    for (int i = 0; i < 3; i++) {
-        total_forces[i] = r_right_hand_side_vector[i];
-        total_moment[i] = r_right_hand_side_vector[3 + i];
-    }
+    
+    total_forces[0] =  mContactForce[0] + additional_forces[0];
+    total_forces[1] =  mContactForce[1] + additional_forces[1];
+    total_forces[2] =  mContactForce[2] + additional_forces[2];
+    total_moment[0] = mContactMoment[0] + additionally_applied_moment[0];
+    total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
+    total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
     KRATOS_CATCH("")
 }
@@ -364,17 +358,16 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
     for (unsigned int i = 0; i < new_size; i++) {
         noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
         noalias(mTempNeighbourTotalContactForces[i]) = vector_of_zeros;
-        SphericParticle* i_neighbour = mNeighbourElements[i];
         
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
             mTempNeighboursIds[i] = -1;
             continue;
         } 
         
-        mTempNeighboursIds[i] = i_neighbour->Id();
+        mTempNeighboursIds[i] = mNeighbourElements[i]->Id();
         
         for (unsigned int j = 0; j < mOldNeighbourIds.size(); j++) {
-            if (int(i_neighbour->Id()) == mOldNeighbourIds[j] && mOldNeighbourIds[j] != -1) {
+            if (int(mTempNeighboursIds[i]) == mOldNeighbourIds[j] && mOldNeighbourIds[j] != -1) {
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
                 noalias(mTempNeighbourTotalContactForces[i])   = mNeighbourTotalContactForces[j];
                 break;
@@ -397,12 +390,19 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
-        temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());
-        noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
+                
         noalias(temp_neighbours_elastic_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
+        
+        if (rNeighbours[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
+            temp_neighbours_ids[i] = -1;
+            continue;
+        } 
+        
+        temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());        
 
         for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
-            if (static_cast<int>(rNeighbours[i]->Id()) == mFemOldNeighbourIds[j]) {
+            if (static_cast<int>(temp_neighbours_ids[i]) == mFemOldNeighbourIds[j] && mFemOldNeighbourIds[j] != -1) {
                 noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
                 noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
                 break;
@@ -852,7 +852,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
     
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         
-        DEMWall* wall = rNeighbours[i];        
+        DEMWall* wall = rNeighbours[i];
+        if(wall == NULL) continue;
+        
         double LocalElasticContactForce[3]       = {0.0};
         double GlobalElasticContactForce[3]      = {0.0};        
         double ViscoDampingLocalContactForce[3]  = {0.0};

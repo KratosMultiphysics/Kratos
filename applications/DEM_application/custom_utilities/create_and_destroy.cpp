@@ -10,7 +10,8 @@
 #include "create_and_destroy.h"
 
 namespace Kratos {
-
+    
+    
     static double rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius) {
 
         if (!stddev) return mean;
@@ -603,69 +604,125 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-
-    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+                
+    
+    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
         KRATOS_TRY
-
-                //Type definitions
-        typedef ModelPart::ElementsContainerType ElementsArrayType;
-//        typedef ElementsArrayType::iterator ElementsIterator;
-
+        
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
 
-        //ElementsArrayType& rElements                          = r_model_part.Elements();
-        //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
-
-        ElementsArrayType temp_particles_container;
+        ElementsArrayType temp_particles_container;        
         ModelPart::NodesContainerType temp_nodes_container;
-
+        
         temp_particles_container.reserve(rElements.size());
         temp_nodes_container.reserve(rNodes.size());
 
         temp_particles_container.swap(rElements);
-        temp_nodes_container.swap(rNodes);
+        temp_nodes_container.swap(rNodes);        
 
         //Add the ones not marked with TO_ERASE
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it) {
-
-            if (!(*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
-                (rElements).push_back(*particle_pointer_it); //adding the elements
-
-                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) { //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
-                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    (rNodes).push_back(pNode);
-                }
-            }
-
+        if(temp_particles_container.size() != temp_nodes_container.size()) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
         }
+        
+        for(int k=0; k<(int)temp_particles_container.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin() + k;
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = temp_nodes_container.ptr_begin() + k;
+            if (!(*node_pointer_it)->Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {                                                
+                rElements.push_back(boost::move(*particle_pointer_it) ); //adding the elements
+                rNodes.push_back(boost::move(*node_pointer_it) ); //adding the nodes
+            }
+        }                     
+        
+        KRATOS_CATCH("")
+    }*/
+    
+    
+    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+        
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
+
+        //Add the ones not marked with TO_ERASE
+        if(rElements.size() != rNodes.size()) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
+        }
+        
+        for(int k=(int)rElements.size()-1; k >= 0; k--) {
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            if ((*node_pointer_it)->Is(TO_ERASE) || (*particle_pointer_it)->Is(TO_ERASE)) {                                                
+                rElements.erase(particle_pointer_it); 
+                rNodes.erase(node_pointer_it);                 
+            }
+        }                     
+        
+        KRATOS_CATCH("")
+    }*/
+    
+    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+        
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
+
+        //Add the ones not marked with TO_ERASE
+        if(rElements.size() != rNodes.size()) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
+        }
+        
+        int good_elems_counter = 0;
+        
+        for(int k=0; k < (int)rElements.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            
+            if ((*node_pointer_it)->IsNot(TO_ERASE) || (*particle_pointer_it)->IsNot(TO_ERASE)) {
+  	        if(k != good_elems_counter){
+                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*(rElements.ptr_begin() + k));
+                    *(rNodes.ptr_begin()    + good_elems_counter) = boost::move(*(rNodes.ptr_begin() + k));
+                }
+                good_elems_counter++;                                
+            }            
+        }          
+        //rElements.resize(good_elems_counter);
+        //rNodes.resize(good_elems_counter);
+        for(int k=(int)rElements.size()-1; k >= good_elems_counter; k--) {
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+                                                            
+            rElements.erase(particle_pointer_it); 
+            rNodes.erase(node_pointer_it);                             
+        }   
+        
         KRATOS_CATCH("")
     }
+
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
         KRATOS_TRY
 
-                //Type definitions
-                typedef ModelPart::ElementsContainerType ElementsArrayType;
-//        typedef ElementsArrayType::iterator ElementsIterator;
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();        
 
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        ElementsArrayType temp_elements_container;
-
-        //Copy the elements and clear the element container
-        //temp_elements_container.reserve(pElements->size());
-        temp_elements_container.reserve(rElements.size());
-        temp_elements_container.swap(rElements);
+        ElementsArrayType temp_bond_elements_container;
+        temp_bond_elements_container.reserve(rElements.size());
+        temp_bond_elements_container.swap(rElements);
+        
+        rElements.clear();
 
         //Add the ones not marked with TO_ERASE
-        for (Configure::ElementsContainerType::ptr_iterator element_pointer_it = temp_elements_container.ptr_begin(); element_pointer_it != temp_elements_container.ptr_end(); ++element_pointer_it) {
-
+        for(int k=0; k<(int)temp_bond_elements_container.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator element_pointer_it = temp_bond_elements_container.ptr_begin() + k;
             if (!(*element_pointer_it)->Is(TO_ERASE)) {
-                (rElements).push_back(*element_pointer_it); //adding the elements               
+                (rElements).push_back(boost::move(*element_pointer_it) ); //adding the elements               
             }
         }
+                
         KRATOS_CATCH("")
     }
 
@@ -678,9 +735,10 @@ namespace Kratos {
         KRATOS_TRY
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
-                particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it) {
+        
+        #pragma omp parallel for
+        for(int k=0; k<(int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;                
 
             const double& i_value = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             bool include = true; // = (erase_flag < 0.5);
@@ -702,8 +760,9 @@ namespace Kratos {
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
-                particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it) {
+        #pragma omp parallel for
+        for(int k=0; k<(int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;  
 
             array_1d<double, 3 > & i_var = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             double i_value = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
@@ -727,8 +786,9 @@ namespace Kratos {
         ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
-                particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it) {
+        #pragma omp parallel for
+        for(int k=0; k<(int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k; 
 
             if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
 
@@ -746,8 +806,9 @@ namespace Kratos {
 
         }
 
-        for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin();
-                node_pointer_it != rNodes.ptr_end(); ++node_pointer_it) {
+        #pragma omp parallel for
+        for(int k=0; k<(int)rNodes.size(); k++){
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;                
 
             if ((*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
             const array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
@@ -773,8 +834,9 @@ namespace Kratos {
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
-                particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it) {
+        #pragma omp parallel for
+        for(int k=0; k<(int)rElements.size(); k++){
+            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k; 
 
             if ((*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE)) {
 

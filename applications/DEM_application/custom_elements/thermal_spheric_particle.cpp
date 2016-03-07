@@ -133,12 +133,11 @@ namespace Kratos
        
       }         //ComputeHeatFluxes      
     
-    void ThermalSphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vector, 
-                                                        ProcessInfo& r_current_process_info,
+    void ThermalSphericParticle::CalculateRightHandSide(ProcessInfo& r_current_process_info,
                                                         double dt, 
                                                         const array_1d<double,3>& gravity, int search_control)
     {
-        SphericContinuumParticle::CalculateRightHandSide( r_right_hand_side_vector,  r_current_process_info, dt,  gravity, search_control);
+        SphericContinuumParticle::CalculateRightHandSide(r_current_process_info, dt,  gravity, search_control);
         ThermalSphericParticle::ComputeConductiveHeatFlux(r_current_process_info);        
     }
           

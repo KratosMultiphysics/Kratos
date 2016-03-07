@@ -62,6 +62,7 @@ public:
     typedef SearchType::PointType                                   PointType;
     typedef SearchType::ElementsContainerType::ContainerType        ContainerType;
     typedef SearchType::ElementsContainerType                       ElementsContainerType;
+    typedef SearchType::NodesContainerType                          NodesContainerType;
     
     typedef SearchType::ElementType                                 ElementType;
     typedef ContainerType::value_type                               PointerType;
@@ -124,7 +125,8 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     { 
-        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
+        noalias(rHighPoint) = rObject->GetGeometry()[0];
+        noalias(rLowPoint)  = rObject->GetGeometry()[0];
         
         SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);        
         double radius = p_particle->GetSearchRadius();        
@@ -138,7 +140,8 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
+        noalias(rHighPoint) = rObject->GetGeometry()[0];
+        noalias(rLowPoint)  = rObject->GetGeometry()[0];
         
         for(std::size_t i = 0; i < 3; i++)
         {

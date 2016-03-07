@@ -113,8 +113,6 @@ void ParticleContactElement::GetValueOnIntegrationPoints(const Variable<double>&
     Output[0] = double(const_this->GetValue(rVariable)); 
 } 
     
-void ParticleContactElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
-
 void ParticleContactElement::InitializeSolutionStep(ProcessInfo& r_process_info )
 {
     mContactTau           = 0.0;

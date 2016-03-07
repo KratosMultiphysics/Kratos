@@ -234,6 +234,7 @@ class Procedures(object):
         # BASIC PARTICLE PROPERTIES
         model_part.AddNodalSolutionStepVariable(RADIUS)
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+        model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
 
         # ROTATION RELATED PROPERTIES
         if (Var_Translator(self.DEM_parameters.RotationOption)):
@@ -249,8 +250,7 @@ class Procedures(object):
         if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-        if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):       
-            model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+        if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):                   
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)

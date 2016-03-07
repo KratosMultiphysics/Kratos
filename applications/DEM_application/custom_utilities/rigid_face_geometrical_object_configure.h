@@ -104,7 +104,8 @@ public:
 /////Cfeng: For Particle DEM
   static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
+        noalias(rHighPoint) = rObject->GetGeometry()[0];
+        noalias(rLowPoint)  = rObject->GetGeometry()[0];
 
         for(std::size_t i = 0; i < 3; i++)
         {

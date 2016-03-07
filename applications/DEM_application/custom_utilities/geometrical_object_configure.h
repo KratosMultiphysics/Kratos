@@ -121,7 +121,8 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {    
-        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
+        noalias(rHighPoint) = rObject->GetGeometry()[0];
+        noalias(rLowPoint)  = rObject->GetGeometry()[0];
         SphericParticle* p_particle = dynamic_cast<SphericParticle*>(&*rObject);
         const double& radius = p_particle->GetSearchRadius();
 
@@ -134,7 +135,8 @@ public:
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
     {
-        rHighPoint = rLowPoint  = rObject->GetGeometry()[0];
+        noalias(rHighPoint) = rObject->GetGeometry()[0];
+        noalias(rLowPoint)  = rObject->GetGeometry()[0];
         
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -152,7 +154,8 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        array_1d<double, 3> rObj_2_to_rObj_1;
+        noalias(rObj_2_to_rObj_1) = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
@@ -164,7 +167,8 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        array_1d<double, 3> rObj_2_to_rObj_1;
+        noalias(rObj_2_to_rObj_1) = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
         
         SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
