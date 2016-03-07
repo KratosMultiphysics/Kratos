@@ -113,6 +113,7 @@ PostLocalContactForce            = 0
 PostFailureCriterionState        = 0
 PostContactFailureId             = 0
 PostMeanContactArea              = 0
+PostStressStrainOption           = 0
 
 # FROM CND:
 
