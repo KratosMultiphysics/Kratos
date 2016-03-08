@@ -74,7 +74,8 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    
+//only include validation with c++11 since raw_literals do not exist in c++03
+#if __cplusplus >= 201103L    
     AMGCLSolver(Parameters& rParameters)
     {
         Parameters default_parameters( R"(
@@ -95,12 +96,31 @@ public:
         
         //now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
+#endif
         
         //validate if values are admissible
-        std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
-        std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","bicgstab_with_gmres_fallback"};
-        std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
+//         std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
+//         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","bicgstab_with_gmres_fallback"};
+//         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
+        std::set<std::string> available_smoothers;
+        available_smoothers.insert("spai0");
+        available_smoothers.insert("ilu0");
+        available_smoothers.insert("damped_jacobi");
+        available_smoothers.insert("gauss_seidel");
+        available_smoothers.insert("chebyshev");
+
+        std::set<std::string> available_solvers;
+        available_smoothers.insert("gmres");
+        available_smoothers.insert("bicgstab");
+        available_smoothers.insert("cg");
+        available_smoothers.insert("bicgstabl");
+        available_smoothers.insert("bicgstab_with_gmres_fallback");        
         
+        std::set<std::string> available_coarsening;
+        available_smoothers.insert("ruge_stuben");
+        available_smoothers.insert("aggregation");
+        available_smoothers.insert("smoothed_aggregation");
+        available_smoothers.insert("smoothed_aggr_emin");    
         std::stringstream msg;
 
         if(available_smoothers.find(rParameters["smoother_type"].GetString()) == available_smoothers.end())
