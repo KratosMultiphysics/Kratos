@@ -1,6 +1,9 @@
 namespace eval Fluid::write {
     # Namespace variables declaration
     variable FluidConditions
+    
+    variable PartsUN
+    variable BCUN
 }
 
 proc Fluid::write::Init { } {
@@ -8,11 +11,17 @@ proc Fluid::write::Init { } {
     variable FluidConditions
     set FluidConditions(temp) 0
     unset FluidConditions(temp)
+    
+    variable PartsUN
+    set PartsUN "FLParts" 
+    variable BCUN
+    set BCUN "FLBC"
 }
 
 # Events
 proc Fluid::write::writeModelPartEvent { } {
-    write::initWriteData "FLParts" "FLMaterials"
+    variable PartsUN
+    write::initWriteData $PartsUN "FLMaterials"
     write::writeModelPartData
     writeProperties
     write::writeMaterials
@@ -40,14 +49,15 @@ proc Fluid::write::writeConditions { } {
 
 proc Fluid::write::writeBoundaryConditions { } {
     variable FluidConditions
+    variable BCUN
     
     # Write the conditions
-    set dict_group_intervals [write::writeConditions "FLBC"]
+    set dict_group_intervals [write::writeConditions $BCUN]
     
     # Vamos a construir el array que nos permite escribir submodel parts y la malla de condiciones de contorno
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute "FLBC"]/condition/group"
+    set xp1 "[apps::getRoute $BCUN]/condition/group"
     set iter 1
     foreach group [$root selectNodes $xp1] {
         set condid [[$group parent] @n]
