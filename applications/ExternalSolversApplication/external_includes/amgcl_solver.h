@@ -75,9 +75,10 @@ public:
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
 //only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L    
+    
     AMGCLSolver(Parameters& rParameters)
     {
+#if __cplusplus >= 201103L
         Parameters default_parameters( R"(
             {
                 "solver_type" : "AMGCL",
