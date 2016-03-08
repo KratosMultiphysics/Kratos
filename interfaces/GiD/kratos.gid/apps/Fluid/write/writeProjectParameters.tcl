@@ -1,105 +1,112 @@
 # Project Parameters
 proc Fluid::write::writeParametersEvent { } {
-    write::WriteString "ProblemName =\"[file tail [GiD_Info Project ModelName]]\""
-    write::WriteString ""
-    write::WriteString "#Problem Data"
-    write::WriteString "#################################################"
-    write::WriteString "ModelPartName = \"Fluid\""
-    write::WriteString "DomainSize = [string range [write::getValue nDim] 0 0]"
+    set projectParametersDict [dict create]
     
-     # Parallelization
+    # First section -> Problem data
+    set problemDataDict [dict create]
+    dict set problemDataDict ProblemName [file tail [GiD_Info Project ModelName]]
+    dict set problemDataDict ModelPartName "MainModelPart"
+    dict set problemDataDict DomainSize [expr [string range [write::getValue nDim] 0 0] ]
+    
+    # Parallelization
     set paralleltype [write::getValue FLParallelization ParallelSolutionType]
     if {$paralleltype eq "OpenMP"} {
         set nthreads [write::getValue FLParallelization OpenMPNumberOfThreads]
-        write::WriteString "NumberofThreads = $nthreads"
+        dict set problemDataDict NumberofThreads [expr $nthreads]
     } else {
         set nthreads [write::getValue FLParallelization MPINumberOfProcessors]
-        write::WriteString "NumberofProcessors = $nthreads"
+        dict set problemDataDict NumberofProcessors [expr $nthreads]
     }
     
     # Time Parameters
-    write::WriteString "start_step = [write::getValue FLTimeParameters StartTime]"
-    write::WriteString "end_time = [write::getValue FLTimeParameters EndTime]"
-    write::WriteString "time_step = [write::getValue FLTimeParameters DeltaTime]"
-    write::WriteString "divergence_step = [write::getValue FLTimeParameters DivergenceCleareanceStep]"
+    dict set problemDataDict start_step [expr [write::getValue FLTimeParameters StartTime] ]
+    dict set problemDataDict end_time [expr [write::getValue FLTimeParameters EndTime]]
+    dict set problemDataDict time_step [expr [write::getValue FLTimeParameters DeltaTime]]
+    dict set problemDataDict divergence_step [expr [write::getValue FLTimeParameters DivergenceCleareanceStep]]
     
-    #write::WriteString "EchoLevel = [write::getValue FLResults EchoLevel]"
+    dict set projectParametersDict problem_data $problemDataDict
     
-    # Solution strategy
-    write::WriteString "#Solver Data"
-    write::WriteString "#################################################"
-    write::WriteString "class SolverSettings:"
-    write::WriteString "    solver_type = \"fluid_python_solver\""
-    write::WriteString "    domain_size = DomainSize"
-    write::WriteString "    echo_level = EchoLevel"
-    #write::WriteString "    solution_type  = \"[write::getValue FLSoluType]\""
-    write::WriteString "    "
+    # output configuration
+    set outputConfigDict [dict create]
+    dict set outputConfigDict output_filename "[file tail [GiD_Info Project ModelName]].out"
+    dict set outputConfigDict GiDPostMode [write::getValue FLResults GiDPostMode]
+    dict set outputConfigDict GiDMultiFileFlag [write::getValue FLResults GiDMultiFileFlag]
+    dict set outputConfigDict GiDWriteMeshFlag True
+    dict set outputConfigDict GiDWriteConditionsFlag True
+    dict set outputConfigDict GiDWriteParticlesFlag False
+    dict set outputConfigDict GiDMultiFileFlag "Single"
+    dict set outputConfigDict GiDWriteFrequency [expr [write::getValue FLResults OutputDeltaTime]]
+    dict set outputConfigDict PlotGraphs False
+    dict set outputConfigDict PlotFrequency 0
+    dict set outputConfigDict PrintLists True
+    dict set outputConfigDict output_time 0.01
+    dict set outputConfigDict VolumeOutput True
+    dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
+    dict set outputConfigDict gauss_points_results [list ]
     
-    printSolutionStrategy 4
-    printSolvers 4
+    dict set projectParametersDict output_configuration $outputConfigDict
     
-    #printInitialConditions 0
-    printBoundaryConditions 0
+    # restart options
+    set restartDict [dict create]
+    dict set restartDict SaveRestart False
+    dict set restartDict RestartFrequency 0
+    dict set restartDict LoadRestart False
+    dict set restartDict Restart_Step 0
     
-    # GiD output configuration
-    write::WriteString "class GidOutputConfiguration:"
-    write::WriteString "    GiDPostMode = \"[write::getValue FLResults GiDPostMode]\""
-    write::WriteString "    GiDMultiFileFlag = \"[write::getValue FLResults GiDMultiFileFlag]\""
-
-    write::WriteString ""   
-    write::WriteString "GiDWriteFrequency = [write::getValue FLResults OutputDeltaTime]"
-    write::WriteString ""
-    write::WriteString "# graph_options"
-    write::WriteString "PlotGraphs = \"False\""
-    write::WriteString "PlotFrequency = 0"
-    write::WriteString ""
-    write::WriteString "# list options"
-    write::WriteString "PrintLists = \"True\""
-    write::WriteString "file_list = \[\] "
-    write::WriteString ""
-    write::WriteString "# restart options"
-    write::WriteString "SaveRestart = False"
-    write::WriteString "RestartFrequency = 0"
-    write::WriteString "LoadRestart = False"
-    write::WriteString "Restart_Step = 0"
-    write::WriteString ""
+    dict set projectParametersDict restart_options $restartDict
+    
+    # Solver settings
+    set solverSettingsDict [dict create]
+    dict set solverSettingsDict solver_type navier_stokes_solver_fractionalstep
+    dict set solverSettingsDict DomainSize [string range [write::getValue nDim] 0 0]
+    dict set solverSettingsDict echo_level 1
+    
+    set solverSettingsDict [getSolutionStrategyParameters $solverSettingsDict]
+    set solverSettingsDict [getSolversParameters $solverSettingsDict]
+    
+    # Parts
+    dict set solverSettingsDict volume_model_part_name [write::getPartsGroupsId]
+    # Skin parts
+    dict set solverSettingsDict skin_parts [getBoundaryConditionGroupsId]
+    
+    dict set projectParametersDict solver_settings $solverSettingsDict
+        
+    # Boundary conditions processes
+    dict set projectParametersDict boundary_conditions_process_list [getBoundaryConditionsParameters]
+    
+    write::WriteProcess $projectParametersDict
 }
 
-proc Fluid::write::printSolutionStrategy {spacing} {
+proc Fluid::write::getSolutionStrategyParameters {solverSettingsDict} {
     set solstratName [write::getValue FLSolStrat]
     set schemeName [write::getValue FLScheme]
     set sol [::Model::GetSolutionStrategy $solstratName]
     set sch [$sol getScheme $schemeName]
     
-    set spaces [write::getSpacing $spacing]
-    write::WriteString "${spaces}scheme_type = \"[$sch getName]\""
-    write::WriteString "${spaces}RotationDofs = False"
-    write::WriteString "${spaces}PressureDofs = False"
-    
-    write::WriteString "${spaces}time_integration_method = \"[$sol getName]\""
     foreach {n in} [$sol getInputs] {
-        write::WriteString "$spaces$n = [write::getValue FLStratParams $n ]"
+        dict set solverSettingsDict $n [write::getValue FLStratParams $n ]
     }
     foreach {n in} [$sch getInputs] {
-        write::WriteString "$spaces$n = [write::getValue FLStratParams $n ]"
+        dict set solverSettingsDict $n [write::getValue FLStratParams $n ]
     }
 }
 
-proc Fluid::write::printSolvers {spacing} {
+proc Fluid::write::getSolversParameters {solverSettingsDict} {
     set solstratName [write::getValue FLSolStrat]
     set sol [::Model::GetSolutionStrategy $solstratName]
-    set spaces [write::getSpacing $spacing]
-    set spaces2 [write::getSpacing [expr $spacing +4]]
     foreach se [$sol getSolversEntries] {
+        set solverEntryDict [dict create]
         set un "FL$solstratName[$se getName]"
         set solverName [write::getValue $un Solver]
-        write::WriteString "${spaces}class [$se getName]:"
-        write::WriteString "${spaces2}solver_type = \"$solverName\""
+        dict set solverEntryDict solver_type $solverName
           
         foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
-            write::WriteString "$spaces2$n = [write::getValue $un $n ]"
+            dict set solverEntryDict $n [expr [write::getValue $un $n]]
         }
+        dict set solverSettingsDict [$se getName] $solverEntryDict
+        unset solverEntryDict
     }
+    return $solverSettingsDict
 }
 
 proc Fluid::write::printInitialConditions {spacing} {
@@ -183,17 +190,28 @@ proc Fluid::write::printInitialConditions {spacing} {
 }
 
 
-proc Fluid::write::printBoundaryConditions {spacing} {
+proc Fluid::write::getBoundaryConditionGroupsId {} {
+    variable FluidConditions
+    
+    set listOfBCGroups [list ]
+    foreach cond [array names FluidConditions "*,SkinCondition"] {
+        if {$FluidConditions($cond)} {
+            set gname [lindex [split $cond ","] 0]
+            if {$gname ni $listOfBCGroups} {lappend listOfBCGroups $gname}
+        }
+    }
+    return $listOfBCGroups
+}
+
+
+proc Fluid::write::getBoundaryConditionsParameters {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set s [write::getSpacing $spacing]
 
-    write::WriteString "#Boundary Conditions Data"
-    write::WriteString "#################################################"
-    write::WriteString "${s}boundary_conditions_process_list = \["
+    set bcCondsDict [dict create]
+    
     set xp1 "[apps::getRoute "FLBC"]/condition/group"
-    set groups [$root selectNodes $xp1]
-    set str ""
+    set groups [$root selectNodes $xp1]    
     foreach group $groups {
         set groupName [$group @n]
         set cid [[$group parent] @n]
@@ -220,9 +238,9 @@ proc Fluid::write::printBoundaryConditions {spacing} {
         foreach {inputName in_obj} $process_parameters {
             set in_type [$in_obj getType]
             if {$in_type eq "vector"} {
-                set is_fixed_x False
-                set is_fixed_y False
-                set is_fixed_z False
+                set is_fixed_x [expr False]
+                set is_fixed_y [expr False]
+                set is_fixed_z [expr False]
                 if {[$group find n FixX] ne ""} {
                     set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
                 }
@@ -232,34 +250,31 @@ proc Fluid::write::printBoundaryConditions {spacing} {
                 if {[$group find n FixZ] ne ""} {
                     set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
                 }
-                set ValX [get_domnode_attribute [$group find n ValX] v] 
-                set ValY [get_domnode_attribute [$group find n ValY] v]
-                set ValZ 0.0
-                catch {set ValZ [get_domnode_attribute [$group find n ValZ] v]}
+                set ValX [expr [get_domnode_attribute [$group find n ValX] v] ]
+                set ValY [expr [get_domnode_attribute [$group find n ValY] v] ] 
+                set ValZ [expr 0.0]
+                catch {set ValZ [expr [get_domnode_attribute [$group find n ValZ] v]]}
                 
                 dict set paramDict is_fixed_x $is_fixed_x
                 dict set paramDict is_fixed_y $is_fixed_y
                 dict set paramDict is_fixed_z $is_fixed_z
-                dict set paramDict value "\[${ValX},${ValY},${ValZ}\]"
+                dict set paramDict value [list $ValX $ValY $ValZ]
             } elseif {$in_type eq "double"} {
                 set value [get_domnode_attribute [$group find n value] v] 
-                set is_fixed True
+                set is_fixed [expr True]
                 if {[$group find n Fix] ne ""} {
                     set is_fixed_x [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
                 }
                 dict set paramDict is_fixed $is_fixed
-                dict set paramDict value $value
+                dict set paramDict value [expr $value]
             }
         }
         
         dict set processDict Parameters $paramDict
-        write::WriteProcess $processDict
-    
-        if {[lindex $groups end] ne $group} {write::WriteString ","}
+        dict set bcCondsDict $groupName $processDict
     }
-    write::WriteString "]"
+    return $bcCondsDict
 }
-
 
 
 
