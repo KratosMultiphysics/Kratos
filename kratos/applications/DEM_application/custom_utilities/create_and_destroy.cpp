@@ -606,7 +606,7 @@ namespace Kratos {
     }
                 
     
-    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
         KRATOS_TRY
         
@@ -637,7 +637,7 @@ namespace Kratos {
         }                     
         
         KRATOS_CATCH("")
-    }*/
+    }
     
     
     /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
@@ -664,7 +664,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }*/
     
-    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
         KRATOS_TRY
         
@@ -689,19 +689,13 @@ namespace Kratos {
                 }
                 good_elems_counter++;                                
             }            
-        }          
-        //rElements.resize(good_elems_counter);
-        //rNodes.resize(good_elems_counter);
-        for(int k=(int)rElements.size()-1; k >= good_elems_counter; k--) {
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
-                                                            
-            rElements.erase(particle_pointer_it); 
-            rNodes.erase(node_pointer_it);                             
         }   
         
+        rElements.GetContainer().resize(good_elems_counter);
+        rNodes.GetContainer().resize(good_elems_counter);       
+        
         KRATOS_CATCH("")
-    }
+    }*/
 
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
