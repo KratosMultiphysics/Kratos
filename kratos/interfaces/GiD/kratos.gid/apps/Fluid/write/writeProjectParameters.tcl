@@ -43,7 +43,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
     
     
-    set xp1 "[apps::getRoute FLResults]/condition/group"
+    set xp1 "[apps::getRoute FLResults]/containercontainer[@n='OnNodes']/value"
     dict set outputConfigDict gauss_points_results [list ]
     
     dict set projectParametersDict output_configuration $outputConfigDict
