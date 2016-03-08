@@ -604,9 +604,46 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-                
-    
     void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+              
+                    //Type definitions
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
+//        typedef ElementsArrayType::iterator ElementsIterator;
+
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        //ElementsArrayType& rElements                          = r_model_part.Elements();
+        //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
+
+        ElementsArrayType temp_particles_container;
+        ModelPart::NodesContainerType temp_nodes_container;
+
+        temp_particles_container.reserve(rElements.size());
+        temp_nodes_container.reserve(rNodes.size());
+
+        temp_particles_container.swap(rElements);
+        temp_nodes_container.swap(rNodes);
+
+        //Add the ones not marked with TO_ERASE
+        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it) {
+
+            if (!(*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
+                (rElements).push_back(*particle_pointer_it); //adding the elements
+
+                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) { //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
+                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                    (rNodes).push_back(pNode);
+                }
+            }
+
+        }
+        KRATOS_CATCH("")
+    }
+    
+    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
         KRATOS_TRY
         
@@ -631,13 +668,13 @@ namespace Kratos {
             Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin() + k;
             ModelPart::NodesContainerType::ptr_iterator node_pointer_it = temp_nodes_container.ptr_begin() + k;
             if (!(*node_pointer_it)->Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {                                                
-                rElements.push_back(boost::move(*particle_pointer_it) ); //adding the elements
-                rNodes.push_back(boost::move(*node_pointer_it) ); //adding the nodes
+                rElements.push_back(*particle_pointer_it); //adding the elements
+                rNodes.push_back(*node_pointer_it); //adding the nodes
             }
         }                     
         
         KRATOS_CATCH("")
-    }
+    }*/
     
     
     /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
@@ -684,15 +721,19 @@ namespace Kratos {
             
             if ((*node_pointer_it)->IsNot(TO_ERASE) || (*particle_pointer_it)->IsNot(TO_ERASE)) {
   	        if(k != good_elems_counter){
-                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*(rElements.ptr_begin() + k));
-                    *(rNodes.ptr_begin()    + good_elems_counter) = boost::move(*(rNodes.ptr_begin() + k));
+                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*particle_pointer_it);
+                    *(rNodes.ptr_begin()    + good_elems_counter) = boost::move(*node_pointer_it);
                 }
                 good_elems_counter++;                                
+            }
+            else{
+                (*node_pointer_it).reset();
+                (*particle_pointer_it).reset();
             }            
         }   
         
-        rElements.GetContainer().resize(good_elems_counter);
-        rNodes.GetContainer().resize(good_elems_counter);       
+        rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        rNodes.erase(rNodes.ptr_begin() + good_elems_counter, rNodes.ptr_end());       
         
         KRATOS_CATCH("")
     }*/
