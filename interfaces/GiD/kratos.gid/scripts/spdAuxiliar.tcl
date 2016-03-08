@@ -584,9 +584,9 @@ proc spdAux::injectConditions { basenode } {
                         <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
                     }
                 append node "
-                <value n=\"ValX\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"ValY\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"ValZ\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {

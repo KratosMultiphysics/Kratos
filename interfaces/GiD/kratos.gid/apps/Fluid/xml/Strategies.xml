@@ -16,7 +16,7 @@
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="velocity_linear_solver_config" pn="Velocity linear solver" >
+      <linearSolverItem n="velocity_linear_solver_settings" pn="Velocity linear solver" >
         <filterFeatures>
 	  <!--<filter field="n" value="BiConjugate"/>
 	      <filter field="symmetric" value="false"/>
@@ -24,7 +24,7 @@
         </filterFeatures>
       </linearSolverItem>
 	  
-      <linearSolverItem n="pressure_linear_solver_config" pn="Pressure linear solver" >
+      <linearSolverItem n="pressure_linear_solver_settings" pn="Pressure linear solver" >
         <filterFeatures>
         </filterFeatures>
       </linearSolverItem> 

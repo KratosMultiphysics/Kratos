@@ -66,9 +66,10 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    if { [catch {eval $wevent} fid] } {
-        W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
-    }
+    eval $wevent
+    #if { [catch {eval $wevent} fid] } {
+    #    W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
+    #}
     catch {CloseFile}
         
     #### Custom File Write ####
@@ -479,6 +480,18 @@ proc write::getPartsGroupsId {} {
     foreach group $groups {
         set groupName [get_domnode_attribute $group n]
         lappend listOfGroups $groupName
+    }
+    return $listOfGroups
+}
+proc write::getPartsMeshId {} {
+    variable parts
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set listOfGroups [list ]
+
+    foreach group [getPartsGroupsId] {
+        lappend listOfGroups [getMeshId Parts $group]
     }
     return $listOfGroups
 }

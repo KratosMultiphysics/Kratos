@@ -3,12 +3,12 @@
     <value n="VolumeOutput" pn="Volume Output" v="True" values="True,False" help="Volume output"/>
     <value n="OutputDeltaTime" pn="Output delta time" v="0.1" help="Output delta time"/>
     <value n="PrintInLayer" pn="Print in layer" v="True" values="True,False" help="Print In Layer"/>
-    <container n="OnFalsedes" pn="On nodes"  help="On nodes" open="0">
-        <value n="Velocity" pn="Velocity" v="True" values="True,False" help="Velocity"/>
-        <value n="Pressure" pn="Pressure" v="True" values="True,False" help="Pressure"/>
-        <value n="Reactions" pn="Reactions" v="True" values="True,False" help="Reactions"/>
+    <container n="OnNodes" pn="On nodes"  help="On nodes" open="0">
+        <value n="VELOCITY" pn="Velocity" v="True" values="True,False" help="Velocity"/>
+        <value n="PRESSURE" pn="Pressure" v="True" values="True,False" help="Pressure"/>
+        <value n="REACTIONS" pn="Reactions" v="True" values="True,False" help="Reactions"/>
     </container>
-    <container n="HistoryOutputOnPoints" pn="History output on points">
+    <container n="HistoryOutputOnPoints" pn="History output on points" state="jidden">
         <blockdata n="HistoryGraph" pn="History graph" sequence="1" help="History graph properties">
             <value n="Point" pn="Point" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="1"/>
             <value n="VariableId" pn="Variable" v="Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>

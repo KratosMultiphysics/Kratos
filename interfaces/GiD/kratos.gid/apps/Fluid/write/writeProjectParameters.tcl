@@ -34,14 +34,16 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict GiDWriteMeshFlag True
     dict set outputConfigDict GiDWriteConditionsFlag True
     dict set outputConfigDict GiDWriteParticlesFlag False
-    dict set outputConfigDict GiDMultiFileFlag "Single"
     dict set outputConfigDict GiDWriteFrequency [expr [write::getValue FLResults OutputDeltaTime]]
     dict set outputConfigDict PlotGraphs False
     dict set outputConfigDict PlotFrequency 0
     dict set outputConfigDict PrintLists True
-    dict set outputConfigDict output_time 0.01
-    dict set outputConfigDict VolumeOutput True
+    dict set outputConfigDict output_time [expr [write::getValue FLResults OutputDeltaTime]]
+    dict set outputConfigDict VolumeOutput [expr [write::getValue FLResults VolumeOutput]]
     dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
+    
+    
+    set xp1 "[apps::getRoute FLResults]/condition/group"
     dict set outputConfigDict gauss_points_results [list ]
     
     dict set projectParametersDict output_configuration $outputConfigDict
@@ -58,16 +60,15 @@ proc Fluid::write::writeParametersEvent { } {
     # Solver settings
     set solverSettingsDict [dict create]
     dict set solverSettingsDict solver_type navier_stokes_solver_fractionalstep
-    dict set solverSettingsDict DomainSize [string range [write::getValue nDim] 0 0]
+    dict set solverSettingsDict DomainSize [expr [string range [write::getValue nDim] 0 0]]
     dict set solverSettingsDict echo_level 1
     
     set solverSettingsDict [getSolutionStrategyParameters $solverSettingsDict]
     set solverSettingsDict [getSolversParameters $solverSettingsDict]
-    
     # Parts
-    dict set solverSettingsDict volume_model_part_name [write::getPartsGroupsId]
+    dict set solverSettingsDict volume_model_part_name {*}[write::getPartsMeshId]
     # Skin parts
-    dict set solverSettingsDict skin_parts [getBoundaryConditionGroupsId]
+    dict set solverSettingsDict skin_parts [getBoundaryConditionMeshId]
     
     dict set projectParametersDict solver_settings $solverSettingsDict
         
@@ -84,11 +85,12 @@ proc Fluid::write::getSolutionStrategyParameters {solverSettingsDict} {
     set sch [$sol getScheme $schemeName]
     
     foreach {n in} [$sol getInputs] {
-        dict set solverSettingsDict $n [write::getValue FLStratParams $n ]
+        dict set solverSettingsDict $n [expr [write::getValue FLStratParams $n ]]
     }
     foreach {n in} [$sch getInputs] {
-        dict set solverSettingsDict $n [write::getValue FLStratParams $n ]
+        dict set solverSettingsDict $n [expr [write::getValue FLStratParams $n ]]
     }
+    return $solverSettingsDict
 }
 
 proc Fluid::write::getSolversParameters {solverSettingsDict} {
@@ -190,38 +192,42 @@ proc Fluid::write::printInitialConditions {spacing} {
 }
 
 
-proc Fluid::write::getBoundaryConditionGroupsId {} {
-    variable FluidConditions
+proc Fluid::write::getBoundaryConditionMeshId {} {
+    variable BCUN
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
     
     set listOfBCGroups [list ]
-    foreach cond [array names FluidConditions "*,SkinCondition"] {
-        if {$FluidConditions($cond)} {
-            set gname [lindex [split $cond ","] 0]
-            if {$gname ni $listOfBCGroups} {lappend listOfBCGroups $gname}
-        }
+    set xp1 "[apps::getRoute $BCUN]/condition/group"
+    set groups [$root selectNodes $xp1]    
+    foreach group $groups {
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        set gname [::write::getMeshId $cid $groupName]
+        if {$gname ni $listOfBCGroups} {lappend listOfBCGroups $gname}
     }
+    
     return $listOfBCGroups
 }
 
 
 proc Fluid::write::getBoundaryConditionsParameters {} {
+    variable BCUN
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
 
-    set bcCondsDict [dict create]
+    set bcCondsDict [list ]
     
-    set xp1 "[apps::getRoute "FLBC"]/condition/group"
+    set xp1 "[apps::getRoute $BCUN]/condition/group"
     set groups [$root selectNodes $xp1]    
     foreach group $groups {
         set groupName [$group @n]
         set cid [[$group parent] @n]
         set groupId [::write::getMeshId $cid $groupName]
-        #W "$cid $groupName $groupId"
         set condId [[$group parent] @n]
         set condition [::Model::getCondition $condId]
         set processName [$condition getProcessName]
         set process [::Model::GetProcess $processName]
-        #W "type $type pron $processName"
         set processDict [dict create]
         set paramDict [dict create]
         dict set paramDict mesh_id 0
@@ -250,73 +256,27 @@ proc Fluid::write::getBoundaryConditionsParameters {} {
                 if {[$group find n FixZ] ne ""} {
                     set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
                 }
-                set ValX [expr [get_domnode_attribute [$group find n ValX] v] ]
-                set ValY [expr [get_domnode_attribute [$group find n ValY] v] ] 
+                set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
+                set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
                 set ValZ [expr 0.0]
-                catch {set ValZ [expr [get_domnode_attribute [$group find n ValZ] v]]}
+                catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
                 
                 dict set paramDict is_fixed_x $is_fixed_x
                 dict set paramDict is_fixed_y $is_fixed_y
                 dict set paramDict is_fixed_z $is_fixed_z
-                dict set paramDict value [list $ValX $ValY $ValZ]
+                dict set paramDict $inputName [list $ValX $ValY $ValZ]
             } elseif {$in_type eq "double"} {
                 set value [get_domnode_attribute [$group find n value] v] 
-                set is_fixed [expr True]
                 if {[$group find n Fix] ne ""} {
-                    set is_fixed_x [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
+                    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
+                    dict set paramDict is_fixed $is_fixed
                 }
-                dict set paramDict is_fixed $is_fixed
-                dict set paramDict value [expr $value]
+                dict set paramDict $inputName [expr $value]
             }
         }
         
         dict set processDict Parameters $paramDict
-        dict set bcCondsDict $groupName $processDict
+        lappend bcCondsDict $processDict
     }
     return $bcCondsDict
 }
-
-
-
-proc Fluid::write::printResults {spacing} {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    set s [write::getSpacing $spacing]
-
-    write::WriteString "#PostProcess Data"
-    write::WriteString "#################################################"
-    
-    set xp1 "[apps::getRoute "SMNodalResults"]/value"
-    set results [$root selectNodes $xp1]
-    set min 0
-    set str "nodal_results=\["
-    foreach res $results {
-        if {[get_domnode_attribute $res v] eq "Yes"} {
-            set min 1
-            set name [get_domnode_attribute $res n]
-            append str "\"$name\","
-        }
-    }
-    
-    if {$min} {set str [string range $str 0 end-1]}
-    append str "]"
-    write::WriteString $str
-    
-    set xp1 "[apps::getRoute "SMElementResults"]/value"
-    set results [$root selectNodes $xp1]
-    set min 0
-    set str "gauss_points_results=\["
-    foreach res $results {
-        if {[get_domnode_attribute $res v] in [list "Yes" "True"] && [get_domnode_attribute $res state] eq "normal"} {
-            set min 1
-            set name [get_domnode_attribute $res n]
-            append str "\"$name\","
-        }
-    }
-    
-    if {$min} {set str [string range $str 0 end-1]}
-    append str "]"
-    write::WriteString $str
-    write::WriteString ""
-}
-
