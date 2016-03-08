@@ -298,6 +298,7 @@ namespace Kratos {
 
         double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetRadius(radius);
+        spheric_p_particle->SetSearchRadius(radius);
         double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
@@ -375,6 +376,7 @@ namespace Kratos {
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetRadius(radius);
+        spheric_p_particle->SetSearchRadius(radius);
         spheric_p_particle->SetMass(cluster_mass);
         spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());
         spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
@@ -631,14 +633,12 @@ namespace Kratos {
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it) {
 
             if (!(*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
-                (rElements).push_back(*particle_pointer_it); //adding the elements
-
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) { //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
                     ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    (rNodes).push_back(pNode);
+                    (rNodes).push_back(boost::move(pNode));
                 }
+                (rElements).push_back(boost::move(*particle_pointer_it)); //adding the elements
             }
-
         }
         KRATOS_CATCH("")
     }
@@ -713,6 +713,11 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
         }
         
+        KRATOS_WATCH("******************************************************************")
+        Configure::ElementsContainerType::ptr_iterator particle_pointer = rElements.ptr_begin() + rElements.size() -1;
+        
+        KRATOS_WATCH( particle_pointer)
+                
         int good_elems_counter = 0;
         
         for(int k=0; k < (int)rElements.size(); k++) {
@@ -727,16 +732,21 @@ namespace Kratos {
                 good_elems_counter++;                                
             }
             else{
-                (*node_pointer_it).reset();
                 (*particle_pointer_it).reset();
+                (*node_pointer_it).reset();                
             }            
         }   
+        KRATOS_WATCH( (*(rElements.ptr_begin() + rElements.size() -1))->Id() )
         
-        rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
-        rNodes.erase(rNodes.ptr_begin() + good_elems_counter, rNodes.ptr_end());       
+        //for(int k=(int)rElements.size()-1; k >= 0; k--) {
+          
+        rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end()-1);
+        rNodes.erase(rNodes.ptr_begin() + good_elems_counter, rNodes.ptr_end()-1);  
+        
+        KRATOS_WATCH( (*(rElements.ptr_begin() + rElements.size() -1))->Id() )
         
         KRATOS_CATCH("")
-    }*/
+    }     */   
 
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
