@@ -110,17 +110,17 @@ public:
         available_smoothers.insert("chebyshev");
 
         std::set<std::string> available_solvers;
-        available_smoothers.insert("gmres");
-        available_smoothers.insert("bicgstab");
-        available_smoothers.insert("cg");
-        available_smoothers.insert("bicgstabl");
-        available_smoothers.insert("bicgstab_with_gmres_fallback");        
+        available_solvers.insert("gmres");
+        available_solvers.insert("bicgstab");
+        available_solvers.insert("cg");
+        available_solvers.insert("bicgstabl");
+        available_solvers.insert("bicgstab_with_gmres_fallback");        
         
         std::set<std::string> available_coarsening;
-        available_smoothers.insert("ruge_stuben");
-        available_smoothers.insert("aggregation");
-        available_smoothers.insert("smoothed_aggregation");
-        available_smoothers.insert("smoothed_aggr_emin");    
+        available_coarsening.insert("ruge_stuben");
+        available_coarsening.insert("aggregation");
+        available_coarsening.insert("smoothed_aggregation");
+        available_coarsening.insert("smoothed_aggr_emin");    
         std::stringstream msg;
 
         if(available_smoothers.find(rParameters["smoother_type"].GetString()) == available_smoothers.end())
