@@ -25,7 +25,7 @@
 namespace Kratos
 {
 	KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
-	KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 0);
+	KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 	/// Default constructor.
 	ModelPart::ModelPart()
@@ -798,6 +798,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		{
 			ModelPart* p_model_part = new ModelPart(NewSubModelPartName);
 			p_model_part->SetParentModelPart(this);
+			delete p_model_part->mpVariablesList;
 			p_model_part->mpVariablesList = mpVariablesList;
 			return *(mSubModelParts.insert(p_model_part));
 		}
