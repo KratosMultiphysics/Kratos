@@ -46,7 +46,6 @@ proc write::writeEvent { filename } {
     #set inittime [clock seconds]
     set activeapp [::apps::getActiveApp]
     
-    
     #### MDPA Write ####
     set wevent [$activeapp getWriteModelPartEvent]
     
@@ -63,7 +62,7 @@ proc write::writeEvent { filename } {
         
     #### Project Parameters Write ####
     set wevent [$activeapp getWriteParametersEvent]
-    set filename "ProjectParameters.py"
+    set filename "ProjectParameters.json"
     
     catch {CloseFile}
     OpenFile $filename
@@ -468,14 +467,25 @@ proc write::GetNodesFromElementFace {elem_id face_id} {
 }
 
 
-proc write::writePartMeshes { } {
+proc write::getPartsGroupsId {} {
     variable parts
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
+    set listOfGroups [list ]
     set xp1 "[spdAux::getRoute $parts]/group"
-    foreach group [$root selectNodes $xp1] {
-        writeGroupMesh Parts [$group @n] "Elements"
+    set groups [$root selectNodes $xp1]
+    
+    foreach group $groups {
+        set groupName [get_domnode_attribute $group n]
+        lappend listOfGroups $groupName
+    }
+    return $listOfGroups
+}
+
+proc write::writePartMeshes { } {
+    foreach group [getPartsGroupsId] {
+        writeGroupMesh Parts $group "Elements"
     } 
 }
 
@@ -501,9 +511,49 @@ proc write::dict2json {dictVal} {
     return "\{${json}\}"
 }
 
+proc write::tcl2json { value } {
+    # Guess the type of the value; deep *UNSUPPORTED* magic!
+    regexp {^value is a (.*?) with a refcount} [::tcl::unsupported::representation $value] -> type
+ 
+    switch $type {
+	string {
+	    return [json::write string $value]
+	}
+	dict {
+	    return [json::write object {*}[
+		dict map {k v} $value {tcl2json $v}]]
+	}
+	list {
+	    return [json::write array {*}[lmap v $value {tcl2json $v}]]
+	}
+	int - double {
+	    return [expr {$value}]
+	}
+	booleanString {
+	    return [expr {$value ? "true" : "false"}]
+	}
+	default {
+	    # Some other type; do some guessing...
+	    if {$value eq "null"} {
+		# Tcl has *no* null value at all; empty strings are semantically
+		# different and absent variables aren't values. So cheat!
+		return $value
+	    } elseif {[string is integer -strict $value]} {
+		return [expr {$value}]
+	    } elseif {[string is double -strict $value]} {
+		return [expr {$value}]
+	    } elseif {[string is boolean -strict $value]} {
+		return [expr {$value ? "true" : "false"}]
+	    }
+	    return [json::write string $value]
+	}
+    }
+}
+
 proc write::WriteProcess {processDict} {
     #W [dict2json $processDict]
-    WriteString [dict2json $processDict]
+    package require json::write
+    WriteString [write::tcl2json $processDict]
 }
 
 # Auxiliar
