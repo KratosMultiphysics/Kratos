@@ -4,9 +4,11 @@ proc Fluid::write::writeParametersEvent { } {
     
     # First section -> Problem data
     set problemDataDict [dict create]
-    dict set problemDataDict ProblemName [file tail [GiD_Info Project ModelName]]
+    set model_name [file tail [GiD_Info Project ModelName]]
+    dict set problemDataDict ProblemName $model_name
     dict set problemDataDict ModelPartName "MainModelPart"
-    dict set problemDataDict DomainSize [expr [string range [write::getValue nDim] 0 0] ]
+    set nDim [expr [string range [write::getValue nDim] 0 0] ]
+    dict set problemDataDict DomainSize $nDim
     
     # Parallelization
     set paralleltype [write::getValue FLParallelization ParallelSolutionType]
@@ -40,11 +42,14 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict PrintLists True
     dict set outputConfigDict output_time [expr [write::getValue FLResults OutputDeltaTime]]
     dict set outputConfigDict VolumeOutput [expr [write::getValue FLResults VolumeOutput]]
+    
+    # on nodes
     dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
     
     
     #set xp1 "[apps::getRoute FLResults]/container\[@n='OnNodes'\]/value"
-    dict set outputConfigDict gauss_points_results [list ]
+    # on elements
+    dict set outputConfigDict gauss_points_results [list "VORTICITY"]
     
     dict set projectParametersDict output_configuration $outputConfigDict
     
@@ -54,13 +59,18 @@ proc Fluid::write::writeParametersEvent { } {
     dict set restartDict RestartFrequency 0
     dict set restartDict LoadRestart False
     dict set restartDict Restart_Step 0
-    
     dict set projectParametersDict restart_options $restartDict
+    
+    # restart options
+    set modelDict [dict create]
+    dict set modelDict input_type "mdpa"
+    dict set modelDict input_filename $model_name
+    dict set projectParametersDict model_import_settings $modelDict
     
     # Solver settings
     set solverSettingsDict [dict create]
     dict set solverSettingsDict solver_type navier_stokes_solver_fractionalstep
-    dict set solverSettingsDict DomainSize [expr [string range [write::getValue nDim] 0 0]]
+    dict set solverSettingsDict DomainSize $nDim
     dict set solverSettingsDict echo_level 1
     
     set solverSettingsDict [getSolutionStrategyParameters $solverSettingsDict]
@@ -69,6 +79,20 @@ proc Fluid::write::writeParametersEvent { } {
     dict set solverSettingsDict volume_model_part_name {*}[write::getPartsMeshId]
     # Skin parts
     dict set solverSettingsDict skin_parts [getBoundaryConditionMeshId]
+    
+    dict set solverSettingsDict velocity_tolerance 1e-3
+    dict set solverSettingsDict pressure_tolerance 1e-2
+    dict set solverSettingsDict maximum_velocity_iterations [expr 3]
+    dict set solverSettingsDict maximum_pressure_iterations [expr 3]
+    dict set solverSettingsDict predictor_corrector false
+    dict set solverSettingsDict echo_level 1
+    dict set solverSettingsDict DomainSize $nDim 
+    dict set solverSettingsDict consider_periodic_conditions false
+    dict set solverSettingsDict time_order 2
+    dict set solverSettingsDict dynamic_tau 0.001
+    dict set solverSettingsDict compute_reactions false
+    dict set solverSettingsDict divergence_clearance_steps 0
+    dict set solverSettingsDict reform_dofs_at_each_iteration false
     
     dict set projectParametersDict solver_settings $solverSettingsDict
         
