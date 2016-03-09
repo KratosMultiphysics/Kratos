@@ -68,7 +68,7 @@ namespace Kratos
       virtual ~SphericSwimmingParticle(){};
 
       
-      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity) override;
+      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
       std::vector<Node<3>::Pointer> mNeighbourNodes;
       std::vector<double>   mNeighbourNodesDistances;
