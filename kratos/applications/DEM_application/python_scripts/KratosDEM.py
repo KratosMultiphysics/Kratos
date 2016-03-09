@@ -247,7 +247,7 @@ time_old_print = 0.0
 report.Prepare(timer, DEM_parameters.ControlTime)
 
 first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
-    
+
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
