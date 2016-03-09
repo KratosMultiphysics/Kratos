@@ -31,7 +31,7 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="FS" pn="FS" help="FilterElements">
+	  <scheme n="FS" pn="Fractional step generic scheme" help="FilterElements">
 	     <parameter_list>
 		  </parameter_list>
   		  <element_filters>
@@ -67,7 +67,7 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="FS" pn="FS" help="FilterElements">
+	  <scheme n="MN" pn="Monolitic generic scheme" help="FilterElements">
 	     <parameter_list>
 		  </parameter_list>
   		  <element_filters>
