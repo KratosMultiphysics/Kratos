@@ -303,7 +303,9 @@ namespace Kratos {
             noalias(angular_velocity_changed) = ZeroVector(3);
 
             if (angular_period > 0.0) {
-                noalias(angle) = final_angle;
+                double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                double inv_angular_omega = 1.0 / angular_omega;
+                noalias(angle) = angular_velocity * sin(angular_omega * (angular_velocity_stop_time - angular_velocity_start_time)) * inv_angular_omega;
             } else {
                 noalias(angle) = angular_velocity * (angular_velocity_stop_time - angular_velocity_start_time);
             }
