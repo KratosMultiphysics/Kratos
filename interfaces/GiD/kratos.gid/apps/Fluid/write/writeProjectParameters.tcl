@@ -43,7 +43,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
     
     
-    set xp1 "[apps::getRoute FLResults]/containercontainer[@n='OnNodes']/value"
+    #set xp1 "[apps::getRoute FLResults]/container\[@n='OnNodes'\]/value"
     dict set outputConfigDict gauss_points_results [list ]
     
     dict set projectParametersDict output_configuration $outputConfigDict
@@ -266,7 +266,7 @@ proc Fluid::write::getBoundaryConditionsParameters {} {
                 dict set paramDict is_fixed_z $is_fixed_z
                 dict set paramDict $inputName [list $ValX $ValY $ValZ]
             } elseif {$in_type eq "double"} {
-                set value [get_domnode_attribute [$group find n value] v] 
+                set value [get_domnode_attribute [$group find n $inputName] v] 
                 if {[$group find n Fix] ne ""} {
                     set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
                     dict set paramDict is_fixed $is_fixed
