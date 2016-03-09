@@ -285,6 +285,7 @@ proc Model::CheckElementsCondition {conditionId elemnames {restrictions "" }} {
         #
     } else {
         foreach eid $elemnames {
+            W $eid
             set elem [getElement $eid]
             set dof [$elem getNodalCondition $conditionId]
             

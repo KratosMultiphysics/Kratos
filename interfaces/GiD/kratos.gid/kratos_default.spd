@@ -154,7 +154,7 @@
 			set elemnames [list ]
 			foreach elem $elems { lappend elemnames [$elem @v]}
 			set elemnames [lsort -unique $elemnames]
-			#W "$conditionId $elemnames"
+			if {$elemnames eq ""} {return "hiden"}
 			if {[::Model::CheckElementsCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
 	  ]]>

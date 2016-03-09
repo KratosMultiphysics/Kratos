@@ -62,6 +62,7 @@ proc spdAux::processDynamicNodes { root } {
 }
 
 proc spdAux::processIncludesRecurse { nf basedir} {
+    W "inutil"
     set xml [tDOM::xmlReadFile $nf]
     set newnode [dom parse [string trim $xml]]
     set xmlNode [$newnode documentElement]
