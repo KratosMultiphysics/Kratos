@@ -314,7 +314,7 @@ namespace Kratos {
             double GlobalContactForce[3] = {0.0};
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it. 
-                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor);
+                mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator);
             }
 
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
@@ -401,6 +401,10 @@ namespace Kratos {
         }
                                   
         mNeighbourElements.swap(TempNeighbourElements);
+        
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) { 
+            if(mNeighbourElements[i] == NULL) mBondElements[i]=NULL;            
+        }
 
         KRATOS_CATCH("")
     }
