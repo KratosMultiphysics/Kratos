@@ -220,10 +220,6 @@ if (DEM_parameters.dem_inlet_option):
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
 
-#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
-#if (DEM_parameters.PredefinedSkinOption == "ON" ):
-   #ProceduresSetPredefinedSkin(spheres_model_part)
-
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
 #Procedures.SetCustomSkin(spheres_model_part)
