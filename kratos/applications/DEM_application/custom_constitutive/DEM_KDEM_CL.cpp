@@ -326,14 +326,20 @@ namespace Kratos {
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, 
                                           double LocalCoordSystem[3][3], 
                                           double& normal_force, 
-                                          double calculation_area, Matrix* mSymmStressTensor) {
+                                          double calculation_area, 
+                                          Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2) {
         double force[3];
+        
+        Matrix average_stress_tensor;
+        for (int i=0; i<3; i++) {
+            for (int j=0;j<3; j++) { average_stress_tensor(i,j) = 0.5 * ((*mSymmStressTensor)(i,j)  + (*(element2->mSymmStressTensor))(i,j) ); }
+        }
 
         for (int i = 0; i < 3; i++) {
             
-            force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[0][0] +
-                       (*mSymmStressTensor)(i,1) * LocalCoordSystem[0][1] +
-                       (*mSymmStressTensor)(i,2) * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
+            force[i] = (average_stress_tensor)(i,0) * LocalCoordSystem[0][0] +
+                       (average_stress_tensor)(i,1) * LocalCoordSystem[0][1] +
+                       (average_stress_tensor)(i,2) * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
         }
         double sigma_x = force[0] * LocalCoordSystem[0][0] +
                          force[1] * LocalCoordSystem[0][1] +
@@ -341,9 +347,9 @@ namespace Kratos {
 
         for (int i = 0; i < 3; i++) {
             
-            force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[1][0] +
-                       (*mSymmStressTensor)(i,1) * LocalCoordSystem[1][1] +
-                       (*mSymmStressTensor)(i,2) * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
+            force[i] = (average_stress_tensor)(i,0) * LocalCoordSystem[1][0] +
+                       (average_stress_tensor)(i,1) * LocalCoordSystem[1][1] +
+                       (average_stress_tensor)(i,2) * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
         }
         double sigma_y = force[0] * LocalCoordSystem[1][0] +
                          force[1] * LocalCoordSystem[1][1] +

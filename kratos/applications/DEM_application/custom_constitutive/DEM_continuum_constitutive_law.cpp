@@ -71,7 +71,7 @@ namespace Kratos {
     void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, 
                                                             double LocalCoordSystem[3][3], 
                                                             double& normal_force, 
-                                                            double calculation_area, Matrix* mSymmStressTensor){    
+                                                            double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2){    
     }
     
 } //kratos

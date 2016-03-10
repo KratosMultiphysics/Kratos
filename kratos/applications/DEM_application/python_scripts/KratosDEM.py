@@ -411,3 +411,23 @@ os.chdir(main_path)
 
 # Print times and more info
 KRATOSprint(report.FinalReport(timer))
+
+KRATOSprint("spheres")
+spheres_model_part    = 0
+KRATOSprint("r")
+rigid_face_model_part = 0
+KRATOSprint("mix")
+mixed_model_part      = 0
+KRATOSprint("clus")
+cluster_model_part    = 0
+KRATOSprint("inle")
+DEM_inlet_model_part  = 0
+KRATOSprint("map")
+mapping_model_part    = 0
+KRATOSprint("cont")
+contact_model_part    = 0
+
+print(dir())
+
+
+

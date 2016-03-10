@@ -152,7 +152,7 @@ namespace Kratos {
                                                       double LocalCoordSystem[3][3],
                                                       array_1d<double, 3>& mContactMoment);
         
-        virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor);
+        virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2);
 
     private:
 
