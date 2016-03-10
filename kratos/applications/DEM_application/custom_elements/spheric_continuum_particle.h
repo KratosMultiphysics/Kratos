@@ -101,7 +101,7 @@ namespace Kratos
         void ComputeParticleBlockContactForce(const ProcessInfo& r_process_info);
         void ComputeParticleSurfaceContactForce(const ProcessInfo& r_process_info);
 
-        int*                        mSkinSphere; 
+        double*                        mSkinSphere; 
         std::vector<double>         mContIniNeighArea;        
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;                        
