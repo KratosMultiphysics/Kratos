@@ -18,4 +18,4 @@ REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
 
 REM Run Python using the script KratosSolidMechanics.py
-"%3\\exec\\kratos\\runkratos" KratosSolidMechanics.py > "%2\\%1.info" 2> "%2\\%1.err"
+"%3\\exec\\kratos\\runkratos" MainKratos.py > "%2\\%1.info" 2> "%2\\%1.err"

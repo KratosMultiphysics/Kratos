@@ -33,7 +33,8 @@ proc Fluid::write::writeModelPartEvent { } {
     writeMeshes
 }
 proc Fluid::write::writeCustomFilesEvent { } {
-
+    write::CopyFileIntoModel "python/KratosFluid.py"
+    write::RenameFileInModel "KratosFluid.py" "MainKratos.py"
 }
 
 proc Fluid::write::Validate {} {

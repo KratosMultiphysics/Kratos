@@ -648,5 +648,11 @@ proc write::CopyFileIntoModel { filepath } {
     set totalpath [file join $inidir $filepath]
     file copy -force $totalpath $dir
 }
+proc write::RenameFileInModel { src target } {
+    variable dir
+    set srcfile [file join $dir $src]
+    set tgtfile [file join $dir $target]
+    file rename -force $srcfile $tgtfile
+}
 
 write::Init
