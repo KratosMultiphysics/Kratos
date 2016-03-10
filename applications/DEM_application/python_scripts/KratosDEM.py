@@ -406,6 +406,7 @@ DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
 #    Procedures.FinalizeGraphs()
 
 demio.CloseMultifiles()
+demio=0
 
 os.chdir(main_path)
 
