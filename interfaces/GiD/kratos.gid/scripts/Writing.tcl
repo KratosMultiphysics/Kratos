@@ -39,10 +39,9 @@ proc write::setGroupsTypeName {name} {
 
 # Write Events
 proc write::writeEvent { filename } {
-
     variable dir
     set dir [file dirname $filename]
-    
+    set errcode 0
     #set inittime [clock seconds]
     set activeapp [::apps::getActiveApp]
     
@@ -57,6 +56,7 @@ proc write::writeEvent { filename } {
     # Delegate in app
     if { [catch {eval $wevent} fid] } {
         W "Problem Writing MDPA block:\n$fid\nEnd problems"
+        set errcode 1
     }
     catch {CloseFile}
         
@@ -66,10 +66,11 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    eval $wevent
-    #if { [catch {eval $wevent} fid] } {
-    #    W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
-    #}
+    #eval $wevent
+    if {$errcode eq 0 && [catch {eval $wevent} fid] } {
+        W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
+        set errcode 1
+    }
     catch {CloseFile}
         
     #### Custom File Write ####
@@ -78,9 +79,11 @@ proc write::writeEvent { filename } {
     catch {CloseFile}
     if { [catch {eval $wevent} fid] } {
         W "Problem Writing Custom block:\n$fid\nEnd problems"
+        set errcode 1
     }
     catch {CloseFile}
         
+    return $errcode
     # set endtime [clock seconds]
     # set ttime [expr {$endtime-$inittime}]
     # W "Total time: [Duration $ttime]"

@@ -21,6 +21,8 @@ proc Fluid::write::Init { } {
 # Events
 proc Fluid::write::writeModelPartEvent { } {
     variable PartsUN
+    set err [Validate]
+    if {$err ne ""} {error $err}
     write::initWriteData $PartsUN "FLMaterials"
     write::writeModelPartData
     writeProperties
@@ -32,6 +34,24 @@ proc Fluid::write::writeModelPartEvent { } {
 }
 proc Fluid::write::writeCustomFilesEvent { } {
 
+}
+
+proc Fluid::write::Validate {} {
+    variable PartsUN
+    set err ""
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    # Check only 1 part in Parts
+    set xp1 "[apps::getRoute $PartsUN]/group"
+    if {[llength [$root selectNodes $xp1]] ne 1} {
+        set err "You must set one part.\n"
+    }
+    # Check closed volume
+    if {[CheckClosedVolume] ne 1} {
+        append err "Check boundary conditions."
+    }
+    return $err
 }
 
 # MDPA Blocks
