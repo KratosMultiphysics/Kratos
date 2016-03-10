@@ -1318,21 +1318,12 @@ class DEMIo(object):
         if (max_FEM_element_Id > max_element_Id):
             max_element_Id = max_FEM_element_Id
                        
-        # BB Coordinates from Problem Type:
-        BBMaxX = getattr(self.DEM_parameters, "BoundingBoxMaxX", 0)
-        BBMaxY = getattr(self.DEM_parameters, "BoundingBoxMaxY", 0)
-        BBMaxZ = getattr(self.DEM_parameters, "BoundingBoxMaxZ", 0)
-        BBMinX = getattr(self.DEM_parameters, "BoundingBoxMinX", 0)
-        BBMinY = getattr(self.DEM_parameters, "BoundingBoxMinY", 0)
-        BBMinZ = getattr(self.DEM_parameters, "BoundingBoxMinZ", 0)
-                        
-        if (getattr(self.DEM_parameters, "AutomaticBoundingBoxOption", 0) == "ON"):
-            BBMaxX = creator_destructor.GetHighNode()[0]
-            BBMaxY = creator_destructor.GetHighNode()[1]
-            BBMaxZ = creator_destructor.GetHighNode()[2]
-            BBMinX = creator_destructor.GetLowNode()[0]
-            BBMinY = creator_destructor.GetLowNode()[1]
-            BBMinZ = creator_destructor.GetLowNode()[2]
+        BBMaxX = creator_destructor.GetHighNode()[0]
+        BBMaxY = creator_destructor.GetHighNode()[1]
+        BBMaxZ = creator_destructor.GetHighNode()[2]
+        BBMinX = creator_destructor.GetLowNode()[0]
+        BBMinY = creator_destructor.GetLowNode()[1]
+        BBMinZ = creator_destructor.GetLowNode()[2]
             
         # BB Nodes:
         node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
