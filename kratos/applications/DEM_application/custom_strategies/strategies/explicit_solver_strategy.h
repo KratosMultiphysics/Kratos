@@ -271,7 +271,7 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
-      void SendProcessInfoToClustersModelPart(){
+      void SendProcessInfoToClustersModelPart() {
 
           ProcessInfo& r_process_info         = mpDem_model_part->GetProcessInfo();
           ProcessInfo& rClustersr_process_info = mpCluster_model_part->GetProcessInfo();
@@ -286,7 +286,7 @@ namespace Kratos
           rClustersr_process_info[NODAL_MASS_COEFF]    = r_process_info[NODAL_MASS_COEFF];
       }
 
-      void UpdateMaxIdOfCreatorDestructor(){
+      void UpdateMaxIdOfCreatorDestructor() {
           ModelPart& r_model_part            = BaseType::GetModelPart();
           int max_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( r_model_part );
           int max_FEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( *mpFem_model_part );
@@ -301,7 +301,7 @@ namespace Kratos
           bool found = false;
           const int number_of_particles = (int)rCustomListOfSphericParticles.size();
           #pragma omp parallel for
-          for (int i=0; i<number_of_particles; i++){
+          for (int i = 0; i < number_of_particles; i++) {
 
               int own_properties_id = rCustomListOfSphericParticles[i]->GetProperties().Id();
 
@@ -718,7 +718,6 @@ namespace Kratos
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                 (it)->Initialize();
             }
-
         }
 
         KRATOS_CATCH("")
@@ -727,11 +726,11 @@ namespace Kratos
     void InitializeDEMElements() {
         KRATOS_TRY
 
-        ModelPart& r_model_part               = BaseType::GetModelPart();
-        ProcessInfo& r_process_info      = r_model_part.GetProcessInfo();
+        ModelPart& r_model_part       = BaseType::GetModelPart();
+        ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
         const int number_of_particles = (int)mListOfSphericParticles.size();
         #pragma omp parallel for
-        for(int i=0; i<number_of_particles; i++){
+        for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->Initialize(r_process_info);
         }
 
@@ -747,7 +746,7 @@ namespace Kratos
         OpenMPUtils::CreatePartition(mNumberOfThreads, pTConditions.size(), this->GetElementPartition());
 
         #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++){
+        for (int k = 0; k < mNumberOfThreads; k++) {
             typename ConditionsArrayType::iterator it_begin = pTConditions.ptr_begin() + this->GetElementPartition()[k];
             typename ConditionsArrayType::iterator it_end   = pTConditions.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -896,6 +895,7 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
     void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array){
         KRATOS_TRY
@@ -918,15 +918,16 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void ResetPrescribedMotionFlags(){
+    void ResetPrescribedMotionFlags() {
         KRATOS_TRY
         ModelPart& r_model_part = BaseType::GetModelPart();
 
         NodesArrayType& r_model_part_nodes = r_model_part.Nodes();
 
         #pragma omp parallel for
-        for (int i=0; i<(int)r_model_part_nodes.size(); i++) {
-            typename NodesArrayType::iterator node_i=r_model_part_nodes.ptr_begin()+i;
+        for (int i = 0; i < (int)r_model_part_nodes.size(); i++) {
+            typename NodesArrayType::iterator node_i = r_model_part_nodes.ptr_begin() + i;
+            if (node_i->Is(BLOCKED)) continue;
             node_i->Set(DEMFlags::FIXED_VEL_X, false);
             node_i->Set(DEMFlags::FIXED_VEL_Y, false);
             node_i->Set(DEMFlags::FIXED_VEL_Z, false);
@@ -945,35 +946,35 @@ namespace Kratos
 
         for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
 
-            double vel_start=0.0, vel_stop=std::numeric_limits<double>::max();
-            if((*mesh_it).Has(VELOCITY_START_TIME)){ vel_start = (*mesh_it)[VELOCITY_START_TIME];}
-            if((*mesh_it).Has(VELOCITY_STOP_TIME)) { vel_stop  = (*mesh_it)[VELOCITY_STOP_TIME]; }
+            double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
+            if ((*mesh_it).Has(VELOCITY_START_TIME)) { vel_start = (*mesh_it)[VELOCITY_START_TIME];}
+            if ((*mesh_it).Has(VELOCITY_STOP_TIME)) { vel_stop  = (*mesh_it)[VELOCITY_STOP_TIME]; }
 
-            if(time<vel_start || time>vel_stop) continue;
+            if (time < vel_start || time > vel_stop) continue;
 
             NodesArrayType& pNodes = mesh_it->Nodes();
 
-            if((*mesh_it).Has(IMPOSED_VELOCITY_X_VALUE)){
+            if ((*mesh_it).Has(IMPOSED_VELOCITY_X_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_X, VELOCITY_X, (*mesh_it)[IMPOSED_VELOCITY_X_VALUE], pNodes);
             }
 
-            if((*mesh_it).Has(IMPOSED_VELOCITY_Y_VALUE)){
+            if ((*mesh_it).Has(IMPOSED_VELOCITY_Y_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Y, VELOCITY_Y, (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE], pNodes);
             }
 
-            if((*mesh_it).Has(IMPOSED_VELOCITY_Z_VALUE)){
+            if ((*mesh_it).Has(IMPOSED_VELOCITY_Z_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_VEL_Z, VELOCITY_Z, (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE], pNodes);
             }
 
-            if((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)){
+            if ((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_X, ANGULAR_VELOCITY_X, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_X_VALUE], pNodes);
             }
 
-            if((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)){
+            if ((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Y, ANGULAR_VELOCITY_Y, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE], pNodes);
             }
 
-            if((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)){
+            if ((*mesh_it).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
                 SetFlagAndVariableToNodes(DEMFlags::FIXED_ANG_VEL_Z, ANGULAR_VELOCITY_Z, (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE], pNodes);
             }
 
