@@ -582,11 +582,12 @@ namespace Kratos
         ParticleCreatorDestructor::Pointer& p_creator_destructor=BaseType::GetParticleCreatorDestructor();
 
         p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
-        //p_creator_destructor->MarkInitialNeighboursThatAreBeingRemoved(r_model_part);
-        if(r_process_info[CONTACT_MESH_OPTION] == 1)
+
+        if(r_process_info[CONTACT_MESH_OPTION] == 1) {
             p_creator_destructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
-        p_creator_destructor->DestroyParticles(r_model_part);
-        p_creator_destructor->DestroyContactElements(*mpContact_model_part);
+            p_creator_destructor->DestroyContactElements(*mpContact_model_part);
+        }
+        p_creator_destructor->DestroyParticles(r_model_part);        
 
         KRATOS_CATCH("")
     }
