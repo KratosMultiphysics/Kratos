@@ -502,14 +502,6 @@ class Procedures(object):
             # plt.ylabel(entries[i])
             # plt.title('Evolution of ' + entries[i] + ' in time')
             # plt.savefig(entries[i] + '.pdf')
-
-    def SetPredefinedSkin(self, spheres_model_part):
-
-        for element in spheres_model_part.Elements:
-
-            if (element.GetNode(0).GetSolutionStepValue(PREDEFINED_SKIN) > 0.0):  # PREDEFINED_SKIN is a double
-
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 
     def SetCustomSkin(self,spheres_model_part):
     
@@ -1019,7 +1011,7 @@ class DEMIo(object):
         self.PostDampForces               = getattr(self.DEM_parameters, "PostDampForces", 0)
         self.PostRadius                   = getattr(self.DEM_parameters, "PostRadius", 0)
         self.PostExportId                 = getattr(self.DEM_parameters, "PostExportId", 0)
-        self.PostExportSkinSphere         = getattr(self.DEM_parameters, "PostExportSkinSphere", 0)
+        self.PostSkinSphere               = getattr(self.DEM_parameters, "PostSkinSphere", 0)
         self.PostAngularVelocity          = getattr(self.DEM_parameters, "PostAngularVelocity", 0)
         self.PostParticleMoment           = getattr(self.DEM_parameters, "PostParticleMoment", 0)
         self.PostEulerAngles              = getattr(self.DEM_parameters, "PostEulerAngles", 0)
@@ -1047,7 +1039,7 @@ class DEMIo(object):
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
   
-    def PushPrintVar(self,variable,name,print_list):
+    def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
             print_list.append(name)
 
@@ -1061,7 +1053,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
-        self.PushPrintVar(self.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
+        self.PushPrintVar(self.PostSkinSphere,       SKIN_SPHERE,                  self.spheres_variables)
         #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)  # Debugging
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
