@@ -52,7 +52,8 @@ proc AfterTransformProblemType { filename oldproblemtype newproblemtype } {
 }
 
 proc AfterWriteCalcFileGIDProject { filename errorflag } {
-    ::write::writeEvent $filename
+    set errcode [::write::writeEvent $filename]
+    if {$errcode} {return "-cancel-"}
 }
 
 ##########################################################
