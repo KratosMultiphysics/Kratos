@@ -606,7 +606,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
         KRATOS_TRY
               
@@ -641,7 +641,7 @@ namespace Kratos {
             }
         }
         KRATOS_CATCH("")
-    }
+    }*/
     
     /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
@@ -701,52 +701,63 @@ namespace Kratos {
         KRATOS_CATCH("")
     }*/
     
-    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
+    void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
         KRATOS_TRY
         
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
         ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
 
-        //Add the ones not marked with TO_ERASE
         if(rElements.size() != rNodes.size()) {
             KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
         }
-        
-        KRATOS_WATCH("******************************************************************")
-        Configure::ElementsContainerType::ptr_iterator particle_pointer = rElements.ptr_begin() + rElements.size() -1;
-        
-        KRATOS_WATCH( particle_pointer)
-                
+                                
         int good_elems_counter = 0;
         
         for(int k=0; k < (int)rElements.size(); k++) {
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
-            
-            if ((*node_pointer_it)->IsNot(TO_ERASE) || (*particle_pointer_it)->IsNot(TO_ERASE)) {
+            Configure::ElementsContainerType::ptr_iterator element_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodeType&  node = (*element_pointer_it)->GetGeometry()[0];
+                        
+            if (node.IsNot(TO_ERASE) && (*element_pointer_it)->IsNot(TO_ERASE)) {
   	        if(k != good_elems_counter){
-                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*particle_pointer_it);
-                    *(rNodes.ptr_begin()    + good_elems_counter) = boost::move(*node_pointer_it);
+                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*element_pointer_it);
                 }
                 good_elems_counter++;                                
             }
             else{
-                (*particle_pointer_it).reset();
-                (*node_pointer_it).reset();                
+                (*element_pointer_it).reset();
+                node.Set(TO_ERASE, true);
             }            
         }   
-        KRATOS_WATCH( (*(rElements.ptr_begin() + rElements.size() -1))->Id() )
         
-        //for(int k=(int)rElements.size()-1; k >= 0; k--) {
+        int good_nodes_counter = 0;
+        
+        for(int k=0; k < (int)rNodes.size(); k++) {
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            if ((*node_pointer_it)->IsNot(TO_ERASE)) {
+  	        if(k != good_nodes_counter){
+                    *(rNodes.ptr_begin() + good_nodes_counter) = boost::move(*node_pointer_it);
+                }
+                good_nodes_counter++;                                
+            }
+            else{ (*node_pointer_it).reset(); }    
+            
+        }
+        
+        if(good_elems_counter != good_nodes_counter) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of removed elements and the number of removed nodes were not the same!", 0);
+        }               
           
-        rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end()-1);
-        rNodes.erase(rNodes.ptr_begin() + good_elems_counter, rNodes.ptr_end()-1);  
+        if((int)rElements.size() != good_elems_counter){
+            rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        }
         
-        KRATOS_WATCH( (*(rElements.ptr_begin() + rElements.size() -1))->Id() )
-        
+        if((int)rNodes.size() != good_nodes_counter){
+            rNodes.erase(rNodes.ptr_begin() + good_nodes_counter, rNodes.ptr_end());  
+        }    
+                
         KRATOS_CATCH("")
-    }     */   
+    }      
 
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
@@ -852,7 +863,7 @@ namespace Kratos {
         }
 
         #pragma omp parallel for
-        for(int k=0; k<(int)rNodes.size(); k++){
+        for(int k=0; k<(int)rNodes.size(); k++){ //TODO: Can we remove this loop? For DEM it is useless. The job was done in the previous loop. Try it.
             ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;                
 
             if ((*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
@@ -884,20 +895,15 @@ namespace Kratos {
             Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k; 
 
             if ((*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE)) {
-
                 Element* p_element = particle_pointer_it->get();
                 SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*> (p_element);
-                std::vector<ParticleContactElement*>& node_to_neigh_element_pointer = p_continuum_spheric_particle->mBondElements;
-                unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
-                for (unsigned int i = 0; i < number_of_contact_elements; i++) {
-                    ParticleContactElement* p_to_contact_element = node_to_neigh_element_pointer[i];
-                    if (p_to_contact_element != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
-                        p_to_contact_element->Set(TO_ERASE);
+                std::vector<ParticleContactElement*>& array_of_bonds = p_continuum_spheric_particle->mBondElements;
+                for (unsigned int i = 0; i < array_of_bonds.size(); i++) {
+                    if (array_of_bonds[i] != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
+                        array_of_bonds[i]->Set(TO_ERASE);
                     }
                 }
-
             }
-
         }
 
         KRATOS_CATCH("")
