@@ -10,16 +10,7 @@ proc Fluid::write::writeParametersEvent { } {
     set nDim [expr [string range [write::getValue nDim] 0 0] ]
     dict set problemDataDict DomainSize $nDim
     
-    # Parallelization
-    set paralleltype [write::getValue FLParallelization ParallelSolutionType]
-    if {$paralleltype eq "OpenMP"} {
-        set nthreads [write::getValue FLParallelization OpenMPNumberOfThreads]
-        dict set problemDataDict NumberofThreads [expr $nthreads]
-    } else {
-        set nthreads [write::getValue FLParallelization MPINumberOfProcessors]
-        dict set problemDataDict NumberofProcessors [expr $nthreads]
-    }
-    
+   
     # Time Parameters
     dict set problemDataDict start_step [expr [write::getValue FLTimeParameters StartTime] ]
     dict set problemDataDict end_time [expr [write::getValue FLTimeParameters EndTime]]
@@ -61,17 +52,19 @@ proc Fluid::write::writeParametersEvent { } {
     dict set restartDict Restart_Step 0
     dict set projectParametersDict restart_options $restartDict
     
-    # restart options
-    set modelDict [dict create]
-    dict set modelDict input_type "mdpa"
-    dict set modelDict input_filename $model_name
-    dict set projectParametersDict model_import_settings $modelDict
     
     # Solver settings
     set solverSettingsDict [dict create]
     dict set solverSettingsDict solver_type navier_stokes_solver_fractionalstep
     dict set solverSettingsDict DomainSize $nDim
     dict set solverSettingsDict echo_level 1
+    
+    # model import settings
+    set modelDict [dict create]
+    dict set modelDict input_type "mdpa"
+    dict set modelDict input_filename $model_name
+    dict set solverSettingsDict model_import_settings $modelDict
+    
     
     set solverSettingsDict [getSolutionStrategyParameters $solverSettingsDict]
     set solverSettingsDict [getSolversParameters $solverSettingsDict]
