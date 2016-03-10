@@ -761,23 +761,27 @@ namespace Kratos {
 
 
     void ParticleCreatorDestructor::DestroyContactElements(ModelPart& r_model_part) {
-        KRATOS_TRY
-
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();        
-
-        ElementsArrayType temp_bond_elements_container;
-        temp_bond_elements_container.reserve(rElements.size());
-        temp_bond_elements_container.swap(rElements);
+        KRATOS_TRY                        
         
-        rElements.clear();
-
-        //Add the ones not marked with TO_ERASE
-        for(int k=0; k<(int)temp_bond_elements_container.size(); k++) {
-            Configure::ElementsContainerType::ptr_iterator element_pointer_it = temp_bond_elements_container.ptr_begin() + k;
-            if (!(*element_pointer_it)->Is(TO_ERASE)) {
-                (rElements).push_back(boost::move(*element_pointer_it) ); //adding the elements               
+        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+                            
+        int good_elems_counter = 0;
+        
+        for(int k=0; k < (int)rElements.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator element_pointer_it = rElements.ptr_begin() + k;
+                        
+            if ((*element_pointer_it)->IsNot(TO_ERASE)) {
+  	        if(k != good_elems_counter){
+                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*element_pointer_it);
+                }
+                good_elems_counter++;                                
             }
-        }
+            else{
+                (*element_pointer_it).reset();
+            }            
+        }   
+        
+        if((int)rElements.size() != good_elems_counter){ rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end()); }
                 
         KRATOS_CATCH("")
     }
