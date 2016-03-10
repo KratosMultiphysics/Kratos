@@ -62,14 +62,14 @@ namespace Kratos {
             array_1d<double, 3> other_to_me_vect;
             noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
 
-            GeometryFunctions::normalize(other_to_me_vect_total);
+            GeometryFunctions::normalize(other_to_me_vect);
                     
             DEM_ADD_SECOND_TO_FIRST(other_to_me_vect_total, other_to_me_vect)
         }
         
         double other_to_me_vect_total_modulus = DEM_MODULUS_3(other_to_me_vect_total);
         
-        if (other_to_me_vect_total_modulus > 0.95) {
+        if (other_to_me_vect_total_modulus > 0.9) {
             this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1;
         }
     } // SearchSkinParticles
@@ -354,15 +354,11 @@ namespace Kratos {
         
         SphericParticle::FinalizeSolutionStep(r_process_info);
                 
-        //Update sphere mass and inertia taking into acount the real volume of the represented volume:
+        //Update sphere mass and inertia taking into account the real volume of the represented volume:
         SetMass(this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * GetDensity());
         if (this->Is(DEMFlags::HAS_ROTATION) ){
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
-        
-        if (r_process_info[PRINT_SKIN_SPHERE] == 1) {
-            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(*mSkinSphere);
-        }        
 
         // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
         KRATOS_CATCH("")
