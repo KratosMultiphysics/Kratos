@@ -41,6 +41,7 @@ void  AddKratosParametersToPython()
         .def("AddValue", &Parameters::AddValue)
         .def("AddEmptyValue", &Parameters::AddEmptyValue)
         .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
+        .def("RecursivelyValidateAndAssignDefaults",&Parameters::RecursivelyValidateAndAssignDefaults)
         //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
         .def("IsNumber", &Parameters::IsNumber)
         .def("IsDouble", &Parameters::IsDouble)
@@ -64,20 +65,6 @@ void  AddKratosParametersToPython()
         .def("__setitem__", &Parameters::SetArrayItem)
         .def("__getitem__", &Parameters::GetArrayItem)
         ; 
-
-//     class_<KratosParameters, KratosParameters::Pointer>("KratosParameters", init<std::string>())
-//         .def(init<KratosParameters const&>())
-//         .def("WriteJsonString", &KratosParameters::WriteJsonString)
-//         .def("PrettyPrintJsonString", &KratosParameters::PrettyPrintJsonString)
-//         .def("GetValue", &KratosParameters::GetValue)
-//         .def("Has", &KratosParameters::Has)
-//         .def("__setitem__", &KratosParameters::SetValue)
-//         .def("__getitem__", &KratosParameters::GetValue)
-//         .def("__setitem__", &KratosParameters::SetArrayItem)
-//         .def("__getitem__", &KratosParameters::GetArrayItem)        
-//         ;   
-
-  
 
 
 }
