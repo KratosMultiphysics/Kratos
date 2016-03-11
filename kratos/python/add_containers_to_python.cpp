@@ -397,6 +397,8 @@ void  AddContainersToPython()
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
     AddLegacyStructuralAppVarsToPython();
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE );
+    
     // These should be moved to applications
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POWER_LAW_N);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( POWER_LAW_K);
