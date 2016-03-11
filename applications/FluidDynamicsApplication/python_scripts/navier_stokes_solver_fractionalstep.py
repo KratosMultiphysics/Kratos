@@ -39,10 +39,6 @@ class NavierStokesSolver_FractionalStep:
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_iteration": false,
-            "material_properties":{
-                    "density" : 1.0,
-                    "viscosity" : 1.0
-            },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
             "model_import_settings": {
@@ -68,7 +64,6 @@ class NavierStokesSolver_FractionalStep:
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.settings["material_properties"].ValidateAndAssignDefaults(default_settings["material_properties"])
         
         #construct the linear solvers
         import linear_solver_factory
@@ -158,12 +153,6 @@ class NavierStokesSolver_FractionalStep:
         
         
         compute_model_part = self.GetComputeModelPart()
-
-        #read material material_properties
-        
-        for node in self.main_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,self.settings["material_properties"]["density"].GetDouble())
-            node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,0,self.settings["material_properties"]["viscosity"].GetDouble())
         
         MoveMeshFlag = False
         
