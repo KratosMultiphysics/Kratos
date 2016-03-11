@@ -800,10 +800,11 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 			p_model_part->SetParentModelPart(this);
 			delete p_model_part->mpVariablesList;
 			p_model_part->mpVariablesList = mpVariablesList;
+                        p_model_part->mBufferSize = this->mBufferSize;
 			return *(mSubModelParts.insert(p_model_part));
 		}
 		else
-KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
+                    KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
 			// Here a warning would be enough. To be disscussed. Pooyan.
 			//KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
 	}
