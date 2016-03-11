@@ -64,6 +64,16 @@ wrong_spelling = """{
     "level1": 0.0
 }"""
 
+#wrong on the first level
+#error shall be only detective by recursive validation
+wrong_lev2 = """{
+    "int_value": 10,
+    "double_value": 2.0,
+    "bool_value": true,
+    "string_value": "hello",
+    "level1": { "a":0.0 }
+}"""
+
 defaults = """
 {
 	"int_value": 10,
@@ -195,7 +205,20 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "kratos"):
             kp.ValidateAndAssignDefaults(defaults_params)
             
-
+    def test_recursive_validation_fails_error_on_first_level(self):
+        kp = Parameters(wrong_lev2)
+        defaults_params =  Parameters(defaults)
+        
+        # should check which errors are thrown!!
+        with self.assertRaisesRegex(RuntimeError, "kratos"):
+            kp.RecursivelyValidateAndAssignDefaults(defaults_params)
+            
+    def test_validation_succeds_error_on_first_level(self):
+        kp = Parameters(wrong_lev2)
+        defaults_params =  Parameters(defaults)
+        
+        #here no error shall be thrown since validation is only done on level0
+        kp.ValidateAndAssignDefaults(defaults_params)
      
     def test_validation_succeeds(self):
         kp = Parameters(json_string)
