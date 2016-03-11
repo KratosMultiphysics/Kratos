@@ -107,6 +107,13 @@ public:
         mdirection[1] = parameters["direction"][1].GetDouble();
         mdirection[2] = parameters["direction"][2].GetDouble();
         
+        const double dim_norm = norm_2(mdirection);
+        if(dim_norm < 1e-20)
+            KRATOS_THROW_ERROR(std::runtime_error," norm of direction given is approximately zero. Please give a direction vector with a non zero norm : current value of direction vector = ",mdirection)
+        
+        //normalize the direction
+        mdirection /= dim_norm;
+            
         if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name)
         Variable<array_1d<double,3> > rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
