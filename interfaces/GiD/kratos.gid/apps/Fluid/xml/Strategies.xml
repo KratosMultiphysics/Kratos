@@ -10,9 +10,9 @@
     
     <!-- list of options to be filled -->
     <parameter_list>
-	  <parameter n="PredictorCorrector" pn="Predictor corrector" type="bool" v="False" help=""/>  
-	  <parameter n="MaximumVelocityIterations" pn="Maximum velocity iterations" type="integer" v="4" help=""/>  
-	  <parameter n="MaximumPressureIterations" pn="Maximum pressure iterations" type="integer" v="4" help=""/>  
+	  <parameter n="predictor_corrector" pn="Predictor corrector" type="bool" v="False" help=""/>  
+	  <parameter n="maximum_velocity_iterations" pn="Maximum velocity iterations" type="integer" v="4" help=""/>  
+	  <parameter n="maximum_pressure_iterations" pn="Maximum pressure iterations" type="integer" v="4" help=""/>  
     </parameter_list>
     
     <linearSolvers>

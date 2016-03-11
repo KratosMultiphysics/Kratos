@@ -56,7 +56,7 @@ proc Fluid::write::writeParametersEvent { } {
     # Solver settings
     set solverSettingsDict [dict create]
     dict set solverSettingsDict solver_type navier_stokes_solver_fractionalstep
-    dict set solverSettingsDict DomainSize $nDim
+    ##dict set solverSettingsDict DomainSize $nDim
     dict set solverSettingsDict echo_level 1
     
     # model import settings
@@ -79,7 +79,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set solverSettingsDict maximum_pressure_iterations [expr 3]
     dict set solverSettingsDict predictor_corrector false
     dict set solverSettingsDict echo_level 1
-    dict set solverSettingsDict DomainSize $nDim 
+    ##dict set solverSettingsDict DomainSize $nDim 
     dict set solverSettingsDict consider_periodic_conditions false
     dict set solverSettingsDict time_order 2
     dict set solverSettingsDict dynamic_tau 0.001
