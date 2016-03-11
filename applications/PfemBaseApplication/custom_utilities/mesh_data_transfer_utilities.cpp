@@ -429,7 +429,9 @@ namespace Kratos
 		    //elemental value
 		    (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
 
-		    for(unsigned int j=1; j<integration_points_number; j++)
+		    std::fill(NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0 );
+
+		    for(unsigned int j=0; j<integration_points_number; j++)
 		      {
 			N = row( Ncontainer, j );
 
@@ -456,7 +458,13 @@ namespace Kratos
 		    //elemental value
 		    (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
 
-		    for(unsigned int j=1; j<integration_points_number; j++)
+		    for(unsigned int j=0; j<integration_points_number; j++)
+		      {
+			NodesArray1DVariableArray[j].clear();
+		      }
+
+		    
+		    for(unsigned int j=0; j<integration_points_number; j++)
 		      {
 			N = row( Ncontainer, j );
 
@@ -483,7 +491,13 @@ namespace Kratos
 		    //elemental value
 		    (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
 
-		    for(unsigned int j=1; j<integration_points_number; j++)
+
+		    for(unsigned int j=0; j<integration_points_number; j++)
+		      {
+			NodesVectorVariableArray[j] = ZeroVector();
+		      }
+
+		    for(unsigned int j=0; j<integration_points_number; j++)
 		      {
 			N = row( Ncontainer, j );
 
@@ -512,7 +526,13 @@ namespace Kratos
 		    //elemental value
 		    (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 
-		    for(unsigned int j=1; j<integration_points_number; j++)
+		    for(unsigned int j=0; j<integration_points_number; j++)
+		      {
+			NodesMatrixVariableArray[j] = ZeroMatrix();
+		      }
+
+
+		    for(unsigned int j=0; j<integration_points_number; j++)
 		      {
 			N = row( Ncontainer, j );
 
@@ -574,7 +594,7 @@ namespace Kratos
 	      {
 	     
 	    	(ie)->GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
-	    
+		computed_value = ComputedValues[0];
 		for(unsigned int j=1; j<integration_points_number; j++)
 		  {
 		    computed_value += ComputedValues[j];
@@ -633,7 +653,9 @@ namespace Kratos
 		      //elemental value
 		      (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
 
-		      for(unsigned int j=1; j<integration_points_number; j++)
+		      std::fill(NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0 );
+
+		      for(unsigned int j=0; j<integration_points_number; j++)
 			{
 			  N = row( Ncontainer, j );
 
@@ -659,8 +681,12 @@ namespace Kratos
 		    	      
 		      //elemental value
 		      (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+		      for(unsigned int j=0; j<integration_points_number; j++)
+			{
+			  NodesArray1DVariableArray[j].clear();
+			}
 
-		      for(unsigned int j=1; j<integration_points_number; j++)
+		      for(unsigned int j=0; j<integration_points_number; j++)
 			{
 			  N = row( Ncontainer, j );
 
@@ -687,7 +713,12 @@ namespace Kratos
 		      //elemental value
 		      (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
 
-		      for(unsigned int j=1; j<integration_points_number; j++)
+		      for(unsigned int j=0; j<integration_points_number; j++)
+			{
+			  NodesVectorVariableArray[j] = ZeroVector();
+			}
+
+		      for(unsigned int j=0; j<integration_points_number; j++)
 			{
 			  N = row( Ncontainer, j );
 
@@ -716,7 +747,12 @@ namespace Kratos
 		      //elemental value
 		      (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 
-		      for(unsigned int j=1; j<integration_points_number; j++)
+		      for(unsigned int j=0; j<integration_points_number; j++)
+			{
+			  NodesMatrixVariableArray[j] = ZeroMatrix();
+			}
+
+		      for(unsigned int j=0; j<integration_points_number; j++)
 			{
 			  N = row( Ncontainer, j );
 
@@ -788,11 +824,12 @@ namespace Kratos
 
 	    	  double Area         = 0;
 	    	  double ElementArea  = 0;
-		
-	    	  for(unsigned int i=0; i < neighb_elems.size(); i++)
+		  std::fill( NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0);
+
+	    	  for(unsigned int ne=0; ne < neighb_elems.size(); ne++)
 	    	    {		    
 
-		      rGeometry   = neighb_elems[i].GetGeometry();
+		      rGeometry   = neighb_elems[ne].GetGeometry();
 		      ElementArea = rGeometry.Area();
 		      Area += ElementArea;			 
 		      
@@ -800,7 +837,8 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); i++)
 			{			  
 			  //elemental value
-			  neighb_elems[i].GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);   
+			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);   
+			  NodesDoubleVariableArray[i] = ElementDoubleVariableArray[0];
 			  for(unsigned int j=1; j<integration_points_number; j++)
 			    {
 			      NodesDoubleVariableArray[i] += ElementDoubleVariableArray[j];
@@ -814,7 +852,8 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
 			{			  
 			  //elemental value
-			  neighb_elems[i].GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+			  NodesArray1DVariableArray[i] = ElementArray1DVariableArray[0];
 			  for(unsigned int j=1; j<integration_points_number; j++)
 			    {
 			      NodesArray1DVariableArray[i] += ElementArray1DVariableArray[j];
@@ -827,7 +866,8 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
 			{			  
 			  //elemental value
-			  neighb_elems[i].GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+			  NodesVectorVariableArray[i] = ElementVectorVariableArray[0];
 			  for(unsigned int j=1; j<integration_points_number; j++)
 			    {
 			      NodesVectorVariableArray[i] += ElementVectorVariableArray[j];
@@ -840,7 +880,8 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
 			{			  
 			  //elemental value
-			  neighb_elems[i].GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+			  NodesMatrixVariableArray[i] = ElementMatrixVariableArray[0];
 			  for(unsigned int j=1; j<integration_points_number; j++)
 			    {
 			      NodesMatrixVariableArray[i] += ElementMatrixVariableArray[j];
