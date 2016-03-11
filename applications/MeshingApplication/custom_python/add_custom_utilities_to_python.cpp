@@ -22,7 +22,7 @@
 #include "custom_utilities/binbased_projection.h"
 
 //#include "custom_utilities/GenerateModelPartUtilities.h"
-#include "custom_utilities/connectivity_preserve_modeler.h"
+
 #include "custom_utilities/local_triangle_refine_mesh.h"
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
 #include "custom_utilities/tetgen_volume_mesher.h"
@@ -57,18 +57,7 @@ namespace Python
 //            }
 //        }
 
-void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
-{
-    if( !KratosComponents< Element >::Has( ElementName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", ElementName);
-    if( !KratosComponents< Condition >::Has( ConditionName ) )
-        KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
 
-    GM.GenerateModelPart(origin_model_part, destination_model_part,
-                         KratosComponents<Element>::Get(ElementName),
-                         KratosComponents<Condition>::Get(ConditionName));
-
-}
 
 void AddCustomUtilitiesToPython()
 {
@@ -112,9 +101,7 @@ void AddCustomUtilitiesToPython()
 //            class_<GenerateModelPartUtilities, boost::noncopyable > ("GenerateModelPartUtilities", init< >())
 //                    .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
 
-    class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
-    .def("GenerateModelPart", GenerateModelPart)
-    ;
+
 
     class_<Local_Refine_Triangle_Mesh, boost::noncopyable >
     ("LocalRefineTriangleMesh", init<ModelPart&>())
