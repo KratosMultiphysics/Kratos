@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Solvers>
+    <solver n="AMGCL" pn="AMGCL">
+        <inputs>
+            <parameter n="max_iteration" pn="Max iterations" type="integer" v="100" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-6" help=""/>
+            <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/> 
+            <parameter n="smoother_type" pn="Smoother type" type="combo" values="spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev" pvalues="spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev" v="ILU0" help=""/>
+            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres, cg, bicgstab, bicgstabl, bicgstab_with_gmres_fallback" pvalues="gmres, cg, bicgstab, bicgstabl, bicgstab_with_gmres_fallback" v="gmres" help=""/>
+            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" pvalues="ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" v="aggregation" help=""/>
+            <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
+            <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
+        </inputs>
+    </solver>
     <solver n="Super_LU" pn="Super LU">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
@@ -11,7 +23,7 @@
     <solver n="Conjugate_gradient" pn="Conjugate Gradient">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
-            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-9" help=""/>
 			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
 			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
 			<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
@@ -20,7 +32,7 @@
     <solver n="GMRES" pn="GMRES">
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
-            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
+            <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-9" help=""/>
 			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
 			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
@@ -31,18 +43,6 @@
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
-            <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
-        </inputs>
-    </solver>
-    <solver n="AMGCL" pn="AMGCL">
-        <inputs>
-            <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
-            <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
-            <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/>
-            <parameter n="smoother_type" pn="Smoother type" type="combo" values="ILU0, DAMPED_JACOBI, SPAI, GAUSS_SEIDEL" pvalues="ILU0, Damped jacobi, SPAI, Gauss Seidel" v="ILU0" help=""/>
-            <parameter n="krylov_type" pn="Krylov type" type="combo" values="GMRES,BICGSTAB,CG" v="GMRES" help=""/>
-            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="AGGREGATION,RUGE_STUBEN, SA, SA_EMIN" pvalues="Aggregation,Ruge stuben,SA,SA_Emin" v="AGGREGATION" help=""/>
-            <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
