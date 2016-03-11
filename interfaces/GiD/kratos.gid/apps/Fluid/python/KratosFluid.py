@@ -1,409 +1,159 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Activate it to import in the gdb path:
-# import sys
-# sys.path.append('/home/jmaria/kratos')
-# x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
 
-#
-# ***************GENERAL MAIN OF THE ANALISYS****************###
-#
-
-# time control starts
-from time import *
-print(ctime())
-# measure process time
-t0p = clock()
-# measure wall time
-t0w = time()
-
-# ----------------------------------------------------------------#
-# --CONFIGURATIONS START--####################
-# Import the general variables read from the GiD
-import ProjectParameters as general_variables
-
-# setting the domain size for the problem to be solved
-domain_size = general_variables.DomainSize
-
-# including kratos path
 from KratosMultiphysics import *
-
-# including Applications paths
-from KratosMultiphysics.SolidMechanicsApplication  import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.MeshingApplication import *
+
+######################################################################################
+######################################################################################
+######################################################################################
+##PARSING THE PARAMETERS
+import define_output
+
+parameter_file = open("ProjectParameters.json",'r')
+ProjectParameters = Parameters( parameter_file.read())
+
+DomainSize = ProjectParameters["problem_data"]["DomainSize"].GetInt()
+
+## defining a model part for the fluid
+main_model_part = ModelPart(ProjectParameters["problem_data"]["ModelPartName"].GetString())
+
+###TODO replace this "model" for real one once available
+Model = {ProjectParameters["problem_data"]["ModelPartName"].GetString() : main_model_part}
+
+#construct the solver
+solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
+solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+
+solver.AddVariables()
+
+#obtain the list of the processes to be applied
+process_definition = Parameters(ProjectParameters["boundary_conditions_process_list"])
+
+###read the model - note that SetBufferSize is done here
+solver.ImportModelPart()
+
+###add AddDofs
+solver.AddDofs()
 
 
-# import the python utilities:
-import restart_utility           as restart_utils
-import gid_output_utility        as gid_utils
-
-import conditions_python_utility as condition_utils
-import list_files_python_utility as files_utils
-
-import time_operation_utility    as operation_utils
-import solving_info_utility      as solving_info_utils
-
-# ------------------------#--FUNCTIONS START--#------------------#
-# ---------------------------------------------------------------#
-# --TIME MONITORING START--##################
-def StartTimeMeasuring():
-    # measure process time
-    time_ip = clock()
-    return time_ip
-
-def StopTimeMeasuring(time_ip, process, report):
-    # measure process time
-    time_fp = clock()
-    if( report ):
-        used_time = time_fp - time_ip
-        print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
-# --TIME MONITORING END --###################
-
-# --SET NUMBER OF THREADS --#################
-
-def SetParallelSize(num_threads):
-    parallel = OpenMPUtils()
-    parallel.SetNumThreads(int(num_threads))
-    print("::[KSM Simulation]:: OMP USING",num_threads,"THREADS ]")
-    #parallel.PrintOMPInfo()
-    print(" ")
-
-# --SET NUMBER OF THREADS --#################
-
-# ------------------------#--FUNCTIONS END--#--------------------#
-# ---------------------------------------------------------------#
-
-# defining the type, the name and the path of the problem:
-problem_name    = general_variables.ProblemName
-model_part_name = general_variables.ModelPartName
-echo_level      = general_variables.EchoLevel
-problem_path    = os.getcwd() #current path
+##here all of the allocation of the strategies etc is done
+solver.Initialize()
 
 
-# defining a model part
-model_part = ModelPart(model_part_name)
+##TODO: replace MODEL for the Kratos one ASAP
+##get the list of the submodel part in the object Model
+for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
+    part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
-# defining solver settings
-SolverSettings = general_variables.SolverSettings
+#TODO: decide which is the correct place to initialize the processes 
+list_of_processes = []
+process_definition = ProjectParameters["boundary_conditions_process_list"]
+for i in range(process_definition.size()):
+    item = process_definition[i]
+    module = __import__(item["implemented_in_module"].GetString())
+    interface_file = __import__(item["implemented_in_file"].GetString())
+    p = interface_file.Factory(item, Model)
+    list_of_processes.append( p )
+    print("done ",i)
+            
 
-# defining the model size to scale
-length_scale = 1.0
-
-# --READ AND SET MODEL FILES--###############
-
-# set the restart of the problem
-restart_step = general_variables.Restart_Step
-problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
-
-# set the results file list of the problem (managed by the problem_restart and gid_print)
-print_lists = general_variables.PrintLists
-output_mode = general_variables.GidOutputConfiguration.GiDPostMode
-list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode)
-list_files.Initialize(general_variables.file_list)
-
-# --READ AND SET MODEL FILES END--############
-
-
-# --DEFINE CONDITIONS START--#################
-#incr_disp = general_variables.Incremental_Displacement
-#incr_load = general_variables.Incremental_Load
-#rotation_dofs = SolverSettings.RotationDofs
-#conditions    = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load, rotation_dofs)
-
-# --DEFINE CONDITIONS END--###################
-
-
-# --GID OUTPUT OPTIONS START--###############
-# set gid print options
-gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutputConfiguration)
-
-# --GID OUTPUT OPTIONS END--##################
-
-# start problem initialization:
-print(" ")
-
-# defining the number of threads:
-num_threads = general_variables.NumberofThreads
-SetParallelSize(num_threads)
-
-# --DEFINE MAIN SOLVER START--################
-
-# import solver file
-solver_constructor = __import__(SolverSettings.solver_type)
-
-# construct the solver
-main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
-
-# --DEFINE MAIN SOLVER END--##################
-
-
-# --CONFIGURATIONS END--######################
-# ----------------------------------------------------------------#
-
-
-# --START SOLUTION--######################
-#
-# initialize problem : load restart or initial start
-load_restart = general_variables.LoadRestart
-save_restart = general_variables.SaveRestart
-
-# set buffer size
-buffer_size = main_step_solver.buffer_size
-
-# define problem variables:
-solver_constructor.AddVariables(model_part, SolverSettings)
-
-
-# --- READ MODEL ------#
-if(load_restart == False):
-
-    print("::[KSM Simulation]:: Reading -START- (MDPA FILE) ")
-
-    # remove results, restart, graph and list previous files
-    problem_restart.CleanPreviousFiles()
-    list_files.RemoveListFiles()
-
-    # reading the model
-    model_part_io = ModelPartIO(problem_name)
-    model_part_io.ReadModelPart(model_part)
-
-    # set the buffer size
-    model_part.SetBufferSize(buffer_size)
-    # Note: the buffer size should be set once the mesh is read for the first time
-
-    print("::[KSM Simulation]:: Reading -END- ")
-
-    model_part.ProcessInfo[LOAD_RESTART] = 0
-
-    # set the degrees of freedom
-    solver_constructor.AddDofs(model_part, SolverSettings)
-
-    # set the constitutive law
-    import constitutive_law_python_utility as constitutive_law_utils
-
-    constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
-    constitutive_law.Initialize();
-
-
-else:
-
-    print("::[KSM Simulation]:: Reading -RESTART- (RESTART FILE ",restart_step,")- ")
-
-    # reading the model from the restart file
-    problem_restart.Load(restart_step);
-
-    print("::[KSM Simulation]:: Reading -END- ")
-
-    model_part.ProcessInfo[LOAD_RESTART] = 1
-
-    # remove results, restart, graph and list posterior files
-    problem_restart.CleanPosteriorFiles(restart_step)
-    list_files.ReBuildListFiles()
-
-
-
-##RICCARDO: construct the processes start
-Model = { "Structure": model_part } #TODO: replace for the real MODEL when available
-
-print(model_part)
-import process_factory
-constructed_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( general_variables.constraints_process_list )
-
-#print list of constructed processes
-for process in constructed_processes:
-    print(process)
-
-constructed_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( general_variables.loads_process_list )
-for process in constructed_processes:
+for process in list_of_processes:
+    print("a")
     process.ExecuteInitialize()
-##RICCARDO: construct the processes end
+    print("b")
 
-# set mesh searches and modeler
-# modeler.InitializeDomains();
-
-# if(load_restart == False):
-    # find nodal h
-    # modeler.SearchNodalH();
+#TODO: think if there is a better way to do this
+fluid_model_part = solver.GetComputeModelPart()
 
 
-# --- PRINT CONTROL ---#
+# initialize GiD  I/O
+from gid_output import GiDOutput
+output_settings = ProjectParameters["output_configuration"]
+gid_io = GiDOutput(output_settings["output_filename"].GetString(),
+                   output_settings["VolumeOutput"].GetBool(),
+                   output_settings["GiDPostMode"].GetString(),
+                   output_settings["GiDMultiFileFlag"].GetString(),
+                   output_settings["GiDWriteMeshFlag"].GetBool(),
+                   output_settings["GiDWriteConditionsFlag"].GetBool())
+output_time = output_settings["output_time"].GetDouble()
 
-if(echo_level>1):
-    print("")
-    print(model_part)
-    print(model_part.Properties[1])
-
-
-# --INITIALIZE--###########################
-#
-
-# set delta time in process info
-model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
-
-# solver initialize
-main_step_solver.Initialize()
-main_step_solver.SetRestart(load_restart) #calls strategy initialize if no restart
-
-# initial contact search
-# modeler.InitialContactSearch()
-
-#define time steps and loop range of steps
-time_step = model_part.ProcessInfo[DELTA_TIME]
-
-# define time steps and loop range of steps
-if(load_restart):
-
-    buffer_size = 0
-
-else:
-
-    model_part.ProcessInfo[TIME]                = 0
-    model_part.ProcessInfo[TIME_STEPS]          = 0
-    model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
-
-    #conditions.Initialize(time_step);
+gid_io.initialize_results(fluid_model_part)
 
 
-# initialize step operations
-starting_step  = model_part.ProcessInfo[TIME_STEPS]
-starting_time  = model_part.ProcessInfo[TIME]
-#ending_step    = general_variables.nsteps
-ending_time    = general_variables.end_time
+
+for process in list_of_processes:
+    process.ExecuteBeforeSolutionLoop()
+
+## Stepping and time settings
+Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
+end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
 
-output_print = operation_utils.TimeOperationUtility()
-gid_time_frequency = general_variables.GiDWriteFrequency
-output_print.InitializeTime(starting_time, ending_time, time_step, gid_time_frequency)
+time = 0.0
+step = 0
+out = 0.0
+while(time <= end_time):
 
-restart_print = operation_utils.TimeOperationUtility()
-restart_time_frequency = general_variables.RestartFrequency
-restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
+    time = time + Dt
+    step = step + 1
+    main_model_part.CloneTimeStep(time)
 
-solving_print = operation_utils.TimeOperationUtility()
-solving_time_frequency = gid_time_frequency
-solving_print.InitializeTime(starting_time, ending_time, time_step, solving_time_frequency)
+    print("STEP = ", step)
+    print("TIME = ", time)
 
-
-# --TIME INTEGRATION--#######################
-#
-
-# writing a single file
-gid_print.initialize_results(model_part)
-
-#initialize time integration variables
-current_time = starting_time
-current_step = starting_step
-
-# filling the buffer
-for step in range(0,buffer_size):
-
-  model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[DELTA_TIME] = time_step
-  model_part.ProcessInfo[TIME_STEPS] = step-buffer_size
-
-# writing a initial state results file
-current_id = 0
-if(load_restart == False): 
-    gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
-    list_files.PrintListFiles(current_id);
-
-# set solver info starting parameters
-solving_info = solving_info_utils.SolvingInfoUtility(model_part, SolverSettings)
-
-print(" ")
-print("::[KSM Simulation]:: Analysis -START- ")
-
-# solving the problem
-while(current_time < ending_time):
-
-  # store previous time step
-  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
-  # set new time step ( it can change when solve is called )
-  time_step = model_part.ProcessInfo[DELTA_TIME]
-
-  current_time = current_time + time_step
-  current_step = current_step + 1
-  model_part.CloneTimeStep(current_time)
-  model_part.ProcessInfo[TIME] = current_time
-
-  # print process information:
-  print_info = solving_print.perform_time_operation(current_time)
-  if(print_info):
-      solving_info.print_step_info(current_time,current_step)
-
-  # initialize processes (apply)
-  for process in constructed_processes:
-    process.ExecuteInitializeSolutionStep()
-
-  # solving the solid problem START
-  clock_time = StartTimeMeasuring();  
-
-  # solve time step non-linear system
-  main_step_solver.Solve()
-  
-  StopTimeMeasuring(clock_time, "Solving", False);
-  # solving the solid problem END
-
-  # finalize processes
-  for process in constructed_processes:
-    process.ExecuteFinalizeSolutionStep()
-
-  # incremental load
-  #conditions.SetIncrementalLoad(current_step, time_step);
-
-  # print the results at the end of the step
-  execute_write = output_print.perform_time_operation(current_time)
-  if(execute_write):
-      clock_time = StartTimeMeasuring();
-      current_id = output_print.operation_id()
-      # print gid output file
-      gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
-      # print on list files
-      list_files.PrintListFiles(current_id)
-      solving_info.set_print_info(execute_write, current_id)    
-      StopTimeMeasuring(clock_time, "Writing Results", False);
-
-  # print restart file
-  if(save_restart):
-      execute_save = restart_print.perform_time_operation(current_time)
-      if(execute_save):
-          clock_time = StartTimeMeasuring();
-          current_id = restart_print.operation_id()
-          problem_restart.Save(current_time, current_step, current_id)
-          solving_info.set_restart_info(execute_save,current_id)
-          StopTimeMeasuring(clock_time, "Writing Restart", False);
-
-
-  solving_info.update_solving_info()
-  if(print_info):
-      solving_info.print_solving_info()
+    if(step >= 3):
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
         
-  #conditions.RestartImposedDisp()
+        solver.Solve()
+        
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
 
-# --FINALIZE--############################
-#
+        #TODO: decide if it shall be done only when output is processed or not
+        for process in list_of_processes:
+            process.ExecuteBeforeOutputStep()
+    
+        if(output_time <= out):
+            #TODO: following lines shall not be needed once the gid_io is adapted to using the parameters
+            nodal_results = []
+            for i in range(output_settings["nodal_results"].size()):
+                nodal_results.append(output_settings["nodal_results"][i].GetString())
+            gauss_points_results = []
+            for i in range(output_settings["gauss_points_results"].size()):
+                gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
+                
+            gid_io.write_results(
+                time,
+                fluid_model_part,
+                nodal_results,
+                gauss_points_results)
+            out = 0
+        
+        
+        for process in list_of_processes:
+            process.ExecuteAfterOutputStep()
 
-# writing a single file
-gid_print.finalize_results()
+        out = out + Dt
 
-print("::[KSM Simulation]:: Analysis -END- ")
-print(" ")
+gid_io.finalize_results()
 
-# --END--###############################
-#
+for process in list_of_processes:
+    process.ExecuteFinalize()
 
-# check solving information for any problem
-solving_info.info_check()
 
-# measure process time
-tfp = clock()
-# measure wall time
-tfw = time()
 
-print("::[KSM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
 
-print(ctime())
 
-# to create a benchmark: add standard benchmark files and decomment next two lines 
-# rename the file to: run_test.py
-#from run_test_benchmark_results import *
-#WriteBenchmarkResults(model_part)
+
+
+
+
+
+
+
+
