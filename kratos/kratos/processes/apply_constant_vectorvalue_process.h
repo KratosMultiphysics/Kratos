@@ -79,10 +79,10 @@ public:
         
         //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         //so that an error is thrown if they don't exist
-        parameters["direction"];
-        parameters["factor"];
-        parameters["variable_name"];
-        parameters["model_part_name"];        
+        if(parameters["direction"].IsArray() == true && parameters["direction"].size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is not a vector or it does not have size 3. Direction vector currently passed",parameters.PrettyPrintJsonString());
+        if(parameters["factor"].IsNumber() == false)  KRATOS_THROW_ERROR(std::runtime_error,"factor shall be a number. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+        if(parameters["variable_name"].IsString()  == false)  KRATOS_THROW_ERROR(std::runtime_error,"vairbale_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+        if(parameters["model_part_name"].IsString() == false)  KRATOS_THROW_ERROR(std::runtime_error,"model_part_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
         
         //now validate agains defaults -- this also ensures no type mismatch
         parameters.ValidateAndAssignDefaults(default_parameters);
@@ -100,7 +100,7 @@ public:
         mfactor = parameters["factor"].GetDouble();
 //         mvalue = parameters["value"].GetDouble();
         
-        if( parameters["direction"].size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
+        
             
         mdirection.resize(3,false);
         mdirection[0] = parameters["direction"][0].GetDouble();
