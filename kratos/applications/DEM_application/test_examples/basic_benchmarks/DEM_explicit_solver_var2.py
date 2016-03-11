@@ -1,6 +1,4 @@
-
 # DEM General Options
-
 Dimension                        = 3
 drag_modifier_type               = 3
 project_from_particles_option    = 0
@@ -15,20 +13,15 @@ BoundingBoxMaxZ                  = 1e3
 BoundingBoxMinX                  = -1e3
 BoundingBoxMinY                  = -1e3
 BoundingBoxMinZ                  = -1e3
-
 dem_inlet_option                 = 0
 GravityX                         = 0.0
 GravityY                         = 0.0
 GravityZ                         = 0.0
-
-VelocityTrapOption                = 0
+VelocityTrapOption               = 0
 RotationOption                   = "ON"
-
 Dempack                          = "ON"
 CleanIndentationsOption          = "OFF"
-
 RemoveBallsInEmbeddedOption      = 1
-
 DeltaOption                      = "Absolute"
 SearchTolerance                  = 0.0
 CoordinationNumber               = 10
@@ -43,7 +36,6 @@ Multifile                        = "multiple_files"
 HorizontalFixVel                 = "ON"
 
 # Solution Strategy
-
 IntegrationScheme                = "Forward_Euler"
 AutoReductionOfTimeStepOption    = "OFF"
 DeltaTimeSafetyFactor            = 1.0
@@ -65,7 +57,6 @@ LocalDampingFactor               = 1.0 #0.9
 GlobalForceReduction             = 0.0 #0.2
 
 # Material Test
-
 TestType                         = "None"
 ConfinementPressure              = 0.0
 LoadingVelocityTop               = 0.0
@@ -77,11 +68,9 @@ MeshPath                         = "0"
 SpecimenLength                   = 0.30
 SpecimenDiameter                 = 0.15
 MeasuringSurface                 = 0.01767145867644375
-
 ElementType                      = "SphericContPartDEMElement3D"
 
 # PostProcess Results
-
 GraphExportFreq                  = 1e-5
 VelTrapGraphExportFreq           = 1e-3
 OutputTimeStep                   = 1e-3
@@ -95,8 +84,6 @@ PostPressure                     = "0"
 PostTotalForces                  = "1"
 PostShearStress                  = "0"
 PostNonDimensionalVolumeWear     = "0"
-#PostTemperature                  = "0"
-#PostHeatFlux                     = "0"
 PostNodalArea                    = "0"
 PostRHS                          = "1"
 PostDampForces                   = "0"
@@ -104,7 +91,7 @@ PostAppliedForces                = "0"
 PostRadius                       = "0"
 PostGroupId                      = "0"
 PostExportId                     = "0"
-PostExportSkinSphere             = "0"
+PostSkinSphere                   = "0"
 PostAngularVelocity              = 1
 PostParticleMoment               = 0
 PostEulerAngles                  = 0
@@ -117,11 +104,9 @@ PostMeanContactArea              = 0
 PostStressStrainOption           = 0
 
 # FROM CND:
-
 PredefinedSkinOption             = "OFF"
 MeanRadius                       = 0.0001
 
 # Declare Python Variables
-
 problem_name                     = "benchmark20"
 kratos_path                      = "D:\Kratos"
