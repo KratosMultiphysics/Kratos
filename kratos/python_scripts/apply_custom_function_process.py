@@ -32,10 +32,10 @@ class aux_object_cpp_callback:
         #return 0
         
 ##all the processes python processes should be derived from "python_process"
-class ApplyCustomFunctionProcess(python_process.PythonProcess):
+class ApplyCustomFunctionProcess(Process):
     def __init__(self, model_part, mesh_id, variable_name, interval, is_fixed, function_string, free_outside_of_interval=True):
-        python_process.PythonProcess.__init__(self) 
-        
+        #python_process.PythonProcess.__init__(self) 
+        Process.__init__(self) 
         self.model_part = model_part
         self.variable = globals().get(variable_name)
         self.mesh = model_part.GetMesh(mesh_id)
