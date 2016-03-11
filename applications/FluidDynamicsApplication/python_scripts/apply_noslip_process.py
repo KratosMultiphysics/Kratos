@@ -14,5 +14,9 @@ class ApplyNoSlipProcess(KratosMultiphysics.ApplyConstantVectorValueProcess):
         Parameters.AddEmptyValue("is_fixed_x").SetBool(True)
         Parameters.AddEmptyValue("is_fixed_y").SetBool(True)
         Parameters.AddEmptyValue("is_fixed_z").SetBool(True)
+        Parameters.AddEmptyValue("factor").SetDouble(0.0)
         KratosMultiphysics.ApplyConstantVectorValueProcess.__init__(self,model_part, Parameters)
+        
+        for cond in model_part.Conditions:
+            print("cond Id = ",cond.Id)
         

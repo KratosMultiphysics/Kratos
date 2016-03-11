@@ -15,12 +15,8 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
-                "avoid_recomputing_normals": false,
-                "DomainSize": 3
+                "avoid_recomputing_normals": false
             }  """ );
-
-        #oblige the user to prescribe a parameter - access to it before applying the defaults 
-        settings["DomainSize"]
         
         settings.ValidateAndAssignDefaults(default_parameters);
         
@@ -29,7 +25,7 @@ class ApplySlipProcess(KratosMultiphysics.Process):
 
         #compute the normal on the nodes of interest - note that the model part employed here is supposed to
         #only have slip "conditions"
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, settings["DomainSize"].GetInt())
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
         
         #mark the nodes and conditions with the appropriate slip flag
         #TODO: a flag shall be used here!!!!!
@@ -42,4 +38,4 @@ class ApplySlipProcess(KratosMultiphysics.Process):
     def InitializeSolutionStep(self):
         #recompute the normals
         if self.avoid_recomputing_normals == False:
-            NormalCalculationUtils().CalculateOnSimplex(self.model_part, settings["DomainSize"].GetInt())
+            NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])

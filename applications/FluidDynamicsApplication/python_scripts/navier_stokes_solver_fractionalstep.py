@@ -33,13 +33,16 @@ class NavierStokesSolver_FractionalStep:
             "maximum_pressure_iterations": 3,
             "predictor_corrector": false,
             "echo_level": 1,
-            "DomainSize": 3,
             "consider_periodic_conditions": false,
             "time_order": 2,
             "dynamic_tau": 0.001,
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_iteration": false,
+            "material_properties":{
+                    "density" : 1.0,
+                    "viscosity" : 1.0
+            },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""],
             "model_import_settings": {
@@ -65,6 +68,7 @@ class NavierStokesSolver_FractionalStep:
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings["material_properties"].ValidateAndAssignDefaults(default_settings["material_properties"])
         
         #construct the linear solvers
         import linear_solver_factory
@@ -114,6 +118,16 @@ class NavierStokesSolver_FractionalStep:
             import check_and_preparemodel_process
             check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
+            #here we read the VISCOSITY and DENSITY and we apply it to the nodes
+            for el in self.main_model_part.Elements:
+                rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+                nu = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+                break
+            
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, nu, self.main_model_part.Nodes)
+            
+            
             #if needed here we shall generate the constitutive laws
             #import constitutive_law_python_utility as constitutive_law_utils
             #constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(main_model_part, self.settings["DomainSize"]);
@@ -144,8 +158,12 @@ class NavierStokesSolver_FractionalStep:
         
         
         compute_model_part = self.GetComputeModelPart()
-        print(compute_model_part.GetBufferSize())
-        print(self.main_model_part.GetBufferSize())
+
+        #read material material_properties
+        
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,self.settings["material_properties"]["density"].GetDouble())
+            node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,0,self.settings["material_properties"]["viscosity"].GetDouble())
         
         MoveMeshFlag = False
         
@@ -154,7 +172,7 @@ class NavierStokesSolver_FractionalStep:
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
             self.solver_settings = cfd.FractionalStepSettingsPeriodic(compute_model_part,
-                                                                  self.settings["DomainSize"].GetInt(),
+                                                                  compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                   self.settings.GetInt(),
                                                                   self.use_slip_conditions,
                                                                   MoveMeshFlag,
@@ -164,7 +182,7 @@ class NavierStokesSolver_FractionalStep:
                                                                   
         else:
             self.solver_settings = cfd.FractionalStepSettings(        compute_model_part,
-                                                                  self.settings["DomainSize"].GetInt(),
+                                                                  compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                   self.settings["time_order"].GetInt(),
                                                                   self.use_slip_conditions,
                                                                   MoveMeshFlag,

@@ -43,16 +43,11 @@ solver.AddDofs()
 solver.Initialize()
 
 
-
-##HUGE CHAPUZA! let our auxiliary model know of all the model_parts and submodel_parts
-Model.update({"Inlet3D_Inlet_velocity_Auto1": main_model_part, #"Inlet3D_Inlet_velocity_Auto1"),
-             "Outlet3D_Outlet_pressure_Auto1":main_model_part, #.GetSubModelPart("Outlet3D_Outlet_pressure_Auto1"),
-             "Slip3D_No_Slip_Auto1":main_model_part, #.GetSubModelPart("Slip3D_No_Slip_Auto1"),
-             "NoSlip3D_No_Slip_Auto1":main_model_part}) #.GetSubModelPart("NoSlip3D_No_Slip_Auto1")})
-print("PLEASE CORRECT THIS HUGE CHAPUZA")
-
-
-
+##TODO: replace MODEL for the Kratos one ASAP
+##get the list of the submodel part in the object Model
+for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
+    part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 #TODO: decide which is the correct place to initialize the processes 
 list_of_processes = []
