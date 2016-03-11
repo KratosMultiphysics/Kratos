@@ -45,6 +45,8 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
+#include "utilities/connectivity_preserve_modeler.h"
+
 
 namespace Kratos
 {
@@ -82,6 +84,19 @@ namespace Kratos
                     return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
                 }
         };
+        
+        void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
+{
+    if( !KratosComponents< Element >::Has( ElementName ) )
+        KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", ElementName);
+    if( !KratosComponents< Condition >::Has( ConditionName ) )
+        KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", ConditionName);
+
+    GM.GenerateModelPart(origin_model_part, destination_model_part,
+                         KratosComponents<Element>::Get(ElementName),
+                         KratosComponents<Condition>::Get(ConditionName));
+
+}
 
         void AddUtilitiesToPython()
         {
@@ -285,7 +300,11 @@ namespace Kratos
 
             class_< GeometryTesterUtility, boost::noncopyable> ("GeometryTesterUtility", init< >())
                     .def("RunTest", &GeometryTesterUtility::RunTest)
-                    ;                    
+                    ;    
+                    
+            class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
+                    .def("GenerateModelPart", GenerateModelPart)
+    ;
         }
 
     } // namespace Python.
