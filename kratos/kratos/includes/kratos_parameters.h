@@ -333,7 +333,7 @@ public:
             rapidjson::Value* value_defaults = (defaults[item_name.c_str()]).GetUnderlyingStorage();
             if(itr->value.IsInt() && value_defaults->IsInt()) type_coincides = true;
             if(itr->value.IsBool() && value_defaults->IsBool()) type_coincides = true;
-            if(itr->value.IsDouble() && value_defaults->IsDouble()) type_coincides = true;
+            if(itr->value.IsDouble() && value_defaults->IsNumber()) type_coincides = true;
             if(itr->value.IsArray() && value_defaults->IsArray()) type_coincides = true;
             if(itr->value.IsString() && value_defaults->IsString()) type_coincides = true;
             if(itr->value.IsObject() && value_defaults->IsObject()) type_coincides = true;
