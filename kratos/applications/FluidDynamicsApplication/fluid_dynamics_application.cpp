@@ -68,7 +68,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mHerschelBulkleyVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 //     mNavierStokesSymbolic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {}
 
 void KratosFluidDynamicsApplication::Register()
@@ -101,6 +102,8 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(VORTICITY_MAGNITUDE);
 
     // Register Elements
+    KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
+    KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS2D",mVMS2D);
     KRATOS_REGISTER_ELEMENT("VMS3D",mVMS3D);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
@@ -108,6 +111,8 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("StationaryStokes2D",mStationaryStokes2D);
     KRATOS_REGISTER_ELEMENT("StationaryStokes3D",mStationaryStokes3D);
 
+    KRATOS_REGISTER_ELEMENT("FractionalStep2D3N",mFractionalStep2D); //same as just below but with a standardized name
+    KRATOS_REGISTER_ELEMENT("FractionalStep3D4N",mFractionalStep3D); //same as just below but with a standardized name
     KRATOS_REGISTER_ELEMENT("FractionalStep2D",mFractionalStep2D);
     KRATOS_REGISTER_ELEMENT("FractionalStep3D",mFractionalStep3D);
     KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuous2D",mFractionalStepDiscontinuous2D);
@@ -130,9 +135,12 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("HerschelBulkleyVMS3D",mHerschelBulkleyVMS3D);
     
 //     KRATOS_REGISTER_ELEMENT("NavierStokesSymbolic2D",mNavierStokesSymbolic2D);
-    KRATOS_REGISTER_ELEMENT("Stokes3D",mStokes3D);
+    KRATOS_REGISTER_ELEMENT("Stokes3D4N",mStokes3D);
+    KRATOS_REGISTER_ELEMENT("StokesTwoFluid3D4N",mStokes3DTwoFluid);
 
     // Register Conditions
+    KRATOS_REGISTER_CONDITION("WallCondition2D2N",mWallCondition2D); //this is the name the element should have according to the naming convention
+    KRATOS_REGISTER_CONDITION("WallCondition3D3N",mWallCondition3D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_CONDITION("WallCondition2D",mWallCondition2D);
     KRATOS_REGISTER_CONDITION("WallCondition3D",mWallCondition3D);
     KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D",mFSWernerWengleWallCondition2D);

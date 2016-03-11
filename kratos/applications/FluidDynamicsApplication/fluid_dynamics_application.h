@@ -67,6 +67,7 @@
 #include "custom_elements/herschel_bulkley_fluid.h"
 // #include "custom_elements/navier_stokes_element_symbolic.h"
 #include "custom_elements/stokes_3D.h"
+#include "custom_elements/stokes_3D_twofluid.h"
 
 namespace Kratos
 {
@@ -307,6 +308,7 @@ private:
 //     const NavierStokesSymbolic2D mNavierStokesSymbolic2D;
 //     const StokesSymbolic2D mStokesSymbolic2D;
     const Stokes3D mStokes3D;
+    const Stokes3DTwoFluid mStokes3DTwoFluid;
 
     ///@}
     ///@name Private Operators
