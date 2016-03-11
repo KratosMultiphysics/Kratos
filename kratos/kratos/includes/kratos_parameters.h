@@ -320,7 +320,9 @@ public:
             if(!defaults.Has(item_name) )
             {
                 std::stringstream msg;
+                msg << "******************************************************************************************************" << std::endl;
                 msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "******************************************************************************************************" << std::endl;
                 msg << "hence Validation fails" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
@@ -341,7 +343,9 @@ public:
             if(type_coincides == false)
             {
                 std::stringstream msg;
+                msg << "******************************************************************************************************" << std::endl;
                 msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "******************************************************************************************************" << std::endl;
                 msg << "parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "defaults against which the current parameters are validated are :" << std::endl;
