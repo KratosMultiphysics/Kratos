@@ -436,7 +436,13 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITY))
         self.assertTrue(model_part.Nodes[1].SolutionStepsDataHas(VELOCITIES))
 
-
+    def test_modelpart_buffersize(self):
+        model_part = ModelPart("Main")
+        model_part.SetBufferSize(3)
+        
+        model_part.CreateSubModelPart("submodel")
+        submodel = model_part.GetSubModelPart("submodel")
+        self.assertEqual(model_part.GetBufferSize(), submodel.GetBufferSize() )
 
 if __name__ == '__main__':
     KratosUnittest.main()
