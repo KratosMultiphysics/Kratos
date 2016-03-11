@@ -121,9 +121,14 @@ proc Fluid::write::getSolversParameters {solverSettingsDict} {
           
         foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
             if {[$in getType] ni [list "bool" "integer" "double"]} {
-                dict set solverEntryDict $n [write::getValue $un $n]
+                set v ""
+                catch {set v [expr [write::getValue $un $n]]}
+                if {$v eq ""} {set v [write::getValue $un $n]}
+                dict set solverEntryDict $n $v
+                
             } {
                 dict set solverEntryDict $n [expr [write::getValue $un $n]]
+                
             }
         }
         dict set solverSettingsDict [$se getName] $solverEntryDict
