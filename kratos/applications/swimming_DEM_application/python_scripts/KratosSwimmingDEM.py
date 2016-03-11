@@ -196,10 +196,11 @@ elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
     scheme = NewmarkBetaScheme(0.5, 0.25)
 elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
-elif pp.CFD_DEM.drag_force_type == 9:
-    scheme = TerminalVelocityScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
+
+if DEM_parameters.ElementType == "SwimmingNanoParticle":
+    scheme = TerminalVelocityScheme()
 
 scheme.SetRotationOption(solver.rotation_option)
 solver.time_integration_scheme = scheme
@@ -521,7 +522,7 @@ Dt             = pp.Dt
 out            = Dt
 Nsteps         = pp.nsteps
 final_time     = pp.max_time
-output_time    = pp.output_time
+output_time    = pp.CFD_DEM.OutputTimeStep
 
 report.Prepare(timer, DEM_parameters.ControlTime)
 
