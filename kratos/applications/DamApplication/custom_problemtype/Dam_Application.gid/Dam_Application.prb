@@ -63,8 +63,8 @@ Value: Direct
 DEPENDENCIES: (Direct,RESTORE,Direct_Solver_Type,#CURRENT#,HIDE,Iterative_Solver_Type,#CURRENT#)(Iterative,HIDE,Direct_Solver_Type,#CURRENT#,RESTORE,Iterative_Solver_Type,#CURRENT#)
 QUESTION: Direct_Solver_Type#CB#(Super_LU,Skyline_LU_factorization)
 VALUE: Super_LU
-QUESTION: Iterative_Solver_Type#CB#(AMGCL,BICGSTAB)
-VALUE: AMGCL
+QUESTION: Iterative_Solver_Type#CB#(BICGSTAB,AMGCL)
+VALUE: BICGSTAB
 QUESTION: Number_of_threads
 VALUE: 1
 
