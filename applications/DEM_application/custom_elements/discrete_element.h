@@ -37,7 +37,7 @@
 
 namespace Kratos {
 
-    class DiscreteElement : public Element {
+    class KRATOS_API(DEM_APPLICATION) DiscreteElement : public Element {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(DiscreteElement);
         DiscreteElement(IndexType NewId = 0) : Element(NewId) {}

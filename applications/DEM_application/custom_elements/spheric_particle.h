@@ -16,7 +16,8 @@
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "../custom_conditions/RigidFace.h"
 #include "../custom_conditions/dem_wall.h"
-#include "kratos_DEMApplication_export_dll.h"
+#include "includes/kratos_export_api.h"
+//#include "../kratos_DEMApplication_export_dll.h"
 #include "../custom_utilities/properties_proxies.h"
 
 namespace Kratos
@@ -24,7 +25,7 @@ namespace Kratos
 
 class DEMWall;
 
-class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericParticle : public DiscreteElement
+class KRATOS_API(DEM_APPLICATION) SphericParticle : public DiscreteElement
 {
 public:
 

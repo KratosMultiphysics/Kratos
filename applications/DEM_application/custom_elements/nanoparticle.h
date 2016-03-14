@@ -15,7 +15,7 @@
 
 namespace Kratos
 {
-class KRATOS_DEMAPPLICATION_EXPORT_DLL NanoParticle : public SphericParticle
+class KRATOS_API(DEM_APPLICATION) NanoParticle : public SphericParticle
 {
 public:
 
