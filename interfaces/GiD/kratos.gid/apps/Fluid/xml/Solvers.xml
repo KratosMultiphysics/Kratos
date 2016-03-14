@@ -14,8 +14,6 @@
     </solver>
     <solver n="Super_LU" pn="Super LU">
         <inputs>
-            <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
-            <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-9" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
