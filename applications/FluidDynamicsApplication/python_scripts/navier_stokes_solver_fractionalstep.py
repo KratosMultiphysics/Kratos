@@ -166,7 +166,7 @@ class NavierStokesSolver_FractionalStep:
                                                                   self.use_slip_conditions,
                                                                   MoveMeshFlag,
                                                                   self.settings["reform_dofs_at_each_iteration]"].GetBool(),
-                                                                  PATCH_INDEX
+                                                                  cfd.PATCH_INDEX
                                                                   )
                                                                   
         else:
@@ -193,8 +193,8 @@ class NavierStokesSolver_FractionalStep:
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.solver = cfd.FSStrategy(compute_model_part,
                                      self.solver_settings, 
-                                     self.predictor_corrector, 
-                                     PATCH_INDEX)
+                                     self.settings["predictor_corrector"].GetBool(),
+                                     cfd.PATCH_INDEX)
         else:
             self.solver = cfd.FSStrategy(compute_model_part,
                                      self.solver_settings, 
