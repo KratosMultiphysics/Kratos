@@ -45,8 +45,8 @@ void LineNormalLoadCondition::CalculateConditionVector(ConditionVariables& rVari
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    double NormalStress = 0;
-    double TangentialStress = 0;
+    double NormalStress = 0.0;
+    double TangentialStress = 0.0;
     double dx_dxi = rVariables.JContainer[PointNumber](0,0), dy_dxi = rVariables.JContainer[PointNumber](1,0);
     rVariables.ConditionVector.resize(2,false);
 
