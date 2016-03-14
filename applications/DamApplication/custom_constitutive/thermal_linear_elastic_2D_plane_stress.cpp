@@ -89,8 +89,9 @@ void ThermalLinearElastic2DPlaneStress::CalculateThermalStrain( Vector& rThermal
     double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
 
     //Thermal strain vector
-    rThermalStrainVector *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
-    
+    for(unsigned int i = 0; i < 3; i++)
+        rThermalStrainVector[i] *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
+        
     KRATOS_CATCH( "" )
 }
 
