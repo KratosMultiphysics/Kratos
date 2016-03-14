@@ -30,12 +30,12 @@ namespace Kratos {
 
         KRATOS_TRY
         double radius_sum = radius + other_radius;
-        double equiv_radius = 2.0 * radius * other_radius / radius_sum;
+        double equiv_radius = radius * other_radius / radius_sum;
         calculation_area = KRATOS_M_PI * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
     
-    double DEM_KDEM::CalculateContactArea(double radius, double other_radius, std::vector<double> & v) {            
+    double DEM_KDEM::CalculateContactArea(double radius, double other_radius, std::vector<double>& v) {            
         double a = 0.0;
         CalculateContactArea(radius, other_radius, a);
         v.push_back(a);
@@ -323,16 +323,15 @@ namespace Kratos {
         
     }//ComputeParticleRotationalMoments
     
-    void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, 
-                                          double LocalCoordSystem[3][3], 
-                                          double& normal_force, 
-                                          double calculation_area, 
-                                          Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2) {
+    void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
+                                          double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2) {
         double force[3];
-        
         Matrix average_stress_tensor;
-        for (int i=0; i<3; i++) {
-            for (int j=0;j<3; j++) { average_stress_tensor(i,j) = 0.5 * ((*mSymmStressTensor)(i,j)  + (*(element2->mSymmStressTensor))(i,j) ); }
+        
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                average_stress_tensor(i,j) = 0.5 * ((*mSymmStressTensor)(i,j) + (*(element2->mSymmStressTensor))(i,j));
+            }
         }
 
         for (int i = 0; i < 3; i++) {
@@ -341,6 +340,7 @@ namespace Kratos {
                        (average_stress_tensor)(i,1) * LocalCoordSystem[0][1] +
                        (average_stress_tensor)(i,2) * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
         }
+        
         double sigma_x = force[0] * LocalCoordSystem[0][0] +
                          force[1] * LocalCoordSystem[0][1] +
                          force[2] * LocalCoordSystem[0][2]; // projection to normal to obtain value of the normal stress
@@ -351,6 +351,7 @@ namespace Kratos {
                        (average_stress_tensor)(i,1) * LocalCoordSystem[1][1] +
                        (average_stress_tensor)(i,2) * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
         }
+        
         double sigma_y = force[0] * LocalCoordSystem[1][0] +
                          force[1] * LocalCoordSystem[1][1] +
                          force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
