@@ -1,10 +1,14 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
+//  Main authors:    Josep Maria Carbonell
 //
+
 
 // System includes
 
@@ -46,7 +50,8 @@ PointMoment3DCondition::PointMoment3DCondition( PointMoment3DCondition const& rO
 //************************************************************************************
 Condition::Pointer PointMoment3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return boost::make_shared< Condition >(PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+//     return Condition::Pointer(new PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //************************************************************************************

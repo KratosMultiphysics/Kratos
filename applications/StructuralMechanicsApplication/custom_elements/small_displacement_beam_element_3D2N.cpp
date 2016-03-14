@@ -75,7 +75,8 @@ SmallDisplacementBeamElement3D2N::SmallDisplacementBeamElement3D2N( SmallDisplac
 
 Element::Pointer SmallDisplacementBeamElement3D2N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallDisplacementBeamElement3D2N(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return boost::make_shared< Element >(SmallDisplacementBeamElement3D2N(NewId, GetGeometry().Create(ThisNodes), pProperties));
+//     return Element::Pointer(new SmallDisplacementBeamElement3D2N(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //*******************************DESTRUCTOR*******************************************
