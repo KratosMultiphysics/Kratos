@@ -10,18 +10,18 @@ from KratosMultiphysics.MeshingApplication import *
 ######################################################################################
 ######################################################################################
 ##PARSING THE PARAMETERS
-import define_output
+#import define_output
 
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
-DomainSize = ProjectParameters["problem_data"]["DomainSize"].GetInt()
+DomainSize = ProjectParameters["problem_data"]["domain_size"].GetInt()
 
 ## defining a model part for the fluid
-main_model_part = ModelPart(ProjectParameters["problem_data"]["ModelPartName"].GetString())
+main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 
 ###TODO replace this "model" for real one once available
-Model = {ProjectParameters["problem_data"]["ModelPartName"].GetString() : main_model_part}
+Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 #construct the solver
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
@@ -74,11 +74,11 @@ fluid_model_part = solver.GetComputeModelPart()
 from gid_output import GiDOutput
 output_settings = ProjectParameters["output_configuration"]
 gid_io = GiDOutput(output_settings["output_filename"].GetString(),
-                   output_settings["VolumeOutput"].GetBool(),
-                   output_settings["GiDPostMode"].GetString(),
-                   output_settings["GiDMultiFileFlag"].GetString(),
-                   output_settings["GiDWriteMeshFlag"].GetBool(),
-                   output_settings["GiDWriteConditionsFlag"].GetBool())
+                   output_settings["volume_output"].GetBool(),
+                   output_settings["gid_post_mode"].GetString(),
+                   output_settings["gid_multi_file_flag"].GetString(),
+                   output_settings["gid_write_mesh_flag"].GetBool(),
+                   output_settings["gid_write_conditions_flag"].GetBool())
 output_time = output_settings["output_time"].GetDouble()
 
 gid_io.initialize_results(fluid_model_part)
