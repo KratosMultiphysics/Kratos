@@ -65,16 +65,17 @@ def CreateSolver(model_part, config):
         elif(config.direct_solver == "Skyline_LU_factorization"):
             linear_solver = SkylineLUFactorizationSolver()
     elif(config.linear_solver == "Iterative"):
-        if(config.iterative_solver == "AMGCL"):
+        if(config.iterative_solver == "BICGSTAB"):
+            tolerance = 1e-5
+            max_iterations = 1000
+            precond = ILU0Preconditioner()
+            linear_solver = BICGSTABSolver(tolerance,max_iterations,precond)
+        elif(config.iterative_solver == "AMGCL"):
             tolerance = 1e-5
             max_iterations = 1000
             verbosity = 0 #0->shows no information, 1->some information, 2->all the information
             gmres_size = 50
             linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tolerance,max_iterations,verbosity,gmres_size)
-        elif(config.iterative_solver == "BICGSTAB"):
-            tolerance = 1e-5
-            max_iterations = 1000
-            linear_solver = BICGSTABSolver(tolerance,max_iterations)
 
     #Setting the solution scheme (quasi-static, dynamic)
     if(config.analysis_type == "Quasi-Static"):
@@ -91,10 +92,9 @@ def CreateSolver(model_part, config):
         solution_scheme = NewmarkScheme(is_dynamic)
 
     #Setting the builder_and_solver
+    builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
     if(config.linear_solver == "Iterative" and config.iterative_solver == "AMGCL"):
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(linear_solver)
-    else:
-        builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        builder_and_solver = ResidualBasedBlockBuilderAndSolver(linear_solver)        
 
     #Setting the strategy type
     if(config.strategy_type == "Newton-Raphson"):
