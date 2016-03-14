@@ -393,9 +393,9 @@ namespace Kratos
 
 	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
 
-	    Geometry<Node<3> >& rGeometry = rModelPart.ElementsBegin(MeshId)->GetGeometry();
-	    GeometryData::IntegrationMethod IntegrationMethod =  rGeometry.GetDefaultIntegrationMethod();
-	    unsigned int integration_points_number = rGeometry.IntegrationPointsNumber( IntegrationMethod );
+	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
+	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
+	    unsigned int integration_points_number = rGeom.IntegrationPointsNumber( IntegrationMethod );
 
 	    std::vector<double> NodesDoubleVariableArray (integration_points_number);
 	    std::vector<array_1d<double,3> > NodesArray1DVariableArray (integration_points_number);
@@ -413,7 +413,7 @@ namespace Kratos
 	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
 	      {
 		
-		rGeometry = (ie)->GetGeometry();
+		Geometry<Node<3> > & rGeometry = (ie)->GetGeometry();
 		IntegrationMethod =  rGeometry.GetDefaultIntegrationMethod();
 		integration_points_number = rGeometry.IntegrationPointsNumber( IntegrationMethod );
 
@@ -579,9 +579,9 @@ namespace Kratos
 
 	    double alpha = 0.5; //[0,1] //smoothing level of the Jacobian	      
 
-	    Geometry<Node<3> >& rGeometry = rModelPart.ElementsBegin(MeshId)->GetGeometry();
-	    GeometryData::IntegrationMethod IntegrationMethod =  rGeometry.GetDefaultIntegrationMethod();
-	    unsigned int integration_points_number = rGeometry.IntegrationPointsNumber( IntegrationMethod );
+	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
+	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
+	    unsigned int integration_points_number = rGeom.IntegrationPointsNumber( IntegrationMethod );
 
 
             std::vector<double> ComputedValues(integration_points_number);
@@ -628,7 +628,7 @@ namespace Kratos
 	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
 	      {
 		
-		rGeometry = (ie)->GetGeometry();
+		Geometry<Node<3> > & rGeometry = (ie)->GetGeometry();
 		IntegrationMethod =  rGeometry.GetDefaultIntegrationMethod();
 		integration_points_number = rGeometry.IntegrationPointsNumber( IntegrationMethod );
 		const Matrix& Ncontainer = rGeometry.ShapeFunctionsValues( IntegrationMethod );
@@ -801,9 +801,9 @@ namespace Kratos
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 	    NodesContainerType& rNodes      = rModelPart.Nodes(MeshId);
 
-	    Geometry<Node<3> >& rGeometry = rModelPart.ElementsBegin(MeshId)->GetGeometry();
-	    GeometryData::IntegrationMethod IntegrationMethod =  rGeometry.GetDefaultIntegrationMethod();
-	    unsigned int integration_points_number = rGeometry.IntegrationPointsNumber( IntegrationMethod );
+	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
+	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
+	    unsigned int integration_points_number = rGeom.IntegrationPointsNumber( IntegrationMethod );
 
 	    std::vector<double> NodesDoubleVariableArray (integration_points_number);
 	    std::vector<array_1d<double,3> > NodesArray1DVariableArray (integration_points_number);
@@ -829,7 +829,7 @@ namespace Kratos
 	    	  for(unsigned int ne=0; ne < neighb_elems.size(); ne++)
 	    	    {		    
 
-		      rGeometry   = neighb_elems[ne].GetGeometry();
+		      Geometry<Node<3> > & rGeometry   = neighb_elems[ne].GetGeometry();
 		      ElementArea = rGeometry.Area();
 		      Area += ElementArea;			 
 		      
