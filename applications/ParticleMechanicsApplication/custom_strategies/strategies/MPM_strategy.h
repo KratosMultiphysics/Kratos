@@ -76,7 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 
-#include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
+// #include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergence_criteria/displacement_convergence_criterion.hpp"
