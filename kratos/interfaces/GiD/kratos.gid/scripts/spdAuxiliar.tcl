@@ -32,10 +32,10 @@ proc spdAux::TryRefreshTree { } {
         variable refreshTreeTurn
         #W "HI"
         if {$refreshTreeTurn} {
-                #W "there"
-                set ::spdAux::refreshTreeTurn 0
-                gid_groups_conds::actualize_conditions_window
-                set ::spdAux::refreshTreeTurn 0
+            #W "there"
+            set ::spdAux::refreshTreeTurn 0
+            gid_groups_conds::actualize_conditions_window
+            set ::spdAux::refreshTreeTurn 0
         }
         after 750 {spdAux::TryRefreshTree}
 }
