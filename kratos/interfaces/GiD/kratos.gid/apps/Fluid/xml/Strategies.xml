@@ -13,16 +13,16 @@
 	  <parameter n="predictor_corrector" pn="Predictor corrector" type="bool" v="False" help=""/>  
 	  <parameter n="maximum_velocity_iterations" pn="Maximum velocity iterations" type="integer" v="4" help=""/>  
 	  <parameter n="maximum_pressure_iterations" pn="Maximum pressure iterations" type="integer" v="4" help=""/>  
-	  <parameter n="velocity_tolerance" pn="velocity tolerance" type="double" v="1e-3" help=""/>  
-	  <parameter n="pressure_tolerance" pn="pressure tolerance " type="double" v="1e-3" help=""/>  
-          <parameter n="predictor_corrector" pn="predictor corrector " type="bool" v="False" help=""/>  
-	  <parameter n="echo_level" pn="echo_level" type="int" v="1" help=""/>  
-	  <parameter n="consider_periodic_conditions" pn="consider periodic conditions " type="bool" v="false" help=""/>  
-          <parameter n="time_order" pn="time order " type="int" v="2" help=""/>  
-          <parameter n="dynamic_tau" pn="dynamic_tau" type="bool" v="0.001" help=""/>  
-	  <parameter n="compute_reactions" pn="compute reactions" type="bool" v="false" help=""/>  
-          <parameter n="divergence_clearance_steps" pn="divergence_clearance_steps " type="int" v="0" help=""/>  
-          <parameter n="reform_dofs_at_each_iteration" pn="reform dofs at each iteration " type="bool" v="false" help=""/>           
+	  <parameter n="velocity_tolerance" pn="Velocity tolerance" type="double" v="1e-3" help=""/>  
+	  <parameter n="pressure_tolerance" pn="Pressure tolerance " type="double" v="1e-3" help=""/>  
+	  <parameter n="predictor_corrector" pn="Predictor corrector " type="bool" v="False" help=""/>  
+	  <parameter n="echo_level" pn="Echo level" type="int" v="1" help=""/>  
+	  <parameter n="consider_periodic_conditions" pn="Consider periodic conditions " type="bool" v="false" help=""/>  
+	  <parameter n="time_order" pn="Time order " type="int" v="2" help=""/>  
+	  <parameter n="dynamic_tau" pn="Dynamic tau" type="bool" v="0.001" help=""/>  
+	  <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="false" help=""/>  
+	  <parameter n="divergence_clearance_steps" pn="Divergence clearance steps " type="int" v="0" help=""/>  
+	  <parameter n="reform_dofs_at_each_iteration" pn="Reform dofs at each iteration " type="bool" v="false" help=""/>           
     </parameter_list>
     
     <linearSolvers>

@@ -56,8 +56,8 @@
     <solver n="Pastix_Iterative" pn="Pastix Iterative">
         <inputs>
 	    <parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
-	    <parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
-	    <parameter n="ilu_level_of_fill" pn="IluFillLevel" type="combo" values="3,4,5" v="3" help=""/>
+	    <parameter n="gmres_krylov_space_dimension" pn="krylov dimension" type="integer" v="100" help=""/>
+	    <parameter n="ilu_level_of_fill" pn="ILU fill level" type="combo" values="3,4,5" v="3" help=""/>
 	    <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
         <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
