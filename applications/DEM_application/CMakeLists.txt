@@ -91,7 +91,7 @@ endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
 # changing the .dll suffix to .pyd 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .pyd)
-	set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
+    set_target_properties(KratosDEMApplication PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so 
