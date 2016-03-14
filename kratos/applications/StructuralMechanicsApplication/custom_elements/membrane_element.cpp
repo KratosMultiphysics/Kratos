@@ -47,7 +47,8 @@ Element::Pointer MembraneElement::Create(
     PropertiesType::Pointer pProperties ) const
 
 {
-    return Element::Pointer( new MembraneElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return boost::make_shared< Element >(MembraneElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+//     return Element::Pointer( new MembraneElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //***********************************************************************************
