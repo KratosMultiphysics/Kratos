@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList>
-  <StrategyItem n="FractionalStep" pn="Fractional step" 
-		ImplementedInFile="mechanical_strategy.cpp"
-		ImplementedInApplication="SolidMechanicsApplication"
-		ImplementedInPythonFile="mechanical_solver"
+  <StrategyItem n="FractionalStep" pn="Navier Stokes - Fractional Step" 
+		ImplementedInFile="navier_stokes_solver_fractionalstep.py"
+		ImplementedInApplication="FluidDynamicsApplication"
+		ImplementedInPythonFile="navier_stokes_solver_fractionalstep"
 		MinimumKratosVersion="8500"
 		ProductionReady="true"
 		help="">
@@ -13,10 +13,20 @@
 	  <parameter n="predictor_corrector" pn="Predictor corrector" type="bool" v="False" help=""/>  
 	  <parameter n="maximum_velocity_iterations" pn="Maximum velocity iterations" type="integer" v="4" help=""/>  
 	  <parameter n="maximum_pressure_iterations" pn="Maximum pressure iterations" type="integer" v="4" help=""/>  
+	  <parameter n="velocity_tolerance" pn="velocity tolerance" type="double" v="1e-3" help=""/>  
+	  <parameter n="pressure_tolerance" pn="pressure tolerance " type="double" v="1e-3" help=""/>  
+          <parameter n="predictor_corrector" pn="predictor corrector " type="bool" v="False" help=""/>  
+	  <parameter n="echo_level" pn="echo_level" type="int" v="1" help=""/>  
+	  <parameter n="consider_periodic_conditions" pn="consider periodic conditions " type="bool" v="false" help=""/>  
+          <parameter n="time_order" pn="time order " type="int" v="2" help=""/>  
+          <parameter n="dynamic_tau" pn="dynamic_tau" type="bool" v="0.001" help=""/>  
+	  <parameter n="compute_reactions" pn="compute reactions" type="bool" v="false" help=""/>  
+          <parameter n="divergence_clearance_steps" pn="divergence_clearance_steps " type="int" v="0" help=""/>  
+          <parameter n="reform_dofs_at_each_iteration" pn="reform dofs at each iteration " type="bool" v="false" help=""/>           
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="velocity_linear_solver_settings" pn="Velocity linear solver" >
+      <linearSolverItem n="velocity_linear_solver_settings" pn="Velocity linear solver" default="AMGCL">
         <filterFeatures>
 	  <!--<filter field="n" value="BiConjugate"/>
 	      <filter field="symmetric" value="false"/>
