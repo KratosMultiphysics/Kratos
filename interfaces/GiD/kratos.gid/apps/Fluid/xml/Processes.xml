@@ -3,8 +3,8 @@
   <Process n="ApplyInletProcess" pn="Vector value" implemented_in_file="apply_constant_inlet_process"
 		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
     <inputs>
-      <parameter n="direction" pn="Velocity" type="vector" fixity="Imposed" v="0.0,0.0,0.0"  />
-      <parameter n="factor" pn="Factor" type="double"  unit_magnitude="Velocity" units="m/s" />
+      <parameter n="direction" pn="Velocity" type="vector" fixity="Imposed" v="1.0,0.0,0.0"  />
+      <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="Velocity" units="m/s" />
     </inputs>
   </Process>
   <Process n="ApplyOutletProcess" pn="Scalar value" implemented_in_file="apply_outlet_process"
