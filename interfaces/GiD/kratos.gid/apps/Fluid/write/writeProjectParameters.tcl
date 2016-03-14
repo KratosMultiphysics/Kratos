@@ -30,10 +30,18 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict gid_write_frequency [expr [write::getValue FLResults OutputDeltaTime]]
     dict set outputConfigDict plot_graphs False
     dict set outputConfigDict plot_frequency 0
-    dict set outputConfigDict print lists True
+    dict set outputConfigDict print_lists True
     dict set outputConfigDict output_time [expr [write::getValue FLResults OutputDeltaTime]]
     dict set outputConfigDict volume_output [expr [write::getValue FLResults VolumeOutput]]
+    dict set outputConfigDict add_skin true
     
+    set cut_list [list ]
+    set normal [list 0.0 1.0 0.0]
+    set point [list 0.0 0.0 0.0]
+    lappend cut_list [dict create normal $normal point $point]
+    
+    dict set outputConfigDict cut_planes [dict create cut_list $cut_list]
+
     # on nodes
     dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
     
