@@ -129,8 +129,9 @@ double&  ThermalLinearElastic3DLaw::CalculateDomainTemperature (const MaterialRe
     const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
     const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
     const unsigned int number_of_nodes = DomainGeometry.size();
-
-       
+    
+    rTemperature = 0.0;
+    
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
       rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
@@ -148,17 +149,20 @@ void ThermalLinearElastic3DLaw::CalculateThermalStrain( Vector& rThermalStrainVe
     KRATOS_TRY
     
     //Identity vector
-    rThermalStrainVector.resize(6,false); // Warning: we have to resize the vector here to avoid memory error
-    noalias(rThermalStrainVector) = ZeroVector(6);
+    rThermalStrainVector.resize(6,false);
     rThermalStrainVector[0] = 1.0;
     rThermalStrainVector[1] = 1.0;
     rThermalStrainVector[2] = 1.0;
+    rThermalStrainVector[3] = 0.0;
+    rThermalStrainVector[4] = 0.0;
+    rThermalStrainVector[5] = 0.0;
 
     // Delta T
     double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
 
     //Thermal strain vector
-    rThermalStrainVector *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
+    for(unsigned int i = 0; i < 6; i++)
+        rThermalStrainVector[i] *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
     
     KRATOS_CATCH( "" )
 }
