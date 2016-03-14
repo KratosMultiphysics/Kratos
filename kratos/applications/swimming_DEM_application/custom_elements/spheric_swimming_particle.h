@@ -29,7 +29,7 @@ namespace Kratos
 {
 
   template< class TBaseElement >
-  class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericSwimmingParticle : public TBaseElement
+  class KRATOS_API(SWIMMING_DEM_APPLICATION) SphericSwimmingParticle : public TBaseElement
     {
     public:
 
