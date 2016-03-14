@@ -5,9 +5,9 @@
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="100" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-6" help=""/>
             <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/> 
-            <parameter n="smoother_type" pn="Smoother type" type="combo" values="spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev" pvalues="spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev" v="spai0" help=""/>
-            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,cg,bicgstab,bicgstabl,bicgstab_with_gmres_fallback" pvalues="gmres,cg,bicgstab,bicgstabl,bicgstab_with_gmres_fallback" v="gmres" help=""/>
-            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" pvalues="ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" v="aggregation" help=""/>
+            <parameter n="smoother_type" pn="Smoother type" type="combo" values="spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev" pvalues="SPAI0,ILU0,Damped jacobi,Gauss seidel,Chebyshev" v="spai0" help=""/>
+            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,cg,bicgstab,bicgstabl,bicgstab_with_gmres_fallback" pvalues="GMRES,CG,Bicgstab,Bicgstabl,Bicgstab with gmres fallback" v="gmres" help=""/>
+            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" pvalues="Ruge stuben,Aggregation,Smoothed aggregation,Smoothed aggr emin" v="aggregation" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
@@ -24,7 +24,7 @@
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-9" help=""/>
-			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" pvalues="None,Diagonal preconditioner,ILU0 Preconditioner" v="None" help=""/>
 			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
 			<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
@@ -33,7 +33,7 @@
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="double"  v="1e-9" help=""/>
-			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" pvalues="None,Diagonal preconditioner,ILU0 Preconditioner" v="None" help=""/>
 			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
