@@ -15,10 +15,10 @@ from KratosMultiphysics.MeshingApplication import *
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
-DomainSize = ProjectParameters["problem_data"]["domain_size"].GetInt()
 
 ## defining a model part for the fluid
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 ###TODO replace this "model" for real one once available
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
