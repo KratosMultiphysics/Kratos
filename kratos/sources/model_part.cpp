@@ -801,6 +801,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 			delete p_model_part->mpVariablesList;
 			p_model_part->mpVariablesList = mpVariablesList;
                         p_model_part->mBufferSize = this->mBufferSize;
+                        p_model_part->mpProcessInfo = this->mpProcessInfo;
 			return *(mSubModelParts.insert(p_model_part));
 		}
 		else
