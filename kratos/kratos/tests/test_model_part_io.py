@@ -1,11 +1,11 @@
-from __future__ import print_function, absolute_import, division
+﻿from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 
 
 def GetFilePath(fileName):
-    return os.path.dirname(__file__) + "/" + fileName
+    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
