@@ -211,7 +211,6 @@ public:
 
     /// Empty constructor needed for serialization
     LargeDisplacementElement();
-  
 
     /// Default constructors
     LargeDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -562,17 +561,29 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
  
-    /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
-     */
-    virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-                                          ProcessInfo& rCurrentProcessInfo);
     ///@}
     ///@name Protected Operations
     ///@{
+
+
+    /**
+     * Calculates the elemental contributions
+     */
+    virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+                                          ProcessInfo& rCurrentProcessInfo);
+    
+    /**
+     * Calculates the elemental dynamic contributions
+     */
+    virtual void CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
+					ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Prints element information for each gauss point (debugging purposes)
+     */
+    void PrintElementCalculation(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables);
 
 
     /**
@@ -597,6 +608,27 @@ protected:
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
+
+
+
+    /**
+     * Calculation and addition of the matrices of the LHS
+     */
+
+    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
+					   GeneralVariables& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
+					   double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+
+    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
+					   GeneralVariables& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
+					   double& rIntegrationWeight);
+
 
 
     /**

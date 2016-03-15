@@ -33,6 +33,15 @@ KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementElement, COMPUTE_LHS_MATRIX_WITH_COMP
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
+SmallDisplacementElement::SmallDisplacementElement( )
+    : Element( )
+{
+  //DO NOT CALL IT: only needed for Register and Serialization!!!
+}
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
 SmallDisplacementElement::SmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
@@ -691,6 +700,66 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
+						       ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //create and initialize element variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+    //reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+    MatrixType  LocalLeftHandSideMatrix;
+    VectorType  LocalRightHandSideVector;
+    //Initialize sizes for the system components:
+    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, rLocalSystem.CalculationFlags );
+
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    {
+        //compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables,PointNumber);
+
+        //calculating weights for integration on the "reference configuration"
+        double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+
+
+        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        {
+
+	  LocalLeftHandSideMatrix.clear();
+
+	  this->CalculateAndAddDynamicLHS ( LocalLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight );
+
+	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+	  rLeftHandSideMatrix += LocalLeftHandSideMatrix;
+
+        }
+
+        if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        {
+	  LocalRightHandSideVector.clear();
+
+	  this->CalculateAndAddDynamicRHS ( LocalRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
+
+	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+	  rRightHandSideVector += LocalRightHandSideVector;
+	
+        }
+	
+	    
+    }
+
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -778,6 +847,61 @@ void SmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
 
     }
     //KRATOS_WATCH( rRightHandSideVector )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+{
+
+  //mass matrix
+  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  unsigned int MatSize = dimension * number_of_nodes;
+
+  if(rLeftHandSideMatrix.size1() != MatSize)
+    rLeftHandSideMatrix.resize (MatSize, MatSize, false);
+
+  rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
+
+  double CurrentDensity = GetProperties()[DENSITY];
+
+  unsigned int indexi = 0;
+  unsigned int indexj = 0;
+
+  for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+      for ( unsigned int k = 0; k < dimension; k++ )
+	{
+	  indexj = 0;
+	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	    {
+	      
+	      for ( unsigned int l = 0; l < dimension; l++ )
+		{
+		  rLeftHandSideMatrix(indexi+k,indexj+l) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
+		}
+
+	      indexj += dimension;
+	    }
+
+	}
+      
+      indexi += dimension;
+    }
+
+
+  //KRATOS_WATCH( rLeftHandSideMatrix )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void SmallDisplacementElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+{
+
 }
 
 
@@ -1576,13 +1700,32 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass )
+double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
+    //rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY]; //not accurate
+
+    //Compute the Volume Change acumulated:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+    //reading integration points
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+	//compute element kinematics
+	this->CalculateKinematics(Variables,PointNumber);
+	
+	//getting informations for integration
+        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
+
+	//compute point volume changes	
+	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
+      }
 
     if( dimension == 2 )
         rTotalMass *= GetProperties()[THICKNESS];
@@ -1625,32 +1768,62 @@ void SmallDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 {
     KRATOS_TRY
 
-    //lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int MatSize = dimension * number_of_nodes;
+    bool ComputeLumpedMassMatrix = false;
+    if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) )
+      if(rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
+	ComputeLumpedMassMatrix = true;
 
-    if ( rMassMatrix.size1() != MatSize )
+    if( ComputeLumpedMassMatrix == false ){
+
+      //create local system components
+      LocalSystemComponents LocalSystem;
+
+      //calculation flags   
+      LocalSystem.CalculationFlags.Set(SmallDisplacementElement::COMPUTE_LHS_MATRIX);
+
+      VectorType RightHandSideVector = Vector();
+
+      //Initialize sizes for the system components:
+      this->InitializeSystemMatrices( rMassMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
+	
+      //Set Variables to Local system components
+      LocalSystem.SetLeftHandSideMatrix(rMassMatrix);
+      LocalSystem.SetRightHandSideVector(RightHandSideVector);
+	
+      //Calculate elemental system
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );    
+
+    }
+    else{
+
+      //lumped
+      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      unsigned int MatSize = dimension * number_of_nodes;
+
+      if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+      rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
-    double TotalMass = 0;
-    TotalMass = this->CalculateTotalMass(TotalMass);
+      double TotalMass = 0;
+      TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
 
-    Vector LumpFact = ZeroVector(number_of_nodes);
+      Vector LumpFact = ZeroVector(number_of_nodes);
 
-    LumpFact = GetGeometry().LumpingFactors( LumpFact );
+      LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        double temp = LumpFact[i] * TotalMass;
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  double temp = LumpFact[i] * TotalMass;
 
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            unsigned int index = i * dimension + j;
-            rMassMatrix( index, index ) = temp;
-        }
+	  for ( unsigned int j = 0; j < dimension; j++ )
+	    {
+	      unsigned int index = i * dimension + j;
+	      rMassMatrix( index, index ) = temp;
+	    }
+	}
+
     }
 
     KRATOS_CATCH( "" )

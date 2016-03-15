@@ -197,6 +197,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Empty constructor needed for serialization
+    SmallDisplacementElement();
+
     /// Default constructors
     SmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -521,21 +524,24 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    SmallDisplacementElement() : Element()
-    {
-    }
 
-    /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
-     */
-    virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-                                          ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Protected Operations
     ///@{
 
+
+    /**
+     * Calculates the elemental contributions
+     */
+    virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+					  ProcessInfo& rCurrentProcessInfo);
+    
+    /**
+     * Calculates the elemental dynamic contributions
+     */
+    virtual void CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
+					ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -554,6 +560,24 @@ protected:
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
+
+    /**
+     * Calculation and addition of the matrices of the LHS
+     */
+
+    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
+					   GeneralVariables& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
+					   double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+
+    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
+					   GeneralVariables& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
+					   double& rIntegrationWeight);
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
@@ -681,7 +705,7 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    virtual double& CalculateTotalMass(double& rTotalMass);
+    virtual double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation of the Volume Force of the Element
