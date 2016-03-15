@@ -163,6 +163,11 @@ public:
 
          unsigned int index = 0;
 
+	 bool CalculateLumpedMassMatrix = false;
+	 if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
+	   CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];	   
+	 }
+     
          #pragma omp parallel
          {
              int k = OpenMPUtils::ThisThread();
@@ -174,8 +179,8 @@ public:
                  Matrix MassMatrix;
 
                  Element::GeometryType& geometry = itElem->GetGeometry();
-
-                 (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); //already lumped.
+		 
+                 (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); 
 
                  const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
@@ -187,11 +192,23 @@ public:
                      double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
                      geometry(i)->SetLock();
-                     mass += MassMatrix(index,index);
+		     
+		     if(!CalculateLumpedMassMatrix){
+		       for (unsigned int j = 0; j <MassMatrix.size2(); j++)
+			 {
+			   mass += MassMatrix(index,j);
+			 }
+		     }
+		     else{
+		       mass += MassMatrix(index,index);
+		     }
+
                      geometry(i)->UnSetLock();
                  }
              }
          }
+
+	rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
 
         KRATOS_CATCH( "" )
 

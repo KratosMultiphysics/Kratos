@@ -122,6 +122,9 @@ public:
 	//set RebuildLevel to the deffault value 
 	BaseType::SetRebuildLevel(0);  
 
+	//set it true for explicit :: taking the deffault geometry lumping factors
+	BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
+
         KRATOS_CATCH( "" )
     }
 
