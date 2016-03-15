@@ -50,7 +50,7 @@ PointMoment3DCondition::PointMoment3DCondition( PointMoment3DCondition const& rO
 //************************************************************************************
 Condition::Pointer PointMoment3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< Condition >(PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return boost::make_shared< PointMoment3DCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 //     return Condition::Pointer(new PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 

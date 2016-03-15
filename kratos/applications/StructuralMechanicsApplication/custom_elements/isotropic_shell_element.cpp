@@ -42,7 +42,7 @@ IsotropicShellElement::IsotropicShellElement(IndexType NewId, GeometryType::Poin
 
 Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return boost::make_shared< Element >(IsotropicShellElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return boost::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 //     return Element::Pointer(new IsotropicShellElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
