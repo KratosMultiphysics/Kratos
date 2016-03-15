@@ -148,8 +148,6 @@ public:
         mNormb0 = TSparseSpace::TwoNorm(mb);
         if(mNormb0 < 1.0e-20)
             KRATOS_THROW_ERROR( std::logic_error, "Norm of the initial residual < 1.0e-20. One must initialize the strategy with some external load applied", "" )
-        if(isnan(mNormb0) || isinf(mNormb0))
-            KRATOS_THROW_ERROR( std::logic_error, "Norm of the initial residual is nan or inf. Check the elemental matrices", "" )
             
         TSystemVectorType& mTotalx = *mpTotalx;
         TSparseSpace::SetToZero(mTotalx);
