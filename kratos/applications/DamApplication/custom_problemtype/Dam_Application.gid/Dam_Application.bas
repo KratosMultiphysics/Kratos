@@ -251,6 +251,7 @@ End Conditions
 
 *endif
 *Set cond Line_Normal_Load *elems *CanRepeat
+*Add cond Line_Uplift_Load *elems *CanRepeat
 *if(CondNumEntities > 0 && IsQuadratic==0 && GenData(Domain_Size,int)==2)
 Begin Conditions LineNormalLoadCondition2N
 *loop elems *OnlyInCond
@@ -390,6 +391,7 @@ End Conditions
 *endif
 *endif
 *Set cond Surface_Normal_Load *elems *CanRepeat
+*Add cond Surface_Uplift_Load *elems *CanRepeat
 *if(CondNumEntities > 0)
 *set var DoWrite=0
 *loop elems *OnlyInCond
@@ -578,7 +580,7 @@ Begin NodalData TEMPERATURE
 *set var freq = cond(Angular_Frequency,real)
 *set var t = GenData(Evolution_Data,2,real)
 *set var t0 = cond(Day_Ambient_Temp,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var aux = operation(RefCoord-NodesCoord(1))
 *set var aux1 = operation((tb-(ts*exp(-0.04*H)))/(1-(exp(-0.04*H))))
 *set var Temperature = operation(aux1+((ts-aux1)*(exp(-0.04*aux)))+(A*(exp(-0.018*aux))*(cos(freq*(t-(t0/30.0)-2.15+(1.30*exp(-0.085*aux)))))))
@@ -595,7 +597,7 @@ Begin NodalData TEMPERATURE
 *set var freq = cond(Angular_Frequency,real)
 *set var t = GenData(Evolution_Data,2,real)
 *set var t0 = cond(Day_Ambient_Temp,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var aux = operation(RefCoord-NodesCoord(2))
 *set var aux1 = operation((tb-(ts*exp(-0.04*H)))/(1-(exp(-0.04*H))))
 *set var Temperature = operation(aux1+((ts-aux1)*(exp(-0.04*aux)))+(A*(exp(-0.018*aux))*(cos(freq*(t-(t0/30.0)-2.15+(1.30*exp(-0.085*aux)))))))
@@ -612,7 +614,7 @@ Begin NodalData TEMPERATURE
 *set var freq = cond(Angular_Frequency,real)
 *set var t = GenData(Evolution_Data,2,real)
 *set var t0 = cond(Day_Ambient_Temp,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var aux = operation(RefCoord-NodesCoord(3))
 *set var aux1 = operation((tb-(ts*exp(-0.04*H)))/(1-(exp(-0.04*H))))
 *set var Temperature = operation(aux1+((ts-aux1)*(exp(-0.04*aux)))+(A*(exp(-0.018*aux))*(cos(freq*(t-(t0/30.0)-2.15+(1.30*exp(-0.085*aux)))))))
@@ -751,7 +753,7 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *NodesNum  *cond(Fix_Normal)  *cond(Normal_Value)
 *elseif(strcmp(cond(Gravity_Direction),"X")==0)
 *set var SpecWei = cond(Specific_Weight,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(1)))
 *if(Pressure > 0)
 *NodesNum  *cond(Fix_Normal)  *Pressure
@@ -760,7 +762,7 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *endif
 *elseif(strcmp(cond(Gravity_Direction),"Y")==0)
 *set var SpecWei = cond(Specific_Weight,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(2)))
 *if(Pressure > 0)
 *NodesNum  *cond(Fix_Normal)  *Pressure
@@ -769,7 +771,7 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *endif
 *elseif(strcmp(cond(Gravity_Direction),"Z")==0)
 *set var SpecWei = cond(Specific_Weight,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(3)))
 *if(Pressure > 0)
 *NodesNum  *cond(Fix_Normal)  *Pressure
@@ -780,8 +782,98 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *endif
 *end nodes
 End NodalData
-
 *endif
+*endif
+
+*Set cond Line_Uplift_Load *nodes
+*if(CondNumEntities > 0)
+Begin NodalData NORMAL_CONTACT_STRESS
+*loop nodes *OnlyInCond
+*if(strcmp(cond(Gravity_Direction),"X")==0 && strcmp(cond(Uplift_Direction),"Y")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(1)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(2)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fix_Normal)  *uplift
+*else
+*NodesNum  *cond(Fix_Normal)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"X")==0 && strcmp(cond(Uplift_Direction),"Z")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(1)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(3)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fix_Normal)  *uplift
+*else
+*NodesNum  *cond(Fix_Normal)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"X")==0 && strcmp(cond(Uplift_Direction),"X")==0)
+Warning, please change the direction!
+*elseif(strcmp(cond(Gravity_Direction),"Y")==0 && strcmp(cond(Uplift_Direction),"X")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(2)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(1)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fix_Normal)  *uplift
+*else
+*NodesNum  *cond(Fix_Normal)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Y")==0 && strcmp(cond(Uplift_Direction),"Z")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(2)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(3)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fix_Normal)  *uplift
+*else
+*NodesNum  *cond(Fix_Normal)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Y")==0 && strcmp(cond(Uplift_Direction),"Y")==0)
+Warning, please change the direction!
+*elseif(strcmp(cond(Gravity_Direction),"Z")==0 && strcmp(cond(Uplift_Direction),"X")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(3)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(1)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fix_Normal)  *uplift
+*else
+*NodesNum  *cond(Fix_Normal)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Z")==0 && strcmp(cond(Uplift_Direction),"Y")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(3)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(2)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fix_Normal)  *uplift
+*else
+*NodesNum  *cond(Fix_Normal)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Z")==0 && strcmp(cond(Uplift_Direction),"Z")==0)
+Warning, please change the direction!
+*endif
+*end nodes
+End NodalData
+*endif
+
+*Set cond Line_Normal_Load *nodes
+*if(CondNumEntities > 0)
 *set var DoWrite=0
 *loop nodes *OnlyInCond
 *if(cond(LINE_TANGENTIAL_LOAD,int)==1)
@@ -862,7 +954,7 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *NodesNum  *cond(Fixed)  *cond(Value)
 *elseif(strcmp(cond(Gravity_Direction),"X")==0)
 *set var SpecWei = cond(Specific_Weight,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(1)))
 *if(Pressure > 0)
 *NodesNum  *cond(Fixed)  *Pressure
@@ -871,7 +963,7 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *endif
 *elseif(strcmp(cond(Gravity_Direction),"Y")==0)
 *set var SpecWei = cond(Specific_Weight,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(2)))
 *if(Pressure > 0)
 *NodesNum  *cond(Fixed)  *Pressure
@@ -880,13 +972,100 @@ Begin NodalData NORMAL_CONTACT_STRESS
 *endif
 *elseif(strcmp(cond(Gravity_Direction),"Z")==0)
 *set var SpecWei = cond(Specific_Weight,real)
-*set var RefCoord = cond(Coordinate_at_Base_Dam,real) + GenData(Evolution_Data,3,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
 *set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(3)))
 *if(Pressure > 0)
 *NodesNum  *cond(Fixed)  *Pressure
 *else
 *NodesNum  *cond(Fixed)  0.0
 *endif
+*endif
+*end nodes
+End NodalData
+
+*endif
+*Set cond Surface_Uplift_Load *nodes
+*if(CondNumEntities > 0)
+Begin NodalData NORMAL_CONTACT_STRESS
+*loop nodes *OnlyInCond
+*if(strcmp(cond(Gravity_Direction),"X")==0 && strcmp(cond(Uplift_Direction),"Y")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(1)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(2)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fixed)  *uplift
+*else
+*NodesNum  *cond(Fixed)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"X")==0 && strcmp(cond(Uplift_Direction),"Z")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(1)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(3)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fixed)  *uplift
+*else
+*NodesNum  *cond(Fixed)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"X")==0 && strcmp(cond(Uplift_Direction),"X")==0)
+Warning, please change the direction!
+*elseif(strcmp(cond(Gravity_Direction),"Y")==0 && strcmp(cond(Uplift_Direction),"X")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(2)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(1)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fixed)  *uplift
+*else
+*NodesNum  *cond(Fixed)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Y")==0 && strcmp(cond(Uplift_Direction),"Z")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(2)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(3)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fixed)  *uplift
+*else
+*NodesNum  *cond(Fixed)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Y")==0 && strcmp(cond(Uplift_Direction),"Y")==0)
+Warning, please change the direction!
+*elseif(strcmp(cond(Gravity_Direction),"Z")==0 && strcmp(cond(Uplift_Direction),"X")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(3)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(1)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fixed)  *uplift
+*else
+*NodesNum  *cond(Fixed)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Z")==0 && strcmp(cond(Uplift_Direction),"Y")==0)
+*set var SpecWei = cond(Specific_Weight,real)
+*set var RefCoord = cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real) + GenData(Evolution_Data,3,real)
+*set var Pressure = operation(SpecWei*(RefCoord-NodesCoord(3)))
+*set var Bas = cond(Base_of_Dam,real)
+*set var upcoord = cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+*set var uplift = operation(pressure*(1.0-(1.0/Bas)*(abs(NodesCoord(2)-upcoord))))
+*if(uplift > 0)
+*NodesNum  *cond(Fixed)  *uplift
+*else
+*NodesNum  *cond(Fixed)  0.0
+*endif
+*elseif(strcmp(cond(Gravity_Direction),"Z")==0 && strcmp(cond(Uplift_Direction),"Z")==0)
+Warning, please change the direction!
 *endif
 *end nodes
 End NodalData
@@ -983,7 +1162,7 @@ Begin Mesh 1 // Related to Bofang Temperature Conditions
 
  Begin MeshData
   GRAVITY_DIRECTION        *cond(Gravity_Direction)
-  COORDINATE_BASE_DAM      *cond(Coordinate_at_Base_Dam,real)
+  COORDINATE_BASE_DAM      *cond(Coordinate_at_Base_Dam_in_Gravity_Direction,real)
   SURFACE_TEMP             *cond(Surface_Temp,real)
   BOTTOM_TEMP              *cond(Bottom_Temp,real)
   HEIGHT_DAM               *cond(Height_Dam,real)
@@ -1032,7 +1211,30 @@ End Mesh
 *break 
 *endif
 *endif
-*end nodes  
+*end nodes
+*else
+Begin Mesh 1 // Related to Bofang Temperature Conditions
+
+ Begin MeshData
+  GRAVITY_DIRECTION        Y
+  COORDINATE_BASE_DAM      0.0
+  SURFACE_TEMP             0.0
+  BOTTOM_TEMP              0.0
+  HEIGHT_DAM               0.0
+  AMPLITUDE                0.0
+  FREQUENCY                0.0
+  DAY_MAXIMUM              0.0
+ End MeshData
+ 
+ Begin MeshNodes
+ End MeshNodes
+End Mesh
+
+Begin Mesh 2 // Related to Uniform  Temperature Conditions
+
+ Begin MeshNodes
+ End MeshNodes
+End Mesh   
 *endif
 
 *Set cond Surface_Normal_Load *nodes
@@ -1040,16 +1242,16 @@ End Mesh
 *loop nodes *OnlyInCond
 *if(strcmp(cond(Load_Distribution),"Hydrostatic")==0)
 Begin Mesh 3 // Related to Hydrostatic Conditions
-
  Begin MeshData
+
   GRAVITY_DIRECTION        *cond(Gravity_Direction)
-  COORDINATE_BASE_DAM      *cond(Coordinate_at_Base_Dam,real)
+  COORDINATE_BASE_DAM      *cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real)
   SPECIFIC_WEIGHT          *cond(Specific_Weight,real)
  End MeshData
+
 *break 
 *endif
 *end nodes
-
  Begin MeshNodes
 *loop nodes *OnlyinCond
 *if(strcmp(cond(Load_Distribution),"Hydrostatic")==0)
@@ -1068,13 +1270,13 @@ Begin Mesh 3 // Related to Hydrostatic Conditions
 
  Begin MeshData
   GRAVITY_DIRECTION        *cond(Gravity_Direction)
-  COORDINATE_BASE_DAM      *cond(Coordinate_at_Base_Dam,real)
+  COORDINATE_BASE_DAM      *cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real)
   SPECIFIC_WEIGHT          *cond(Specific_Weight,real)
  End MeshData
+
 *break 
 *endif
 *end nodes
-
  Begin MeshNodes
 *loop nodes *OnlyinCond
 *if(strcmp(cond(Normal_Load_Distribution),"Hydrostatic")==0)
@@ -1084,3 +1286,63 @@ Begin Mesh 3 // Related to Hydrostatic Conditions
  End MeshNodes
 End Mesh  
 *endif
+
+*Set cond Surface_Normal_Load *nodes
+*Add cond Line_Normal_Load *nodes
+*if(CondNumEntities > 0)
+*else
+Begin Mesh 3 // Related to Hydrostatic Conditions
+
+ Begin MeshData
+  GRAVITY_DIRECTION        Y
+  COORDINATE_BASE_DAM      0.0
+  SPECIFIC_WEIGHT          0.0
+ End MeshData
+ 
+ Begin MeshNodes
+ End MeshNodes
+End Mesh   
+*endif
+
+*Set cond Line_Uplift_Load *nodes
+*Add cond Surface_Uplift_Load *nodes
+*if(CondNumEntities > 0 )
+*loop nodes *OnlyInCond 
+Begin Mesh 4 // Related to Uplift Pressure Conditions
+
+ Begin MeshData
+  GRAVITY_DIRECTION             *cond(Gravity_Direction)
+  COORDINATE_BASE_DAM           *cond(Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,real)
+  UPLIFT_DIRECTION              *cond(Uplift_Direction)
+  COORDINATE_BASE_DAM_UPLIFT    *cond(Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction,real)
+  BASE_OF_DAM                   *cond(Base_of_Dam,real)
+  SPECIFIC_WEIGHT               *cond(Specific_Weight,real)
+ End MeshData
+ 
+*break
+*end nodes 
+ Begin MeshNodes
+*loop nodes *OnlyInCond
+ *NodesNum
+*end nodes
+ End MeshNodes
+End Mesh
+*else
+Begin Mesh 4 // Related to Uplift Pressure Conditions
+
+ Begin MeshData
+  GRAVITY_DIRECTION             Y
+  COORDINATE_BASE_DAM           0.0
+  UPLIFT_DIRECTION              X
+  COORDINATE_BASE_DAM_UPLIFT    0.0
+  BASE_OF_DAM                   0.0
+  SPECIFIC_WEIGHT               0.0
+ End MeshData
+ 
+ Begin MeshNodes
+ End MeshNodes
+End Mesh
+*endif
+
+
+
