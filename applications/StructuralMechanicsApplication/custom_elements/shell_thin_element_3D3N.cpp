@@ -182,7 +182,7 @@ ShellThinElement3D3N::~ShellThinElement3D3N()
 Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    return boost::make_shared< Element >(ShellThinElement3D3N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) ));
+    return boost::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
 //     return Element::Pointer( new ShellThinElement3D3N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
 }
 

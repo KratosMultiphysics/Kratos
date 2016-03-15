@@ -433,7 +433,7 @@ Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType c
 {
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
     
-    return boost::make_shared< Element >(ShellThickElement3D4N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) ));
+    return boost::make_shared< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
 //     return Element::Pointer( new ShellThickElement3D4N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
 }
 
