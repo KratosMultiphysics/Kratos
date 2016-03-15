@@ -1,8 +1,8 @@
 //
 //   Project Name:        KratosDamApplication $
-//   Last Modified by:    $Author:     IPouplana $
-//   Date:                $Date:    December 2015 $
-//   Revision:            $Revision:         1.0 $
+//   Last Modified by:    $Author:     LGracia $
+//   Date:                $Date:    March 2016 $
+//   Revision:            $Revision:       1.0 $
 //
 
 #if !defined(KRATOS_DAM_APPLICATION_H_INCLUDED )
@@ -47,7 +47,7 @@ KRATOS_DEFINE_VARIABLE( double, IMPOSED_NORMAL_STRESS )
 KRATOS_DEFINE_VARIABLE( double, IMPOSED_TANGENTIAL_STRESS )
 KRATOS_DEFINE_VARIABLE( double, IMPOSED_TEMPERATURE )
 
-//Bofang and Hidrostatic variables for evolution changes
+//Bofang, Hidrostatic and uplift variables for evolution changes
 KRATOS_DEFINE_VARIABLE( std::string, GRAVITY_DIRECTION )
 KRATOS_DEFINE_VARIABLE( double, COORDINATE_BASE_DAM )
 KRATOS_DEFINE_VARIABLE( double, SURFACE_TEMP )
@@ -57,6 +57,9 @@ KRATOS_DEFINE_VARIABLE( double, AMPLITUDE )
 KRATOS_DEFINE_VARIABLE( double, FREQUENCY )
 KRATOS_DEFINE_VARIABLE( double, DAY_MAXIMUM )
 KRATOS_DEFINE_VARIABLE( double, SPECIFIC_WEIGHT )
+KRATOS_DEFINE_VARIABLE( std::string, UPLIFT_DIRECTION )
+KRATOS_DEFINE_VARIABLE( double, COORDINATE_BASE_DAM_UPLIFT )
+KRATOS_DEFINE_VARIABLE( double, BASE_OF_DAM )
 
 // Thermal Variables
 KRATOS_DEFINE_VARIABLE( Matrix, THERMAL_STRESS_TENSOR )
