@@ -1,7 +1,7 @@
 //
-//   Project Name:        KratosDamApplication $
-//   Last Modified by:    $Author:     IPouplana $
-//   Date:                $Date:    December 2015 $
+//   Project Name:        KratosDamApplication   $   
+//   Last Modified by:    $Author:     LGracia   $
+//   Date:                $Date:      March 2016 $
 //   Revision:            $Revision:         1.0 $
 //
 
@@ -49,7 +49,7 @@ KRATOS_CREATE_VARIABLE( double, IMPOSED_NORMAL_STRESS )
 KRATOS_CREATE_VARIABLE( double, IMPOSED_TANGENTIAL_STRESS )
 KRATOS_CREATE_VARIABLE( double, IMPOSED_TEMPERATURE )
 
-//Bofang and Hidrostatic variables for evolution changes
+//Bofang, Hidrostatic and uplift variables for evolution changes
 KRATOS_CREATE_VARIABLE( std::string, GRAVITY_DIRECTION )
 KRATOS_CREATE_VARIABLE( double, COORDINATE_BASE_DAM )
 KRATOS_CREATE_VARIABLE( double, SURFACE_TEMP )
@@ -59,6 +59,9 @@ KRATOS_CREATE_VARIABLE( double, AMPLITUDE )
 KRATOS_CREATE_VARIABLE( double, FREQUENCY )
 KRATOS_CREATE_VARIABLE( double, DAY_MAXIMUM )
 KRATOS_CREATE_VARIABLE( double, SPECIFIC_WEIGHT )
+KRATOS_CREATE_VARIABLE( std::string, UPLIFT_DIRECTION )
+KRATOS_CREATE_VARIABLE( double, COORDINATE_BASE_DAM_UPLIFT )
+KRATOS_CREATE_VARIABLE( double, BASE_OF_DAM )
 
 // Thermal Variables
 KRATOS_CREATE_VARIABLE( Matrix, THERMAL_STRESS_TENSOR )
@@ -161,7 +164,7 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( IMPOSED_TANGENTIAL_STRESS )
     KRATOS_REGISTER_VARIABLE( IMPOSED_TEMPERATURE )
     
-    //Bofang and Hidrostatic variables for evolution changes
+    //Bofang, Hidrostatic and uplift variables for evolution changes
     KRATOS_REGISTER_VARIABLE( GRAVITY_DIRECTION )
     KRATOS_REGISTER_VARIABLE( COORDINATE_BASE_DAM )
     KRATOS_REGISTER_VARIABLE( SURFACE_TEMP )
@@ -171,6 +174,9 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( FREQUENCY )
     KRATOS_REGISTER_VARIABLE( DAY_MAXIMUM )
     KRATOS_REGISTER_VARIABLE( SPECIFIC_WEIGHT )
+    KRATOS_REGISTER_VARIABLE( UPLIFT_DIRECTION )
+    KRATOS_REGISTER_VARIABLE( COORDINATE_BASE_DAM_UPLIFT )
+    KRATOS_REGISTER_VARIABLE( BASE_OF_DAM )
     
     // Thermal Variables
     KRATOS_REGISTER_VARIABLE( THERMAL_STRESS_TENSOR )
