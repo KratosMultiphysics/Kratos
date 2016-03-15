@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-
+#include "boost/make_shared.hpp"
 
 namespace Kratos
 {
@@ -252,7 +252,8 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 
 		//create a new node
-		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
+// 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
+		NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z );
 
 		// Giving model part's variables list to the node
 		p_new_node->SetSolutionStepVariablesList(pNewVariablesList);
@@ -277,7 +278,8 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 
 		//create a new node
-		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
+// 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z));
+                NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z);
 
 		// Giving model part's variables list to the node
 		p_new_node->SetSolutionStepVariablesList(mpVariablesList);
@@ -294,6 +296,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 	ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, double x, double y, double z, double* pThisData, ModelPart::IndexType ThisIndex)
 	{
 		if (IsSubModelPart())
+                    
 		{
 			NodeType::Pointer p_new_node = mpParentModelPart->CreateNewNode(Id, x, y, z, pThisData, ThisIndex);
 			GetMesh(ThisIndex).AddNode(p_new_node);
@@ -302,8 +305,8 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 
 		//create a new node
-		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z, mpVariablesList, pThisData, mBufferSize));
-
+		//NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(Id, x, y, z, mpVariablesList, pThisData, mBufferSize));
+                NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
 		//add the new node to the list of nodes
 		GetMesh(ThisIndex).AddNode(p_new_node);
 
@@ -322,7 +325,8 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 
 		//create a new node
-		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z()));
+// 		NodeType::Pointer p_new_node = NodeType::Pointer(new NodeType(NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z()));
+                NodeType::Pointer p_new_node = boost::make_shared< NodeType >( NodeId, rSourceNode.X(), rSourceNode.Y(), rSourceNode.Z() );
 
 		// Giving model part's variables list to the node
 		p_new_node->SetSolutionStepVariablesList(mpVariablesList);
