@@ -746,6 +746,7 @@ namespace Kratos
     void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
     {
         KRATOS_TRY
+//         KRATOS_THROW_ERROR(std::runtime_error, "this function shall be removed ReadNodesBlock(NodesContainerType& rThisNodes)","")
 
         NodeType temp_node;
         SizeType temp_id;
@@ -792,7 +793,8 @@ namespace Kratos
     void ModelPartIO::ReadNodesBlock(ModelPart& rModelPart)
     {
         KRATOS_TRY
-        NodeType temp_node;
+  /*
+  NodeType temp_node;
         SizeType temp_id;
 
         // Giving model part's variables list to the node
@@ -837,72 +839,51 @@ namespace Kratos
         rModelPart.Nodes().Unique();
         if(rModelPart.Nodes().size() != numer_of_nodes_read)
             std::cout << "attention! we read " << numer_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
+*/
+	SizeType id;
+	double x;
+	double y;
+	double z;
 
-//	SizeType id;
-//	double x;
-//	double y;
-//	double z;
-//
-//	std::string word;
-//
-//	SizeType number_of_nodes_read = 0;
-//
-//      std::cout << "  [Reading Nodes    : ";
-//
-//        std::vector< unsigned int > id_vector;
-//        std::vector< array_1d<double,3> > coordinates_vector;
-//
-//
-//	while(!mFile.eof())
-//	{
-//	  ReadWord(word);
-//	  if(CheckEndBlock("Nodes", word))
-//	    break;
-//
-//	  ExtractValue(word, id);
-//	  ReadWord(word);
-//	  ExtractValue(word, x);
-//	  ReadWord(word);
-//	  ExtractValue(word, y);
-//	  ReadWord(word);
-//	  ExtractValue(word, z);
-//
-//          id_vector.push_back(id);
-//          array_1d<double,3> coords;
-//          coords[0]=x;
-//          coords[1]=y;
-//          coords[2]=z;
-//          coordinates_vector.push_back(coords);
-//	  number_of_nodes_read++;
-//	}
-//
-//        #ifndef _OPENMP
-//            for(std::size_t i = 0 ; i < id_vector.size() ; i++)
-//            {
-//                const array_1d<double,3>& temp = coordinates_vector[i];
-//                rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
-//            }
-//       #else
-//            int number_of_threads = omp_get_max_threads();
-//            vector<unsigned int> partition;
-//            CreatePartition(number_of_threads, id_vector.size(), partition);
-//            for( int k=0; k<number_of_threads; k++ )
-//            {
-//                #pragma omp parallel
-//                if( omp_get_thread_num() == k )
-//                {
-//                    for( std::size_t i = partition[k]; i < partition[k+1]; i++ )
-//                    {
-//                        const array_1d<double,3>& temp = coordinates_vector[i];
-//                        rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
-//                    }
-//                }
-//            }
-//        #endif
-//
-//
-//
-//        std::cout << number_of_nodes_read << " nodes read]" << std::endl;
+	std::string word;
+
+	SizeType number_of_nodes_read = 0;
+        
+        typedef std::map< unsigned int, array_1d<double,3> > map_type;
+        map_type read_coordinates;
+
+        std::cout << "  [Reading Nodes    : ";
+
+	while(!mFile.eof())
+	{
+	  ReadWord(word);
+	  if(CheckEndBlock("Nodes", word))
+	    break;
+
+	  ExtractValue(word, id);
+	  ReadWord(word);
+	  ExtractValue(word, x);
+	  ReadWord(word);
+	  ExtractValue(word, y);
+	  ReadWord(word);
+	  ExtractValue(word, z);
+
+         array_1d<double,3> coords;
+         coords[0]=x;
+         coords[1]=y;
+         coords[2]=z;
+         read_coordinates[id] = coords;
+	  number_of_nodes_read++;
+	}
+	
+	for(map_type::const_iterator it = read_coordinates.begin(); it!=read_coordinates.end(); ++it)
+        {
+            const unsigned int node_id = it->first;
+            const array_1d<double,3>& coords = it->second;
+            rModelPart.CreateNewNode(node_id,coords[0],coords[1],coords[2]);
+        }
+        if(rModelPart.Nodes().size() != number_of_nodes_read)
+            std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
 
         KRATOS_CATCH("")
     }
