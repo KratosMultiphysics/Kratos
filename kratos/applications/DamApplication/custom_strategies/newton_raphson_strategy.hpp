@@ -139,15 +139,17 @@ public:
         mpBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
                                                         BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
         InitializeSystemVector(mpTotalx);
-        InitializeSystemVector(mpb0);
 
-        //Initialize vectors of initial residual and total x
-        TSystemVectorType& mb0 = *mpb0;
-        TSparseSpace::SetToZero(mb0);
-        mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb0);
+        //Initialize norm of initial residual and vector of total x
+        TSystemVectorType& mb = *mpb;
+        TSparseSpace::SetToZero(mb);
+        mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
 
-        if(TSparseSpace::TwoNorm(mb0) < 1.0e-20)
+        mNormb0 = TSparseSpace::TwoNorm(mb);
+        if(mNormb0 < 1.0e-20)
             KRATOS_THROW_ERROR( std::logic_error, "Norm of the initial residual < 1.0e-20. One must initialize the strategy with some external load applied", "" )
+        if(isnan(mNormb0) || isinf(mNormb0))
+            KRATOS_THROW_ERROR( std::logic_error, "Norm of the initial residual is nan or inf. Check the elemental matrices", "" )
             
         TSystemVectorType& mTotalx = *mpTotalx;
         TSparseSpace::SetToZero(mTotalx);
@@ -171,7 +173,6 @@ public:
         TSystemVectorType& mb = *mpb;
         TSystemVectorType& mDx = *mpDx;
 
-        TSystemVectorType& mb0 = *mpb0;
         TSystemVectorType& mTotalx = *mpTotalx;
         
         // ********** Prediction **********
@@ -236,7 +237,7 @@ public:
 
             TSparseSpace::SetToZero(mb);
             mpBuilderAndSolver->BuildRHS(mpScheme, BaseType::GetModelPart(), mb);
-            residual_ratio = TSparseSpace::TwoNorm(mb)/TSparseSpace::TwoNorm(mb0);
+            residual_ratio = TSparseSpace::TwoNorm(mb)/mNormb0;
             std::cout << "        Residual Ratio = " << residual_ratio << std::endl;
         }
 
@@ -280,7 +281,6 @@ public:
             //setting up the system matrix and vectors
             mpBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
                                                             BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-            InitializeSystemVector(mpb0);
         }
 
         TSystemMatrixType& mA = *mpA;
@@ -340,19 +340,16 @@ public:
         SparseSpaceType::Clear(mpA);
         SparseSpaceType::Clear(mpb);
         SparseSpaceType::Clear(mpDx);
-        SparseSpaceType::Clear(mpb0);
         SparseSpaceType::Clear(mpTotalx);
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mb = *mpb;
         TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb0 = *mpb0;
         TSystemVectorType& mTotalx = *mpTotalx;
 
         SparseSpaceType::Resize(mA, 0, 0);
         SparseSpaceType::Resize(mb, 0);
         SparseSpaceType::Resize(mDx, 0);
-        SparseSpaceType::Resize(mb0, 0);
         SparseSpaceType::Resize(mTotalx, 0);
 
         //setting to zero the internal flag to ensure that the dof sets are recalculated
@@ -374,7 +371,6 @@ protected:
 
     TSystemVectorPointerType mpb;
     TSystemVectorPointerType mpDx;
-    TSystemVectorPointerType mpb0;
     TSystemVectorPointerType mpTotalx;
 
     typename TSchemeType::Pointer mpScheme;
@@ -386,7 +382,9 @@ protected:
     unsigned int mMaxIterationNumber;
 
     bool mReformDofSetAtEachStep, mCalculateReactionsFlag;
-
+    
+    double mNormb0;
+    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeSystemVector(TSystemVectorPointerType& pv)
