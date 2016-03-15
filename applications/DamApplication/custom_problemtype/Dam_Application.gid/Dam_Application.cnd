@@ -133,13 +133,13 @@ CONDTYPE: over points
 CONDMESHTYPE: over nodes
 QUESTION: Temperature_Distribution#CB#(Uniform)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)
 QUESTION: Temperature_Value
 VALUE: 20
 HELP: Units: ºC
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Z
-QUESTION: Coordinate_at_Base_Dam
+QUESTION: Coordinate_at_Base_Dam_in_Gravity_Direction
 VALUE: 0.0
 HELP: Coordinate at the base of the dam. Units: m
 QUESTION: Surface_Temp
@@ -170,13 +170,13 @@ CONDTYPE: over lines
 CONDMESHTYPE: over nodes
 QUESTION: Temperature_Distribution#CB#(Uniform,Bofang)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)(Bofang,HIDE,Temperature_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Surface_Temp,#CURRENT#,RESTORE,Bottom_Temp,#CURRENT#,RESTORE,Height_Dam,#CURRENT#,RESTORE,Temperature_Amplitude,#CURRENT#,RESTORE,Angular_Frequency,#CURRENT#,RESTORE,Day_Ambient_Temp,#CURRENT#)
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)(Bofang,HIDE,Temperature_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,RESTORE,Surface_Temp,#CURRENT#,RESTORE,Bottom_Temp,#CURRENT#,RESTORE,Height_Dam,#CURRENT#,RESTORE,Temperature_Amplitude,#CURRENT#,RESTORE,Angular_Frequency,#CURRENT#,RESTORE,Day_Ambient_Temp,#CURRENT#)
 QUESTION: Temperature_Value
 VALUE: 20
 HELP: Units: ºC
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Z
-QUESTION: Coordinate_at_Base_Dam
+QUESTION: Coordinate_at_Base_Dam_in_Gravity_Direction
 VALUE: 0.0
 HELP: Coordinate at the base of the dam. Units: m
 QUESTION: Surface_Temp
@@ -207,13 +207,13 @@ CONDTYPE: over surfaces
 CONDMESHTYPE: over nodes
 QUESTION: Temperature_Distribution#CB#(Uniform,Bofang)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)(Bofang,HIDE,Temperature_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Surface_Temp,#CURRENT#,RESTORE,Bottom_Temp,#CURRENT#,RESTORE,Height_Dam,#CURRENT#,RESTORE,Temperature_Amplitude,#CURRENT#,RESTORE,Angular_Frequency,#CURRENT#,RESTORE,Day_Ambient_Temp,#CURRENT#)
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)(Bofang,HIDE,Temperature_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,RESTORE,Surface_Temp,#CURRENT#,RESTORE,Bottom_Temp,#CURRENT#,RESTORE,Height_Dam,#CURRENT#,RESTORE,Temperature_Amplitude,#CURRENT#,RESTORE,Angular_Frequency,#CURRENT#,RESTORE,Day_Ambient_Temp,#CURRENT#)
 QUESTION: Temperature_Value
 VALUE: 20
 HELP: Units: ºC
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Z
-QUESTION: Coordinate_at_Base_Dam
+QUESTION: Coordinate_at_Base_Dam_in_Gravity_Direction
 VALUE: 0.0
 HELP: Coordinate at the base of the dam. Units: m
 QUESTION: Surface_Temp
@@ -244,13 +244,13 @@ CONDTYPE: over volumes
 CONDMESHTYPE: over nodes
 QUESTION: Temperature_Distribution#CB#(Uniform)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)
+DEPENDENCIES: (Uniform,RESTORE,Temperature_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,HIDE,Surface_Temp,#CURRENT#,HIDE,Bottom_Temp,#CURRENT#,HIDE,Height_Dam,#CURRENT#,HIDE,Temperature_Amplitude,#CURRENT#,HIDE,Angular_Frequency,#CURRENT#,HIDE,Day_Ambient_Temp,#CURRENT#)
 QUESTION: Temperature_Value
 VALUE: 20
 HELP: Units: ºC
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Z
-QUESTION: Coordinate_at_Base_Dam
+QUESTION: Coordinate_at_Base_Dam_in_Gravity_Direction
 VALUE: 0.0
 HELP: Coordinate at the base of the dam. Units: m
 QUESTION: Surface_Temp
@@ -351,18 +351,18 @@ VALUE: 1
 DEPENDENCIES: (0,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Value,0.0,HIDE,Fix_Normal,0)(1,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Value,#CURRENT#,RESTORE,Fix_Normal,1)
 QUESTION: Normal_Load_Distribution#CB#(Uniform,Hydrostatic)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,RESTORE,Normal_Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
+DEPENDENCIES: (Uniform,RESTORE,Normal_Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
 QUESTION: Normal_Value
 VALUE: 0.0
-HELP: Only for 2D cases. Units in IS: N/m2. A positive value corresponds to a compressive load.
+HELP: Only for 2D cases. Units in IS: N/m2. A positive value corresponds to a compressive load in the direction of the normal.
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Y
-QUESTION: Coordinate_at_Base_Dam
+QUESTION: Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction
 VALUE: 0.0
-HELP: Coordinate of the chosen direction at which the load is 0.
+HELP: Upstream coordinates at base of dam in gravity direction (Union between the body dam and the ground).
 QUESTION: Specific_Weight
 VALUE: 10000
-HELP: Only for 2D cases. Units in IS: N/m3. A positive value leads to a compressive load.
+HELP: Only for 2D cases. Units in IS: N/m3. A positive value corresponds to a compressive load in the direction of the normal.
 QUESTION: Fix_Normal#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
@@ -377,23 +377,46 @@ VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
 END CONDITION
 
+CONDITION: Line_Uplift_Load
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Y
+QUESTION: Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction
+VALUE: 0.0
+HELP: Upstream coordinates at base of dam in gravity direction (Union between the body dam and the ground).
+QUESTION: Uplift_Direction#CB#(X,Y,Z)
+VALUE: X
+QUESTION: Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction
+VALUE: 0.0
+HELP: Upstream coordinates at base of dam in uplift direction (Union between the body dam and the ground).
+QUESTION: Base_of_Dam
+VALUE: 0.0
+HELP: Base of dam. If the base changes, please, assign it separetly. Units in IS: m
+QUESTION: Specific_Weight
+VALUE: 10000
+HELP: Only for 2D cases. Units in IS: N/m3. A positive value corresponds to a compressive load in the direction of the normal.
+QUESTION: Fix_Normal#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+
 CONDITION: Surface_Normal_Load
 CONDTYPE: over surfaces
 CONDMESHTYPE: over face elements
 QUESTION: Load_Distribution#CB#(Uniform,Hydrostatic)
 VALUE: Uniform
-DEPENDENCIES: (Uniform,RESTORE,Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Coordinate_at_Base_Dam,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Coordinate_at_Base_Dam,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
-QUESTION: Value
+DEPENDENCIES: (Uniform,RESTORE,Normal_Value,0.0,HIDE,Gravity_Direction,#CURRENT#,HIDE,Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
+QUESTION: Normal_Value
 VALUE: 0.0
-HELP: Units in IS: N/m2. A positive value corresponds to a compressive load.
+HELP: Units in IS: N/m2. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
 QUESTION: Gravity_Direction#CB#(X,Y,Z)
 VALUE: Y
-QUESTION: Coordinate_at_Base_Dam
+QUESTION: Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction
 VALUE: 0.0
-HELP: Coordinate of the chosen direction at which the load is 0.
 QUESTION: Specific_Weight
 VALUE: 10000
-HELP: Units in IS: N/m3. A positive value leads to a compressive load.
+HELP: Units in IS: N/m2. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
 QUESTION: Fixed#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
@@ -430,6 +453,31 @@ QUESTION: Fix_Z#CB#(1,0)
 VALUE: 1
 HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
 END CONDITION
+
+CONDITION: Surface_Uplift_Load
+CONDTYPE: over surfaces
+CONDMESHTYPE: over face elements
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Y
+QUESTION: Upstream_Coordinate_at_Base_Dam_in_Gravity_Direction
+VALUE: 0.0
+HELP: : Upstream coordinates at base of dam in gravity direction (Union between the body dam and the ground).
+QUESTION: Uplift_Direction#CB#(X,Y,Z)
+VALUE: X
+QUESTION: Upstream_Coordinate_at_Base_Dam_in_Uplift_Direction
+VALUE: 0.0
+HELP: Upstream coordinates at base of dam in uplift direction (Union between the body dam and the ground).
+QUESTION: Base_of_Dam
+VALUE: 0.0
+HELP: Base of dam. If the base changes, please, assign it separetly. Units in IS: m
+QUESTION: Specific_Weight
+VALUE: 10000
+HELP: Units in IS: N/m2. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
+QUESTION: Fixed#CB#(1,0)
+VALUE: 1
+HELP: Fixed: its value can be modified over time. Unfixed: its value remains constant over time
+END CONDITION
+
 
 BOOK: Other_Conditions
 
