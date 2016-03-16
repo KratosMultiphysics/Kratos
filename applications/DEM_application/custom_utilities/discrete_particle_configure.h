@@ -117,13 +117,7 @@ public:
         mDomainPeriods[0] = domain_period_x;
         mDomainPeriods[1] = domain_period_y;
         mDomainPeriods[2] = domain_period_z;
-
-        if (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0){
-            mDomainIsPeriodic = true;
-        } else {
-            mDomainIsPeriodic = false;
-        }
-
+        mDomainIsPeriodic = (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0);
     }
 
     static void GetPeriods(double periods[3])
