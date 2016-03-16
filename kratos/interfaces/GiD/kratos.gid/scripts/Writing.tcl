@@ -572,6 +572,23 @@ proc write::WriteProcess {processDict} {
     WriteString [write::tcl2json $processDict]
 }
 
+
+proc write::getResultsList {baseUN} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set results_list [list ]
+    set xp1 "[apps::getRoute $baseUN]/value"
+    set results [$root selectNodes $xp1]
+    foreach res $results {
+        if {[get_domnode_attribute $res v]} {
+            set name [get_domnode_attribute $res n]
+            lappend results_list $name
+        }
+    }
+    return $results_list
+}
+
 # Auxiliar
 proc write::Duration { int_time } {
     # W "entro con $int_time"
