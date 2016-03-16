@@ -115,8 +115,14 @@ class ExplicitStrategy:
         self.dem_fem_search = dem_fem_search
 
         # STRATEGIES
+        Param.periodic_domain = False
 
-        self.search_strategy = OMP_DEMSearch()
+        if Param.periodic_domain:
+            self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMaxX-Param.BoundingBoxMinX, Param.BoundingBoxMaxY-Param.BoundingBoxMinY, Param.BoundingBoxMaxZ-Param.BoundingBoxMinZ)
+        else:
+            self.search_strategy = OMP_DEMSearch(-1.0, -1.0, -1.0)
+
+
 
     def Var_Translator(self, variable):
 
