@@ -50,6 +50,7 @@
 
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
+#include "custom_utilities/discrete_particle_configure.h"
 #include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
 #ifdef USING_CGAL
@@ -116,6 +117,7 @@ namespace Kratos
 
       typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
       typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+      typedef DiscreteParticleConfigure<3>                              ElementConfigureType;
       typedef RigidFaceGeometricalObjectConfigure<3>                    RigidFaceGeometricalConfigureType;
 
       /// Pointer definition of ExplicitSolverStrategy
@@ -487,14 +489,13 @@ namespace Kratos
          ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
          int time_step = r_process_info[TIME_STEPS];
          const double time = r_process_info[TIME];
-
+         bool time_to_mark = (time_step + 1) % mNStepSearch == 0 && (time_step > 0);
+         time_to_mark = time_to_mark && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
+         BoundingBoxUtility(time_to_mark);
          if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box
+            //bool time_to_mark = r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME];
 
-
-            if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
-                BoundingBoxUtility();
-            }
-            else {
+            if (!time_to_mark) {
                 mpParticleCreatorDestructor->DestroyParticles(*mpCluster_model_part);
                 mpParticleCreatorDestructor->DestroyParticles(r_model_part);
             }
@@ -664,13 +665,19 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      virtual void BoundingBoxUtility()
+      virtual void BoundingBoxUtility(bool time_to_mark = true)
       {
           KRATOS_TRY
 
           ModelPart& r_model_part = BaseType::GetModelPart();
-          mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);
-          mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
+
+          if (ElementConfigureType::GetDomainPeriodicity()){
+              mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
+          }
+
+          else if (time_to_mark){
+              mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
+          }
 
           KRATOS_CATCH("")
       }
