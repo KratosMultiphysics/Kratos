@@ -103,12 +103,12 @@ namespace Kratos
           (
                     "ConstAverageAccelerationScheme", init<>()
                   )
-                  ;
-                    
-          class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
-                    ("OMP_DEMSearch", init<>())
-                    ;
+                  ;                    
         
+          class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
+                    ("OMP_DEMSearch", init<double, double, double>())
+                    ;
+
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
           typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
