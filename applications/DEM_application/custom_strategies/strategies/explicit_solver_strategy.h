@@ -809,7 +809,7 @@ namespace Kratos
                         rhs_cond_comp[j] = rhs_cond[index+j];
                     }
 
-                    node_area += 0.333333333333333 * Element_Area;
+                    node_area += 0.333333333333333 * Element_Area; //ONLY FOR TRIANGLE...
 
                     //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
 
