@@ -106,12 +106,35 @@ class NavierStokesSolver_FractionalStep:
             #here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             
+            
+            #here we replace the dummy elements we read with proper elements
+            self.settings.AddEmptyValue("element_replace_settings")
+            if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                    {
+                    "element_name":"FractionalStep3D4N",
+                    "condition_name": "WallCondition3D3N"
+                    }
+                    """)
+            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                    {
+                    "element_name":"FractionalStep2D3N",
+                    "condition_name": "WallCondition2D2N"
+                    }
+                    """)
+            else:
+                raise Exception("domain size is not 2 or 3")
+            
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"])
+            
             ##here we shall check that the input read has the shape we like
-            aux_params = KratosMultiphysics.Parameters("{}")
-            aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-            aux_params.AddValue("skin_parts",self.settings["skin_parts"])
+            self.settings.AddEmptyValue("prepare_model_part_settings")
+            self.settings["prepare_model_part_settings"].AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+            self.settings["prepare_model_part_settings"].AddValue("skin_parts",self.settings["skin_parts"])
+            
             import check_and_preparemodel_process
-            check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+            check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, self.settings["prepare_model_part_settings"]).Execute()
             
             #here we read the VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
