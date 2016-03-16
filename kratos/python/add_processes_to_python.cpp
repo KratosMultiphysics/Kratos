@@ -61,6 +61,7 @@
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
 #include "processes/check_skin_process.h"
+#include "processes/replace_elements_and_condition_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -198,6 +199,10 @@ void  AddProcessesToPython()
             init<ModelPart&, Flags>())
     ; 
         
+    class_<ReplaceElementsAndConditionsProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsProcess",
+            init<ModelPart&, Parameters&>())
+    ;
+    
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 
