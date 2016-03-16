@@ -61,9 +61,9 @@ proc Fluid::write::writeParametersEvent { } {
     
     # Solver settings
     set solverSettingsDict [dict create]
-    dict set solverSettingsDict solver_type navier_stokes_solver_fractionalstep
-    ##dict set solverSettingsDict DomainSize $nDim
-    dict set solverSettingsDict echo_level 1
+    set currentStrategyId [write::getValue FLSolStrat]
+    set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
+    dict set solverSettingsDict solver_type $strategy_write_name
     
     # model import settings
     set modelDict [dict create]
