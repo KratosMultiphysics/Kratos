@@ -17,6 +17,7 @@
 #include "spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/discrete_particle_configure.h"
 #include "DEM_application.h"
 #include "includes/kratos_flags.h"
 
@@ -271,7 +272,20 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
         SphericParticle* ineighbour = mNeighbourElements[i];
 
         array_1d<double, 3> other_to_me_vect;
-        noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+
+        if (!DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // default infinite-domain case
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+        }
+
+        else { // periodic domain
+            double my_coors[3] = {this->GetGeometry()[0].Coordinates()[0], this->GetGeometry()[0].Coordinates()[1], this->GetGeometry()[0].Coordinates()[2]};
+            double other_coors[3] = {ineighbour->GetGeometry()[0].Coordinates()[0], ineighbour->GetGeometry()[0].Coordinates()[1], ineighbour->GetGeometry()[0].Coordinates()[2]};
+            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
+            other_to_me_vect[0] = my_coors[0] - other_coors[0];
+            other_to_me_vect[1] = my_coors[1] - other_coors[1];
+            other_to_me_vect[2] = my_coors[2] - other_coors[2];
+        }
+
         double other_radius                  = ineighbour->GetInteractionRadius();
         double distance                      = DEM_MODULUS_3(other_to_me_vect);
         double radius_sum                    = GetInteractionRadius() + other_radius;
@@ -705,7 +719,20 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
         
         array_1d<double, 3> other_to_me_vect;
-        noalias(other_to_me_vect)  = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+
+        if (!DiscreteParticleConfigure<3>::GetDomainPeriodicity()){ // default infinite-domain case
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+        }       
+
+        else { // periodic domain
+            double my_coors[3] = {this->GetGeometry()[0].Coordinates()[0], this->GetGeometry()[0].Coordinates()[1], this->GetGeometry()[0].Coordinates()[2]};
+            double other_coors[3] = {ineighbour->GetGeometry()[0].Coordinates()[0], ineighbour->GetGeometry()[0].Coordinates()[1], ineighbour->GetGeometry()[0].Coordinates()[2]};
+            DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(my_coors, other_coors);
+            other_to_me_vect[0] = my_coors[0] - other_coors[0];
+            other_to_me_vect[1] = my_coors[1] - other_coors[1];
+            other_to_me_vect[2] = my_coors[2] - other_coors[2];
+        }
+
         const double& other_radius = ineighbour->GetInteractionRadius();
         double distance            = DEM_MODULUS_3(other_to_me_vect);
         double radius_sum          = GetInteractionRadius() + other_radius;
