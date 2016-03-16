@@ -1,5 +1,5 @@
 //
-// Author: Miquel Santasusana msantasusana@cimne.upc.edu
+// Author: Miquel Santasusana msantasusana@cimne.upc.edu, Guillermo Casas gcasas@cimne.upc.edu
 //
 
 
@@ -112,6 +112,43 @@ public:
     virtual ~DiscreteParticleConfigure(){
 	}
 
+    static void SetPeriods(double domain_period_x, double domain_period_y, double domain_period_z)
+    {
+        mDomainPeriods[0] = domain_period_x;
+        mDomainPeriods[1] = domain_period_y;
+        mDomainPeriods[2] = domain_period_z;
+
+        if (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0){
+            mDomainIsPeriodic = true;
+        } else {
+            mDomainIsPeriodic = false;
+        }
+
+    }
+
+    static void GetPeriods(double periods[3])
+    {
+        periods[0] = mDomainPeriods[0];
+        periods[1] = mDomainPeriods[1];
+        periods[2] = mDomainPeriods[2];        
+    }
+
+    static bool GetDomainPeriodicity()
+    {
+        return mDomainIsPeriodic;
+    }
+
+    static inline void TransformToClosestPeriodicCoordinates(double target[3], double base_coordinates[3])
+    {
+        for (unsigned int i = 0; i < 3; i++){
+            double incr_i = target[i] - base_coordinates[i];
+
+            if (fabs(incr_i) > 0.5 * mDomainPeriods[i]){
+                base_coordinates[i] += GetSign(incr_i) * mDomainPeriods[i];
+            }
+        }
+
+    }
     ///@}
     ///@name Operators
     ///@{
@@ -159,10 +196,10 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1;
-        noalias(rObj_2_to_rObj_1) = rObj_1->GetGeometry()[0] - rObj_2->GetGeometry()[0];
+        double rObj_2_to_rObj_1[3];
+        PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
         
-        double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
+        double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
         SphericParticle* p_particle2 = dynamic_cast<SphericParticle*>(&*rObj_2);
@@ -173,20 +210,15 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& radius_1)
     {
-        const array_1d<double, 3>& coor1 = rObj_1->GetGeometry()[0];
-        const array_1d<double, 3>& coor2 = rObj_2->GetGeometry()[0];
+        double rObj_2_to_rObj_1[3];
+        PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
 
-        double difference[3];
-        difference[0] = coor1[0] - coor2[0];
-        difference[1] = coor1[1] - coor2[1];
-        difference[2] = coor1[2] - coor2[2];
-        double distance_2 = DEM_INNER_PRODUCT_3(difference, difference);
+        double distance_2 = DEM_INNER_PRODUCT_3(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         SphericParticle* p_particle1 = dynamic_cast<SphericParticle*>(&*rObj_1);
         SphericParticle* p_particle2 = dynamic_cast<SphericParticle*>(&*rObj_2);
         double radius_sum      = p_particle1->GetSearchRadius() + p_particle2->GetSearchRadius();
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
-
         return intersect;
     }
 
@@ -207,6 +239,19 @@ public:
           floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
           floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
+        if ((mDomainPeriods[0] > 0.0) && !intersect){
+            double closest_representative_coor[3] = {center_of_particle[0], center_of_particle[1], center_of_particle[2]};
+            double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
+            TransformToClosestPeriodicCoordinates(box_center, closest_representative_coor);
+            intersect = (
+            floatle(rLowPoint[0]  - radius,closest_representative_coor[0]) &&
+            floatle(rLowPoint[1]  - radius,closest_representative_coor[1]) &&
+            floatle(rLowPoint[2]  - radius,closest_representative_coor[2]) &&
+            floatge(rHighPoint[0] + radius,closest_representative_coor[0]) &&
+            floatge(rHighPoint[1] + radius,closest_representative_coor[1]) &&
+            floatge(rHighPoint[2] + radius,closest_representative_coor[2]));
+            }
+
         return  intersect;
     }
 
@@ -216,26 +261,38 @@ public:
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
         bool intersect = (
-          floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
-          floatle(rLowPoint[1]  - radius,center_of_particle[1]) && 
-          floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
-          floatge(rHighPoint[0] + radius,center_of_particle[0]) && 
-          floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
-          floatge(rHighPoint[2] + radius,center_of_particle[2]));
+            floatle(rLowPoint[0]  - radius,center_of_particle[0]) &&
+            floatle(rLowPoint[1]  - radius,center_of_particle[1]) &&
+            floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
+            floatge(rHighPoint[0] + radius,center_of_particle[0]) &&
+            floatge(rHighPoint[1] + radius,center_of_particle[1]) &&
+            floatge(rHighPoint[2] + radius,center_of_particle[2]));
+
+        if ((mDomainPeriods[0] > 0.0) && !intersect){
+            double closest_representative_coor[3] = {center_of_particle[0], center_of_particle[1], center_of_particle[2]};
+            double box_center[3] = {0.5 * (rLowPoint[0] + rHighPoint[0]), 0.5 * (rLowPoint[1] + rHighPoint[1]), 0.5 * (rLowPoint[2] + rHighPoint[2])};
+            TransformToClosestPeriodicCoordinates(box_center, closest_representative_coor);
+            intersect = (
+            floatle(rLowPoint[0]  - radius,closest_representative_coor[0]) &&
+            floatle(rLowPoint[1]  - radius,closest_representative_coor[1]) &&
+            floatle(rLowPoint[2]  - radius,closest_representative_coor[2]) &&
+            floatge(rHighPoint[0] + radius,closest_representative_coor[0]) &&
+            floatge(rHighPoint[1] + radius,closest_representative_coor[1]) &&
+            floatge(rHighPoint[2] + radius,closest_representative_coor[2]));
+            }
+
         return  intersect;
     }
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
     {
-        const array_1d<double, 3>& center_of_particle1 = rObj_1->GetGeometry()[0];
-        const array_1d<double, 3>& center_of_particle2 = rObj_2->GetGeometry()[0];
-
-        distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
-                        (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
-                        (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
+        double rObj_2_to_rObj_1[3];
+        PeriodicSubtract(rObj_1->GetGeometry()[0], rObj_2->GetGeometry()[0], rObj_2_to_rObj_1);
+        distance = DEM_MODULUS_3(rObj_2_to_rObj_1);
     }
-     
 
+    static double mDomainPeriods[3];
+    static bool mDomainIsPeriodic;
 
     /// Turn back information as a string.
     virtual std::string Info() const {return " Spatial Containers Configure for Particles"; }
@@ -249,13 +306,12 @@ public:
     ///@}
     ///@name Friends
     ///@{
-      
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
+
 
     ///@}
     ///@name Protected member Variables
@@ -298,7 +354,25 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-      
+
+    static inline int GetSign(const double value)
+    {
+        return (0.0 < value) - (value < 0.0);
+    }
+
+    static inline void PeriodicSubtract(const array_1d<double, 3>& a, const array_1d<double, 3>& b, double c[3])
+    {
+        for (unsigned int i = 0; i < 3; i++){
+            c[i] = a[i] - b[i];
+        }
+
+        if (mDomainPeriods[0] > 0.0){ // Periods have been set (the domain is periodic)
+            for (unsigned int i = 0; i < 3; i++){
+                if (fabs(c[i]) > 0.5 * mDomainPeriods[i]) c[i] -= GetSign(c[i]) * mDomainPeriods[i];
+            }
+        }
+    }
+
     static inline bool floateq(double a, double b) {
         return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
     }
@@ -359,6 +433,11 @@ private:
         }
 
     ///@}
+    ///
+template <std::size_t TDimension>
+double DiscreteParticleConfigure<TDimension>::mDomainPeriods[] = {-1.0, -1.0, -1.0};
+template <std::size_t TDimension>
+bool DiscreteParticleConfigure<TDimension>::mDomainIsPeriodic = false;
 
 }   // namespace Kratos.
 #endif	/* DISCRETE_PARTICLE_CONFIGURE_H */
