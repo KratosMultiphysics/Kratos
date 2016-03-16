@@ -20,7 +20,7 @@ class ExplicitStrategy:
         self.fix_velocities_flag     = 0        
         self.Procedures              = procedures
         self.time_integration_scheme = scheme
-        self.time_integration_scheme.SetRotationOption(solver.rotation_option)
+        self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = self.Var_Translator(Param.CleanIndentationsOption)
         self.contact_mesh_option           = self.Var_Translator(Param.ContactMeshOption)
