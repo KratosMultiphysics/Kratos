@@ -8,6 +8,10 @@
         <value n="PRESSURE" pn="Pressure" v="True" values="True,False" help="Pressure"/>
         <value n="REACTIONS" pn="Reactions" v="True" values="True,False" help="Reactions"/>
     </container>
+    <container n="OnElement" pn="On element" un="FLElementResults" state="[ActiveIfAnyPartState]">
+        <dynamicnode command="injectElementOutputs" args=""/>
+        <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
+    </container>
     <container n="HistoryOutputOnPoints" pn="History output on points" state="jidden">
         <blockdata n="HistoryGraph" pn="History graph" sequence="1" help="History graph properties">
             <value n="Point" pn="Point" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="1"/>
