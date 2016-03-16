@@ -1285,6 +1285,7 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
 {
     KRATOS_TRY
     noalias(externally_applied_force) += GetMass() * gravity;
+    noalias(externally_applied_force) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
     KRATOS_CATCH("")
 }
 
