@@ -102,8 +102,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@{
       
       /// Default constructor.
-      OMP_DEMSearch(){
-      }
+
+      OMP_DEMSearch(double period_x = -1.0, double period_y = -1.0, double period_z = -1.0){}
 
       /// Destructor.
       ~OMP_DEMSearch(){
