@@ -225,6 +225,7 @@ class ExplicitStrategy:
     def Solve(self):
         (self.cplusplus_strategy).ResetPrescribedMotionFlags()
         self.FixDOFsManually()
+        self.FixExternalForcesManually()
         (self.cplusplus_strategy).Solve()
 
     def Compute_RigidFace_Movement(self):
@@ -232,6 +233,9 @@ class ExplicitStrategy:
 
 
     def FixDOFsManually(self):
+        pass
+    
+    def FixExternalForcesManually(self):
         pass
         
     def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
