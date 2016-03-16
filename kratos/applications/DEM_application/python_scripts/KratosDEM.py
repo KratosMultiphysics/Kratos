@@ -148,7 +148,7 @@ solver.AddDofs(DEM_inlet_model_part)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
 
 os.chdir(main_path)
 
@@ -160,7 +160,7 @@ demio.AddSpheresVariables()
 demio.AddFEMBoundaryVariables()
 demio.AddClusterVariables()
 demio.AddContactVariables()
-#
+# MPI
 demio.AddMpiVariables()
 demio.EnableMpiVariables()
 
@@ -168,15 +168,14 @@ demio.Configure(DEM_parameters.problem_name,
                 DEM_parameters.OutputFileType,
                 DEM_parameters.Multifile,
                 DEM_parameters.ContactMeshOption)
-
 demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
 
 multifiles = (
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name, 1),
     DEM_procedures.MultifileList(DEM_parameters.problem_name, 2),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name, 5),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
@@ -206,7 +205,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
     procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
     bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
 
-# Creating a solver object and set the search strategy
+#Creating a solver object and set the search strategy
 #solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
@@ -222,15 +221,15 @@ if (max_FEM_node_Id > max_node_Id):
 creator_destructor.SetMaxNodeId(max_node_Id)    
 
 #Strategy Initialization
-solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes.
+solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes
 
 if (DEM_parameters.ContactMeshOption =="ON"):
     contact_model_part = solver.contact_model_part
   
-# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
-# Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
+#Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
+#Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 if (DEM_parameters.dem_inlet_option):                                        
-    # constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
+    #Constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
   
@@ -386,8 +385,8 @@ while (time < DEM_parameters.FinalTime):
         time_old_print = time
 
     #if((step%500) == 0):
-      #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
-          #MaterialTest.OrientationStudy(contact_model_part, step)
+        #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
+            #MaterialTest.OrientationStudy(contact_model_part, step)
     
     #print("TIME STEP ENDS +++++++++++++++++++++++++++++++++++++++++++++++++")
 ##############################################################################
@@ -406,7 +405,7 @@ DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
 #    Procedures.FinalizeGraphs()
 
 demio.CloseMultifiles()
-demio=0
+del demio
 
 os.chdir(main_path)
 
