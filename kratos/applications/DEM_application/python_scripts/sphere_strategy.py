@@ -118,7 +118,7 @@ class ExplicitStrategy:
 
     def Var_Translator(self, variable):
 
-        if (variable == "OFF" or variable == "0" or variable == 0):
+        if (variable == "OFF" or variable == "0" or variable == 0 or variable == "No"):
             variable = 0
         else:
             variable = 1
