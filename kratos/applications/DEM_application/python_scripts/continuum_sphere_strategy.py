@@ -8,9 +8,9 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param, procedures):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param, procedures)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures)
 
         self.print_skin_sphere = self.Var_Translator(Param.PostSkinSphere)
 
