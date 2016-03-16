@@ -7,18 +7,20 @@ import time
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, Param, procedures,):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
         # Initialization of member variables
         # SIMULATION FLAGS
-        self.Parameters           = Param
-        self.self_strain_option   = self.Var_Translator(Param.StressStrainOption)
-        self.critical_time_option = self.Var_Translator(Param.AutoReductionOfTimeStepOption)
-        self.trihedron_option     = self.Var_Translator(Param.PostEulerAngles)
-        self.rotation_option      = self.Var_Translator(Param.RotationOption)
-        self.bounding_box_option  = self.Var_Translator(Param.BoundingBoxOption)
-        self.fix_velocities_flag  = 0
-        self.Procedures = procedures
+        self.Parameters              = Param        
+        self.self_strain_option      = self.Var_Translator(Param.StressStrainOption)
+        self.critical_time_option    = self.Var_Translator(Param.AutoReductionOfTimeStepOption)
+        self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
+        self.rotation_option         = self.Var_Translator(Param.RotationOption)
+        self.bounding_box_option     = self.Var_Translator(Param.BoundingBoxOption)
+        self.fix_velocities_flag     = 0        
+        self.Procedures              = procedures
+        self.time_integration_scheme = scheme
+        self.time_integration_scheme.SetRotationOption(solver.rotation_option)
 
         self.clean_init_indentation_option = self.Var_Translator(Param.CleanIndentationsOption)
         self.contact_mesh_option           = self.Var_Translator(Param.ContactMeshOption)

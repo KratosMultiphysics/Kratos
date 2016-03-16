@@ -74,12 +74,7 @@ contact_model_part    = ""
 creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
 
-# Creating a solver object and set the search strategy
-
-solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
-
 #Getting chosen scheme:
-
 if (DEM_parameters.IntegrationScheme == 'Forward_Euler'):
     scheme = ForwardEulerScheme()
 elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
@@ -93,8 +88,9 @@ elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
-scheme.SetRotationOption(solver.rotation_option)
-solver.time_integration_scheme = scheme
+
+# Creating a solver object and set the search strategy
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
