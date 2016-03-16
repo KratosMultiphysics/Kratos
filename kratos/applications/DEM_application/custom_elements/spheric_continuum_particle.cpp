@@ -520,17 +520,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }//Calculate
 
-    void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double, 3>& gravity) {
-        KRATOS_TRY
-        SphericParticle::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_process_info, gravity);
-        
-        if (r_process_info[TRIAXIAL_TEST_OPTION] && *mSkinSphere) { //could be applied to selected particles.
-            ComputePressureForces(additionally_applied_force, r_process_info);
-        }        
-
-        KRATOS_CATCH("")
-    }
-
     void SphericContinuumParticle::CustomInitialize() {
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
@@ -565,14 +554,5 @@ namespace Kratos {
         }
         KRATOS_CATCH("")
     }//CalculateOnContactElements                                     
-
-    void SphericContinuumParticle::ComputePressureForces(array_1d<double, 3>& externally_applied_force, const ProcessInfo& r_process_info) {
-        noalias(externally_applied_force) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-        /*double time_now = r_process_info[TIME]; //MSIMSI 1 I tried to do a *mpTIME
-
-         if( mFinalPressureTime <= 1e-10 ){ //  KRATOS_WATCH("WARNING: SIMULATION TIME TO CLOSE TO ZERO")}
-        
-         else if ( (mFinalPressureTime > 1e-10) && (time_now < mFinalPressureTime) ) { externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force, time_now, mFinalPressureTime);}       
-         else {externally_applied_force = total_externally_applied_force;}*/
-    } //SphericContinuumParticle::ComputePressureForces
+    
 } // namespace Kratos

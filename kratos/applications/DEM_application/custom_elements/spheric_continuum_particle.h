@@ -56,7 +56,6 @@ namespace Kratos
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            
         virtual void ContactAreaWeighting();
-        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 
         /// Turn back information as a string
         virtual std::string Info() const
@@ -96,7 +95,6 @@ namespace Kratos
                                                    const double dt,
                                                    const bool multi_stage_RHS);         
 
-        void ComputePressureForces(array_1d<double, 3>& externally_applied_force, const ProcessInfo& r_process_info);
         void CharacteristicParticleFailureId(const ProcessInfo& r_process_info );                
         void ComputeParticleBlockContactForce(const ProcessInfo& r_process_info);
         void ComputeParticleSurfaceContactForce(const ProcessInfo& r_process_info);
