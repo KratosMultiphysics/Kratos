@@ -918,6 +918,56 @@ namespace Kratos {
         DestroyParticles(r_model_part);
     }
 
+    void ParticleCreatorDestructor::MoveParticlesOutsideBoundingBoxBackInside(ModelPart& r_model_part) {
+        KRATOS_TRY
+
+        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+
+        #pragma omp parallel for
+        for(int k=0; k<(int)rNodes.size(); k++){ //TODO: Can we remove this loop? For DEM it is useless. The job was done in the previous loop. Try it.
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+
+            array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
+            array_1d<double, 3 >& displ = (*node_pointer_it)->FastGetSolutionStepValue(DISPLACEMENT);
+            double period_0 = mHighPoint[0] - mLowPoint[0];
+            double period_1 = mHighPoint[1] - mLowPoint[1];
+            double period_2 = mHighPoint[2] - mLowPoint[2];
+
+            if (coor[0] > mHighPoint[0]){
+                displ[0] -= period_0;
+                coor[0] -= period_0;
+            }
+
+            else if (coor[0] < mLowPoint[0]){
+                displ[0] += period_0;
+                coor[0] += period_0;
+            }
+
+            if (coor[1] > mHighPoint[1]){
+                displ[1] -= period_1;
+                coor[1] -= period_1;
+            }
+
+            else if (coor[1] < mLowPoint[1]){
+                displ[1] += period_1;
+                coor[1] += period_1;
+            }
+
+            if (coor[2] > mHighPoint[2]){
+                displ[2] -= period_2;
+                coor[2] -= period_2;
+            }
+
+            else if (coor[2] < mLowPoint[2]){
+                displ[2] += period_2;
+                coor[2] += period_2;
+            }
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
         DestroyContactElements(mcontacts_model_part);
