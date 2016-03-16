@@ -114,7 +114,7 @@ public:
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mrParameters["condition_name"].GetString());
         
         #pragma omp parallel for
-        for(unsigned int i=0; i< r_root_model_part.Elements().size(); i++)
+        for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
         {
             ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
             
@@ -125,7 +125,7 @@ public:
         }
         
         #pragma omp parallel for
-        for(unsigned int i=0; i< r_root_model_part.Conditions().size(); i++)
+        for(int i=0; i< (int)r_root_model_part.Conditions().size(); i++)
         {
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
             
@@ -208,7 +208,7 @@ private:
     {
         //change the model part itself
         #pragma omp parallel for
-        for(unsigned int i=0; i< r_model_part.Elements().size(); i++)
+        for(int i=0; i< (int)r_model_part.Elements().size(); i++)
         {
             ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
             
@@ -216,7 +216,7 @@ private:
         }
         
         #pragma omp parallel for
-        for(unsigned int i=0; i< r_model_part.Conditions().size(); i++)
+        for(int i=0; i< (int)r_model_part.Conditions().size(); i++)
         {
             ModelPart::ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
             
