@@ -43,13 +43,11 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict cut_planes [dict create cut_list $cut_list]
 
     # on nodes
-    dict set outputConfigDict nodal_results [list "VELOCITY" "PRESSURE"]
+    set nodal_results_list [write::getResultsList "FLNodalResults"]
+    dict set outputConfigDict nodal_results $nodal_results_list
     
-    
-    #set xp1 "[apps::getRoute FLResults]/container\[@n='OnNodes'\]/value"
     # on elements
-    dict set outputConfigDict gauss_points_results [list "VORTICITY"]
-    
+    dict set outputConfigDict gauss_points_results [write::getResultsList "FLElementResults"]
     dict set projectParametersDict output_configuration $outputConfigDict
     
     # restart options
@@ -103,6 +101,7 @@ proc Fluid::write::writeParametersEvent { } {
     write::WriteProcess $projectParametersDict
 }
 
+
 proc Fluid::write::getSolutionStrategyParameters {solverSettingsDict} {
     set solstratName [write::getValue FLSolStrat]
     set schemeName [write::getValue FLScheme]
@@ -133,10 +132,8 @@ proc Fluid::write::getSolversParameters {solverSettingsDict} {
                 catch {set v [expr [write::getValue $un $n]]}
                 if {$v eq ""} {set v [write::getValue $un $n]}
                 dict set solverEntryDict $n $v
-                
             } {
                 dict set solverEntryDict $n [expr [write::getValue $un $n]]
-                
             }
         }
         dict set solverSettingsDict [$se getName] $solverEntryDict
