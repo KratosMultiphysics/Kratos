@@ -53,12 +53,13 @@ RigidFace3D::~RigidFace3D() {}
 
 void RigidFace3D::Initialize() {
 
-    this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-    this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-    this->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-    this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-    this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-    this->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+    const unsigned int number_of_nodes = GetGeometry().size();
+
+    for (unsigned int i=0; i< number_of_nodes; i++)
+    {
+        this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+        this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+    }
 }
 
 //***********************************************************************************
@@ -88,33 +89,33 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
         {
             if ( rRFnei[i_nei]->Id() == this->Id() )
             {
-                double weight[4] = {0.0};
+              
+                double weight = 0.0;
                 double ContactForce[3] = {0.0};
 
                 unsigned int ino = 16 * i_nei;
                 const std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
-                
-                weight[0] = neighbour_rigid_faces_pram[ino + 10];
-                weight[1] = neighbour_rigid_faces_pram[ino + 11];
-                weight[2] = neighbour_rigid_faces_pram[ino + 12];
-                weight[3] = neighbour_rigid_faces_pram[ino + 13];
-
                 const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
+
                 ContactForce[0] = neighbour_rigid_faces_contact_force[0];
                 ContactForce[1] = neighbour_rigid_faces_contact_force[1];
                 ContactForce[2] = neighbour_rigid_faces_contact_force[2];
 
-                for (unsigned int inode = 0; inode < GetGeometry().size(); inode++)
+                for (unsigned int k=0; k< number_of_nodes; k++)
                 {
-                    unsigned int ino1 =  inode * 3;
-                    rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
-                    rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
-                    rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
+                    weight = neighbour_rigid_faces_pram[ino + 10 + k];
+  
+                    unsigned int w =  k * 3;
+
+                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
+                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
+                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
                 }
-            }
-        }
-    }
-}
+                
+            }//if the condition neighbour of my sphere neighbour is myself.
+        }//Loop spheres neighbours (condition)
+    }//Loop condition neighbours (spheres)
+}//CalculateRightHandSide
 
 void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
                                          ProcessInfo& r_process_info)
