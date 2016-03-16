@@ -686,10 +686,11 @@ proc spdAux::CheckConstLawOutputState {outnode} {
     set root [$doc documentElement]
     
     set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
-    set xp1 "$parts_un/group/value\[@n='ConstitutiveLaw'\]"
+    set parts_path [getRoute $parts_un]
+    set xp1 "$parts_path/group/value\[@n='ConstitutiveLaw'\]"
     set constlawactive [list ]
     foreach gNode [$root selectNodes $xp1] {
-        lappend constlawactive [$gNode @v]
+        lappend constlawactive [get_domnode_attribute $gNode v]
     }
     
     set paramName [$outnode @n]
@@ -701,12 +702,12 @@ proc spdAux::CheckElementOutputState {outnode} {
     set root [$doc documentElement]
     
     set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
-    set xp1 "$parts_un/group/value\[@n='Element'\]"
+    set parts_path [getRoute $parts_un]
+    set xp1 "$parts_path/group/value\[@n='Element'\]"
     set elemsactive [list ]
     foreach gNode [$root selectNodes $xp1] {
-        lappend elemsactive [$gNode @v]
+        lappend elemsactive [get_domnode_attribute $gNode v]
     }
-    
     set paramName [$outnode @n]
     return [::Model::CheckElementOutputState $elemsactive $paramName]
 }

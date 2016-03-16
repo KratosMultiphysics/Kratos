@@ -23,7 +23,7 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="VORTICITY" pn="VORTICITY" />
+      <parameter n="VORTICITY" pn="Vorticity" />
     </outputs>
   </ElementItem>
 
@@ -48,7 +48,7 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="VORTICITY" pn="VORTICITY" />
+      <parameter n="VORTICITY" pn="Vorticity" />
     </outputs>
   </ElementItem>
   <ElementItem n="Monolithic2D" pn="Monolithic 2D" ImplementedInFile="fractional_step.cpp"
@@ -74,7 +74,7 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="VORTICITY" pn="VORTICITY" />
+      <parameter n="VORTICITY" pn="Vorticity" />
     </outputs>
   </ElementItem>
 
@@ -99,7 +99,7 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="VORTICITY" pn="VORTICITY" />
+      <parameter n="VORTICITY" pn="Vorticity" />
     </outputs>
   </ElementItem>
   
