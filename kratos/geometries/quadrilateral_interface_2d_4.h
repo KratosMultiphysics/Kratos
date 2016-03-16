@@ -484,7 +484,7 @@ public:
      */
     virtual double DomainSize() const
     {
-        return Area();
+        return Length();
     }
 
     /**
