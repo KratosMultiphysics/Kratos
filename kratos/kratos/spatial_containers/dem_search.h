@@ -167,7 +167,8 @@ class DEMSearch : public SpatialSearch
       ///@{
 
       /// Default constructor.
-      DEMSearch(){
+      DEMSearch(double period_x = -1.0, double period_y = -1.0, double period_z = -1.0){
+        TDerived::ElementConfigureType::SetPeriods(period_x, period_y, period_z);
         searchPoints = new std::vector<PtrPointType>(0);
       }
 
