@@ -13,7 +13,7 @@
 			foreach elem $elems { lappend elemnames [$elem @v]}
 			set elemnames [lsort -unique $elemnames]
 			
-			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SMSoluType]] v]
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SLSoluType]] v]
 			set params [list analysis_type $solutionType]
 			if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
@@ -24,7 +24,7 @@
 	  <![CDATA[
 	  set parts ""
 	  catch {
-		set parts [$domNode selectNodes "[spdAux::getRoute SMParts]/group"]
+		set parts [$domNode selectNodes "[spdAux::getRoute SLParts]/group"]
 		}
 		if {$parts ne ""} {return "normal"} else {return "hidden"}
 	  ]]>

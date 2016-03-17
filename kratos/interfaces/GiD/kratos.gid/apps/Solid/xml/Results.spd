@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Results" pn="Results" un="SMResults" state="normal" open="1">
+<container n="Results" pn="Results" un="SLResults" state="normal" open="1">
     <value n="OutputDeltaTime" pn="Output delta time" v="0.0" help="Output delta time"/>
-    <container n="OnElement" pn="On element" un="SMElementResults" state="[ActiveIfAnyPartState]">
+    <container n="OnElement" pn="On element" un="SLElementResults" state="[ActiveIfAnyPartState]">
         <dynamicnode command="injectElementOutputs" args=""/>
         <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
     </container>

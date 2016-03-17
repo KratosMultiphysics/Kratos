@@ -4,7 +4,6 @@
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="variable_name" pn="Variable name" type="String"   />
       <parameter n="factor" pn="factor" type="double"  v="1.0" />
       <parameter n="value" pn="value" type="vector" v="0.0,0.0,-9.81" />
       <parameter n="is_fixed_x" pn="Fix X" type="bool" v="True" />
@@ -16,7 +15,6 @@
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="variable_name" pn="Variable name" type="String"   />
       <parameter n="value" pn="value" type="double" />
       <parameter n="is_fixed" pn="Fix" type="bool" />
     </inputs>
