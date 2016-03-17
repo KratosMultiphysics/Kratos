@@ -5,7 +5,7 @@
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
 	ElementType="Line" ProcessName="ApplyInletProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="Condition2D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -19,7 +19,7 @@
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
 	ElementType="Surface" ProcessName="ApplyInletProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -33,7 +33,7 @@
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
 	ElementType="Line" ProcessName="ApplyOutletProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="Condition2D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -47,7 +47,7 @@
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
 	ElementType="Surface" ProcessName="ApplyOutletProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -61,7 +61,7 @@
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
 	ElementType="Line" ProcessName="ApplySlipProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="Condition2D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -75,7 +75,7 @@
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
 	ElementType="Surface" ProcessName="ApplySlipProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -89,7 +89,7 @@
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True"
 	ElementType="Line" ProcessName="ApplyNoSlipProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
+      <item  GeometryType="Line" nodes="2" KratosName="Condition2D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
@@ -103,7 +103,7 @@
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True"
 	ElementType="Surface" ProcessName="ApplyNoSlipProcess" help="">
     <TopologyFeatures>
-      <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
+      <item  GeometryType="Triangle" nodes="3" KratosName="Condition3D"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	</DegreesOfFreedom>
