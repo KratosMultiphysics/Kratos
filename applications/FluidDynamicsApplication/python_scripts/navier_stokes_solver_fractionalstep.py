@@ -126,7 +126,7 @@ class NavierStokesSolver_FractionalStep:
             else:
                 raise Exception("domain size is not 2 or 3")
             
-            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"])
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             
             ##here we shall check that the input read has the shape we like
             self.settings.AddEmptyValue("prepare_model_part_settings")
