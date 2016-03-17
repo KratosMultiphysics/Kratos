@@ -39,26 +39,26 @@ class MdpaCreator(object):
         time = model_part.ProcessInfo.GetValue(TIME)
         mdpa = open(str(self.DEM_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w'+'\n')
         mdpa.write('Begin ModelPartData'+'\n')
-        mdpa.write('//  VARIABLE_NAME value'+'\n')
+        mdpa.write('//  VARIABLE_NAME value')
         mdpa.write('End ModelPartData'+'\n'+'\n'+'\n'+'\n')
         mdpa.write('Begin Nodes'+'\n')
-
+        
         for node in model_part.Nodes:
             mdpa.write(str(node.Id) + ' ' + str(node.X) + ' ' + str(node.Y) + ' ' + str(node.Z)+'\n')
         mdpa.write('End Nodes'+'\n'+'\n')
-        
+
         mdpa.write('Begin Elements SphericParticle3D'+'\n')
         for element in model_part.Elements:
             mdpa.write(str(element.Id) + ' ' +'1'+' ' + str(element.GetNode(0).Id )+'\n')
         mdpa.write('End Elements'+'\n'+'\n')
-        
+
         fixed = 0; #how to read fixed? it can be either a flag or a nodal variable property
         self.WriteVariableData(RADIUS, mdpa, model_part)
         #self.WriteVariableData(VELOCITY_X, mdpa, model_part)
         #self.WriteVariableData(VELOCITY_Y, mdpa, model_part)
         #self.WriteVariableData(VELOCITY_Z, mdpa, model_part)
-     
-        
+
+
     def WriteVariableData(self, variable_name, mdpa, model_part):
         
         mdpa.write('Begin NodalData '+str(variable_name)+'\n')
@@ -195,7 +195,7 @@ class Procedures(object):
         self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
         self.arlequin                      = 0
         if (hasattr(DEM_parameters, "arlequin")):
-            self.arlequin                  = Var_Translator(self.DEM_parameters.arlequin)
+            self.arlequin                    = Var_Translator(self.DEM_parameters.arlequin)
         #self.solver = solver
         
         # SIMULATION SETTINGS
@@ -616,7 +616,8 @@ class DEMFEMProcedures(object):
             for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                 if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                     self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w')
-        
+                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("#time").rjust(12)+" "+str("total_force[0]").rjust(13)+" "+str("total_force[1]").rjust(13)+" "+str("total_force[2]").rjust(13)+" "+str("total_moment[0]").rjust(13)+" "+str("total_moment[1]").rjust(13)+" "+str("total_moment[2]").rjust(13)+"\n")
+                
         self.graph_forces = {}  
                                 
         def open_balls_graph_files(self, spheres_model_part):
@@ -624,7 +625,8 @@ class DEMFEMProcedures(object):
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
                 if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                     self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
-        
+                    self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_y").rjust(13)+"\n")
+
         def evaluate_computation_of_fem_results():
         
             self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 0)
@@ -656,7 +658,7 @@ class DEMFEMProcedures(object):
                
         if self.TestType == "None":  
             open_graph_files(self, RigidFace_model_part)            
-            open_balls_graph_files(self, spheres_model_part)   
+            open_balls_graph_files(self,spheres_model_part)   
 
         # SIMULATION SETTINGS
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
@@ -664,7 +666,7 @@ class DEMFEMProcedures(object):
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
         if (hasattr(self.DEM_parameters, "StressStrainOption")):
-            self.self_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)        
+            self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)
         self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
 
         evaluate_computation_of_fem_results()
@@ -750,17 +752,20 @@ class DEMFEMProcedures(object):
                             self.total_force_x = 0.0
                             self.total_force_y = 0.0
                             self.total_force_z = 0.0
+                            self.total_disp_y = 0.0
 
                             for node in self.mesh_nodes:
                                 force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                                 force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+                                disp_node_y = node.GetSolutionStepValue(DISPLACEMENT)[1]
                                 self.total_force_x += force_node_x
                                 self.total_force_y += force_node_y
-                                self.total_force_z += force_node_z                    
+                                self.total_force_z += force_node_z
+                                self.total_disp_y += disp_node_y
 
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+" "+str("%.6g"%self.total_force_z).rjust(13)+"\n")
-                            #self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()
+                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+" "+str("%.6g"%self.total_force_z).rjust(13)+" "+str("%.6g"%self.total_disp_y).rjust(13)+"\n")
+                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()
 
             self.balls_graph_counter += 1
             
@@ -1031,7 +1036,7 @@ class DEMIo(object):
         self.VelTrapGraphExportFreq       = getattr(self.DEM_parameters, "VelTrapGraphExportFreq", 0)
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
-        
+  
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
         else:
@@ -1081,7 +1086,7 @@ class DEMIo(object):
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
-        #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
+            #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
     
     def AddArlequinVariables(self):
         self.PushPrintVar( 1, DISTANCE, self.global_variables)
@@ -1115,7 +1120,7 @@ class DEMIo(object):
         pass
     
     def AddContactVariables(self):
-        # Contact Elements Variables        
+        # Contact Elements Variables
         if (self.DEM_parameters.ElementType in self.continuum_element_types):
             if (Var_Translator(self.DEM_parameters.ContactMeshOption)):
                 self.PushPrintVar(self.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
@@ -1204,7 +1209,7 @@ class DEMIo(object):
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
 
-            if (self.contact_mesh_option == "ON"):                
+            if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
@@ -1238,7 +1243,7 @@ class DEMIo(object):
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
-
+            
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
@@ -1296,7 +1301,7 @@ class DEMIo(object):
         self.PrintingSpheresVariables(spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)
-        self.PrintingContactElementsVariables(contact_model_part, time)  
+        self.PrintingContactElementsVariables(contact_model_part, time)
         self.PrintingMappingVariables(mapping_model_part, time)
         #self.PrintingArlequinVariables(rigid_face_model_part, time)
 
@@ -1334,7 +1339,7 @@ class DEMIo(object):
         node6 = bounding_box_model_part.CreateNewNode(max_node_Id + 6, BBMaxX, BBMinY, BBMaxZ)
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
-        
+           
         props = Properties(10000)
         # BB Elements:                        
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
@@ -1352,7 +1357,7 @@ class DEMIo(object):
             
         if (self.PostBoundingBox):
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
-        
+
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
         
         bounding_box_model_part = ModelPart("BoundingBoxPart")
@@ -1413,7 +1418,7 @@ class DEMIo(object):
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
     
-        # BB Elements:   
+        # BB Elements:                        
         props = Properties(10000)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], props)
@@ -1429,7 +1434,7 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
     
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
-
+        
         
 class ParallelUtils(object):
 
