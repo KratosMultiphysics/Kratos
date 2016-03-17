@@ -118,6 +118,7 @@ namespace Kratos
             BaseType::InitializeDEMElements();
             BaseType::InitializeFEMElements();                
             BaseType::InitializeSolutionStep();
+            BaseType::ApplyInitialConditions();
 
             this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
             this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -521,6 +522,11 @@ namespace Kratos
         while (fabs(out_coordination_number/in_coordination_number - 1.0) > 1e-3) {
             if (iteration>=maxiteration) break;
             iteration++;
+            if(out_coordination_number == 0.0) {
+                std::cout << "Coordination Number method not supported in this case" << "\n" <<std::endl;
+                KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead"," ")
+                break;
+            }
             added_search_distance *= in_coordination_number/out_coordination_number;
             SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
             SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
