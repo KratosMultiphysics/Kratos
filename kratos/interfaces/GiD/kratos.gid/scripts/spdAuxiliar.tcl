@@ -164,8 +164,7 @@ proc spdAux::CreateWindow {dir} {
     wm geom .gid.win_example +$x+$y
     wm transient .gid.win_example .gid    
 
-    InitWindow $w [_ "Kratos Multiphysics"] Kratos "" \
-        "" 1
+    InitWindow $w [_ "Kratos Multiphysics"] Kratos "" "" 1
     set initwind $w
     ttk::frame $w.top
     ttk::label $w.top.title_text -text [_ " Application market"]
