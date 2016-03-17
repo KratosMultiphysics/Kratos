@@ -326,7 +326,7 @@ namespace Kratos {
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
                                           double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2) {
         double force[3];
-        Matrix average_stress_tensor;
+        Matrix average_stress_tensor = ZeroMatrix(3,3);
         
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
