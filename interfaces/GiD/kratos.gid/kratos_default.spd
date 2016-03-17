@@ -3,8 +3,10 @@
   <groups/>
   <units>
   </units>
-  <hiddenfield n="activeapp" active="0" v="" state="disabled"/>
-  <hiddenfield n="nDim" un="nDim" v="3D" state="disabled"/>
+  <!-- Fill this fields to automatically active an App without the init window -->
+  <hiddenfield n="activeapp" active="0" v="Fluid" state="disabled"/>
+  <hiddenfield n="nDim" un="nDim" v="2D" state="disabled"/>
+  
   <appLink n="Structural" pn="Structural" active="0" appid="Structural"/>
   <appLink n="Solid" pn="Solid" active="0" appid="Solid"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid"/>

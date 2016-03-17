@@ -144,7 +144,11 @@ proc spdAux::CreateWindow {dir} {
     
     set activeapp [ [$root selectNodes "hiddenfield\[@n='activeapp'\]"] getAttribute v]
         
-    if { $activeapp ne "" } {activeApp $activeapp; catch {destroy $initwind}; return ""}
+    if { $activeapp ne "" } {
+        reactiveApp
+        catch {destroy $initwind}
+        return ""
+    }
     if { [ winfo exist .gid.win_example]} {
         destroy .gid.win_example        
     }   
@@ -189,7 +193,6 @@ proc spdAux::CreateWindow {dir} {
     set frsd [ttk::frame $w.sd]
     set sd [ttk::label $frsd.lgl -text "Spatial Dimension:"]
     set vs [list "2D" "3D"]
-    set ::Model::SpatialDimension "3D"
     set sdcmb [ttk::combobox $frsd.sdcmb -textvariable ::Model::SpatialDimension -values $vs -width 4 -state "readonly"]
     
     
@@ -198,17 +201,8 @@ proc spdAux::CreateWindow {dir} {
     
     grid $w.information
     grid $sd -row 0 -column 0 -padx 20
-    #-sticky w -padx 20
     grid $sdcmb  -row 0 -column 1 -padx 20
-    #-sticky e 
-    
-    #grid rowconfigure $frsd 0 -weight 1
-    #grid columnconfigure $frsd 0 -weight 1
-    #grid columnconfigure $frsd 1 -weight 1
     grid $frsd -sticky we
-    #set pp [ winfo parent $frsd]
-    #grid rowconfigure $pp 2 -weight 1
-    #grid columnconfigure $pp 0 -weight 1
 }
 
 # Routes
@@ -478,7 +472,6 @@ proc spdAux::injectSolStratParams {basenode} {
 
 
 proc spdAux::injectProcesses {basenode} {
-    
     set procsnode [$basenode parent]
     set procs [::Model::getAllProcs]
     foreach proc $procs {
