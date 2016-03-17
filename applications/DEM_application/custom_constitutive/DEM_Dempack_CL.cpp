@@ -141,7 +141,7 @@ namespace Kratos {
         
         KRATOS_TRY
 
-        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
+        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -259,7 +259,7 @@ namespace Kratos {
             double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
 
             if (fabs(indentation) > u2) { // FULL DAMAGE 
-                mNeighbourFailureId_count = 4; //tension failure
+                failure_type = 4; //tension failure
                 acumulated_damage = 1.0;
                 fn = 0.0;
             } else {
@@ -332,7 +332,7 @@ namespace Kratos {
             }
         }
 
-        if (mNeighbourFailureId_count == 0) {
+        if (mNeighbourFailureId_count == 0) { //This means it has not broken
             
             if (mHistoryShearFlag == 0.0) {
 
@@ -354,6 +354,7 @@ namespace Kratos {
 
             if (contact_tau > tau_strength) {
                 mHistoryShearFlag = 1.0;
+
             }
 
             if (mHistoryShearFlag != 0.0) {
@@ -380,7 +381,7 @@ namespace Kratos {
 
                 if (damage_tau >= 1.0) {
                     mNeighbourFailureId_count = 2; // shear
-                    //failure_criterion_state = 1.0;
+                    //failure_criterion_state = 1.0;    //
                     sliding = true;
                 }
             } else {
