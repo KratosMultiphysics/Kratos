@@ -18,15 +18,21 @@ sys.path.insert(0,'')
 
 benchmark_number = int(sys.argv[1])
 
-list = list(range(1,12))
+listDISCONT = list(range(1,12))
+listROLLFR  = list(range(12,13))
+listDEMFEM  = list(range(13,18))
+listCONT    = list(range(20,26))
 
-if benchmark_number in list:
+if benchmark_number in listDISCONT:
     import DEM_explicit_solver_var as DEM_parameters
-elif benchmark_number == 12:
-    import DEM_explicit_solver_var_12 as DEM_parameters
-else:
+elif benchmark_number in listROLLFR:
+    import DEM_explicit_solver_var_ROLLFR as DEM_parameters
+elif benchmark_number in listDEMFEM:
+    import DEM_explicit_solver_var_DEMFEM as DEM_parameters
+elif benchmark_number in listCONT:
     import DEM_explicit_solver_var2 as DEM_parameters
-
+else:
+    KRATOSprint('Benchmark number does not exist')
 
 # Strategy object
 if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
@@ -61,7 +67,7 @@ else:
     
 nodeplotter = 0  
   
-if benchmark_number in list:
+if benchmark_number in listDISCONT:
     nodeplotter = 1  
 ####################
 final_time, dt, output_time_step, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
@@ -107,7 +113,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         elif (DEM_parameters.IntegrationScheme == 'Symplectic_Euler'):
             scheme = SymplecticEulerScheme()
         elif (DEM_parameters.IntegrationScheme == 'Taylor_Scheme'):
-            scheme = MidPointScheme()
+            scheme = TaylorScheme()
         elif (DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method'):
             scheme = NewmarkBetaScheme(0.5, 0.25)
         elif (DEM_parameters.IntegrationScheme == 'Verlet_Velocity'):
