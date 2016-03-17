@@ -25,7 +25,12 @@ Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two ident
                   "Running DEM Benchmark 10... Linear: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 11... Hertzian: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 12... Sphere rotating over a plane surface with Rolling Friction\n",
-                  "","","","","","","",
+                  "Running DEM Benchmark 13... Impact of a low stiffness sphere against a rigid plane divided in small triangular elements\n",
+                  "Running DEM Benchmark 14... Impact of a low stiffness sphere against a rigid edge divided in small triangular elements\n",
+                  "Running DEM Benchmark 15... Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n",
+                  "Running DEM Benchmark 16... Spheres contacting multiple entities (facets, edges and vetices)\n",
+                  "Running DEM Benchmark 17... Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n",
+                  "","",
                   "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\
                   "Running DEM Benchmark 21... Normal compression of two identical indented spheres\n",\
                   "Running DEM Benchmark 22... Tensile test of two identical spheres\n",\
@@ -47,8 +52,8 @@ def Run():
     failure = False
     #list_of_failed_tests = []
     
-    #Discontinuum Tests. From 1 to 12
-    D_DEM_Benchmarks_list = list(range(1,13))
+    #Discontinuum Tests. From 1 to 17
+    D_DEM_Benchmarks_list = list(range(1,18))
         
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
@@ -78,6 +83,16 @@ def Run():
             #list_of_failed_tests += [benchmark]
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.txt", "a")
+            if benchmark == 10:
+                g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW ====\n\n")
+            if benchmark == 11:
+                g.write("\n==== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ===\n\n")
+            if benchmark == 12:
+                g.write("\n==== WENSRICH PAPER TEST. ROLLING FRICTION =====\n\n")
+            if benchmark == 13:
+                g.write("\n======== DE/FE CONTACT BENCHMARKS ==========\n\n")
+            if benchmark == 20:
+                g.write("\n======== BASIC CONTINUUM TESTS  ==========\n\n")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
             
@@ -101,6 +116,11 @@ def Run():
     g.write("Benchmark 10. Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n")
     g.write("Benchmark 11. Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n")
     g.write("Benchmark 12. Sphere rotating over a plane surface with Rolling Friction\n")
+    g.write("Benchmark 13. Impact of a low stiffness sphere against a rigid plane divided in small triangular elements\n")
+    g.write("Benchmark 14. Impact of a low stiffness sphere against a rigid edge divided in small triangular elements\n")
+    g.write("Benchmark 15. Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n")
+    g.write("Benchmark 16. Spheres contacting multiple entities (facets, edges and vetices)\n")
+    g.write("Benchmark 17. Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n")
     g.write("\nCONTINUUM TESTS:\n")
     g.write("Benchmark 20. Normal compression of two identical spheres\n")
     g.write("Benchmark 21. Normal compression of two identical indented spheres\n")
