@@ -68,6 +68,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       KRATOS_CLASS_POINTER_DEFINITION(MPI_DEMSearch);
       
       typedef MpiDiscreteParticleConfigure<3>   Configure;
+      typedef Configure                         ElementConfigureType;
       typedef BinsObjectDynamicMpi<Configure>   BinsType;
       
       typedef Configure::IteratorType           IteratorType;
