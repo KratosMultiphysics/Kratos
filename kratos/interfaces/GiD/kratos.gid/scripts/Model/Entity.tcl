@@ -1,3 +1,8 @@
+##################################################################################
+#   This file is common for all Kratos Applications.
+#   Do not change anything here unless it's strictly necessary.
+##################################################################################
+
 namespace eval Model {
 catch {Entity destroy}
 oo::class create Entity {

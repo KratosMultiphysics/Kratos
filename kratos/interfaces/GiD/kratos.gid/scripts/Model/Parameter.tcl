@@ -1,3 +1,7 @@
+##################################################################################
+#   This file is common for all Kratos Applications.
+#   Do not change anything here unless it's strictly necessary.
+##################################################################################
 
 # Clase Parameter
 namespace eval Model {
