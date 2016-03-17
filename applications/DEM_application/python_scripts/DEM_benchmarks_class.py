@@ -94,8 +94,43 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==12:
 
         final_time                      = 0.1
-        dt                              = 5.0e-7 #3.6e-12
+        dt                              = 5.0e-7
         output_time_step                = 1e-4
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==13:
+
+        final_time                      = 2.0
+        dt                              = 1.0e-5
+        output_time_step                = 1e-2
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==14:
+
+        final_time                      = 2.0
+        dt                              = 1.0e-5
+        output_time_step                = 1e-2
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==15:
+
+        final_time                      = 2.0
+        dt                              = 1.0e-5
+        output_time_step                = 1e-2
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==16:
+
+        final_time                      = 2.5
+        dt                              = 1.0e-6
+        output_time_step                = 1e-2
+        number_of_points_in_the_graphic = 1
+
+    elif benchmark_number==17:
+
+        final_time                      = 1.0
+        dt                              = 1.0e-6
+        output_time_step                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==20:          # Normal compression
@@ -1889,19 +1924,16 @@ class Benchmark11: ########## HERTZIAN THORNTON
 class Benchmark12: ########## ROLLING FRICTION
 
     def __init__(self):
-        self.initial_vel         = 0.15
+        
         self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
 
     def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
-
-        for node in modelpart.Nodes:
-            if node.Id == 1:
-                node.SetSolutionStepValue(VELOCITY_X, self.initial_vel)
 
         self.angular_velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
         self.simulation_graph = open(self.angular_velocity_list_outfile_name, 'w')
 
     def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        
         self.simulation_graph.close()
 
     def ApplyNodalRotation(self, time, dt, modelpart):
@@ -1937,18 +1969,16 @@ class Benchmark12: ########## ROLLING FRICTION
 
         if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
             error_file.write(" OK!........ Test 12 SUCCESSFUL\n")
-            shutil.rmtree('benchmark12_Post_Files', ignore_errors = True)
         else:
             error_file.write(" KO!........ Test 12 FAILED\n")
         error_file.close()
 
     def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
-        pass
 
         lines_analytics = lines_DEM = list(range(0, 1000));
         analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
         i = 0
-        with open('paper_data/reference_graph_benchmark' + str(sys.argv[1]) + '.dat') as inf:  #with open('paper_data/reference_graph_benchmark12.dat') as inf:
+        with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:  #with open('paper_data/reference_graph_benchmark12.dat') as inf:
             for line in inf:
                 if i in lines_analytics:
                     parts = line.split()
@@ -1980,6 +2010,468 @@ class Benchmark12: ########## ROLLING FRICTION
 
     def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):
         pass
+
+
+class Benchmark13: ########## DEM-FEM Facet
+
+    def __init__(self):
+        
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+
+        self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        
+        self.simulation_graph.close()
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            total_velocity_x = 0.0
+            total_velocity_z = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 973:
+                   velocity_x = node.GetSolutionStepValue(VELOCITY_X)
+                   velocity_z = node.GetSolutionStepValue(VELOCITY_Z)
+                   total_velocity_x += velocity_x
+                   total_velocity_z += velocity_z
+
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_velocity_x).rjust(13)+" "+str("%.6g"%total_velocity_z).rjust(13)+"\n")
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+
+        error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("\n\n")
+        error_file.write("======== DE/FE CONTACT BENCHMARKS ==========\n\n")
+        error_file.write("DEM Benchmark 13:")
+
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 13 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 13 FAILED\n")
+        error_file.close()
+
+    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+
+        lines_DEM = list(range(0, 200));
+        total_velocity_x = 0.0; total_velocity_z = 0.0
+        i = 0
+        with open(velocity_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    total_velocity_x += float(parts[1])
+                    total_velocity_z += float(parts[2])
+                i+=1
+       
+        if total_velocity_x > 0.0:  #VELOCITY_X should be 0 always
+            error1 = 100
+        else:
+            error1 = 0
+
+        if total_velocity_z > 0.0:  #VELOCITY_Z should be 0 always
+            error2 = 100
+        else:
+            error2 = 0
+        
+        error3 = 0
+
+        print("Error in velocity X =", error1,"%")
+        
+        print("Error in velocity Z =", error2,"%")
+
+        return error1, error2, error3
+
+class Benchmark14: ########## DEM-FEM Edge
+
+    def __init__(self):
+        
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+
+        self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        
+        self.simulation_graph.close()
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            total_velocity_x = 0.0
+            total_velocity_z = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 1:
+                   velocity_x = node.GetSolutionStepValue(VELOCITY_X)
+                   velocity_z = node.GetSolutionStepValue(VELOCITY_Z)
+                   total_velocity_x += velocity_x
+                   total_velocity_z += velocity_z
+
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_velocity_x).rjust(13)+" "+str("%.6g"%total_velocity_z).rjust(13)+"\n")
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+
+        error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 14:")
+
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 14 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 14 FAILED\n")
+        error_file.close()
+
+    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+
+        lines_DEM = list(range(0, 200));
+        total_velocity_x = 0.0; total_velocity_z = 0.0
+        i = 0
+        with open(velocity_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    total_velocity_x += float(parts[1])
+                    total_velocity_z += float(parts[2])
+                i+=1
+       
+        if total_velocity_x > 0.0:  #VELOCITY_X should be 0 always
+            error1 = 100
+        else:
+            error1 = 0
+
+        if total_velocity_z > 0.0:  #VELOCITY_Z should be 0 always
+            error2 = 100
+        else:
+            error2 = 0
+        
+        error3 = 0
+
+        print("Error in velocity X =", error1,"%")
+        
+        print("Error in velocity Z =", error2,"%")
+
+        return error1, error2, error3
+    
+class Benchmark15: ########## DEM-FEM Vertex
+
+    def __init__(self):
+        
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+
+        self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        
+        self.simulation_graph.close()
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            total_velocity_x = 0.0
+            total_velocity_z = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 1:
+                   velocity_x = node.GetSolutionStepValue(VELOCITY_X)
+                   velocity_z = node.GetSolutionStepValue(VELOCITY_Z)
+                   total_velocity_x += velocity_x
+                   total_velocity_z += velocity_z
+
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_velocity_x).rjust(13)+" "+str("%.6g"%total_velocity_z).rjust(13)+"\n")
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+
+        error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 15:")
+
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 15 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 15 FAILED\n")
+        error_file.close()
+
+    def compute_errors(self, velocity_list_outfile_name):  #FINALIZATION STEP
+
+        lines_DEM = list(range(0, 200));
+        total_velocity_x = 0.0; total_velocity_z = 0.0
+        i = 0
+        with open(velocity_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    total_velocity_x += float(parts[1])
+                    total_velocity_z += float(parts[2])
+                i+=1
+       
+        if total_velocity_x > 0.0:  #VELOCITY_X should be 0 always
+            error1 = 100
+        else:
+            error1 = 0
+
+        if total_velocity_z > 0.0:  #VELOCITY_Z should be 0 always
+            error2 = 100
+        else:
+            error2 = 0
+        
+        error3 = 0
+
+        print("Error in velocity X =", error1,"%")
+        
+        print("Error in velocity Z =", error2,"%")
+
+        return error1, error2, error3
+
+
+class Benchmark16: ########## DEM-FEM Grid
+
+    def __init__(self):
+        
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+
+        self.velocity_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.velocity_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        
+        self.simulation_graph.close()
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            total_velocity_1 = 0.0
+            total_velocity_2 = 0.0
+            total_velocity_3 = 0.0
+
+            for node in modelpart.Nodes:
+                if node.Id == 1:
+                   velocity_1 = node.GetSolutionStepValue(VELOCITY_Y)
+                   total_velocity_1 += velocity_1
+                if node.Id == 2:
+                   velocity_2 = node.GetSolutionStepValue(VELOCITY_Y)
+                   total_velocity_2 += velocity_2
+                if node.Id == 3:
+                   velocity_3 = node.GetSolutionStepValue(VELOCITY_Y)
+                   total_velocity_3 += velocity_3
+
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_velocity_1).rjust(13)+" "+str("%.6g"%total_velocity_2).rjust(13)+" "+str("%.6g"%total_velocity_3).rjust(13)+"\n")
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+
+        error1, error2, error3 = self.compute_errors(self.velocity_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 16:")
+
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 16 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 16 FAILED\n")
+        error_file.close()
+
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):  #FINALIZATION STEP
+
+        lines_analytics = lines_DEM = list(range(0, 250));
+        ref_data1 = []; ref_data2 = []; DEM_data1 = []; ref_data3 = []; DEM_data1 = []; DEM_data2 = []; DEM_data3 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0; summation_of_ref_data3 = 0
+        i = 0
+        with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:  #with open('paper_data/reference_graph_benchmark12.dat') as inf:
+            for line in inf:
+                if i in lines_analytics:
+                    parts = line.split()
+                    ref_data1.append(float(parts[1]))
+                    ref_data2.append(float(parts[2]))
+                    ref_data3.append(float(parts[3]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data1.append(float(parts[1]))
+                    DEM_data2.append(float(parts[2]))
+                    DEM_data3.append(float(parts[3]))
+                i+=1
+        final_velocity_1_error = 0
+        final_velocity_2_error = 0
+        final_velocity_3_error = 0
+
+        for j in ref_data1:
+            summation_of_ref_data1+=abs(j)
+        for k in ref_data2:
+            summation_of_ref_data2+=abs(k)
+        for l in ref_data3:
+            summation_of_ref_data3+=abs(l)
+
+        for i, j in zip(DEM_data1, ref_data1):
+            final_velocity_1_error+=fabs(i-j)
+        final_velocity_1_error/=summation_of_ref_data1
+
+        for k, l in zip(DEM_data2, ref_data2):
+            final_velocity_2_error+=fabs(k-l)
+        final_velocity_2_error/=summation_of_ref_data2
+        
+        for m, n in zip(DEM_data3, ref_data3):
+            final_velocity_3_error+=fabs(m-n)
+        final_velocity_3_error/=summation_of_ref_data3
+
+        print("Error in velocity sphere 1 =", 100*final_velocity_1_error,"%")
+        
+        print("Error in velocity sphere 2 =", 100*final_velocity_2_error,"%")
+        
+        print("Error in velocity sphere 3 =", 100*final_velocity_3_error,"%")
+
+        error1 = 100*final_velocity_1_error
+
+        error2 = 100*final_velocity_2_error
+        
+        error3 = 100*final_velocity_3_error
+
+        return error1, error2, error3
+
+
+class Benchmark17: ########## DEM-FEM Rolling
+
+    def __init__(self):
+        
+        self.balls_graph_counter = 1   # deberia ser self.balls_graph_counter = self.graph_frequency
+
+    def set_initial_data(self, modelpart, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration=0):
+
+        self.error_list_outfile_name = "benchmark" + str(sys.argv[1]) + '_graph.dat'
+        self.simulation_graph = open(self.error_list_outfile_name, 'w')
+
+    def get_final_data(self, modelpart):                 #FINALIZATION STEP
+        
+        self.simulation_graph.close()
+
+    def ApplyNodalRotation(self, time, dt, modelpart):
+        pass
+
+    def generate_graph_points(self, modelpart, time, output_time_step, dt):     #MAIN LOOP STEP
+
+        self.graph_frequency        = int(output_time_step/dt)
+        if self.graph_frequency < 1:
+           self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
+        if(self.balls_graph_counter == self.graph_frequency):     #if(self.balls_graph_counter == self.graph_frequency):
+            self.balls_graph_counter = 0
+            total_velocity_err         = 0.0
+            total_angular_velocity_err = 0.0
+            
+            for node in modelpart.Nodes:
+                if node.Id == 150:
+                   velocity_1         = node.GetSolutionStepValue(VELOCITY_X)
+                   angular_velocity_1 = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
+                if node.Id == 151:
+                   velocity_2         = node.GetSolutionStepValue(VELOCITY_X)
+                   angular_velocity_2 = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z)
+
+            total_velocity_err         = (abs(velocity_1 - velocity_2))/(abs(velocity_2))
+            total_angular_velocity_err = (abs(angular_velocity_1 - angular_velocity_2))/(abs(velocity_2))
+            
+            self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_velocity_err).rjust(13)+" "+str("%.6g"%total_angular_velocity_err).rjust(13)+"\n")
+        self.balls_graph_counter += 1
+
+    def print_results(self, number_of_points_in_the_graphic, dt=0):      #FINALIZATION STEP
+
+        error1, error2, error3 = self.compute_errors(self.error_list_outfile_name)
+
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("DEM Benchmark 17:")
+
+        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+            error_file.write(" OK!........ Test 17 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 17 FAILED\n")
+        error_file.close()
+
+    def compute_errors(self, error_list_outfile_name):  #FINALIZATION STEP
+
+        lines_DEM = list(range(0, 100));
+        total_velocity_err = 0.0; total_angular_velocity_err = 0.0
+        i = 0
+        with open(error_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    total_velocity_err += float(parts[1])
+                    total_angular_velocity_err += float(parts[2])
+                i+=1
+       
+        if total_velocity_err > 1e-2:  #VELOCITY_X should be 0 always
+            error1 = 100*total_velocity_err
+        else:
+            error1 = 0
+
+        if total_angular_velocity_err > 1e-2:  #VELOCITY_Z should be 0 always
+            error2 = 100*total_angular_velocity_err
+        else:
+            error2 = 0
+        
+        error3 = 0
+
+        print("Error in velocity between meshes =", 100*total_velocity_err,"%")
+        
+        print("Error in angular velocity between meshes =", 100*total_angular_velocity_err,"%")
+
+        return error1, error2, error3
 
 
 class Benchmark20:
