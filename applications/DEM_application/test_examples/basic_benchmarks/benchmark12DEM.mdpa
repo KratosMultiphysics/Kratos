@@ -27,26 +27,7 @@ Begin NodalData RADIUS  // GUI group identifier: DEM Elementid SphericPartDEMEle
 1 0 0.0026
 End NodalData
 
-//Begin Mesh 1 // GUI conditionid DEM-VelocityBC group identifier: DEM
-//  Begin MeshData // GUI Groupid: DEM
-//  IMPOSED_VELOCITY_X 0
-//  IMPOSED_VELOCITY_X_VALUE 0.15
-//  IMPOSED_VELOCITY_Y 0
-//  IMPOSED_VELOCITY_Y_VALUE 0.0
-//  IMPOSED_VELOCITY_Z 0
-//  IMPOSED_VELOCITY_Z_VALUE 0.0
-//  IMPOSED_ANGULAR_VELOCITY_X 0
-//  IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
-//  IMPOSED_ANGULAR_VELOCITY_Y 0
-//  IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
-//  IMPOSED_ANGULAR_VELOCITY_Z 0
-//  IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
-//  FORCE_INTEGRATION_GROUP 0
-//  TOP 0
-//  BOTTOM 0
-//  End MeshData
-//  Begin MeshNodes
-//  1
-//  End MeshNodes
-//End Mesh
+Begin NodalData VELOCITY_X  // GUI group identifier: dem Elementid SphericPartDEMElement3D
+1 0 0.15
+End NodalData
 
