@@ -205,10 +205,9 @@ namespace Kratos
          * @param pProperties: the properties assigned to the new element
          * @return a Pointer to the new element
          */
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                                PropertiesType::Pointer pProperties) const
+        Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
         {
-            return Element::Pointer(new FractionalStep(NewId, GetGeometry().Create(ThisNodes), pProperties));
+            return Element::Pointer(new FractionalStep(NewId, pGeom, pProperties));
         }
 
         virtual void Initialize();
