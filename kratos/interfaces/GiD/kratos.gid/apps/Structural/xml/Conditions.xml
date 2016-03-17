@@ -3,16 +3,14 @@
   <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Volume" help="The gravity modulus and its direction vector referred to global axes">
+	ElementType="Volume"  ProcessName="ApplyConstantVectorValueProcess" help="The gravity modulus and its direction vector referred to global axes">
 
     <TopologyFeatures>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="VOLUME_ACCELERATION" ProcessFormat="vector">
-	  <parameter n="FACTOR" pn="Gravity" v="9.8" units="m/s^2" unit_magnitude="Acceleration"/>
-	  <parameter n="C" pn="C" type="vector" />
+    <inputs >
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F"/>
@@ -20,7 +18,7 @@
   </ConditionItem>
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False"  ProcessName="ApplyConstantVectorValueProcess"
 	ElementType="Surface" help="The gravity modulus and its direction vector referred to global axes">
 
     <TopologyFeatures>
@@ -28,9 +26,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="VOLUME_ACCELERATION" ProcessFormat="vector">
-	  <parameter n="FACTOR" pn="Gravity" v="9.8" units="m/s^2" unit_magnitude="Acceleration"/>
-	  <parameter n="C" pn="C" type="vector" />
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F"/>
@@ -39,7 +35,7 @@
   <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" help="Load on points, load vector referred to global axes">
+	ElementType="Point" help="Load on points, load vector referred to global axes"  ProcessName="ApplyConstantVectorValueProcess">
 
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="PointLoadCondition2D1N"/>
@@ -47,8 +43,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="POINT_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="N" unit_magnitude="F"/>
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F" />
@@ -57,7 +52,7 @@
   <ConditionItem n="PointLoad2DAxisym" pn="Load on points axisymmetric" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" help="Load on points, load vector referred to global axes">
+	ElementType="Point" help="Load on points, load vector referred to global axes"  ProcessName="ApplyConstantVectorValueProcess">
 
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="AxisymmPointLoadCondition2D1N"/>
@@ -65,8 +60,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="POINT_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="N" unit_magnitude="F"/>
+    <inputs >
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F" />
@@ -75,7 +69,7 @@
   <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" help="Load on points, load vector referred to global axes">
+	ElementType="Point" help="Load on points, load vector referred to global axes"  ProcessName="ApplyConstantVectorValueProcess">
 
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="PointLoadCondition3D1N"/>
@@ -83,74 +77,17 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="POINT_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="N" unit_magnitude="F"/>
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" />
     </outputs>
   </ConditionItem>
-  <!--<ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="line_load_2D_condition.cpp"
-	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Load on lines, load vector referred to global axes">
-
-    <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
-      <item  GeometryType="Line" nodes="3" KratosName="LineLoadCondition2D3N"/>
-    </TopologyFeatures>
-	<DegreesOfFreedom>
-	  <dof n="DISPLACEMENT" />
-	</DegreesOfFreedom>
-    <inputs ProcessVariableName="LINE_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="N" unit_magnitude="F"/>
-    </inputs>
-    <outputs>
-      <parameter n="FORCE" pn="Force" />
-    </outputs>
-  </ConditionItem>
-  <ConditionItem n="LineLoad2DAxisym" pn="Load on lines axisymmetric" ImplementedInFile="line_load_2D_condition.cpp"
-	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Load on lines, load vector referred to global axes">
-
-    <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="AxisymLineLoadCondition2D2N"/>
-      <item  GeometryType="Line" nodes="3" KratosName="AxisymLineLoadCondition2D3N"/>
-    </TopologyFeatures>
-	<DegreesOfFreedom>
-	  <dof n="DISPLACEMENT" />
-	</DegreesOfFreedom>
-    <inputs ProcessVariableName="LINE_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="N" unit_magnitude="F"/>
-    </inputs>
-    <outputs>
-      <parameter n="FORCE" pn="Force" />
-    </outputs>
-  </ConditionItem>
-  <ConditionItem n="LineLoad3D" pn="Load on lines" ImplementedInFile="line_load_3D_condition.cpp"
-	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Global load on lines">
-
-    <TopologyFeatures>
-      <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition3D2N"/>
-      <item  GeometryType="Line" nodes="3" KratosName="LineLoadCondition3D3N"/>
-    </TopologyFeatures>
-	<DegreesOfFreedom>
-	  <dof n="DISPLACEMENT" />
-	</DegreesOfFreedom>
-    <inputs ProcessVariableName="LINE_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="N" unit_magnitude="F"/>
-    </inputs>
-    <outputs>
-      <parameter n="FORCE" pn="Force" />
-    </outputs>
-  </ConditionItem>-->
+ 
   <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface" help="Load on surfaces, load vector referred to global axes">
+	ElementType="Surface" help="Load on surfaces, load vector referred to global axes"  ProcessName="ApplyConstantVectorValueProcess">
 
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
@@ -162,8 +99,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="SURFACE_LOAD" ProcessFormat="vector">
-	  <parameter n="Load" pn="Load" type="vector" units="Pa" unit_magnitude="P"/>
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" />
@@ -172,7 +108,7 @@
   <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="line_load_2D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" help="Normal pressure on lines, oriented pointing against the line outer normal">
+	ElementType="Linear" help="Normal pressure on lines, oriented pointing against the line outer normal"  ProcessName="ApplyConstantVectorValueProcess">
 
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
@@ -181,8 +117,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="POSITIVE_FACE_PRESSURE" ProcessFormat="double">
-      	  <parameter n="Pressure" pn="Pressure" units="Pa" unit_magnitude="P"/>
+    <inputs >
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" />
@@ -190,7 +125,7 @@
   </ConditionItem>
   <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"  ProcessName="ApplyConstantVectorValueProcess"
 	ElementType="Surface" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal">
 
     <TopologyFeatures>
@@ -203,8 +138,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="POSITIVE_FACE_PRESSURE" ProcessFormat="double">
-      	  <parameter n="Pressure" pn="Pressure" units="Pa" unit_magnitude="P"/>
+    <inputs >
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="Force" />
@@ -213,21 +147,17 @@
   <ConditionItem n="PointTorque3D" pn="Torque about points" ImplementedInFile="point_torque_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" help="Moment on points, moment vector referred to global axes">
-
+	ElementType="Point" help="Moment on points, moment vector referred to global axes"  ProcessName="ApplyConstantVectorValueProcess">
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="PointTorqueCondition3D1N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	  <dof n="ROTATION" />
 	</DegreesOfFreedom>
-    <inputs ProcessVariableName="POINT_TORQUE" ProcessFormat="vector">
-	  <parameter n="Torque" pn="Torque" type="vector" units="N" unit_magnitude="F"/>
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="TORQUE" pn="Moment" />
     </outputs>
   </ConditionItem>
-
-  
 </ConditionList>

@@ -3,50 +3,19 @@ namespace eval Structural::xml {
 }
 
 proc Structural::xml::Init { } {
-    variable dir
-    Model::InitVariables dir $Structural::dir
+     variable dir
+     Model::InitVariables dir $Structural::dir
     
-    getSolutionStrategies
-    getElements
-    getConditions
-    getConstitutiveLaws
-    getSolvers
-    getProcesses
+     Model::getSolutionStrategies strategydefinition.xml
+     Model::getElements Elements.xml
+     Model::getConstitutiveLaws ConstitutiveLaws.xml
+     Model::getProcesses Processes.xml
+     Model::getConditions Conditions.xml
+     Model::getSolvers Solvers.xml
 }
-
-proc Structural::xml::getSolutionStrategies { } {
-    Model::InitVariables SolutionStrategyFileName strategydefinition.xml
-    Model::getSolutionStrategies
-}
-
-proc Structural::xml::getElements { } {
-    Model::InitVariables ElementsFileName Elements.xml
-    Model::getElements
-}
-
-proc Structural::xml::getConditions { } {
-    Model::InitVariables ConditionsFileName Conditions.xml
-    Model::getConditions
-}
-
-proc Structural::xml::getConstitutiveLaws { } {
-    Model::InitVariables ConstitutiveLawsFileName ConstitutiveLaws.xml
-    Model::getConstitutiveLaws
-}
-
-proc Structural::xml::getSolvers { } {
-    Model::InitVariables SolversFileName Solvers.xml
-    Model::getSolvers
-}
-
-proc Structural::xml::getProcesses { } {
-    Model::InitVariables ProcessesFileName Processes.xml
-    Model::getProcesses
-}
-
 
 proc Structural::xml::getUniqueName {name} {
-    return SM$name
+    return ST$name
 }
 
 Structural::xml::Init

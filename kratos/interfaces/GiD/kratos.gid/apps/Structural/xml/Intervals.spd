@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="Intervals" pn="Intervals" un="SMIntervals" >
+<container n="Intervals" pn="Intervals" un="STIntervals" >
 	  <blockdata n="Interval" pn="Interval" name="Interval 1" sequence="1" editable_name="unique" sequence_type="non_void_disabled" help="Interval" >
 			<value n="IniTime" pn="Start time" v="0.0" help="When interval starts?"/>
 			<value n="EndTime" pn="End time" v="0.0" help="When interval ends?"/>
