@@ -1,3 +1,19 @@
+##################################################################################
+#                                                                            
+#   88      a8P  88888888ba         db   888888888888 ,ad8888ba,    ad88888ba   
+#   88    ,88'   88      "8b       d88b       88     d8"'    `"8b  d8"     "8b  
+#   88  ,88"     88      ,8P      d8'`8b      88    d8'        `8b Y8,          
+#   88,d88'      88aaaaaa8P'     d8'  `8b     88    88          88 `Y8aaaaa,    
+#   8888"88,     88""""88'      d8YaaaaY8b    88    88          88   `"""""8b,  
+#   88P   Y8b    88    `8b     d8""""""""8b   88    Y8,        ,8P         `8b  
+#   88     "88,  88     `8b   d8'        `8b  88     Y8a.    .a8P  Y8a     a8P  
+#   88       Y8b 88      `8b d8'          `8b 88      `"Y8888Y"'    "Y88888P"   
+#
+#   This file is common for all Kratos Applications.
+#   Do not change anything unless it's strictly necessary.
+##################################################################################
+
+
 namespace eval write {
     variable mat_dict
     variable dir

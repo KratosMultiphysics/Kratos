@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<container n="materials" pn="Materials" un="SMMaterials" icon="material16" help="Materials database (2D)">
+<container n="materials" pn="Materials" un="SLMaterials" icon="material16" help="Materials database (2D)">
     <blockdata n='material' name='Steel' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
       <value n="DENSITY" pn="Density" v="7850" help="Density of the material" unit_magnitude="M/L^3" units="kg/m^3"/>
       <value n="YOUNG_MODULUS" pn="Young Modulus" v="206.9e9" help="Elastic modulus of the material" unit_magnitude="F/L^2" units="N/m^2"/>

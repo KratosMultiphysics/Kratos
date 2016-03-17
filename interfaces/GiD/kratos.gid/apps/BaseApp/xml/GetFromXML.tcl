@@ -4,8 +4,6 @@ namespace eval BaseApp::xml {
 
 proc BaseApp::xml::Init { } {
     variable dir
-    
-    
     Model::InitVariables dir $BaseApp::dir
     
     Model::getSolutionStrategies strategydefinition.xml
@@ -15,8 +13,6 @@ proc BaseApp::xml::Init { } {
     Model::getConditions Conditions.xml
     Model::getSolvers Solvers.xml
 }
-
-
 
 proc BaseApp::xml::getUniqueName {name} {
     return BA$name
