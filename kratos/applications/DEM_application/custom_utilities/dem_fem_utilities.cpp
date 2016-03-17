@@ -58,7 +58,9 @@ namespace Kratos
                 array_1d<double, 3> new_axes1;
                 array_1d<double, 3> new_axes2;
                 array_1d<double, 3> new_axes3;
-                
+
+                const bool rigid_body = r_model_part.GetMesh(mesh_number)[RIGID_BODY];
+                if(rigid_body) {
                 GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ,
                                                         linear_velocity_changed, linear_period, dt, linear_velocity);
 
@@ -68,6 +70,7 @@ namespace Kratos
                 GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
                                                                           new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
                                                                           fixed_mesh, dt, pNodes);
+                }
                 
             } //for (unsigned int mesh_number = 1; mesh_number < r_model_part.NumberOfMeshes(); mesh_number++)
         } //if ( r_model_part.NumberOfMeshes() > 1 )
