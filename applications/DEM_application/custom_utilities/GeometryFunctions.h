@@ -350,7 +350,7 @@ namespace Kratos {
                                                               array_1d<double, 3>& linear_velocity_changed, array_1d<double, 3>& center_position,
                                                               const bool fixed_mesh, const double dt, ModelPart::NodesContainerType& pNodes)
     {
-        if (mod_angular_velocity > 0.0 || MathUtils<double>::Norm3(linear_velocity) > 0.0) {
+        if (mod_angular_velocity >= 0.0 || MathUtils<double>::Norm3(linear_velocity) >= 0.0) {
 
             vector<unsigned int> node_partition;
 
