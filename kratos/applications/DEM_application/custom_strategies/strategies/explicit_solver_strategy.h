@@ -483,7 +483,7 @@ namespace Kratos
       }//Solve()
 
 
-        void SearchOperations(ModelPart& r_model_part, bool has_mpi = true)
+      void SearchOperations(ModelPart& r_model_part, bool has_mpi = true)
       {
 
          ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
@@ -816,7 +816,7 @@ namespace Kratos
                         rhs_cond_comp[j] = rhs_cond[index+j];
                     }
 
-                    node_area += 0.333333333333333 * Element_Area; //ONLY FOR TRIANGLE...
+                    node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE...
 
                     //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
 
@@ -1132,44 +1132,64 @@ namespace Kratos
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
-                mListOfSphericParticles[i]->mNeighbourRigidFacesPram.resize(0);
+                mListOfSphericParticles[i]->mContactConditionWeights.resize(0);
             }
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetArrayOfAmplifiedRadii(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
 
+          
             #pragma omp parallel for
             for (int i = 0; i < number_of_particles; i++ ){
-              std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
+              
+              std::vector< double >  Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
+              std::vector< array_1d<double,3> > Normal_Array;
+              std::vector< array_1d<double,4> > Weight_Array;
+              std::vector< int >  Id_Array;
+              std::vector< int >  ContactType_Array;    
+
               for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){
-                    Condition* p_neighbour_condition = (*neighbour_it).get();
-                    DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
-                    RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(mListOfSphericParticles[i], p_wall);
-                }
-
-                std::vector<double>& RF_Param = mListOfSphericParticles[i]->mNeighbourRigidFacesPram;
+                         
+                  Condition* p_neighbour_condition = (*neighbour_it).get();
+                  DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
+                  
+                  RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(mListOfSphericParticles[i], 
+                                                                                          p_wall, 
+                                                                                          Distance_Array, 
+                                                                                          Normal_Array, 
+                                                                                          Weight_Array , 
+                                                                                          Id_Array, 
+                                                                                          ContactType_Array
+                                                                                          );
+                 
+                }//for results iterator
+                
+                std::vector<DEMWall*>& neighbour_rigid_faces          = mListOfSphericParticles[i]->mNeighbourRigidFaces;
+                std::vector< array_1d<double,4> >& neighbour_weights  = mListOfSphericParticles[i]->mContactConditionWeights;
+                std::vector< int >& neighbor_contact_types            = mListOfSphericParticles[i]->mContactConditionContactTypes;
+                
                 size_t neigh_size = neighbour_rigid_faces.size();
-                std::vector<DEMWall*> temporal_neigh (0);
-                std::vector<double>  RF_Param_temp (0);
-
+                
+                std::vector<DEMWall*>             temporal_neigh (0);
+                std::vector< array_1d<double,4> > temporal_contact_weights;
+                std::vector< int >                temporal_contact_types;
+                
                 for (unsigned int n = 0; n < neigh_size; n++ ){
 
-                  if(RF_Param[n * 16 + 15] != -1) //if(it is not a -1 contact neighbour, we copy it)
+                  if(ContactType_Array[n] != -1) //if(it is not a -1 contact neighbour, we copy it)
                   {
                     temporal_neigh.push_back(neighbour_rigid_faces[n]);
-                    int current_RF_temp_size = RF_Param_temp.size();
-                    RF_Param_temp.resize(current_RF_temp_size + 16);
-                    for (int k=0; k<16; k++ )
-                    {
-                      RF_Param_temp[current_RF_temp_size + k] = RF_Param[n * 16 + k];
-                    }
-
+                    temporal_contact_weights.push_back(Weight_Array[n]);
+                    temporal_contact_types.push_back(ContactType_Array[n]);
+                    
                   }//if(it is not a -1 contact neighbour, we copy it)
 
                 }//loop over temporal neighbours
 
+                
                 //swap
                 temporal_neigh.swap(neighbour_rigid_faces);
-                RF_Param_temp.swap(RF_Param);
-
+                temporal_contact_weights.swap(neighbour_weights);
+                temporal_contact_types.swap(neighbor_contact_types);
+                
                 this->GetRigidFaceResults()[i].clear();
                 this->GetRigidFaceResultsDistances()[i].clear();
             }
