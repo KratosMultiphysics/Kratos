@@ -70,6 +70,14 @@ virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
+virtual void ComputeConditionRelativeData(DEMWall* const wall, 
+                                            double LocalCoordSystem[3][3], 
+                                            double& DistPToB, 
+                                            array_1d<double, 4> Weight,  
+                                            array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                            array_1d<double, 3>& wall_velocity_at_contact_point,
+                                            int& ContactType
+                                            );
 int   GetClusterId();
 void  SetClusterId(const int Id);
 
@@ -135,7 +143,10 @@ virtual void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighbour
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
-std::vector<double>               mNeighbourRigidFacesPram;
+
+std::vector<array_1d<double, 4> > mContactConditionWeights;
+std::vector<int>                  mContactConditionContactTypes;
+
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
 std::vector<array_1d<double, 3> > mNeighbourElasticContactForces;
@@ -162,28 +173,6 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
                                                 double mTimeStep,
                                                 int search_control);
 
-virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, 
-                                          std::size_t ino, 
-                                          double LocalCoordSystem[3][3],
-                                          double & DistPToB, 
-                                          double Weight[4], 
-                                          array_1d<double,3>& wall_delta_disp_at_contact_point,
-                                          array_1d<double, 3 > &wall_velocity_at_contact_point, 
-                                          int & ContactType);
-
-virtual void UpdateDistanceToWall(DEMWall* const wall, 
-                                  const int neighbour_index, 
-                                  double LocalCoordSystem[3][3], 
-                                  double& DistPToB, 
-                                  double Weight[4], 
-                                  int& ContactType);
-
-virtual void UpdateRF_Pram(DEMWall* rObj_2, 
-                           const std::size_t ino,
-                           const double LocalCoordSystem[3][3], 
-                           const double DistPToB,
-                           const double Weight[4], 
-                           const int ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& r_process_info);
 
