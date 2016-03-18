@@ -294,6 +294,8 @@ namespace Kratos
   mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
   mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+  mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+  mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
   mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
   mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
   mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
@@ -587,7 +589,7 @@ namespace Kratos
     //BOUNDING BOX
     KRATOS_REGISTER_VARIABLE(BOUNDING_BOX_START_TIME)
     KRATOS_REGISTER_VARIABLE(BOUNDING_BOX_STOP_TIME)
-               
+            
     //OPTIMIZATION 
 
     //FOR RECAREY FORMULAE
@@ -602,6 +604,9 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)		
 	
+    KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
+    KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
+    KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
