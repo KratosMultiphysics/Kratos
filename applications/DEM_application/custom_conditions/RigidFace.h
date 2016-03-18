@@ -61,6 +61,8 @@ public:
     void CalculateNormal(array_1d<double, 3>& rnormal);
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
     void FinalizeSolutionStep(ProcessInfo& r_process_info);
+    
+    void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
 
 protected:
   
