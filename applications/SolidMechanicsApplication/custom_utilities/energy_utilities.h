@@ -78,11 +78,11 @@ namespace Kratos
     //**************************************************************************
 
 
-    double GetTotalKineticEnergy(ModelPart& rModelPart, unsigned int MeshId) //default mesh 0, all model
+    double GetTotalKinematicEnergy(ModelPart& rModelPart, unsigned int MeshId) //default mesh 0, all model
     {
         KRATOS_TRY
 
-        double KineticEnergy = 0.0;
+        double KinematicEnergy = 0.0;
 
         array_1d<double, 3> vel;
         double mass = 0.0;
@@ -101,12 +101,12 @@ namespace Kratos
         vector<unsigned int> node_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-        std::vector<double> KineticEnergyPartition(number_of_threads);
+        std::vector<double> KinematicEnergyPartition(number_of_threads);
         for(int i=0; i<number_of_threads; i++){
-            KineticEnergyPartition[i] = 0.0;
+            KinematicEnergyPartition[i] = 0.0;
         }
 
-        #pragma omp parallel private (KineticEnergy, vel, mass, vel_arg)
+        #pragma omp parallel private (KinematicEnergy, vel, mass, vel_arg)
         {
             int k = OpenMPUtils::ThisThread();
             ModelPart::NodesContainerType::iterator NodeBegin = pNodes.begin() + node_partition[k];
@@ -118,16 +118,16 @@ namespace Kratos
                 mass    = in->FastGetSolutionStepValue(NODAL_MASS);
                 vel     = in->FastGetSolutionStepValue(VELOCITY);
                 vel_arg = MathUtils<double>::Norm3(vel);
-                KineticEnergyPartition[k] += 0.5*vel_arg*vel_arg*mass;
+                KinematicEnergyPartition[k] += 0.5*vel_arg*vel_arg*mass;
             }
         }
 
         for(int i=0; i<number_of_threads; i++){
-            KineticEnergy   += KineticEnergyPartition[i];
+            KinematicEnergy   += KinematicEnergyPartition[i];
 
         }
 
-        return KineticEnergy;
+        return KinematicEnergy;
 
 
         KRATOS_CATCH( "" )
@@ -284,7 +284,6 @@ namespace Kratos
     {
          
       KRATOS_TRY
-      
       #ifdef _OPENMP
               int number_of_threads = omp_get_max_threads();
       #else
