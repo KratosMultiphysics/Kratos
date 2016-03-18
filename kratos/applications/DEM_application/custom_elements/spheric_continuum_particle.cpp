@@ -142,21 +142,28 @@ namespace Kratos {
     }
     
     void SphericContinuumParticle::SetInitialFemContacts() {
-        const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
+        
         std::vector<DEMWall*>& rFemNeighbours = this->mNeighbourRigidFaces;
 
         unsigned int fem_neighbours_size = rFemNeighbours.size();
 
         mFemIniNeighbourIds.resize(fem_neighbours_size);
         mFemIniNeighbourDelta.resize(fem_neighbours_size);
-
+           
         for (unsigned int i = 0; i < rFemNeighbours.size(); i++) {
-            int ino1 = i * 16;
-            double DistPToB = RF_Pram[ino1 + 9];
-            int iNeighborID = static_cast<int> (RF_Pram[ino1 + 14]);
+            
+            double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+            array_1d<double, 3> wall_delta_disp_at_contact_point = ZeroVector(3);
+            array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);    
+            double DistPToB = 0.0;
+            int ContactType = -1;
+            array_1d<double, 4> Weight = ZeroVector(4);                
+        
+            ComputeConditionRelativeData(rFemNeighbours[i], LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
+          
             double initial_delta = -(DistPToB - GetRadius());
 
-            mFemIniNeighbourIds[i] = iNeighborID;
+            mFemIniNeighbourIds[i] = rFemNeighbours[i]->Id();
             mFemIniNeighbourDelta[i] = initial_delta;
         }
     }//SetInitialFemContacts              
