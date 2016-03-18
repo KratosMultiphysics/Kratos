@@ -101,28 +101,28 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==13:
 
         final_time                      = 2.0
-        dt                              = 1.0e-5
+        dt                              = 1.0e-4
         output_time_step                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==14:
 
         final_time                      = 2.0
-        dt                              = 1.0e-5
+        dt                              = 1.0e-4
         output_time_step                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==15:
 
         final_time                      = 2.0
-        dt                              = 1.0e-5
+        dt                              = 1.0e-4
         output_time_step                = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==16:
 
         final_time                      = 2.5
-        dt                              = 1.0e-6
+        dt                              = 1.0e-5
         output_time_step                = 1e-2
         number_of_points_in_the_graphic = 1
 
