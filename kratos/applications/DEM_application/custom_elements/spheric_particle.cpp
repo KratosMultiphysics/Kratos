@@ -298,14 +298,19 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
 void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_indentation)
 {
     r_current_max_indentation = - std::numeric_limits<double>::max();
-
-    const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
-
-    for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++){
+    
+    std::vector<DEMWall*>& rNeighbours   = this->mNeighbourRigidFaces;        
+  
+    for (unsigned int i = 0; i < rNeighbours.size(); i++) {
+      
+        double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+        array_1d<double, 3> wall_delta_disp_at_contact_point = ZeroVector(3);
+        array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);    
+        double DistPToB = 0.0;
+        int ContactType = -1;
+        array_1d<double,4> Weight =ZeroVector(4);            
         
-        int ino1                = i * 16;
-        double DistPToB         = RF_Pram[ino1 +  9];
-        int ContactType         = RF_Pram[ino1 + 15];
+        ComputeConditionRelativeData(rNeighbours[i], LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
         
         if(ContactType > 0){
             double indentation = GetInteractionRadius() - DistPToB;
@@ -793,75 +798,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 }// ComputeBallToBallContactForce
 
 
-void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino,
-                                                   double LocalCoordSystem[3][3], 
-                                                   double& DistPToB,
-                                                   double Weight[4],
-                                                   array_1d<double,3>& wall_delta_disp_at_contact_point,
-                                                   array_1d<double,3>& wall_velocity_at_contact_point, 
-                                                   int& ContactType)
-{
-    KRATOS_TRY
 
-    const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
-
-    int ino1 = ino * 16;
-
-    LocalCoordSystem[0][0] = RF_Pram[ino1 +  0];
-    LocalCoordSystem[0][1] = RF_Pram[ino1 +  1];
-    LocalCoordSystem[0][2] = RF_Pram[ino1 +  2];
-    LocalCoordSystem[1][0] = RF_Pram[ino1 +  3];
-    LocalCoordSystem[1][1] = RF_Pram[ino1 +  4];
-    LocalCoordSystem[1][2] = RF_Pram[ino1 +  5];
-    LocalCoordSystem[2][0] = RF_Pram[ino1 +  6];
-    LocalCoordSystem[2][1] = RF_Pram[ino1 +  7];
-    LocalCoordSystem[2][2] = RF_Pram[ino1 +  8];
-    DistPToB               = RF_Pram[ino1 +  9];
-    Weight[0]              = RF_Pram[ino1 + 10];
-    Weight[1]              = RF_Pram[ino1 + 11];
-    Weight[2]              = RF_Pram[ino1 + 12];
-    Weight[3]              = RF_Pram[ino1 + 13];
-    ContactType            = RF_Pram[ino1 + 15];
-    
-    for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
-        noalias(wall_velocity_at_contact_point)   += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
-        noalias(wall_delta_disp_at_contact_point) += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(DELTA_DISPLACEMENT) * Weight[inode];
-    }
-
-    KRATOS_CATCH("")
-}
-
-void SphericParticle::UpdateRF_Pram(DEMWall* rObj_2, 
-                                    const std::size_t ino,
-                                    const double LocalCoordSystem[3][3], 
-                                    const double DistPToB,
-                                    const double Weight[4], 
-                                    const int ContactType)
-{
-    KRATOS_TRY
-
-    std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
-
-    int ino1 = ino * 16;
-
-    RF_Pram[ino1 +  0] = LocalCoordSystem[0][0];
-    RF_Pram[ino1 +  1] = LocalCoordSystem[0][1];
-    RF_Pram[ino1 +  2] = LocalCoordSystem[0][2];
-    RF_Pram[ino1 +  3] = LocalCoordSystem[1][0];
-    RF_Pram[ino1 +  4] = LocalCoordSystem[1][1];
-    RF_Pram[ino1 +  5] = LocalCoordSystem[1][2];
-    RF_Pram[ino1 +  6] = LocalCoordSystem[2][0];
-    RF_Pram[ino1 +  7] = LocalCoordSystem[2][1];
-    RF_Pram[ino1 +  8] = LocalCoordSystem[2][2];
-    RF_Pram[ino1 +  9] = DistPToB;
-    RF_Pram[ino1 + 10] = Weight[0];
-    RF_Pram[ino1 + 11] = Weight[1];
-    RF_Pram[ino1 + 12] = Weight[2];
-    RF_Pram[ino1 + 13] = Weight[3];
-    RF_Pram[ino1 + 15] = ContactType;
-
-    KRATOS_CATCH("")
-}
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                          array_1d<double, 3>& r_contact_force,
@@ -887,25 +824,26 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         double ViscoDampingLocalContactForce[3]  = {0.0};
         double cohesive_force                    =  0.0;
         double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
-        array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);
         array_1d<double, 3> wall_delta_disp_at_contact_point = ZeroVector(3);
+        array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);
         bool sliding = false;
 
         double ini_delta = GetInitialDeltaWithFEM(i);              
         double DistPToB = 0.0;
 
         int ContactType = -1;
-        double Weight[4] = {0.0};                
+        array_1d<double,4> Weight =ZeroVector(4);
         
-        ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
-
-        //Renew neighbour parameters for steps between searches
+        //we create a copy
+        DEM_COPY_SECOND_TO_FIRST_4(Weight,mContactConditionWeights[i])
+        
+        ComputeConditionRelativeData(rNeighbours[i], LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
+        
+        //We update the values
+        DEM_COPY_SECOND_TO_FIRST_4(mContactConditionWeights[i],Weight)
+                
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
-            if (search_control == 1) { //Search active but not performed in this timestep
-                UpdateDistanceToWall(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, ContactType);                                
-            }
-        }
-        if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
+            
             double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
@@ -994,13 +932,16 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
     KRATOS_CATCH("")
 }// ComputeBallToRigidFaceContactForce
 
-void SphericParticle::UpdateDistanceToWall(DEMWall* const wall, 
-                                            const int neighbour_index, 
+void SphericParticle::ComputeConditionRelativeData(DEMWall* const wall, 
                                             double LocalCoordSystem[3][3], 
                                             double& DistPToB, 
-                                            double Weight[4], 
-                                            int& ContactType){
-
+                                            array_1d<double, 4> Weight, 
+                                            array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                            array_1d<double, 3>& wall_velocity_at_contact_point,
+                                            int& ContactType
+                                            )
+  {
+  
     size_t FE_size = wall->GetGeometry().size(); 
     std::vector< array_1d <double,3> >Coord;
     Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
@@ -1041,6 +982,7 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
     {
       unsigned int dummy_current_edge_index;
       contact_exists = GeometryFunctions::FacetCheck(Coord, node_coor, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index);
+      ContactType = 1;
       Weight[0]=TempWeight[0];
       Weight[1]=TempWeight[1];
       Weight[2]=TempWeight[2];
@@ -1061,19 +1003,27 @@ void SphericParticle::UpdateDistanceToWall(DEMWall* const wall,
      
         Weight[inode1] = 1-eta;
         Weight[inode2] = eta;
+        ContactType = 2;
         
     }
 
     else if (points == 1) {
         contact_exists = GeometryFunctions::VertexCheck(Coord[inode1], node_coor, radius, LocalCoordSystem, DistPToB);
         Weight[inode1] = 1.0;
+        ContactType = 3;
     }
 
     if (contact_exists == false) {ContactType = -1;}
-
-    UpdateRF_Pram(wall, neighbour_index, LocalCoordSystem, DistPToB, Weight, ContactType);
-
-}
+    
+    for (std::size_t inode = 0; inode < FE_size; inode++){
+        noalias(wall_velocity_at_contact_point)   += wall->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+        
+        array_1d<double, 3>  wall_delta_displacement  = ZeroVector(3);
+        wall->GetDeltaDisplacement(wall_delta_displacement, inode);
+        noalias(wall_delta_disp_at_contact_point) +=  wall_delta_displacement* Weight[inode];
+      
+    }
+}//ComputeConditionRelativeData
 
 void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
                                   double mTimeStep, double density, bool sliding, double inverse_of_volume,
