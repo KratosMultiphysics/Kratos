@@ -59,15 +59,17 @@ namespace Kratos
                 array_1d<double, 3> new_axes2;
                 array_1d<double, 3> new_axes3;
 
-                const bool rigid_body = r_model_part.GetMesh(mesh_number)[RIGID_BODY];
-                if(rigid_body) {
-                GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ,
-                                                        linear_velocity_changed, linear_period, dt, linear_velocity);
+                const bool rigid_body_motion = r_model_part.GetMesh(mesh_number)[RIGID_BODY_MOTION];
+                
+                if (rigid_body_motion) {
+                
+                    GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ,
+                                                            linear_velocity_changed, linear_period, dt, linear_velocity);
 
-                GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
-                                                     angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
+                    GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
+                                                         angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
 
-                GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
+                    GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
                                                                           new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
                                                                           fixed_mesh, dt, pNodes);
                 }
