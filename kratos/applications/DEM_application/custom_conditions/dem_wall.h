@@ -73,6 +73,8 @@ public:
                                  const Variable<VectorType>& rRHSVariable,
                                  Variable<array_1d<double,3> >& rDestinationVariable,
                                  const ProcessInfo& r_process_info);
+    
+    virtual void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
     /*
     double mTgOfFrictionAngle;
     double mYoungModulus;
