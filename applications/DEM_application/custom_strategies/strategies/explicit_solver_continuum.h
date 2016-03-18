@@ -348,7 +348,7 @@ namespace Kratos
         //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
         //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
                      
-        Properties::Pointer properties = (*mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
+        //Properties::Pointer properties;// = (*mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
         
         const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
         
@@ -382,6 +382,8 @@ namespace Kratos
                 NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
                 
                 Element::Pointer p_contact_element;
+                
+                Properties::Pointer properties = mListOfSphericContinuumParticles[i]->pGetProperties();
                                 
                 #pragma omp critical
                 {
