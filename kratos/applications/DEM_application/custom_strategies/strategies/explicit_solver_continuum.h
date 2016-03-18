@@ -163,7 +163,7 @@ namespace Kratos
             }
 
             // 4. Set Initial Contacts        
-            if (r_process_info[CASE_OPTION] !=0) {            
+            if (r_process_info[CASE_OPTION] != 0) {            
                 SetInitialDemContacts();
             }   
             
@@ -658,7 +658,7 @@ namespace Kratos
         for (int i = 0; i < number_of_particles; i++){
             mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info);
             mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws(r_process_info);
-            //mListOfSphericContinuumParticles[i]->SearchSkinParticles(r_process_info); // TODO ContactAreaWeighting must be run after we know all skin conditions
+            mListOfSphericContinuumParticles[i]->SearchSkinParticles(r_process_info); // TODO ContactAreaWeighting must be run after we know all skin conditions
             mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
         }            
 
