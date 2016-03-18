@@ -13,15 +13,15 @@ path = os.getcwd()
 path += '/basic_benchmarks'
 os.chdir(path)
                   
-Benchmark_text = ["Running DEM Benchmark 1... Elastic normal impact of two identical spheres\n",
-                  "Running DEM Benchmark 2... Elastic normal impact of a sphere against a rigid plane\n",
-                  "Running DEM Benchmark 3... Impact of a sphere against a rigid plane with different coefficients of restitution\n",
-                  "Running DEM Benchmark 4... Oblique impact of a sphere with a rigid plane with constant velocity module and variable incident angles\n",
-                  "Running DEM Benchmark 5... Oblique impact of a sphere with a rigid plane with constant normal velocity and different tangential velocities\n",
-                  "Running DEM Benchmark 6... Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n",
-                  "Running DEM Benchmark 7... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
-                  "Running DEM Benchmark 8... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
-                  "Running DEM Benchmark 9... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
+Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two identical spheres\n",
+                  "Running DEM Benchmark 2.... Elastic normal impact of a sphere against a rigid plane\n",
+                  "Running DEM Benchmark 3.... Impact of a sphere against a rigid plane with different coefficients of restitution\n",
+                  "Running DEM Benchmark 4.... Oblique impact of a sphere with a rigid plane with constant velocity module and variable incident angles\n",
+                  "Running DEM Benchmark 5.... Oblique impact of a sphere with a rigid plane with constant normal velocity and different tangential velocities\n",
+                  "Running DEM Benchmark 6.... Impact of a sphere with a rigid plane with a constant normal velocity and variable angular velocities\n",
+                  "Running DEM Benchmark 7.... Impact of two identical spheres with a constant normal velocity and different angular velocities\n",
+                  "Running DEM Benchmark 8.... Impact of two differently sized spheres with a constant normal velocity and variable angular velocities\n",
+                  "Running DEM Benchmark 9.... Impact of two identical spheres with a constant normal velocity and different coefficients of restitution\n",
                   "Running DEM Benchmark 10... Linear: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 11... Hertzian: Oblique impact of a sphere with an elastic plane with constant normal velocity and different angular velocities\n",
                   "Running DEM Benchmark 12... Sphere rotating over a plane surface with Rolling Friction\n",
@@ -151,7 +151,8 @@ def Run():
     message = "From: Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + subject + "\n" + Text
     
     #if failure:
-    if (__name__ != '__main__' and failure):
+    #if (__name__ != '__main__' and failure):
+    if (False):
         smtplib.SMTP("smtps.cimne.upc.es").sendmail("Kratos Benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>", recipients, message)
     return Text
 
