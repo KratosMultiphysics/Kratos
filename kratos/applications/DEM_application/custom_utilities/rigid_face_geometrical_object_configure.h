@@ -284,69 +284,62 @@ public:
                         (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
     }
     
-    
-   static inline bool DistanceHierarchy(SphericParticle* rObj_1, DEMWall* rObj_2, double LocalCoordSystem[3][3], double DistPToB, std::vector<double> Weight, int ContactType)
+                                                          
+   static inline bool DistanceHierarchy(SphericParticle* rObj_1, 
+                                        DEMWall* rObj_2, 
+                                        double LocalCoordSystem[3][3], 
+                                        double DistPToB, 
+                                        std::vector<double> Weight, 
+                                        int ContactType, 
+                                        std::vector< double > & Distance_Array, 
+                                        std::vector< array_1d<double,3> >& Normal_Array,
+                                        std::vector< array_1d<double,4> >& Weight_Array,
+                                        std::vector<int> & Id_Array,
+                                        std::vector<int> & ContactTypes
+                                       )   
    {
-        std::vector<double>& RF_Param = rObj_1->mNeighbourRigidFacesPram;  //NOTE: THIS member has to be cleared every time step. It is done in: the SphericParticle Function: ComputeNewRigidFaceNeighboursHistoricalData
-
+        
         int new_ID = rObj_2->Id();
 
-        std::size_t i_current = RF_Param.size();
-        std::size_t neighbor_size = i_current / 16;
+        std::size_t i_current = Normal_Array.size();
+        std::size_t neighbor_size = Normal_Array.size();
 
         bool substitute = false;
         int  position   = i_current;
 
         for (std::size_t i_old_neigh = 0; i_old_neigh < neighbor_size; i_old_neigh++)
         {
-            int i_Old_RF_position = i_old_neigh * 16;
+            //int i_Old_RF_position = i_old_neigh * 16;
 
             double Old_Normal_Vector[3] = {0.0};
-            Old_Normal_Vector[0] = RF_Param[i_Old_RF_position + 6];
-            Old_Normal_Vector[1] = RF_Param[i_Old_RF_position + 7];
-            Old_Normal_Vector[2] = RF_Param[i_Old_RF_position + 8];
-
-            double New_dist = DistPToB;
-            double Old_dist = RF_Param[i_Old_RF_position + 9];
+            Old_Normal_Vector[0] = Normal_Array[i_old_neigh][0];
+            Old_Normal_Vector[1] = Normal_Array[i_old_neigh][1];
+            Old_Normal_Vector[2] = Normal_Array[i_old_neigh][2];
+            
+            double New_Dist = DistPToB;
+            double Old_dist = Distance_Array[i_old_neigh];
 
            double New_projected_on_old = GeometryFunctions::DotProduct(LocalCoordSystem[2], Old_Normal_Vector);
-           double New_projected_distance = New_projected_on_old * New_dist;
+           double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
-           //MSI: manera mas simple de demostrarlo
-           //if the dot product is positive, we only need to compare the distances,
-           //if the dot product is negative, no one cancel no one.
-/*
-           if( New_projected_on_old > 0.0)
-           {
-               //hierarchy  
-               if(Old_dist < New_dist) //old has hierarchy over new
-               {
-                 
-               }
-               else //New has hierarchy over old
-               {
-                 
-               }
-           }
-           else
-           {
-             
-               //new neighbour
-           }
-  */         
+
            if ( ( (New_projected_distance - Old_dist) / fabs(Old_dist) ) > -1.0e-15 ) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH                        
               return false;
            }
 
-           if ( ( (Old_projected_distance-New_dist )  / fabs(New_dist) ) > -1.0e-15 ) { //new has hierarchy over old           
-             int old_ID = RF_Param[i_Old_RF_position + 14];
+           if ( ( (Old_projected_distance-New_Dist )  / fabs(New_Dist) ) > -1.0e-15 ) { //new has hierarchy over old           
+             
+             int old_ID = Id_Array[i_old_neigh];
+             
              if (new_ID == old_ID) {//SUBSTITUTE             
-                position = i_Old_RF_position;
+                position = i_old_neigh;
                 substitute = true;
              }
-             else {             
-               RF_Param[i_Old_RF_position + 15] = -1;
+             
+             else {  //DISABLE THE OLD ONE           
+               ContactTypes[i_old_neigh] = -1;
              }
+             
            } //new has hierarchy over
 
          }//Loop over Old Neigh
@@ -354,47 +347,71 @@ public:
         std::vector<DEMWall*>& neighbour_rigid_faces = rObj_1->mNeighbourRigidFaces;
 
         if(substitute) {
-          neighbour_rigid_faces[position / 16] = rObj_2;
+          
+          
+          neighbour_rigid_faces[position] = rObj_2;
+          
         } //if substitute we wont resize or pushback
         else {
-          RF_Param.resize(position + 16);
+          
+          Distance_Array.resize(neighbor_size+1);
+          Weight_Array.resize(neighbor_size+1);
+          Normal_Array.resize(neighbor_size+1);
+          Id_Array.resize(neighbor_size+1);
+          ContactTypes.resize(neighbor_size+1);
+          
           neighbour_rigid_faces.push_back(rObj_2);
         }
+        
+        
+        Normal_Array[position][0]  = LocalCoordSystem[2][0];
+        Normal_Array[position][1]  = LocalCoordSystem[2][1];
+        Normal_Array[position][2]  = LocalCoordSystem[2][2];
+        Weight_Array[position][0] = Weight[0];
+        Weight_Array[position][1] = Weight[1];
+        Weight_Array[position][2] = Weight[2];
+        Weight_Array[position][3] = Weight[3];
+        Distance_Array[position]  = DistPToB;
 
-        RF_Param[position + 0]  = LocalCoordSystem[0][0];//Room for improvement: ¿could we just store LocalCoordSystem[2]? Could we regenerate 0 and 1 randomly when we need the coordinate system?
-        RF_Param[position + 1]  = LocalCoordSystem[0][1];
-        RF_Param[position + 2]  = LocalCoordSystem[0][2];
-        RF_Param[position + 3]  = LocalCoordSystem[1][0];
-        RF_Param[position + 4]  = LocalCoordSystem[1][1];
-        RF_Param[position + 5]  = LocalCoordSystem[1][2];
-        RF_Param[position + 6]  = LocalCoordSystem[2][0];
-        RF_Param[position + 7]  = LocalCoordSystem[2][1];
-        RF_Param[position + 8]  = LocalCoordSystem[2][2];
-        RF_Param[position + 9]  = DistPToB;
-        RF_Param[position + 10] = Weight[0];
-        RF_Param[position + 11] = Weight[1];
-        RF_Param[position + 12] = Weight[2];
-        RF_Param[position + 13] = Weight[3];
-        RF_Param[position + 14] = new_ID;
-        RF_Param[position + 15] = ContactType;
+        Id_Array[position] = new_ID;
+        ContactTypes[position] = ContactType;
+        
 
         return true;
    }//DistanceHierarchy
-
-
-      static inline void DoubleHierarchyMethod(SphericParticle* rObj_1, DEMWall* rObj_2) {
+   
+   
+      static inline void DoubleHierarchyMethod(SphericParticle* rObj_1, 
+                                               DEMWall* rObj_2, 
+                                               std::vector< double > & Distance_Array, 
+                                               std::vector< array_1d<double,3> >& Normal_Array,
+                                               std::vector< array_1d<double,4> >& Weight_Array,
+                                               std::vector< int >& Id_Array,
+                                               std::vector<int> & ContactType_Array
+                                               ) 
+      {
         const GeometryType& FE_Geom = rObj_2->GetGeometry();
         unsigned int FE_size = FE_Geom.size();
 
         if(FE_size==2) {
-          DoubleHierarchyMethod2D(rObj_1,rObj_2);
+          DoubleHierarchyMethod2D(rObj_1,rObj_2, Distance_Array, Normal_Array,Weight_Array, Id_Array,ContactType_Array);
         }
         else {
-          DoubleHierarchyMethod3D(rObj_1,rObj_2);
+          DoubleHierarchyMethod3D(rObj_1,rObj_2, Distance_Array, Normal_Array,Weight_Array, Id_Array,ContactType_Array);
         }
+        
      }
 
-    static inline void DoubleHierarchyMethod3D(SphericParticle* rObj_1, DEMWall* rObj_2) {         
+    static inline void DoubleHierarchyMethod3D(SphericParticle* rObj_1, 
+                                               DEMWall* rObj_2, 
+                                               std::vector< double > & Distance_Array, 
+                                               std::vector< array_1d<double,3> >& Normal_Array,
+                                               std::vector< array_1d<double,4> >& Weight_Array,
+                                               std::vector< int >& Id_Array,
+                                               std::vector< int >& ContactType_Array
+                                              ) 
+    
+    {
        //rObj_1 is particle,  and rObj_2 is condition
        //TYPE HIERARCHY
        int ContactType          = -1;
@@ -433,7 +450,7 @@ public:
 
        if (ContactExists == true) {
          ContactType = 1;
-         ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_plane, Weight, ContactType);
+         ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_plane, Weight, ContactType, Distance_Array, Normal_Array,Weight_Array, Id_Array, ContactType_Array);
          return;
        }
        //The key here is to see that we only need to check for further contact if, when not having contact with plane, the distance_point_to_plane is lower than the radius.
@@ -456,7 +473,7 @@ public:
                 Weight[e]             = 1-eta;
                 Weight[(e+1)%FE_size] = eta; //the rest remain 0 (valid for triangles and quadrilateral)
                 if(FE_size > 4){KRATOS_WATCH("WEIGHTS ALONG EDGE CANT BE CALCULATED WITH SUKUMAR FORMULAE")}
-                ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType);
+                ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType, Distance_Array, Normal_Array,Weight_Array, Id_Array, ContactType_Array);
                 continue; //skip vertex check
             }
             if ( (local_contact_exists == false) && (distance_point_to_edge < Radius ) ) {
@@ -470,15 +487,24 @@ public:
               if(local_contact_exists) {
                 ContactType             = 3;
                 Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
-                ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType);
+                ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array,Weight_Array, Id_Array, ContactType_Array);
               }
             } // (ContactExists == false) && (distance_point_to_edge < Radius )
           }//for every edge
        }//no plane contact found
+       return;
     } //DoubleHierarchyMethod3D
 
-    static inline void DoubleHierarchyMethod2D(SphericParticle* rObj_1, DEMWall* rObj_2)
-    {
+    
+    static inline void DoubleHierarchyMethod2D(SphericParticle* rObj_1, 
+                                               DEMWall* rObj_2, 
+                                               std::vector< double > & Distance_Array, 
+                                               std::vector< array_1d<double,3> >& Normal_Array,
+                                               std::vector< array_1d<double,4> >& Weight_Array,
+                                               std::vector< int > & Id_Array, 
+                                               std::vector< int > & ContactType_Array
+                                              ) 
+      {
       //rObj_1 is particle,  and rObj_2 is condition
       int ContactType          = -1;
       //-1: No contact;
@@ -515,8 +541,8 @@ public:
           ContactType           = 2;
           Weight[0]             = 1-eta;
           Weight[1]             = eta; //the rest remain 0 (valid for triangles and quadrilateral)
-
-          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType);
+          
+          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_edge, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);         
           return;
       }
       
@@ -530,10 +556,11 @@ public:
         if(ContactExists) {
           ContactType             = 3;
           Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
-          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType);
+          ContactExists = DistanceHierarchy(rObj_1,rObj_2, local_coord_system, distance_point_to_vertex, Weight, ContactType, Distance_Array, Normal_Array, Weight_Array, Id_Array, ContactType_Array);
           return;
         }
       } // (ContactExists == false) && (distance_point_to_edge < Radius )
+      return;
     }//DoubleHierarchyMethod2D
 
 
