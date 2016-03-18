@@ -85,107 +85,109 @@ void RigidEdge3D::Initialize() {
 
 void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) 
 {
-    //calculation flags
+  
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-
+    
     if (rRightHandSideVector.size() != MatSize)
     {
         rRightHandSideVector.resize(MatSize, false);
     }
-
-    rRightHandSideVector = ZeroVector(MatSize); 
+    rRightHandSideVector = ZeroVector(MatSize);
     
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-
-    for(unsigned int i=0; i<rNeighbours.size(); i++)    
+    
+    for (unsigned int i=0; i<rNeighbours.size(); i++)
     {
+        if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
+        
         std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
-
-        for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+                
+        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
-            if( rRFnei[i_nei]->Id() == this->Id() )
+            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+            
+            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
             {
-                double weight[4] = {0.0};
+                
+                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+                double weight = 0.0;
+                
                 double ContactForce[3] = {0.0};
 
-                unsigned int ino = 16 * i_nei;
-                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
+                const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
 
-                weight[0] = neighbour_rigid_faces_pram[ino + 10];
-                weight[1] = neighbour_rigid_faces_pram[ino + 11];
-                weight[2] = neighbour_rigid_faces_pram[ino + 12];
-                weight[3] = neighbour_rigid_faces_pram[ino + 13];
-
-                array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
                 ContactForce[0] = neighbour_rigid_faces_contact_force[0];
                 ContactForce[1] = neighbour_rigid_faces_contact_force[1];
                 ContactForce[2] = neighbour_rigid_faces_contact_force[2];
-                                
 
-                for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
+                for (unsigned int k=0; k< number_of_nodes; k++)
                 {
-                    unsigned int ino1 =  inode * 3;
-                    rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
-                    rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
-                    rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
+                    weight = weights_vector[k];
+  
+                    unsigned int w =  k * 3;
+
+                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
+                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
+                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
                 }
-                break;
-            }
-        }
-    }
+                
+            }//if the condition neighbour of my sphere neighbour is myself.
+        }//Loop spheres neighbours (condition)
+    }//Loop condition neighbours (spheres)
+
 }
 
 void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) 
 {
-    //calculation flags
-    const unsigned int number_of_nodes = GetGeometry().size();
+  
+  const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-
+    
     if (rElasticForces.size() != MatSize)
     {
         rElasticForces.resize(MatSize, false);
     }
-
-    rElasticForces = ZeroVector(MatSize); 
+    rElasticForces = ZeroVector(MatSize);
     
     std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-
-    for(unsigned int i=0; i<rNeighbours.size(); i++)    
+    
+    for (unsigned int i=0; i<rNeighbours.size(); i++)
     {
+        
+        if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
+          
         std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
 
-        for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
-            if( rRFnei[i_nei]->Id() == this->Id() )
+            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+            
+            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
             {
-                double weight[4] = {0.0};
+                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+                double weight = 0.0;
+                
                 double ContactElasticForce[3] = {0.0};
 
-                unsigned int ino = 16 * i_nei;
-                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
-
-                weight[0] = neighbour_rigid_faces_pram[ino + 10];
-                weight[1] = neighbour_rigid_faces_pram[ino + 11];
-                weight[2] = neighbour_rigid_faces_pram[ino + 12];
-                weight[3] = neighbour_rigid_faces_pram[ino + 13];
-                
                 const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
                 ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
                 ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
                 ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];
 
-                for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
+                for (unsigned int k=0; k< number_of_nodes; k++)
                 {
-                    unsigned int ino1 =  inode * 3;
-                    rElasticForces[ino1 + 0] += -ContactElasticForce[0] * weight[inode];
-                    rElasticForces[ino1 + 1] += -ContactElasticForce[1] * weight[inode];
-                    rElasticForces[ino1 + 2] += -ContactElasticForce[2] * weight[inode];
+                    weight = weights_vector[k];
+  
+                    unsigned int w =  k * 3;
+
+                    rElasticForces[w + 0] += -ContactElasticForce[0] * weight;
+                    rElasticForces[w + 1] += -ContactElasticForce[1] * weight;
+                    rElasticForces[w + 2] += -ContactElasticForce[2] * weight;
                 }
-                break;
-            }
-        }
-    }
+            }//if the condition neighbour of my sphere neighbour is myself.
+        }//Loop spheres neighbours (condition)
+    }//Loop condition neighbours (spheres)
 }
 
 void RigidEdge3D::CalculateNormal(array_1d<double, 3>& rnormal){
