@@ -353,7 +353,7 @@ namespace Kratos
           array_1d<double,3>& current_velocity      = i->FastGetSolutionStepValue(VELOCITY);
           array_1d<double,3>& current_residual      = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
           array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT);
-
+          
           for (unsigned int j =0; j<3; j++)
           {
             
@@ -423,58 +423,38 @@ virtual void Update(ModelPart& r_model_part,
           //Solution of the explicit equation:
           current_acceleration = current_residual/nodal_mass;
 
-          if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() )
-          {
-            
-            current_acceleration[0]  = 0.0;
-            middle_velocity[0]       = 0.0;
-            
-          }
+          int DoF = 2;
+          bool Fix_displ[3] = {false, false, false};
 
-          current_velocity[0]      = middle_velocity[0] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[0]; //+ actual_velocity;
+          Fix_displ[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
+          Fix_displ[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
 
-          middle_velocity[0]       = current_velocity[0] + (mTime.Middle - mTime.Previous) * current_acceleration[0] ;
-
-          current_displacement[0]  = current_displacement[0] + mTime.Delta * middle_velocity[0];      
-         
-
-          if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() )
-          {
-            
-            current_acceleration[1]  = 0.0;
-            middle_velocity[1]       = 0.0;
-            
-          }
-
-          current_velocity[1]      = middle_velocity[1] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[1]; //+ actual_velocity;
-
-          middle_velocity[1]       = current_velocity[1] + (mTime.Middle - mTime.Previous) * current_acceleration[1] ;
-
-          current_displacement[1]  = current_displacement[1] + mTime.Delta * middle_velocity[1];
-
-          
           if( i->HasDofFor(DISPLACEMENT_Z) )
           {
-            
-              if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() )
-              {
-                
-                current_acceleration[2]  = 0.0;
-                middle_velocity[2]       = 0.0;
-                
-              }
-
-              current_velocity[2]      = middle_velocity[2] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[2]; //+ actual_velocity;
-
-              middle_velocity[2]       = current_velocity[2] + (mTime.Middle - mTime.Previous) * current_acceleration[2] ;
-
-              current_displacement[2]  = current_displacement[2] + mTime.Delta * middle_velocity[2];
-
-            }
-
+            DoF = 3;
+            Fix_displ[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
           }
 
-      }
+          for (int j = 0; j < DoF; j++) 
+          {
+              
+              if (Fix_displ[j] == true) 
+              {
+                  
+                current_acceleration[j]  = 0.0;
+                middle_velocity[j]       = 0.0; 
+                
+              }
+              
+              current_velocity[j]      = middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[j]; //+ actual_velocity;
+              middle_velocity[j]       = current_velocity[j] + (mTime.Middle - mTime.Previous) * current_acceleration[j] ; 
+              current_displacement[j]  = current_displacement[j] + mTime.Delta * middle_velocity[j];      
+              
+          }//for DoF
+          
+        }//for Node 
+
+      }//parallel
 
       mTime.Previous = mTime.Current;
       mTime.PreviousMiddle = mTime.Middle;
@@ -523,59 +503,38 @@ virtual void Update(ModelPart& r_model_part,
           //Solution of the explicit equation:
           current_acceleration = current_residual/nodal_mass;
 
-          if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() )
-          {
-            
-            current_acceleration[0]  = 0.0;
-            middle_velocity[0]       = 0.0;
-            
-          }
+          int DoF = 2;
+          bool Fix_displ[3] = {false, false, false};
 
-            middle_velocity[0]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[0] ;
-
-            current_velocity[0]      = middle_velocity[0] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[0]; //+ actual_velocity;
-
-            current_displacement[0]  = 0.0;
-
-          
-          if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() )
-          {
-            
-            current_acceleration[1]  = 0.0;
-            middle_velocity[1]       = 0.0;
-            
-          }
- 
-          middle_velocity[1]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[1] ;
-
-          current_velocity[1]      = middle_velocity[1] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[1]; //+ actual_velocity;
-
-          current_displacement[1]  = 0.0;
+          Fix_displ[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
+          Fix_displ[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
 
           if( i->HasDofFor(DISPLACEMENT_Z) )
           {
-
-            if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() )
-            {
-            
-              current_acceleration[2]  = 0.0;
-              middle_velocity[2]       = 0.0;
-            
-            }
-
-            middle_velocity[2]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[2] ;
-
-            current_velocity[2]      = middle_velocity[2] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[2]; //+ actual_velocity;
-
-            current_displacement[2]  = 0.0;
-
-
+            DoF = 3;
+            Fix_displ[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
           }
 
+          for (int j = 0; j < DoF; j++) 
+          {
+              
+              if (Fix_displ[j] == true) 
+              {
+            
+                current_acceleration[j]  = 0.0;
+                middle_velocity[j]       = 0.0;
+            
+              }
+              
+            middle_velocity[j]       = 0.0 + (mTime.Middle - mTime.Previous) * current_acceleration[j] ;
+            current_velocity[j]      = middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * current_acceleration[j]; //+ actual_velocity;
+            current_displacement[j]  = 0.0;
+              
+          }//for DoF
 
-          }
+        }//for node
 
-      }
+      }//parallel
 
       mTime.Previous = mTime.Current;
       mTime.PreviousMiddle = mTime.Middle;
