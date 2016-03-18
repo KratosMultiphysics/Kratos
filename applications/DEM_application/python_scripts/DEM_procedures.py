@@ -1075,7 +1075,8 @@ class DEMIo(object):
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,  self.spheres_variables)
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
         
-        if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
+        if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
+          if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
