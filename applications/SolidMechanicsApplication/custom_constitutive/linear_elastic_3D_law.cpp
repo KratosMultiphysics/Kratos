@@ -143,11 +143,11 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN )) //large strains
-      {
+    {
 
-	//1.-Compute total deformation gradient
-	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-		
+        //1.-Compute total deformation gradient
+        const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
+
         //2.-Right Cauchy-Green tensor C
         Matrix RightCauchyGreen = prod(trans(DeformationGradientF),DeformationGradientF);
 
@@ -156,55 +156,57 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
         //E= 0.5*(FT*F-1)
         this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
 
-      }
+    }
 
     //7.-Calculate Total PK2 stress
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
-      {
-	if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-      	
-	  Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
-	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-	  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+    {
+        if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
-	}
-	else {
+          Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+          this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+          this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 
-	  Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
-	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-	  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-	}
+        }
+        else {
+
+          Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+          this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+          this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+        }
       
-      }
+    }
     else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-      {
+    {
 
-	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+        Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
-      }
+    }
     
-   if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
-     {
-     
-       if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) ){
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
+    {
 
-	 if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){	    
-	   Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
-	   this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-	   this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-	 }
-	 else{
-	   Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();    
-	   this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-	 }    
+        if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) )
+        {
 
-	  
-       }
-     
-       mStrainEnergy = 0.5 * inner_prod(StrainVector,StressVector); //Belytschko Nonlinear Finite Elements pag 226 (5.4.3) : w = 0.5*E:C:E
-     }
+            if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
+            {
+               Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+               this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+               this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+            }
+            else
+            {
+               Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
+               this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+            }
+
+        }
+
+        mStrainEnergy = 0.5 * inner_prod(StrainVector,StressVector); //Belytschko Nonlinear Finite Elements pag 226 (5.4.3) : w = 0.5*E:C:E
+    }
 
     //std::cout<<" Strain "<<StrainVector<<std::endl;
     //std::cout<<" Stress "<<StressVector<<std::endl;
