@@ -15,7 +15,9 @@
 namespace Kratos
 {
 
+
 #define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
+#define DEM_COPY_SECOND_TO_FIRST_4(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2]; a[3]  = b[3];
 #define DEM_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
 #define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
 #define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
@@ -280,7 +282,7 @@ namespace Kratos
   
   //OPTIMIZATION 
   KRATOS_DEFINE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
-  
+
   // *************** Thermal only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, HEATFLUX)
   KRATOS_DEFINE_VARIABLE(double, THERMAL_CONDUCTIVITY)
