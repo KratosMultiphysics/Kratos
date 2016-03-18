@@ -77,6 +77,11 @@ void DEMWall::CalculateElasticForces(
     ProcessInfo& r_process_info) {
 }
 
+void DEMWall::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode)
+{
+    KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::GetDeltaDisplacement) shouldn't be accessed, use derived class instead", 0);
+}
+
 void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
 }
 
