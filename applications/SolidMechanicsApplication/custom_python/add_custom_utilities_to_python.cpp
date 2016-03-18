@@ -64,7 +64,7 @@ void  AddCustomUtilitiesToPython()
     typedef Process                                         ProcessBaseType;
 
     class_<EnergyUtilities>("EnergyUtilities",init<>())
-    .def("GetTotalKineticEnergy",&EnergyUtilities::GetTotalKineticEnergy)
+    .def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
     .def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
     .def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
     .def("GetGravitationalEnergy",&EnergyUtilities::GetGravitationalEnergy)
