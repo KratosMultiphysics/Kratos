@@ -122,6 +122,20 @@ public:
      */
     virtual ~MKLPardisoSolver() {}
 
+    virtual bool AdditionalPhysicalDataIsNeeded()
+    {
+        return false;
+    }
+
+    virtual void ProvideAdditionalData(
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        typename ModelPart::DofsArrayType& rdof_set,
+        ModelPart& r_model_part
+    )
+    {}
+
     /**
      * Normal solve method.
      * Solves the linear system Ax=b and puts the result on SystemVector& rX.
@@ -252,6 +266,7 @@ public:
         if (error != 0)
         {
             std::cout << "ERROR during symbolic factorization: " << error << std::endl;
+            ErrorCheck(error);
             exit(1);
         }
 //                 std::cout << "pardiso_solver: line 251" << std::endl;
@@ -270,6 +285,7 @@ public:
         if (error != 0)
         {
             std::cout << "ERROR during numerical factorization: " << error << std::endl;
+            ErrorCheck(error);
             exit(2);
         }
         std::cout << "Factorization completed ... " << std::endl;
@@ -290,6 +306,7 @@ public:
         if (error != 0)
         {
             std::cout << "ERROR during solution: " << error << std::endl;
+            ErrorCheck(error);
             exit(3);
         }
 //                 std::cout << "pardiso_solver: line 285" << std::endl;
@@ -452,6 +469,7 @@ public:
         if (error != 0)
         {
             std::cout << "ERROR during symbolic factorization: " << error << std::endl;
+            ErrorCheck(error);
             exit(1);
         }
 //                 std::cout << "pardiso_solver: line 251" << std::endl;
@@ -470,6 +488,7 @@ public:
         if (error != 0)
         {
             std::cout << "ERROR during numerical factorization: " << error << std::endl;
+            ErrorCheck(error);
             exit(2);
         }
         std::cout << "Factorization completed ... " << std::endl;
@@ -490,6 +509,7 @@ public:
         if (error != 0)
         {
             std::cout << "ERROR during solution: " << error << std::endl;
+            ErrorCheck(error);
             exit(3);
         }
 //                 std::cout << "pardiso_solver: line 285" << std::endl;
@@ -537,6 +557,46 @@ public:
 private:
 
     int mRefinements;
+
+    void ErrorCheck(MKL_INT error)
+    {
+        switch(error)
+        {
+            case -1:
+                std::cout << "Input inconsistent" << std::endl;
+                break;
+            case -2:
+                std::cout << "Not enough memory" << std::endl;
+                break;
+            case -3:
+                std::cout << "Reordering problem" << std::endl;
+                break;
+            case -4:
+                std::cout << "Zero pivot, numerical factorization or iterative refinement problem" << std::endl;
+                break;
+            case -5:
+                std::cout << "Unclassified (internal) error" << std::endl;
+                break;
+            case -6:
+                std::cout << "Reordering failed (matrix types 11, 13 only)" << std::endl;
+                break;
+            case -7:
+                std::cout << "Diagonal matrix problem" << std::endl;
+                break;
+            case -8:
+                std::cout << "32-bit integer overflow problem" << std::endl;
+                break;
+            case -9:
+                std::cout << "Not enough memory for OOC" << std::endl;
+                break;
+            case -10:
+                std::cout << "Problems with opening OOC temporary files" << std::endl;
+                break;
+            case -11:
+                std::cout << "Read/write problems with the OOC data file" << std::endl;
+                break;
+        }
+    }
 
     /**
      * Assignment operator.
