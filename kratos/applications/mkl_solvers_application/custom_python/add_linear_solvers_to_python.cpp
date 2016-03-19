@@ -67,6 +67,8 @@ void  AddLinearSolversToPython()
            bases<DirectSolverType> >( "MKLPardisoSolver" )
            .def(init<unsigned int>() )
            .def(self_ns::str(self))
+           .def("AdditionalPhysicalDataIsNeeded", &MKLPardisoSolverType::AdditionalPhysicalDataIsNeeded)
+           .def("ProvideAdditionalData", &MKLPardisoSolverType::ProvideAdditionalData)
            ;
 
 #ifdef _OPENMP
