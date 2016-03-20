@@ -489,13 +489,11 @@ namespace Kratos
          ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
          int time_step = r_process_info[TIME_STEPS];
          const double time = r_process_info[TIME];
-         bool time_to_mark = (time_step + 1) % mNStepSearch == 0 && (time_step > 0);
-         time_to_mark = time_to_mark && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
-         BoundingBoxUtility(time_to_mark);
-         if ((time_step + 1) % mNStepSearch == 0 && (time_step > 0)) { //Neighboring search. Every N times. + destruction of particles outside the bounding box
-            //bool time_to_mark = r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME];
-
-            if (!time_to_mark) {
+         bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
+         bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
+         BoundingBoxUtility(is_time_to_mark_and_remove);
+         if (is_time_to_search_neighbours) {  
+            if (!is_time_to_mark_and_remove) { //Just in case that some marked TO_ERASE without a bounding box
                 mpParticleCreatorDestructor->DestroyParticles(*mpCluster_model_part);
                 mpParticleCreatorDestructor->DestroyParticles(r_model_part);
             }
@@ -665,7 +663,7 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      virtual void BoundingBoxUtility(bool time_to_mark = true)
+      virtual void BoundingBoxUtility(bool is_time_to_mark_and_remove = true)
       {
           KRATOS_TRY
 
@@ -675,7 +673,7 @@ namespace Kratos
               mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
           }
 
-          else if (time_to_mark){
+          else if (is_time_to_mark_and_remove){
               mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
           }
 
@@ -1027,29 +1025,19 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0)
-    {
+    void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0) {
         KRATOS_TRY
-
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-
         mNumberOfElementsOldRadiusList = number_of_elements;
-
-        //this->GetArrayOfAmplifiedRadii().resize(number_of_elements);
 
 	#pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++ ){
-
-            //this->GetArrayOfAmplifiedRadii()[i] = amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius());
             mListOfSphericParticles[i]->SetSearchRadius(amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius()));
-
         }
-
         KRATOS_CATCH("")
     }
 
-    virtual void SearchNeighbours()
-    {
+    virtual void SearchNeighbours() {
         KRATOS_TRY
 
         ModelPart& r_model_part            = BaseType::GetModelPart();
