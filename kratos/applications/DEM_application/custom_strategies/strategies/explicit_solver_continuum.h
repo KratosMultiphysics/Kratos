@@ -582,7 +582,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
-    void BoundingBoxUtility() {
+    void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) {
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
