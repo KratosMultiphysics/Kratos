@@ -180,11 +180,11 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             Element::PropertiesType::Pointer pProperties) const
     {
-	return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+	return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
-        Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+        Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const
         {
-	  return boost::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties));
+	  return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
         }
 
     ///@}
