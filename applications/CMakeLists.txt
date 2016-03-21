@@ -42,6 +42,7 @@ message("POROMECHANICS_APPLICATION............${POROMECHANICS_APPLICATION}")
 message("PARTICLE_MECHANICS_APPLICATION.......${PARTICLE_MECHANICS_APPLICATION}")
 message("FORMING_APPLICATION..................${FORMING_APPLICATION}")
 message("DAM_APPLICATION......................${DAM_APPLICATION}")
+message("SHAPE_OPTIMIZATION_APPLICATION.......${SHAPE_OPTIMIZATION_APPLICATION}")
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -220,6 +221,10 @@ endif(${FORMING_APPLICATION} MATCHES ON)
 if(${DAM_APPLICATION} MATCHES ON)
   add_subdirectory(DamApplication)
 endif(${DAM_APPLICATION} MATCHES ON)
+
+if(${SHAPE_OPTIMIZATION_APPLICATION} MATCHES ON)
+  add_subdirectory(ShapeOptimizationApplication)
+endif(${SHAPE_OPTIMIZATION_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
