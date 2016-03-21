@@ -498,9 +498,9 @@ PrismGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
 PrismGaussLegendreIntegrationPoints1::msIntegrationPoints=
 {
     {
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.00, 1.00 / 6.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.00, 1.00 / 6.00),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.00, 1.00 / 6.00)
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.50, 1.00 / 6.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.50, 1.00 / 6.00),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.50, 1.00 / 6.00)
     }
 };
 
@@ -521,15 +521,15 @@ PrismGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
 PrismGaussLegendreIntegrationPoints3::msIntegrationPoints=
 {
     {
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 108.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -std::sqrt(3.00 / 5.00), 5.00 / 108.00),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 108.00),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  0.0, 4.00 / 54.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  0.0, 4.00 / 54.00),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  0.0, 4.00 / 54.00),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  std::sqrt(3.00 / 5.00), 5.00 / 108.00),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  std::sqrt(3.00 / 5.00), 5.00 / 108.00),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  std::sqrt(3.00 / 5.00), 5.00 / 108.00)
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, (-std::sqrt(3.00 / 5.00)+1.0)/2.0, 5.00 / 108.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, (-std::sqrt(3.00 / 5.00)+1.0)/2.0, 5.00 / 108.00),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, (-std::sqrt(3.00 / 5.00)+1.0)/2.0, 5.00 / 108.00),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.500000000000000000000000000000,  4.00 /  54.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.500000000000000000000000000000,  4.00 /  54.00),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.500000000000000000000000000000,  4.00 /  54.00),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, ( std::sqrt(3.00 / 5.00)+1.0)/2.0, 5.00 / 108.00),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, ( std::sqrt(3.00 / 5.00)+1.0)/2.0, 5.00 / 108.00),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, ( std::sqrt(3.00 / 5.00)+1.0)/2.0, 5.00 / 108.00)
     }
 };
 
@@ -537,18 +537,18 @@ PrismGaussLegendreIntegrationPoints4::IntegrationPointsArrayType
 PrismGaussLegendreIntegrationPoints4::msIntegrationPoints=
 {
     {
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -0.86113631159405257522, 0.02898790376145448812),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -0.86113631159405257522, 0.02898790376145448812),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -0.86113631159405257522, 0.02898790376145448812),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -0.33998104358485626480, 0.05434542957187884522),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -0.33998104358485626480, 0.05434542957187884522),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -0.33998104358485626480, 0.05434542957187884522),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  0.33998104358485626480, 0.05434542957187884522),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  0.33998104358485626480, 0.05434542957187884522),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  0.33998104358485626480, 0.05434542957187884522),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  0.86113631159405257522, 0.02898790376145448812),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  0.86113631159405257522, 0.02898790376145448812),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  0.86113631159405257522, 0.02898790376145448812)
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.06943184420297371239, 0.02898790376145448812),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.06943184420297371239, 0.02898790376145448812),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.06943184420297371239, 0.02898790376145448812),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.33000947820757186760, 0.05434542957187884522),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.33000947820757186760, 0.05434542957187884522),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.33000947820757186760, 0.05434542957187884522),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.66999052179242813240, 0.05434542957187884522),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.66999052179242813240, 0.05434542957187884522),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.66999052179242813240, 0.05434542957187884522),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.93056815579702628761, 0.02898790376145448812),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.93056815579702628761, 0.02898790376145448812),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.93056815579702628761, 0.02898790376145448812)
     }
 };
 
@@ -556,62 +556,23 @@ PrismGaussLegendreIntegrationPoints5::IntegrationPointsArrayType
 PrismGaussLegendreIntegrationPoints5::msIntegrationPoints=
 {
     {
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -0.90617984593866399280, 0.01974390708801575729),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -0.90617984593866399280, 0.01974390708801575729),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -0.90617984593866399280, 0.01974390708801575729),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -0.53846931010568309104, 0.03988572254161387234),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -0.53846931010568309104, 0.03988572254161387234),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -0.53846931010568309104, 0.03988572254161387234),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  0.00000000000000000000, 0.04740740740740740741),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  0.00000000000000000000, 0.04740740740740740741),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  0.00000000000000000000, 0.04740740740740740741),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  0.53846931010568309104, 0.03988572254161387234),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  0.53846931010568309104, 0.03988572254161387234),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  0.53846931010568309104, 0.03988572254161387234),
-        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00,  0.90617984593866399280, 0.01974390708801575729),
-        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00,  0.90617984593866399280, 0.01974390708801575729),
-        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00,  0.90617984593866399280, 0.01974390708801575729)
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.04691007703066800360, 0.01974390708801575729),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.04691007703066800360, 0.01974390708801575729),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.04691007703066800360, 0.01974390708801575729),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.23076534494715845448, 0.03988572254161387234),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.23076534494715845448, 0.03988572254161387234),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.23076534494715845448, 0.03988572254161387234),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.50000000000000000000, 0.04740740740740740741),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.50000000000000000000, 0.04740740740740740741),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.50000000000000000000, 0.04740740740740740741),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.76923465505284154552, 0.03988572254161387234),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.76923465505284154552, 0.03988572254161387234),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.76923465505284154552, 0.03988572254161387234),
+        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.95308992296933199640, 0.01974390708801575729),
+        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.95308992296933199640, 0.01974390708801575729),
+        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.95308992296933199640, 0.01974390708801575729)
     }
 };
-
-/* OLD VAlUES */
-
-//PrismGaussLegendreIntegrationPoints1::IntegrationPointsArrayType
-//PrismGaussLegendreIntegrationPoints1::msIntegrationPoints=
-//{
-//    {
-//        IntegrationPointType(0.25,0.25,0.5,1.0)
-//    }
-//};
-
-//PrismGaussLegendreIntegrationPoints2::IntegrationPointsArrayType
-//PrismGaussLegendreIntegrationPoints2::msIntegrationPoints=
-//{
-//    {
-//        IntegrationPointType(1.0/6.0,1.0/6.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-//        IntegrationPointType(2.0/3.0,1.0/6.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-//        IntegrationPointType(1.0/6.0,2.0/3.0,((-1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-//        IntegrationPointType(1.0/6.0,1.0/6.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-//        IntegrationPointType(2.0/3.0,1.0/6.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0),
-//        IntegrationPointType(1.0/6.0,2.0/3.0,(( 1.0/std::sqrt(3.0)+1.0)/2.0),1.0/6.0)
-//    }
-//};
-
-//PrismGaussLegendreIntegrationPoints3::IntegrationPointsArrayType
-//PrismGaussLegendreIntegrationPoints3::msIntegrationPoints=
-//{
-//    {
-//        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-//        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-//        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, -std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-//        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, 0.0, 4.00 / 27.00),
-//        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, 0.0, 4.00 / 27.00),
-//        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, 0.0, 4.00 / 27.00),
-//        IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-//        IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00),
-//        IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00, std::sqrt(3.00 / 5.00), 5.00 / 54.00)
-//    }
-//};
 
 //Gauss-Lobatto
 
