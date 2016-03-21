@@ -812,6 +812,10 @@ private:
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < PrismGaussLegendreIntegrationPoints3,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPoints4,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPoints5,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
             }
         };
         return integration_points;
@@ -827,7 +831,11 @@ private:
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_4 ),
+                Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -847,7 +855,11 @@ private:
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::GI_GAUSS_4 ),
+                Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
