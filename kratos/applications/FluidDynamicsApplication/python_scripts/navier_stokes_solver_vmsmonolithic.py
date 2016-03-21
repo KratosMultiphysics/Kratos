@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as cfd
+#from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.IncompressibleFluidApplication 
 
 # Check that KratosMultiphysics was imported in the main script
@@ -43,7 +44,7 @@ class NavierStokesSolver_VMSMonolithic:
             "consider_periodic_conditions": false,
             "time_order": 2,
             "dynamic_tau": 0.0,
-            "compute_reactions": true,
+            "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_iteration": true,
             "CalculateNormDxFlag": false,
@@ -63,10 +64,6 @@ class NavierStokesSolver_VMSMonolithic:
             },
             "linear_solver_settings": {
                     "solver_type": "Super LU",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "verbosity": 1
             }
         }""")
         
@@ -146,7 +143,7 @@ class NavierStokesSolver_VMSMonolithic:
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name":"VMS2D3N",
-                    "condition_name": "MonolithicWallCondition2D"
+                    "condition_name": "Condition2D"
                     }
                     """)
             else:
@@ -186,10 +183,10 @@ class NavierStokesSolver_VMSMonolithic:
 
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(KratosMultiphysics.PRESSURE)
-            node.AddDof(KratosMultiphysics.VELOCITY_X)
-            node.AddDof(KratosMultiphysics.VELOCITY_Y)
-            node.AddDof(KratosMultiphysics.VELOCITY_Z)
+            node.AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
+            node.AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z)
 
         print("dofs for the vms fluid solver added correctly")
 
@@ -262,7 +259,7 @@ class NavierStokesSolver_VMSMonolithic:
         #~ else:
             #~ self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
                 #~ (self.alpha, self.move_mesh_strategy, self.domain_size, self.turbulence_model)
-                
+            
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             builder_and_solver = cfd.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver, 
                                                                                 cfd.PATCH_INDEX) 
