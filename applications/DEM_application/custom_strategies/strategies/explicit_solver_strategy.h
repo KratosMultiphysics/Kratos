@@ -503,8 +503,8 @@ namespace Kratos
 
             SearchNeighbours();
 
-            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-            this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+            this->template RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            this->template RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
             RepairPointersToNormalProperties(mListOfSphericParticles);
             RepairPointersToNormalProperties(mListOfGhostSphericParticles);
             RebuildPropertiesProxyPointers(mListOfSphericParticles);
@@ -516,12 +516,8 @@ namespace Kratos
             ComputeNewRigidFaceNeighboursHistoricalData();
             mSearchControl = 2; // Search is active and has been performed during this time step
             //ReorderParticles();
-
-
         }
-
         else {
-
             mSearchControl = 1; // Search is active but no search has been done this time step;
         }
 
@@ -669,11 +665,12 @@ namespace Kratos
 
           ModelPart& r_model_part = BaseType::GetModelPart();
 
-          if (ElementConfigureType::GetDomainPeriodicity()){
+          if (ElementConfigureType::GetDomainPeriodicity()) {
               mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
           }
 
-          else if (is_time_to_mark_and_remove){
+          else if (is_time_to_mark_and_remove) {
+              mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);
               mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
           }
 
