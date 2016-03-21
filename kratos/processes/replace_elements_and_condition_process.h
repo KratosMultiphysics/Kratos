@@ -54,8 +54,8 @@ public:
     ///@name Life Cycle
     ///@{
     ReplaceElementsAndConditionsProcess(ModelPart& model_part, 
-                              Parameters& rParameters
-                                   ) : Process(Flags()) , mr_model_part(model_part), mrParameters( rParameters )
+                              Parameters Settings
+                                   ) : Process(Flags()) , mr_model_part(model_part), mSettings( Settings)
     {
         KRATOS_TRY
 
@@ -70,15 +70,16 @@ public:
 
         //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         //so that an error is thrown if they don't exist
-        if( !KratosComponents< Element >::Has( rParameters["element_name"].GetString() ) )
-                KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", rParameters["element_name"].GetString());
-        if( !KratosComponents< Condition >::Has( rParameters["condition_name"].GetString() ) )
-                KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", rParameters["condition_name"].GetString());        
+        if( !KratosComponents< Element >::Has( Settings["element_name"].GetString() ) )
+                KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", Settings["element_name"].GetString());
+        if( !KratosComponents< Condition >::Has( Settings["condition_name"].GetString() ) )
+                KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", Settings["condition_name"].GetString());        
         
         //now validate agains defaults -- this also ensures no type mismatch
         
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        Settings.ValidateAndAssignDefaults(default_parameters);
 #endif
+
         
         KRATOS_CATCH("")
     }
@@ -110,8 +111,9 @@ public:
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
         
-        const Element& rReferenceElement = KratosComponents<Element>::Get(mrParameters["element_name"].GetString());
-        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mrParameters["condition_name"].GetString());
+	KRATOS_WATCH(mSettings.PrettyPrintJsonString());
+        const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());
         
         #pragma omp parallel for
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
@@ -187,7 +189,7 @@ public:
 protected:
     
     ModelPart& mr_model_part;
-    Parameters& mrParameters;
+    Parameters mSettings;
 
 private:
     ///@name Static Member Variables

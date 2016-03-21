@@ -200,7 +200,7 @@ void  AddProcessesToPython()
     ; 
         
     class_<ReplaceElementsAndConditionsProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsProcess",
-            init<ModelPart&, Parameters&>())
+            init<ModelPart&, Parameters>())
     ;
     
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
