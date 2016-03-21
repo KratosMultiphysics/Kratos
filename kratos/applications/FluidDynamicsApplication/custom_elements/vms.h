@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
+#include "boost/make_shared.hpp"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -247,6 +248,13 @@ public:
                             PropertiesType::Pointer pProperties) const
     {
         return Element::Pointer(new VMS(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    }
+    
+    Element::Pointer Create(IndexType NewId,
+                           GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const
+    {
+        return boost::make_shared< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces and OSS projection terms
