@@ -41,6 +41,7 @@
 #include "geometries/hexahedra_3d_27.h"
 
 #include "geometries/prism_3d_6.h"
+//#include "geometries/prism_3d_15.h"
 
 namespace Kratos
 {
@@ -116,6 +117,7 @@ public:
         if(TestHexahedra3D27N( error_msg ) == false) succesful=false;
 
         if(TestPrism3D6N( error_msg ) == false) succesful=false;
+//        if(TestPrism3D15N( error_msg ) == false) succesful=false;
 
         if(succesful == false)
             std::cout << "*** some errors were detected in the GeometryTester Utility ***" << std::endl;
@@ -475,13 +477,13 @@ protected:
         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-//         if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
-//         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
 
@@ -522,6 +524,42 @@ protected:
         return succesful;
 
     }
+
+//    bool TestPrism3D15N( std::stringstream& error_msg )
+//    {
+//          Prism3D15<Node<3> > geom( mModelPart.pGetNode(1),  mModelPart.pGetNode(2),  mModelPart.pGetNode(3),
+//                                    mModelPart.pGetNode(5),  mModelPart.pGetNode(7),  mModelPart.pGetNode(4),
+//                                    mModelPart.pGetNode(10), mModelPart.pGetNode(12), mModelPart.pGetNode(16),
+//                                    mModelPart.pGetNode(19), mModelPart.pGetNode(20), mModelPart.pGetNode(21),
+//                                    mModelPart.pGetNode(23), mModelPart.pGetNode(25), mModelPart.pGetNode(22)
+//                                    );
+
+//          bool succesful = true;
+
+//          //compute analytical volume
+
+//          const double expected_vol = pow(2.0/3.0,3)/2.0;
+
+//          if(std::abs(geom.Volume() - expected_vol) > 1e-14)
+//              error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
+
+//          //now let's verify that all integration methods give the same
+//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+//          if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+
+//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
+//          VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+
+//          error_msg << std::endl;
+
+//          return succesful;
+//    }
 
     ///@}
     ///@name Protected  Access
