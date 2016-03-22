@@ -139,7 +139,7 @@ public:
         
         //change the sons
         for (ModelPart::SubModelPartIterator i_sub_model_part = r_root_model_part.SubModelPartsBegin(); i_sub_model_part != r_root_model_part.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part );
+            UpdateSubModelPart( *i_sub_model_part, r_root_model_part );
 
   
 
@@ -206,7 +206,7 @@ private:
             return r_model_part;
     }
     
-    void UpdateSubModelPart(ModelPart& r_model_part)
+    void UpdateSubModelPart(ModelPart& r_model_part, const ModelPart& r_root_model_part)
     {
         //change the model part itself
         #pragma omp parallel for
@@ -214,7 +214,7 @@ private:
         {
             ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
             
-            (*it.base()) = r_model_part.Elements()(it->Id());
+            (*it.base()) = r_root_model_part.Elements()(it->Id());
         }
         
         #pragma omp parallel for
@@ -222,12 +222,12 @@ private:
         {
             ModelPart::ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
             
-            (*it.base()) = r_model_part.Conditions()(it->Id());
+            (*it.base()) = r_root_model_part.Conditions()(it->Id());
         }
             
         //change the sons
         for (ModelPart::SubModelPartIterator i_sub_model_part = r_model_part.SubModelPartsBegin(); i_sub_model_part != r_model_part.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part );
+            UpdateSubModelPart( *i_sub_model_part, r_root_model_part );
 
     }
 
