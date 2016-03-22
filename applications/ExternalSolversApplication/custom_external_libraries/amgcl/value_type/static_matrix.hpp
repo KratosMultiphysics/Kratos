@@ -126,6 +126,16 @@ struct static_matrix {
 
         return xtrace < ytrace;
     }
+
+    friend std::ostream& operator<<(std::ostream &os, const static_matrix &a) {
+        for(int i = 0; i < N; ++i) {
+            for(int j = 0; j < M; ++j) {
+                os << " " << a(i,j);
+            }
+            os << std::endl;
+        }
+        return os;
+    }
 };
 
 template <typename T, int N, int K, int M>
@@ -305,15 +315,15 @@ struct inverse_impl< static_matrix<T, N, N> >
             for(int i = 0; i < N; ++i) {
                 T b = static_cast<T>(i == k);
                 for(int j = 0; j < i; ++j)
-                    b -= A(i,j) * y(k,j);
-                y(k,i) = b;
+                    b -= A(i,j) * y(j,k);
+                y(i,k) = b;
             }
 
             // Upper triangular solve:
             for(int i = N; i --> 0; ) {
                 for(int j = i+1; j < N; ++j)
-                    y(k,i) -= A(i,j) * y(k,j);
-                y(k,i) /= A(i,i);
+                    y(i,k) -= A(i,j) * y(j,k);
+                y(i,k) /= A(i,i);
             }
         }
 

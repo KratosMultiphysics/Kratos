@@ -165,8 +165,8 @@ class hpx_vector {
 
         size_t size() const { return buf->size(); }
 
-        real  operator[](size_t i) const { return (*buf)[i]; }
-        real& operator[](size_t i)       { return (*buf)[i]; }
+        const real & operator[](size_t i) const { return (*buf)[i]; }
+        real & operator[](size_t i) { return (*buf)[i]; }
 
         const real* data() const { return buf->data(); }
         real*       data()       { return buf->data(); }
@@ -262,7 +262,7 @@ struct HPX {
             const real *fptr = &rhs[0];
             real       *xptr = &x[0];
 
-            using hpx::lcos::local::dataflow;
+            using hpx::dataflow;
 
             hpx::shared_future<void> solve = dataflow(
                     hpx::launch::async,
@@ -399,7 +399,7 @@ struct spmv_impl<
         const real *xptr = &x[0];
         real       *yptr = &y[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, y.nseg);
 
@@ -494,7 +494,7 @@ struct residual_impl<
         const real *fptr = &f[0];
         real       *rptr = &r[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, f.nseg);
         hpx::parallel::for_each(
@@ -549,7 +549,7 @@ struct clear_impl<
     static void apply(vector &x) {
         real *xptr = &x[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, x.nseg);
         hpx::parallel::for_each(
@@ -594,7 +594,7 @@ struct copy_impl<
         const real *xptr = &x[0];
         real       *yptr = &y[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, x.nseg);
         hpx::parallel::for_each(
@@ -639,7 +639,7 @@ struct copy_to_backend_impl<
         const real *xptr = &x[0];
         real       *yptr = &y[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, y.nseg);
         hpx::parallel::for_each(
@@ -688,7 +688,7 @@ struct inner_product_impl<
         const real *xptr = &x[0];
         const real *yptr = &y[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, x.nseg);
         return hpx::parallel::transform_reduce(
@@ -757,7 +757,7 @@ struct axpby_impl<
         const real *xptr = &x[0];
         real       *yptr = &y[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, x.nseg);
         if (b) {
@@ -849,7 +849,7 @@ struct axpbypcz_impl<
         const real *yptr = &y[0];
         real       *zptr = &z[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, x.nseg);
         if (c) {
@@ -936,7 +936,7 @@ struct vmul_impl<
         const real *yptr = &y[0];
         real       *zptr = &z[0];
 
-        using hpx::lcos::local::dataflow;
+        using hpx::dataflow;
 
         auto range = boost::irange(0, x.nseg);
         if (b) {

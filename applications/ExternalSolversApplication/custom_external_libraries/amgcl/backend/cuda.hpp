@@ -36,7 +36,7 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <amgcl/backend/builtin.hpp>
-#include <amgcl/backend/detail/default_direct_solver.hpp>
+#include <amgcl/solver/skyline_lu.hpp>
 #include <amgcl/util.hpp>
 
 #include <thrust/device_vector.h>
@@ -47,6 +47,34 @@ THE SOFTWARE.
 #include <cusparse_v2.h>
 
 namespace amgcl {
+
+namespace solver {
+
+/** Wrapper around solver::skyline_lu for use with the CUDA backend.
+ * Copies the rhs to the host memory, solves the problem using the host CPU,
+ * then copies the solution back to the compute device(s).
+ */
+template <class T>
+struct cuda_skyline_lu : solver::skyline_lu<T> {
+    typedef solver::skyline_lu<T> Base;
+
+    mutable std::vector<T> _rhs, _x;
+
+    template <class Matrix, class Params>
+    cuda_skyline_lu(const Matrix &A, const Params&)
+        : Base(*A), _rhs(backend::rows(*A)), _x(backend::rows(*A))
+    { }
+
+    template <class Vec1, class Vec2>
+    void operator()(const Vec1 &rhs, Vec2 &x) const {
+        thrust::copy(rhs.begin(), rhs.end(), _rhs.begin());
+        static_cast<const Base*>(this)->operator()(_rhs, _x);
+        thrust::copy(_x.begin(), _x.end(), x.begin());
+    }
+};
+
+}
+
 namespace backend {
 namespace detail {
 
@@ -201,7 +229,7 @@ class cuda_hyb_matrix {
  * \param real Value type.
  * \ingroup backends
  */
-template <typename real>
+template <typename real, class DirectSolver = solver::cuda_skyline_lu<real> >
 struct cuda {
         BOOST_STATIC_ASSERT_MSG(
                 (
@@ -212,10 +240,10 @@ struct cuda {
                 );
 
     typedef real value_type;
-    typedef cuda_hyb_matrix<real>               matrix;
-    typedef thrust::device_vector<real>         vector;
-    typedef thrust::device_vector<real>         matrix_diagonal;
-    typedef detail::default_direct_solver<cuda> direct_solver;
+    typedef cuda_hyb_matrix<real>       matrix;
+    typedef thrust::device_vector<real> vector;
+    typedef thrust::device_vector<real> matrix_diagonal;
+    typedef DirectSolver                direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
 

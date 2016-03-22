@@ -36,13 +36,41 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
+#include <amgcl/solver/skyline_lu.hpp>
 #include <vexcl/vexcl.hpp>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
-#include <amgcl/backend/detail/default_direct_solver.hpp>
 
 namespace amgcl {
+
+namespace solver {
+
+/** Wrapper around solver::skyline_lu for use with the VexCL backend.
+ * Copies the rhs to the host memory, solves the problem using the host CPU,
+ * then copies the solution back to the compute device(s).
+ */
+template <class T>
+struct vexcl_skyline_lu : solver::skyline_lu<T> {
+    typedef solver::skyline_lu<T> Base;
+
+    mutable std::vector<T> _rhs, _x;
+
+    template <class Matrix, class Params>
+    vexcl_skyline_lu(const Matrix &A, const Params&)
+        : Base(*A), _rhs(backend::rows(*A)), _x(backend::rows(*A))
+    { }
+
+    template <class Vec1, class Vec2>
+    void operator()(const Vec1 &rhs, Vec2 &x) const {
+        vex::copy(rhs, _rhs);
+        static_cast<const Base*>(this)->operator()(_rhs, _x);
+        vex::copy(_x, x);
+    }
+};
+
+}
+
 namespace backend {
 
 /**
@@ -53,7 +81,7 @@ namespace backend {
  * expects the right hand side and the solution vectors to be instances of the
  * ``vex::vector<real>`` type.
  */
-template <typename real>
+template <typename real, class DirectSolver = solver::vexcl_skyline_lu<real> >
 struct vexcl {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
@@ -61,7 +89,7 @@ struct vexcl {
     typedef vex::SpMat<value_type, index_type, index_type> matrix;
     typedef vex::vector<value_type>                        vector;
     typedef vex::vector<value_type>                        matrix_diagonal;
-    typedef detail::default_direct_solver<vexcl>           direct_solver;
+    typedef DirectSolver                                   direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
 
