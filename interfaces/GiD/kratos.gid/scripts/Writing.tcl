@@ -462,7 +462,7 @@ proc write::GetNodesFromElementFace {elem_id face_id} {
             set matrix {{1 2 3 5 6 7} {2 4 3 9 10 6} {3 4 1 10 8 7} {4 2 1 9 5 8}}
         }
         Triangle {
-            set matrix {{1 2 4} {2 3 5} {1 3 6}}
+            set matrix {{1 2 4} {2 3 5} {3 1 6}}
         }
     }
     # Decrementamos porque la cara con id 1 corresponde a la posicion 0 de la matriz
@@ -472,6 +472,7 @@ proc write::GetNodesFromElementFace {elem_id face_id} {
         set node [lindex $inf [expr $node_index +2]]
         if {$node ne ""} {lappend nodes $node}
     }
+    W "eid $elem_id fid $face_id nds $nodes"
     return $nodes
 }
 
