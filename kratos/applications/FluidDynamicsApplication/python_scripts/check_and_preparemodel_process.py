@@ -50,7 +50,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             #verify that the skin is correct (no gaps and overlaps)
             KratosMultiphysics.CheckSkinProcess(fluid_computational_model_part , KratosMultiphysics.Flags()).Execute()
 
-            #verify the orientation of the skin
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors).Execute()
+        #verify the orientation of the skin
+        throw_errors = False
+        KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors).Execute()
         
