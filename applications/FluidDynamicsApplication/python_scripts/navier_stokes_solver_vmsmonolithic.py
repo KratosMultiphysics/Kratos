@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as cfd
-#from KratosMultiphysics.FluidDynamicsApplication import *
 import KratosMultiphysics.IncompressibleFluidApplication 
 
 # Check that KratosMultiphysics was imported in the main script
@@ -64,6 +63,10 @@ class NavierStokesSolver_VMSMonolithic:
             },
             "linear_solver_settings": {
                     "solver_type": "Super LU",
+                    "max_iteration": 500,
+                    "tolerance": 1e-9,
+                    "scaling": false,
+                    "verbosity": 1
             }
         }""")
         
@@ -71,11 +74,9 @@ class NavierStokesSolver_VMSMonolithic:
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         
-        #construct the linear solvers
+        #construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        #~ self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
-        #~ self.velocity_linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
         print("Construction of NavierStokesSolver_VMSMonolithic finished")
         
@@ -108,7 +109,7 @@ class NavierStokesSolver_VMSMonolithic:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.M)           # Variable stored in cfd_variables.h
         self.main_model_part.AddNodalSolutionStepVariable(cfd.PATCH_INDEX) # PATCH_INDEX is locally created in FluidDynamicsApp.
 
-        # TURBULENCE MODELS ARE NOT ADDED YET
+        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if config is not None:
             #~ if hasattr(config, "TurbulenceModel"):
                 #~ if config.TurbulenceModel == "Spalart-Allmaras":
@@ -143,7 +144,7 @@ class NavierStokesSolver_VMSMonolithic:
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "element_name":"VMS2D3N",
-                    "condition_name": "Condition2D"
+                    "condition_name": "MonolithicWallCondition2D"
                     }
                     """)
             else:
@@ -151,7 +152,6 @@ class NavierStokesSolver_VMSMonolithic:
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             
-            # check_skin_process is only working in 3D
             import check_and_preparemodel_process
             check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
             
@@ -190,7 +190,7 @@ class NavierStokesSolver_VMSMonolithic:
 
         print("dofs for the vms fluid solver added correctly")
 
-        # TURBULENCE MODELS ARE NOT ADDED YET
+        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if config is not None:
             #~ if hasattr(config, "TurbulenceModel"):
                 #~ if config.TurbulenceModel == "Spalart-Allmaras":
@@ -206,27 +206,20 @@ class NavierStokesSolver_VMSMonolithic:
         
         MoveMeshFlag = False
         
-        # PORQUE LO ASIGNABA EN EL FRACTIONAL STEP SCHEME ?¿?¿
-        #~ self.settings.["use_slip_conditions"].GetBool() = True
         
-        self.settings["use_slip_conditions"].SetBool(True) #ADDED TO AVOID ERROR WITH SELF.NORMAL_UTIL, IS THIS OK?
-                
+        ### THIS SECTION IS NOT REQUIRED NOW ###
+        #~ self.settings["use_slip_conditions"].SetBool(True) #ADDED TO AVOID ERROR WITH SELF.NORMAL_UTIL, IS THIS OK?
+        
         # check if slip conditions are defined
-        if self.settings["use_slip_conditions"].GetBool() == False:
-            print('Entra1')
-            for cond in self.main_model_part.Conditions:
-                print('Entra2')
-                print(cond.GetValue(KratosMultiphysics.IS_STRUCTURE))
-                if cond.GetValue(KratosMultiphysics.IS_STRUCTURE) != 0.0:
-                    print('Entra3')
-                    self.settings["use_slip_conditions"] = True
-                    break
+        #~ if self.settings["use_slip_conditions"].GetBool() == False:
+            #~ for cond in self.main_model_part.Conditions:
+                #~ if cond.GetValue(KratosMultiphysics.IS_STRUCTURE) != 0.0:
+                    #~ self.settings["use_slip_conditions"] = True
+                    #~ break
+        ### THIS SECTION IS NOT REQUIRED NOW ###
 
 
-                        
-
-
-        # TURBULENCE MODELS ARE NOT ADDED YET
+        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ # Turbulence model
         #~ if self.use_spalart_allmaras:
             #~ self.activate_spalart_allmaras()
@@ -248,7 +241,7 @@ class NavierStokesSolver_VMSMonolithic:
                                                                                             self.settings["move_mesh_strategy"].GetInt(),
                                                                                             self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
     
-        # TURBULENCE MODELS ARE NOT ADDED YET
+        # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if self.turbulence_model is None:
             #~ if self.periodic == True:
                 #~ self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
@@ -300,61 +293,63 @@ class NavierStokesSolver_VMSMonolithic:
         pass #one should write the restart file here
         
     def Solve(self):
+        
 
-        #if self.settings["divergence_clearance_steps"].GetInt() > 0:
-            #print("Calculating divergence-free initial condition")
+        if self.settings["divergence_clearance_steps"].GetInt() > 0:
+            print("Calculating divergence-free initial condition")
             ## initialize with a Stokes solution step
-            #try:
-                #import KratosMultiphysics.ExternalSolversApplication as kes
-                #smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
-                #solver_type = kes.AMGCLIterativeSolverType.CG
-                #gmres_size = 50
-                #max_iter = 200
-                #tol = 1e-7
-                #verbosity = 0
-                #stokes_linear_solver = kes.AMGCLSolver(
-                    #smoother_type,
-                    #solver_type,
-                    #tol,
-                    #max_iter,
-                    #verbosity,
-                    #gmres_size)
-            #except:
-                #pPrecond = DiagonalPreconditioner()
-                #stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
+            try:
+                import KratosMultiphysics.ExternalSolversApplication as kes
+                smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
+                solver_type = kes.AMGCLIterativeSolverType.CG
+                gmres_size = 50
+                max_iter = 200
+                tol = 1e-7
+                verbosity = 0
+                stokes_linear_solver = kes.AMGCLSolver(
+                    smoother_type,
+                    solver_type,
+                    tol,
+                    max_iter,
+                    verbosity,
+                    gmres_size)
+            except:
+                pPrecond = DiagonalPreconditioner()
+                stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
                 
-            #print('HHHHHHHHHHHHOOOOOOOOOOOOLLLLLLLLLLLAAAAAAAAAAAAA')
-            #err
-            #stokes_process = cfd.StokesInitializationProcess(self.main_model_part,
-                                                             #stokes_linear_solver,
-                                                             #self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                             #cfd.PATCH_INDEX)
+            stokes_process = cfd.StokesInitializationProcess(self.main_model_part,
+                                                             stokes_linear_solver,
+                                                             self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                             cfd.PATCH_INDEX)
             ## copy periodic conditions to Stokes problem
-            #stokes_process.SetConditions(self.main_model_part.Conditions)
+            stokes_process.SetConditions(self.main_model_part.Conditions)
             ## execute Stokes process
-            #stokes_process.Execute()
-            #stokes_process = None
+            stokes_process.Execute()
+            stokes_process = None
 
-            #for node in self.main_model_part.Nodes:
-                #node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-                #node.SetSolutionStepValue(ACCELERATION_X, 0, 0.0)
-                #node.SetSolutionStepValue(ACCELERATION_Y, 0, 0.0)
-                #node.SetSolutionStepValue(ACCELERATION_Z, 0, 0.0)
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_X, 0, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, 0.0)
+                node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Z, 0, 0.0)
 ##                vel = node.GetSolutionStepValue(VELOCITY)
 ##                for i in range(0,2):
 ##                    node.SetSolutionStepValue(VELOCITY,i,vel)
 
-            #self.settings["divergence_clearance_steps"] = 0
-            #print("Finished divergence clearance")
+            self.settings["divergence_clearance_steps"].SetInt(0)
+            print("Finished divergence clearance")
 
-
-        #if self.settings["reform_dofs_at_each_iteration"]:
-            #if self.settings["use_slip_conditions"]:
-                #self.normal_util.CalculateOnSimplex(self.main_model_part,
-                                                    #self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                    #KratosMultiphysics.IS_STRUCTURE)
+        
+        
+        ### THIS SECTION IS NOT REQUIRED NOW ###
+        #~ if self.settings["reform_dofs_at_each_iteration"]:
+            #~ if self.settings["use_slip_conditions"].GetBool():
+                #~ self.normal_util.CalculateOnSimplex(self.main_model_part,
+                                                    #~ self.compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                    #~ KratosMultiphysics.IS_STRUCTURE)
             #~ if self.settings["use_spalart_allmaras"]:
                 #~ KratosMultiphysics.neighbour_search.Execute()
+        ### THIS SECTION IS NOT REQUIRED NOW ###
         
         self.solver.Solve()
 
