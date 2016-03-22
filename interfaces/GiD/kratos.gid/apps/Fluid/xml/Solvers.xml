@@ -7,6 +7,8 @@
             <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/> 
             <parameter n="smoother_type" pn="Smoother type" type="combo" values="spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev" pvalues="SPAI0,ILU0,Damped jacobi,Gauss seidel,Chebyshev" v="spai0" help=""/>
             <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,cg,bicgstab,bicgstabl,bicgstab_with_gmres_fallback" pvalues="GMRES,CG,Bicgstab,Bicgstabl,Bicgstab with gmres fallback" v="gmres" help=""/>
+            <parameter n="gmres_krylov_space_dimension" pn="Krylov dimension" type="integer" v="100" help=""/>
+            <parameter n="use_block_matrices_if_possible" pn="Use block matrices if possible" type="bool" v="True" help=""/> 
             <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" pvalues="Ruge stuben,Aggregation,Smoothed aggregation,Smoothed aggr emin" v="aggregation" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
@@ -54,7 +56,7 @@
     <solver n="Pastix_Iterative" pn="Pastix Iterative">
         <inputs>
 	    <parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
-	    <parameter n="gmres_krylov_space_dimension" pn="krylov dimension" type="integer" v="100" help=""/>
+	    <parameter n="gmres_krylov_space_dimension" pn="Krylov dimension" type="integer" v="100" help=""/>
 	    <parameter n="ilu_level_of_fill" pn="ILU fill level" type="combo" values="3,4,5" v="3" help=""/>
 	    <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
         <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>

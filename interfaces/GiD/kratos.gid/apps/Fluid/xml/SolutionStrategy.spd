@@ -10,7 +10,7 @@
 			<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" >
 				  <dynamicnode command="injectSolStratParams" args=""/>
 			</container>
-            <container n="Avanced" pn="Avanced" help="Avanced Solver Parameters">
+            <container n="Advanced" pn="Advanced" help="Advanced Solver Parameters">
 				  <value n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" help="Relative velocity tolerance"/>
 				  <value n="AbsoluteVelocityTolerance" pn="Absolute velocity tolerance" v="1E-5" help="Absolute velocity tolerance"/>
 				  <value n="RelativePressureTolerance" pn="Relative pressure tolerance" v="1E-3" help="Relative pressure tolerance"/>
