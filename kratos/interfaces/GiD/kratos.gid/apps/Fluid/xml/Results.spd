@@ -6,7 +6,7 @@
     <container n="OnNodes" pn="On nodes" un="FLNodalResults" help="On nodes" open="0">
         <value n="VELOCITY" pn="Velocity" v="True" values="True,False" help="Velocity"/>
         <value n="PRESSURE" pn="Pressure" v="True" values="True,False" help="Pressure"/>
-        <value n="REACTIONS" pn="Reactions" v="True" values="True,False" help="Reactions"/>
+        <value n="REACTION" pn="Reaction" v="True" values="True,False" help="Reaction"/>
     </container>
     <container n="OnElement" pn="On element" un="FLElementResults" state="[ActiveIfAnyPartState]">
         <dynamicnode command="injectElementOutputs" args=""/>
