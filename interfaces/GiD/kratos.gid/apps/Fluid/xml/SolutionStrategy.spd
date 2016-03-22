@@ -11,10 +11,6 @@
 				  <dynamicnode command="injectSolStratParams" args=""/>
 			</container>
             <container n="Advanced" pn="Advanced" help="Advanced Solver Parameters">
-				  <value n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" help="Relative velocity tolerance"/>
-				  <value n="AbsoluteVelocityTolerance" pn="Absolute velocity tolerance" v="1E-5" help="Absolute velocity tolerance"/>
-				  <value n="RelativePressureTolerance" pn="Relative pressure tolerance" v="1E-3" help="Relative pressure tolerance"/>
-				  <value n="AbsolutePressureTolerance" pn="Absolute pressure tolerance" v="1E-5" help="Absolute pressure tolerance"/>
 				  <value n="RedistanceFrequency" pn="Redistance frequency" v="5" help="Redistance frequency" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
 				  <value n="ExtrapolationLayers" pn="Extrapolation layers" v="10" help="Extrapolation layers" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
 				  <value n="StabdtPressureFactor" pn="Stabilized dt pressure factor" v="1.0" help="Stabilized dt pressure factor"/>

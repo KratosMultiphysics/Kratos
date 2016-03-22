@@ -15,7 +15,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set problemDataDict start_step [expr [write::getValue FLTimeParameters StartTime] ]
     dict set problemDataDict end_time [expr [write::getValue FLTimeParameters EndTime]]
     dict set problemDataDict time_step [expr [write::getValue FLTimeParameters DeltaTime]]
-    dict set problemDataDict divergence_step [expr [write::getValue FLTimeParameters DivergenceCleareanceStep]]
+    #dict set problemDataDict divergence_step [expr [write::getValue FLTimeParameters DivergenceCleareanceStep]]
     
     dict set projectParametersDict problem_data $problemDataDict
     
@@ -78,21 +78,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set solverSettingsDict volume_model_part_name {*}[write::getPartsMeshId]
     # Skin parts
     dict set solverSettingsDict skin_parts [getBoundaryConditionMeshId]
-    
-#     dict set solverSettingsDict velocity_tolerance 1e-3
-#     dict set solverSettingsDict pressure_tolerance 1e-2
-#     dict set solverSettingsDict maximum_velocity_iterations [expr 3]
-#     dict set solverSettingsDict maximum_pressure_iterations [expr 3]
-#     dict set solverSettingsDict predictor_corrector false
-#     dict set solverSettingsDict echo_level 1
-#     ##dict set solverSettingsDict DomainSize $nDim 
-#     dict set solverSettingsDict consider_periodic_conditions false
-#     dict set solverSettingsDict time_order 2
-#     dict set solverSettingsDict dynamic_tau 0.001
-#     dict set solverSettingsDict compute_reactions false
-#     dict set solverSettingsDict divergence_clearance_steps 0
-#     dict set solverSettingsDict reform_dofs_at_each_iteration false
-    
+        
     dict set projectParametersDict solver_settings $solverSettingsDict
         
     # Boundary conditions processes
