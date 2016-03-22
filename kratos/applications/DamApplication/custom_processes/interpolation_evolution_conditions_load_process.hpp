@@ -121,13 +121,13 @@ protected:
                 ref_coord = coordinate_base + water_level;
                 if(uplift_direction=="Y")
                 {
-                    uplift_pressure = (spe_weight*(ref_coord- (i)->X()))*(1.0-((1.0/base_dam)*(abs( (i)->Y() - coordinate_base_uplift))));
+                    uplift_pressure = (spe_weight*(ref_coord- (i)->X()))*(1.0-((1.0/base_dam)*(fabs( (i)->Y() - coordinate_base_uplift))));
                         if(uplift_pressure<0.0)
                             uplift_pressure=0.0;
                 }            
                 else if(uplift_direction=="Z")
                 {
-                    uplift_pressure = (spe_weight*(ref_coord- (i)->X()))*(1.0-((1.0/base_dam)*(abs( (i)->Z() - coordinate_base_uplift))));
+                    uplift_pressure = (spe_weight*(ref_coord- (i)->X()))*(1.0-((1.0/base_dam)*(fabs( (i)->Z() - coordinate_base_uplift))));
                         if(uplift_pressure<0.0)
                             uplift_pressure=0.0;
                 }            
@@ -137,13 +137,13 @@ protected:
                 ref_coord = coordinate_base + water_level;
                 if(uplift_direction=="X")
                 {
-                    uplift_pressure = (spe_weight*(ref_coord- (i)->Y()))*(1.0-((1.0/base_dam)*(abs( (i)->X() - coordinate_base_uplift))));
+                    uplift_pressure = (spe_weight*(ref_coord- (i)->Y()))*(1.0-((1.0/base_dam)*(fabs( (i)->X() - coordinate_base_uplift))));
                         if(uplift_pressure<0.0)
                             uplift_pressure=0.0;
                 }            
                 else if(uplift_direction=="Z")
                 {
-                    uplift_pressure = (spe_weight*(ref_coord- (i)->Y()))*(1.0-((1.0/base_dam)*(abs( (i)->Z() - coordinate_base_uplift))));
+                    uplift_pressure = (spe_weight*(ref_coord- (i)->Y()))*(1.0-((1.0/base_dam)*(fabs( (i)->Z() - coordinate_base_uplift))));
                         if(uplift_pressure<0.0)
                             uplift_pressure=0.0;
                 }
@@ -153,13 +153,13 @@ protected:
                 ref_coord = coordinate_base + water_level;
                 if(uplift_direction=="X")
                 {
-                    uplift_pressure = (spe_weight*(ref_coord- (i)->Z()))*(1.0-((1.0/base_dam)*(abs( (i)->X() - coordinate_base_uplift))));
+                    uplift_pressure = (spe_weight*(ref_coord- (i)->Z()))*(1.0-((1.0/base_dam)*(fabs( (i)->X() - coordinate_base_uplift))));
                         if(uplift_pressure<0.0)
                             uplift_pressure=0.0;
                 }            
                 else if(uplift_direction=="Y")
                 {
-                    uplift_pressure = (spe_weight*(ref_coord- (i)->Z()))*(1.0-((1.0/base_dam)*(abs( (i)->Y() - coordinate_base_uplift))));
+                    uplift_pressure = (spe_weight*(ref_coord- (i)->Z()))*(1.0-((1.0/base_dam)*(fabs( (i)->Y() - coordinate_base_uplift))));
                         if(uplift_pressure<0.0)
                             uplift_pressure=0.0;
                 }
