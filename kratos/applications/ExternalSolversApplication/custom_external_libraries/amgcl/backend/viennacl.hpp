@@ -43,9 +43,37 @@ THE SOFTWARE.
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/backend/builtin.hpp>
-#include <amgcl/backend/detail/default_direct_solver.hpp>
+#include <amgcl/solver/skyline_lu.hpp>
 
 namespace amgcl {
+
+namespace solver {
+
+/** Wrapper around solver::skyline_lu for use with the ViennaCL backend.
+ * Copies the rhs to the host memory, solves the problem using the host CPU,
+ * then copies the solution back to the compute device(s).
+ */
+template <class T>
+struct viennacl_skyline_lu : solver::skyline_lu<T> {
+    typedef solver::skyline_lu<T> Base;
+
+    mutable std::vector<T> _rhs, _x;
+
+    template <class Matrix, class Params>
+    viennacl_skyline_lu(const Matrix &A, const Params&)
+        : Base(*A), _rhs(backend::rows(*A)), _x(backend::rows(*A))
+    { }
+
+    template <class Vec1, class Vec2>
+    void operator()(const Vec1 &rhs, Vec2 &x) const {
+        viennacl::fast_copy(rhs, _rhs);
+        static_cast<const Base*>(this)->operator()(_rhs, _x);
+        viennacl::fast_copy(_x, x);
+    }
+};
+
+}
+
 namespace backend {
 
 /// ViennaCL backend
@@ -58,14 +86,17 @@ namespace backend {
  * viennacl::hyb_matrix<T>.
  * \ingroup backends
  */
-template <class Matrix>
+template <
+    class Matrix,
+    class DirectSolver = solver::viennacl_skyline_lu<typename backend::value_type<Matrix>::type>
+    >
 struct viennacl {
     typedef typename backend::value_type<Matrix>::type value_type;
     typedef ptrdiff_t                                  index_type;
     typedef Matrix                                     matrix;
     typedef ::viennacl::vector<value_type>             vector;
     typedef ::viennacl::vector<value_type>             matrix_diagonal;
-    typedef detail::default_direct_solver<viennacl>    direct_solver;
+    typedef DirectSolver                               direct_solver;
 
     struct provides_row_iterator : boost::false_type {};
 

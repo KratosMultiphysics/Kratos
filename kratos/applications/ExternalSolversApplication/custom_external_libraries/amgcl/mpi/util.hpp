@@ -33,6 +33,7 @@ THE SOFTWARE.
  */
 
 #include <mpi.h>
+#include <boost/type_traits.hpp>
 
 namespace amgcl {
 namespace mpi {
@@ -57,11 +58,21 @@ struct datatype<long double> {
 };
 
 template <>
-struct datatype<ptrdiff_t> {
-    static MPI_Datatype get() {
-        return sizeof(ptrdiff_t) == sizeof(int) ? MPI_INT : MPI_LONG_LONG_INT;
-    }
+struct datatype<int> {
+    static MPI_Datatype get() { return MPI_INT; }
 };
+
+template <>
+struct datatype<long long> {
+    static MPI_Datatype get() { return MPI_LONG_LONG_INT; }
+};
+
+template <>
+struct datatype<ptrdiff_t>
+    : boost::conditional<
+        sizeof(ptrdiff_t) == sizeof(int), datatype<int>, datatype<long long>
+        >::type
+{};
 
 /// Convenience wrapper around MPI_Comm.
 struct communicator {

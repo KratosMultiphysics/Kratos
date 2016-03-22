@@ -39,32 +39,23 @@ THE SOFTWARE.
 
 #include <boost/type_traits.hpp>
 #include <boost/io/ios_state.hpp>
-#include <amgcl/clock.hpp>
+#include <amgcl/perf_counter/clock.hpp>
 
 
 namespace amgcl {
 
-/// Returns difference (in seconds) between two time points.
-/** The time points should come either from boost::chrono or std::chrono */
-template <class TP>
-inline
-typename boost::enable_if<boost::is_class<typename TP::duration>, double>::type
-seconds(TP tic, TP toc) {
-    return static_cast<double>(TP::duration::period::num)
-        * typename TP::duration(toc - tic).count()
-        / TP::duration::period::den;
-}
-
 /// Profiler class.
 /**
- * \param clock       Clock to use for profiling.
+ * \param Counter     Performance counter to use for profiling.
  * \param SHIFT_WIDTH Indentation for output of profiling results.
  *
- * Provides simple to use, hierarchical timers with nicely formatted output.
+ * Provides simple to use, hierarchical profile with nicely formatted output.
  */
-template <class clock = amgcl::clock, unsigned SHIFT_WIDTH = 2>
+template <class Counter = amgcl::perf_counter::clock, unsigned SHIFT_WIDTH = 2>
 class profiler {
     public:
+        typedef typename Counter::value_type value_type;
+
         /// Initialization.
         /**
          * \param name Profile title to use with output.
@@ -72,25 +63,32 @@ class profiler {
         profiler(const std::string &name = "Profile") : name(name) {
             stack.reserve(128);
             stack.push_back(&root);
-            root.start_time = clock::now();
+            root.begin = counter.current();
         }
 
-        /// Starts named timer.
+        /// Starts measurement.
         /**
-         * \param name Timer name.
+         * \param name interval name.
          */
         void tic(const std::string &name) {
-            stack.back()->children[name].start_time = clock::now();
+            stack.back()->children[name].begin = counter.current();
             stack.push_back(&stack.back()->children[name]);
         }
 
-        /// Stops named timer.
-        double toc(const std::string& /*name*/) {
+        /// Stops measurement.
+        /**
+         * Returns delta in the measured value since the corresponding tic().
+         */
+        value_type toc(const std::string& /*name*/) {
             profile_unit *top = stack.back();
             stack.pop_back();
 
-            double delta = seconds(top->start_time, clock::now());
+            value_type current = counter.current();
+            value_type delta   = current - top->begin;
+
             top->length += delta;
+            root.length = current - root.begin;
+
             return delta;
         }
 
@@ -100,15 +98,15 @@ class profiler {
             root.children.clear();
 
             stack.push_back(&root);
-            root.start_time = clock::now();
+            root.begin = counter.current();
         }
 
     private:
         struct profile_unit {
             profile_unit() : length(0) {}
 
-            double children_time() const {
-                double s = 0;
+            value_type children_time() const {
+                value_type s = value_type();
                 for(typename std::map<std::string, profile_unit>::const_iterator c = children.begin(); c != children.end(); c++)
                     s += c->second.length;
                 return s;
@@ -122,7 +120,7 @@ class profiler {
             }
 
             void print(std::ostream &out, const std::string &name,
-                    int level, double total, size_t width) const
+                    int level, value_type total, size_t width) const
             {
                 using namespace std;
 
@@ -130,12 +128,12 @@ class profiler {
                 print_line(out, name, length, 100 * length / total, width - level);
 
                 if (children.size()) {
-                    double sec = length - children_time();
-                    double perc = 100 * sec / total;
+                    value_type val = length - children_time();
+                    double perc = 100.0 * val / total;
 
                     if (perc > 1e-1) {
                         out << "[" << setw(level + 1) << "";
-                        print_line(out, "self", sec, perc, width - level - 1);
+                        print_line(out, "self", val, perc, width - level - 1);
                     }
                 }
 
@@ -144,25 +142,25 @@ class profiler {
             }
 
             void print_line(std::ostream &out, const std::string &name,
-                    double time, double perc, size_t width) const
+                    value_type time, double perc, size_t width) const
             {
                 using namespace std;
 
                 out << name << ":"
                     << setw(width - name.size()) << ""
                     << setw(10)
-                    << fixed << setprecision(3) << time << " sec."
+                    << fixed << setprecision(3) << time << " " << Counter::units()
                     << "] (" << fixed << setprecision(2) << setw(6) << perc << "%)"
                     << endl;
             }
 
-            typename clock::time_point start_time;
-
-            double length;
+            value_type begin;
+            value_type length;
 
             std::map<std::string, profile_unit> children;
         };
 
+        Counter counter;
         std::string name;
         profile_unit root;
         std::vector<profile_unit*> stack;
@@ -170,8 +168,6 @@ class profiler {
         void print(std::ostream &out) {
             if (stack.back() != &root)
                 out << "Warning! Profile is incomplete." << std::endl;
-
-            root.length += seconds(root.start_time, clock::now());
 
             boost::io::ios_all_saver stream_state(out);
             root.print(out, name, 0, root.length, root.total_width(name, 0));
