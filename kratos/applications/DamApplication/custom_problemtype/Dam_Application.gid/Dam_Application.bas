@@ -1082,7 +1082,7 @@ End NodalData
 
 Begin NodalData SPECIFIC_HEAT
 *loop nodes *OnlyinCond
-*NodesNum  *cond(Specific_Heat_Value)  *cond(Fixed_Specific_Heat)
+*NodesNum  *cond(Fixed_Specific_Heat)  *cond(Specific_Heat_Value)
 *end nodes
 End NodalData
 
@@ -1092,7 +1092,7 @@ End NodalData
 *if(CondNumEntities > 0)
 Begin NodalData DENSITY
 *loop nodes *OnlyinCond
-*NodesNum  *cond(Nodal_Density_Value)  *cond(Fixed_Nodal_Density)
+*NodesNum  *cond(Fixed_Nodal_Density)  *cond(Nodal_Density_Value)
 *end nodes
 End NodalData
 
