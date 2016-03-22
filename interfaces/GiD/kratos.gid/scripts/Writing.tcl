@@ -472,7 +472,7 @@ proc write::GetNodesFromElementFace {elem_id face_id} {
         set node [lindex $inf [expr $node_index +2]]
         if {$node ne ""} {lappend nodes $node}
     }
-    W "eid $elem_id fid $face_id nds $nodes"
+    #W "eid $elem_id fid $face_id nds $nodes"
     return $nodes
 }
 
