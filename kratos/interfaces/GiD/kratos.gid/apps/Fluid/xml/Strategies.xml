@@ -21,7 +21,11 @@
       <parameter n="dynamic_tau" pn="Dynamic tau" type="double" v="0.001" help=""/>  
 	  <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="false" help=""/>  
       <parameter n="divergence_clearance_steps" pn="Divergence clearance steps" type="int" v="0" help=""/>  
-      <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration " type="bool" v="false" help=""/>           
+      <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration " type="bool" v="false" help=""/>
+	  <parameter n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" type="double" help="Relative velocity tolerance"/>
+	  <parameter n="AbsoluteVelocityTolerance" pn="Absolute velocity tolerance" v="1E-5" type="double" help="Absolute velocity tolerance"/>
+	  <parameter n="RelativePressureTolerance" pn="Relative pressure tolerance" v="1E-3" type="double" help="Relative pressure tolerance"/>
+	  <parameter n="AbsolutePressureTolerance" pn="Absolute pressure tolerance" v="1E-5" type="double" help="Absolute pressure tolerance"/>
     </parameter_list>
     
     <linearSolvers>
@@ -70,6 +74,10 @@
 	  <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="false" help=""/>  
       <parameter n="divergence_clearance_steps" pn="Divergence clearance steps" type="int" v="0" help=""/>  
       <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false" help=""/>
+	  <parameter n="RelativeVelocityTolerance" pn="Relative velocity tolerance" v="1E-3" type="double" help="Relative velocity tolerance"/>
+	  <parameter n="AbsoluteVelocityTolerance" pn="Absolute velocity tolerance" v="1E-5" type="double" help="Absolute velocity tolerance"/>
+	  <parameter n="RelativePressureTolerance" pn="Relative pressure tolerance" v="1E-3" type="double" help="Relative pressure tolerance"/>
+	  <parameter n="AbsolutePressureTolerance" pn="Absolute pressure tolerance" v="1E-5" type="double" help="Absolute pressure tolerance"/>
     </parameter_list>
     
     <linearSolvers>
