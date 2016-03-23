@@ -68,8 +68,10 @@ def ObjectiveGradient(X,opt_iter):
 
 def Analyzer(X, controls, iterator, response):
     """ Performs the analysis in the optimization loop """
-    response["1"]["func"] = ObjectiveFunction(X,iterator)
-    response["1"]["grad"] = ObjectiveGradient(X,iterator)
+    if controls["1"]["calc_func"]:
+        response["1"]["func"] = ObjectiveFunction(X,iterator)
+    if controls["1"]["calc_grad"]:
+        response["1"]["grad"] = ObjectiveGradient(X,iterator)
 
 import optimizer_factory
 
