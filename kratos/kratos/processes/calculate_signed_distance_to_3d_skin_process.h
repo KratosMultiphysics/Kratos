@@ -1,47 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following Element:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2007-10-31 17:51:34 $
-//   Revision:            $Revision: 1.1 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Daniel Baumgaertner
+//                   Johannes Wolf
 //
 
 
@@ -413,7 +380,7 @@ public:
             if (is_found == true)
             {
                 array_1d<double,4> nodalPressures;
-                const array_1d<double,4>& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
+                const Vector& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
 
                 Geometry<Node<3> >& geom = pElement->GetGeometry();
 
@@ -734,7 +701,7 @@ public:
         if (is_found == true)
         {
             array_1d<double,4> nodalPressures;
-            const array_1d<double,4>& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
+            const Vector& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
             Geometry<Node<3> >& geom = pElement->GetGeometry();
 
             for(unsigned int i=0; i<4; i++)
@@ -1497,7 +1464,7 @@ public:
              i_fluid_Element++)
         {
             Geometry< Node<3> >& geom = i_fluid_Element->GetGeometry();
-            array_1d<double,4> ElementalDistances = i_fluid_Element->GetValue(ELEMENTAL_DISTANCES);
+            const Vector& ElementalDistances = i_fluid_Element->GetValue(ELEMENTAL_DISTANCES);
 
             // Assign distances to the single nodes, if a smaller value is found
             for( unsigned int i_TetNode = 0; i_TetNode < 4; i_TetNode++ )
@@ -1578,7 +1545,7 @@ public:
             bool is_split = i_fluid_element->GetValue(SPLIT_ELEMENT);
             if(is_split == true)
             {
-                array_1d<double,4> distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
+                const Vector& distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
                 Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
 
                 // generate the points on the edges at the zero of the distance function
@@ -1617,7 +1584,7 @@ public:
                     Triangle3D3< Node<3> > triangle(pnode1, pnode2, pnode3);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
-                    Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
+                    Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
                     Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle, properties);
 
                     mrNewSkinModelPart.Conditions().push_back(p_condition);
@@ -1687,15 +1654,20 @@ public:
                     Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
 
                     Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
-                    Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
+                 
+                    Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
+
                     Condition::Pointer p_condition1 = rReferenceCondition.Create(id_condition++, triangle1, properties);
                     Condition::Pointer p_condition2 = rReferenceCondition.Create(id_condition++, triangle2, properties);
 
                     mrNewSkinModelPart.Conditions().push_back(p_condition1);
                     mrNewSkinModelPart.Conditions().push_back(p_condition2);
+                    
                 }
+
             }
         }
+
     }
 
     ///******************************************************************************************************************
@@ -1799,10 +1771,9 @@ public:
 
 
         std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
-        KRATOS_WATCH(leaves_size);
+
         for (std::size_t i = 0; i < all_leaves.size(); i++)
         {
-            KRATOS_WATCH(i)
                     CellType* cell = all_leaves[i];
             GenerateCellNode(cell, last_id);
         }
@@ -1824,7 +1795,6 @@ public:
                 (*(pCell->pGetData()))[i_pos] = new DistanceSpatialContainersConfigure::cell_node_data_type;
 
                 (*(pCell->pGetData()))[i_pos]->Id() = LastId++;
-                KRATOS_WATCH(LastId)
 
                         mOctreeNodes.push_back((*(pCell->pGetData()))[i_pos]);
 
