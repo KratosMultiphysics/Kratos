@@ -16,6 +16,7 @@
 // External includes
 #include "boost/smart_ptr.hpp"
 #include <iostream>
+#include <fstream>
 
 #include "includes/ublas_interface.h"
 
@@ -80,7 +81,7 @@ public:
     {
 #if __cplusplus >= 201103L
         Parameters default_parameters( R"(
-                                       {
+                                   {
                                        "solver_type" : "AMGCL",
                                        "smoother_type":"ilu0",
                                        "krylov_type": "gmres",
@@ -91,7 +92,8 @@ public:
                                        "verbosity" : 1,
                                        "tolerance": 1e-6,
                                        "scaling": false,
-                                       "use_block_matrices_if_possible" : true
+                                       "use_block_matrices_if_possible" : true,
+                                       "coarse_enough" : 5000
                                    }  )" );
 
 
@@ -144,7 +146,7 @@ public:
         }
 
         mprovide_coordinates = rParameters["provide_coordinates"].GetBool();
-
+        mcoarse_enough = rParameters["coarse_enough"].GetInt();
 
 
         mTol = rParameters["tolerance"].GetDouble();
@@ -201,7 +203,8 @@ public:
         mmax_it = NewMaxIterationsNumber;
         mverbosity=verbosity;
         mndof = 1;
-
+        mcoarse_enough = 5000;
+        
         mgmres_size = gmres_size;
         mprm.put("solver.M",  mgmres_size);
 
@@ -304,6 +307,8 @@ public:
         mverbosity=verbosity;
         mndof = 1;
         mgmres_size = gmres_size;
+        mcoarse_enough = 5000;
+        
         mprm.put("solver.M",  mgmres_size);
 
 
@@ -420,6 +425,37 @@ public:
         mprm.put("precond.coarsening.aggr.block_size",mndof);
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
+        
+        mprm.put("precond.coarse_enough",mcoarse_enough/mndof);
+        
+        if(mverbosity == 4)
+        {
+            //output to matrix market
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A" <<  ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), rA, false);
+            
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b" << ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), rB);
+                
+            if(mprovide_coordinates == true)
+            {
+          
+                //output of coordinates
+                std::ofstream coordsfile;
+                coordsfile.open ("coordinates.txt");
+                for(unsigned int i=0; i<mcoords.size(); i++)
+                {
+                    
+                    coordsfile << mcoords[i][0] << " " << mcoords[i][1] << " " << mcoords[i][2] << std::endl;
+                    
+                }
+                coordsfile.close();
+            }
+            
+            KRATOS_THROW_ERROR(std::logic_error, "verobsity = 4 prints the matrix and exits","")
+        }
 
         Matrix B;
         if(mprovide_coordinates == true)
@@ -600,6 +636,7 @@ private:
     int mverbosity;
     int mndof;
     unsigned int mgmres_size;
+    unsigned int mcoarse_enough;
     bool mfallback_to_gmres;
     bool mprovide_coordinates;
     bool muse_block_matrices_if_possible;
