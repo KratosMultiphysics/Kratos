@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include <vector>
 #include <boost/foreach.hpp>
+#include <boost/range/numeric.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
@@ -167,7 +168,7 @@ struct plain_aggregates {
             ptrdiff_t cur_id = static_cast<ptrdiff_t>(count++);
             id[i] = cur_id;
 
-            // Include its neighbors as well.
+            // (*) Include its neighbors as well.
             neib.clear();
             for(ptrdiff_t j = Aptr[i], e = Aptr[i+1]; j < e; ++j) {
                 ptrdiff_t c = Acol[j];
@@ -187,6 +188,20 @@ struct plain_aggregates {
                         id[cc] = cur_id;
                 }
             }
+        }
+
+        // Some of the aggregates could potentially vanish during expansion
+        // step (*) above. We need to exclude those and renumber the rest.
+        std::vector<ptrdiff_t> cnt(count, 0);
+        BOOST_FOREACH(ptrdiff_t i, id)
+            if (i >= 0) cnt[i] = 1;
+        boost::partial_sum(cnt, cnt.begin());
+
+        if (static_cast<ptrdiff_t>(count) > cnt.back()) {
+            count = cnt.back();
+
+            for(size_t i = 0; i < n; ++i)
+                if (id[i] >= 0) id[i] = cnt[id[i]] - 1;
         }
     }
 };
