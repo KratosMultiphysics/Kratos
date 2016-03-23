@@ -28,6 +28,5 @@
 		  <value n="StartTime" pn="Start time" v="0.0" help=""/>
 		  <value n="EndTime" pn="End time" v="1" help=""/>
 		  <value n="DeltaTime" pn="Delta time" v="0.001" help=""/>
-		  <value n="DivergenceCleareanceStep" pn="Divergence cleareance step" v="50" help="Define the divergence cleareance step value"/>
 	  </container>
   </container>
