@@ -206,7 +206,7 @@ private:
             return r_model_part;
     }
     
-    void UpdateSubModelPart(ModelPart& r_model_part, const ModelPart& r_root_model_part)
+    void UpdateSubModelPart(ModelPart& r_model_part, ModelPart& r_root_model_part)
     {
         //change the model part itself
         #pragma omp parallel for
