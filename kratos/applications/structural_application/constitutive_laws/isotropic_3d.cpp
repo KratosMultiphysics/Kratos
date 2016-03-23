@@ -135,23 +135,23 @@ double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rV
        rValue = mE;
        return rValue;
      }
- 
-   
+
+
     if ( rThisVariable == POISSON_RATIO ){
         rValue = mNU;
         return rValue;
     }
-   
+
     if(rThisVariable==DAMAGE){
         rValue = 0.00;
         return rValue;
     }
-   
+
     if (rThisVariable==DELTA_TIME){
         rValue = sqrt(mE/mDE);
         return rValue;
     }
-  
+
     rValue = 0.00;
     return rValue;
 }
@@ -168,7 +168,7 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
     }
 
     if ( rThisVariable == STRESSES )
-    {  
+    {
         const unsigned int size = mCurrentStress.size();
         rValue.resize(size, false );
         rValue  = mCurrentStress;
@@ -357,7 +357,7 @@ void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& Algorithm
 
     noalias( StressVector ) = prod( AlgorithmicTangent, StrainVector ) - mPrestressFactor * mPrestress;
 
-    mCurrentStress = StressVector;
+    noalias(mCurrentStress) = StressVector;
 }
 
 
