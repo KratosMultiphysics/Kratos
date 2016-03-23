@@ -191,8 +191,15 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const
     {
-        return Element::Pointer(new TwoFluidVMS(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties));
+        return boost::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
+    Element::Pointer Create(IndexType NewId,
+                           GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const
+    {
+        return boost::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
+    }
+    
     /// Provides local contributions from body forces to the RHS
     /**
      * This is called during the assembly process and provides the RHS terms of the

@@ -119,8 +119,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
-        return Element::Pointer(new Stokes3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return boost::make_shared< Stokes3D >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
+    }
+    Element::Pointer Create(IndexType NewId,
+                           GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const
+    {
+        return boost::make_shared< Stokes3D >(NewId, pGeom, pProperties);
     }
 
 
