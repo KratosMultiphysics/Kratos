@@ -1,25 +1,15 @@
-/*
-Kratos Multi-Physics
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
- 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-		Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-		Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-		in the documentation and/or other materials provided with the distribution.
-		All advertising materials mentioning features or use of this software must display the following acknowledgement:
-			This product includes Kratos Multi-Physics technology.
-		Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 
 #if !defined(KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
 #define  KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
@@ -119,7 +109,8 @@ public:
     LevelSetConvectionProcess(Variable<double>& rLevelSetVar,
                               ModelPart& base_model_part,
                                           typename LinearSolverType::Pointer plinear_solver,
-                                          double max_cfl = 1.0
+                                          double max_cfl = 1.0,
+                                          double cross_wind_stabilization_factor = 0.7
                                          )
         :mr_base_model_part(base_model_part), mrLevelSetVar(rLevelSetVar), mmax_allowed_cfl(max_cfl)
     {
@@ -169,6 +160,9 @@ public:
         mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType >(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
 
         mp_solving_strategy->SetEchoLevel(0);
+        
+        mcross_wind_stabilization_factor = cross_wind_stabilization_factor;
+        base_model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR,mcross_wind_stabilization_factor);
         
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mp_solving_strategy->Check();
@@ -340,6 +334,7 @@ protected:
     ModelPart& mr_base_model_part;
     Variable<double>& mrLevelSetVar;
     double mmax_allowed_cfl;
+    double mcross_wind_stabilization_factor;
     
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
