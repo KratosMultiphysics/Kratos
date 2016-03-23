@@ -232,6 +232,14 @@ class as_preconditioner {
     private:
         runtime::relaxation::type relaxation;
         void * handle;
+
+        friend std::ostream& operator<<(std::ostream &os, const as_preconditioner &p)
+        {
+            os << "Using " << p.relaxation << " as preconditioner" << std::endl;
+            os << "  unknowns: " << backend::rows(p.system_matrix()) << std::endl;
+            os << "  nonzeros: " << backend::nonzeros(p.system_matrix()) << std::endl;
+            return os;
+        }
 };
 
 }

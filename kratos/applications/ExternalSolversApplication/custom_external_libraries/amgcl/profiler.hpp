@@ -185,6 +185,24 @@ class profiler {
         }
 };
 
+/// Scoped ticker.
+/** Calls prof.tic(name) on construction, and prof.toc(name) on destruction. */
+template <class Profiler>
+struct scoped_tic {
+    Profiler &prof;
+    std::string name;
+
+    scoped_tic(Profiler &prof, const std::string &name)
+        : prof(prof), name(name)
+    {
+        prof.tic(name);
+    }
+
+    ~scoped_tic() {
+        prof.toc(name);
+    }
+};
+
 } // namespace amgcl
 
 #endif
