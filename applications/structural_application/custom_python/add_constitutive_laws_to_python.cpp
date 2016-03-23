@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/tutorial_damage_model.h"
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
+#include "constitutive_laws/neo_hookean_3d.h"
 #include "constitutive_laws/hyperelastic_3d.h"
 #include "constitutive_laws/hyperelastic_2d.h"
 // #include "constitutive_laws/viscoelastic_2d.h" // new VISCOELASTICITY
@@ -83,6 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/fluid_2d.h"
 #include "constitutive_laws/external_isotropic_3d.h"
 #include "constitutive_laws/drucker_prager.h"
+#include "constitutive_laws/cam_clay_3d.h"
 //#include "constitutive_laws/isotropic_elastic_large_strain.h"
 #include "constitutive_laws/hooks_law.h"
 #include "constitutive_laws/isotropic_planestress_wrinkling.h"
@@ -143,11 +145,11 @@ void  AddConstitutiveLawsToPython()
     ( "DummyConstitutiveLaw",
       init<>() )
     ;
-            
-            class_< TutorialDamageModel, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-            ( "TutorialDamageModel",
-             init<>() )
-            ;
+
+    class_< TutorialDamageModel, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "TutorialDamageModel",
+      init<>() )
+    ;
 
     class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "Isotropic2D",
@@ -282,6 +284,16 @@ void  AddConstitutiveLawsToPython()
 
     class_< Hyperelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "Hyperelastic2D",
+      init<>() )
+    ;
+
+    class_< CamClay3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "CamClay3D",
+      init<>() )
+    ;
+
+    class_< NeoHookean3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "NeoHookean3D",
       init<>() )
     ;
 
