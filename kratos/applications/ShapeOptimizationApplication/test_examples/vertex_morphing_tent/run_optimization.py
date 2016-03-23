@@ -37,18 +37,14 @@ def ObjectiveFunction(X,opt_iter):
     """ Returns the objective function to be minimized """
     objective = 0.0
     for node in design_surface.Nodes:
-        x = node.X + X[node.Id][0]
-        z = node.Z + X[node.Id][2]
-        objective = objective + abs(TentFunction(x) - z)
+        objective = objective + abs(TentFunction(node.X) - node.Z)
     return objective
 
 def ObjectiveGradient(X,opt_iter):
     """ Returns the gradient of the objective function """
     sensitivity = dict()
     for node in design_surface.Nodes:
-        x = node.X + X[node.Id][0]
-        z = node.Z + X[node.Id][2]
-        delta = z - TentFunction(x)
+        delta = node.Z - TentFunction(node.X)
         if abs(delta) == 0.0:
             sz = 0.0
         else:
