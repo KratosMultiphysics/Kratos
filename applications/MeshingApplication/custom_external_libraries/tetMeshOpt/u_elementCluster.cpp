@@ -201,7 +201,7 @@ void innercollapseEdges(TVolumeMesh*  aMesh , int  maxSteps,
 			nQ = evaluteVertexChange(vOrig,vNew,elemVertexes,oV,nV);
 			if (oQ>=nQ)  continue;
 			if ((oV>0) && (nV<0) ) continue;
-			if (Min (abs(nV/oV) ,abs(oV/nV))<0.95) continue;
+			if (Min (fabs(double(nV)/oV) ,fabs(double(oV)/nV))<0.95) continue;
 
 			aCluster->goodTetraList->Assign(elemVertexes);
 			//3.Actualizo la malla
