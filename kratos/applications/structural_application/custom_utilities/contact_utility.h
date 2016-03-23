@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************
 *
-*   Last Modified by:    $Author: nagel $
-*   Date:                $Date: 2009-03-25 08:14:58 $
-*   Revision:            $Revision: 1.12 $
+*   Last Modified by:    $Author: hbui $
+*   Date:                $Date: 19 Mar 2016 $
+*   Revision:            $Revision: 1.13 $
 *
 * ***********************************************************/
 
@@ -345,7 +345,7 @@ public:
 //                                                              *it,
 //                                                              MasterContactLocalPoint,
 //                                                              SlaveContactLocalPoint, i) );
-
+                                newLink->Set(ACTIVE, true);
                                 LinkingConditions.push_back( newLink );
                             }
                             else
@@ -416,6 +416,7 @@ public:
                                                                              MasterContactLocalPoint,
                                                                              SlaveContactLocalPoint,
                                                                              i ) );
+                                    newLink->Set(ACTIVE, true);
                                     LinkingConditions.push_back( newLink );
                                 }
                                 else
@@ -476,7 +477,6 @@ public:
                         IntPoint < (*it)->GetGeometry().IntegrationPoints().size();
                         ++IntPoint )
                 {
-
                     double newLambda = (*it)->GetValue( LAMBDAS )[IntPoint]
                                        +(*it)->GetValue( GAPS )[IntPoint]
                                        *(*it)->GetValue( PENALTY )[IntPoint];
@@ -860,7 +860,6 @@ public:
                                           *0.5*((*it)->GetValue(PENALTY)[i]);
                         absolute += (*it)->GetValue( LAMBDAS )[i];
                         ratio += (*it)->GetValue( DELTA_LAMBDAS )[i];
-
                         Index++;
                         cumulative_penetration += (*it)->GetValue( GAPS )[i]*(*it)->GetValue( GAPS )[i];
 
@@ -1056,8 +1055,7 @@ private:
 
             Point<3> GlobalCandidate;
             //defining set of possible master surface elements
-            ConditionsArrayType::Pointer MasterSet(
-                new ConditionsArrayType() );
+            ConditionsArrayType::Pointer MasterSet( new ConditionsArrayType() );
             double minDist = static_cast<double>(INT_MAX);
 //                     KRATOS_WATCH(minDist);
 //                     double minDist = INT_MAX;
@@ -1289,7 +1287,7 @@ private:
                          +((rSlaveContactGlobalPoint[2]-rResultGlobal[2])*dt22[2]);
             //calculating update for Xi
             deltaXi1 = -A1*B22/(B11*B22-B12*B21)+A2*B12/(B11*B22-B12*B21);
-            deltaXi2 =  A2*B21/(B11*B22-B12*B21)-A2*B11/(B11*B22-B12*B21);
+            deltaXi2 =  A1*B21/(B11*B22-B12*B21)-A2*B11/(B11*B22-B12*B21);
             //updating Xi
             Xi1 += deltaXi1;
             Xi2 += deltaXi2;
