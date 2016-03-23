@@ -237,6 +237,11 @@ public:
     int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
 
+    virtual SizeType GetStrainSize()
+    {
+        return 6;
+    }
+
     /**
      * converts a strain vector styled variable into its form, which the
      * deviatoric parts are no longer multiplied by 2
