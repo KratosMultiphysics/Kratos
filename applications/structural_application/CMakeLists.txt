@@ -38,7 +38,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_implex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_planestress_wrinkling.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/neo_hookean_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hyperelastic_3d.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hyperelastic_2d.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/viscoelastic_2d.cpp
@@ -62,6 +63,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_rankine_damage_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_rankine_damage_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/tutorial_damage_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/cam_clay_3d.cpp
 
     #rankine_yield_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/isotropic_rankine_yield_function.cpp
