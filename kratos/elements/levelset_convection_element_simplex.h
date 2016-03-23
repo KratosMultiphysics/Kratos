@@ -160,7 +160,7 @@ public:
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
         }
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
-        //const double norm_grad = norm_2(grad_phi_halfstep);
+        const double norm_grad = norm_2(grad_phi_halfstep);
 
         //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
 
@@ -210,20 +210,20 @@ public:
             noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
             
             //cross-wind term  
-//             if(norm_grad > 1e-3 && norm_vel > 1e-9)
-//             {
-//                 const double C = 0.7;
-//                 const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
-//                 const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
-//                 
-//                 const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
-//                 bounded_matrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
-//                 const double norm_vel_squared = norm_vel*norm_vel;
-//                 D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
-// 
-//                 noalias(tmp) = prod(DN_DX,D);
-//                 noalias(aux2) += prod(tmp,trans(DN_DX));
-//             }
+            if(norm_grad > 1e-3 && norm_vel > 1e-9)
+            {
+                const double C = rCurrentProcessInfo.GetValue(CROSS_WIND_STABILIZATION_FACTOR);
+                const double time_derivative = dt_inv*(inner_prod(N,phi)-inner_prod(N,phi_old));
+                const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
+                
+                const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
+                bounded_matrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
+                const double norm_vel_squared = norm_vel*norm_vel;
+                D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
+
+                noalias(tmp) = prod(DN_DX,D);
+                noalias(aux2) += prod(tmp,trans(DN_DX));
+            }
         }
         
         //adding the second and third term in the formulation
