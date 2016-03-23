@@ -516,7 +516,7 @@ time           = pp.Start_time
 Dt             = pp.Dt
 out            = Dt
 Nsteps         = pp.nsteps
-final_time     = pp.max_time
+final_time     = pp.CFD_DEM.FinalTime
 output_time    = pp.CFD_DEM.OutputTimeStep
 
 report.Prepare(timer, DEM_parameters.ControlTime)
@@ -624,7 +624,7 @@ swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_p
 
 # ANALYTICS BEGIN
 import analytics
-variables_to_measure = [PRESSURE, FLUID_FRACTION]
+variables_to_measure = [PRESSURE]
 steps_between_measurements = 100
 gauge = analytics.Gauge(fluid_model_part, Dt, final_time, variables_to_measure, steps_between_measurements)
 point_coors = [0.0, 0.0, 0.01]
