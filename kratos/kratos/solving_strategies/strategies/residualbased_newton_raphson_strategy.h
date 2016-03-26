@@ -387,30 +387,139 @@ public:
         KRATOS_CATCH("")
     }
 
-    //*********************************************************************************
-    /**
-    the problem of interest is solved
+	/**
+    Initialization of member variables and prior operations
      */
-    //**********************************************************************
-
-    double Solve()
+    void Initialize()
     {
         KRATOS_TRY
 
+        if (mInitializeWasPerformed == false)
+		{
+			//pointers needed in the solution
+			typename TSchemeType::Pointer pScheme = GetScheme();
+			typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
-        //pointers needed in the solution
+			//Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+			if (pScheme->SchemeIsInitialized() == false)
+			    pScheme->Initialize(BaseType::GetModelPart());
+
+			//Initialize The Elements - OPERATIONS TO BE DONE ONCE
+			if (pScheme->ElementsAreInitialized() == false)
+			    pScheme->InitializeElements(BaseType::GetModelPart());
+
+			//Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+			if (pScheme->ConditionsAreInitialized() == false)
+			    pScheme->InitializeConditions(BaseType::GetModelPart());
+
+			//initialisation of the convergence criteria
+			if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+			    mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
+
+			mInitializeWasPerformed = true;
+		}
+
+        KRATOS_CATCH("")
+    }
+
+	/**
+    the problem of interest is solved.
+	This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
+	All those functions can otherwise be called separately.
+     */
+    double Solve()
+    {
+		Initialize();
+		InitializeSolutionStep();
+		Predict();
+		SolveSolutionStep();
+		FinalizeSolutionStep();
+        return 0.00;
+    }
+
+	/**
+    clears the internal storage
+     */
+    void Clear()
+    {
+        KRATOS_TRY
+
+        SparseSpaceType::Clear(mpA);
+        TSystemMatrixType& mA = *mpA;
+        SparseSpaceType::Resize(mA, 0, 0);
+
+        SparseSpaceType::Clear(mpDx);
+        TSystemVectorType& mDx = *mpDx;
+        SparseSpaceType::Resize(mDx, 0);
+
+        SparseSpaceType::Clear(mpb);
+        TSystemVectorType& mb = *mpb;
+        SparseSpaceType::Resize(mb, 0);
+
+        //setting to zero the internal flag to ensure that the dof sets are recalculated
+        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
+        GetBuilderAndSolver()->Clear();
+
+        GetScheme()->Clear();
+
+        if(BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+	/**
+    this should be considered as a "post solution" convergence check which is useful for coupled analysis
+    - the convergence criteria used is the one used inside the "solve" step
+     */
+    bool IsConverged()
+    {
+        KRATOS_TRY
+
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+
+
+        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        {
+            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), mb);
+        }
+
+        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
+
+        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        KRATOS_CATCH("")
+    }
+
+	/**
+    this operations should be called before printing the results when non trivial results (e.g. stresses)
+    need to be calculated given the solution of the step
+
+      This operations should be called only when needed, before printing as it can involve a non negligible cost
+     */
+    void CalculateOutputData()
+    {
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
+
+        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
+        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+    }
+
+	/**
+    Performs all the required operations that should be done (for each step) before solving the solution step.
+	A member variable should be used as a flag to make sure this function is called only once per step.
+    */
+	void InitializeSolutionStep()
+    {
+        KRATOS_TRY
+
+		//pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        //int solstep = pCurrentProcessInfo.GetCurrentSolutionStep();
-        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
-
-        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-        //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
-            Initialize();
 
         //set up the system, operation performed just once unless it is required
         //to reform the dof set at each iteration
@@ -437,18 +546,88 @@ public:
             std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
         }
 
-        //updates the database with a prediction of the solution
-        Predict();
+		if (mSolutionStepIsInitialized == false)
+		{
+			/*typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+			typename TSchemeType::Pointer pScheme = GetScheme();
+			int rank = BaseType::GetModelPart().GetCommunicator().MyPID();*/
 
-        //initialize solution step
-        if (mSolutionStepIsInitialized == false)
-            InitializeSolutionStep();
+			//setting up the Vectors involved to the correct size
+			boost::timer system_matrix_resize_time;
+			pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+			if (this->GetEchoLevel() > 0 && rank == 0)
+				std::cout << rank << ": system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
+
+			TSystemMatrixType& mA = *mpA;
+			TSystemVectorType& mDx = *mpDx;
+			TSystemVectorType& mb = *mpb;
+
+			//initial operations ... things that are constant over the Solution Step
+			pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+			//initial operations ... things that are constant over the Solution Step
+			pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+			mSolutionStepIsInitialized = true;
+		}
+
+        KRATOS_CATCH("")
+    }
+
+	/**
+    Performs all the required operations that should be done (for each step) after solving the solution step.
+	A member variable should be used as a flag to make sure this function is called only once per step.
+    */
+	void FinalizeSolutionStep()
+	{
+		KRATOS_TRY
+
+		typename TSchemeType::Pointer pScheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
+		//Finalisation of the solution step,
+        //operations to be done after achieving convergence, for example the
+        //Final Residual Vector (mb) has to be saved in there
+        //to avoid error accumulation
+        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
+        //Cleaning memory after the solution
+        pScheme->Clean();
+
+        //reset flags for next step
+        mSolutionStepIsInitialized = false;
+
+        if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
+        {
+            SparseSpaceType::Clear(mpA);
+            SparseSpaceType::Clear(mpDx);
+            SparseSpaceType::Clear(mpb);
+
+            this->Clear();
+        }
+
+		KRATOS_CATCH("")
+	}
+
+	/**
+    Solves the current step. This function returns true if a solution has been found, false otherwise.
+    */
+	bool SolveSolutionStep()
+	{
+		//pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+
+		DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+
+        TSystemMatrixType& mA = *mpA;
+        TSystemVectorType& mDx = *mpDx;
+        TSystemVectorType& mb = *mpb;
 
         //initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 1;
@@ -620,109 +799,8 @@ public:
             pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
 
-        //Finalisation of the solution step,
-        //operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
-        //to avoid error accumulation
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        //Cleaning memory after the solution
-        pScheme->Clean();
-
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
-
-        if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
-        {
-            SparseSpaceType::Clear(mpA);
-            SparseSpaceType::Clear(mpDx);
-            SparseSpaceType::Clear(mpb);
-
-            this->Clear();
-        }
-
-        return 0.00;
-
-        KRATOS_CATCH("")
-
-    }
-
-    /**
-    this should be considered as a "post solution" convergence check which is useful for coupled analysis
-    - the convergence criteria used is the one used inside the "solve" step
-     */
-    //**********************************************************************
-
-    bool IsConverged()
-    {
-        KRATOS_TRY
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
-        {
-            GetBuilderAndSolver()->BuildRHS(GetScheme(), BaseType::GetModelPart(), mb);
-        }
-
-        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
-
-        return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        KRATOS_CATCH("")
-
-    }
-
-    //*********************************************************************************
-
-    /**
-    this operations should be called before printing the results when non trivial results (e.g. stresses)
-    need to be calculated given the solution of the step
-
-    This operations should be called only when needed, before printing as it can involve a non negligible cost
-     */
-    void CalculateOutputData()
-    {
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-        DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-    }
-
-    //**********************************************************************
-    //**********************************************************************
-
-    void Clear()
-    {
-        KRATOS_TRY
-
-        SparseSpaceType::Clear(mpA);
-        TSystemMatrixType& mA = *mpA;
-        SparseSpaceType::Resize(mA, 0, 0);
-
-        SparseSpaceType::Clear(mpDx);
-        TSystemVectorType& mDx = *mpDx;
-        SparseSpaceType::Resize(mDx, 0);
-
-        SparseSpaceType::Clear(mpb);
-        TSystemVectorType& mb = *mpb;
-        SparseSpaceType::Resize(mb, 0);
-
-        //setting to zero the internal flag to ensure that the dof sets are recalculated
-        GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
-        GetBuilderAndSolver()->Clear();
-
-        GetScheme()->Clear();
-
-        if(BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-            std::cout << "Newton Raphson strategy Clear function used" << std::endl;
-
-        KRATOS_CATCH("");
-    }
+		return is_converged;
+	}
 
     /*@} */
     /**@name Operators
@@ -864,73 +942,6 @@ protected:
     /*@} */
     /**@name Private Operators*/
     /*@{ */
-    //**********************************************************************
-    //**********************************************************************
-
-    void Initialize()
-    {
-        KRATOS_TRY
-
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-
-        //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-        if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(BaseType::GetModelPart());
-
-        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(BaseType::GetModelPart());
-
-        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ConditionsAreInitialized() == false)
-            pScheme->InitializeConditions(BaseType::GetModelPart());
-
-        //initialisation of the convergence criteria
-        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
-            mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
-
-
-        mInitializeWasPerformed = true;
-
-        KRATOS_CATCH("")
-    }
-
-
-    //**********************************************************************
-    //**********************************************************************
-
-    void InitializeSolutionStep()
-    {
-        KRATOS_TRY
-
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        typename TSchemeType::Pointer pScheme = GetScheme();
-
-        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-
-        //setting up the Vectors involved to the correct size
-        boost::timer system_matrix_resize_time;
-        pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-        if (this->GetEchoLevel() > 0 && rank == 0)
-            std::cout << rank << ": system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
-
-        TSystemMatrixType& mA = *mpA;
-        TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
-
-        //initial operations ... things that are constant over the Solution Step
-        pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        //initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-
-        mSolutionStepIsInitialized = true;
-
-        KRATOS_CATCH("")
-    }
-
 
     //**********************************************************************
     //**********************************************************************
