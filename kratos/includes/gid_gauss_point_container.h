@@ -445,6 +445,19 @@ public:
                 GiD_fWriteGaussPoint2D( MeshFile, 1.0/6.0, 2.0/3.0 );
                 GiD_fEndGaussPoint(MeshFile);
             }
+            /* START: Adding manually the custom prism */
+            else if ( mGidElementFamily == GiD_Prism  && mSize > 1 )
+            {
+                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
+                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0  - std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0  - std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0  - std::sqrt(1.00 / 3.00)));
+                GiD_fEndGaussPoint(MeshFile);
+            }
+            /* END: Adding manually the custom prism */
             else if ( mGidElementFamily == GiD_Point ||  mGidElementFamily == GiD_Sphere ||  mGidElementFamily == GiD_Circle )
             {
                 //Gid does not accept gauss points on Points, Circles or Spheres! (october 18th 2014)
