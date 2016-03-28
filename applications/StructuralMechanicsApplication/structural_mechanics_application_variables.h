@@ -16,7 +16,6 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
@@ -29,7 +28,7 @@ namespace Kratos
 {
 typedef array_1d<double,3> Vector3;
 
-//geometrical
+// Geometrical
 KRATOS_DEFINE_VARIABLE( double, AREA )
 KRATOS_DEFINE_VARIABLE( double, IX )
 KRATOS_DEFINE_VARIABLE( double, IY )
@@ -39,7 +38,7 @@ KRATOS_DEFINE_VARIABLE( double, MEAN_RADIUS )
 KRATOS_DEFINE_VARIABLE( int,    SECTION_SIDES )
 KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
 
-//othotropic/anisotropic constants
+// Othotropic/anisotropic constants
 // KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_X )
 // KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_Y )
 // KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_Z )
@@ -50,12 +49,12 @@ KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
 // KRATOS_DEFINE_VARIABLE( double, POISSON_RATIO_YZ )
 // KRATOS_DEFINE_VARIABLE( double, POISSON_RATIO_XZ )
 
-//material orientation
+// Material orientation
 // KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DX )
 // KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DY )
 // KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DZ )
 
-//shell generalized variables
+// Shell generalized variables
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN )
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN_GLOBAL )
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_CURVATURE )
@@ -65,17 +64,28 @@ KRATOS_DEFINE_VARIABLE( Matrix, SHELL_FORCE_GLOBAL )
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_MOMENT )
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_MOMENT_GLOBAL )
 
-//cross section
+// Cross section
 KRATOS_DEFINE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
 KRATOS_DEFINE_VARIABLE( int,          SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
 KRATOS_DEFINE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
-
-//conditions
+// Conditions
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 
+// Adding the SPRISM EAS variables 
+KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
+KRATOS_DEFINE_VARIABLE(bool, EAS_IMP);
 
+// Adding the SPRISM additional variables 
+KRATOS_DEFINE_VARIABLE(double, ANG_ROT);
+
+// Adding the Sprism number of transversal integration points 
+KRATOS_DEFINE_VARIABLE(int, NINT_TRANS);
+
+// Additional strain measures 
+KRATOS_DEFINE_VARIABLE(Vector, HENCKY_STRAIN_VECTOR);
+KRATOS_DEFINE_VARIABLE(Matrix, HENCKY_STRAIN_TENSOR);
 
 }
 
