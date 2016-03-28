@@ -81,7 +81,7 @@ namespace Kratos
             typedef ConstitutiveLaw BaseType;
 
             #ifdef BOOST_NO_CXX11_CONSTEXPR
-            const static double TOL = 1.0e-5;
+            const static double TOL;
             #else
             constexpr static double TOL = 1.0e-5;
             #endif

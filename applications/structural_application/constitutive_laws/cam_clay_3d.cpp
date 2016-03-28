@@ -71,6 +71,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+#ifdef BOOST_NO_CXX11_CONSTEXPR
+const double CamClay3D::TOL = 1.0e-5;
+#endif
+
 const double CamClay3D::unit2nd3D[6] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
 
 const double CamClay3D::unit4thSym3D[][6] = {
