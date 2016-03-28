@@ -43,6 +43,10 @@ namespace Kratos
       using TBaseElement::GetDensity;
       using TBaseElement::mRealMass;
       using TBaseElement::mRadius;
+      using TBaseElement::CalculateVolume;
+      using TBaseElement::GetMass;
+      using TBaseElement::GetForce;
+
       
       ///@name Type Definitions
       ///@{
