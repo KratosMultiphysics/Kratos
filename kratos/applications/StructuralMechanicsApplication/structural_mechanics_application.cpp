@@ -22,28 +22,31 @@
 #include "structural_mechanics_application_variables.h"
 #include "structural_mechanics_application.h"
 #include "includes/variables.h"
+#include "includes/constitutive_law.h"
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/point_3d.h"
+#include "custom_geometries/simple_prism_3d_6.hpp"
 
 namespace Kratos
 {
-//Example
-// 	KRATOS_CREATE_VARIABLE(double, AUX_MESH_VAR)
-//	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
-//	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
-//
-
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
+    /* ELEMENTS */
+    // Adding the beam element
     mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    // Adding the shells elements
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), false ),
     mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), true ),
     mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), false ),
     mShellThinCorotationalElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), true ),
+    // Adding the membrane element
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    // Adding the SPRISM element
+    mSprismElement3D6N( 0, Element::GeometryType::Pointer( new SimplePrism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    /* CONDITIONS */
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
 
 {}
@@ -59,7 +62,7 @@ void KratosStructuralMechanicsApplication::Register()
 
 
 
-    //geometrical
+    // Geometrical
     KRATOS_REGISTER_VARIABLE( AREA )
     KRATOS_REGISTER_VARIABLE( IX )
     KRATOS_REGISTER_VARIABLE( IY )
@@ -69,7 +72,7 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( SECTION_SIDES )
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
 
-    //     //shell generalized variables
+    //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
     KRATOS_REGISTER_VARIABLE( SHELL_FORCE )
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN_GLOBAL )
@@ -78,12 +81,12 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
     KRATOS_REGISTER_VARIABLE( SHELL_MOMENT_GLOBAL )
 
-    //cross section
+    // Cross section
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
-    //conditions
+    // Conditions
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 
@@ -103,21 +106,37 @@ void KratosStructuralMechanicsApplication::Register()
 // KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
 // KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
 
+    // Adding the SPRISM EAS variables 
+    KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
+    KRATOS_REGISTER_VARIABLE(EAS_IMP);
+    
+    // Adding the SPRISM additional variables 
+    KRATOS_REGISTER_VARIABLE(ANG_ROT);
+    
+    // Adding the SPRISM number of transversal integration points 
+    KRATOS_REGISTER_VARIABLE(NINT_TRANS);
 
-    //Register beams
-
+    // Strain measures
+    KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
+    KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_TENSOR);
+    
+    // Register the beam element
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
 
-    //Register shells
-
+    //Register the shells elements
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
     KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
     KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
     KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
 
+    // Register the membrane element
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
+    // Register the SPRISM element 
+    KRATOS_REGISTER_ELEMENT("SprismElement3D6N", mSprismElement3D6N);
+    
+    // Register the conditions
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
 }
 
