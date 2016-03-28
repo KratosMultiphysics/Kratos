@@ -20,5 +20,5 @@ namespace Kratos
 	  
     }
 }
-#endif	/* _KRATOSAUXILIARYFUNCTIONS_H */
+#endif	/* _SWIMMING_DEM_AUXILIARY_FUNCTIONS_H */
 
