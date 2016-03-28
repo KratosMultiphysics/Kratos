@@ -14,7 +14,6 @@
 // External includes
 #include <boost/python.hpp>
 
-
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -23,15 +22,13 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-
+//Utilities
+#include "custom_utilities/sprism_neighbours.hpp"
 
 namespace Kratos
 {
-
 namespace Python
 {
-
-
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
@@ -40,13 +37,12 @@ void  AddCustomUtilitiesToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-
+    
+    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
+    .def("Execute",&SprismNeighbours::Execute)
+    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
+    ;
 }
-
-
-
-
 
 }  // namespace Python.
 
