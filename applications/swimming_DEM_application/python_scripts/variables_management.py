@@ -56,6 +56,7 @@ def ConstructListsOfVariables(pp):
 
     # fluid variables
     pp.fluid_vars = []
+    pp.fluid_vars += [TORQUE]
     pp.fluid_vars += pp.fluid_printing_vars
     pp.fluid_vars += pp.coupling_fluid_vars
     pp.fluid_vars += [PRESSURE_GRADIENT]
@@ -276,7 +277,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [REYNOLDS_NUMBER]
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
-
+    pp.nodal_results += ["TORQUE"]
     if pp.CFD_DEM.print_FLUID_FRACTION_option:
         pp.nodal_results += ["FLUID_FRACTION"]
 
