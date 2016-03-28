@@ -155,7 +155,7 @@ public:
             else
             {
                 CurrentDisplacement[0]  = PreviousDisplacement[0] + ImposedDisplacement[0];//to impose fixed displacements;
-	    }
+            }
 
             if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
             {
