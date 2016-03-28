@@ -109,6 +109,7 @@ int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
 double GetParticleCohesion();
 void   SetParticleCohesionFromProperties(double* particle_cohesion);
+array_1d<double, 3>& GetForce();
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
