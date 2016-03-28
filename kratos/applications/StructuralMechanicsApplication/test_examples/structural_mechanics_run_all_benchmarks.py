@@ -9,9 +9,8 @@ import benchmarking
 
 def Run():
     Msg = ""
-    Text = "===== Solid Mechanics Application =====\n"
+    Text = "===== Structural Mechanics Application =====\n"
 
-    
     #
     # SHELL elements tests
    
@@ -104,9 +103,19 @@ def Run():
     print("---end solid mechanics application tests---")
     print("resume of all of the examples for the SolidMechanicsApplication :")
     print(Text)
+    
+    ##### ADDING EXTERNAL TESTS ##### 
+    ## SPRISM
+    os.chdir("SPRISM_test")
+    # PATCH TESTS
+    os.chdir("Patch_test")
+    os.system("python3 run_all.py")
+    os.chdir("..")
+    
+    os.chdir("..")
+    
     return Text
     
-
 if __name__ == '__main__':
     Run()
 
