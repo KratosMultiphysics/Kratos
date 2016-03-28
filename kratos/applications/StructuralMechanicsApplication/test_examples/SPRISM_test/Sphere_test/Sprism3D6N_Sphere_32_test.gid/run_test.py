@@ -110,17 +110,7 @@ time=Start_time
 
 gid_io.InitializeResults(mesh_name, (model_part).GetMesh())
 
-for node in model_part.Nodes:
-    if (node.X >2.40000e-01 -1.0e-5) | (node.Y > 1.20000e-01 -1.0e-5) | (node.X < 1.0e-5) | (node.Y < 1.0e-5):
-        node.Fix(DISPLACEMENT_X)
-        node.SetSolutionStepValue(DISPLACEMENT_X, - 1.0e-7 *(node.Z - 0.0005)*(node.X+node.Y/2))
-        node.Fix(DISPLACEMENT_Y)
-        node.SetSolutionStepValue(DISPLACEMENT_Y, - 1.0e-7 *(node.Z - 0.0005)*(node.Y+node.X/2))
-        node.Fix(DISPLACEMENT_Z)
-        node.SetSolutionStepValue(DISPLACEMENT_Z, 0.5 * 1.0e-7 *(node.X**2+node.X*node.Y+node.Y**2))
-
 while(time <= final_time): 
-      
     model_part.CloneTimeStep(time)
 
     time+=Dt

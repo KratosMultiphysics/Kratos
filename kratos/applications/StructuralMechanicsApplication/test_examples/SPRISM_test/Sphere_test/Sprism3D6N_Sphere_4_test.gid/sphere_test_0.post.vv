@@ -1,0 +1,64 @@
+BeginZE /home/vicente/Descargas/CIMNE/test/Sphere_test/Pins4/sphere_test_0.post.vv
+   x -18.3136367797851562 24.6184234619140625
+   y 22.5605335235595703 -11.1384057998657227
+   z -14.8648090362548828 4.2373051643371582
+   e 8.53835296630859375
+   v -0.111189492046833038 -0.53250354528427124 -0.829046368598937988
+   r -0.129456460475921631
+   m -0.941755890846252441 -0.0962332338094711304 0.322234541177749634 0 0.333068430423736572 -0.399362027645111084 0.854151904582977295 0 0.0464904308319091797 0.91172868013381958 0.408153712749481201 0 0 0 0 1
+   c 4.40824651718139648 4.40824651718139648 5.3137516975402832
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/vicente/Descargas/CIMNE/test/Sphere_test/Pins4/sphere_test_0.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos_Prism3D6_Mesh_1 2"
+    IdSet: 2
+    Color Type: 0
+    Color Ambient: 0 0 0.3 0.5
+    Color Diffuse: 0 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932222
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 12} {Contour Fill} Kratos 2.0 DISPLACEMENT |DISPLACEMENT| 0.0 4 0
+EndPostState
+

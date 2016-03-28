@@ -1,0 +1,28 @@
+NUMBER: 1 MATERIAL: Steel
+QUESTION: Type#CB#(Elastic)
+VALUE: Elastic
+QUESTION: Constitutive_Law_Name#CB#(LinearElastic3DLaw)
+VALUE: LinearElastic3DLaw
+QUESTION: Young_Modulus
+VALUE: 210e9
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.3
+QUESTION: Density
+VALUE: 7.8e3
+HELP: Units in IS: Kg/m3
+END MATERIAL
+NUMBER: 2 MATERIAL: Aluminium
+QUESTION: Type#CB#(Elastic)
+VALUE: Elastic
+QUESTION: Constitutive_Law_Name#CB#(LinearElastic3DLaw)
+VALUE: LinearElastic3DLaw
+QUESTION: Young_Modulus
+VALUE: 70e9
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.35
+QUESTION: Density
+VALUE: 2.7e3
+HELP: Units in IS: Kg/m3
+END MATERIAL
