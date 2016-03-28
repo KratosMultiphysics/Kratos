@@ -36,7 +36,6 @@ Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 Import_DEM_FEM_Application = False
 Import_WindTurbineApplication = False
-Import_FormingApplication = False
 
 print("Applications Available:")
 print("Import_SolidMechanicsApplication: False")
@@ -72,7 +71,6 @@ print("Import_KratosMixedElementApplication: False")
 print("Import_ThermoMechanicalApplication: False")
 print("Import_DEM_FEM_Application: False")
 print("Import_WindTurbineApplication: False")
-print("Import_FormingApplication: False")
 
 import os.path
 application_directory = os.path.dirname(os.path.realpath(__file__))
@@ -115,7 +113,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_ThermoMechanicalApplication: " + str(Import_ThermoMechanicalApplication))
     print("Import_DEM_FEM_Application: " + str(Import_DEM_FEM_Application))
     print("Import_WindTurbineApplication: " + str(Import_WindTurbineApplication))
-    print("Import_FormingApplication: " + str(Import_FormingApplication))
 
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
@@ -404,14 +401,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         wind_turbine_application = KratosWindTurbineApplication()
         kernel.AddApplication(wind_turbine_application)
         print("KratosWindTurbineApplication sucessfully imported")
-        
-    if(Import_FormingApplication):
-        print("importing KratosFormingApplication ...")
-        sys.path.append(applications_path + '/Forming_Application/python_scripts')
-        from KratosFormingApplication import *
-        forming_application = KratosFormingApplication()
-        kernel.AddApplication(forming_application)
-        print("KratosFormingApplication sucessfully imported")
 
     #
     # dynamic renumbering of variables to ensure the consistency
@@ -484,8 +473,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(dem_fem_application);
     if(Import_WindTurbineApplication):
         kernel.InitializeApplication(wind_turbine_application);
-    if(Import_FormingApplication):
-        kernel.InitializeApplication(forming_application);
 
 # def ImportApplications(kernel  ):
     # import os.path
