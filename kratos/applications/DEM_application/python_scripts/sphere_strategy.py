@@ -115,6 +115,7 @@ class ExplicitStrategy:
         self.dem_fem_search = dem_fem_search
 
         # STRATEGIES
+        Param.PeriodicDomainOption = False # only until it enters the problemtype!!!
         if self.Var_Translator(Param.PeriodicDomainOption):
             self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMaxX-Param.BoundingBoxMinX, Param.BoundingBoxMaxY-Param.BoundingBoxMinY, Param.BoundingBoxMaxZ-Param.BoundingBoxMinZ)
         else:
