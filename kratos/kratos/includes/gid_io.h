@@ -323,6 +323,21 @@ public:
         mGidGaussPointContainers.push_back( TGaussPointContainer( "prism6_element_gp",
                                             GeometryData::Kratos_Prism, GiD_Prism, 6, gp_indices ) );
 
+        /* START: Adding manually the custom prism */
+        //case Prism with 2 Gauss Points (6 gauss points will be created for GiD)
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "prism2_element_gp",
+                                            GeometryData::Kratos_Prism, GiD_Prism, 2, gp_indices ) );
+        //case Prism with 3 Gauss Points (6 gauss points will be created for GiD)
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "prism3_element_gp",
+                                            GeometryData::Kratos_Prism, GiD_Prism, 3, gp_indices ) );
+        //case Prism with 4 Gauss Points (6 gauss points will be created for GiD)
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "prism4_element_gp",
+                                            GeometryData::Kratos_Prism, GiD_Prism, 4, gp_indices ) );
+        //case Prism with 5 Gauss Points (6 gauss points will be created for GiD)
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "prism5_element_gp",
+                                            GeometryData::Kratos_Prism, GiD_Prism, 5, gp_indices ) );
+        /* END: Adding manually the custom prism */
+
         //elements with 8 gauss points
         gp_indices.resize(8);
         gp_indices[0] = 0;
