@@ -31,6 +31,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "../../DEM_application/DEM_application.h"
+#include "derivative_recovery.h"
 
 // /* External includes */
 #ifdef _OPENMP
@@ -69,8 +70,6 @@ namespace Kratos
 *
 * For a more general tool that allows the mapping between 2 and 3D non-matching meshes, please see /kratos/applications/MeshingApplication/custom_utilities/projection.h
 */
-
-//class BinBasedDEMFluidCoupledMapping
 
 // Some function definitions
 //***************************************************************************************************************
@@ -200,6 +199,8 @@ void InterpolateFromFluidMesh(
 {
     KRATOS_TRY
 
+    DerivativeRecovery<TDim> recoberer(r_fluid_model_part);
+    recoberer.RecoverGradientOfAScalar(PRESSURE, TORQUE);
     // setting interpolated variables to their default values
     ResetDEMVariables(r_dem_model_part);
 
