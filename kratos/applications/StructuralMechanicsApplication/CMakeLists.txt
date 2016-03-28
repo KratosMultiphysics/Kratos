@@ -8,22 +8,40 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplica
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}//structural_mechanics_application.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}//structural_mechanics_application_variables.cpp 
+        ## MAIN FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp 
 
+        ## CUSTOM PYTHON
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
+        ## SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/simple_integration_rules.cpp
+    
+        ## GEOMETRIES
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_geometries/simple_prism_3d_6.hpp
+	
+        ## UTILITIES
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
         
+        ## INTEGRATION
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_integration/simple_prism_gauss_legendre_integration_points.hpp 
+        
+        ## ELEMENTS
+        # Adding the beam element
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
+	# Adding shells and membranes elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
+        # Adding the SPRISM element
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
 
+        ## CONDITIONS
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
 )
 
