@@ -29,11 +29,18 @@
 
 #include "includes/variables.h"
 
+/* ELEMENTS */
+/* Adding beam element */
 #include "custom_elements/small_displacement_beam_element_3D2N.hpp"
+
+/* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
+
+/* Adding the SPRISM element */
+#include "custom_elements/SprismElement3D6N.hpp"
 
 //conditions
 #include "custom_conditions/point_moment_3D_condition.hpp"
@@ -206,21 +213,24 @@ private:
     ///@{
 
 
-    //beams
+    /* ELEMENTS */
+    // Adding the beam element 
     const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
 
-
-    //shells
+    // Adding the shells elements 
     const IsotropicShellElement  mIsotropicShellElement3D3N;
     const ShellThickElement3D4N  mShellThickElement3D4N;
     const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
     const ShellThinElement3D3N   mShellThinElement3D3N;
     const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
 
-    //membranes
+    // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
+    
+    // Adding the SPRISM element 
+    const SprismElement3D6N mSprismElement3D6N;
 
-    //conditions
+    /* CONDITIONS*/
     const PointMoment3DCondition mPointMomentCondition3D1N;
 
     ///@}
