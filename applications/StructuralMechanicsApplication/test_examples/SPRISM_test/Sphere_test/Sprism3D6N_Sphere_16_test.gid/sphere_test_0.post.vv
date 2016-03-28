@@ -1,0 +1,64 @@
+BeginZE /home/vicente/Descargas/CIMNE/TEST/Sphere_test/Pins16/sphere_test_0.post.vv
+   x -46.4687728881835938 25.4624137878417969
+   y 21.8183116912841797 -13.00238037109375
+   z -15.1180915832519531 4.8591456413269043
+   e 8.53835296630859375
+   v 0.362139820488166342 -0.263040109335350436 -0.680862631355635739
+   r 0.5797333356262937
+   m -0.0655280426144599915 0.598922908306121826 -0.798121154308319092 0 -0.979952096939086914 -0.189438343048095703 -0.0617006905376911163 0 -0.188148707151412964 0.778077423572540283 0.599329292774200439 0 0 0 0 1
+   c 4.01745510101318359 4.01746034622192383 5.12947320938110352
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/vicente/Descargas/CIMNE/TEST/Sphere_test/Pins16/sphere_test_0.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos_Prism3D6_Mesh_1 2"
+    IdSet: 2
+    Color Type: 0
+    Color Ambient: 0 0 0.3 0.5
+    Color Diffuse: 0 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932222
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 0.177743 32 32
+  ResultView: {Id 6} {Contour Fill} Kratos 2.0 DISPLACEMENT |DISPLACEMENT| 0.0 4 0
+EndPostState
+

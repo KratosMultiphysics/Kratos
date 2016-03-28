@@ -1,0 +1,64 @@
+BeginZE /home/vicente/Descargas/CIMNE/TEST/Sphere_test/Pins8/sphere_test_0.post.vv
+   x -49.1731109619140625 24.622283935546875
+   y 23.5382556915283203 -12.1848745346069336
+   z -15.4638500213623047 4.07386922836303711
+   e 8.53835296630859375
+   v 0.233870968222618103 0.0842984616756439209 0.786145031452178955
+   r 0.56583935022354126
+   m -0.250260472297668457 -0.850233674049377441 0.463111758232116699 0 0.929093480110168457 -0.345439255237579346 -0.132125154137611389 0 0.272314220666885376 0.397208422422409058 0.876396298408508301 0 0 0 0 1
+   c 4.92758607864379883 4.2086939811706543 5.69499063491821289
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/vicente/Descargas/CIMNE/TEST/Sphere_test/Pins8/sphere_test_0.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos_Prism3D6_Mesh_1 2"
+    IdSet: 2
+    Color Type: 0
+    Color Ambient: 0 0 0.3 0.5
+    Color Diffuse: 0 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 3932222
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 0.177743 32 32
+  ResultView: {Id 6} {Contour Fill} Kratos 2.0 DISPLACEMENT |DISPLACEMENT| 0.0 4 0
+EndPostState
+
