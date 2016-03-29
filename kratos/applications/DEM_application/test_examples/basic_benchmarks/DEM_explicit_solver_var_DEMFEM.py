@@ -49,6 +49,7 @@ MaxTimeStep                      = 1e-5
 FinalTime                        = 2.0
 ControlTime                      = 100.0
 NeighbourSearchFrequency         = 1
+PeriodicDomainOption             = 0
 # Material Test
 
 TestType                         = "None"
