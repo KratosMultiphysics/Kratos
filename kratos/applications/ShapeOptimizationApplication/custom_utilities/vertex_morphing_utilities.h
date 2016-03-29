@@ -481,26 +481,14 @@ public:
         KRATOS_TRY;
 
         // Initialize variables
-        std::map<int,array_3d> old_surface_nodes;
         std::map<int,array_3d> shape_update;
-
-        // Store old surface nodes to reproduce later. Furthermore initialize the shape update
         for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
         {
             int i_ID = node_itr->Id();
-            ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
-
-            // Store old coordinates
-            array_3d old_node(3,0.0);
-            old_node[0] = node_i.X();
-            old_node[1] = node_i.Y();
-            old_node[2] = node_i.Z();
-            old_surface_nodes[i_ID] = old_node;
-
-            // Initialize array
             array_3d zero_array(3,0.0);
             shape_update[i_ID] = zero_array;
         }
+
         // Perform the forward mapping
 
         // Loop over all design variables
