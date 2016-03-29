@@ -25,7 +25,7 @@
 #include "includes/kratos_flags.h"
 
 //default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 
 namespace Kratos
 {
@@ -170,7 +170,7 @@ public:
         //setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
                              (
-                                 new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
+                                 new ResidualBasedBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
 
         //set flags to start correcty the calculations
