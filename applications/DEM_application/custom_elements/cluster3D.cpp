@@ -50,10 +50,20 @@ namespace Kratos {
     // Destructor
     Cluster3D::~Cluster3D() {
     
-        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
-            mListOfSphericParticles[i]->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
-            mListOfSphericParticles[i]->Set(TO_ERASE, true);                        
-        }    
+        if(GetProperties()[BREAKABLE_CLUSTER]){
+            for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+                mListOfSphericParticles[i]->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+                mListOfSphericParticles[i]->GetGeometry()[0].Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+            }  
+            GetGeometry()[0].Set(TO_ERASE, true); 
+        }
+        else{
+            for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+                mListOfSphericParticles[i]->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+                mListOfSphericParticles[i]->GetGeometry()[0].Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+                mListOfSphericParticles[i]->Set(TO_ERASE, true);                        
+            }    
+        }
         
         mListOfSphericParticles.clear();
         mListOfCoordinates.clear();  
@@ -75,7 +85,7 @@ namespace Kratos {
         else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,false);
         if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
         else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,false);
-        
+
         CustomInitialize();
     }
     
@@ -85,7 +95,7 @@ namespace Kratos {
         noalias( this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES) ) = euler_angles;        
     }
       
-    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part){
+    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties){
         
         KRATOS_TRY 
         
@@ -94,7 +104,12 @@ namespace Kratos {
         unsigned int max_Id = 0;        
         unsigned int* p_max_Id=p_creator_destructor->pGetCurrentMaxNodeId();  //must have been found
           
-        std::string ElementNameString = "SphericParticle3D";
+        std::string ElementNameString;
+        bool breakable = false;
+        if(GetProperties()[BREAKABLE_CLUSTER]) breakable = true;
+        
+        if(breakable) ElementNameString= "SphericContinuumParticle3D";
+        else ElementNameString= "SphericParticle3D";
             
         //We now create a spheric particle and keep it as a reference to an Element
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
@@ -125,23 +140,42 @@ namespace Kratos {
             max_Id = *p_max_Id;
             }
              
-            Kratos::SphericParticle* new_sphere = p_creator_destructor->ElementCreatorForClusters(dem_model_part, 
-                                                                                                  max_Id, 
-                                                                                                  radius_of_sphere, 
-                                                                                                  coordinates_of_sphere, 
-                                                                                                  mass,
-                                                                                                  this->pGetProperties(), 
-                                                                                                  r_reference_element,
-                                                                                                  cluster_id);
-            
+            Kratos::SphericParticle* new_sphere;
+            if(!breakable){
+                new_sphere = p_creator_destructor->SphereCreatorForClusters(dem_model_part, 
+                                                                            max_Id, 
+                                                                            radius_of_sphere, 
+                                                                            coordinates_of_sphere, 
+                                                                            mass,
+                                                                            this->pGetProperties(), 
+                                                                            r_reference_element,
+                                                                            cluster_id);
+            }
+            else{
+                new_sphere = p_creator_destructor->SphereCreatorForBreakableClusters(dem_model_part, 
+                                                                                    max_Id, 
+                                                                                    radius_of_sphere, 
+                                                                                    coordinates_of_sphere, 
+                                                                                    this->pGetProperties(), 
+                                                                                    r_reference_element,
+                                                                                    cluster_id,
+                                                                                    p_fast_properties);
+            }
+                        
             p_creator_destructor->SetMaxNodeId(max_Id);       
-            mListOfSphericParticles[i] = new_sphere;
+            mListOfSphericParticles[i] = new_sphere;                 
         }
                 
         KRATOS_CATCH("")
     }
     
-    
+    void Cluster3D::CreateContinuumConstitutiveLaws(){        
+        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {  
+            SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);            
+            p_continuum_spheric_particle->CreateContinuumConstitutiveLaws();
+        }         
+    }
+        
     void Cluster3D::UpdateLinearDisplacementAndVelocityOfSpheres(){
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
@@ -239,9 +273,71 @@ namespace Kratos {
         ComputeAdditionalForces(gravity);
     }
     
-    void Cluster3D::ComputeAdditionalForces(const array_1d<double,3>& gravity){
+    void Cluster3D::ComputeAdditionalForces(const array_1d<double,3>& gravity) {
         const double mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += mass * gravity;                        
-    }    
+    }   
+    
+    void Cluster3D::SetContinuumGroupToBreakableClusterSpheres(const int Id) {
+        for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+            SphericContinuumParticle* p_cont_part = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);
+            p_cont_part->mContinuumGroup = Id;
+        }            
+    }
+    
+    void Cluster3D::SetInitialConditionsToSpheres(const array_1d<double,3>& velocity) {
+        for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = velocity;
+        } 
+    }
+    
+    void Cluster3D::SetInitialNeighbours(const double search_tolerance) {
+        if(!mListOfSphericParticles.size() ) return;
+        for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
+            SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);
+            p_continuum_particle_i->mContinuumInitialNeighborsSize = 0;
+            p_continuum_particle_i->mInitialNeighborsSize = 0;
+        }
+        
+        for (unsigned int i=0; i<mListOfSphericParticles.size()-1; i++) {
+            SphericContinuumParticle* p_continuum_particle_i = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[i]);            
+            
+            if(mListOfSphericParticles.size()<=1 ) break;
+            array_1d<double, 3 > zero_vector(3, 0.0);
+            
+            for (unsigned int j=i+1; j<mListOfSphericParticles.size(); j++) {
+                SphericContinuumParticle* p_continuum_particle_j = dynamic_cast<SphericContinuumParticle*> (mListOfSphericParticles[j]);
+                
+                array_1d<double, 3> other_to_me_vect;
+                noalias(other_to_me_vect)= p_continuum_particle_i->GetGeometry()[0].Coordinates() - p_continuum_particle_j->GetGeometry()[0].Coordinates();
+
+                double distance = DEM_MODULUS_3(other_to_me_vect);
+                double radius_sum = p_continuum_particle_i->GetRadius() + p_continuum_particle_j->GetRadius();
+                
+                if(distance < radius_sum + search_tolerance) {                                                        
+                    double initial_delta = radius_sum - distance;
+                    
+                    p_continuum_particle_i->mNeighbourElements.push_back(p_continuum_particle_j);
+                    p_continuum_particle_i->mIniNeighbourIds.push_back(p_continuum_particle_j->Id());
+                    p_continuum_particle_i->mIniNeighbourDelta.push_back(initial_delta);
+                    p_continuum_particle_i->mIniNeighbourFailureId.push_back(0);
+                    p_continuum_particle_i->mContinuumInitialNeighborsSize++;
+                    p_continuum_particle_i->mInitialNeighborsSize++;
+                    p_continuum_particle_i->mNeighbourElasticContactForces.push_back(zero_vector);
+                    p_continuum_particle_i->mNeighbourTotalContactForces.push_back(zero_vector);
+                    
+                    
+                    p_continuum_particle_j->mNeighbourElements.push_back(p_continuum_particle_i);
+                    p_continuum_particle_j->mIniNeighbourIds.push_back(p_continuum_particle_i->Id());
+                    p_continuum_particle_j->mIniNeighbourDelta.push_back(initial_delta);
+                    p_continuum_particle_j->mIniNeighbourFailureId.push_back(0);
+                    p_continuum_particle_j->mContinuumInitialNeighborsSize++;
+                    p_continuum_particle_j->mInitialNeighborsSize++; 
+                    p_continuum_particle_j->mNeighbourElasticContactForces.push_back(zero_vector);
+                    p_continuum_particle_j->mNeighbourTotalContactForces.push_back(zero_vector);
+                }
+            }   
+        }
+    }
 }  // namespace Kratos.
 

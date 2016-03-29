@@ -12,9 +12,7 @@
 
 namespace Kratos {
 
-    void DEM_ExponentialHC::Initialize(const ProcessInfo& r_process_info) {
-        
-
+    void DEM_ExponentialHC::Initialize() {        
         KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
         mHistoryMaxForce            = 0.0; //maximum force achieved

@@ -165,6 +165,7 @@ namespace Kratos
             // 4. Set Initial Contacts        
             if (r_process_info[CASE_OPTION] != 0) {            
                 SetInitialDemContacts();
+                CalculateMeanContactArea();
             }   
             
             ComputeNewNeighboursHistoricalData();                    
@@ -179,9 +180,6 @@ namespace Kratos
             if (r_process_info[CONTACT_MESH_OPTION] == 1) {   
                 CreateContactElements();
                 InitializeContactElements();
-                ParticleAreaCalculate(true); //first time;
-                ContactCalculateArea();
-                ParticleAreaCalculate(false); //2nd time
             }
 
             // 5. Finalize Solution Step        
@@ -278,9 +276,6 @@ namespace Kratos
                         if (r_process_info[CONTACT_MESH_OPTION] == 1) {                            
                             CreateContactElements();
                             InitializeContactElements();
-                            ParticleAreaCalculate(true); //first time;
-                            ContactCalculateArea();
-                            ParticleAreaCalculate(false); //2nd time
                         }
                     }
                 }
@@ -604,32 +599,9 @@ namespace Kratos
         VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
     }
-    
-    void ContactCalculateArea()
-    {        
-        bool has_mpi = false;
-        Check_MPI(has_mpi);                
-        
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-              
-        vector<unsigned int> contact_element_partition;
-          
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+       
 
-        #pragma omp parallel for                   
-        for(int k=0; k<mNumberOfThreads; k++) {
-            typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
-            typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
-              
-            for (typename ElementsArrayType::iterator it= it_contact_begin; it!=it_contact_end; ++it) {
-                Element* raw_p_contact_element = &(*it);
-                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( raw_p_contact_element );    
-                p_bond->CalculateMeanContactArea(has_mpi);                
-            } //loop over CONTACT ELEMENTS
-        }// loop threads OpenMP
-    } //ContactCalculateArea
-
-    void ParticleAreaCalculate(const bool first) {
+    void CalculateMeanContactArea() {
 
         KRATOS_TRY
 
@@ -643,11 +615,11 @@ namespace Kratos
 
         #pragma omp parallel for 
         for (int i = 0; i < number_of_particles; i++) { //Do not do this for the ghost particles!
-            mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, r_process_info, first);
+            mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi, r_process_info);
         }
 
         KRATOS_CATCH("")
-    } //ParticleAreaCalculate
+    } 
  
     void SetInitialDemContacts()
     {           
@@ -656,17 +628,28 @@ namespace Kratos
         ProcessInfo& r_process_info  = GetModelPart().GetProcessInfo();
         const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++){
-            mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info);
-            mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws(r_process_info);
-            mListOfSphericContinuumParticles[i]->SearchSkinParticles(r_process_info); // TODO ContactAreaWeighting must be run after we know all skin conditions
-            mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
-        }            
+        #pragma omp parallel 
+        {
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++){
+                mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info);
+                mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws();
+            }
+            
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++){
+                mListOfSphericContinuumParticles[i]->SearchSkinParticles(r_process_info); 
+            }
+            
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++){
+                mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
+            }
+        }
 
         KRATOS_CATCH("")
 
-    } //SetInitialDemContacts
+    } 
 
     
     void SetInitialFemContacts() {           
@@ -680,14 +663,14 @@ namespace Kratos
         }          
 
         KRATOS_CATCH("")
-    } //SetInitialDemContacts     
+    }    
     
     void FinalizeSolutionStep()
     {
         BaseType::FinalizeSolutionStep();
         FinalizeSolutionStepFEM();
         
-    } //SetInitialDemContacts            
+    }    
          
     void FinalizeSolutionStepFEM() {      
         KRATOS_TRY

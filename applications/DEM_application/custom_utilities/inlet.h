@@ -50,7 +50,7 @@ namespace Kratos {
         /// Destructor.
         virtual ~DEM_Inlet();
         
-        void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator);
+        void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum);
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); 
         void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
         void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator);

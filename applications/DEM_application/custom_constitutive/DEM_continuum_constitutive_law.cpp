@@ -18,7 +18,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void DEMContinuumConstitutiveLaw::Initialize(const ProcessInfo& r_process_info) {
+    void DEMContinuumConstitutiveLaw::Initialize() {
     }
 
     void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {

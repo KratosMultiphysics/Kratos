@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_KDEM() {
         }    
 
-        void Initialize(const ProcessInfo& r_process_info);
+        void Initialize();
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 

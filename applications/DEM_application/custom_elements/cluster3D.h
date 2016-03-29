@@ -31,7 +31,6 @@
 #include "custom_elements/spheric_particle.h"
 #include "custom_utilities/create_and_destroy.h"
 
-
 namespace Kratos
 {
     
@@ -56,14 +55,18 @@ namespace Kratos
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
         virtual void CustomInitialize();
         virtual void SetOrientation(const array_1d<double, 3>& euler_angles);
-        virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part);
+        virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties);
         virtual void UpdatePositionOfSpheres(const double RotationMatrix[3][3]);
         virtual void UpdateLinearDisplacementAndVelocityOfSpheres();
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
         virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
         unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
-        std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; };              
+        std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; }; 
+        virtual void SetContinuumGroupToBreakableClusterSpheres(const int Id);
+        virtual void SetInitialConditionsToSpheres(const array_1d<double,3>& velocity);
+        virtual void SetInitialNeighbours(const double search_tolerance);
+        virtual void CreateContinuumConstitutiveLaws();
    
         double GetSqrtOfRealMass();
 
@@ -91,8 +94,7 @@ namespace Kratos
        
         std::vector<double>                mListOfRadii;
         std::vector<array_1d<double, 3> >  mListOfCoordinates;        
-        std::vector<SphericParticle*>      mListOfSphericParticles;
-        
+        std::vector<SphericParticle*>      mListOfSphericParticles;        
       
     private:
        

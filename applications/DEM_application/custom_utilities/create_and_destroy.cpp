@@ -237,7 +237,7 @@ namespace Kratos {
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
     }
 
-    void ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    Kratos::Element* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
                                                                         Node < 3 > ::Pointer reference_node,
                                                                         Element::Pointer injector_element,
@@ -272,7 +272,7 @@ namespace Kratos {
         
         nodelist.push_back(pnew_node);
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
-        Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
+        SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
 
         if (initial) {
             array_of_injector_elements.push_back(p_particle);
@@ -281,7 +281,7 @@ namespace Kratos {
         }
         else {
             array_1d<double, 3 > zero_vector(3, 0.0);
-            Kratos::SphericParticle* injector_spheric_particle = dynamic_cast<Kratos::SphericParticle*> (injector_element.get());
+            SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
             injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
             injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
             injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
@@ -308,6 +308,8 @@ namespace Kratos {
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
 
         r_modelpart.Elements().push_back(p_particle);
+        
+        return spheric_p_particle;
     }
 
     void ParticleCreatorDestructor::NodeCreatorForClusters(ModelPart& r_modelpart,
@@ -356,7 +358,7 @@ namespace Kratos {
         //pnew_node->FastGetSolutionStepValue(SPRAYED_MATERIAL) = 0.0;
     }
 
-    Kratos::SphericParticle* ParticleCreatorDestructor::ElementCreatorForClusters(ModelPart& r_modelpart,
+    Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -365,7 +367,7 @@ namespace Kratos {
                                                                                   const Element& r_reference_element,
                                                                                   const int cluster_id) {
         Node<3>::Pointer pnew_node;
-
+        
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
         Geometry<Node <3> >::PointsArrayType nodelist;
@@ -378,12 +380,11 @@ namespace Kratos {
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
         spheric_p_particle->SetMass(cluster_mass);
-        spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());
-        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
-
+        spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());        
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
-        spheric_p_particle->SetClusterId(cluster_id);
+        spheric_p_particle->SetClusterId(cluster_id);        
+        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());                      
 
         #pragma omp critical
         {        
@@ -391,9 +392,49 @@ namespace Kratos {
         }
         
         return spheric_p_particle;
-    }    
+    }
+
+Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
+                                                                                  int r_Elem_Id,
+                                                                                  double radius,
+                                                                                  array_1d<double, 3>& reference_coordinates,
+                                                                                  Properties::Pointer r_params,
+                                                                                  const Element& r_reference_element,
+                                                                                  const int cluster_id, 
+                                                                                  PropertiesProxy* p_fast_properties) {
+        Node<3>::Pointer pnew_node;
+        
+        NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
+
+        Geometry<Node <3> >::PointsArrayType nodelist;
+        nodelist.push_back(pnew_node);
+
+        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+
+        Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
+
+        spheric_p_particle->SetRadius(radius);
+        spheric_p_particle->SetSearchRadius(radius);
+        spheric_p_particle->SetFastProperties(p_fast_properties);
+        spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
+        spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo()); //Sets rotation flag
+        if (spheric_p_particle->Is(DEMFlags::HAS_ROTATION)) {
+            spheric_p_particle->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = spheric_p_particle->CalculateMomentOfInertia();
+        }               
+        spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
+        spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
+        spheric_p_particle->SetClusterId(-1);        
+        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());                      
+
+        #pragma omp critical
+        {        
+            r_modelpart.Elements().push_back(p_particle);
+        }
+        
+        return spheric_p_particle;
+    }       
     
-    void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+    void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_spheres_modelpart,
                                                                          ModelPart& r_clusters_modelpart,
                                                                          int r_Elem_Id,
                                                                          Node < 3 > ::Pointer reference_node,
@@ -403,25 +444,25 @@ namespace Kratos {
                                                                          PropertiesProxy* p_fast_properties,
                                                                          bool has_sphericity,
                                                                          bool has_rotation,
-                                                                         bool initial,
                                                                          ElementsContainerType& array_of_injector_elements,
                                                                          int& number_of_added_spheres) {
-        
+        KRATOS_TRY
+                
         Node < 3 > ::Pointer pnew_node;
 
         double radius = (*r_params)[RADIUS];
         double max_radius = 1.5 * radius;
         array_1d<double, 3> euler_angles;
         
-        if (initial) {
-            radius = max_radius;
-        } else {
-            double std_deviation = (*r_params)[STANDARD_DEVIATION];
-            double min_radius = 0.5 * radius;
-            radius = rand_normal(radius, std_deviation, max_radius, min_radius);
-        }
+        double std_deviation = (*r_params)[STANDARD_DEVIATION];
+        std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
+        double min_radius = 0.5 * radius;
 
-        NodeCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial);
+        if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+        else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
+
+        NodeCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, false);
         
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
         
@@ -429,64 +470,69 @@ namespace Kratos {
 
         nodelist.push_back(pnew_node);
 
-        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
-
-        if (initial) {
-            array_of_injector_elements.push_back(p_particle);
-            p_particle->Set(BLOCKED);
-            pnew_node->Set(BLOCKED);
-        }
-        else {
-            Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_particle.get());
-            p_cluster->Initialize();                        
+        Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+        Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
+                          
+        p_cluster->Initialize();                        
                     
-            if ((*r_params)[RANDOM_EULER_ANGLES]) {
-                
-                double random_factor = 2.0 * KRATOS_M_PI / RAND_MAX;
-                euler_angles[0] = random_factor * rand();
-                euler_angles[1] = random_factor * rand();
-                euler_angles[2] = random_factor * rand();                
-            }
+        if ((*r_params)[RANDOM_EULER_ANGLES]) {
             
-            else {
-                euler_angles[0] = (*r_params)[EULER_ANGLES][0];
-                euler_angles[1] = (*r_params)[EULER_ANGLES][1];
-                euler_angles[2] = (*r_params)[EULER_ANGLES][2];
-            }
+            double random_factor = 2.0 * KRATOS_M_PI / RAND_MAX;
+            euler_angles[0] = random_factor * rand();
+            euler_angles[1] = random_factor * rand();
+            euler_angles[2] = random_factor * rand();                
+        }
+        
+        else {
+            euler_angles[0] = (*r_params)[EULER_ANGLES][0];
+            euler_angles[1] = (*r_params)[EULER_ANGLES][1];
+            euler_angles[2] = (*r_params)[EULER_ANGLES][2];
+        }
+        
+        p_cluster->SetOrientation(euler_angles);            
+        
+        ParticleCreatorDestructor* creator_destructor_ptr = this;
+        p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties);                        
+        
+        number_of_added_spheres = p_cluster->GetNumberOfSpheres();
+        
+        SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
+
+		if (has_rotation) p_cluster->Set(DEMFlags::HAS_ROTATION, true);
+        else p_cluster->Set(DEMFlags::HAS_ROTATION, false);
+
+        if(!(*r_params)[BREAKABLE_CLUSTER]){  //THIS IS NOT THREAD SAFE!!!
+            r_clusters_modelpart.Elements().push_back(p_new_cluster);  //We add the cluster element to the clusters modelpart               
+        }
+        else { 
+            p_cluster->GetGeometry()[0].Set(TO_ERASE); //We do not add the cluster to the modelpart (will be erased at the end of this function) and we mark the central node for erasing (none are needed)
+            p_cluster->SetContinuumGroupToBreakableClusterSpheres(r_Elem_Id);
+            p_cluster->SetInitialNeighbours((*r_params)[SEARCH_TOLERANCE]);
+            p_cluster->CreateContinuumConstitutiveLaws();
+            p_cluster->SetInitialConditionsToSpheres((*r_params)[VELOCITY]);            
+        }
+        
+        array_1d<double, 3 > zero_vector(3, 0.0);
+        
+        for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) { 
+            SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
+            injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
+            injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+            injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+            spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
+            spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
+            spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
+            spheric_p_particle->Set(NEW_ENTITY);
+            spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
+            spheric_p_particle->SetFastProperties(p_fast_properties);
             
-            p_cluster->SetOrientation(euler_angles);            
-            
-            ParticleCreatorDestructor* creator_destructor_ptr = this;
-            p_cluster->CreateParticles(creator_destructor_ptr, r_modelpart);
-            number_of_added_spheres = p_cluster->GetNumberOfSpheres();
-            
-            Kratos::SphericParticle* injector_spheric_particle = dynamic_cast<Kratos::SphericParticle*> (injector_element.get());
-            
-            array_1d<double, 3 > zero_vector(3, 0.0);
-            
-            for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) { 
-                Kratos::SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
-                injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
-                injector_spheric_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-                injector_spheric_particle->mNeighbourTotalContactForces.push_back(zero_vector);
-                spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
-                spheric_p_particle->mNeighbourElasticContactForces.push_back(zero_vector);
-                spheric_p_particle->mNeighbourTotalContactForces.push_back(zero_vector);
-                spheric_p_particle->Set(NEW_ENTITY);
-                spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
-                //spheric_p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());  //protected!!
-                spheric_p_particle->SetFastProperties(p_fast_properties);
-            }
         }
 
-        p_particle->Set(NEW_ENTITY);
-        pnew_node->Set(NEW_ENTITY);            
-        
-        if (has_rotation) p_particle->Set(DEMFlags::HAS_ROTATION, true);
-        else p_particle->Set(DEMFlags::HAS_ROTATION, false);
-
-        r_clusters_modelpart.Elements().push_back(p_particle);                
+        p_cluster->Set(NEW_ENTITY);
+        pnew_node->Set(NEW_ENTITY);
+        KRATOS_CATCH("")
     }
+
 
     void ParticleCreatorDestructor::CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part,
                                                                     ModelPart& r_clusters_model_part,
@@ -605,101 +651,7 @@ namespace Kratos {
         }
 
         KRATOS_CATCH("")
-    }
-    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
-
-        KRATOS_TRY
-              
-                    //Type definitions
-        typedef ModelPart::ElementsContainerType ElementsArrayType;
-//        typedef ElementsArrayType::iterator ElementsIterator;
-
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-
-        //ElementsArrayType& rElements                          = r_model_part.Elements();
-        //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
-
-        ElementsArrayType temp_particles_container;
-        ModelPart::NodesContainerType temp_nodes_container;
-
-        temp_particles_container.reserve(rElements.size());
-        temp_nodes_container.reserve(rNodes.size());
-
-        temp_particles_container.swap(rElements);
-        temp_nodes_container.swap(rNodes);
-
-        //Add the ones not marked with TO_ERASE
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it) {
-
-            if (!(*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
-                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) { //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
-                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    (rNodes).push_back(boost::move(pNode));
-                }
-                (rElements).push_back(boost::move(*particle_pointer_it)); //adding the elements
-            }
-        }
-        KRATOS_CATCH("")
-    }*/
-    
-    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
-
-        KRATOS_TRY
-        
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
-
-        ElementsArrayType temp_particles_container;        
-        ModelPart::NodesContainerType temp_nodes_container;
-        
-        temp_particles_container.reserve(rElements.size());
-        temp_nodes_container.reserve(rNodes.size());
-
-        temp_particles_container.swap(rElements);
-        temp_nodes_container.swap(rNodes);        
-
-        //Add the ones not marked with TO_ERASE
-        if(temp_particles_container.size() != temp_nodes_container.size()) {
-            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
-        }
-        
-        for(int k=0; k<(int)temp_particles_container.size(); k++) {
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin() + k;
-            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = temp_nodes_container.ptr_begin() + k;
-            if (!(*node_pointer_it)->Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {                                                
-                rElements.push_back(*particle_pointer_it); //adding the elements
-                rNodes.push_back(*node_pointer_it); //adding the nodes
-            }
-        }                     
-        
-        KRATOS_CATCH("")
-    }*/
-    
-    
-    /*void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
-
-        KRATOS_TRY
-        
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();       
-
-        //Add the ones not marked with TO_ERASE
-        if(rElements.size() != rNodes.size()) {
-            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
-        }
-        
-        for(int k=(int)rElements.size()-1; k >= 0; k--) {
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k;
-            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
-            if ((*node_pointer_it)->Is(TO_ERASE) || (*particle_pointer_it)->Is(TO_ERASE)) {                                                
-                rElements.erase(particle_pointer_it); 
-                rNodes.erase(node_pointer_it);                 
-            }
-        }                     
-        
-        KRATOS_CATCH("")
-    }*/
+    }    
     
     void ParticleCreatorDestructor::DestroyParticles(ModelPart& r_model_part) {
 
@@ -740,8 +692,7 @@ namespace Kratos {
                 }
                 good_nodes_counter++;                                
             }
-            else{ (*node_pointer_it).reset(); }    
-            
+            else{ (*node_pointer_it).reset(); }                
         }
         
         if(good_elems_counter != good_nodes_counter) {
@@ -783,6 +734,28 @@ namespace Kratos {
         
         if((int)rElements.size() != good_elems_counter){ rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end()); }
                 
+        KRATOS_CATCH("")
+    }
+    
+    void ParticleCreatorDestructor::RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart) {
+        KRATOS_TRY
+        ModelPart::NodesContainerType& rNodes = r_clusters_modelpart.GetCommunicator().LocalMesh().Nodes();   
+        int good_nodes_counter = 0;
+        
+        for(int k=0; k < (int)rNodes.size(); k++) {
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            if ((*node_pointer_it)->IsNot(TO_ERASE)) {
+  	        if(k != good_nodes_counter){
+                    *(rNodes.ptr_begin() + good_nodes_counter) = boost::move(*node_pointer_it);
+                }
+                good_nodes_counter++;                                
+            }
+            else{ (*node_pointer_it).reset(); }                
+        }
+        
+        if((int)rNodes.size() != good_nodes_counter){
+            rNodes.erase(rNodes.ptr_begin() + good_nodes_counter, rNodes.ptr_end());  
+        }  
         KRATOS_CATCH("")
     }
 

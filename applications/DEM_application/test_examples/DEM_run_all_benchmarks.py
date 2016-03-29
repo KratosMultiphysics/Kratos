@@ -28,7 +28,7 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 13... Impact of a low stiffness sphere against a rigid plane divided in small triangular elements\n",
                   "Running DEM Benchmark 14... Impact of a low stiffness sphere against a rigid edge divided in small triangular elements\n",
                   "Running DEM Benchmark 15... Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n",
-                  "Running DEM Benchmark 16... Spheres contacting multiple entities (facets, edges and vetices)\n",
+                  "Running DEM Benchmark 16... Spheres contacting multiple entities (facets, edges and vertices)\n",
                   "Running DEM Benchmark 17... Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n",
                   "","",
                   "Running DEM Benchmark 20... Normal compression of two identical spheres\n",\

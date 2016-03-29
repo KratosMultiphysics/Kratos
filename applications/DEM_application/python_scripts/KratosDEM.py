@@ -227,7 +227,7 @@ if (DEM_parameters.ContactMeshOption =="ON"):
 if (DEM_parameters.dem_inlet_option):                                        
     #Constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
+    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, solver.continuum_type)
   
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 

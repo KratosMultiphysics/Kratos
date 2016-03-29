@@ -24,7 +24,7 @@ namespace Kratos {
         double mGamma3;
         double mMaxDef;
 
-        void Initialize(const ProcessInfo& r_process_info);
+        void Initialize();
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 

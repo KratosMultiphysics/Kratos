@@ -12,17 +12,14 @@
 
 namespace Kratos {
 
-    void DEM_Dempack2D::Initialize(const ProcessInfo& r_process_info) {
-        
+    void DEM_Dempack2D::Initialize() {
     KRATOS_TRY  
-    
-    mHistoryMaxInd              = 0.0; //maximum indentation achieved
-    mHistoryMaxForce            = 0.0; //maximum force achieved
-    mHistoryDamage              = 0.0; //cumulated_damage
-    mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
-    mHistoryDisp                = 0.0; //displacement;
-    mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
-    
+        mHistoryMaxInd              = 0.0; //maximum indentation achieved
+        mHistoryMaxForce            = 0.0; //maximum force achieved
+        mHistoryDamage              = 0.0; //cumulated_damage
+        mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
+        mHistoryDisp                = 0.0; //displacement;
+        mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
     KRATOS_CATCH("")  
     }
 

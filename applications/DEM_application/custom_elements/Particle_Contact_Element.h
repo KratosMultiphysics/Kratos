@@ -73,10 +73,6 @@ public:
     double mContactFailure;
     double mFailureCriterionState;
     double mUnidimendionalDamage;
-    double mMeanContactArea;
-    double mLocalContactAreaLow;
-    double mLocalContactAreaHigh;
-
 
 protected:
 

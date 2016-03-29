@@ -28,7 +28,7 @@ namespace Kratos {
         double mHistoryShearFlag;
 
 
-        virtual void Initialize(const ProcessInfo& r_process_info);
+        virtual void Initialize();
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 

@@ -428,7 +428,17 @@ namespace Kratos
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
 
                 cluster_element.Initialize();
-                cluster_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part);
+                
+                PropertiesProxy* p_fast_properties = NULL;
+                int general_properties_id = cluster_element.GetProperties().Id();  
+                for (unsigned int i = 0; i < mFastProperties.size(); i++) {
+                    int fast_properties_id = mFastProperties[i].GetId(); 
+                    if (fast_properties_id == general_properties_id) {  
+                        p_fast_properties = &(mFastProperties[i]);
+                        break;
+                    }
+                }
+                cluster_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part, p_fast_properties);
             }
 
 
@@ -630,13 +640,10 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
-      virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0)
-      {
+      virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0) {
           KRATOS_TRY
-
           GetScheme()->Calculate(BaseType::GetModelPart(), StepFlag);
           GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
-
           KRATOS_CATCH("")
       }
 

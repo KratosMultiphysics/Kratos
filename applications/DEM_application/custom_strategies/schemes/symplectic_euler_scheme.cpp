@@ -15,7 +15,6 @@ namespace Kratos {
         DEMIntegrationScheme::AddClustersVariables(r_model_part);
                               
     }
-
     
     void SymplecticEulerScheme::UpdateTranslationalVariables(
             int StepFlag,
@@ -42,7 +41,7 @@ namespace Kratos {
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
-        } // dimensions  
+        } // dimensions         
     }
 
     void SymplecticEulerScheme::UpdateRotationalVariables(

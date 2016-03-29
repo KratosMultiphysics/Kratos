@@ -10,7 +10,7 @@
 
 namespace Kratos {
 
-    void DEM_KDEM::Initialize(const ProcessInfo& r_process_info) {
+    void DEM_KDEM::Initialize() {
 
         KRATOS_TRY
         KRATOS_CATCH("")  
@@ -43,7 +43,8 @@ namespace Kratos {
     }
     
     void DEM_KDEM::GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
-        calculation_area = vector_of_initial_areas[neighbour_position];
+      if(vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
+      else CalculateContactArea(radius, other_radius, calculation_area);
     }
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
