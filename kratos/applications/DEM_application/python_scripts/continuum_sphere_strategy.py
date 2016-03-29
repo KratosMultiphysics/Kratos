@@ -55,6 +55,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
 
+    def SetContinuumType(self):
+        self.continuum_type = True
+    
     def Initial_Critical_Time(self):
         (self.cplusplus_strategy).InitialTimeStepCalculation()
 

@@ -45,10 +45,7 @@ std::string ParticleContactElement::Info() const
 void ParticleContactElement::Initialize() {
     KRATOS_TRY
     
-    mMeanContactArea = 0.0;    
     mFailureCriterionState = 0.0;    
-    mLocalContactAreaLow  = 0.0;
-    mLocalContactAreaHigh = 0.0;
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
@@ -84,16 +81,6 @@ void ParticleContactElement::PrepareForPrinting() {
     this->GetValue(UNIDIMENSIONAL_DAMAGE)  = mUnidimendionalDamage; 
     
     KRATOS_CATCH( "" )    
-}
-
-void ParticleContactElement::CalculateMeanContactArea(const bool has_mpi)
-{
-    KRATOS_TRY
-            
-    if (!has_mpi) mMeanContactArea = 0.5 * ( mLocalContactAreaLow + mLocalContactAreaHigh );
-    else mMeanContactArea = mLocalContactAreaLow;
-    
-    KRATOS_CATCH( "" )
 }
 
 void ParticleContactElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info)

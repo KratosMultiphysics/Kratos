@@ -34,7 +34,7 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw& rReferenceContinuumConstitutiveLaw);
 
-        virtual void Initialize(const ProcessInfo& r_process_info);
+        virtual void Initialize();
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
         

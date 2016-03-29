@@ -19,12 +19,12 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);   
         
         if (mRotationOption){
-        r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA); 
-        r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
-        r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
-        r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
-        r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);         
-    }
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA); 
+            r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
+            r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);         
+        }
     }
     
     void DEMIntegrationScheme::AddClustersVariables(ModelPart & r_model_part){
@@ -36,13 +36,13 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(NODAL_MASS);     
         
         if (mRotationOption){
-        r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA); 
-        r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
-        r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
-        r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
-        r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
-        r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
-    }
+            r_model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA); 
+            r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY); 
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
+            r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
+            r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
+            r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
+        }
     }
     
     void DEMIntegrationScheme::SetRotationOption(const int rotation_option) {

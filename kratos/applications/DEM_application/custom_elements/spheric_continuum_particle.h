@@ -42,7 +42,7 @@ namespace Kratos
         void SearchSkinParticles(ProcessInfo& r_process_info);
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
-        void CreateContinuumConstitutiveLaws(ProcessInfo& r_process_info);
+        void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(ProcessInfo& r_process_info);     
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
@@ -51,7 +51,7 @@ namespace Kratos
         
         //virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
       
-        virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info, const bool first);      
+        virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);      
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            

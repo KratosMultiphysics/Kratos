@@ -121,8 +121,12 @@ class ExplicitStrategy:
         else:
             self.search_strategy = OMP_DEMSearch(-1.0, -1.0, -1.0)
 
-
-
+        self.SetContinuumType()
+        
+        
+    def SetContinuumType(self):
+        self.continuum_type = False
+        
     def Var_Translator(self, variable):
 
         if (variable == "OFF" or variable == "0" or variable == 0 or variable == "No"):
