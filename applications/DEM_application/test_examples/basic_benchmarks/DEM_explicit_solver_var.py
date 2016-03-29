@@ -51,6 +51,7 @@ MaxTimeStep                      = 3.7e-12
 FinalTime                        = 0.0000035
 ControlTime                      = 4.0
 NeighbourSearchFrequency         = 1
+PeriodicDomainOption             = 0
 
 # Constitutive Parameters
 

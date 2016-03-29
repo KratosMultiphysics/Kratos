@@ -43,6 +43,7 @@ MaxTimeStep                      = 1e-5
 FinalTime                        = 0.01
 ControlTime                      = 100.0
 NeighbourSearchFrequency         = 1
+PeriodicDomainOption             = 0
 
 # Constitutive Parameters
 MaterialModel                    = "1DPlasticity"
