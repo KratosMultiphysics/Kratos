@@ -147,7 +147,7 @@ namespace Kratos {
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
 
-        //#pragma omp parallel for //TODO:
+        #pragma omp parallel for
         for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
             ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                                        
             if (elem_it->IsNot(NEW_ENTITY)) continue;
