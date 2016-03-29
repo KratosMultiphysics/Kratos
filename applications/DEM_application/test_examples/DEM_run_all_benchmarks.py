@@ -119,7 +119,7 @@ def Run():
     g.write("Benchmark 13. Impact of a low stiffness sphere against a rigid plane divided in small triangular elements\n")
     g.write("Benchmark 14. Impact of a low stiffness sphere against a rigid edge divided in small triangular elements\n")
     g.write("Benchmark 15. Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n")
-    g.write("Benchmark 16. Spheres contacting multiple entities (facets, edges and vetices)\n")
+    g.write("Benchmark 16. Spheres contacting multiple entities (facets, edges and vertices)\n")
     g.write("Benchmark 17. Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n")
     g.write("\nCONTINUUM TESTS:\n")
     g.write("Benchmark 20. Normal compression of two identical spheres\n")
