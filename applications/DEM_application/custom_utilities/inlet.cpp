@@ -60,6 +60,8 @@ namespace Kratos {
      
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
         
+        mStrategyForContinuum = using_strategy_for_continuum;
+        
         unsigned int& max_Id=creator.mMaxNodeId;       
         CreatePropertiesProxies(mFastProperties, mInletModelPart);      
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
@@ -366,17 +368,21 @@ namespace Kratos {
                 if (mInletModelPart.GetProperties(mesh_number)[CONTAINS_CLUSTERS] == false) {
                
                     for (int i = 0; i < number_of_particles_to_insert; i++) {
-                        creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
-                                                                     max_Id+1, 
-                                                                     inserting_elements[i]->GetGeometry()(0), 
-                                                                     inserting_elements[i],
-                                                                     mInletModelPart.pGetProperties(mesh_number), 
-                                                                     r_reference_element, 
-                                                                     p_fast_properties, 
-                                                                     mBallsModelPartHasSphericity, 
-                                                                     mBallsModelPartHasRotation, 
-                                                                     false, 
-                                                                     mesh_it->Elements());
+                        Element* p_element = creator.ElementCreatorWithPhysicalParameters(r_modelpart,                                                                     
+                                                                                        max_Id+1, 
+                                                                                        inserting_elements[i]->GetGeometry()(0), 
+                                                                                        inserting_elements[i],
+                                                                                        mInletModelPart.pGetProperties(mesh_number), 
+                                                                                        r_reference_element, 
+                                                                                        p_fast_properties, 
+                                                                                        mBallsModelPartHasSphericity, 
+                                                                                        mBallsModelPartHasRotation, 
+                                                                                        false, 
+                                                                                        mesh_it->Elements());
+                        if(mStrategyForContinuum) {
+                            SphericContinuumParticle& spheric_cont_particle = dynamic_cast<SphericContinuumParticle&>(*p_element);
+                            spheric_cont_particle.mContinuumInitialNeighborsSize = 0;
+                        }
                         inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id++;
