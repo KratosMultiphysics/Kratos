@@ -842,11 +842,14 @@ void SmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
       this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
+      //KRATOS_WATCH( rRightHandSideVector )
+
       // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
+      //KRATOS_WATCH( rRightHandSideVector )
     }
-    //KRATOS_WATCH( rRightHandSideVector )
+
 }
 
 //************************************************************************************
@@ -878,11 +881,7 @@ void SmallDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
 	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	    {
 	      
-	      for ( unsigned int l = 0; l < dimension; l++ )
-		{
-		  rLeftHandSideMatrix(indexi+k,indexj+l) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
-		}
-
+	      rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
 	      indexj += dimension;
 	    }
 
@@ -890,7 +889,6 @@ void SmallDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
       
       indexi += dimension;
     }
-
 
   //KRATOS_WATCH( rLeftHandSideMatrix )
 }

@@ -982,11 +982,7 @@ void LargeDisplacementElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSi
 	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	    {
 	      
-	      for ( unsigned int l = 0; l < dimension; l++ )
-		{
-		  rLeftHandSideMatrix(indexi+k,indexj+l) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
-		}
-
+	      rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
 	      indexj += dimension;
 	    }
 
