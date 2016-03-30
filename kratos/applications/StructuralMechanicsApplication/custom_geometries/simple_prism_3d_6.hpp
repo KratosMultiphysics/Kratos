@@ -326,8 +326,7 @@ public:
      * and for the other geometries it gives Characteristic length
      * otherwise.
      *
-     * @return double value contains length or Characteristic
-     * length
+     * @return double value contains length or Characteristic length
      * @see Area()
      * @see Volume()
      * @see DomainSize()
@@ -336,7 +335,18 @@ public:
      */
     virtual double Length() const
     {
-        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double Volume = 0.00;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ )
+        {
+            Volume += temp[i] * integration_points[i].Weight();
+        }
+
+        return cbrt(Volume)/3.0;
+//        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
