@@ -138,6 +138,9 @@ void KratosStructuralMechanicsApplication::Register()
     
     // Register the conditions
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
+
+    SimplePrism3D6<Node<3> > SimplePrism3D6Prototype( Element::GeometryType::PointsArrayType( 6, Node<3>() ) );
+    Serializer::Register( "SimplePrism3D6", SimplePrism3D6Prototype );
 }
 
 }  // namespace Kratos.
