@@ -129,7 +129,7 @@ namespace Kratos
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareElementsForPrinting", &ExplicitSolverStrategyType::PrepareElementsForPrinting)
-                  .def("ResetPrescribedMotionFlags", &ExplicitSolverStrategyType::ResetPrescribedMotionFlags)
+                  .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategyType::ResetPrescribedMotionFlagsRespectingImposedDofs)
           ;
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>

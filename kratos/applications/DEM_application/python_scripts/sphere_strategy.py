@@ -234,7 +234,7 @@ class ExplicitStrategy:
 
 
     def Solve(self):
-        (self.cplusplus_strategy).ResetPrescribedMotionFlags()
+        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixDOFsManually()
         self.FixExternalForcesManually()
         (self.cplusplus_strategy).Solve()
