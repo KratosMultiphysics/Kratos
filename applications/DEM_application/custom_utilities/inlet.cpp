@@ -190,6 +190,7 @@ namespace Kratos {
                     node_it.pGetDof(VELOCITY_Z)->FreeDof();
                     node_it.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
                     node_it.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+                    node_it.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
                 }
                 else {
                     //Inlet BLOCKED nodes are ACTIVE when injecting, so when they cease to be in contact with other balls, ACTIVE is set to 'false', as they become available for injecting new elements.
@@ -243,6 +244,12 @@ namespace Kratos {
                     cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
                     elem_it->Set(NEW_ENTITY, 0);
                     cluster_central_node.Set(NEW_ENTITY, 0);
+                    cluster_central_node.pGetDof(VELOCITY_X)->FreeDof();
+                    cluster_central_node.pGetDof(VELOCITY_Y)->FreeDof();
+                    cluster_central_node.pGetDof(VELOCITY_Z)->FreeDof();
+                    cluster_central_node.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+                    cluster_central_node.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+                    cluster_central_node.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
 
                     for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
                         SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
