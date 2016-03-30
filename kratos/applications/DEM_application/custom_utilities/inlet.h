@@ -64,6 +64,7 @@ namespace Kratos {
         boost::numeric::ublas::vector<bool> mLayerRemoved;
         bool mBallsModelPartHasSphericity;
         bool mBallsModelPartHasRotation;
+        bool mStrategyForContinuum;
         std::vector<PropertiesProxy> mFastProperties;
     };
 }// namespace Kratos.
