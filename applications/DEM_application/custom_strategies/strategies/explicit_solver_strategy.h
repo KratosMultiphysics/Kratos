@@ -950,7 +950,7 @@ namespace Kratos
             if (node.GetDof(ANGULAR_VELOCITY_Y).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Y,true);}
             else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);}
             if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
-            else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}            
+            else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}          
         }
         KRATOS_CATCH("")
     }
