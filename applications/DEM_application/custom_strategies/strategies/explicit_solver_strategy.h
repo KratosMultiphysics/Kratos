@@ -937,12 +937,20 @@ namespace Kratos
         for (int i = 0; i < (int)r_model_part_nodes.size(); i++) {
             typename NodesArrayType::iterator node_i = r_model_part_nodes.ptr_begin() + i;
             if (node_i->Is(BLOCKED)) continue;
-            node_i->Set(DEMFlags::FIXED_VEL_X, false);
-            node_i->Set(DEMFlags::FIXED_VEL_Y, false);
-            node_i->Set(DEMFlags::FIXED_VEL_Z, false);
-            node_i->Set(DEMFlags::FIXED_ANG_VEL_X, false);
-            node_i->Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-            node_i->Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+            Node<3>& node = *node_i;
+            
+            if (node.GetDof(VELOCITY_X).IsFixed())         {node.Set(DEMFlags::FIXED_VEL_X,true);}
+            else                                           {node.Set(DEMFlags::FIXED_VEL_X,false);}
+            if (node.GetDof(VELOCITY_Y).IsFixed())         {node.Set(DEMFlags::FIXED_VEL_Y,true);}
+            else                                           {node.Set(DEMFlags::FIXED_VEL_Y,false);}
+            if (node.GetDof(VELOCITY_Z).IsFixed())         {node.Set(DEMFlags::FIXED_VEL_Z,true);}
+            else                                           {node.Set(DEMFlags::FIXED_VEL_Z,false);}
+            if (node.GetDof(ANGULAR_VELOCITY_X).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_X,true);}
+            else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_X,false);}
+            if (node.GetDof(ANGULAR_VELOCITY_Y).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Y,true);}
+            else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Y,false);}
+            if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
+            else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}            
         }
         KRATOS_CATCH("")
     }
