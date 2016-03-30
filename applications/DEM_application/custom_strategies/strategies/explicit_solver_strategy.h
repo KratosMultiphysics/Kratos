@@ -927,7 +927,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void ResetPrescribedMotionFlags() {
+    void ResetPrescribedMotionFlagsRespectingImposedDofs() {
         KRATOS_TRY
         ModelPart& r_model_part = BaseType::GetModelPart();
 
