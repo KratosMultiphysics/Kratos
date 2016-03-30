@@ -185,6 +185,11 @@ namespace Kratos {
                     node_it.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
                     elem_it->Set(NEW_ENTITY, 0);
                     node_it.Set(NEW_ENTITY, 0);
+                    node_it.pGetDof(VELOCITY_X)->FreeDof();
+                    node_it.pGetDof(VELOCITY_Y)->FreeDof();
+                    node_it.pGetDof(VELOCITY_Z)->FreeDof();
+                    node_it.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+                    node_it.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
                 }
                 else {
                     //Inlet BLOCKED nodes are ACTIVE when injecting, so when they cease to be in contact with other balls, ACTIVE is set to 'false', as they become available for injecting new elements.
