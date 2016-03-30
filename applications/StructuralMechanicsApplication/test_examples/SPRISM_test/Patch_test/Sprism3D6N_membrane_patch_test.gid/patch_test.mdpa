@@ -8,9 +8,10 @@ CONSTITUTIVE_LAW_NAME  LinearElastic3DLaw
 YOUNG_MODULUS          1.00000e+12
 POISSON_RATIO          2.50000e-01
 DENSITY        1.00000e+00
-NINT_TRANS  3
+NINT_TRANS  2
 EAS_IMP        1
 End Properties
+
 
 Begin Nodes
     1   0.0400   0.0200     0.00
@@ -45,17 +46,18 @@ Begin Elements SprismElement3D6N
 End Elements
 
 Begin NodalData DISPLACEMENT_X
-5    1    0.0
-15  1   0.0
+5   1 0.0
+15 1 0.0
 End NodalData
 
 Begin NodalData DISPLACEMENT_Y
-5  1  0.0
-15  1  0.0   
+5   1  0.0
+15 1  0.0
 End NodalData
 
 Begin NodalData DISPLACEMENT_Z
-5    1  0.0
-15  1  0.0
+5  1  0.0
+6  1  0.0
+7  1  0.0
+8  1  0.0
 End NodalData
-
