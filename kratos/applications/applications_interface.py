@@ -144,8 +144,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PfemFluidDynamicsApplication/python_scripts')
         sys.path.append(applications_path + '/PfemFluidDynamicsApplication/Linux')
         from KratosPfemFluidDynamicsApplication import *
-        pfem_fluid_mechanics_application = KratosPfemFluidDynamicsApplication()
-        kernel.AddApplication(pfem_fluid_mechanics_application)
+        pfem_fluid_dynamics_application = KratosPfemFluidDynamicsApplication()
+        kernel.AddApplication(pfem_fluid_dynamics_application)
         print("KratosPfemFluidDynamicsApplication Succesfully imported")
 
     if(Import_ALEApplication):
