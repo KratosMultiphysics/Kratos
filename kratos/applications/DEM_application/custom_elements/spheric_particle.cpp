@@ -139,6 +139,8 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     rigid_element_force.clear();
 
     bool multi_stage_RHS = false;
+    
+    InitializeForceComputation();
 
     ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_process_info, dt, multi_stage_RHS);
     
@@ -160,6 +162,8 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     KRATOS_CATCH("")
 }
+
+void SphericParticle::InitializeForceComputation(){};
 
 void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt, int search_control)
 {
