@@ -106,7 +106,8 @@ private:
     const SphericParticle mSphericParticle3D;
     const NanoParticle mNanoParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D; 
-    const ThermalSphericParticle mThermalSphericContinuumParticle3D;  
+    const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;  
+    const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;  
     const ParticleContactElement mParticleContactElement;
     const VariablesList mVariablesList;
     const SolidFace3D  mSolidFace3D3N;
