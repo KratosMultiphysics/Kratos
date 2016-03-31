@@ -12,8 +12,8 @@ def AddNodalVariables(model_part, variable_list):
     for var in variable_list:
         model_part.AddNodalSolutionStepVariable(var)
 
-def AddingDEMProcessInfoVariables(pp, dem_model_part):
-
+def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
+    fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
@@ -60,6 +60,9 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars += pp.fluid_printing_vars
     pp.fluid_vars += pp.coupling_fluid_vars
     pp.fluid_vars += [PRESSURE_GRADIENT]
+
+    if pp.CFD_DEM.faxen_force_type > 0:
+        pp.fluid_vars += [VELOCITY_LAPLACIAN]
 
     if pp.CFD_DEM.drag_force_type >= 0:
         pp.fluid_vars += [POWER_LAW_N]
@@ -298,6 +301,10 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM.embedded_option:
         pp.nodal_results += ["DISTANCE"]
+
+    pp.CFD_DEM.print_VELOCITY_LAPLACIAN_option = True
+    if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_option:
+        pp.nodal_results += ["VELOCITY_LAPLACIAN"]
 
 def ChangeInputDataForConsistency(pp):
     pp.CFD_DEM.project_at_every_substep_option *= (pp.CFD_DEM.coupling_level_type > 0)
