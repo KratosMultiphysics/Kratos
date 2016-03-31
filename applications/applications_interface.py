@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # path for applications
 import sys
+import os.path
 
 Import_SolidMechanicsApplication = False
 Import_PfemBaseApplication = False
@@ -72,13 +73,10 @@ print("Import_ThermoMechanicalApplication: False")
 print("Import_DEM_FEM_Application: False")
 print("Import_WindTurbineApplication: False")
 
-import os.path
 application_directory = os.path.dirname(os.path.realpath(__file__))
-
 
 def ImportApplications(kernel, applications_path=application_directory):
 
-    #
     # importing the applications
     print("Applications Available:")
     print("Import_SolidMechanicsApplication: " + str(Import_SolidMechanicsApplication))
@@ -402,7 +400,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(wind_turbine_application)
         print("KratosWindTurbineApplication sucessfully imported")
 
-    #
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
     if(Import_SolidMechanicsApplication):
