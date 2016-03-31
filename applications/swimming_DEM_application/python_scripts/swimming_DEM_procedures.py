@@ -10,6 +10,13 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 import shutil
 
+def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
+    if project_parameters.CFD_DEM.faxen_force_type > 0:
+        for node in fluid_model_part.Nodes:
+            node.AddDof(VELOCITY_LAPLACIAN_X)
+            node.AddDof(VELOCITY_LAPLACIAN_Y)
+            node.AddDof(VELOCITY_LAPLACIAN_Z)
+
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
     max_id = 1
