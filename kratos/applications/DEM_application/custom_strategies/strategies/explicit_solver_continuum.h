@@ -230,10 +230,11 @@ namespace Kratos
 
             const int time_step = r_process_info[TIME_STEPS];
             const double time = r_process_info[TIME];
+            const bool is_time_to_search_neighbours = (time_step + 1) % BaseType::GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
 
             if (r_process_info[SEARCH_CONTROL] > 0) {
 
-                if ((time_step + 1) % BaseType::GetNStepSearch() == 0 && time_step > 0) {
+                if (is_time_to_search_neighbours) {
 
                     if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
 
@@ -272,12 +273,12 @@ namespace Kratos
                     BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
                     r_process_info[SEARCH_CONTROL] = 2;
-                    if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+                    //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
                         if (r_process_info[CONTACT_MESH_OPTION] == 1) {                            
                             CreateContactElements();
                             InitializeContactElements();
                         }
-                    }
+                    //}
                 }
                 else{
                     r_process_info[SEARCH_CONTROL] = 1;

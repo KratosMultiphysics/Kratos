@@ -523,6 +523,7 @@ namespace Kratos {
     void SphericContinuumParticle::CalculateOnContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
         KRATOS_TRY
 
+        if(!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 

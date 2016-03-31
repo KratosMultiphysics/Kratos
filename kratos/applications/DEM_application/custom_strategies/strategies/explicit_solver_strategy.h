@@ -499,8 +499,8 @@ namespace Kratos
          ProcessInfo& r_process_info   = r_model_part.GetProcessInfo();
          int time_step = r_process_info[TIME_STEPS];
          const double time = r_process_info[TIME];
-         bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
-         bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
+         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
+         const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
          BoundingBoxUtility(is_time_to_mark_and_remove);
          if (is_time_to_search_neighbours) {  
             if (!is_time_to_mark_and_remove) { //Just in case that some marked TO_ERASE without a bounding box
