@@ -17,13 +17,13 @@ simulation_start_time = timer.monotonic()
 print(os.getcwd())
 # Kratos
 from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.SwimmingDEMApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.SwimmingDEMApplication import *
 
 sys.path.insert(0,'')
 # DEM Application
@@ -79,6 +79,10 @@ DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write d
 #    INITIALIZE                                                              #
 #                                                                            #
 ##############################################################################
+
+#G
+pp.CFD_DEM.faxen_force_type = 1
+#Z
 
 # NANO BEGIN
 if pp.CFD_DEM.drag_force_type == 9:
@@ -225,7 +229,7 @@ vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
         # node.Free(PRESSURE)
 
 # adding extra process info variables
-vars_man.AddingDEMProcessInfoVariables(pp, spheres_model_part)
+vars_man.AddingExtraProcessInfoVariables(pp, fluid_model_part, spheres_model_part)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
@@ -269,6 +273,7 @@ solver.AddDofs(spheres_model_part)
 solver.AddDofs(cluster_model_part)
 solver.AddDofs(DEM_inlet_model_part)
 solver_module.AddDofs(fluid_model_part, SolverSettings)
+swim_proc.AddExtraDofs(pp, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part)
 
 # copy Y_WALL
 for node in fluid_model_part.Nodes:
@@ -648,6 +653,18 @@ if pp.CFD_DEM.drag_force_type == 9:
         node.SetSolutionStepValue(CATION_CONCENTRATION, pp.initial_concentration)
 
 # NANO END
+
+#G
+linear_solver = CGSolver()
+scheme = ResidualBasedIncrementalUpdateStaticScheme()
+post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
+post_process_strategy.SetEchoLevel(2)
+number=0
+for node in fluid_model_part.Nodes:
+    number += 1
+    print(number)
+#Z
+
 post_utils.Writeresults(time)
 while (time <= final_time):
 
@@ -680,7 +697,20 @@ while (time <= final_time):
 
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
+#G
+            if pp.CFD_DEM.faxen_force_type > 0:
+                print("\nSolving for the Laplacian...")
+                sys.stdout.flush()
+                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
+
+                post_process_strategy.Solve()
+
+                print("\nFinished solving for the Laplacian.")
+                sys.stdout.flush()
+                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 1
+#Z
             gauge.MakeNodalMeasurement()
+
             if print_analytics_counter.Tick():
                 gauge.PrintMeasurements(main_path)
                 gauge.PlotPSD()
