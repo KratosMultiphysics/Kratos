@@ -15,21 +15,40 @@ template <>
 void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
                               ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes(3),LocalSize(9);
-    unsigned int LocalIndex = 0;
-    
-    unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-    unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+        const unsigned int NumNodes(3),LocalSize(9);
+        unsigned int LocalIndex = 0;
 
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
+        unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+        unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X,vpos).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y,vpos+1).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE,ppos).EquationId();
+        if (rResult.size() != LocalSize)
+            rResult.resize(LocalSize, false);
+
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X,vpos).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y,vpos+1).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE,ppos).EquationId();
+        }
     }
+
+    else {
+        const unsigned int NumNodes(3),LocalSize(6);
+        unsigned int LocalIndex = 0;
+
+        unsigned int lappos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_X);
+
+        if (rResult.size() != LocalSize)
+            rResult.resize(LocalSize, false);
+
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X,lappos).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y,lappos+1).EquationId();
+        }
+    }
+
 }
 
 /**
@@ -39,20 +58,38 @@ template <>
 void MonolithicDEMCoupled<3>::EquationIdVector(EquationIdVectorType& rResult,
                               ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes(4),LocalSize(16);
-    unsigned int LocalIndex = 0;
-    unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-    unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+        const unsigned int NumNodes(4),LocalSize(16);
+        unsigned int LocalIndex = 0;
+        unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+        unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
+        if (rResult.size() != LocalSize)
+            rResult.resize(LocalSize, false);
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X,vpos).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y,vpos+1).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z,vpos+2).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE,ppos).EquationId();
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X,vpos).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y,vpos+1).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z,vpos+2).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE,ppos).EquationId();
+        }
+    }
+
+    else {
+        const unsigned int NumNodes(4),LocalSize(12);
+        unsigned int LocalIndex = 0;
+        unsigned int lappos = this->GetGeometry()[0].GetDofPosition(VELOCITY_LAPLACIAN_X);
+
+        if (rResult.size() != LocalSize)
+            rResult.resize(LocalSize, false);
+
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_X,lappos).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Y,lappos+1).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_LAPLACIAN_Z,lappos+2).EquationId();
+        }
     }
 }
 
@@ -63,17 +100,33 @@ template <>
 void MonolithicDEMCoupled<2>::GetDofList(DofsVectorType& rElementalDofList,
                         ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes(3),LocalSize(9);
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+        const unsigned int NumNodes(3),LocalSize(9);
+        if (rElementalDofList.size() != LocalSize)
+            rElementalDofList.resize(LocalSize);
 
-    unsigned int LocalIndex = 0;
+        unsigned int LocalIndex = 0;
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+        }
+    }
+
+    else {
+        const unsigned int NumNodes(3),LocalSize(6);
+        if (rElementalDofList.size() != LocalSize)
+            rElementalDofList.resize(LocalSize);
+
+        unsigned int LocalIndex = 0;
+
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
+        }
     }
 }
 
@@ -84,18 +137,35 @@ template <>
 void MonolithicDEMCoupled<3>::GetDofList(DofsVectorType& rElementalDofList,
                         ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int NumNodes(4),LocalSize(16);
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
+    if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+        const unsigned int NumNodes(4),LocalSize(16);
+        if (rElementalDofList.size() != LocalSize)
+            rElementalDofList.resize(LocalSize);
 
-    unsigned int LocalIndex = 0;
+        unsigned int LocalIndex = 0;
 
-    for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_X);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+        }
+    }
+
+    else {
+        const unsigned int NumNodes(4),LocalSize(12);
+        if (rElementalDofList.size() != LocalSize)
+            rElementalDofList.resize(LocalSize);
+
+        unsigned int LocalIndex = 0;
+
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_X);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Y);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_LAPLACIAN_Z);
+        }
     }
 }
 

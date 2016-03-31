@@ -271,16 +271,30 @@ public:
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+        if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+            const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
-        // Check sizes and initialize matrix
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+            // Check sizes and initialize matrix
+            if (rLeftHandSideMatrix.size1() != LocalSize)
+                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-        // Calculate RHS
-        this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+            // Calculate RHS
+            this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+        }
+
+        else {
+            const unsigned int LocalSize = TDim * TNumNodes;
+
+            if (rLeftHandSideMatrix.size1() != LocalSize)
+                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+            CalculateLaplacianMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+            noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+            this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+        }
     }
 
     /// Returns a zero matrix of appropiate size (provided for compatibility with scheme)
@@ -291,12 +305,24 @@ public:
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+        if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+            const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
-        if (rLeftHandSideMatrix.size1() != LocalSize)
-            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+            if (rLeftHandSideMatrix.size1() != LocalSize)
+                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+                noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+        }
+
+        else {
+            const unsigned int LocalSize = TDim * TNumNodes;
+
+            if (rLeftHandSideMatrix.size1() != LocalSize)
+                rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+            CalculateLaplacianMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+        }
     }
 
     /// Provides local contributions from body forces and projections to the RHS
@@ -312,14 +338,6 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-
-        // Check sizes and initialize
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-
         // Calculate this element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
@@ -330,13 +348,36 @@ public:
         double Density;
         this->EvaluateInPoint(Density, DENSITY, N);
 
-        // Calculate Momentum RHS contribution
-        this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
-//G
-        const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-        static const double arr[] = {1.0,-1.0};
-        std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
-        this->AddMassRHS(rRightHandSideVector, Density, N, Area, SchemeWeights, DeltaTime);
+        if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
+
+            const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+
+            // Check sizes and initialize
+            if (rRightHandSideVector.size() != LocalSize)
+                rRightHandSideVector.resize(LocalSize, false);
+
+            noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+            // Calculate Momentum RHS contribution
+            this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
+    //G
+            const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+            static const double arr[] = {1.0,-1.0};
+            std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
+            this->AddMassRHS(rRightHandSideVector, Density, N, Area, SchemeWeights, DeltaTime);
+        }
+
+        else {
+            const unsigned int LocalSize = TDim * TNumNodes;
+
+            // Check sizes and initialize
+            if (rRightHandSideVector.size() != LocalSize)
+                rRightHandSideVector.resize(LocalSize, false);
+
+            noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+            this->AddRHSLaplacian(rRightHandSideVector, DN_DX, Area);
+        }
         // Shape functions and integration points
 
 /*
@@ -500,6 +541,31 @@ public:
 //Z
         }
     }
+//G
+    virtual void CalculateLaplacianMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    {
+        const unsigned int LocalSize = TDim * TNumNodes;
+
+        // Resize and set to zero
+        if (rMassMatrix.size1() != LocalSize)
+            rMassMatrix.resize(LocalSize, LocalSize, false);
+
+        rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
+
+        // Get the element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        // Calculate this element's fluid properties
+
+        // Add 'classical' mass matrix (lumped)
+        double Coeff = Area / TNumNodes; //Optimize!
+
+        this->CalculateLaplacianLumpedMassMatrix(rMassMatrix, Coeff);
+    }
+//Z
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
     /**
@@ -1303,6 +1369,27 @@ protected:
             ++LocalIndex; // Skip pressure Dof
         }
     }
+
+    virtual void AddRHSLaplacian(VectorType& F,
+                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                 const double Weight)
+    {
+        double Coef = Weight;
+        array_1d<double, 3 > Velocity(3, 0.0);
+
+        int LocalIndex = 0;
+        int LocalNodalIndex = 0;
+
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        {
+            Velocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int d = 0; d < TDim; ++d)
+            {
+                F[LocalIndex++] -= Coef * rShapeDeriv(LocalNodalIndex, d) * Velocity[d] * rShapeDeriv(iNode, d);
+            }
+            LocalNodalIndex++;
+        }
+    }
 //G
     virtual void AddMassRHS(VectorType& F,
                             const double Density,
@@ -1393,6 +1480,22 @@ protected:
             ++DofIndex; // Skip pressure Dof
         }
     }
+
+//G
+    void CalculateLaplacianLumpedMassMatrix(MatrixType& rLHSMatrix,
+                                            const double Mass)
+    {
+        unsigned int DofIndex = 0;
+        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        {
+            for (unsigned int d = 0; d < TDim; ++d)
+            {
+                rLHSMatrix(DofIndex, DofIndex) += Mass;
+                ++DofIndex;
+            }
+        }
+    }
+//Z
 
     void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
             const array_1d<double,TNumNodes>& rShapeFunc,
@@ -2086,6 +2189,22 @@ protected:
 
             for (unsigned int d = 0; d < TDim; ++d){
                 rResult[d] += rShapeDeriv(i, d) * scalar;
+            }
+        }
+    }
+
+    virtual void EvaluateGradientOfVectorInPoint(boost::numeric::ublas::bounded_matrix<double, TDim, TDim>&  rResult,
+                                                 const Variable< array_1d<double, 3 > >& rVariable,
+                                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+    {
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+
+            for (unsigned int i = 0; i < TNumNodes; ++i) {
+                array_1d<double, 3 >& vector = this->GetGeometry()[i].FastGetSolutionStepValue(rVariable);
+
+                for (unsigned int d2 = 0; d2 < TDim; ++d2) {
+                    rResult(d1, d2) += rShapeDeriv(i, d2) * vector[d1];
+                }
             }
         }
     }
