@@ -115,6 +115,11 @@ def Run():
     os.chdir("Sphere_test")
     os.system("python3 run_all.py")
     os.chdir("..")
+    # SCORD TESTS
+    os.chdir("Scord_test")
+    os.system("python3 run_all.py")
+    os.chdir("..")
+    
     
     os.chdir("..")
     
