@@ -27,6 +27,7 @@
 #include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
+#include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_elements/spheric_swimming_particle.h"
 #include "../DEM_application/custom_elements/spheric_particle.h"
 #include "../DEM_application/custom_elements/nanoparticle.h"
@@ -69,8 +70,6 @@ public:
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        //KRATOS_WATCH("in KratosSwimmingDEMApplication");
-        //KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
@@ -86,15 +85,20 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /// 2D instance of the VMS element
+    /// 2D instance of the MonolithicDEMCoupled element
     const MonolithicDEMCoupled<2> mMonolithicDEMCoupled2D;
-    /// 3D instance of the VMS element
+    /// 3D instance of the MonolithicDEMCoupled element
     const MonolithicDEMCoupled<3> mMonolithicDEMCoupled3D;
 
-    /// 2D instance of the VMS element
+    /// 2D instance of the MonolithicDEMCoupledWeak element
     const MonolithicDEMCoupledWeak<2> mMonolithicDEMCoupledWeak2D;
-    /// 3D instance of the VMS element
+    /// 3D instance of the MonolithicDEMCoupledWeak element
     const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
+
+    /// Exact 2D slip condition using rotated coordinates (monolithic version)
+    const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
+    /// Exact 3D slip condition using rotated coordinates (monolithic version)
+    const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
 
     /// swimming derivation of spheric basic DEM element (SphericParticle)
     const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
