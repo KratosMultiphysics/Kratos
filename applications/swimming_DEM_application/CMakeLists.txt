@@ -5,16 +5,16 @@ message("**** configuring KratosSwimmingDEMApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES    
 
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/swimming_DEM_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled_weak.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_dem_coupled_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_swimming_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/swimming_DEM_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
@@ -26,8 +26,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosSwimmingDEMApplication SHARED ${KRATOS_SWIMMING_DEM_APPLICATION_SOURCES})
-target_link_libraries(KratosSwimmingDEMApplication KratosCore KratosDEMApplication)
-#target_link_libraries(KratosDEMApplication KratosCore)
+target_link_libraries(KratosSwimmingDEMApplication KratosDEMApplication KratosFluidDynamicsApplication KratosCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
 
