@@ -30,7 +30,6 @@ proc Solid::write::writeCustomFilesEvent { } {
 
 proc Solid::write::writeModelPartEvent { } {
     write::initWriteData "SLParts" "SLMaterials"
-    write::setGroupsTypeName "Mesh"
     
     write::writeModelPartData
     write::WriteString "Begin Properties 0"
