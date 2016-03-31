@@ -730,7 +730,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(const 
 template< class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNewtonRegimeDragCoefficient()
 {
-    double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * mNormOfSlipVel;
+    double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
 
     drag_coeff *= 0.44;
 
@@ -743,7 +743,7 @@ template< class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeIntermediateRegimeDragCoefficient()
 {
     double reynolds;
-    double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * mNormOfSlipVel;
+    double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
 
     ComputeParticleReynoldsNumber(reynolds);
 
@@ -758,7 +758,7 @@ template< class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeHaiderDragCoefficient()
 {
     const double sphericity = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
-    double drag_coeff       = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * mNormOfSlipVel;
+    double drag_coeff       = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
 
     double A = exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity * sphericity);
     double B = 0.0964 + 0.5565 * sphericity;
