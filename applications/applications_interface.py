@@ -126,7 +126,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PfemBaseApplication/python_scripts')
         sys.path.append(applications_path + '/PfemBaseApplication/Linux')
         from KratosPfemBaseApplication import *
-        solid_mechanics_application = KratosPfemBaseApplication()
+        pfem_base_application = KratosPfemBaseApplication()
         kernel.AddApplication(pfem_base_application)
         print("KratosPfemBaseApplication Succesfully imported")
 
@@ -144,8 +144,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PfemFluidDynamicsApplication/python_scripts')
         sys.path.append(applications_path + '/PfemFluidDynamicsApplication/Linux')
         from KratosPfemFluidDynamicsApplication import *
-        pfem_solid_mechanics_application = KratosPfemFluidDynamicsApplication()
-        kernel.AddApplication(pfem_solid_mechanics_application)
+        pfem_fluid_mechanics_application = KratosPfemFluidDynamicsApplication()
+        kernel.AddApplication(pfem_fluid_mechanics_application)
         print("KratosPfemFluidDynamicsApplication Succesfully imported")
 
     if(Import_ALEApplication):
@@ -182,7 +182,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/StructuralMechanicsApplication/python_scripts')
         sys.path.append(applications_path + '/StructuralMechanicsApplication/Linux')
         from StructuralMechanicsApplication import *
-        structural_application = StructuralMechanicsApplication()
+        structural_mechanics_application = StructuralMechanicsApplication()
         kernel.AddApplication(structural_mechanics_application)
         print("StructuralMechanicsApplication Succesfully imported")
 
