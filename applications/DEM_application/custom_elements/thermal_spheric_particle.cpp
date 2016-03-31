@@ -26,28 +26,11 @@
 //std::cout<<print...<<std::endl;
 
 namespace Kratos
-{
-
-      ThermalSphericParticle::ThermalSphericParticle() : SphericContinuumParticle(){}
-
-      ThermalSphericParticle::ThermalSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : SphericContinuumParticle(NewId, pGeometry){}
-
-      ThermalSphericParticle::ThermalSphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : SphericContinuumParticle(NewId, pGeometry, pProperties){}
-
-      ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : SphericContinuumParticle(NewId, ThisNodes){}
-
-      Element::Pointer ThermalSphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-      {
-         return SphericContinuumParticle::Pointer(new ThermalSphericParticle(NewId, GetGeometry().Create( ThisNodes ), pProperties) );
-      }
-
-      /// Destructor.
-      ThermalSphericParticle::~ThermalSphericParticle(){}
+{      
     
-    void ThermalSphericParticle::CustomInitialize(){   
-        SphericContinuumParticle::CustomInitialize();
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::CustomInitialize(){   
+        TBaseElement::CustomInitialize();
         
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
         mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY]; 
@@ -56,9 +39,11 @@ namespace Kratos
         else{ mTemperature    = 0.0;}
     }         
     
-    double ThermalSphericParticle::GetTemperature(){return mTemperature;}
+    template< class TBaseElement >
+    double ThermalSphericParticle<TBaseElement>::GetTemperature(){return mTemperature;}
 
-    void ThermalSphericParticle::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info)
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info)
                                                        
         {                                                                                                                             
         KRATOS_TRY
@@ -74,7 +59,7 @@ namespace Kratos
               
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             
-            ThermalSphericParticle* neighbour_iterator = dynamic_cast<ThermalSphericParticle*>(mNeighbourElements[i]); 
+            ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]); 
             
             const double &other_radius            = neighbour_iterator->GetRadius();
             const double &other_temperature       = neighbour_iterator->GetTemperature();
@@ -99,7 +84,8 @@ namespace Kratos
       }         //ComputeHeatFluxes  
     
     
-   void ThermalSphericParticle::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info)
+   template< class TBaseElement > 
+   void ThermalSphericParticle<TBaseElement>::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info)
                                                        
         {                                                                                                                             
 //        KRATOS_TRY
@@ -113,7 +99,7 @@ namespace Kratos
 //        if particle_is_boundary{      
 //        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 //            
-//            ThermalSphericParticle* neighbour_iterator = dynamic_cast<ThermalSphericParticle*>(mNeighbourElements[i]); 
+//            ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]); 
 //            
 //            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
 //            
@@ -133,20 +119,23 @@ namespace Kratos
        
       }         //ComputeHeatFluxes      
     
-    void ThermalSphericParticle::CalculateRightHandSide(ProcessInfo& r_current_process_info,
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::CalculateRightHandSide(ProcessInfo& r_current_process_info,
                                                         double dt, 
                                                         const array_1d<double,3>& gravity, int search_control)
     {
-        SphericContinuumParticle::CalculateRightHandSide(r_current_process_info, dt,  gravity, search_control);
-        ThermalSphericParticle::ComputeConductiveHeatFlux(r_current_process_info);        
+        TBaseElement::CalculateRightHandSide(r_current_process_info, dt,  gravity, search_control);
+        ComputeConductiveHeatFlux(r_current_process_info);        
     }
-          
-    void ThermalSphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
-            SphericContinuumParticle::FinalizeSolutionStep(r_process_info);
-            ThermalSphericParticle::UpdateTemperature(r_process_info);  
+        
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(ProcessInfo& r_process_info) {
+            TBaseElement::FinalizeSolutionStep(r_process_info);
+            UpdateTemperature(r_process_info);  
     }
     
-    void ThermalSphericParticle::UpdateTemperature(const ProcessInfo& r_process_info) { 
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) { 
         
             double thermal_inertia = GetMass() * mSpecificHeat;
             
@@ -158,4 +147,6 @@ namespace Kratos
             GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mConductiveHeatFlux;
     }
 
+    template class ThermalSphericParticle<SphericParticle>; //Explicit Instantiation
+    template class ThermalSphericParticle<SphericContinuumParticle>; //Explicit Instantiation
 }  // namespace Kratos.
