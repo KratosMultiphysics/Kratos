@@ -245,33 +245,34 @@ class ApplicationGenerator(object):
                 # Select the block
                 if 'Import_' in l and 'Application = False' in l:
                     currentBlock = 'importFalseBlock'
-                if 'print("Applications Available:")' in l:
+                if 'print("Applications Available:")' in l and currentBlock == 'importFalseBlock':
                     currentBlock = 'printMsgBlock'
-                if 'application_directory = os.path.dirname' in l:
+                if 'application_directory = os.path.dirname' in l and currentBlock == 'printMsgBlock':
                     currentBlock = 'appDirBlock'
-                if 'def ImportApplications' in l:
+                if 'def ImportApplications' in l and currentBlock == 'appDirBlock':
                     currentBlock = 'importValueBlock'
-                if 'if(Import_SolidMechanicsApplication):' in l:
+                if 'if(Import_SolidMechanicsApplication):' in l and currentBlock == 'importValueBlock':
                     currentBlock = 'prepareBlock'
-                if 'kernel.Initialize()' in l:
+                if '# dynamic renumbering of variables' in l:
                     currentBlock = 'initializeBlock'
                 if '# def ImportApplications(kernel  ):' in l:
                     currentBlock = 'footer'
 
                 # Append the result if its not null
-                if l is not '\n':
+                if l is not '\n' or currentBlock == 'prepareBlock':
                     fileStruct[currentBlock].append(l)
 
         # Prepare some blocks
         prepareBlockContent = [
-            'if(Import_{CAMEL}):\n'
-            'print("importing Kratos{CAMEL}Application ...")\n'
-            'sys.path.append(applications_path + \'/{CAMEL}/python_scripts\')\n'
-            'sys.path.append(applications_path + \'/{CAMEL}/Linux\')\n'
-            'from Kratos{CAMEL}Application import *\n'
-            '{LOWER}_application = Kratos{CAMEL}Application()\n'
-            'kernel.AddApplication({LOWER}_application)\n'
-            'print("Kratos{CAMEL}Application Succesfully imported")\n'
+            '\tif(Import_{CAMEL}):\n'
+            '\t\tprint("importing Kratos{CAMEL}Application ...")\n'
+            '\t\tsys.path.append(applications_path + \'/{CAMEL}/python_scripts\')\n'
+            '\t\tsys.path.append(applications_path + \'/{CAMEL}/Linux\')\n'
+            '\t\tfrom Kratos{CAMEL}Application import *\n'
+            '\t\t{LOWER}_application = Kratos{CAMEL}Application()\n'
+            '\t\tkernel.AddApplication({LOWER}_application)\n'
+            '\t\tprint("Kratos{CAMEL}Application Succesfully imported")\n'
+            '\n'
         ]
 
         prepareBlockContent = [
@@ -291,11 +292,13 @@ class ApplicationGenerator(object):
         )
 
         fileStruct['importValueBlock'].append(
-            'print("Import_{CAMEL}: " + str(Import_{CAMEL}))\n'.format(
+            '\tprint("Import_{CAMEL}: " + str(Import_{CAMEL}))\n'.format(
                 CAMEL=self._nameCamel
             )
         )
 
+        # This line deletes the last \n
+        fileStruct['prepareBlock'] = fileStruct['prepareBlock'][:-1]
         fileStruct['prepareBlock'].append(
             prepareBlockContent
         )
