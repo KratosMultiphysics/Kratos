@@ -337,7 +337,18 @@ public:
      */
     virtual double Length() const
     {
-        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double Volume = 0.00;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ )
+        {
+            Volume += temp[i] * integration_points[i].Weight();
+        }
+
+        return std::pow(Volume, 1.0/3.0)/3.0;
+//        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
