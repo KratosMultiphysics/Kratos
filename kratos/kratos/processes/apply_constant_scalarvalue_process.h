@@ -54,7 +54,7 @@ public:
     ///@name Life Cycle
     ///@{
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
-                              Parameters& rParameters
+                              Parameters rParameters
                                    ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
