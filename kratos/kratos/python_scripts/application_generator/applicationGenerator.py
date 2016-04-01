@@ -201,8 +201,8 @@ class ApplicationGenerator(object):
                     newLine = ''
 
                     newLine += 'message("' + self._nameUpper + '_APPLICATION'
-                    newLine += ('.'*(25-len(self._nameUpper)))
-                    newLine += '${' + self._nameUpper + '_APPLICATION}")\n'
+                    newLine += ('.'*(24-len(self._nameUpper)))
+                    newLine += ' ${' + self._nameUpper + '_APPLICATION}")\n'
 
                     dst.write(newLine)
 
