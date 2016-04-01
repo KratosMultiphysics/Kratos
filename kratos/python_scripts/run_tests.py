@@ -63,7 +63,7 @@ def GetAvailableApplication():
     return apps
 
 
-def RunTestSuit(application, path, level, verbose):
+def RunTestSuit(application, path, level, verbose, command):
     ''' Calls the script that will run the tests.
 
     Input
@@ -81,13 +81,16 @@ def RunTestSuit(application, path, level, verbose):
         detail of the ouptut. The grater the verbosity level, the greate the
         detail will be.
 
+    command: string
+        command to be used to call the tests. Ex: Python, Python3, Runkratos
+
     '''
 
     script = path+'/tests/'+'test_'+application+'.py'
 
     if os.path.isfile(script):
         subprocess.call([
-            'python',
+            command,
             script,
             '-l'+level,
             '-v'+str(verbose)
@@ -106,6 +109,10 @@ def RunTestSuit(application, path, level, verbose):
 
 
 def main():
+
+    # We need to fetch the command who called us to avoid problems without
+    # python versions
+    command = sys.argv[0]
 
     verbose_values = [0, 1, 2]
     level_values = ['all', 'nightly', 'small']
@@ -172,13 +179,17 @@ def main():
     # Capture stdout from KratosUnittest
     CaptureStdout()
 
+    # Define the command
+    cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
+
     # KratosCore must always be runned
     print('Running tests for KratosCore')
     RunTestSuit(
         'KratosCore',
         os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'kratos',
         level,
-        verbosity
+        verbosity,
+        cmd
     )
 
     # Run the tests for the rest of the Applications
@@ -188,7 +199,8 @@ def main():
             application,
             KratosLoader.kratos_applications+'/'+application,
             level,
-            verbosity
+            verbosity,
+            cmd
         )
 
 if __name__ == "__main__":

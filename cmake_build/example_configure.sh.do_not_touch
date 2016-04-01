@@ -23,41 +23,40 @@ rm CMakeCache.txt
 rm *.cmake
 rm -rf CMakeFiles\
 
-cmake ..  									                            \
--DCMAKE_C_COMPILER=/usr/bin/gcc							                \
--DCMAKE_INSTALL_RPATH="/home/youruser/kratos/libs"                      \
--DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                \
--DCMAKE_CXX_COMPILER=/usr/bin/g++						                \
--DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 " 					        \
--DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 " 					            \
--DCMAKE_BUILD_TYPE=Release  							                \
--DINCOMPRESSIBLE_FLUID_APPLICATION=ON  						            \
--DMESHING_APPLICATION=ON 							                    \
--DEXTERNAL_SOLVERS_APPLICATION=ON						                \
--DPFEM_APPLICATION=ON 								                    \
--DSTRUCTURAL_APPLICATION=ON 							                \
--DCONVECTION_DIFFUSION_APPLICATION=ON 						            \
--DFLUID_DYNAMICS_APPLICATION=ON 						                \
--DALE_APPLICATION=ON 								                    \
--DFSI_APPLICATION=ON 								                    \
--DOPENCL_APPLICATION=OFF							                    \
--DMIXED_ELEMENT_APPLICATION=ON							                \
--DMKL_SOLVERS_APPLICATION=OFF							                \
--DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"	    \
--DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"	    \
--DMETIS_APPLICATION=OFF								                    \
--DPARMETIS_ROOT_DIR="/home/youruser/compiled_libraries/ParMetis-3.1.1"  \
--DTRILINOS_APPLICATION=OFF							                    \
--DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"		\
--DDEM_APPLICATION=OFF								                    \
--DSWIMMING_DEM_APPLICATION=OFF                                          \
--DSOLID_MECHANICS_APPLICATION=ON   					                    \
--DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                \
--DPFEM_SOLID_MECHANICS_APPLICATION=OFF 					                \
--DINSTALL_EMBEDDED_PYTHON=OFF                                           \
+cmake ..  									                                                    \
+-DCMAKE_C_COMPILER=/usr/bin/gcc							                                    \
+-DCMAKE_INSTALL_RPATH="/home/youruser/kratos/libs"                              \
+-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE                                        \
+-DCMAKE_CXX_COMPILER=/usr/bin/g++						                                    \
+-DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 " 					                        \
+-DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 " 					                            \
+-DCMAKE_BUILD_TYPE=Release  							                                      \
+-DINCOMPRESSIBLE_FLUID_APPLICATION=ON  						                              \
+-DMESHING_APPLICATION=ON 							                                          \
+-DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
+-DPFEM_APPLICATION=ON 								                                          \
+-DSTRUCTURAL_APPLICATION=ON 							                                      \
+-DCONVECTION_DIFFUSION_APPLICATION=ON 						                              \
+-DFLUID_DYNAMICS_APPLICATION=ON 						                                    \
+-DALE_APPLICATION=ON 								                                            \
+-DFSI_APPLICATION=ON 								                                            \
+-DOPENCL_APPLICATION=OFF							                                          \
+-DMIXED_ELEMENT_APPLICATION=ON							                                    \
+-DMKL_SOLVERS_APPLICATION=OFF							                                      \
+-DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"	            \
+-DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"	              \
+-DMETIS_APPLICATION=OFF								                                          \
+-DPARMETIS_ROOT_DIR="/home/youruser/compiled_libraries/ParMetis-3.1.1"          \
+-DTRILINOS_APPLICATION=OFF							                                        \
+-DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"		          \
+-DDEM_APPLICATION=OFF								                                            \
+-DSWIMMING_DEM_APPLICATION=OFF                                                  \
+-DSOLID_MECHANICS_APPLICATION=ON   					                                    \
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF 					                                \
+-DINSTALL_EMBEDDED_PYTHON=ON                                                    \
 
 #decomment this to have it verbose
 # make VERBOSE=1 -j4
 make -j4
 make install
-
