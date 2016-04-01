@@ -67,7 +67,7 @@ namespace Kratos
   @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim >
-class MonolithicWallCondition : public Condition
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) MonolithicWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
