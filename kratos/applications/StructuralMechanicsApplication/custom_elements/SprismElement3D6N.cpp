@@ -2834,8 +2834,9 @@ void SprismElement3D6N::ComputeLocalDerivativesQuadratic(
         )
 {
     /* Local coordinates */
-    double xi;
-    double eta;
+    double xi  = 0.0;
+    double eta = 0.0;
+
     if (node_gauss == 0)
     {
         xi  = 0.50000000000000000000;
@@ -2851,6 +2852,8 @@ void SprismElement3D6N::ComputeLocalDerivativesQuadratic(
         xi  = 0.50000000000000000000;
         eta = 0.00000000000000000000;
     }
+
+    local_der_patch = ZeroMatrix(4, 2);
 
     /* Derivative in main nodes */
     local_der_patch(0, 0) = - 1.0 + eta;
@@ -3407,7 +3410,7 @@ void SprismElement3D6N::CalculateAndAdd_Membrane_Kgeometric(
             }
             else
             {
-                j = j;
+                jj = j;
             }
 
             H(ii, jj) += S_membrane[0] *  mInPlaneCartesianDerivativesGauss2(0, i) * mInPlaneCartesianDerivativesGauss2(0, j)
@@ -3430,7 +3433,7 @@ void SprismElement3D6N::CalculateAndAdd_Membrane_Kgeometric(
             }
             else
             {
-                j = j;
+                jj = j;
             }
 
             H(ii, jj) += S_membrane[0] *  mInPlaneCartesianDerivativesGauss3(0, i) * mInPlaneCartesianDerivativesGauss3(0, j)
@@ -5013,7 +5016,7 @@ void SprismElement3D6N::CalculateLogStress(GeneralVariables& rVariables)
             }
             else
             {
-                if (abs(EigenValuesMatrix(i, i) - EigenValuesMatrix(j, j)) > 1.0e-30) // Avoid division by 0
+                if (std::abs(EigenValuesMatrix(i, i) - EigenValuesMatrix(j, j)) > 1.0e-30) // Avoid division by 0
                 {
                     double fact = 2.0 * log(sqrt(EigenValuesMatrix(i, i))/sqrt(EigenValuesMatrix(j, j)));
                     fact /= (EigenValuesMatrix(i, i) - EigenValuesMatrix(j, j));
@@ -5034,7 +5037,7 @@ void SprismElement3D6N::CalculateLogStress(GeneralVariables& rVariables)
 //            }
 //            else
 //            {
-//                if (abs(EigenValuesMatrix(i, i) - EigenValuesMatrix(j, j)) > 1.0e-30) // Avoid division by 0
+//                if (std::abs(EigenValuesMatrix(i, i) - EigenValuesMatrix(j, j)) > 1.0e-30) // Avoid division by 0
 //                {
 //                    double fact = 2.0 * log(EigenValuesMatrix(i, i)/EigenValuesMatrix(j, j));
 //                    fact /= (pow(EigenValuesMatrix(i, i), 2.0) - pow(EigenValuesMatrix(j, j), 2.0));
