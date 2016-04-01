@@ -61,8 +61,9 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars += pp.coupling_fluid_vars
     pp.fluid_vars += [PRESSURE_GRADIENT]
 
-    if pp.CFD_DEM.faxen_force_type > 0:
+    if pp.CFD_DEM.include_faxen_terms_option:
         pp.fluid_vars += [VELOCITY_LAPLACIAN]
+        pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
 
     if pp.CFD_DEM.drag_force_type >= 0:
         pp.fluid_vars += [POWER_LAW_N]
@@ -143,6 +144,12 @@ def ConstructListsOfResultsToPrint(pp):
 
         if pp.CFD_DEM.print_FLUID_VEL_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
+
+        if pp.CFD_DEM.print_FLUID_VEL_LAPL_PROJECTED_option:
+            pp.dem_nodal_results += ["FLUID_VEL_LAPL_PROJECTED"]
+
+        if pp.CFD_DEM.print_FLUID_VEL_LAPL_RATE_PROJECTED_option:
+            pp.dem_nodal_results += ["FLUID_VEL_LAPL_RATE_PROJECTED"]
 
         if pp.CFD_DEM.print_FLUID_ACCEL_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_ACCEL_PROJECTED"]            
@@ -257,6 +264,10 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
         pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
 
+        if pp.CFD_DEM.include_faxen_terms_option:
+            pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
+            pp.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
+
     if pp.CFD_DEM.coupling_level_type >= 1 or pp.CFD_DEM.fluid_model_type == 0:
         pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
@@ -302,9 +313,11 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM.embedded_option:
         pp.nodal_results += ["DISTANCE"]
 
-    pp.CFD_DEM.print_VELOCITY_LAPLACIAN_option = True
     if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_option:
         pp.nodal_results += ["VELOCITY_LAPLACIAN"]
+
+    if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_RATE_option:
+        pp.nodal_results += ["VELOCITY_LAPLACIAN_RATE"]
 
 def ChangeInputDataForConsistency(pp):
     pp.CFD_DEM.project_at_every_substep_option *= (pp.CFD_DEM.coupling_level_type > 0)
