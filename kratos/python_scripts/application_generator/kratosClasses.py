@@ -70,7 +70,7 @@ class KratosClass(object):
         self.nameCamel = name
         self.nameUpper = ToUpperFromCamel(name)
         self.nameLower = ToLowerFromCamel(name)
-        self.base = base
+        self.base = [': public '+base, ''][base is None]
         self.template = template
         self.procedures = procedures
         self.rules = [
@@ -78,6 +78,7 @@ class KratosClass(object):
             {'token': '@{KRATOS_NAME_CAMEL}', 'value': self.nameCamel},
             {'token': '@{KRATOS_NAME_UPPER}', 'value': self.nameUpper},
             {'token': '@{KRATOS_NAME_LOWER}', 'value': self.nameLower},
+            {'token': '@{KRATOS_CLASS_BASE}', 'value': self.base},
             {'token': '@{KRATOS_SYSTEM_INCLUDES}', 'value': ''},
             {'token': '@{KRATOS_EXTERNAL_INCLUDES}', 'value': ''},
             {'token': '@{KRATOS_PROJECT_INCLUDES}', 'value': ''},
@@ -221,12 +222,33 @@ class KratosClass(object):
 
 
 class KratosElementClass(KratosClass):
-    pass
+    def __init__(
+        self, name, base='Element', template=None,
+        members=None, procedures=None, author='KratosAppGenerator'
+    ):
+        super(KratosElementClass, self).__init__(
+            name, base, template, members,
+            procedures, author
+        )
 
 
 class KratosConditionClass(KratosClass):
-    pass
+    def __init__(
+        self, name, base='Condition', template=None,
+        members=None, procedures=None, author='KratosAppGenerator'
+    ):
+        super(KratosConditionClass, self).__init__(
+            name, base, template, members,
+            procedures, author
+        )
 
 
 class KratosProcessClass(KratosClass):
-    pass
+    def __init__(
+        self, name, base='Process', template=None,
+        members=None, procedures=None, author='KratosAppGenerator'
+    ):
+        super(KratosProcessClass, self).__init__(
+            name, base, template, members,
+            procedures, author
+        )
