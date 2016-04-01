@@ -1088,7 +1088,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& AxisymUpdatedLagrangianUPElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
+double& AxisymUpdatedLagrangianUPElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

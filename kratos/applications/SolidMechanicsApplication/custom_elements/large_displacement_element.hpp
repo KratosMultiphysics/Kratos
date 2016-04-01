@@ -774,7 +774,7 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    virtual double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
+    virtual double& CalculateTotalMass(double& rTotalMass, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
