@@ -69,6 +69,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     else {
         noalias(mSlipVel) = fluid_vel - particle_vel;
+
+        if (mDragForceType == 11) {
+            const array_1d<double, 3>& fluid_vel_laplacian = node.FastGetSolutionStepValue(FLUID_VEL_LAPL_PROJECTED);
+            noalias(mSlipVel) -= mRadius * mRadius / 6.0 * fluid_vel_laplacian; // add Faxen term
+        }
     }
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
@@ -134,7 +139,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
 
     if (mHasDragCoefficientVar){
         double drag_coefficient = ComputeDragCoefficient(r_current_process_info);
-        GetGeometry()[0].FastGetSolutionStepValue(DRAG_COEFFICIENT)    = drag_coefficient;
+        GetGeometry()[0].FastGetSolutionStepValue(DRAG_COEFFICIENT) = drag_coefficient;
     }
 }
 
@@ -208,6 +213,11 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
 
     else {
         noalias(slip_acc) = fluid_acc - particle_acc;
+
+        if (mDragForceType == 11) {
+            const array_1d<double, 3>& fluid_vel_laplacian_rate = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
+            noalias(slip_acc) -= 0.1 * mRadius * mRadius * fluid_vel_laplacian_rate; // add Faxen term
+        }
     }
 
     double virtual_mass_coeff = 0.5; // inviscid case
@@ -480,6 +490,10 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
     }
 
     else if (mDragForceType == 9){ // Coin-shaped Stokesian
+        drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
+    }
+
+    else if (mDragForceType == 10){ // Maxey-Riley expression without Faxen correction
         drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
     }
 
