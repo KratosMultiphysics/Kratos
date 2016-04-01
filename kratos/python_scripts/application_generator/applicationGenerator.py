@@ -187,16 +187,22 @@ class ApplicationGenerator(object):
         srcFile = self._appDir + "CMakeLists.txt"
         dstFile = self._appDir + "CMakeLists.txt.tmp"
 
+        msgCount = 0
+
         with open(srcFile, 'r') as src, open(dstFile, 'w+') as dst:
             for l in src:
 
+                # Skip the first message
+                if 'message( " ")' in l and msgCount == 0:
+                    msgCount += 1
+
                 # Add the applciation to the list message
-                if l == 'message(" ")':
-                    newLine = ' '
+                elif 'message( " ")' in l and msgCount == 1:
+                    newLine = ''
 
                     newLine += 'message("' + self._nameUpper
-                    newLine += ('.'*37-len(self._nameUpper))
-                    newLine += '$\{' + self._nameUpper + '\}")\n'
+                    newLine += ('.'*(37-len(self._nameUpper)))
+                    newLine += '${' + self._nameUpper + '}")\n'
 
                     dst.write(newLine)
 
@@ -205,10 +211,10 @@ class ApplicationGenerator(object):
                 # until that same comment is removed
 
                 # Write the add subdirectory clause
-                if l == '# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)':
-                    dst.write('if(${' + self._nameUpper + '} MATCHES ON)')
-                    dst.write('  add_subdirectory(' + self._nameCamel+')')
-                    dst.write('endif(${' + self._nameUpper + '} MATCHES ON)')
+                if '# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)' in l:
+                    dst.write('if(${' + self._nameUpper + '} MATCHES ON)\n')
+                    dst.write('  add_subdirectory(' + self._nameCamel+')\n')
+                    dst.write('endif(${' + self._nameUpper + '} MATCHES ON)\n')
                     dst.write('\n')
 
                 # Write the old line
