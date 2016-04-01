@@ -2083,7 +2083,7 @@ void SprismElement3D6N::Initialize()
     /* Constitutive Law initialisation */
     if ( mConstitutiveLawVector.size() != integration_points.size() )
     {
-        mConstitutiveLawVector.resize( integration_points.size(), false );
+        mConstitutiveLawVector.resize( integration_points.size() );
     }
 
     // Resizing jacobian inverses container
