@@ -1698,7 +1698,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
+double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

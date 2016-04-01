@@ -175,18 +175,29 @@ void AxisymSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& r
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& AxisymSmallDisplacementElement::CalculateTotalMass( double& rTotalMass )
+double& AxisymSmallDisplacementElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_1 );
-    const unsigned int PointNumber = 0;
-    Vector N = row(Ncontainer , PointNumber);
+    //Compute the Volume Change acumulated:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-    double Radius = 0;
-    CalculateRadius (Radius, N);
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Radius;
+    //reading integration points
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+	//compute element kinematics
+	this->CalculateKinematics(Variables,PointNumber);
+	
+	//getting informations for integration
+        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight() * 2.0 * 3.141592654 * Variables.Radius;
+
+	//compute point volume changes	
+	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
+      }
+
 
     return rTotalMass;
 

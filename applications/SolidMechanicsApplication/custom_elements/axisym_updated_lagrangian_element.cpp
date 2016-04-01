@@ -319,7 +319,7 @@ void AxisymUpdatedLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& r
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& AxisymUpdatedLagrangianElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
+double& AxisymUpdatedLagrangianElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

@@ -313,7 +313,7 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
+double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

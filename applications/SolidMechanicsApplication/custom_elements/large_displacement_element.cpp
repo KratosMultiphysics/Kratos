@@ -1791,7 +1791,7 @@ void LargeDisplacementElement::CalculateVelocityGradient(const Matrix& rDN_DX,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo  )
+double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo& rCurrentProcessInfo  )
 {
     KRATOS_TRY
 
