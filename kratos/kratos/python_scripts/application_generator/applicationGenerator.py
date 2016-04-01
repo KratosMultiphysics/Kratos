@@ -270,7 +270,7 @@ class ApplicationGenerator(object):
 
         # Prepare some blocks
         prepareBlockContent = [
-            '\tif(Import_{CAMEL}):\n'
+            '\tif(Import_{CAMEL}Application):\n'
             '\t\tprint("importing Kratos{CAMEL}Application ...")\n'
             '\t\tsys.path.append(applications_path + \'/{CAMEL}/python_scripts\')\n'
             '\t\tsys.path.append(applications_path + \'/{CAMEL}/Linux\')\n'
@@ -290,15 +290,15 @@ class ApplicationGenerator(object):
 
         # Add our application to the requeired blocks
         fileStruct['importFalseBlock'].append(
-            'Import_' + self._nameCamel + ' = False\n'
+            'Import_' + self._nameCamel + 'Application = False\n'
         )
 
         fileStruct['printMsgBlock'].append(
-            'print("Import_' + self._nameCamel + ': False")\n'
+            'print("Import_' + self._nameCamel + 'Application: False")\n'
         )
 
         fileStruct['importValueBlock'].append(
-            '\tprint("Import_{CAMEL}: " + str(Import_{CAMEL}))\n'.format(
+            '\tprint("Import_{CAMEL}Application: " + str(Import_{CAMEL}Application))\n'.format(
                 CAMEL=self._nameCamel
             ).replace('\t', '    ')
         )
