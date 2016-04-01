@@ -214,6 +214,7 @@ using namespace boost::python;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
+        .def("CalculateVelocityLaplacianRate", &CustomFunctionsCalculator <2>::CalculateVelocityLaplacianRate)
         .def("AssessStationarity", &CustomFunctionsCalculator <2>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <2>::CalculateDomainVolume)
         .def("CalculateTotalHydrodynamicForceOnParticles", &CustomFunctionsCalculator <2>::CalculateTotalHydrodynamicForceOnParticles)
@@ -223,6 +224,7 @@ using namespace boost::python;
 
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
+        .def("CalculateVelocityLaplacianRate", &CustomFunctionsCalculator <2>::CalculateVelocityLaplacianRate)
         .def("AssessStationarity", &CustomFunctionsCalculator <3>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <3>::CalculateDomainVolume)
         .def("CalculateTotalHydrodynamicForceOnParticles", &CustomFunctionsCalculator <3>::CalculateTotalHydrodynamicForceOnParticles)
