@@ -213,6 +213,7 @@ private:
 
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
+    const LaplacianElement mLaplacian2D3N;
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
