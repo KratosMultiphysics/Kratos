@@ -311,8 +311,8 @@ class ApplicationGenerator(object):
         )
 
         fileStruct['initializeBlock'].append([
-            '\tif(Import_'+self._nameCamel+'Application):\n'.replace('\t', '    '),
-            '\t\tkernel.InitializeApplication('+self._nameLower+'_application)\n'.replace('\t', '    ')
+            '    if(Import_'+self._nameCamel+'Application):\n',
+            '        kernel.InitializeApplication('+self._nameLower+'_application)\n'
         ])
 
         # Write the whole thing down
