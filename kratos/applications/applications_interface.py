@@ -76,7 +76,6 @@ print("Import_WindTurbineApplication: False")
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
 def ImportApplications(kernel, applications_path=application_directory):
-
     # importing the applications
     print("Applications Available:")
     print("Import_SolidMechanicsApplication: " + str(Import_SolidMechanicsApplication))
@@ -400,6 +399,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(wind_turbine_application)
         print("KratosWindTurbineApplication sucessfully imported")
 
+
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
     if(Import_SolidMechanicsApplication):
@@ -425,51 +425,51 @@ def ImportApplications(kernel, applications_path=application_directory):
     if(Import_PFEMApplication):
         kernel.InitializeApplication(pfem_application)
     if(Import_ExternalSolversApplication):
-        kernel.InitializeApplication(external_solvers_application);
+        kernel.InitializeApplication(external_solvers_application)
     if(Import_ConstitutiveLawsApplication):
-        kernel.InitializeApplication(constitutive_laws_application);
+        kernel.InitializeApplication(constitutive_laws_application)
     if(Import_ULFApplication):
-        kernel.InitializeApplication(ulf_application);
+        kernel.InitializeApplication(ulf_application)
     if(Import_MeshingApplication):
-        kernel.InitializeApplication(meshing_application);
+        kernel.InitializeApplication(meshing_application)
     if(Import_KratosMKLSolversApplication):
-        kernel.InitializeApplication(mkl_solvers_application);
+        kernel.InitializeApplication(mkl_solvers_application)
     if(Import_KratosMPISearchApplication):
-        kernel.InitializeApplication(mpi_search_application);
+        kernel.InitializeApplication(mpi_search_application)
     if(Import_KratosTrilinosApplication):
-        kernel.InitializeApplication(trilinos_application);
+        kernel.InitializeApplication(trilinos_application)
     if(Import_KratosMetisApplication):
-        kernel.InitializeApplication(metis_application);
+        kernel.InitializeApplication(metis_application)
     if(Import_PoissonApplication):
-        kernel.InitializeApplication(kPoisson);
+        kernel.InitializeApplication(kPoisson)
     if(Import_ElectrostaticApplication):
-        kernel.InitializeApplication(kElectrostatic);
+        kernel.InitializeApplication(kElectrostatic)
     if(Import_MagnetostaticApplication):
-        kernel.InitializeApplication(kMagnetostatic);
+        kernel.InitializeApplication(kMagnetostatic)
     if(Import_DamApplication):
-        kernel.InitializeApplication(dam_application);
+        kernel.InitializeApplication(dam_application)
     if(Import_TestApplication):
-        kernel.InitializeApplication(test_application);
+        kernel.InitializeApplication(test_application)
     if(Import_OpenCLApplication):
-        kernel.InitializeApplication(opencl_application);
+        kernel.InitializeApplication(opencl_application)
     if(Import_PodApplication):
-        kernel.InitializeApplication(pod_application);
+        kernel.InitializeApplication(pod_application)
     if(Import_LevelSetApplication):
-        kernel.InitializeApplication(levelset_application);
+        kernel.InitializeApplication(levelset_application)
     if(Import_FluidDynamicsApplication):
-        kernel.InitializeApplication(fluid_dynamics_application);
+        kernel.InitializeApplication(fluid_dynamics_application)
     if(Import_KratosDEMApplication):
-        kernel.InitializeApplication(DEM_application);
+        kernel.InitializeApplication(DEM_application)
     if(Import_KratosSwimmingDEMApplication):
-        kernel.InitializeApplication(swimming_DEM_application);
+        kernel.InitializeApplication(swimming_DEM_application)
     if(Import_KratosMixedElementApplication):
-        kernel.InitializeApplication(mixed_element_application);
+        kernel.InitializeApplication(mixed_element_application)
     if(Import_ThermoMechanicalApplication):
-        kernel.InitializeApplication(thermo_mechanical_application);
+        kernel.InitializeApplication(thermo_mechanical_application)
     if(Import_DEM_FEM_Application):
-        kernel.InitializeApplication(dem_fem_application);
+        kernel.InitializeApplication(dem_fem_application)
     if(Import_WindTurbineApplication):
-        kernel.InitializeApplication(wind_turbine_application);
+        kernel.InitializeApplication(wind_turbine_application)
 
 # def ImportApplications(kernel  ):
     # import os.path
