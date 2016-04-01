@@ -345,7 +345,7 @@ public:
             Volume += temp[i] * integration_points[i].Weight();
         }
 
-        return cbrt(Volume)/3.0;
+        return std::pow(Volume, 1.0/3.0)/3.0;
 //        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
