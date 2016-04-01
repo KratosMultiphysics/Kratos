@@ -42,6 +42,7 @@ public:
 
 typedef ModelPart::ElementsContainerType::iterator  ElementIterator;
 typedef ModelPart::NodesContainerType::iterator     NodeIterator;
+typedef ModelPart::NodesContainerType                         NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
@@ -96,6 +97,30 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         inode->FastGetSolutionStepValue(PRESSURE_GRADIENT) /= inode->FastGetSolutionStepValue(NODAL_AREA);
+    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void CalculateVelocityLaplacianRate(ModelPart& r_model_part)
+{
+    double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
+    vector<unsigned int> nodes_partition;
+    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
+
+    #pragma omp parallel for
+    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+        NodeIterator node_begin = pNodes.ptr_begin() + nodes_partition[k];
+        NodeIterator node_end   = pNodes.ptr_begin() + nodes_partition[k + 1];
+
+        for (ModelPart::NodesContainerType::iterator inode = node_begin; inode != node_end; ++inode){
+            array_1d <double, 3>& laplacian_rate = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE);
+            array_1d <double, 3>& laplacian      = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+            array_1d <double, 3>& old_laplacian  = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN, 1);
+            noalias(laplacian_rate) = delta_t_inv * (laplacian - old_laplacian);
+        }
     }
 }
 
