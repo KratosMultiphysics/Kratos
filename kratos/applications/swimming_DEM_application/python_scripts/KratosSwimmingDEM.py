@@ -658,7 +658,6 @@ if pp.CFD_DEM.drag_force_type == 9:
 linear_solver = CGSolver()
 scheme = ResidualBasedIncrementalUpdateStaticScheme()
 post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
-post_process_strategy.SetEchoLevel(2)
 number=0
 for node in fluid_model_part.Nodes:
     number += 1
@@ -698,7 +697,7 @@ while (time <= final_time):
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
 #G
-            if pp.CFD_DEM.faxen_force_type > 0:
+            if VELOCITY_LAPLACIAN in pp.fluid_vars:
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
