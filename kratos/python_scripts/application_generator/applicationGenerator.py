@@ -270,7 +270,6 @@ class ApplicationGenerator(object):
 
         # Prepare some blocks
         prepareBlockContent = [
-            '\n'
             '\tif(Import_{CAMEL}):\n'
             '\t\tprint("importing Kratos{CAMEL}Application ...")\n'
             '\t\tsys.path.append(applications_path + \'/{CAMEL}/python_scripts\')\n'
