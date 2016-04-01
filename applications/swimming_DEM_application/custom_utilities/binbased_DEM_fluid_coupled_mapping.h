@@ -102,13 +102,11 @@ typedef std::vector<ResultElementsContainerType>              VectorResultElemen
 typedef ModelPart::ElementsContainerType::iterator            ElementIteratorType;
 typedef SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>  ParticleType;
 
-
 typedef ModelPart::NodesContainerType                         NodesArrayType;
 typedef NodesArrayType::ContainerType                         ResultNodesContainerType;
 typedef std::vector<ResultNodesContainerType>                 VectorResultNodesContainerType;
 typedef std::vector<Node<3>::Pointer>                         NodalPointersContainerType;
 typedef ModelPart::NodesContainerType::iterator               NodeIteratorType;
-
 
 typedef std::size_t                                           ListIndexType;
 typedef SpatialSearch::DistanceType                           DistanceType;
@@ -953,6 +951,14 @@ void Project(Element::Pointer p_elem,
         Interpolate(p_elem, N, p_node, VELOCITY, FLUID_VEL_PROJECTED);
     }
 
+    else if (*r_destination_variable == FLUID_VEL_LAPL_PROJECTED){
+        Interpolate(p_elem, N, p_node, VELOCITY_LAPLACIAN, FLUID_VEL_LAPL_PROJECTED);
+    }
+
+    else if (*r_destination_variable == FLUID_VEL_LAPL_RATE_PROJECTED){
+        Interpolate(p_elem, N, p_node, VELOCITY_LAPLACIAN_RATE, FLUID_VEL_LAPL_RATE_PROJECTED);
+    }
+
     else if (*r_destination_variable == PRESSURE_GRAD_PROJECTED){
         Interpolate(p_elem, N, p_node, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
     }
@@ -1009,6 +1015,14 @@ void Project(Element::Pointer p_elem,
 
     else if (*r_destination_variable == FLUID_VEL_PROJECTED){
         Interpolate(p_elem, N, p_node, VELOCITY, FLUID_VEL_PROJECTED, alpha);
+    }
+
+    else if (*r_destination_variable == FLUID_VEL_LAPL_PROJECTED){
+        Interpolate(p_elem, N, p_node, VELOCITY_LAPLACIAN, FLUID_VEL_LAPL_PROJECTED, alpha);
+    }
+
+    else if (*r_destination_variable == FLUID_VEL_LAPL_RATE_PROJECTED){
+        Interpolate(p_elem, N, p_node, VELOCITY_LAPLACIAN_RATE, FLUID_VEL_LAPL_RATE_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == PRESSURE_GRAD_PROJECTED){
@@ -1570,16 +1584,17 @@ void TransferByAveraging(
         return;
     }
 
-    array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
+    const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
 
         for (unsigned int i = 0; i != neighbours.size(); ++i){
-            double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
-            double fluid_density = neighbours[i]->FastGetSolutionStepValue(DENSITY);
-            double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
-            array_1d<double, 3> contribution = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
-            neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
+            const double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
+            const double fluid_density = neighbours[i]->FastGetSolutionStepValue(DENSITY);
+            const double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
+            array_1d<double, 3> contribution;
+            noalias(contribution) = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
+            //neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
             neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION) += contribution;
         }
     }
