@@ -49,6 +49,7 @@
 
 // External includes
 #include "boost/smart_ptr.hpp"
+#include "string.h"
 
 // Project includes
 #include "includes/define.h"
@@ -166,7 +167,7 @@ public:
             //ifpack preconditioner type
             Ifpack Factory;
 
-            string PrecType = mIFPreconditionerType;
+            std::string PrecType = mIFPreconditionerType;
             Ifpack_Preconditioner* Prec = Factory.Create(PrecType, &rA, moverlap_level);
             assert(Prec != 0);
 
@@ -284,6 +285,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AZTEC_SOLVER_H_INCLUDED  defined 
-
-
+#endif // KRATOS_AZTEC_SOLVER_H_INCLUDED  defined
