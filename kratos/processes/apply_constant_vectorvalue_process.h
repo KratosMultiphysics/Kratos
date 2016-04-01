@@ -59,7 +59,7 @@ public:
 
     /// Default constructor.
     ApplyConstantVectorValueProcess(ModelPart& model_part, 
-                                    Parameters& parameters
+                                    Parameters parameters
                                    ) : Process(Flags()), mr_model_part(model_part)
     {
         KRATOS_TRY

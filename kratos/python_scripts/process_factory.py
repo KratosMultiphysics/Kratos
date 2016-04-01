@@ -34,38 +34,29 @@ class KratosProcessFactory(object):
     
 ########## here we generate the common kratos processes --- IMPLEMENTED IN C++ ###################
 def Factory(settings, Model):
-    
-    if(settings["process_name"] == "ApplyConstantScalarValueProcess"):
-        params = settings["parameters"]
-        model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
-        mesh_id = int(params["mesh_id"])
-        variable = globals().get( params["variable_name"] )
-        value = params["value"] 
-        is_fixed = params["is_fixed"]
-    
-        options = Flags()
-        options.Set(ApplyConstantScalarValueProcess.VARIABLE_IS_FIXED,  is_fixed)
-
-        print(variable, value)
-        return ApplyConstantScalarValueProcess(model_part, variable, value, mesh_id, options)
-    
-    elif(settings["process_name"] == "ApplyConstantVectorValueProcess"):
-        params = settings["parameters"]
-        model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
-        mesh_id = int(params["mesh_id"])
-        variable = globals().get( params["variable_name"] ) 
-        value = params["value"]
-        factor = params["factor"]  
+    if(settings["process_name"].GetString() == "ApplyConstantScalarValueProcess"):
+        model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+        return ApplyConstantScalarValueProcess(model_part, settings["Parameters"])
+    elif(settings["process_name"].GetString() == "ApplyConstantVectorValueProcess"):
+        model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+        return ApplyConstantScalarValueProcess(model_part, settings["Parameters"])
+    raise Exception("process name not found ",)
+        #params = settings["parameters"]
+        #model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
+        #mesh_id = int(params["mesh_id"])
+        #variable = globals().get( params["variable_name"] ) 
+        #value = params["value"]
+        #factor = params["factor"]  
         
-        is_fixed_x = params["is_fixed_x"]
-        is_fixed_y = params["is_fixed_y"]
-        is_fixed_z = params["is_fixed_z"]
+        #is_fixed_x = params["is_fixed_x"]
+        #is_fixed_y = params["is_fixed_y"]
+        #is_fixed_z = params["is_fixed_z"]
         
-        options = Flags()
-        options.Set(ApplyConstantVectorValueProcess.X_COMPONENT_FIXED,  is_fixed_x)
-        options.Set(ApplyConstantVectorValueProcess.Y_COMPONENT_FIXED,  is_fixed_y)
-        options.Set(ApplyConstantVectorValueProcess.Z_COMPONENT_FIXED,  is_fixed_z)
+        #options = Flags()
+        #options.Set(ApplyConstantVectorValueProcess.X_COMPONENT_FIXED,  is_fixed_x)
+        #options.Set(ApplyConstantVectorValueProcess.Y_COMPONENT_FIXED,  is_fixed_y)
+        #options.Set(ApplyConstantVectorValueProcess.Z_COMPONENT_FIXED,  is_fixed_z)
             
-        new_process = ApplyConstantVectorValueProcess(model_part, variable, factor, value,mesh_id, options)
+        #new_process = ApplyConstantVectorValueProcess(model_part, variable, factor, value,mesh_id, options)
         
-        return new_process
+        #return new_process
