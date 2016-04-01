@@ -200,8 +200,8 @@ class ApplicationGenerator(object):
                 elif 'message( " ")' in l and msgCount == 1:
                     newLine = ''
 
-                    newLine += 'message("' + self._nameUpper
-                    newLine += ('.'*(37-len(self._nameUpper)))
+                    newLine += 'message("' + self._nameUpper + '_APPLICATION'
+                    newLine += ('.'*(25-len(self._nameUpper)))
                     newLine += '${' + self._nameUpper + '}")\n'
 
                     dst.write(newLine)
@@ -212,17 +212,17 @@ class ApplicationGenerator(object):
 
                 # Write the add subdirectory clause
                 if '# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)' in l:
-                    dst.write('if(${' + self._nameUpper + '} MATCHES ON)\n')
-                    dst.write('  add_subdirectory(' + self._nameCamel+')\n')
-                    dst.write('endif(${' + self._nameUpper + '} MATCHES ON)\n')
+                    dst.write('if(${' + self._nameUpper + '_APPLICATION} MATCHES ON)\n')
+                    dst.write('  add_subdirectory(' + self._nameCamel+'Application)\n')
+                    dst.write('endif(${' + self._nameUpper + '_APPLICATION} MATCHES ON)\n')
                     dst.write('\n')
 
                 # Write the old line
                 dst.write(l)
 
         # Replace the old file with the new one
-        # os.remove(srcFile)
-        # os.rename(dstFile, srcFile)
+        os.remove(srcFile)
+        os.rename(dstFile, srcFile)
 
     def _addApplicationToAppList(self):
 
@@ -270,6 +270,7 @@ class ApplicationGenerator(object):
 
         # Prepare some blocks
         prepareBlockContent = [
+            '\n'
             '\tif(Import_{CAMEL}):\n'
             '\t\tprint("importing Kratos{CAMEL}Application ...")\n'
             '\t\tsys.path.append(applications_path + \'/{CAMEL}/python_scripts\')\n'
@@ -285,7 +286,7 @@ class ApplicationGenerator(object):
             s.format(
                 CAMEL=self._nameCamel,
                 LOWER=self._nameLower
-            ) for s in prepareBlockContent
+            ).replace('\t', '    ') for s in prepareBlockContent
         ]
 
         # Add our application to the requeired blocks
@@ -300,7 +301,7 @@ class ApplicationGenerator(object):
         fileStruct['importValueBlock'].append(
             '\tprint("Import_{CAMEL}: " + str(Import_{CAMEL}))\n'.format(
                 CAMEL=self._nameCamel
-            )
+            ).replace('\t', '    ')
         )
 
         # This line deletes the last \n
@@ -308,6 +309,11 @@ class ApplicationGenerator(object):
         fileStruct['prepareBlock'].append(
             prepareBlockContent
         )
+
+        fileStruct['initializeBlock'].append([
+            '\tif(Import_'+self._nameCamel+'Application):\n'.replace('\t', '    '),
+            '\t\tkernel.InitializeApplication('+self._nameLower+'_application)\n'.replace('\t', '    ')
+        ])
 
         # Write the whole thing down
         with open(dstFile, 'w+') as dst:
@@ -330,14 +336,16 @@ class ApplicationGenerator(object):
                 for l in b:
                     dst.write(l)
             dst.write('\n')
-            for l in fileStruct['initializeBlock']:
-                dst.write(l)
+            for b in fileStruct['initializeBlock']:
+                for l in b:
+                    dst.write(l)
             dst.write('\n')
             for l in fileStruct['footer']:
                 dst.write(l)
 
-        # os.remove(srcFile)
-        # os.rename(dstFile, srcFile)
+        # Replace the old file with the new one
+        os.remove(srcFile)
+        os.rename(dstFile, srcFile)
 
 
 # TODO: Main sould exists in a separate file

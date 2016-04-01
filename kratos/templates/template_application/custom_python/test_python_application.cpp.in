@@ -29,7 +29,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "test_application.h"
+#include "@{APP_NAME_LOW}_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
