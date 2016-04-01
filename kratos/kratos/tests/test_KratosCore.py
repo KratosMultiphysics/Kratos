@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suites
-from test_kratos_parameters import TestKratosParameters as TParameters
+from test_kratos_parameters import TestParameters as TParameters
 from test_model_part_io import TestModelPartIO as TModelPartIO
 from test_model_part import TestModelPart as TModelPart
 
