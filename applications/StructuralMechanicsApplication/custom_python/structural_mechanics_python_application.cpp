@@ -88,10 +88,15 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     /* Adding the SPRISM EAS variables */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(ALPHA_EAS);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(EAS_IMP);
+
     /* Adding the SPRISM additional variables */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(ANG_ROT);
+
     /* Adding the SPRISM number of transversal integration points */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(NINT_TRANS);
+
+    /* Adding the SPRISM variable to deactivate the quadratic interpolation */
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(QUAD_ON);
 
     /* Hencky strain */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(HENCKY_STRAIN_VECTOR);

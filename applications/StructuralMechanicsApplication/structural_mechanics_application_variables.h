@@ -83,6 +83,9 @@ KRATOS_DEFINE_VARIABLE(double, ANG_ROT);
 // Adding the Sprism number of transversal integration points 
 KRATOS_DEFINE_VARIABLE(int, NINT_TRANS);
 
+// Adding the SPRISM variable to deactivate the quadratic interpolation
+KRATOS_DEFINE_VARIABLE(bool, QUAD_ON);
+
 // Additional strain measures 
 KRATOS_DEFINE_VARIABLE(Vector, HENCKY_STRAIN_VECTOR);
 KRATOS_DEFINE_VARIABLE(Matrix, HENCKY_STRAIN_TENSOR);
