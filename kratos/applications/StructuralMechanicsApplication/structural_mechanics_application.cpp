@@ -116,6 +116,9 @@ void KratosStructuralMechanicsApplication::Register()
     // Adding the SPRISM number of transversal integration points 
     KRATOS_REGISTER_VARIABLE(NINT_TRANS);
 
+    // Adding the SPRISM variable to deactivate the quadratic interpolation
+    KRATOS_REGISTER_VARIABLE(QUAD_ON);
+
     // Strain measures
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_TENSOR);

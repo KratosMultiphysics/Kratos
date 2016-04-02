@@ -2404,13 +2404,26 @@ void SprismElement3D6N::PrintElementCalculation(
 
 bool SprismElement3D6N::HasNeighbour(unsigned int index, const Node < 3 > & neighb)
 {
+    bool quad_on = true;
+    if( GetProperties().Has(QUAD_ON) )
+    {
+        quad_on = GetProperties()[QUAD_ON];
+    }
+
     if (neighb.Id() == GetGeometry()[index].Id())
     {
         return false;
     }
     else
     {
-        return true;
+        if (quad_on == true)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 
