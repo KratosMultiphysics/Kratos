@@ -734,6 +734,46 @@ public:
             EigenValuesVector[1] = 3 * q - EigenValuesVector[0] - EigenValuesVector[2];
         }
     }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Calculates the solutions for a given second order polynomial equation 0 = a*x^2 + b*x + c
+     * @param a coefficient
+     * @param b coefficient
+     * @param c coefficient
+     * @param ZeroTol number treated as zero
+     * @return Vector of solutions
+     */
+
+    static inline bool Solve_Second_Order_Equation(
+            const double& a,
+            const double& b,
+            const double& c,
+            Vector& solution
+            )
+    {
+        solution.resize(2,false);
+        noalias(solution)= ZeroVector(2);
+
+        double disc = b*b - 4.00*a*c;
+        double q = 0.00;
+
+        if (b > 0.00)
+        {
+            q = -0.5 * (b + sqrt(disc));
+        }
+        else
+        {
+            q = -0.5 * (b - sqrt(disc));
+        }
+
+        solution(0) = q / a;
+        solution(1) = c / q;
+
+        return true;
+    }
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -750,10 +790,10 @@ public:
      */
 
     static inline bool CardanoFormula(
-            double a,
-            double b,
-            double c,
-            double d,
+            const double& a,
+            const double& b,
+            const double& c,
+            const double& d,
             Vector& solution
             )
     {
@@ -768,14 +808,14 @@ public:
 
         double p = (3.0 * a * c - b * b) / (3.0 * a * a);
         double q = 2.0 * b * b * b / (27.0 * a * a * a)-b * c/(3.0 * a * a)+d / a;
-        double discriminante = p * p * p / 27.0 + q * q / 4.0;
+        double disc = p * p * p / 27.0 + q * q / 4.0;
 
-        if(discriminante > 0)
+        if(disc > 0)
         {
             return false;
         }
 
-        if(discriminante == 0)
+        if(disc == 0)
         {
             if( a == 0 )
             {
@@ -790,7 +830,7 @@ public:
         }
 
         solution(0) = -sqrt(-4.0 / 3.0 * p) * cos(1.0 / 3.0 * acos(-q / 2.0 * sqrt(-27.0 / (p * p * p))) + PI / 3.0) - b / ( 3 * a);
-        solution(1) = sqrt(-4.0 / 3.0 * p) * cos(1.0 / 3.0 * acos(-q / 2.0 * sqrt(-27.0 / (p * p * p)))) - b / (3 * a);
+        solution(1) =  sqrt(-4.0 / 3.0 * p) * cos(1.0 / 3.0 * acos(-q / 2.0 * sqrt(-27.0 / (p * p * p)))) - b / (3 * a);
         solution(2) = -sqrt(-4.0 / 3.0 * p) * cos(1.0 / 3.0 * acos(-q/2.0 * sqrt(-27.0 / (p * p * p))) - PI / 3.0) - b / (3 * a);
 
         return true;

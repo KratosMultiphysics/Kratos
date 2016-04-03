@@ -101,6 +101,9 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
     /* Hencky strain */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(HENCKY_STRAIN_VECTOR);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(HENCKY_STRAIN_TENSOR);
+
+    // Adding the LAMBDA load factor considered in the arclength
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(LAMBDA);
 }
 
 
