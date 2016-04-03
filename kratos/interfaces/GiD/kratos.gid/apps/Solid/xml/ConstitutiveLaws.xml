@@ -188,7 +188,7 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticUP3DLaw" pn="PLastic J2 U-P" dev="False" Type="3D" behaviour="Plastic" StrainSize="6"
+    <CLaw n="HyperElasticPlasticUPJ23DLaw" pn="PLastic J2 U-P" dev="False" Type="3D" behaviour="Plastic" StrainSize="6"
           help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 3D" Dimension="3D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
   	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
@@ -243,7 +243,7 @@
     <CLaw n="IsotropicDamageSimoJu3DLaw" pn="Isotropic Damage Simo-Ju" dev="False" Type="3D" behaviour="Damage" StrainSize="6"
           help="Isotropic Damage Simo-Ju Behaviour in 3D" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
-  	    <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
+  	    <parameter n="DENSITY" pn="Densi2ty" unit_magnitude="Density" units="kg/m^3"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
             <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
