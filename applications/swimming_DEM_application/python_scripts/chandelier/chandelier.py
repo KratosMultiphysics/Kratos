@@ -34,8 +34,8 @@ class AnalyticSimulator:
         Re_T = 4. / 9 * (gamma - 1.) * g * a ** 3 / nu ** 2 # terminal velocity Reynold's number
         nDw0 = 2 * (1. - gamma) * S / Fr # Non-dimensional terminal sedimentation velocity
 
-        U0 = (x0 + 1j * y0) / R
-        Z0 = (u0 + 1j * v0) / (R * omega)
+        Z0 = (x0 + 1j * y0) / R
+        U0 = (u0 + 1j * v0) / (R * omega)
         NDz0 = z0 / R
         
         self.gamma = gamma
