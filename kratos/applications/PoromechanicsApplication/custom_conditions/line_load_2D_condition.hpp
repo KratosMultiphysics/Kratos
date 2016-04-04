@@ -10,7 +10,10 @@
 
 // Project includes
 #include "includes/serializer.h"
+
+// Application includes
 #include "custom_conditions/general_U_Pw_condition.hpp"
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {

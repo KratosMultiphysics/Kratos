@@ -8,8 +8,6 @@
 // Project includes
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
 
-#include "poromechanics_application.h"
-
 namespace Kratos
 {
 

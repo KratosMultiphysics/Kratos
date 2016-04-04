@@ -11,8 +11,6 @@
 // Project includes
 #include "custom_conditions/point_load_condition.hpp"
 
-#include "poromechanics_application.h"
-
 namespace Kratos
 {
 

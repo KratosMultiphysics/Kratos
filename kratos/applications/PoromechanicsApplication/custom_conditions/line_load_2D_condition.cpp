@@ -5,10 +5,8 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-// Project includes
+// Application includes
 #include "custom_conditions/line_load_2D_condition.hpp"
-
-#include "poromechanics_application.h"
 
 namespace Kratos
 {

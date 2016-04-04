@@ -8,15 +8,16 @@
 #if !defined(KRATOS_GENERAL_U_PW_CONDITION_H_INCLUDED )
 #define  KRATOS_GENERAL_U_PW_CONDITION_H_INCLUDED
 
-// External includes
-#include "boost/smart_ptr.hpp"
+// System includes
+#include <cmath>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
+#include "includes/process_info.h"
+
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {

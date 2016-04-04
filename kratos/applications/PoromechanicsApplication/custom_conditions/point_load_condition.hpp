@@ -18,6 +18,8 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "poromechanics_application_variables.h"
+
 namespace Kratos
 {
 

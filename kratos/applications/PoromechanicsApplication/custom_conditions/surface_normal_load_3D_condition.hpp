@@ -12,6 +12,8 @@
 #include "includes/serializer.h"
 #include "custom_conditions/general_U_Pw_condition.hpp"
 
+#include "poromechanics_application_variables.h"
+
 namespace Kratos
 {
 
