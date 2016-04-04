@@ -10,6 +10,7 @@ Cs = 6.46 # Saffman's constant
 
 # Options
 include_lift = 0
+include_history_force = 0
 
 # Initial Conditions
 x0 = 0.01
