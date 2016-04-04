@@ -45,7 +45,7 @@ public:
 
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::PointType PointType;
+    typedef GeometryType::PointType PointType;
 
     kDOP() {this->Initialize();}
 
@@ -357,7 +357,7 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
-    typedef typename GeometryType::PointType PointType;
+    typedef GeometryType::PointType PointType;
 
     virtual void Partition(ConditionsContainerType& rAllConditions,
                            const kDOP& rBoundingVolume,
