@@ -26,9 +26,8 @@ class SolverSettings:
 class ConditionsOptions:
     Imposed_Displacement = "*GenData(Imposed_Displacement)"
     Imposed_Pressure = "*GenData(Imposed_Pressure)"
-    Imposed_PointLoad = "*GenData(Imposed_PointLoad)"
-    Imposed_LineLoad = "*GenData(Imposed_LineLoad)"
-    Imposed_SurfaceLoad = "*GenData(Imposed_SurfaceLoad)"
+    Imposed_Force = "*GenData(Imposed_Force)"
+    Imposed_FaceLoad = "*GenData(Imposed_FaceLoad)"
     Imposed_NormalLoad = "*GenData(Imposed_NormalLoad)"
     Imposed_TangentialLoad = "*GenData(Imposed_TangentialLoad)"
     Imposed_NormalFluidFlux = "*GenData(Imposed_NormalFluidFlux)"
@@ -36,8 +35,8 @@ class ConditionsOptions:
 
 ## PostProcess Data -----------------------------------------------------------------------------------------------------------
 
-nodal_results = ["*GenData(Nodal_results_1)","*GenData(Nodal_results_2)","*GenData(Nodal_results_3)","*GenData(Nodal_results_4)","*GenData(Nodal_results_5)","*GenData(Nodal_results_6)","*GenData(Nodal_results_7)","*GenData(Nodal_results_8)","*GenData(Nodal_results_9)","*GenData(Nodal_results_10)"]
-gauss_points_results=["*GenData(Gauss_points_results_1)","*GenData(Gauss_points_results_2)","*GenData(Gauss_points_results_3)","*GenData(Gauss_points_results_4)"]
+nodal_results = ["*GenData(Nodal_results_1)","*GenData(Nodal_results_2)","*GenData(Nodal_results_3)","*GenData(Nodal_results_4)","*GenData(Nodal_results_5)","*GenData(Nodal_results_6)","*GenData(Nodal_results_7)","*GenData(Nodal_results_8)","*GenData(Nodal_results_9)"]
+gauss_points_results=["*GenData(Gauss_points_results_1)","*GenData(Gauss_points_results_2)","*GenData(Gauss_points_results_3)","*GenData(Gauss_points_results_4)","*GenData(Gauss_points_results_5)","*GenData(Gauss_points_results_6)","*GenData(Gauss_points_results_7)","*GenData(Gauss_points_results_8)","*GenData(Gauss_points_results_9)","*GenData(Gauss_points_results_10)","*GenData(Gauss_points_results_11)"]
 
 class GidOutputConfiguration:
     GiDWriteMeshFlag = *GenData(Write_deformed_mesh)
