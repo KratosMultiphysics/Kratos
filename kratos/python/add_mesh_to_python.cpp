@@ -47,6 +47,12 @@ namespace Python
 using namespace boost::python;
 
 template< class TContainerType, class TVariableType >
+bool HasHelperFunction(TContainerType& el, const TVariableType& rVar)
+{
+    return el.Has(rVar);
+}
+
+template< class TContainerType, class TVariableType >
 void SetValueHelperFunction(TContainerType& el, const TVariableType& rVar,const typename TVariableType::Type& Data)
 {
     el.SetValue(rVar,Data);
@@ -343,36 +349,43 @@ void  AddMeshToPython()
     .add_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Vector > >)
+    .def("Has", HasHelperFunction< Element, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< Vector > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< vector<int> > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< vector<int> > >)
+    .def("Has", HasHelperFunction< Element, Variable< vector<int> > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< vector<int> > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< vector<int> > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Matrix > >)
+    .def("Has", HasHelperFunction< Element, Variable< Matrix > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< Matrix > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< Matrix > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< int > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< int > >)
+    .def("Has", HasHelperFunction< Element, Variable< int > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< int > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< int > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< double > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< double > >)
+    .def("Has", HasHelperFunction< Element, Variable< double > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< double > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< double > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< bool > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< bool > >)
+    .def("Has", HasHelperFunction< Element, Variable< bool > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
 
@@ -418,7 +431,7 @@ void  AddMeshToPython()
                         .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
                         .def(SolutionStepVariableIndexingPython<Element, Variable<matrix<double> > >())
                         .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >()) */
-//                     .def("Initialize", &Element::Initialize)
+    .def("Initialize", &Element::Initialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def(self_ns::str(self))
     ;
@@ -431,36 +444,43 @@ void  AddMeshToPython()
     .add_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Vector > >)
+    .def("Has", HasHelperFunction< Condition, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< Vector > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< vector<int> > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< vector<int> > >)
+    .def("Has", HasHelperFunction< Condition, Variable< vector<int> > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< vector<int> > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< vector<int> > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Matrix > >)
+    .def("Has", HasHelperFunction< Condition, Variable< Matrix > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< Matrix > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< Matrix > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< int > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< int > >)
+    .def("Has", HasHelperFunction< Condition, Variable< int > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< int > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< int > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< double > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< double > >)
+    .def("Has", HasHelperFunction< Condition, Variable< double > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< double > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< double > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< bool > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< bool > >)
+    .def("Has", HasHelperFunction< Condition, Variable< bool > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< bool > >)
 
@@ -491,7 +511,8 @@ void  AddMeshToPython()
     				.def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
     				.def(SolutionStepVariableIndexingPython<Condition, Variable<matrix<double> > >())
     				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    */				//.def("Initialize", &Condition::Initialize)
+    */				
+    .def("Initialize", &Condition::Initialize)
     //.def("CalculateLocalSystem", &Condition::CalculateLocalSystem)
     .def("Info", &Condition::Info)
     .def(self_ns::str(self))
