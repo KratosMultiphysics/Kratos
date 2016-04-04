@@ -245,7 +245,7 @@ public:
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
-        double start_prod = omp_get_wtime();
+        double start_prod = OpenMPUtils::GetCurrentTime();
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -307,16 +307,14 @@ public:
                 }
             }
         }
-        double stop_prod = omp_get_wtime();
+        double stop_prod = OpenMPUtils::GetCurrentTime();
         for(int i = 0; i<A_size; i++)
             omp_destroy_lock(&lock_array[i]);
         std::cout << "building time: " << stop_prod - start_prod << std::endl;
         KRATOS_WATCH("finished parallel building");
 #endif
 
-
         KRATOS_CATCH("")
-
     }
 
     //**************************************************************************
@@ -943,7 +941,7 @@ protected:
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo)
     {
-        double start_construct = omp_get_wtime();
+        double start_construct = OpenMPUtils::GetCurrentTime();
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
         //              std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
@@ -1038,7 +1036,7 @@ protected:
             }
         }
 #endif
-        double end_construct = omp_get_wtime();
+        double end_construct = OpenMPUtils::GetCurrentTime();
         std::cout << "ConstructMatrixStructure completed: " << (end_construct - start_construct) << std::endl;
         Timer::Stop("MatrixStructure");
     }
