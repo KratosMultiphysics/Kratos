@@ -11,6 +11,7 @@ start_time = time.clock()
 # Including kratos path
 from KratosMultiphysics import *
 # Including Applications path
+from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.PoromechanicsApplication import *
 
@@ -18,13 +19,13 @@ from KratosMultiphysics.PoromechanicsApplication import *
 import ProjectParameters
 
 #Import solver constructor
-import solver_constructor
+import U_Pw_solver
 
 # Import utilities
-import conditions_utility
-import constitutive_law_utility
-import gid_output_utility
-import cleaning_utility
+import poromechanics_conditions
+import poromechanics_constitutivelaw
+import poromechanics_gid_output
+import poromechanics_cleaning_utility
 
 
 ## Previous definitions --------------------------------------------------------------------------------------
@@ -39,7 +40,7 @@ delta_time = ProjectParameters.delta_time
 ending_time = ProjectParameters.ending_time
 current_step = 0
 current_time = 0.0
-current_id = 1
+current_id = 0
 tol = delta_time*1e-10
 
 # List of variables to write
@@ -53,7 +54,7 @@ gp_res = ProjectParameters.gauss_points_results
 model_part = ModelPart("PorousDomain")
 
 # Set problem variables
-solver_constructor.AddVariables(model_part)
+U_Pw_solver.AddVariables(model_part)
 
 # Reading model part 
 model_part_io = ModelPartIO(problem_name)
@@ -64,9 +65,9 @@ buffer_size = 2
 model_part.SetBufferSize(buffer_size)
 
 # Set degrees of freedom
-solver_constructor.AddDofs(model_part)
+U_Pw_solver.AddDofs(model_part)
 
-# Set ProcessInfo variables and fill the previous steps of the buffer with the initial conditions
+# Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
 current_time = -(buffer_size-1)*delta_time
 model_part.ProcessInfo[TIME] = current_time #current_time and TIME = 0 after filling the buffer
 for step in range(buffer_size-1):
@@ -74,33 +75,30 @@ for step in range(buffer_size-1):
     model_part.CloneTimeStep(current_time)
 
 # Print control
-print(model_part)
-print(model_part.Properties[1])
+#print(model_part)
+#print(model_part.Properties[1])
 
 
 ## Initialize ------------------------------------------------------------------------------------------------
 
-# Definition of utilities
-gid_output_util = gid_output_utility.GidOutputUtility(ProjectParameters.GidOutputConfiguration,problem_name,current_time,ending_time,delta_time)
-cleaning_util = cleaning_utility.CleaningUtility(ProjectParameters.problem_path)
-conditions_util = conditions_utility.ConditionsUtility(delta_time,ProjectParameters.ConditionsOptions)
-
-# Erasing previous results files
+# Definition and initilaization of utilities
+gid_output_util = poromechanics_gid_output.PoromechanicsGidOutput(ProjectParameters.GidOutputConfiguration,problem_name,current_time,ending_time,delta_time,nodal_res, gp_res)
+cleaning_util = poromechanics_cleaning_utility.PoromechanicsCleaningUtility(ProjectParameters.problem_path)
 cleaning_util.CleanPreviousFiles()
+conditions_util = poromechanics_conditions.PoromechanicsConditions(delta_time,ProjectParameters.ConditionsOptions)
+conditions_util.Initialize(model_part)
 
 # Set constitutive laws
-constitutive_law_utility.SetConstitutiveLaw(model_part)
+poromechanics_constitutivelaw.SetConstitutiveLaw(model_part)
 
 # Define and initialize the main solver
-main_step_solver = solver_constructor.CreateSolver(model_part, ProjectParameters.SolverSettings)
+main_step_solver = U_Pw_solver.CreateSolver(model_part, ProjectParameters.SolverSettings)
 main_step_solver.Initialize()
-
-# Initialize imposed conditions
-NonLinearImposedConditions = conditions_util.Initialize(model_part)
 
 # Initializing new results
 gid_output_util.initialize_results(model_part, current_id) #For single post file
-gid_output_util.write_results(model_part, nodal_res, gp_res, current_time, current_step, current_id)
+print("WRITING RESULTS: ID", current_id, " - STEP", current_step, " - TIME", "%.5f" % current_time)
+gid_output_util.write_results(model_part, current_time, current_id)
 
 
 ## Temporal loop ---------------------------------------------------------------------------------------------
@@ -114,22 +112,18 @@ while( (current_time+tol) < ending_time ):
     print("--------------------------------------------------")
     print("STEP",current_step," - TIME","%.5f" % current_time)
     
-    # Update non-linear imposed conditions if necessary
-    if(NonLinearImposedConditions):
-        conditions_util.UpdateImposedConditions(model_part,current_step)
+    # Update imposed conditions
+    conditions_util.UpdateImposedConditions(model_part,current_step)
     
     # Solve step
-    clock_time = time.clock()
     main_step_solver.Solve()
-    print("Solving Time = ","%.5f" % (time.clock() - clock_time)," seconds")
     
     # Write GiD results
     execute_write = gid_output_util.CheckWriteResults(current_time)
     if(execute_write):
         current_id = current_id + 1
-        clock_time = time.clock()
-        gid_output_util.write_results(model_part, nodal_res, gp_res, current_time, current_step, current_id)
-        print("Writing Time = ","%.5f" % (time.clock() - clock_time)," seconds")
+        print("WRITING RESULTS: ID", current_id, " - STEP", current_step, " - TIME", "%.5f" % current_time)
+        gid_output_util.write_results(model_part, current_time, current_id)
 
 
 ## Finalize --------------------------------------------------------------------------------------------------
