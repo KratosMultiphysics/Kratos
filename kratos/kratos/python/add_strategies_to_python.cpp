@@ -113,6 +113,16 @@ namespace Kratos
             return rV.size();
         }
 
+        SparseSpaceType::IndexType Size1(SparseSpaceType& dummy, SparseSpaceType::MatrixType const& rM)
+        {
+            return rM.size1();
+        }
+
+        SparseSpaceType::IndexType Size2(SparseSpaceType& dummy, SparseSpaceType::MatrixType const& rM)
+        {
+            return rM.size2();
+        }
+
         void ResizeMatrix(SparseSpaceType& dummy, SparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
         {
             dummy.Resize(A, i1, i2);
@@ -440,6 +450,8 @@ namespace Kratos
                     .def("Mult", Mult)
                     .def("TransposeMult", TransposeMult)
                     .def("Size", Size)
+                    .def("Size1", Size1)
+                    .def("Size2", Size2)
                     .def("UnaliasedAdd", UnaliasedAdd)
                     .def("ScaleAndAdd", ScaleAndAdd)
                     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
