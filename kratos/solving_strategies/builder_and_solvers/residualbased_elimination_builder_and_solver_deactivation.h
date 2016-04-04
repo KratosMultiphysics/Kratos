@@ -241,7 +241,7 @@ public:
         int number_of_threads = omp_get_max_threads();
 
         vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
 
@@ -278,7 +278,7 @@ public:
         }
 
         vector<unsigned int> condition_partition;
-        CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
         #pragma omp parallel for
         for(int k=0; k<number_of_threads; k++)
@@ -614,7 +614,8 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("setting up the dofs");
+        std::cout << "setting up the dofs" << std::endl;
+
         //Gets the array of elements from the modeler
         ElementsArrayType& pElements = r_model_part.Elements();
 
@@ -629,9 +630,11 @@ public:
         //double StartTime = GetTickCount();
         for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
         {
-            // gets list of Dof involved on every element
+            if( ! (*it)->GetValue( IS_INACTIVE ) )
+            {
+                // gets list of Dof involved on every element
 //aaa = GetTickCount();
-            pScheme->GetElementalDofList(*it,ElementalDofList,CurrentProcessInfo);
+                pScheme->GetElementalDofList(*it,ElementalDofList,CurrentProcessInfo);
 //bbb += GetTickCount() - aaa;
             /*KRATOS_WATCH((*it)->Id());
             std::cout << "node ids" << std::endl;
@@ -645,10 +648,11 @@ public:
 //KRATOS_WATCH(ElementalDofList);
 
 //ccc = GetTickCount();
-            for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
-            {
-                Doftemp.push_back(*i);
-                //mDofSet.push_back(*i);
+                for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
+                {
+                    Doftemp.push_back(*i);
+                    //mDofSet.push_back(*i);
+                }
             }
 //ddd += GetTickCount() - ccc;
         }
@@ -660,14 +664,17 @@ public:
         ConditionsArrayType& pConditions = r_model_part.Conditions();
         for (typename ConditionsArrayType::ptr_iterator it=pConditions.ptr_begin(); it!=pConditions.ptr_end(); ++it)
         {
-            // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*it,ElementalDofList,CurrentProcessInfo);
+            if( ! (*it)->GetValue( IS_INACTIVE ) )
+            {
+                // gets list of Dof involved on every element
+                pScheme->GetConditionDofList(*it,ElementalDofList,CurrentProcessInfo);
 
 //ccc = GetTickCount();
-            for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
-            {
-                //mDofSet.push_back(*i);
-                Doftemp.push_back(*i);
+                for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
+                {
+                    //mDofSet.push_back(*i);
+                    Doftemp.push_back(*i);
+                }
             }
 //ddd += GetTickCount() - ccc;
         }
@@ -686,6 +693,10 @@ public:
 
 //ddd = GetTickCount() - ccc;
 //std::cout << "Unique " << ddd << std::endl;
+
+        KRATOS_WATCH(pElements.size())
+        KRATOS_WATCH(pConditions.size())
+        KRATOS_WATCH(BaseType::mDofSet.size())
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
@@ -763,7 +774,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,false);
-            ConstructMatrixStructure(A,rElements,rConditions,CurrentProcessInfo);
+            this->ConstructMatrixStructure(A,rElements,rConditions,CurrentProcessInfo);
         }
         else
         {
@@ -771,7 +782,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
-                ConstructMatrixStructure(A,rElements,rConditions,CurrentProcessInfo);
+                this->ConstructMatrixStructure(A,rElements,rConditions,CurrentProcessInfo);
             }
         }
         if(Dx.size() != BaseType::mEquationSystemSize)
@@ -932,7 +943,7 @@ protected:
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo)
     {
-
+        double start_construct = omp_get_wtime();
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
         //              std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
@@ -940,9 +951,13 @@ protected:
         Element::EquationIdVectorType ids(3,0);
         for(typename ElementsContainerType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; i_element++)
         {
+            if((i_element)->GetValue(IS_INACTIVE) == true)
+                continue;
+
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
             for(std::size_t i = 0 ; i < ids.size() ; i++)
+            {
                 if(ids[i] < equation_size)
                 {
                     std::vector<std::size_t>& row_indices = indices[ids[i]];
@@ -953,13 +968,17 @@ protected:
                             //indices[ids[i]].push_back(ids[j]);
                         }
                 }
-
+            }
         }
 
         for(typename ConditionsArrayType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
         {
+            if((i_condition)->GetValue(IS_INACTIVE) == true)
+                continue;
+
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             for(std::size_t i = 0 ; i < ids.size() ; i++)
+            {
                 if(ids[i] < equation_size)
                 {
                     std::vector<std::size_t>& row_indices = indices[ids[i]];
@@ -970,6 +989,7 @@ protected:
                             //  indices[ids[i]].push_back(ids[j]);
                         }
                 }
+            }
         }
 
         //allocating the memory needed
@@ -997,7 +1017,7 @@ protected:
 #else
         int number_of_threads = omp_get_max_threads();
         vector<unsigned int> matrix_partition;
-        CreatePartition(number_of_threads, indices.size(), matrix_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, indices.size(), matrix_partition);
         KRATOS_WATCH( matrix_partition );
         for( int k=0; k<number_of_threads; k++ )
         {
@@ -1018,6 +1038,8 @@ protected:
             }
         }
 #endif
+        double end_construct = omp_get_wtime();
+        std::cout << "ConstructMatrixStructure completed: " << (end_construct - start_construct) << std::endl;
         Timer::Stop("MatrixStructure");
     }
 
@@ -1188,18 +1210,6 @@ private:
             v.push_back(candidate);
         }
 
-    }
-
-    //******************************************************************************************
-    //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
     }
 
 #ifdef _OPENMP
