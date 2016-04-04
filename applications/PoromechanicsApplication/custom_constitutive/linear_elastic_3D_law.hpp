@@ -8,13 +8,15 @@
 #if !defined (KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED)
 #define  KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED
 
-// External includes
+// System includes
 #include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/properties.h"
 #include "includes/constitutive_law.h"
+
+// Application includes
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
