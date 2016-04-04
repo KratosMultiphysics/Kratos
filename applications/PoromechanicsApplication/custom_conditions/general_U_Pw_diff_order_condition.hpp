@@ -8,20 +8,21 @@
 #if !defined(KRATOS_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED )
 #define  KRATOS_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED
 
-// External includes
-#include "boost/smart_ptr.hpp"
+// System includes
+#include <cmath>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
+#include "includes/process_info.h"
+
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class GeneralUPwDiffOrderCondition : public Condition
+class KRATOS_API(POROMECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : public Condition
 {
 
 public:
@@ -45,8 +46,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo);
  
     void Initialize();
  

@@ -12,6 +12,8 @@
 #include "includes/serializer.h"
 #include "custom_conditions/surface_normal_fluid_flux_3D_condition.hpp"
 
+#include "poromechanics_application_variables.h"
+
 namespace Kratos
 {
 

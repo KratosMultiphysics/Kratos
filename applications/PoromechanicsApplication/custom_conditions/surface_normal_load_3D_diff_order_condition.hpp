@@ -12,10 +12,12 @@
 #include "includes/serializer.h"
 #include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
 
+#include "poromechanics_application_variables.h"
+
 namespace Kratos
 {
 
-class SurfaceNormalLoad3DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(POROMECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderCondition : public GeneralUPwDiffOrderCondition
 {
 
 public:

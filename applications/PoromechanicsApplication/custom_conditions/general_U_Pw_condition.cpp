@@ -5,13 +5,8 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-// System includes
-#include <math.h>
-
-// Project includes
+// Application includes
 #include "custom_conditions/general_U_Pw_condition.hpp"
-
-#include "poromechanics_application.h"
 
 namespace Kratos
 {
@@ -165,7 +160,7 @@ void GeneralUPwCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorTy
     
     //Loop over integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
+    
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinematics (Np)
@@ -216,8 +211,7 @@ void GeneralUPwCondition::InitializeConditionVariables (ConditionVariables& rVar
     double Porosity = GetProperties()[POROSITY];
     rVariables.BiotModulusInverse = (BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/GetProperties()[BULK_MODULUS_FLUID];
 
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-    rVariables.NewmarkCoefficient = 1.0/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
+    rVariables.NewmarkCoefficient = rCurrentProcessInfo[NEWMARK_COEFFICIENT_P];
 
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
     if(dimension==2)

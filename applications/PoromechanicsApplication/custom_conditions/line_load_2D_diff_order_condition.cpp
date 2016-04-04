@@ -8,8 +8,6 @@
 // Project includes
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 
-#include "poromechanics_application.h"
-
 namespace Kratos
 {
 
@@ -52,7 +50,7 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
-        LineLoad = rGeom[i].FastGetSolutionStepValue(LINE_LOAD);
+        LineLoad = rGeom[i].FastGetSolutionStepValue(FACE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Nu[i]*LineLoad[0];
         rVariables.ConditionVector[1] += rVariables.Nu[i]*LineLoad[1];

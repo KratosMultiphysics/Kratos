@@ -5,17 +5,12 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-// System includes
-#include <math.h>
-
-// Project includes
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
-
-#include "poromechanics_application.h"
-
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+
+// Project includes
+#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
 
 namespace Kratos
 {
@@ -46,28 +41,6 @@ GeneralUPwDiffOrderCondition::~GeneralUPwDiffOrderCondition() {}
 Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new GeneralUPwDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
-}
-
-//----------------------------------------------------------------------------------------
-
-int  GeneralUPwDiffOrderCondition::Check( const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    if (this->Id() < 1)
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Condition found with Id 0 or negative","")
-    }
-    /* //there are some issues when computing the area of some geometries
-    if (this->GetGeometry().Area() < 0)
-    {
-        std::cout << "error on condition -> " << this->Id() << std::endl;
-        KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than 0","")
-    }
-    */
-    return 0;
-
-    KRATOS_CATCH( "" );
 }
 
 //----------------------------------------------------------------------------------------

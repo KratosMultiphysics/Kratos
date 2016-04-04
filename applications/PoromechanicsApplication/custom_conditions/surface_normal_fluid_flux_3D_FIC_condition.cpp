@@ -8,8 +8,6 @@
 // Project includes
 #include "custom_conditions/surface_normal_fluid_flux_3D_FIC_condition.hpp"
 
-#include "poromechanics_application.h"
-
 namespace Kratos
 {
 
@@ -92,7 +90,7 @@ void SurfaceNormalFluidFlux3DFICCondition::CalculateAndAddBoundaryMassFlow(Vecto
     
     for(unsigned int i=0; i<number_of_nodes; i++)
     {
-        PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
+        PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
 
     Vector BoundaryMassFlow = prod(BoundaryMassMatrix,PressureDtVector);

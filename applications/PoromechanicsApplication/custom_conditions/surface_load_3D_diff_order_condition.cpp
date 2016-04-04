@@ -8,8 +8,6 @@
 // Project includes
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 
-#include "poromechanics_application.h"
-
 namespace Kratos
 {
 
@@ -52,7 +50,7 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
 
     for ( SizeType i = 0; i < NumUNodes; i++ )
     {
-        SurfaceLoad = rGeom[i].FastGetSolutionStepValue(SURFACE_LOAD);
+        SurfaceLoad = rGeom[i].FastGetSolutionStepValue(FACE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Nu[i]*SurfaceLoad[0];
         rVariables.ConditionVector[1] += rVariables.Nu[i]*SurfaceLoad[1];

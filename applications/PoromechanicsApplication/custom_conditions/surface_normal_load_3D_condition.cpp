@@ -8,8 +8,6 @@
 // Project includes
 #include "custom_conditions/surface_normal_load_3D_condition.hpp"
 
-#include "poromechanics_application.h"
-
 namespace Kratos
 {
 
