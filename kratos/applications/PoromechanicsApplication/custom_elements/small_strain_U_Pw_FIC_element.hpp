@@ -8,9 +8,14 @@
 #if !defined(KRATOS_SMALL_STRAIN_U_PW_FIC_ELEMENT_H_INCLUDED )
 #define  KRATOS_SMALL_STRAIN_U_PW_FIC_ELEMENT_H_INCLUDED
 
+// System includes
+#include <cmath>
+
 /* Project includes */
 #include "includes/serializer.h"
 #include "custom_elements/small_strain_U_Pw_element.hpp"
+
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -5,13 +5,8 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-// System includes
-#include <math.h>
-
 /* Project includes */
 #include "custom_elements/small_strain_U_Pw_FIC_element.hpp"
-
-#include "poromechanics_application.h"
 
 namespace Kratos
 {
@@ -249,9 +244,8 @@ void SmallStrainUPwFICElement::InitializeElementalVariables (ElementalVariables&
     this->InitializeProperties(rVariables);
     
     //ProcessInfo variables
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[GAMMA_NEWMARK]/(rCurrentProcessInfo[BETA_NEWMARK]*DeltaTime);
-    rVariables.NewmarkCoefficient2 = 1.0/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
+    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[NEWMARK_COEFFICIENT_U];
+    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[NEWMARK_COEFFICIENT_P];
     
     //FIC variables
     rVariables.ShearModulus = GetProperties()[YOUNG_MODULUS]/(2.0*(1.0+GetProperties()[POISSON_RATIO]));
