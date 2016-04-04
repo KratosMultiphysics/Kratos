@@ -447,6 +447,66 @@ class PostUtils:
             f.flush()
             f.close()
 
+class ResultsFileCreator:
+    def __init__(self, model_part, node_id, scalar_vars_list = None, vector_vars_list = None):
+        self.file_name = 'results_node_' + str(node_id) + '.txt'
+
+        if scalar_vars_list is None:
+            scalar_vars_list = []
+
+        if vector_vars_list is None:
+            vector_vars_list = []
+
+        self.scalar_vars = scalar_vars_list
+
+        for var in self.scalar_vars:
+            a = str(var).split()
+            print(a)
+
+        self.vector_vars = vector_vars_list
+        self.n_scalars = len(scalar_vars_list)
+        self.n_vectors = len(vector_vars_list)
+        self.results = []
+
+    def Record(self, model_part, node_id, time):
+        line = [None] * (1 + self.n_scalars + 3 * self.n_vectors)
+        line[0] = time
+
+        i = 1
+        for var in self.scalar_vars:
+            line[i] = model_part.Nodes[node_id].GetSolutionStepValue(var)
+            i += 1
+
+        for var in self.vector_vars:
+            value = model_part.Nodes[node_id].GetSolutionStepValue(var)
+            line[i] = value[0]
+            i += 1
+            line[i] = value[1]
+            i += 1
+            line[i] = value[2]
+            i += 1
+
+        self.results.append(line)
+
+    def PrintFile(self):
+        with open(self.file_name, mode = 'wt') as f:
+            header = ['Time']
+            for var in self.scalar_vars:
+                header.append(' ' + str(var).split()[0])
+            for var in self.vector_vars:
+                header.append(' ' + str(var).split()[0] + '_X')
+                header.append(' ' + str(var).split()[0] + '_Y')
+                header.append(' ' + str(var).split()[0] + '_Z')
+            for entry in header:
+                f.write(entry)
+            f.write('\n')
+
+            for result in self.results:
+                line = ''
+                for entry in result:
+                    line += str('%.17f' % entry) + ' '
+                f.write(line + ' \n')
+
 class StationarityAssessmentTool:
 
     def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
