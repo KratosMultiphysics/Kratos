@@ -135,6 +135,18 @@ public:
     */
     /*@{ */
 
+    /*Criterias that need to be called before getting the solution */
+    virtual bool PreCriteria(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        return false;
+    }
+
     /*Criterias that need to be called after getting the solution */
     bool PostCriteria(
         ModelPart& r_model_part,
@@ -154,8 +166,16 @@ public:
 
             CalculateReferenceNorm(rDofSet);
 
-            ratio = mFinalCorrectionNorm/mReferenceDispNorm;
-
+            if(mFinalCorrectionNorm == 0)
+                ratio = 0.0;
+            else
+            {
+                if(mReferenceDispNorm == 0)
+                    KRATOS_THROW_ERROR(std::logic_error, "NaN norm is detected", "")
+                ratio = mFinalCorrectionNorm/mReferenceDispNorm;
+            }
+KRATOS_WATCH(mFinalCorrectionNorm)
+KRATOS_WATCH(mReferenceDispNorm)
             double aaa = SparseSpaceType::Size(Dx);
 
             double AbsoluteNorm = (mFinalCorrectionNorm/sqrt(aaa));
