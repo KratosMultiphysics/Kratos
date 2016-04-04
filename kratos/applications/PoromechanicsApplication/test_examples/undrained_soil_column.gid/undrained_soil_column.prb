@@ -14,7 +14,7 @@ HELP: Units in IS: s
 QUESTION: Ending_Time
 VALUE: 2
 HELP: Units in IS: s
-QUESTION: Strategy_Type#CB#(Newton-Raphson)
+QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
 VALUE: Newton-Raphson
 QUESTION: DOFs_Relative_Tolerance
 VALUE: 1.0E-4
@@ -33,23 +33,63 @@ QUESTION: Iterative_Solver_Type#CB#(AMGCL,BICGSTAB)
 VALUE: AMGCL
 QUESTION: Number_of_threads
 VALUE: 1
-TITLE: Boundary_Conditions
-QUESTION: Imposed_Displacement#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_Pressure#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_PointLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_LineLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_SurfaceLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_NormalLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_TangentialLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_NormalFluidFlux#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
+TITLE: Modify_Imposed_Variables
+QUESTION: Imposed_Displacement#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Displacement-X_Table,#CURRENT#,HIDE,Displacement-Y_Table,#CURRENT#,HIDE,Displacement-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Displacement-X_Table,#CURRENT#,RESTORE,Displacement-Y_Table,#CURRENT#,RESTORE,Displacement-Z_Table,#CURRENT#)
+QUESTION: Displacement-X_Table(Time,Displacement_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Displacement-Y_Table(Time,Displacement_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Displacement-Z_Table(Time,Displacement_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_Pressure#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Pressure_Table,#CURRENT#)(Table_Interpolation,RESTORE,Pressure_Table,#CURRENT#)
+QUESTION: Pressure_Table(Time,Pressure)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_PointLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Point-Load-X_Table,#CURRENT#,HIDE,Point-Load-Y_Table,#CURRENT#,HIDE,Point-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Point-Load-X_Table,#CURRENT#,RESTORE,Point-Load-Y_Table,#CURRENT#,RESTORE,Point-Load-Z_Table,#CURRENT#)
+QUESTION: Point-Load-X_Table(Time,Point_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Point-Load-Y_Table(Time,Point_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Point-Load-Z_Table(Time,Point_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_LineLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Table_Interpolation
+DEPENDENCIES: (Unmodified,HIDE,Line-Load-X_Table,#CURRENT#,HIDE,Line-Load-Y_Table,#CURRENT#,HIDE,Line-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Line-Load-X_Table,#CURRENT#,RESTORE,Line-Load-Y_Table,#CURRENT#,RESTORE,Line-Load-Z_Table,#CURRENT#)
+QUESTION: Line-Load-X_Table(Time,Line_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Line-Load-Y_Table(Time,Line_Load_Y)
+VALUE: #N# 6 0.0 0.0 0.1 -1.0e3 3.0 -1.0e3
+QUESTION: Line-Load-Z_Table(Time,Line_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_SurfaceLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Surface-Load-X_Table,#CURRENT#,HIDE,Surface-Load-Y_Table,#CURRENT#,HIDE,Surface-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Surface-Load-X_Table,#CURRENT#,RESTORE,Surface-Load-Y_Table,#CURRENT#,RESTORE,Surface-Load-Z_Table,#CURRENT#)
+QUESTION: Surface-Load-X_Table(Time,Surface_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Surface-Load-Y_Table(Time,Surface_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Surface-Load-Z_Table(Time,Surface_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_NormalLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Normal-Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal-Load_Table,#CURRENT#)
+QUESTION: Normal-Load_Table(Time,Normal_Load)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_TangentialLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Tangential-Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Tangential-Load_Table,#CURRENT#)
+QUESTION: Tangential-Load_Table(Time,Tangential_Load)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_NormalFluidFlux#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Normal-Fluid-Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal-Fluid-Flux_Table,#CURRENT#)
+QUESTION: Normal-Fluid-Flux_Table(Time,Normal_Fluid_Flux)
+VALUE: #N# 2 0.0 0.0
 TITLE: PostProcess
 QUESTION: Write_Solid_Displacement#CB#(True,False)
 VALUE: True
