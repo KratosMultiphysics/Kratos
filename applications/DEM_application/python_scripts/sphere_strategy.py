@@ -199,7 +199,7 @@ class ExplicitStrategy:
                            "WARNING:                                                                                     \n"+\
                            "A mix of constitutive laws is being used. The momentum conservation law will not be fulfilled\n"+\
                            "in the interaction of particles of different constitutive laws. Please, cancel the simulation\n"+\
-                           "if that fact represents a problem. Otherwise, computations will resume in a moment.          \n"+\
+                           "if that fact represents a problem. Otherwise, computations will resume in a few seconds.     \n"+\
                            "*********************************************************************************************\n"+\
                            "*********************************************************************************************\n"
         counter = 0
