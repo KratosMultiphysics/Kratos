@@ -5,7 +5,7 @@ from KratosMultiphysics.PoromechanicsApplication import *
 CheckForPreviousImport()
 
 
-class GidOutputUtility(object):
+class PoromechanicsGidOutput(object):
     
     _post_mode = {"Binary": GiDPostMode.GiD_PostBinary,
                   "Ascii": GiDPostMode.GiD_PostAscii,
@@ -51,7 +51,7 @@ class GidOutputUtility(object):
             self.__dict__[name] = value
 
 
-    def __init__(self, gid_output_settings, file_name, starting_time, ending_time, delta_time):
+    def __init__(self, gid_output_settings, file_name, starting_time, ending_time, delta_time,nodal_variables, gp_variables):
         ## GiD output initialization
         # set gid options:
         self.post_mode = gid_output_settings.GiDPostMode # (Binary/Ascii)
@@ -78,6 +78,8 @@ class GidOutputUtility(object):
 
         # set time operation tolerance
         self.tolerance = delta_time * 1e-10;
+        
+        self.InitializeVariables(nodal_variables, gp_variables)
 
 
     def _write_mesh(self, label, model_part):
@@ -92,6 +94,19 @@ class GidOutputUtility(object):
             self.io.InitializeResults(current_id, model_part.GetMesh())
 
 
+    def InitializeVariables(self,nodal_variables, gp_variables):
+        self.NodalVariables = []
+        for var in nodal_variables:
+            if var!="NO_RESULT":
+                kratos_variable = globals()[var]
+                self.NodalVariables.append(kratos_variable)
+        self.GPVariables = []
+        for var in gp_variables:
+            if var!="NO_RESULT":
+                kratos_variable = globals()[var]
+                self.GPVariables.append(kratos_variable)
+
+
     def CheckWriteResults(self, current_time):
         write = False
 
@@ -104,23 +119,18 @@ class GidOutputUtility(object):
         return write
         
 
-    def write_results(self, model_part, nodal_variables, gp_variables, current_time, current_step, current_id):
-        print("WRITING RESULTS: ID", current_id, " - STEP", current_step, " - TIME", "%.5f" % current_time)
+    def write_results(self, model_part, current_time, current_id):
 
         # update cut data if necessary
         if self.multi_file_flag == MultiFileFlag.MultipleFiles:
             self._write_mesh(current_id, model_part)
             self.io.InitializeResults(current_id, model_part.GetMesh())
 
-        for var in nodal_variables:
-          if var!="NO_RESULT":
-            kratos_variable = globals()[var]
-            self.io.WriteNodalResults(kratos_variable, model_part.Nodes, current_time, 0)
+        for variable in self.NodalVariables:
+            self.io.WriteNodalResults(variable, model_part.Nodes, current_time, 0)
 
-        for var in gp_variables:
-          if var!="NO_RESULT":
-            kratos_variable = globals()[var]
-            self.io.PrintOnGaussPoints(kratos_variable, model_part, current_time)
+        for variable in self.GPVariables:
+            self.io.PrintOnGaussPoints(variable, model_part, current_time)
 
         # flush gid writing
         self.io.Flush()

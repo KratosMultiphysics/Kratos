@@ -17,28 +17,19 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     #add variables for the solid conditions
-    model_part.AddNodalSolutionStepVariable(POINT_LOAD)
-    model_part.AddNodalSolutionStepVariable(LINE_LOAD)
-    model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+    model_part.AddNodalSolutionStepVariable(FORCE)
+    model_part.AddNodalSolutionStepVariable(FACE_LOAD)
     model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS)
     model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_POINT_LOAD)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_LINE_LOAD)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_SURFACE_LOAD)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_NORMAL_STRESS)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_TANGENTIAL_STRESS)
     ##Fluid Variables
     #add water pressure
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE)
     #add reactions for the water pressure
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
     #add dynamic variables
-    model_part.AddNodalSolutionStepVariable(DERIVATIVE_WATER_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE)
     #add variables for the water conditions
     model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_FLUID_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_NORMAL_FLUID_FLUX)
     ##Common variables
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
     
@@ -59,65 +50,63 @@ def AddDofs(model_part):
 
 def CreateSolver(model_part, config):
     
-    main_solver = MainSolver()
-        
-    #Setting solver parameters
-    dofs_rel_tol = config.dofs_relative_tolerance
-    residual_rel_tol = config.residual_relative_tolerance
-    max_iters = config.max_iteration
+    main_solver = UPwSolver()
     
-    #Setting strategy options
-    compute_react = config.compute_reactions
-
     #Setting the linear solver (direct, iterative...)
     if(config.linear_solver == "Direct"):
         if(config.direct_solver == "Super_LU"):
             linear_solver = SuperLUSolver()
         elif(config.direct_solver == "Skyline_LU_factorization"):
-            linear_solver = SkylineLUFactorizationSolver()            
-        #TODO: try Pastix direct solver 
+            linear_solver = SkylineLUFactorizationSolver()
     elif(config.linear_solver == "Iterative"):
-        if(config.iterative_solver == "AMGCL"):
+        if(config.iterative_solver == "BICGSTAB"):
+            tolerance = 1e-5
+            max_iterations = 1000
+            precond = ILU0Preconditioner()
+            linear_solver = BICGSTABSolver(tolerance,max_iterations,precond)
+        elif(config.iterative_solver == "AMGCL"):
             tolerance = 1e-5
             max_iterations = 1000
             verbosity = 0 #0->shows no information, 1->some information, 2->all the information
             gmres_size = 50
             linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tolerance,max_iterations,verbosity,gmres_size)
-            #linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tolerance,max_iterations,verbosity,gmres_size)
-        elif(config.iterative_solver == "BICGSTAB"):
-            tolerance = 1e-5
-            max_iterations = 1000
-            linear_solver = BICGSTABSolver(tolerance,max_iterations)
     
     #Setting the solution scheme (quasi-static, dynamic)
+    beta = 0.25
+    gamma = 0.5
+    theta = 0.5 #(0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
     if(config.analysis_type == "Quasi-Static"):
-        model_part.ProcessInfo[BETA_NEWMARK] = 0.25
-        model_part.ProcessInfo[GAMMA_NEWMARK] = 0.5
-        model_part.ProcessInfo[THETA_NEWMARK] = 0.5 #(0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        is_dynamic = False
-        solution_scheme = NewmarkScheme(is_dynamic)
+        solution_scheme = NewmarkQuasistaticUPwScheme(model_part,beta,gamma,theta)
     elif(config.analysis_type == "Dynamic"):
-        model_part.ProcessInfo[BETA_NEWMARK] = 0.25
-        model_part.ProcessInfo[GAMMA_NEWMARK] = 0.5
-        model_part.ProcessInfo[THETA_NEWMARK] = 0.5
-        is_dynamic = True
-        solution_scheme = NewmarkScheme(is_dynamic)
+        rayleigh_m = 0.0
+        rayleigh_k = 0.0
+        solution_scheme = NewmarkDynamicUPwScheme(model_part,beta,gamma,theta,rayleigh_m,rayleigh_k)
     
     #Setting the builder_and_solver
+    builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
     if(config.linear_solver == "Iterative" and config.iterative_solver == "AMGCL"):
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(linear_solver)
-    else:
-        builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
     
     #Setting the strategy type
+    dofs_rel_tol = config.dofs_relative_tolerance
+    residual_rel_tol = config.residual_relative_tolerance
+    max_iters = config.max_iteration
+    compute_react = config.compute_reactions
     if(config.strategy_type == "Newton-Raphson"):
         main_solver.strategy = NewtonRaphsonStrategy(model_part,solution_scheme,builder_and_solver,dofs_rel_tol,residual_rel_tol,max_iters,compute_react,
                                                     main_solver.reform_step_dofs,main_solver.move_mesh_flag)
+    elif(config.strategy_type == "Arc-Length"):
+        #Arc-length parameters
+        desired_iters = 4 #The larger this number, the larger the radius
+        max_rad = 20 #Times the initial radius. In order to use a constant radius, choose the same value for Min Radius and Max Radius
+        min_rad = 0.5 #Times the initial radius. In order to use a constant radius, choose the same value for Min Radius and Max Radius
+        main_solver.strategy = RammArcLengthStrategy(model_part,solution_scheme,builder_and_solver,dofs_rel_tol,residual_rel_tol,max_iters,desired_iters,
+                                                    max_rad,min_rad,compute_react,main_solver.reform_step_dofs,main_solver.move_mesh_flag)
     
     return main_solver
 
 
-class MainSolver:
+class UPwSolver:
 
     def __init__(self):
                 

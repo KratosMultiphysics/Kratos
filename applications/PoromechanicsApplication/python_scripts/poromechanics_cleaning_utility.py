@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 
 
-class CleaningUtility:
+class PoromechanicsCleaningUtility:
 
     def __init__(self, problem_path):
 
@@ -10,8 +10,6 @@ class CleaningUtility:
 
 
     def CleanPreviousFiles(self):
-
-        print("Removing previous problem files")
 
         file_ending_type = ".post.bin"
         self.CleanPreviousFileType(file_ending_type)
