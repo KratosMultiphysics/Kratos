@@ -49,6 +49,8 @@ class AnalyticSimulator:
         
     def CalculateABC(self):
         include_lift = self.pp.include_lift
+        include_history_force = self.pp.include_history_force
+
         Cs = self.pp.Cs
         gamma = self.gamma
         S = self.S
@@ -65,6 +67,9 @@ class AnalyticSimulator:
         A /= (2 * gamma + 1)
         B /= (2 * gamma + 1)
         C /= (2 * gamma + 1)
+        
+        if not include_history_force:
+            C = 0.
         
         self.A = A
         self.B = B
