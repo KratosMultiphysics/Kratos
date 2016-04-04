@@ -84,6 +84,9 @@ void LineLoad2DCondition::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
+    //Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
@@ -117,6 +120,9 @@ void LineLoad2DCondition::CalculateKinematics(GeneralVariables& rVariables,
     //Set Shape Functions Values for this integration point
     rVariables.N =row( Ncontainer, rPointNumber);
 
+    //Set Shape Functions Derivatives [dN/d£] for this integration point
+    rVariables.DN_De = DN_De[rPointNumber];
+
     //Get domain size
     rVariables.DomainSize = GetGeometry().Length();
     
@@ -132,16 +138,23 @@ Vector& LineLoad2DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    //const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    
+    rVectorForce.resize(dimension,false);
+    rVectorForce = ZeroVector(dimension);
+    
     //PRESSURE CONDITION:
     rVectorForce = rVariables.Normal;
-    rVariables.Pressure = 0;
+    rVariables.Pressure = 0.0;
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
       if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) && GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) //temporary, will be checked once at the beginning only
 	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
+      else if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
+	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
+      else if( GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
+	rVariables.Pressure -= rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
       
     }
     
@@ -204,7 +217,7 @@ void LineLoad2DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 	double DiscretePressure=0;
 	unsigned int RowIndex = 0;
 	unsigned int ColIndex = 0;
-
+        
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	    RowIndex = i * 2;
