@@ -612,9 +612,23 @@ import chandelier_parameters as ch_pp
 import chandelier as ch
 sim = ch.AnalyticSimulator(ch_pp)
 
+# NODE HISTORY RESULTS BEGIN
+scalar_vars = []
+vector_vars = [DISPLACEMENT]
+
+for node in spheres_model_part.Nodes:
+    node_to_follow_id = node.Id
+
+results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follow_id, scalar_vars, vector_vars)
+# NODE HISTORY RESULTS END 
+
 # CHANDELLIER END
 
 post_utils.Writeresults(time)
+
+coors = [None] * 3
+
+sim.CalculatePosition(coors, 0.0)            
 
 while (time <= final_time):
 
@@ -728,10 +742,13 @@ while (time <= final_time):
                 node.X = coors[0] * ch_pp.R
                 node.Y = coors[1] * ch_pp.R
                 node.Z = coors[2] * ch_pp.R
+
                 node.SetSolutionStepValue(DISPLACEMENT_X, coors[0] * ch_pp.R - ch_pp.x0)
                 node.SetSolutionStepValue(DISPLACEMENT_Y, coors[1] * ch_pp.R - ch_pp.y0)
                 node.SetSolutionStepValue(DISPLACEMENT_Z, coors[2] * ch_pp.R - ch_pp.z0)
-
+                
+            results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)
+           
         # Walls movement:
         mesh_motion.MoveAllMeshes(rigid_face_model_part, time, Dt)
         mesh_motion.MoveAllMeshes(spheres_model_part, time, Dt)
@@ -789,7 +806,7 @@ while (time <= final_time):
     out = out + Dt
 
 swimming_DEM_gid_io.finalize_results()
-
+results_creator.PrintFile()
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
 simulation_end_time = timer.monotonic()
 print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
