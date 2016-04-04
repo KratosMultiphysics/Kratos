@@ -700,26 +700,30 @@ public:
         }
 
         rResult[0].resize( 2, 2 );
-
         rResult[1].resize( 2, 2 );
         rResult[2].resize( 2, 2 );
         rResult[3].resize( 2, 2 );
+
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
         rResult[0]( 1, 0 ) = 0.25;
         rResult[0]( 1, 1 ) = 0.0;
+
         rResult[1]( 0, 0 ) = 0.0;
         rResult[1]( 0, 1 ) = -0.25;
         rResult[1]( 1, 0 ) = -0.25;
         rResult[1]( 1, 1 ) = 0.0;
+
         rResult[2]( 0, 0 ) = 0.0;
         rResult[2]( 0, 1 ) = 0.25;
         rResult[2]( 1, 0 ) = 0.25;
         rResult[2]( 1, 1 ) = 0.0;
+
         rResult[3]( 0, 0 ) = 0.0;
         rResult[3]( 0, 1 ) = -0.25;
         rResult[3]( 1, 0 ) = -0.25;
         rResult[3]( 1, 1 ) = 0.0;
+
         return rResult;
     }
 
