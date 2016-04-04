@@ -115,6 +115,7 @@ public:
     /// Assignment operator.
     GeometricalObject& operator=(GeometricalObject const& rOther)
     {
+        BaseType::operator=(rOther);
         return *this;
     }
 
