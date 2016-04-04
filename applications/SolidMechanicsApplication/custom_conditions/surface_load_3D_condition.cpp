@@ -76,6 +76,9 @@ void SurfaceLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVaria
   ForceLoadCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
   
   //Initialize Surface Variables
+  rVariables.Tangent1.resize(3,false);
+  rVariables.Tangent2.resize(3,false);
+  rVariables.Normal.resize(3,false);
   rVariables.Tangent1 = ZeroVector(3);
   rVariables.Tangent2 = ZeroVector(3);
   rVariables.Normal   = ZeroVector(3);
@@ -103,6 +106,7 @@ Matrix& SurfaceLoad3DCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    rDeltaPosition.resize(number_of_nodes , dimension, false);
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -207,10 +211,13 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     //const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
+    
+    rVectorForce.resize(3,false);
+    rVectorForce = ZeroVector(3);
+    
     //PRESSURE CONDITION:
     rVectorForce = rVariables.Normal;
-    rVariables.Pressure = 0;
+    rVariables.Pressure = 0.0;
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
