@@ -106,14 +106,14 @@ void KratosStructuralMechanicsApplication::Register()
 // KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
 // KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
 
-    // Adding the SPRISM EAS variables 
+    // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
     KRATOS_REGISTER_VARIABLE(EAS_IMP);
-    
-    // Adding the SPRISM additional variables 
+
+    // Adding the SPRISM additional variables
     KRATOS_REGISTER_VARIABLE(ANG_ROT);
-    
-    // Adding the SPRISM number of transversal integration points 
+
+    // Adding the SPRISM number of transversal integration points
     KRATOS_REGISTER_VARIABLE(NINT_TRANS);
 
     // Adding the SPRISM variable to deactivate the quadratic interpolation
@@ -122,9 +122,6 @@ void KratosStructuralMechanicsApplication::Register()
     // Strain measures
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_TENSOR);
-    
-    // Adding the LAMBDA load factor considered in the arclength
-    KRATOS_REGISTER_VARIABLE(LAMBDA);
 
     // Register the beam element
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
@@ -139,9 +136,9 @@ void KratosStructuralMechanicsApplication::Register()
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
-    // Register the SPRISM element 
+    // Register the SPRISM element
     KRATOS_REGISTER_ELEMENT("SprismElement3D6N", mSprismElement3D6N);
-    
+
     // Register the conditions
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
 
@@ -150,5 +147,3 @@ void KratosStructuralMechanicsApplication::Register()
 }
 
 }  // namespace Kratos.
-
-
