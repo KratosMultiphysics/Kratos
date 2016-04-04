@@ -226,7 +226,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
         virtual_mass_coeff += 1.5 * (1 - mFluidFraction);
     }
 
-    if (mVirtualMassForceType == 3 || mVirtualMassForceType == 4){ // Odar and Hamilton, 1964
+    else if (mVirtualMassForceType == 3 || mVirtualMassForceType == 4){ // Odar and Hamilton, 1964
         double acc_number;
         ComputeParticleAccelerationNumber(slip_acc, acc_number);
         virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
@@ -457,7 +457,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 {
     double drag_coeff;
 
-    if (mDragForceType == 1){
+    if (mDragForceType == 1 || mDragForceType == 10){
         drag_coeff = ComputeStokesDragCoefficient();
     }
 
@@ -493,8 +493,8 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
         drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
     }
 
-    else if (mDragForceType == 10){ // Maxey-Riley expression without Faxen correction
-        drag_coeff = 2.0 / KRATOS_M_PI * ComputeStokesDragCoefficient();
+    else if (mDragForceType == 11){ // Maxey-Riley expression with Faxen correction
+        drag_coeff = ComputeStokesDragCoefficient(); // temporary
     }
 
     else {
