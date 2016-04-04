@@ -209,12 +209,10 @@ dt = DEM_parameters.MaxTimeStep
 
 #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
 max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-
-if (max_FEM_node_Id > max_node_Id):
-    max_node_Id = max_FEM_node_Id
-
-creator_destructor.SetMaxNodeId(max_node_Id)    
+max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id)
+creator_destructor.SetMaxNodeId(max_Id)    
 
 #Strategy Initialization
 solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes
