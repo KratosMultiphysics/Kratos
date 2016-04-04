@@ -143,6 +143,13 @@ public:
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     /**
+     * A third order tensor to hold shape functions' local second derivatives.
+     * ShapefunctionsLocalGradients function return this
+     * type as its result.
+     */
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType ShapeFunctionsSecondDerivativesType;
+
+    /**
      * Type of the normal vector used for normal to edges in geomety.
      */
     typedef typename BaseType::NormalType NormalType;
@@ -656,6 +663,111 @@ public:
     }
 
 
+    /**
+     * Calculates the second derivatives in terms of local coordinateds
+     * of all shape functions in a given point.
+     *
+     * @param rResult the given container will be overwritten by the results
+     * @param rPoint the given local coordinates the derivatives will be evaluated for.
+     * @return a third order tensor containing the second order derivatives for each shape function
+     */
+    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    {
+        if ( rResult.size() != this->PointsNumber() )
+        {
+            // KLUDGE: While there is a bug in
+            // ublas vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp( this->PointsNumber() );
+            rResult.swap( temp );
+        }
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); ++i )
+        {
+            rResult[i].resize(3, 3);
+        }
+
+        rResult[0]( 0, 0 ) = 0.0;
+        rResult[0]( 0, 1 ) = 0.125 * ( 1.0 - rPoint[2] );
+        rResult[0]( 0, 2 ) = 0.125 * ( 1.0 - rPoint[1] );
+        rResult[0]( 1, 0 ) = 0.125 * ( 1.0 - rPoint[2] );
+        rResult[0]( 1, 1 ) = 0.0;
+        rResult[0]( 1, 2 ) = 0.125 * ( 1.0 - rPoint[0] );
+        rResult[0]( 2, 0 ) = 0.125 * ( 1.0 - rPoint[1] );
+        rResult[0]( 2, 1 ) = 0.125 * ( 1.0 - rPoint[0] );
+        rResult[0]( 2, 2 ) = 0.0;
+
+        rResult[1]( 0, 0 ) = 0.0;
+        rResult[1]( 0, 1 ) = -0.125 * ( 1.0 - rPoint[2] );
+        rResult[1]( 0, 2 ) = -0.125 * ( 1.0 - rPoint[1] );
+        rResult[1]( 1, 0 ) = -0.125 * ( 1.0 - rPoint[2] );
+        rResult[1]( 1, 1 ) = 0.0;
+        rResult[1]( 1, 2 ) = 0.125 * ( 1.0 + rPoint[0] );
+        rResult[1]( 2, 0 ) = -0.125 * ( 1.0 - rPoint[1] );
+        rResult[1]( 2, 1 ) = 0.125 * ( 1.0 + rPoint[0] );
+        rResult[1]( 2, 2 ) = 0.0;
+
+        rResult[2]( 0, 0 ) = 0.0;
+        rResult[2]( 0, 1 ) = 0.125 * ( 1.0 - rPoint[2] );
+        rResult[2]( 0, 2 ) = -0.125 * ( 1.0 + rPoint[1] );
+        rResult[2]( 1, 0 ) = 0.125 * ( 1.0 - rPoint[2] );
+        rResult[2]( 1, 1 ) = 0.0;
+        rResult[2]( 1, 2 ) = -0.125 * ( 1.0 + rPoint[0] );
+        rResult[2]( 2, 0 ) = -0.125 * ( 1.0 + rPoint[1] );
+        rResult[2]( 2, 1 ) = -0.125 * ( 1.0 + rPoint[0] );
+        rResult[2]( 2, 2 ) = 0.0;
+
+        rResult[3]( 0, 0 ) = 0.0;
+        rResult[3]( 0, 1 ) = -0.125 * ( 1.0 - rPoint[2] );
+        rResult[3]( 0, 2 ) = 0.125 * ( 1.0 + rPoint[1] );
+        rResult[3]( 1, 0 ) = -0.125 * ( 1.0 - rPoint[2] );
+        rResult[3]( 1, 1 ) = 0.0;
+        rResult[3]( 1, 2 ) = -0.125 * ( 1.0 - rPoint[0] );
+        rResult[3]( 2, 0 ) = 0.125 * ( 1.0 + rPoint[1] );
+        rResult[3]( 2, 1 ) = -0.125 * ( 1.0 - rPoint[0] );
+        rResult[3]( 2, 2 ) = 0.0;
+
+        rResult[4]( 0, 0 ) = 0.0;
+        rResult[4]( 0, 1 ) = 0.125 * ( 1.0 + rPoint[2] );
+        rResult[4]( 0, 2 ) = -0.125 * ( 1.0 - rPoint[1] );
+        rResult[4]( 1, 0 ) = 0.125 * ( 1.0 + rPoint[2] );
+        rResult[4]( 1, 1 ) = 0.0;
+        rResult[4]( 1, 2 ) = -0.125 * ( 1.0 - rPoint[0] );
+        rResult[4]( 2, 0 ) = -0.125 * ( 1.0 - rPoint[1] );
+        rResult[4]( 2, 1 ) = -0.125 * ( 1.0 - rPoint[0] );
+        rResult[4]( 2, 2 ) = 0.0;
+
+        rResult[5]( 0, 0 ) = 0.0;
+        rResult[5]( 0, 1 ) = -0.125 * ( 1.0 + rPoint[2] );
+        rResult[5]( 0, 2 ) = 0.125 * ( 1.0 - rPoint[1] );
+        rResult[5]( 1, 0 ) = -0.125 * ( 1.0 + rPoint[2] );
+        rResult[5]( 1, 1 ) = 0.0;
+        rResult[5]( 1, 2 ) = -0.125 * ( 1.0 + rPoint[0] );
+        rResult[5]( 2, 0 ) = 0.125 * ( 1.0 - rPoint[1] );
+        rResult[5]( 2, 1 ) = -0.125 * ( 1.0 + rPoint[0] );
+        rResult[5]( 2, 2 ) = 0.0;
+
+        rResult[6]( 0, 0 ) = 0.0;
+        rResult[6]( 0, 1 ) = 0.125 * ( 1.0 + rPoint[2] );
+        rResult[6]( 0, 2 ) = 0.125 * ( 1.0 + rPoint[1] );
+        rResult[6]( 1, 0 ) = 0.125 * ( 1.0 + rPoint[2] );
+        rResult[6]( 1, 1 ) = 0.0;
+        rResult[6]( 1, 2 ) = 0.125 * ( 1.0 + rPoint[0] );
+        rResult[6]( 2, 0 ) = 0.125 * ( 1.0 + rPoint[1] );
+        rResult[6]( 2, 1 ) = 0.125 * ( 1.0 + rPoint[0] );
+        rResult[6]( 2, 2 ) = 0.0;
+
+        rResult[7]( 0, 0 ) = 0.0;
+        rResult[7]( 0, 1 ) = -0.125 * ( 1.0 + rPoint[2] );
+        rResult[7]( 0, 2 ) = -0.125 * ( 1.0 + rPoint[1] );
+        rResult[7]( 1, 0 ) = -0.125 * ( 1.0 + rPoint[2] );
+        rResult[7]( 1, 1 ) = 0.0;
+        rResult[7]( 1, 2 ) = 0.125 * ( 1.0 - rPoint[0] );
+        rResult[7]( 2, 0 ) = -0.125 * ( 1.0 + rPoint[1] );
+        rResult[7]( 2, 1 ) = 0.125 * ( 1.0 - rPoint[0] );
+        rResult[7]( 2, 2 ) = 0.0;
+
+        return rResult;
+    }
 
 
     /**
