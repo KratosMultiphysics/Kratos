@@ -73,25 +73,22 @@ KRATOS_DEFINE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
 
-// Adding the SPRISM EAS variables 
+// Adding the SPRISM EAS variables
 KRATOS_DEFINE_VARIABLE(double, ALPHA_EAS);
 KRATOS_DEFINE_VARIABLE(bool, EAS_IMP);
 
-// Adding the SPRISM additional variables 
+// Adding the SPRISM additional variables
 KRATOS_DEFINE_VARIABLE(double, ANG_ROT);
 
-// Adding the Sprism number of transversal integration points 
+// Adding the Sprism number of transversal integration points
 KRATOS_DEFINE_VARIABLE(int, NINT_TRANS);
 
 // Adding the SPRISM variable to deactivate the quadratic interpolation
 KRATOS_DEFINE_VARIABLE(bool, QUAD_ON);
 
-// Additional strain measures 
+// Additional strain measures
 KRATOS_DEFINE_VARIABLE(Vector, HENCKY_STRAIN_VECTOR);
 KRATOS_DEFINE_VARIABLE(Matrix, HENCKY_STRAIN_TENSOR);
-
-// Adding the LAMBDA load factor considered in the arclength
-KRATOS_DEFINE_VARIABLE(double, LAMBDA);
 }
 
 #endif	/* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
