@@ -8,17 +8,18 @@
 #if !defined(KRATOS_SMALL_STRAIN_U_PW_ELEMENT_H_INCLUDED )
 #define  KRATOS_SMALL_STRAIN_U_PW_ELEMENT_H_INCLUDED
 
-/* External includes */
-#include "boost/smart_ptr.hpp"
-
-/* Project includes */
+// Project includes
+#include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
+#include "geometries/geometry.h"
+#include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
+
+// Application includes
 #include "custom_utilities/element_utilities.hpp"
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {

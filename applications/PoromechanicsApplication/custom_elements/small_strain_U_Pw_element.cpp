@@ -5,13 +5,8 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-/* Project includes */
-#include "includes/define.h"
+// Application includes
 #include "custom_elements/small_strain_U_Pw_element.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-
-#include "poromechanics_application.h"
 
 namespace Kratos
 {
@@ -72,8 +67,8 @@ int  SmallStrainUPwElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( WATER_PRESSURE.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
-    if ( DERIVATIVE_WATER_PRESSURE.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument, "DERIVATIVE_WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
+    if ( DT_WATER_PRESSURE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DT_WATER_PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
     if ( DENSITY_WATER.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY_WATER has Key zero! (check if the application is correctly registered", "" )
@@ -124,7 +119,10 @@ int  SmallStrainUPwElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
 	this->GetProperties().GetValue( CONSTITUTIVE_LAW_POINTER )->Check( this->GetProperties(), rGeom, rCurrentProcessInfo );
-
+    
+    if(rGeom.DomainSize() < 1.0e-8)
+        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-8 for the element ", this->Id() )
+    
     return 0;
 
     KRATOS_CATCH( "" );
@@ -414,7 +412,7 @@ void SmallStrainUPwElement::GetValueOnIntegrationPoints( const Variable<Vector>&
     if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
-    else if ( rVariable == FLUID_FLUX )
+    else if ( rVariable == FLUID_FLUX_VECTOR )
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
     else
@@ -567,7 +565,7 @@ void SmallStrainUPwElement::CalculateOnIntegrationPoints( const Variable<Vector>
             rOutput[PointNumber] = Variables.StrainVector;
         }
     }
-    else if ( rVariable == FLUID_FLUX )
+    else if ( rVariable == FLUID_FLUX_VECTOR )
     {
         //Definition of variables
         ElementalVariables Variables;
@@ -763,9 +761,8 @@ void SmallStrainUPwElement::InitializeElementalVariables (ElementalVariables& rV
     this->InitializeProperties(rVariables);
 
     //ProcessInfo variables
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[GAMMA_NEWMARK]/(rCurrentProcessInfo[BETA_NEWMARK]*DeltaTime);
-    rVariables.NewmarkCoefficient2 = 1.0/(rCurrentProcessInfo[THETA_NEWMARK]*DeltaTime);
+    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[NEWMARK_COEFFICIENT_U];
+    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[NEWMARK_COEFFICIENT_P];
 }
 
 //----------------------------------------------------------------------------------------
@@ -793,7 +790,7 @@ void SmallStrainUPwElement::InitializeNodalVariables (ElementalVariables& rVaria
         rVariables.DisplacementVector[Local_i] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X);
         rVariables.VelocityVector[Local_i]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
         rVariables.PressureVector[i]           = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.PressureDtVector[i]         = rGeom[i].FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
+        rVariables.PressureDtVector[i]         = rGeom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
 
         rVariables.BodyAcceleration[Local_i+1]   = BodyAccelerationAux[1];
         rVariables.DisplacementVector[Local_i+1] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
