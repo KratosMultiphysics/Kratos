@@ -1,0 +1,70 @@
+NUMBER: 1 MATERIAL: Soil
+QUESTION: Element_Type#CB#(Standard,Interface)
+VALUE: Standard
+DEPENDENCIES: (Interface,HIDE,Standard_Constitutive_Law,#CURRENT#,HIDE,Intrinsic_Permeability_XX,#CURRENT#,HIDE,Intrinsic_Permeability_YY,#CURRENT#,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_XY,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#,RESTORE,Interface_Constitutive_Law,#CURRENT#,RESTORE,Transversal_Permeability,#CURRENT#,RESTORE,Minimum_Joint_Width,#CURRENT#,RESTORE,Critical_Displacement,#CURRENT#,RESTORE,Residual_Stress,#CURRENT#,RESTORE,Damage_Threshold,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#)(Standard,RESTORE,Standard_Constitutive_Law,#CURRENT#,RESTORE,Intrinsic_Permeability_XX,#CURRENT#,RESTORE,Intrinsic_Permeability_YY,#CURRENT#,RESTORE,Intrinsic_Permeability_ZZ,#CURRENT#,RESTORE,Intrinsic_Permeability_XY,#CURRENT#,RESTORE,Intrinsic_Permeability_YZ,#CURRENT#,RESTORE,Intrinsic_Permeability_ZX,#CURRENT#,HIDE,Interface_Constitutive_Law,#CURRENT#,HIDE,Transversal_Permeability,#CURRENT#,HIDE,Minimum_Joint_Width,#CURRENT#,HIDE,Critical_Displacement,#CURRENT#,HIDE,Residual_Stress,#CURRENT#,HIDE,Damage_Threshold,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#)
+QUESTION: Interface_Constitutive_Law#CB#(BilinearCohesive2DPlaneStrain,BilinearCohesive2DPlaneStress,BilinearCohesive3D)
+VALUE: BilinearCohesive2DPlaneStrain
+DEPENDENCIES: (BilinearCohesive2DPlaneStrain,HIDE,Thickness,1)(BilinearCohesive2DPlaneStress,RESTORE,Thickness,#CURRENT#)(BilinearCohesive3D,HIDE,Thickness,#CURRENT#)
+QUESTION: Standard_Constitutive_Law#CB#(LinearElastic2DPlaneStrain,LinearElastic2DPlaneStress,LinearElastic3D)
+VALUE: LinearElastic2DPlaneStrain
+DEPENDENCIES: (LinearElastic2DPlaneStrain,HIDE,Thickness,1,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#)(LinearElastic2DPlaneStress,RESTORE,Thickness,#CURRENT#,HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,HIDE,Intrinsic_Permeability_YZ,#CURRENT#,HIDE,Intrinsic_Permeability_ZX,#CURRENT#)(LinearElastic3D,HIDE,Thickness,#CURRENT#,RESTORE,Intrinsic_Permeability_ZZ,#CURRENT#,RESTORE,Intrinsic_Permeability_YZ,#CURRENT#,RESTORE,Intrinsic_Permeability_ZX,#CURRENT#)
+QUESTION: Young_Modulus
+VALUE: 1.0e6
+HELP: Units in IS: N/m2
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Solid_Density
+VALUE: 0.0
+HELP: Units in IS: Kg/m3
+QUESTION: Fluid_Density
+VALUE: 1.0e3
+HELP: Units in IS: Kg/m3
+QUESTION: Porosity
+VALUE: 0.3
+QUESTION: Solid_Bulk_Modulus
+VALUE: 1.0e12
+HELP: Units in IS: N/m2
+QUESTION: Fluid_Bulk_Modulus
+VALUE: 2.0e9
+HELP: Units in IS: N/m2
+QUESTION: Intrinsic_Permeability_XX
+VALUE: 4.5e-10
+HELP: Units in IS: m2
+QUESTION: Intrinsic_Permeability_YY
+VALUE: 4.5e-10
+HELP: Units in IS: m2
+QUESTION: Intrinsic_Permeability_ZZ
+VALUE: 4.5e-13
+HELP: Units in IS: m2
+QUESTION: Intrinsic_Permeability_XY
+VALUE: 0.0
+HELP: Units in IS: m2
+QUESTION: Intrinsic_Permeability_YZ
+VALUE: 0.0
+HELP: Units in IS: m2
+QUESTION: Intrinsic_Permeability_ZX
+VALUE: 0.0
+HELP: Units in IS: m2
+QUESTION: Transversal_Permeability
+VALUE: 1.0e-13
+HELP: Units in IS: m2
+QUESTION: Dynamic_Viscosity
+VALUE: 1.0e-3
+HELP: Units in IS: N/m2·s
+QUESTION: Minimum_Joint_Width
+VALUE: 1.0e-3
+HELP: Units in IS: m
+QUESTION: Critical_Displacement
+VALUE: 0.05
+HELP: Units in IS: m
+QUESTION: Residual_Stress
+VALUE: 3.5e6
+HELP: Units in IS: N/m2
+QUESTION: Damage_Threshold
+VALUE: 0.04
+QUESTION: Friction_Coefficient
+VALUE: 0.4
+QUESTION: Thickness
+VALUE: 1
+HELP: Units in IS: m
+END MATERIAL
