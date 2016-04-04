@@ -1327,7 +1327,7 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 9, 2 );
+            rResult[i].resize( 2, 2 );
             noalias( rResult[i] ) = ZeroMatrix();
         }
 
@@ -1430,7 +1430,7 @@ public:
         {
             for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 9, 2 );
+                rResult[i][j].resize( 2, 2 );
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }
@@ -1782,6 +1782,10 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints2,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1801,7 +1805,11 @@ private:
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_4 ),
+                Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1820,7 +1828,11 @@ private:
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
                 ( GeometryData::GI_GAUSS_2 ),
                 Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
-                ( GeometryData::GI_GAUSS_3 )
+                ( GeometryData::GI_GAUSS_3 ),
+                Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
+                ( GeometryData::GI_GAUSS_4 ),
+                Quadrilateral3D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
+                ( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
