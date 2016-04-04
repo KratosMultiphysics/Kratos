@@ -1105,12 +1105,15 @@ namespace Kratos
         SizeType id;
         SizeType properties_id;
         SizeType node_id;
+        SizeType number_of_read_conditions = 0;
 
 
         std::string word;
         std::string condition_name;
 
         ReadWord(condition_name);
+        std::cout << "  [Reading Conditions : ";
+
         if(!KratosComponents<Condition>::Has(condition_name))
         {
             std::stringstream buffer;
@@ -1144,7 +1147,9 @@ namespace Kratos
             }
 
             rThisConditions.push_back(r_clone_condition.Create(ReorderedConditionId(id), temp_condition_nodes, p_temp_properties));
+            number_of_read_conditions++;
         }
+        std::cout << number_of_read_conditions << " conditions read] [Type: " << condition_name << "]" << std::endl;
         rThisConditions.Unique();
 
         KRATOS_CATCH("")
@@ -2881,11 +2886,14 @@ namespace Kratos
 
         std::string word;
 
+        bool is_fixed;
+
+        std::string value;
 
         while(!mFile.eof())
         {
             ReadWord(word); // reading id
-            if(CheckEndBlock("NodalData", word))
+            if(CheckEndBlock(BlockName, word))
                 break;
 
             ExtractValue(word, id);
@@ -2900,6 +2908,22 @@ namespace Kratos
 
             std::stringstream entity_data;
             entity_data << ReorderedNodeId(id) << '\t'; // id
+
+            if(BlockName == "NodalData")
+            {
+                // reading is_fixed
+                ReadWord(value);
+                ExtractValue(value, is_fixed);
+                if(is_fixed)
+                {
+                    std::stringstream buffer;
+                    buffer << "Only double variables or components can be fixed.";
+                    buffer <<  " [Line " << mNumberOfLines << " ]";
+                    KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+                }
+                entity_data << is_fixed << "\t"; // is_fixed
+            }
+
             Vector temp_vector;
             ReadVectorialValue(temp_vector);
 
