@@ -49,7 +49,7 @@ public:
 
     kDOP() {this->Initialize();}
 
-    ~kDOP() {}
+    virtual ~kDOP() {}
 
     /// Return the number of directions of the k-DOP
     virtual std::size_t NumberOfDirections() const
@@ -269,6 +269,7 @@ class _6DOP : public kDOP // AABB
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_6DOP);
     _6DOP() : kDOP() {this->Initialize();}
+    virtual ~_6DOP() {}
     virtual std::size_t NumberOfDirections() const {return 3;}
 
 private:
@@ -281,6 +282,7 @@ class _8DOP : public kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_8DOP);
     _8DOP() : kDOP() {this->Initialize();}
+    virtual ~_8DOP() {}
     virtual std::size_t NumberOfDirections() const {return 4;}
 private:
     static const double msDirection[][3];
@@ -292,6 +294,7 @@ class _12DOP : public kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_12DOP);
     _12DOP() : kDOP() {this->Initialize();}
+    virtual ~_12DOP() {}
     virtual std::size_t NumberOfDirections() const {return 6;}
 private:
     static const double msDirection[][3];
@@ -303,6 +306,7 @@ class _14DOP : public kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_14DOP);
     _14DOP() : kDOP() {this->Initialize();}
+    virtual ~_14DOP() {}
     virtual std::size_t NumberOfDirections() const {return 7;}
 private:
     static const double msDirection[][3];
@@ -314,6 +318,7 @@ class _18DOP : public kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_18DOP);
     _18DOP() : kDOP() {this->Initialize();}
+    virtual ~_18DOP() {}
     virtual std::size_t NumberOfDirections() const {return 9;}
 private:
     static const double msDirection[][3];
@@ -325,6 +330,7 @@ class _20DOP : public kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_20DOP);
     _20DOP() : kDOP() {this->Initialize();}
+    virtual ~_20DOP() {}
     virtual std::size_t NumberOfDirections() const {return 10;}
 private:
     static const double msDirection[][3];
@@ -336,6 +342,7 @@ class _26DOP : public kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(_26DOP);
     _26DOP() : kDOP() {this->Initialize();}
+    virtual ~_26DOP() {}
     virtual std::size_t NumberOfDirections() const {return 13;}
 private:
     static const double msDirection[][3];
