@@ -24,14 +24,14 @@ class SolverSettings:
 ## Boundary Conditions Data ---------------------------------------------------------------------------------------------------
 
 class ConditionsOptions:
-    Imposed_Displacement = "Constant"
-    Imposed_Pressure = "Constant"
-    Imposed_PointLoad = "Constant"
-    Imposed_LineLoad = "Constant"
-    Imposed_SurfaceLoad = "Constant"
-    Imposed_NormalLoad = "Constant"
-    Imposed_TangentialLoad = "Constant"
-    Imposed_NormalFluidFlux = "Constant"
+    Imposed_Displacement = "Unmodified"
+    Imposed_Pressure = "Unmodified"
+    Imposed_PointLoad = "Unmodified"
+    Imposed_LineLoad = "Unmodified"
+    Imposed_SurfaceLoad = "Unmodified"
+    Imposed_NormalLoad = "Unmodified"
+    Imposed_TangentialLoad = "Unmodified"
+    Imposed_NormalFluidFlux = "Unmodified"
 
 
 ## PostProcess Data -----------------------------------------------------------------------------------------------------------
