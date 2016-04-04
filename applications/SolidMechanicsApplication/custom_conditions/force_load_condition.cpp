@@ -382,7 +382,8 @@ void ForceLoadCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideMatri
 void ForceLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
-    //const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
     //const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.DomainSize = 1;
@@ -395,6 +396,9 @@ void ForceLoadCondition::InitializeGeneralVariables(GeneralVariables& rVariables
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
+    rVariables.N.resize(number_of_nodes,false);
+    
+    rVariables.DN_De.resize(number_of_nodes,local_dimension,false);
 }
 
 //*********************************COMPUTE KINEMATICS*********************************
