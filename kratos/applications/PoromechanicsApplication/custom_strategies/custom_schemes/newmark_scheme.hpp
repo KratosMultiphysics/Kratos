@@ -147,7 +147,7 @@ public:
     {
         array_1d<double,3> DeltaDisplacement;
         double DeltaPressure, PreviousPressureDt;
-        double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+        const double& DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
         
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();i != r_model_part.NodesEnd(); ++i)
         {
@@ -181,19 +181,19 @@ public:
             //Predict Acceleration, Velocity and PressureDt
             noalias(DeltaDisplacement)               = CurrentDisplacement - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             array_1d<double,3>& CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double,3>& PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
             array_1d<double,3>& CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double,3>& PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double,3>& PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double,3>& PreviousVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
-            UpdateAcceleration(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration, DeltaTime);
-            UpdateVelocity(CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration, DeltaTime);
+            this->UpdateAcceleration(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration, DeltaTime);
+            this->UpdateVelocity(CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration, DeltaTime);
 
 
             DeltaPressure             = CurrentPressure - (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
             double& CurrentPressureDt = (i)->FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
-            PreviousPressureDt        = (i)->FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE, 1);
+            const double& PreviousPressureDt = (i)->FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE, 1);
 
-            UpdatePressureDt(CurrentPressureDt, DeltaPressure, PreviousPressureDt, DeltaTime);
+            this->UpdatePressureDt(CurrentPressureDt, DeltaPressure, PreviousPressureDt, DeltaTime);
         }
     }
 
@@ -286,15 +286,15 @@ public:
             array_1d<double,3>& CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double,3>& PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
-            UpdateAcceleration(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration, DeltaTime);
-            UpdateVelocity(CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration, DeltaTime);
+            this->UpdateAcceleration(CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration, DeltaTime);
+            this->UpdateVelocity(CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration, DeltaTime);
             
 
             DeltaPressure             = (i)->FastGetSolutionStepValue(WATER_PRESSURE) - (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
             double& CurrentPressureDt = (i)->FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE);
             PreviousPressureDt        = (i)->FastGetSolutionStepValue(DERIVATIVE_WATER_PRESSURE, 1);
 
-            UpdatePressureDt(CurrentPressureDt, DeltaPressure, PreviousPressureDt, DeltaTime);
+            this->UpdatePressureDt(CurrentPressureDt, DeltaPressure, PreviousPressureDt, DeltaTime);
         }
 
         KRATOS_CATCH( "" )
