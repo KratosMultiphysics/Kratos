@@ -180,6 +180,9 @@ public:
                                           GeometryData::Kratos_Triangle3D3,
                                           GiD_Triangle, "Kratos_Triangle3D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Triangle3D6,
+                                          GiD_Triangle, "Kratos_Triangle3D6_Mesh" ) );
+        mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Line2D2,
                                           GiD_Linear, "Kratos_Line2D2_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
