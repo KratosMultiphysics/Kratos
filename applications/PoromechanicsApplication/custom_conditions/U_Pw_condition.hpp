@@ -1,73 +1,80 @@
 //   
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:            January 2016 $
+//   Date:                $Date:           February 2016 $
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined(KRATOS_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_U_PW_CONDITION_H_INCLUDED )
+#define  KRATOS_U_PW_CONDITION_H_INCLUDED
 
-// External includes
-#include "boost/smart_ptr.hpp"
+// System includes
+#include <cmath>
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
+#include "includes/serializer.h"
+#include "includes/process_info.h"
 
+// Application includes
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class PointLoadCondition : public Condition
+template< unsigned int TDim, unsigned int TNumNodes >
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwCondition : public Condition
 {
-    
+
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoadCondition );
-
+    KRATOS_CLASS_POINTER_DEFINITION( UPwCondition );
+    
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    PointLoadCondition();
+    UPwCondition() : Condition() {}
     
     // Constructor 1
-    PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    UPwCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : Condition(NewId, pGeometry) {}
     
-    //Constructor 2
-    PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    // Constructor 2
+    UPwCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties) 
+    {
+        mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
+    }
 
-    //Destructor
-    virtual ~PointLoadCondition();
+    // Destructor
+    virtual ~UPwCondition() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
-    
+ 
     void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo );
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
 
-    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo );
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
 
+    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo );
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-protected:
-
+protected:   
+        
     // Member Variables
+    
+    GeometryData::IntegrationMethod mThisIntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, 
-                                bool CalculateLHSMatrixFlag, bool CalculateResidualVectorFlag);
+    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
+
+    virtual void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -87,8 +94,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class PointLoadCondition.
+}; // class UPwCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_U_PW_CONDITION_H_INCLUDED defined 
