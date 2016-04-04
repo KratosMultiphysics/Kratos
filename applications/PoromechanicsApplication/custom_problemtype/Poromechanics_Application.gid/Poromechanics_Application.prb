@@ -3,11 +3,6 @@ PROBLEM DATA
 TITLE:General_Data
 QUESTION: Domain_Size#CB#(2,3)
 VALUE: 2
-QUESTION: FIC_Stabilization#CB#(True,False)
-VALUE: False
-HELP: Only for linear elements with equal order interpolation for displacements and pressures.
-
-TITLE:Solver
 QUESTION: Analysis_Type#CB#(Quasi-Static,Dynamic)
 VALUE: Quasi-Static
 QUESTION: Delta_Time
@@ -16,7 +11,12 @@ HELP: Units in IS: s
 QUESTION: Ending_Time
 VALUE: 1
 HELP: Units in IS: s
-QUESTION: Strategy_Type#CB#(Newton-Raphson)
+QUESTION: FIC_Stabilization#CB#(True,False)
+VALUE: False
+HELP: Only for linear elements with equal order interpolation for displacements and pressures.
+
+TITLE:Solver
+QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
 VALUE: Newton-Raphson
 QUESTION: DOFs_Relative_Tolerance
 Value: 1.0E-4
@@ -25,7 +25,7 @@ QUESTION: Residual_Relative_Tolerance
 Value: 1.0E-3
 HELP: Tolerance for the Newton-Raphson Strategy
 QUESTION: Max_Iterations
-VALUE: 30
+VALUE: 15
 QUESTION: Linear_Solver#CB#(Direct,Iterative)
 Value: Direct
 DEPENDENCIES: (Direct,RESTORE,Direct_Solver_Type,#CURRENT#,HIDE,Iterative_Solver_Type,#CURRENT#)(Iterative,HIDE,Direct_Solver_Type,#CURRENT#,RESTORE,Iterative_Solver_Type,#CURRENT#)
@@ -36,23 +36,54 @@ VALUE: AMGCL
 QUESTION: Number_of_threads
 VALUE: 1
 
-TITLE:Boundary_Conditions
-QUESTION: Imposed_Displacement#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_Pressure#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_PointLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_LineLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_SurfaceLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_NormalLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_TangentialLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_NormalFluidFlux#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
+TITLE:Modify_Imposed_Variables
+QUESTION: Imposed_Displacement#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Displacement-X_Table,#CURRENT#,HIDE,Displacement-Y_Table,#CURRENT#,HIDE,Displacement-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Displacement-X_Table,#CURRENT#,RESTORE,Displacement-Y_Table,#CURRENT#,RESTORE,Displacement-Z_Table,#CURRENT#)
+QUESTION: Displacement-X_Table(Time,Displacement_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Displacement-Y_Table(Time,Displacement_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Displacement-Z_Table(Time,Displacement_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_Pressure#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Pressure_Table,#CURRENT#)(Table_Interpolation,RESTORE,Pressure_Table,#CURRENT#)
+QUESTION: Pressure_Table(Time,Pressure)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_Force#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Force-X_Table,#CURRENT#,HIDE,Force-Y_Table,#CURRENT#,HIDE,Force-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force-X_Table,#CURRENT#,RESTORE,Force-Y_Table,#CURRENT#,RESTORE,Force-Z_Table,#CURRENT#)
+QUESTION: Force-X_Table(Time,Force_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Force-Y_Table(Time,Force_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Force-Z_Table(Time,Force_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_FaceLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Face-Load-X_Table,#CURRENT#,HIDE,Face-Load-Y_Table,#CURRENT#,HIDE,Face-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face-Load-X_Table,#CURRENT#,RESTORE,Face-Load-Y_Table,#CURRENT#,RESTORE,Face-Load-Z_Table,#CURRENT#)
+QUESTION: Face-Load-X_Table(Time,Face_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Face-Load-Y_Table(Time,Face_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Face-Load-Z_Table(Time,Face_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_NormalLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Normal-Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal-Load_Table,#CURRENT#)
+QUESTION: Normal-Load_Table(Time,Normal_Load)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_TangentialLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Tangential-Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Tangential-Load_Table,#CURRENT#)
+QUESTION: Tangential-Load_Table(Time,Tangential_Load)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_NormalFluidFlux#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Normal-Fluid-Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal-Fluid-Flux_Table,#CURRENT#)
+QUESTION: Normal-Fluid-Flux_Table(Time,Normal_Fluid_Flux)
+VALUE: #N# 2 0.0 0.0
 
 TITLE:PostProcess
 QUESTION: Write_Solid_Displacement#CB#(True,False)
@@ -72,36 +103,31 @@ QUESTION: Nodal_results_3#CB#(REACTION,NO_RESULT)
 VALUE: REACTION
 QUESTION: Nodal_results_4#CB#(REACTION_WATER_PRESSURE,NO_RESULT)
 VALUE: REACTION_WATER_PRESSURE
-QUESTION: Write_Point_Load#CB#(True,False)
+QUESTION: Write_Force#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_5,POINT_LOAD)(False,HIDE,Nodal_results_5,NO_RESULT)
-QUESTION: Nodal_results_5#CB#(POINT_LOAD,NO_RESULT)
-VALUE: POINT_LOAD
-QUESTION: Write_Line_Load#CB#(True,False)
+DEPENDENCIES: (True,HIDE,Nodal_results_5,FORCE)(False,HIDE,Nodal_results_5,NO_RESULT)
+QUESTION: Nodal_results_5#CB#(FORCE,NO_RESULT)
+VALUE: NO_RESULT
+QUESTION: Write_Face_Load#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_6,LINE_LOAD)(False,HIDE,Nodal_results_6,NO_RESULT)
-QUESTION: Nodal_results_6#CB#(LINE_LOAD,NO_RESULT)
-VALUE: LINE_LOAD
-QUESTION: Write_Surface_Load#CB#(True,False)
-VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_7,SURFACE_LOAD)(False,HIDE,Nodal_results_7,NO_RESULT)
-QUESTION: Nodal_results_7#CB#(SURFACE_LOAD,NO_RESULT)
-VALUE: SURFACE_LOAD
+DEPENDENCIES: (True,HIDE,Nodal_results_6,FACE_LOAD)(False,HIDE,Nodal_results_6,NO_RESULT)
+QUESTION: Nodal_results_6#CB#(FACE_LOAD,NO_RESULT)
+VALUE: FACE_LOAD
 QUESTION: Write_Normal_Load#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_8,NORMAL_CONTACT_STRESS)(False,HIDE,Nodal_results_8,NO_RESULT)
-QUESTION: Nodal_results_8#CB#(NORMAL_CONTACT_STRESS,NO_RESULT)
-VALUE: NORMAL_CONTACT_STRESS
+DEPENDENCIES: (True,HIDE,Nodal_results_7,NORMAL_CONTACT_STRESS)(False,HIDE,Nodal_results_7,NO_RESULT)
+QUESTION: Nodal_results_7#CB#(NORMAL_CONTACT_STRESS,NO_RESULT)
+VALUE: NO_RESULT
 QUESTION: Write_Tangential_Load#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_9,TANGENTIAL_CONTACT_STRESS)(False,HIDE,Nodal_results_9,NO_RESULT)
-QUESTION: Nodal_results_9#CB#(TANGENTIAL_CONTACT_STRESS,NO_RESULT)
-VALUE: TANGENTIAL_CONTACT_STRESS
+DEPENDENCIES: (True,HIDE,Nodal_results_8,TANGENTIAL_CONTACT_STRESS)(False,HIDE,Nodal_results_8,NO_RESULT)
+QUESTION: Nodal_results_8#CB#(TANGENTIAL_CONTACT_STRESS,NO_RESULT)
+VALUE: NO_RESULT
 QUESTION: Write_Normal_Fluid_Flux#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_10,NORMAL_FLUID_FLUX)(False,HIDE,Nodal_results_10,NO_RESULT)
-QUESTION: Nodal_results_10#CB#(NORMAL_FLUID_FLUX,NO_RESULT)
-VALUE: NORMAL_FLUID_FLUX
+DEPENDENCIES: (True,HIDE,Nodal_results_9,NORMAL_FLUID_FLUX)(False,HIDE,Nodal_results_9,NO_RESULT)
+QUESTION: Nodal_results_9#CB#(NORMAL_FLUID_FLUX,NO_RESULT)
+VALUE: NO_RESULT
 
 QUESTION: Write_Strain#CB#(True,False)
 VALUE: False
@@ -113,16 +139,51 @@ VALUE: True
 DEPENDENCIES: (True,HIDE,Gauss_points_results_2,CAUCHY_STRESS_TENSOR)(False,HIDE,Gauss_points_results_2,NO_RESULT)
 QUESTION: Gauss_points_results_2#CB#(CAUCHY_STRESS_TENSOR,NO_RESULT)
 VALUE: CAUCHY_STRESS_TENSOR
+QUESTION: Write_Total_Stress#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_3,TOTAL_STRESS_TENSOR)(False,HIDE,Gauss_points_results_3,NO_RESULT)
+QUESTION: Gauss_points_results_3#CB#(TOTAL_STRESS_TENSOR,NO_RESULT)
+VALUE: TOTAL_STRESS_TENSOR
 QUESTION: Write_Von_Mises_Stress#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Gauss_points_results_3,VON_MISES_STRESS)(False,HIDE,Gauss_points_results_3,NO_RESULT)
-QUESTION: Gauss_points_results_3#CB#(VON_MISES_STRESS,NO_RESULT)
+DEPENDENCIES: (True,HIDE,Gauss_points_results_4,VON_MISES_STRESS)(False,HIDE,Gauss_points_results_4,NO_RESULT)
+QUESTION: Gauss_points_results_4#CB#(VON_MISES_STRESS,NO_RESULT)
 VALUE: VON_MISES_STRESS
 QUESTION: Write_Fluid_Flux#CB#(True,False)
 VALUE: True
-DEPENDENCIES: (True,HIDE,Gauss_points_results_4,FLUID_FLUX)(False,HIDE,Gauss_points_results_4,NO_RESULT)
-QUESTION: Gauss_points_results_4#CB#(FLUID_FLUX,NO_RESULT)
-VALUE: FLUID_FLUX
+DEPENDENCIES: (True,HIDE,Gauss_points_results_5,FLUID_FLUX_VECTOR)(False,HIDE,Gauss_points_results_5,NO_RESULT)
+QUESTION: Gauss_points_results_5#CB#(FLUID_FLUX_VECTOR,NO_RESULT)
+VALUE: FLUID_FLUX_VECTOR
+QUESTION: Write_Permeability#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_6,PERMEABILITY_MATRIX)(False,HIDE,Gauss_points_results_6,NO_RESULT)
+QUESTION: Gauss_points_results_6#CB#(PERMEABILITY_MATRIX,NO_RESULT)
+VALUE: PERMEABILITY_MATRIX
+QUESTION: Write_Damage#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_7,DAMAGE_VARIABLE)(False,HIDE,Gauss_points_results_7,NO_RESULT)
+QUESTION: Gauss_points_results_7#CB#(DAMAGE_VARIABLE,NO_RESULT)
+VALUE: DAMAGE_VARIABLE
+QUESTION: Write_Local_Stress_Vector#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_8,LOCAL_STRESS_VECTOR)(False,HIDE,Gauss_points_results_8,NO_RESULT)
+QUESTION: Gauss_points_results_8#CB#(LOCAL_STRESS_VECTOR,NO_RESULT)
+VALUE: LOCAL_STRESS_VECTOR
+QUESTION: Write_Local_Relative_Displacement#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_9,LOCAL_RELATIVE_DISPLACEMENT_VECTOR)(False,HIDE,Gauss_points_results_9,NO_RESULT)
+QUESTION: Gauss_points_results_9#CB#(LOCAL_RELATIVE_DISPLACEMENT_VECTOR,NO_RESULT)
+VALUE: LOCAL_RELATIVE_DISPLACEMENT_VECTOR
+QUESTION: Write_Local_Fluid_Flux#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_10,LOCAL_FLUID_FLUX_VECTOR)(False,HIDE,Gauss_points_results_10,NO_RESULT)
+QUESTION: Gauss_points_results_10#CB#(LOCAL_FLUID_FLUX_VECTOR,NO_RESULT)
+VALUE: LOCAL_FLUID_FLUX_VECTOR
+QUESTION: Write_Local_Permeability#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_11,LOCAL_PERMEABILITY_MATRIX)(False,HIDE,Gauss_points_results_11,NO_RESULT)
+QUESTION: Gauss_points_results_11#CB#(LOCAL_PERMEABILITY_MATRIX,NO_RESULT)
+VALUE: LOCAL_PERMEABILITY_MATRIX
 
 QUESTION: Write_deformed_mesh#CB#(False,True)
 VALUE: True
