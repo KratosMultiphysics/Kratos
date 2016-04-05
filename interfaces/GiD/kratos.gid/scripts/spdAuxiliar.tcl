@@ -138,8 +138,8 @@ proc spdAux::activeApp { appid } {
     }
     [$root selectNodes "hiddenfield\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
     spdAux::processIncludes
-    gid_groups_conds::actualize_conditions_window
     parseRoutes
+    gid_groups_conds::actualize_conditions_window
 }
 
 proc spdAux::CreateWindow {dir} {
