@@ -81,8 +81,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/node_snapping_utility.h"
 #include "custom_elements/rigid_body_3D.h"
 #include "custom_utilities/output_utility.h"
+#include "custom_utilities/dof_utility.h"
 #include "custom_utilities/smoothing_utility.h"
-
 
 //#include "custom_utilities/detect_elements_utility.h"
 #include "custom_utilities/intra_fracture_triangle_utility.h"
@@ -191,7 +191,29 @@ void AddNewRigidBodyAndSpring3D( ModelPart& structural_model_part,
     );
 }
 
+void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable);
+}
 
+void VectorTransferVariablesToNodes(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<Vector>& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable);
+}
+
+void DoubleTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
+
+void VectorTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
 
 void  AddCustomUtilitiesToPython()
 {
@@ -203,6 +225,8 @@ void  AddCustomUtilitiesToPython()
     .def( "ReactivateStressFree", &DeactivationUtility::ReactivateStressFree )
     .def( "ReactivateAll", &DeactivationUtility::ReactivateAll )
     .def( "Initialize", &DeactivationUtility::Initialize )
+    .def( "GetName", &DeactivationUtility::GetName<Element> )
+    .def( "GetName", &DeactivationUtility::GetName<Condition> )
     ;
 
     class_<VariableTransferUtility, boost::noncopyable >
@@ -212,9 +236,13 @@ void  AddCustomUtilitiesToPython()
     .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
     .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
     .def( "TransferPrestress", &VariableTransferUtility::TransferPrestress )
+    .def( "TransferPrestressIdentically", &VariableTransferUtility::TransferPrestressIdentically )
     .def( "TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
-    //.def("TransferVariablesToNodes", &VariableTransferUtility::DoubleTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodes)
+    .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
     ;
 
 
@@ -332,6 +360,10 @@ void  AddCustomUtilitiesToPython()
     .def( "DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements )
     ;
 
+    class_<DofUtility, boost::noncopyable >
+    ( "DofUtility", init<>() )
+    .def( "ListDofs", &DofUtility::ListDofs )
+    ;
 }
 }  // namespace Python.
 }  // namespace Kratos.
