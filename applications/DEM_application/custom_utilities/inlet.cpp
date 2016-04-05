@@ -208,65 +208,58 @@ namespace Kratos {
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {    
                             
         vector<unsigned int> ElementPartition;
-        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_clusters_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;       
 
         #pragma omp parallel for
-        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++) {
-            ElementIterator it_begin = r_clusters_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k];
-            ElementIterator it_end   = r_clusters_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k + 1];
+        for (int k = 0; k < (int)r_clusters_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
+            ElementIterator elem_it = r_clusters_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;                            
+            if (elem_it->IsNot(NEW_ENTITY)) continue;
 
-            for (ElementIterator elem_it = it_begin; elem_it != it_end; ++elem_it) {
-                            
-                if (elem_it->IsNot(NEW_ENTITY)) continue;
+            Kratos::Cluster3D& r_cluster = dynamic_cast<Kratos::Cluster3D&>(*elem_it); 
+            Node<3>& cluster_central_node = r_cluster.GetGeometry()[0];
+            bool still_touching=false;
 
-                Kratos::Cluster3D& r_cluster = dynamic_cast<Kratos::Cluster3D&>(*elem_it); 
-                Node<3>& cluster_central_node = r_cluster.GetGeometry()[0];
-                bool still_touching=false;
-                
+            for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
+                SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
+                for (unsigned int i = 0; i < spheric_particle->mNeighbourElements.size(); i++) { //loop over the neighbor spheres of each sphere of the cluster
+                    SphericParticle* neighbour_iterator = spheric_particle->mNeighbourElements[i];
+                    Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0]; 
+                    if (neighbour_node.Is(BLOCKED)) {
+                        still_touching = true;
+                        break;
+                    }              
+                }
+                if (still_touching) break;
+            }
+
+            if (!still_touching) { //The ball must be freed
+                cluster_central_node.Set(DEMFlags::FIXED_VEL_X, false);
+                cluster_central_node.Set(DEMFlags::FIXED_VEL_Y, false);
+                cluster_central_node.Set(DEMFlags::FIXED_VEL_Z, false);
+                cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+                elem_it->Set(NEW_ENTITY, 0);
+                cluster_central_node.Set(NEW_ENTITY, 0);
+                cluster_central_node.pGetDof(VELOCITY_X)->FreeDof();
+                cluster_central_node.pGetDof(VELOCITY_Y)->FreeDof();
+                cluster_central_node.pGetDof(VELOCITY_Z)->FreeDof();
+                cluster_central_node.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+                cluster_central_node.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+                cluster_central_node.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+
                 for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
                     SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
-                    for (unsigned int i = 0; i < spheric_particle->mNeighbourElements.size(); i++) { //loop over the neighbor spheres of each sphere of the cluster
-                        SphericParticle* neighbour_iterator = spheric_particle->mNeighbourElements[i];
-                        Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0]; 
-                        if (neighbour_node.Is(BLOCKED)) {
-                            still_touching = true;
-                            break;
-                        }              
-                    }
-                    if (still_touching) break;
-                }
-
-                if (!still_touching) { //The ball must be freed
-                    cluster_central_node.Set(DEMFlags::FIXED_VEL_X, false);
-                    cluster_central_node.Set(DEMFlags::FIXED_VEL_Y, false);
-                    cluster_central_node.Set(DEMFlags::FIXED_VEL_Z, false);
-                    cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                    cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                    cluster_central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-                    elem_it->Set(NEW_ENTITY, 0);
-                    cluster_central_node.Set(NEW_ENTITY, 0);
-                    cluster_central_node.pGetDof(VELOCITY_X)->FreeDof();
-                    cluster_central_node.pGetDof(VELOCITY_Y)->FreeDof();
-                    cluster_central_node.pGetDof(VELOCITY_Z)->FreeDof();
-                    cluster_central_node.pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-                    cluster_central_node.pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-                    cluster_central_node.pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
-
-                    for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
-                        SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
-                        Node<3>& node_it = spheric_particle->GetGeometry()[0];  
-                        spheric_particle->Set(NEW_ENTITY, 0);
-                        node_it.Set(NEW_ENTITY, 0);                    
-                    }                    
-                }                
-            } //loop clusters
-        } //loop threads
+                    Node<3>& node_it = spheric_particle->GetGeometry()[0];  
+                    spheric_particle->Set(NEW_ENTITY, 0);
+                    node_it.Set(NEW_ENTITY, 0);                    
+                }                    
+            }                
+        } 
         mFirstTime=false;
     } //DettachClusters
     
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {                    
-        
         unsigned int& max_Id=creator.mMaxNodeId; 
         const double current_time = r_modelpart.GetProcessInfo()[TIME];
         DettachElements(r_modelpart, max_Id);
