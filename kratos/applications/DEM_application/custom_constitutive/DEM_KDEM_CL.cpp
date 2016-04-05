@@ -69,8 +69,8 @@ namespace Kratos {
         double aux_norm_to_tang = sqrt(kt_el / kn_el);
         const double mRealMass = element1->GetMass();
         const double other_real_mass = element2->GetMass();
-        const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-        const double mOtherCoefficientOfRestitution = element2->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        const double mCoefficientOfRestitution = element1->GetCoefficientOfRestitution();
+        const double mOtherCoefficientOfRestitution = element2->GetCoefficientOfRestitution();
         const double equiv_coefficientOfRestitution = 0.5 * (mCoefficientOfRestitution + mOtherCoefficientOfRestitution);
 
         equiv_visco_damp_coeff_normal = (1.0 - equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
@@ -182,23 +182,18 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
-
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
-
-        const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
-        const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
-        const double myTgOfFrictionAngle = element1_props[PARTICLE_FRICTION];
-        const double other_tg_of_fri_angle = element2_props[PARTICLE_FRICTION];
-        
+        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];                
         LocalElasticContactForce[0] -= kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] -= kt_el * LocalDeltDisp[1]; // 1: second tangential
         
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
             
-        if (mNeighbourFailureId_count == 0) { //This means it has not broken                                      
+        if (mNeighbourFailureId_count == 0) { //This means it has not broken 
+            Properties& element1_props = element1->GetProperties();
+            Properties& element2_props = element2->GetProperties();
+            const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
+            const double mInternalFriction = 0.5 * (element1_props[CONTACT_INTERNAL_FRICC] + element2_props[CONTACT_INTERNAL_FRICC]);
 
             contact_tau = ShearForceNow / calculation_area;
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
@@ -214,7 +209,7 @@ namespace Kratos {
             }
         }
         else {
-            const double equiv_tg_of_fri_ang = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);  
+            const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());  
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
                 
             if (Frictional_ShearForceMax < 0.0) {
@@ -222,7 +217,6 @@ namespace Kratos {
             }
 
             if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)) {
-
                 LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
                 LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[1];
                 sliding = true;
