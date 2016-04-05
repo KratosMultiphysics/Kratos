@@ -36,7 +36,6 @@
 
 namespace Kratos
 {
-  
 template<class TSparseSpace,
          class TDenseSpace, 
          class TLinearSolver 
@@ -298,6 +297,7 @@ public:
     double Solve()
     {
         KRATOS_TRY;
+
         //std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(9);
         std::cout<<"************************************************************************"<<std::endl;
         std::cout<<"Begininning Arc Lenght Method.A Pseudo-Line Searches Included. Please Wait...."<<std::endl;
@@ -402,11 +402,11 @@ public:
         TSystemVectorType& Aux_h         = *pAux_h;
         TSystemVectorType& q_Inc_Aux     = *pq_Inc_Aux;
  
-        /// Do nothing. It is calles in order to have an order sequence
-        //pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
-        //is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+        //// Do nothing. It is called in order to have an order sequence
+        //pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+        //is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 	
-        //function to perform the building and the solving phase.
+        // Function to perform the building and the solving phase.
         if(BaseType::mRebuildLevel >1 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
             TSparseSpace::SetToZero(mA);
@@ -475,7 +475,7 @@ public:
                 local_converged = false;
                 if(iteration_number == 1 && mstep == 1)
                 {
-                    mlambda_old       = 0.00;
+                    mlambda_old      = 0.00;
                     Ao               = TSparseSpace::Dot(Sigma_q, Sigma_q);        // Ao = inner_prod (Sigma_q, Sigma_q);
                     mdelta_l         = sqrt(2.00*Ao*mdelta_lambda*mdelta_lambda);
                     mdelta_lold      = mdelta_l;
@@ -544,12 +544,13 @@ public:
 
                 mlambda =  mlambda_old + mdelta_lambda;
 
-                //KRATOS_WATCH(mlambda)
-                //KRATOS_WATCH(mlambda_old)
-                //KRATOS_WATCH(mdelta_lambda)
+//                KRATOS_WATCH(mlambda);
+//                KRATOS_WATCH(mlambda_old);
+//                KRATOS_WATCH(mdelta_lambda);
 
                 //TSparseSpace::Assign(E, mlambda, q);
-                pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+                pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
                 if(BaseType::MoveMeshFlag() == true)
                 {
                     BaseType::MoveMesh();
@@ -557,7 +558,7 @@ public:
 
                 TSparseSpace::SetToZero(mb);
                 pBuilderAndSolver->BuildRHS(pScheme,mAuxElementModelPart, mb);
-                TSparseSpace::ScaleAndAdd(mlambda,q,A,mb,e);
+                TSparseSpace::ScaleAndAdd(mlambda, q, A, mb, e);
                 //noalias(e) = E + mb; /// WARNING = in Kratos Fint is compted like -mb
 
                 // Finalize the iteration
@@ -624,7 +625,7 @@ public:
                     TSparseSpace::SetToZero(mA);
                     pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
                     pBuilderAndSolver->SystemSolve(mA, Sigma_q, q_Inc_Aux);
-                    //noalias(Sigma_q) += mDelta_pold; /// shuould be the total acumulated
+                    //noalias(Sigma_q) += mDelta_pold; /// Should be the total acumulated
                     TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
                 }
 
@@ -693,9 +694,9 @@ public:
     {
         KRATOS_TRY;
 
-        TSystemMatrixType& mA = *mpA;
+        TSystemMatrixType& mA  = *mpA;
         TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemVectorType& mb  = *mpb;
 
         if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
         {
@@ -705,6 +706,7 @@ public:
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+
         KRATOS_CATCH("");
 
     }
@@ -719,12 +721,12 @@ public:
     */
     void CalculateOutputData()
     {
-        TSystemMatrixType& mA = *mpA;
+        TSystemMatrixType& mA  = *mpA;
         TSystemVectorType& mDx = *mpDx;
-        TSystemVectorType& mb = *mpb;
+        TSystemVectorType& mb  = *mpb;
 
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
-        GetScheme()->CalculateOutputData(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+        GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
     }
 
     /***********************************************************************************/
@@ -746,24 +748,23 @@ public:
         TSystemVectorType& mDelta_pold = *mpDelta_pold;
 
         SparseSpaceType::Clear(mpA);
-        SparseSpaceType::Resize(mA,0,0);
+        SparseSpaceType::Resize(mA, 0, 0);
 
         SparseSpaceType::Clear(mpDx);
-        SparseSpaceType::Resize(mDx,0);
+        SparseSpaceType::Resize(mDx, 0);
 
         SparseSpaceType::Clear(mpb);
-        SparseSpaceType::Resize(mb,0);
+        SparseSpaceType::Resize(mb, 0);
 
         SparseSpaceType::Clear(mpDelta_p);
-        SparseSpaceType::Resize(mDelta_p,0);
+        SparseSpaceType::Resize(mDelta_p, 0);
 
         SparseSpaceType::Clear(mpDelta_pold);
-        SparseSpaceType::Resize(mDelta_pold,0);
+        SparseSpaceType::Resize(mDelta_pold, 0);
 	
         // Setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
-
 
         KRATOS_CATCH("");
     }
@@ -804,8 +805,8 @@ public:
 
         double lambda_cr       = 0.00;
         double delta_lambda_cr = 0.00;
-        double delta_lcr      = 0.00;
-        double miu            = 0.00;
+        double delta_lcr       = 0.00;
+        double miu             = 0.00;
         bool  imag = false;
         
         // Aux Variables
@@ -829,7 +830,6 @@ public:
         TSparseSpace::SetToZero(Delta_p);
         TSparseSpace::SetToZero(Delta_p1);
         TSparseSpace::SetToZero(Delta_p2);
-	
 	
         // Variables vectoriales y matriciles
         TSystemMatrixType& mA            = *mpA;
@@ -958,10 +958,9 @@ public:
 
                 this->BackupDatabase(rDofSet,mX_old);
                 TSparseSpace::Copy(mDelta_p, dx_aux);
-	    
 
-                noalias(mDelta_p) = miu*Delta_pcr;
-                mdelta_lambda      = miu*delta_lambda_cr;
+                noalias(mDelta_p) = miu * Delta_pcr;
+                mdelta_lambda     = miu * delta_lambda_cr;
                 mdelta_l          = delta_lcr;
 	    
                 std::cout << "   Arc Length      = " << mdelta_l             << std::endl;
@@ -1055,7 +1054,7 @@ private:
     /***********************************************************************************/
 
     /**
-    *
+    * Initilise the variables, schemes and convergence criterias
     */
 
     void Initialize()
@@ -1068,11 +1067,15 @@ private:
 
         // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
+        {
             pScheme->Initialize(BaseType::GetModelPart());
+        }
 
         // Initialize The Elements - OPERATIONS TO BE DONE ONCE
         if (pScheme->ElementsAreInitialized() == false)
+        {
             pScheme->InitializeElements(BaseType::GetModelPart());
+        }
 
         // Initialisation of the convergence criteria
         if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
@@ -1081,7 +1084,8 @@ private:
         }
 
         mInitializeWasPerformed = true;
-        VariablesArcLength(); // iniciando variables de arc lenght
+
+        VariablesArcLength(); // Initialising the variables of the arc length
 
         KRATOS_CATCH("");
     }
@@ -1199,9 +1203,8 @@ private:
     /***********************************************************************************/
 
     /**
-    *
-    * @param
-    * @return:
+    * It initialises an uxiliar model part
+    * @param ThisModelPart: Model part
     */
 
     void InitializeAuxiliaryModelParts(ModelPart& ThisModelPart)
@@ -1224,9 +1227,9 @@ private:
     /***********************************************************************************/
 
     /**
-    *
+    * It calculates the parameter eta
     * @param
-    * @return:
+    * @return meta: The eta parameter
     */
 
     void Calculate_eta(
