@@ -55,6 +55,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(EXCESS_PORE_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(PRESCRIBED_DELTA_DISPLACEMENT)
     #auxiliary variables misused for mesh rezoning ;-)
     model_part.AddNodalSolutionStepVariable(IS_VISITED)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -70,7 +71,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ERROR_RATIO)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
     model_part.AddNodalSolutionStepVariable(NODAL_ERROR_1)
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
     
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -94,7 +95,7 @@ def AddDofs(model_part):
         node.AddDof(ROTATION_Z)
         #node.AddDof(LAGRANGE_AIR_PRESSURE)
         node.AddDof(LAGRANGE_WATER_PRESSURE)
-    print "dofs for the dynamic structural solution added correctly"
+    print("dofs for the dynamic structural solution added correctly")
         
 #######################################################################
 class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
