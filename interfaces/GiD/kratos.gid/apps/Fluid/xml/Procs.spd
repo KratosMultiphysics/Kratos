@@ -15,17 +15,6 @@
 		}
 	  ]]>
 	</proc>
-		<proc n='CheckGeometry' args='args'>
-	  <![CDATA[
-		set level [lindex $args 0]
-		if {$level eq 1} {
-			if {$::Model::SpatialDimension eq "3D"} {return volume} {return surface}
-		}
-		if {$level eq 2} {
-			if {$::Model::SpatialDimension eq "3D"} {return surface} {return line}
-		}
-	  ]]>
-	</proc>
 	<proc n='CheckIdOnMyParent' args='args'>
 	  <![CDATA[
 		set r "hidden"

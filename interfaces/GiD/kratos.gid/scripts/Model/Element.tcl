@@ -92,12 +92,12 @@ oo::class create Element {
 }
 catch {NodalCondition destroy}
 oo::class create NodalCondition {
-    superclass Parameter
+    superclass Condition
     variable reaction
     variable ov
     
-    constructor {n pn type} {
-        next $n $pn $type "1" "" "" $pn
+    constructor {n} {
+        next $n
         set reaction ""
         set ov "point,line,surface,volume"
     }
@@ -148,18 +148,17 @@ proc Model::ParseElemNode { node } {
     }
     foreach ncnode [[$node getElementsByTagName NodalConditions] childNodes]  {
         set n [$ncnode @n]
-        set nc [::Model::NodalCondition new $n [$ncnode @pn] [$ncnode @type] ]
+        set nc [::Model::NodalCondition new $n]
+        
+        $nc setPublicName [$ncnode getAttribute pn]
         $nc setReaction [$ncnode @reaction]
         if {[$ncnode hasAttribute ov]} {$nc setOv [$ncnode @ov]}
             
-        set fi "0"
-        catch {set fi [$ncnode @fixity]}
-        $nc setFixity $fi
-        $nc setUnits [$ncnode @units]
-        $nc setUnitMagnitude [$ncnode @unit_magnitude]
         foreach att [$ncnode attributes] {
             $nc addAttribute $att [split [$ncnode getAttribute $att] ","]
         }
+        
+        $nc setProcessName [$ncnode getAttribute ProcessName]
         
         $el addNodalCondition $n $nc
     }
@@ -234,7 +233,7 @@ proc Model::GetAllElemInputs {} {
     return $inputs
 }
 
-proc Model::getAllDOFs {} {
+proc Model::getAllNodalConditions {} {
     variable Elements
     
     set dofs [dict create]
@@ -246,7 +245,7 @@ proc Model::getAllDOFs {} {
     return $dofs
 }
 
-proc Model::getDOFbyId {dofid} {
+proc Model::getNodalConditionbyId {dofid} {
     return [dict get [getAllNodalConditions] $dofid]
 }
 

@@ -6,7 +6,7 @@
 			<value n="DeltaTime"  pn="Delta time" v="0.1" help=""/>
 			<value n="UseAutomaticDeltaTime" pn="Automatic Delta time" v="Fixed"  values="Fixed,Automatic" help="Select the Delta time option to be used"/>
       </container>
-	  <container n="StratParams" pn="Strategy parameters" un="SMStratParams" icon="groupsTreeNew.gif"  state="normal" >
+	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" >
 			<dynamicnode command="injectSolStratParams" args=""/>
 	  </container>
 	  <container n="ParallelType" pn="Parallel type" un="SLParallelization" help="Parallel type"  icon="groupsTreeNew.gif"  state="normal" >

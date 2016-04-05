@@ -23,7 +23,7 @@ proc Solid::write::writeCustomFilesEvent { } {
     write::CopyFileIntoModel "python/KratosSolid.py"
     write::RenameFileInModel "KratosSolid.py" "MainKratos.py"
     
-    write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
+    #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
 }
 
 # MDPA Blocks
@@ -54,7 +54,7 @@ proc Solid::write::writeMeshes { } {
     write::writePartMeshes
     
     # Solo Malla , no en conditions
-    write::writeNodalConditions "SLDoFs"
+    write::writeNodalConditions "SLNodalConditions"
     
     # A Condition y a meshes-> salvo lo que no tenga topologia
     writeLoads
