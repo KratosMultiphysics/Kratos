@@ -155,7 +155,11 @@ public:
 
     void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
 
+    void CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+
     void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+
+    void CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
 
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
