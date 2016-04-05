@@ -5,7 +5,7 @@
         <dynamicnode command="injectElementOutputs" args=""/>
         <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
     </container>
-    <container n="OnNodes" pn="On nodes" un="SMNodalResults" help="On nodes" >
+    <container n="OnNodes" pn="On nodes" un="SLNodalResults" help="On nodes" >
         <value n="DISPLACEMENT" pn="Displacements" v="Yes" values="Yes,No" help="Displacements"/>
         <value n="VELOCITY" pn="Velocities" v="No" values="Yes,No" help="Displacements"/>
         <value n="ACCELERATION" pn="Accelerations" v="No" values="Yes,No" help="Displacements"/>

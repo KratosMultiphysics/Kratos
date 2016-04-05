@@ -23,4 +23,19 @@
     <inputs>
     </inputs>
   </Process>
+    <Process n="ApplyConstantVectorValueProcess" pn="Vector value" ImplementedInFile="process_factory"
+		implemented_in_module="KratosMultiphysics"
+		help="This process ">
+    <inputs>
+      <parameter n="factor" pn="Factor" type="double"  v="1.0" unit_magnitude="0" units="0"/>
+      <parameter n="value" pn="Value" type="vector" v="0.0,-9.81,0.0" />
+    </inputs>
+  </Process>
+  <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" ImplementedInFile="process_factory"
+		implemented_in_module="KratosMultiphysics"
+		help="This process ">
+    <inputs>
+      <parameter n="value" pn="Value" type="double" unit_magnitude="0" units="0"/>
+    </inputs>
+  </Process>
 </ProcessList>

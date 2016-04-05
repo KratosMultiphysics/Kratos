@@ -245,12 +245,15 @@ proc write::writeConditions { baseUN } {
         lassign [write::getEtype $ov] etype nnodes
         set kname [$cond getTopologyKratosName $etype $nnodes]
         if {$kname ne ""} {
+            set obj [list ]
             WriteString "Begin Conditions $kname// GUI group identifier: $groupid"
             if {$etype eq "Point"} {
-                set formats [dict create $groupid "%0d "]
-                set tope [write_calc_data nodes -count $formats]
-                set obj [write_calc_data nodes -return $formats]
-            } {
+                set formats [dict create $groupid "%10d \n"]
+                
+                #set obj [write_calc_data nodes -return $formats]
+                #set obj [list 3 5]
+                set obj [GiD_EntitiesGroups get $groupid nodes]
+            } else {
                 # Metemos las caras
                 lassign [GiD_EntitiesGroups get $groupid faces] elems faces
                 set obj [list ]
@@ -572,28 +575,156 @@ proc write::tcl2json { value } {
     }
 }
 
-proc write::WriteProcess {processDict} {
+proc write::WriteJSON {processDict} {
     #W [dict2json $processDict]
     package require json::write
     WriteString [write::tcl2json $processDict]
 }
 
 
-proc write::getResultsList {baseUN} {
+
+
+proc write::getSolutionStrategyParametersDict {} {
+    set solStratUN  [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    set schemeUN  [spdAux::ExecuteOnCurrentApp getUniqueName Scheme]
+    
+    set solstratName [write::getValue $solStratUN]
+    set schemeName [write::getValue $schemeUN]
+    set sol [::Model::GetSolutionStrategy $solstratName]
+    set sch [$sol getScheme $schemeName]
+    
+    set paramsPath [spdAux::ExecuteOnCurrentApp getUniqueName StratParams]
+    
+    foreach {n in} [$sol getInputs] {
+        dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
+    }
+    foreach {n in} [$sch getInputs] {
+        dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
+    }
+    return $solverSettingsDict
+}
+
+
+
+proc write::getSolversParametersDict {} {
+    set solStratUN  [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    set solstratName [write::getValue $solStratUN]
+    set sol [::Model::GetSolutionStrategy $solstratName]
+    foreach se [$sol getSolversEntries] {
+        set solverEntryDict [dict create]
+        set un [spdAux::ExecuteOnCurrentApp getUniqueName "$solstratName[$se getName]"] 
+        set solverName [write::getValue $un Solver]
+        dict set solverEntryDict solver_type $solverName
+          
+        foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
+            # JG temporal, para la precarga de combos
+            if {[$in getType] ni [list "bool" "integer" "double"]} {
+                set v ""
+                catch {set v [write::getValue $un $n]}
+                if {$v eq ""} {set v [write::getValue $un $n]}
+                dict set solverEntryDict $n $v
+            } {
+                dict set solverEntryDict $n [write::getValue $un $n]
+            }
+        }
+        dict set solverSettingsDict [$se getName] $solverEntryDict
+        unset solverEntryDict
+    }
+    return $solverSettingsDict
+}
+
+
+proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+
+    set bcCondsDict [list ]
+    
+    set xp1 "[apps::getRoute $un]/condition/group"
+    set groups [$root selectNodes $xp1]    
+    foreach group $groups {
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        set groupId [::write::getMeshId $cid $groupName]
+        set condId [[$group parent] @n]
+        if {$condition_type eq "Condition"} {
+            set condition [::Model::getCondition $condId]
+        } {
+            set condition [::Model::getNodalConditionbyId $condId]
+        }
+        
+        set processName [$condition getProcessName]
+        set process [::Model::GetProcess $processName]
+        set processDict [dict create]
+        set paramDict [dict create]
+        dict set paramDict mesh_id 0
+        dict set paramDict model_part_name $groupId
+        
+        set process_attributes [$process getAttributes]
+        set process_parameters [$process getInputs]
+        
+        dict set process_attributes process_name [dict get $process_attributes n]
+        dict unset process_attributes n
+        dict unset process_attributes pn
+        
+        set processDict [dict merge $processDict $process_attributes]
+        foreach {inputName in_obj} $process_parameters {
+            set in_type [$in_obj getType]
+            if {$in_type eq "vector"} {
+                set is_fixed_x [expr False]
+                set is_fixed_y [expr False]
+                set is_fixed_z [expr False]
+                if {[$group find n FixX] ne ""} {
+                    set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
+                }
+                if {[$group find n FixY] ne ""} {
+                    set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
+                }
+                if {[$group find n FixZ] ne ""} {
+                    set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
+                }
+                set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
+                set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
+                set ValZ [expr 0.0]
+                catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+                
+                dict set paramDict is_fixed_x $is_fixed_x
+                dict set paramDict is_fixed_y $is_fixed_y
+                dict set paramDict is_fixed_z $is_fixed_z
+                dict set paramDict $inputName [list $ValX $ValY $ValZ]
+            } elseif {$in_type eq "double"} {
+                set value [get_domnode_attribute [$group find n $inputName] v] 
+                if {[$group find n Fix] ne ""} {
+                    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
+                    dict set paramDict is_fixed $is_fixed
+                }
+                dict set paramDict $inputName [expr $value]
+            }
+        }
+        
+        dict set processDict Parameters $paramDict
+        lappend bcCondsDict $processDict
+    }
+    return $bcCondsDict
+}
+
+
+proc write::GetResultsList { un } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set results_list [list ]
-    set xp1 "[apps::getRoute $baseUN]/value"
-    set results [$root selectNodes $xp1]
-    foreach res $results {
-        if {[get_domnode_attribute $res v]} {
+    set result [list ]
+    set xp1 "[apps::getRoute $un]/value"
+    set resultxml [$root selectNodes $xp1]
+    foreach res $resultxml {
+        if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {
             set name [get_domnode_attribute $res n]
-            lappend results_list $name
+            lappend result $name
         }
     }
-    return $results_list
+    return $result
 }
+
 
 # Auxiliar
 proc write::Duration { int_time } {
@@ -612,17 +743,21 @@ proc write::Duration { int_time } {
 }
  
 proc write::getValue { name { it "" } } {
+    # quitar de aqui!!!! Cuello de botella
     set doc $gid_groups_conds::doc
-    set root [$gid_groups_conds::doc documentElement]
-    
-    set xp [apps::getRoute $name]
+    set root [$doc documentElement]
+    ##
+    set xp [spdAux::getRoute $name]
     set node [$root selectNodes $xp]
     if {$it ne ""} {set node [$node find n $it]}
     
     if {[get_domnode_attribute $node v] eq ""} {
         catch {get_domnode_attribute $node values}
     }
-    set v [get_domnode_attribute $node v]
+    set v ""
+    catch {set v [expr [get_domnode_attribute $node v]]}
+    if {$v eq "" } {set v [get_domnode_attribute $node v]}
+    # W "name: $name it: $it v: $v"
     return $v
  }
 
