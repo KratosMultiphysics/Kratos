@@ -41,7 +41,8 @@ class SolvingStrategyPython:
         self.max_iter = 30
         self.echo_level = 1
         self.builder_and_solver = builder_and_solver
-        
+        #self.dof_util = DofUtility()
+
         #local matrices and vectors
         self.pA = self.space_utils.CreateEmptyMatrixPointer()
         self.pDx = self.space_utils.CreateEmptyVectorPointer()
@@ -71,12 +72,16 @@ class SolvingStrategyPython:
 #        self.system_reorderer = SystemMetisReordererProcess(self.model_part)
 #        self.system_reorderer = SystemAMDReordererProcess(self.model_part)
 
+        self.attached_processes = []
+
     #######################################################################
     def Initialize(self):
         if(self.scheme.SchemeIsInitialized() == False):
             self.scheme.Initialize(self.model_part)
         if (self.scheme.ElementsAreInitialized() == False): 
             self.scheme.InitializeElements(self.model_part)
+        for proc in self.attached_processes:
+            proc.ExecuteInitialize()
 
     #######################################################################
     def SolveLagrange( self ):
@@ -103,8 +108,7 @@ class SolvingStrategyPython:
         #clear if needed - deallocates memory 
         if(self.ReformDofSetAtEachStep == True):
             self.Clear();
-      
-            
+
     #######################################################################
     def Solve(self):
         #print self.model_part
@@ -153,7 +157,14 @@ class SolvingStrategyPython:
             print "Congratulations. Newton-Raphson loop has converged."
         else:
             if( uzawaConverged == False ):
-                print "That's bad. Uzawa algorithm failed to converge within maximum number of iterations."
+                if('stop_Uzawa_if_not_converge' in self.Parameters):
+                    if(self.Parameters['stop_Uzawa_if_not_converge'] == True):
+                        sys.exit("Stop. Uzawa algorithm failed to converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", uzawaStep = " + str(uzawaStep) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
+                    else:
+                        print('Uzawa algorithm failed to converge. However, the iteration will still be proceeded' + ", uzawaStep = " + str(uzawa) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
+                else:
+                    print("Stop. Uzawa algorithm failed to converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", uzawaStep = " + str(uzawaStep) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
+                    print("However, I still want to proceed")
             else:
                 print 'Congratulations. Uzawa loop has converged.'
         ### end of UZAWA loop
@@ -227,9 +238,15 @@ class SolvingStrategyPython:
             it = it + 1
         
         if( it == self.max_iter and converged == False):
-            print("Iteration did not converge")
-            sys.exit("Stop, the time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
-
+            print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
+            if('stop_Newton_Raphson_if_not_converge' in self.Parameters):
+                if(self.Parameters['stop_Newton_Raphson_if_not_converge'] == True):
+                    sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                else:
+                    print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+            else:
+                sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+        print("PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
         if( self.PerformContactAnalysis == True ):
             for cond in self.model_part.Conditions:
                 if( cond.GetValue( IS_CONTACT_SLAVE ) ):
@@ -263,6 +280,8 @@ class SolvingStrategyPython:
         if(self.SolutionStepIsInitialized == False):
             self.builder_and_solver.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
             self.scheme.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
+        for proc in self.attached_processes:
+            proc.ExecuteInitializeSolutionStep()
 
     #######################################################################
     def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag):
@@ -279,10 +298,17 @@ class SolvingStrategyPython:
         #build and solve the problem
         if(self.Parameters['decouple_build_and_solve'] == False):
             self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
+            self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
         else:
             self.builder_and_solver.Build(self.scheme,self.model_part,self.A,self.b)
+            self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
             self.linear_solver.Solve(self.A,self.Dx,self.b)
-        
+
+#        diagAstr = ""
+#        for i in range(0, self.A.Size1()):
+#            diagAstr = diagAstr + ", " + str(self.A[(i, i)])
+#        print("diagonal A:" + diagAstr)
+
         #full output if needed
         if( self.PrintSparsity ):
             #hbui edited
@@ -354,6 +380,9 @@ class SolvingStrategyPython:
         #reset flags for the next step
         self.SolutionStepIsInitialized = False
 
+        for proc in self.attached_processes:
+            proc.ExecuteFinalizeSolutionStep()
+
     #######################################################################
     def Clear(self):
         self.space_utils.ClearMatrix(self.pA)
@@ -372,13 +401,17 @@ class SolvingStrategyPython:
         
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
         self.builder_and_solver.Clear()
-        
+        self.scheme.Clear()
+
+        for proc in self.attached_processes:
+            proc.ExecuteFinalize()
+
     #######################################################################   
     def SetEchoLevel(self,level):
         self.echo_level = level
         self.builder_and_solver.SetEchoLevel(level)
 
-#######################################################################   
+    #######################################################################   
     def AnalyseSystemMatrix(self,  A):
         max = 0.0
         for i in range(0,  A.Size1()):
@@ -397,6 +430,7 @@ class SolvingStrategyPython:
 #        print("Number of entries: " +str(nonzeros) )
         print("Max in Diagonal: " +str(max) )
         print("#############################")
+
     #######################################################################   
     def PlotSparsityScheme(self, A):
         try:
@@ -435,7 +469,7 @@ class SolvingStrategyPython:
 
     def wait(self,str=None, prompt='Press return to show results...\n'):
         if str is not None:
-            print str
+            print(str)
         raw_input(prompt)
 
         
