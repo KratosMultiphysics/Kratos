@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?> 
+  <container n="pfem_data" pn="PFEM Data" icon="units" tree_state="open">
+    <value n="SpatialDimension" pn="Spatial dimension" un="PFEM_dimensions" v="3D" values="3D,2D,2Da" dict="3D,3D,2D,2D,2Da,2D Axisymmetric" help="Spatial Dimension"/>           
+    <container n="Domains" pn="Domains" help="" open="1">
+        <container n="Solids2D" pn="Solids" help="Solid Domains" open="0" state="[checkStateByUniqueName PFEM_dimensions 2D PFEM_dimensions 2Da]">
+            <condition n="Rigid" pn="Rigid" ov="surface" ovm="Triangle,Quadrilateral" help="" open="0">  
+                <value n="Fixed" pn="Fixed Solid" un="PFEM_fixed_solid" values="Yes,No">
+                    <dependencies node="../value" actualize="1"/>
+                </value>
+                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+            </condition>
+            <condition n="Deformable" pn="Deformable" ov="surface" ovm="Triangle,Quadrilateral" help="" open="0">
+                <value n="Element" pn="Element" values="A,B"/>
+                <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
+                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
+                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
+                        <dependencies node="../value" actualize="1"/>
+                </value>
+                <value n="MeshingDomain" pn="Meshing domain" editable='0' help="Choose a meshing domain from the database"
+                         values_tree='[give_meshing_domains_list]' value="Remesh Only 1" actualize_tree="1" state="normal">
+                        <edit_command n="Edit mesh domains" pn="Edit mesh domains" icon="material16" proc='edit_mesh_domains_database_list'/>
+                        <dependencies node="../value" actualize="1"/>
+                </value>
+            </condition>
+        </container>
+        <container n="Solids3D" pn="Solids" help="" open="0" state="[checkStateByUniqueName PFEM_dimensions 3D]" >
+            <condition n="Rigid" pn="Rigid" ov="volume" ovm="Tetrahedra,Hexahedra" help="" open="0">  
+                <value n="Fixed" pn="Fixed Solid" un="PFEM_fixed_solid" v="No" values="Yes,No" >
+                    <dependencies node="../value" actualize="1"/>
+                </value>
+                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+                <value n="CenterOfGravityZ" pn="center of gravity Z" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+            </condition>
+            <condition n="Deformable" pn="Deformable"  ov="volume" ovm="Tetrahedra,Hexahedra" help="" open="0">
+                <value n="Element" pn="Element" values="A,B"/>
+                <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
+                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
+                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
+                        <dependencies node="../value" actualize="1"/>
+                </value>
+                <value n="MeshingDomain" pn="Meshing domain" editable='0' help="Choose a meshing domain from the database"
+                         values_tree='[give_meshing_domains_list]' value="Remesh Only 1" actualize_tree="1" state="normal">
+                        <edit_command n="Edit mesh domains" pn="Edit mesh domains" icon="material16" proc='edit_mesh_domains_database_list'/>
+                        <dependencies node="../value" actualize="1"/>
+                </value>1
+            </condition>
+        </container>
+        <condition n="Fluids2D" pn="Fluids" ov="surface" ovm="Triangle,Quadrilateral" help="" open="0" state="[checkStateByUniqueName PFEM_dimensions 2D PFEM_dimensions 2Da]">
+            <value n="Element" pn="Element" values="A,B"/>
+            <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
+                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
+                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
+                        <dependencies node="../value" actualize="1"/>
+                </value>
+        </condition>
+        <condition n="Fluids3D" pn="Fluids" ov="volume" ovm="Tetrahedra,Hexahedra" help="" open="0" state="[checkStateByUniqueName PFEM_dimensions 3D]">
+            <value n="Element" pn="Element" values="A,B"/>
+            <value n="Material" pn="Material" editable='0' help="Choose a material from the database"
+                         values_tree='[give_materials_list]' value="Air" actualize_tree="1" state="normal">
+                        <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
+                        <dependencies node="../value" actualize="1"/>
+                </value>
+        </condition>
+    </container>
+    
+    <include n="Meshing Domains" active="1" path="apps/Pfem/xml/MeshingDomains.spd"/> 
+      
+    <include n="Materials" active="1" path="apps/Pfem/xml/Materials.spd"/> 
+    
+    <container n="Loads" pn="Loads" help="Loads" open="0" icon="loads.gif">
+        <container n="VolumeAcceleration" pn="Self weight" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
+        <container n="Forces" pn="Forces" help="External Load" open="0" icon="groupsTreeNew.gif">
+            <condition n="PointLoad2D" pn="Point Load" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            </condition>
+            <condition n="PointLoad3D" pn="Point Load" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
+                <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            </condition>
+            <condition n="AxisymPointLoad" pn="Point Load" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            </condition>
+            <condition n="LineLoad3D" pn="Line Load" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="Enter the three components of the force per unit length">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+                <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+            </condition>
+            <condition n="LineLoad2D" pn="Line Load" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="Enter the three components of the force per unit length">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+            </condition>
+            <condition n="AxisymLineLoad" pn="Line Load" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            </condition>
+            <condition n="SurfaceLoad2D" pn="Surface Force" ov="surface" ovm="face_element" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            </condition>
+            <condition n="SurfaceLoad3D" pn="Surface Force" ov="surface" ovm="face_element" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="">
+                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+                <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            </condition>
+        </container>
+
+        <container n="Pressure" pn="Pressure Load" class="SameTemplateGroups" help="Pressure Load" open="0" icon="groupsTreeNew.gif">
+            <condition n="LinePressureLoad" pn="Over Lines" ov="line" ovm="node,linear" icon="groupsTreeNew.gif" help="">
+                <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
+                <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
+                <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
+            </condition>
+            <condition n="AxisymLinePressureLoad" pn="Over Axisym Lines" ov="line" ovm="node,linear" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
+                <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
+                <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
+                <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
+            </condition> 
+            <condition n="SurfacePressureLoad3D" pn="Over Surfaces" ov="surface" ovm="face_element" help="Define Surface Load" open="0">
+                <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
+                <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
+                <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
+            </condition>
+        </container>
+        <value n="IncrementalLoad" pn="Incremental" soluType="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" v="No" ivalues="Yes,No" values="Yes,No" help="Incremental Loads"/>            
+    </container>
+
+    <container n="Conditions" pn="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
+        <condition n="Displacements" pn="Displacements" ov="point,line,surface" ovm="node,linear,face_element" help="Displacements">
+                <value n="Ax" pn="X active" v="1" ivalues="1,0" values="1,0" help="Fix X degree of freedom"/>
+                <value n="Vx" pn="X" v="0.0" help="X coordinate"/>
+                <value n="Ay" pn="Y active" v="1" ivalues="1,0" values="1,0" help="Fix Y degree of freedom"/>
+                <value n="Vy" pn="Y" v="0.0" help="Y coordinate"/>
+                <value n="Az" pn="Z active" v="1" ivalues="1,0" values="1,0" help="Fix Y degree of freedom"/>
+                <value n="Vz" pn="Z" v="0.0" help="Z coordinate"/>                                                
+        </condition>
+        
+        <container n="Contact" pn="Contacts" help="Contact Strategy" open="0" icon="groupsTreeNew.gif">
+        </container>
+        <value n="IncrementalMovement" pn="Incremental" soluType="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" v="No" ivalues="Yes,No" values="Yes,No" help="Incremental Movements"/>
+    </container>
+    
+    <container n="AdvancedOptions" pn="Advanced Options" icon="aplicationTree.gif" help="Advanced Options" open="0" state="normal">
+        <container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">
+            <value n="SolutionType" pn="Solution type" class="soluType" v="Dynamic-Implicit" ivalues="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" values="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" help="Solution type"/>
+            <container n="ParallelType" pn="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">
+                <value n="ParallelSolutionType" pn="Parallel type" v="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+                <value n="MPINumberOfProcessors" pn="Number of processors" v="2" PSolutionType="MPI" help="Number of processors"/>
+                <value n="OpenMPNumberOfThreads" pn="Number of threads" v="2" PSolutionType="OpenMP" help="Number of threads"/>
+            </container>
+            <container n="LinearSolver" pn="Linear solver" class="Tab" open="0" icon="groupsTreeNew.gif">
+                <value n="LinearSolverType" pn="Linear solver type" class="solverType" v="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+                <value n="DirectSolverType" pn="Direct solver type" solverType="Direct" v="SuperLU" ivalues="SkylineLUFactorization,SuperLU" values="SkylineLUFactorization,SuperLU" delvalues="PastixDirect" help=""/>
+                <value n="IterativeSolverType" pn="Iterative solver type" solverType="Iterative" v="ConjugateGradient" ivalues="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS" values="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS" delvalues="Pastix,AMGCL" help=""/>
+                <value n="Tolerance" pn="Solver tolerance" solverType="Iterative" v="1E-5" help=""/>
+                <value n="MaximumIteration" pn="Solver maximum iteration" solverType="Iterative" v="5000" help=""/>
+                <value n="PreconditionerType" pn="Preconditioner type" state="hidden" solverType="Iterative" v="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
+            </container>
+            <container n="Dynamic" pn="Time parameters" class="Tab" soluType="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" open="0" icon="groupsTreeNew.gif">
+                <value n="StartTime" pn="Start time" state="hidden" v="0.01" help=""/>
+                <value n="DeltaTime" pn="Time step" v="0.01" help=""/>
+                <value n="EndTime" pn="Total time" v="1" help=""/>
+                <value n="NumberOfSteps" pn="Number of Steps" state="hidden" v="1" help=""/>
+            </container>
+            <container n="Non-Linear" pn="Non-Linear solver" class="Tab"  soluType="Quasi-Static,Dynamic-Implicit" help="" open="0" icon="nonlinear.gif">
+                <value n="SolutionMethod" pn="Solution method" v="Newton-Raphson" ivalues="Newton-Raphson" values="Newton-Raphson" delvalues= "LineSearch,ArcLength" help=""/>
+                <value n="ConvergenceCriteria" pn="Convergence criteria" class="convCriteria" v="Residual" ivalues="Residual,Displacement,DisplacementAndResidual" values="Residual,Displacement,DisplacementAndResidual" delvalues="DisplacementOrResidual" help=""/>
+                <value n="ResidualConvergenceTolerance" pn="Residual convergence tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-3" help="Residual convergence tolerance"/>
+                <value n="ResidualAbsoluteTolerance" pn="Residual absolute tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-6" help="Residual absolute tolerance"/>
+                <value n="DisplacementConvergenceTolerance" pn="Displacement convergence tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-6" help="Displacement convergence tolerance"/>
+                <value n="DisplacementAbsoluteTolerance" pn="Displacement absolute tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" v="1.0E-9" help="Displacement absolute tolerance"/>
+                <value n="MaximumIterations" pn="Maximum iterations" v="30" help="Newton-Raphson iterations stop when the maximum is reached"/>
+            </container>
+        </container>
+    </container>
+
+    <container n="Results" pn="Results" help="Results" open="0" icon="outputresults.gif">
+        <value n="OutputDeltaTime" pn="Output delta time" v="0.0" help="Output delta time"/>
+        <container n="OnNodes" pn="On nodes" class="Tab" help="On nodes" open="0">
+            <value n="Displacements" pn="Displacements" v="Yes" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
+            <value n="Velocities" pn="Velocities" v="No" soluType="Dynamic" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
+            <value n="Accelerations" pn="Accelerations" v="No" soluType="Dynamic" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
+            <value n="Reactions" pn="Reactions" v="Yes" ivalues="Yes,No" values="Yes,No" help="Reactions"/>
+            <value n="Forces" pn="Loads" v="No" ivalues="Yes,No" values="Yes,No" help="Loads"/>
+        </container>
+        <container n="OnGaussPoints" pn="On gauss points" class="Tab" help="On gauss points" open="0">
+            <value n="StrainTensor" pn="Green-Lagrange Strain tensor" v="No" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
+            <value n="StressTensor" pn="Cauchy stress tensor" v="No" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
+            <value n="VonMises" pn="VonMises" v="No"  ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
+            <value n="PlasticStrain" pn="Plastic strain" v="No"  ivalues="Yes,No" values="Yes,No" help="Plastic strain scalar"/>
+            <value n="DeltaPlasticStrain" pn="Plastic strain rate" v="No" ivalues="Yes,No" values="Yes,No" help="Plastic strain rate scalar"/>
+        </container>
+        <container n="GiDOptions" pn="Options" class="Tab" help="GiD postprocess options" open="0">
+            <value n="GiDPostMode" pn="Result format" v="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
+            <value n="GiDWriteMeshFlag" pn="Write deformed mesh" v="No" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+            <value n="GiDWriteConditionsFlag" pn="Write conditions" v="No" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+            <value n="GiDWriteParticlesFlag" pn="Write particles" v="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
+            <value n="GiDMultiFileFlag" pn="Result file" v="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
+        </container>
+    </container>
+    
+  
+  </container>
