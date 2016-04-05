@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="procs" pn="procs" includeContainer="No">
+
+	
+		  <proc n='CheckNodalConditionState' args='args'>
+	  <![CDATA[
+	  # Overwritten the base function to add Solution Type restrictions
+		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+	    if {[spdAux::getRoute $parts_un] ne ""} {
+			set conditionId [$domNode @n]
+			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+			set elemnames [list ]
+			foreach elem $elems { lappend elemnames [$elem @v]}
+			set elemnames [lsort -unique $elemnames]
+			
+		    set soltype_un [spdAux::ExecuteOnCurrentApp getUniqueName SoluType]
+			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $soltype_un]] v]
+			set params [list analysis_type $solutionType]
+			if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+	  ]]>
+	</proc>
+        
+        <proc n='give_meshing_domains_list' args='args'>
+      <![CDATA[
+      set optional {
+      { -has_container container_name "" }
+      { -icon icon_name material16 }
+      { -types_icon types_icon_name ""}
+      { -database database_name meshing_domains }
+      }        
+      
+      set compulsory ""
+      parse_args $optional $compulsory $args      
+      set restList ""    
+      
+      proc database_append_list { parentNode database_name level container_name icon_name types_icon_name } {
+      set l ""       
+      # We guess the keywords of the levels of the database        
+      set level_names [give_levels_name $parentNode $database_name]
+      set primary_level [lindex $level_names 0]
+      set secondary_level [lindex $level_names 1]
+      
+      if {$secondary_level eq "" && $container_name ne "" && $level == "0"} {
+      error [_ "The has_container flag is not available for the database %s (the different types of materials \
+      should be distributed in several containers)" $database_name]     
+      }
+      
+      foreach domNode [$parentNode childNodes] {
+      set name [$domNode @pn ""]
+      if { $name eq "" } { set name [$domNode @name] }
+      if { [$domNode @n] eq "$secondary_level" } {
+      set ret [database_append_list $domNode  $database_name \
+      [expr {$level+1}] $container_name $icon_name $types_icon_name]
+      if { [llength $ret] } {
+      lappend l [list $level $name $name $types_icon_name 0]
+      eval lappend l $ret
+      }
+      } elseif {[$domNode @n] eq "$primary_level"} {
+      set good 1
+      if { $container_name ne "" } {
+      set xp [format_xpath {container[@n=%s]} $container_name]
+      if { [$domNode selectNodes $xp] eq "" } { set good 0 }
+      }
+      if { $good } {
+      lappend l [list $level $name $name $icon_name 1]
+      }
+      }
+      }
+      return $l
+      }  
+      
+      proc give_caption_name { domNode xp database_name } {     
+      set first_time 1   
+      foreach gNode [$domNode selectNodes $xp] {        
+      if {$first_time} {
+      set caption_name [$gNode @n]
+      set first_time 0 
+      continue  
+      }
+      if {[$gNode @n] ne $caption_name} {
+      error [_ "Please check the n attributes of the database %s" $database_name]   
+      }     
+      }  
+      return $caption_name   
+      }
+      
+      proc give_levels_name { domNode name } {
+      set xp {container}      
+      if {[$domNode selectNodes $xp] eq ""} { 
+      # No seconday level exists
+      set secondary_level ""
+      set xp2 {blockdata}  
+      set primary_level [give_caption_name $domNode $xp2 $name]
+      } else {
+      set secondary_level [give_caption_name $domNode $xp $name]
+      set xp3 {container/blockdata}
+      set primary_level [give_caption_name $domNode $xp3 $name] 
+      }
+      return [list $primary_level $secondary_level]
+      } 
+      
+      set parentNode [$domNode selectNodes [format_xpath {//container[@n=%s]} $database]]
+      
+      if {$parentNode eq ""} {
+      error [_ "Database %s not found in the spd file" $database]  
+      }
+      
+      eval lappend resList [database_append_list $parentNode \
+      $database 0 $has_container $icon $types_icon]
+      return [join $resList ","]
+      ]]>
+    </proc>
+    
+    <proc n='edit_mesh_domains_database_list' args='args'>
+      <![CDATA[      
+      set optional {
+      { -has_container container_name "" }
+      { -database database_name meshing_domains }
+      }
+      set compulsory ""
+      parse_args $optional $compulsory $args  
+      
+      set node [$domNode selectNodes {/*/translations/translation[@pn="User defined"]}]
+      set title [get_domnode_attribute $node pn]  
+      
+      set list_name [$domNode @n]
+      
+      set xp [format_xpath {//container[@n=%s]} $database] 
+      if {[$domNode selectNodes $xp] eq ""} {
+      error [_ "Database %s not found in the spd file" $database] 
+      }   
+      
+      set xps $xp
+      set level_names [give_levels_name [$domNode selectNodes $xp] $database] 
+      
+      set primary_level [lindex $level_names 0] 
+      set secondary_level [lindex $level_names 1] 
+      
+      
+      if {$secondary_level eq "" && $has_container ne ""} {
+      error [_ "The has_container flag is not available for the database %s (the different types of materials \
+      should be distributed in several containers)" $database]     
+      }
+      
+      if {$secondary_level ne ""} {
+      if {$has_container eq ""} {
+      append xp [format_xpath {/container[@n=%s]} $secondary_level]
+      } else {
+      append xp [format_xpath {/container[@n=%s and .//container[@n=%s]]} $secondary_level $has_container]      
+      }
+      }       
+      
+      if { [dict exists $dict $list_name] } {
+      if {$secondary_level ne ""} {      
+      append xps [format_xpath {/container[@n=%s]} $secondary_level]
+      }
+      append xps [format_xpath {/blockdata[@n=%s and @name=%s]} $primary_level [dict get $dict $list_name]]     
+      } else { set xps "" }      
+      
+      set domNodes [gid_groups_conds::edit_tree_parts_window \
+      -accepted_n $primary_level -select_only_one 1 \
+      $boundary_conds $title $xp $xps]      
+      
+      set dict ""
+      if { [llength $domNodes] } {
+      set domNode [lindex $domNodes 0]
+      if { [$domNode @n] eq $primary_level } {      
+      dict set dict $list_name [$domNode @name]
+      }
+      }
+      return [list $dict ""]      
+      ]]>
+    </proc>
+	
+
+</container>

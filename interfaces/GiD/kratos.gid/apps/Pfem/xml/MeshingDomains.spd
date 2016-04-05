@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="materials" pn="Meshing domains" un="PFEM_meshing_domains" icon="material16" help="Meshing domains database">
+    <blockdata n='material' name='Remesh Only 1' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
+      <values n="Remesh" pn="Remesh" v="Yes" values="Yes,No"/>
+      <values n="Refine" pn="Refine" v="No" values="Yes,No"/>      
+    </blockdata>
+    <blockdata n='material' name='Remesh and Refine 1' sequence='1' editable_name='unique' icon="material16" help='Material definition'>
+      <values n="Remesh" pn="Remesh" v="Yes" values="Yes,No"/>
+      <values n="Refine" pn="Refine" v="No" values="Yes,No"/> 
+    </blockdata>
+</container>  

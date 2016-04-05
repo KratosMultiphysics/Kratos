@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="ModelInformation" pn="Model information" help="Model information" state="normal">
+    <value n="AnalysisType" pn="Analysis type" state="hidden" un="BAAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type"/>
+    <value n="SolutionType" pn="Solution type" un="BASoluType" v="Static" values="Static,Dynamic" help="Solution type" actualize_tree="1"/>
+    <value n="SolStratCombo" pn="Solution Strategy" un="BASolStrat" v="" values="[GetSolutionStrategies]" actualize_tree="1" state="normal"/>
+    <value n="Scheme" pn="Scheme" un="BAScheme" v="" values="[GetSchemes]" state="normal"  actualize_tree="1"/>
+</container>
+    
