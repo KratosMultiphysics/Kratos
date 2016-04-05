@@ -95,20 +95,15 @@ namespace Kratos
                                                    const double dt,
                                                    const bool multi_stage_RHS);         
 
-        void CharacteristicParticleFailureId(const ProcessInfo& r_process_info );                
-        void ComputeParticleBlockContactForce(const ProcessInfo& r_process_info);
-        void ComputeParticleSurfaceContactForce(const ProcessInfo& r_process_info);
+        virtual void AddContributionToRepresentativeVolume(const double distance,
+                                                    const double radius_sum,
+                                                    const double contact_area);
 
         double*                        mSkinSphere; 
         std::vector<double>         mContIniNeighArea;        
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;                        
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
-
-        //FOR DEM_FEM APP        
-        void ComputeParticleBlockContactForce_With_Rotation();
-        void ComputeParticleBlockContactForce_Without_Rotation();
-        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int& RightFace, double LocalCoordSystem[3][3], double Coeff[4], double& DistPToB);       
 
     private:
 
