@@ -289,7 +289,7 @@ private:
     void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
 
     double mE, mNU;
-    
+
     Vector mCurrentStress;
 
 

@@ -147,10 +147,10 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
 
 Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-    if (rThisVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+    if (rThisVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
     {
-        for(unsigned int i = 0; i< rValue.size2(); i++ )
-            rValue(0,i) = 0.00;;
+        for(unsigned int i = 0; i< rValue.size2(); ++i)
+            rValue(0, i) = 0.00;
     }
 
     return( rValue );
@@ -164,6 +164,12 @@ void PlaneStrain::SetValue( const Variable<int>& rThisVariable, const int& rValu
 void PlaneStrain::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
+//    if ( rThisVariable == PRESTRESS_FACTOR )
+//        mPrestressFactor = rValue;
+    if ( rThisVariable == YOUNG_MODULUS )
+        mE = rValue;
+    if ( rThisVariable == POISSON_RATIO )
+        mNU = rValue;
 }
 
 void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
@@ -176,7 +182,7 @@ void PlaneStrain::SetValue( const Variable<Matrix>& rThisVariable, const Matrix&
 {
 }
 
-void PlaneStrain::Calculate( const Variable<Matrix >& rVariable, Matrix& rResult,
+void PlaneStrain::Calculate( const Variable<Matrix>& rVariable, Matrix& rResult,
                              const ProcessInfo& rCurrentProcessInfo )
 {
 }
