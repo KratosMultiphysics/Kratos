@@ -186,7 +186,7 @@ Matrix ContactLink3D_Kinematic_Linear::TangentialVectors( Condition::Pointer Sur
         T( 1, 1 ) += ( Surface->GetGeometry().GetPoint( n ).Y0()
                        + Surface->GetGeometry().GetPoint( n ).GetSolutionStepValue( DISPLACEMENT_Y ) )
                      * DN( n, 1 );
-        T( 1, 2 ) += ( Surface->GetGeometry().GetPoint( n ).Z()
+        T( 1, 2 ) += ( Surface->GetGeometry().GetPoint( n ).Z0()
                        + Surface->GetGeometry().GetPoint( n ).GetSolutionStepValue( DISPLACEMENT_Z ) )
                      * DN( n, 1 );
     }
@@ -413,7 +413,14 @@ void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatr
                      vMaster, ( GetValue( MASTER_CONTACT_GLOBAL_POINT ) - GetValue( SLAVE_CONTACT_GLOBAL_POINT ) ) );
 
     GetValue( CONTACT_LINK_SLAVE )->GetValue( GAPS )[GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )] = Gap;
-
+// std::cout.precision(10);
+// std::cout << "condition " << Id()
+//          << " Gap at " << GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX ) << " is updated to " << Gap << std::endl
+//          << ", vMaster: " << vMaster << std::endl
+//          << ", master local point: " << GetValue( MASTER_CONTACT_LOCAL_POINT ) << std::endl
+//          << ", master global point: " << GetValue( MASTER_CONTACT_GLOBAL_POINT ) << std::endl
+//          << ", slave local point: " << GetValue( SLAVE_CONTACT_LOCAL_POINT ) << std::endl
+//          << ", slave global point: " << GetValue( SLAVE_CONTACT_GLOBAL_POINT ) << std::endl;
 //                 Vector distVec(3);
 
 //                 noalias(distVec)= (GetValue( MASTER_CONTACT_GLOBAL_POINT )-GetValue( SLAVE_CONTACT_GLOBAL_POINT ));
@@ -1634,14 +1641,15 @@ Point<3>& ContactLink3D_Kinematic_Linear::GlobalCoordinates( Condition::Pointer 
         rResult( 0 ) += shape_func *
                         (( Surface->GetGeometry()[i] ).X0()
                          + ( Surface->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_X ) );
-
+// std::cout << "Surface " << Surface->Id() << " node " << Surface->GetGeometry()[i].Id() << " DISPLACEMENT_X: " << ( Surface->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_X ) << std::endl;
         rResult( 1 ) += shape_func *
                         (( Surface->GetGeometry()[i] ).Y0()
                          + ( Surface->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Y ) );
-
+// std::cout << "Surface " << Surface->Id() << " node " << Surface->GetGeometry()[i].Id() << " DISPLACEMENT_Y: " << ( Surface->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Y ) << std::endl;
         rResult( 2 ) += shape_func *
                         (( Surface->GetGeometry()[i] ).Z0()
                          + ( Surface->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Z ) );
+// std::cout << "Surface " << Surface->Id() << " node " << Surface->GetGeometry()[i].Id() << " DISPLACEMENT_Z: " << ( Surface->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Z ) << std::endl;
     }
 
     return rResult;
