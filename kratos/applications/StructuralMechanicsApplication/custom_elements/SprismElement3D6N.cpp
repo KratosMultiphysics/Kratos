@@ -73,29 +73,32 @@ SprismElement3D6N::SprismElement3D6N(IndexType NewId, GeometryType::Pointer pGeo
 
     if( GetProperties().Has(NINT_TRANS) )
     {
-        if (GetProperties()[NINT_TRANS] == 1)
+        if (GetProperties()[NINT_TRANS] == 2)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
         }
-        else if (GetProperties()[NINT_TRANS] == 2)
+        else if (GetProperties()[NINT_TRANS] == 3)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
         }
-        else if (GetProperties()[NINT_TRANS] == 3)
+        else if (GetProperties()[NINT_TRANS] == 5)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
         }
-        else if (GetProperties()[NINT_TRANS] == 4)
+        else if (GetProperties()[NINT_TRANS] == 7)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
         }
-        else if (GetProperties()[NINT_TRANS] == 5)
+        else if (GetProperties()[NINT_TRANS] == 11)
         {
             mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
         }
         else
         {
-            KRATOS_THROW_ERROR( std::logic_error, "The number of integration points is not defined in the core.  NINT_TRANS: ", GetProperties()[NINT_TRANS] );
+            std::cout << "The number of integration points is not defined.  NINT_TRANS: "<< GetProperties()[NINT_TRANS] << std::endl;
+            std::cout << "Options are: 2, 3, 5, 7, 11  " << std::endl;
+            std::cout << "Taking default number of integration points (NINT_TRANS = 2)  " << std::endl;
+            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
         }
     }
     else
@@ -138,7 +141,7 @@ SprismElement3D6N&  SprismElement3D6N::operator=(SprismElement3D6N const& rOther
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
 
     mConstitutiveLawVector.clear();
-    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size() );
+    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size(), false );
 
     mInvJ0.clear();
     mInvJ0.resize( rOther.mInvJ0.size());
@@ -181,7 +184,7 @@ Element::Pointer SprismElement3D6N::Clone(
 
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size())
     {
-        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size(), false);
     }
 
     if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
@@ -201,7 +204,7 @@ Element::Pointer SprismElement3D6N::Clone(
         NewElement.mInvJ0.resize(mInvJ0.size());
     }
 
-    for(unsigned int i=0; i < mInvJ0.size(); i++)
+    for(unsigned int i = 0; i < mInvJ0.size(); i++)
     {
         NewElement.mInvJ0[i] = mInvJ0[i];
     }
@@ -317,7 +320,7 @@ void SprismElement3D6N::GetValuesVector(
     const unsigned int MatSize = number_of_nodes * 3;
     if (rValues.size() != MatSize)
     {
-        rValues.resize(MatSize);
+        rValues.resize(MatSize, false);
     }
 
     unsigned int index = 0;
@@ -360,7 +363,7 @@ void SprismElement3D6N::GetFirstDerivativesVector(
     const unsigned int MatSize = number_of_nodes * 3;
     if (rValues.size() != MatSize)
     {
-        rValues.resize(MatSize);
+        rValues.resize(MatSize, false);
     }
 
     unsigned int index = 0;
@@ -403,7 +406,7 @@ void SprismElement3D6N::GetSecondDerivativesVector(
     const unsigned int MatSize = number_of_nodes * 3;
     if (rValues.size() != MatSize)
     {
-        rValues.resize(MatSize);
+        rValues.resize(MatSize, false);
     }
 
     unsigned int index = 0;
@@ -1080,18 +1083,34 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         rOutput_aux = rOutput;
 
         rOutput.resize( 6, false );
-
         Matrix interpol = StructuralMechanicsMathUtilities::interpol_PrismGiD(integration_point_number);
 
         for (unsigned int iii = 0; iii < 6; iii++)
         {
             rOutput[iii] = 0.0;
+
             for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
             {
                 rOutput[iii] += interpol(Gauss_Point, iii) * rOutput_aux[Gauss_Point];
             }
         }
     }
+
+//    if ( rOutput.size() != 3 * integration_point_number )
+//    {
+//        std::vector<double> rOutput_aux;
+//        rOutput_aux = rOutput;
+
+//        rOutput.resize( 3 * integration_point_number, false );
+
+//        for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
+//        {
+//            for (unsigned int iii = 0; iii < 3; iii++)
+//            {
+//                rOutput[Gauss_Point * 3 + iii] = rOutput_aux[Gauss_Point];
+//            }
+//        }
+//    }
 
     KRATOS_CATCH( "" );
 }
@@ -1175,7 +1194,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 ////            this->CalculateGreenLagrangeStrain(Variables.C,Variables.StrainVector);
 ////            this->CalculateHenckyStrain(Variables.C,Variables.StrainVector);
 ////            this->CalculateLinearStress(Variables);
-////            Variables.StressVector *= Variables.detF;
 ////            this->CalculateLinearIsotropicStress(Variables);
 ////            this->LinearConstitutiveMatrix(Variables);
 ////            this->CalculateLinearStress(Variables);
@@ -1183,8 +1201,6 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
 //            this->CalculateHyperelasticNeoHookeanStress(Variables);
 ////            this->CalculateHenckyStrain(Variables.C,Variables.StrainVector);
 ////            this->CalculateLogStress(Variables);
-//////            KRATOS_WATCH(Variables.StrainVector);
-//////            KRATOS_WATCH(Variables.StressVector);
 //            /* TEST */
 
             if (rOutput[PointNumber].size() != Variables.StressVector.size())
@@ -1259,18 +1275,34 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
-
         Matrix interpol = StructuralMechanicsMathUtilities::interpol_PrismGiD(integration_point_number);
 
         for (unsigned int iii = 0; iii < 6; iii++)
         {
             rOutput[iii] = ZeroVector(rOutput[0].size());
+
             for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
             {
                 rOutput[iii] += interpol(Gauss_Point, iii) * rOutput_aux[Gauss_Point];
             }
         }
     }
+
+//    if ( rOutput.size() != 3  *integration_point_number )
+//    {
+//        std::vector<Vector> rOutput_aux;
+//        rOutput_aux = rOutput;
+
+//        rOutput.resize( 3 * integration_point_number );
+
+//        for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
+//        {
+//            for (unsigned int iii = 0; iii < 3; iii++)
+//            {
+//                rOutput[Gauss_Point * 3 + iii] =  rOutput_aux[Gauss_Point];
+//            }
+//        }
+//    }
 
     KRATOS_CATCH( "" );
 }
@@ -1438,18 +1470,34 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         rOutput_aux = rOutput;
 
         rOutput.resize( 6 );
-
         Matrix interpol = StructuralMechanicsMathUtilities::interpol_PrismGiD(integration_point_number);
 
         for (unsigned int iii = 0; iii < 6; iii++)
         {
             rOutput[iii] = ZeroMatrix(rOutput[0].size1(), rOutput[0].size2());
+
             for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
             {
                 rOutput[iii] += interpol(Gauss_Point, iii) * rOutput_aux[Gauss_Point];
             }
         }
     }
+
+//    if ( rOutput.size() != 3 * integration_point_number )
+//    {
+//        std::vector<Matrix> rOutput_aux;
+//        rOutput_aux = rOutput;
+
+//        rOutput.resize( 3 * integration_point_number );
+
+//        for (unsigned int Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
+//        {
+//            for (unsigned int iii = 0; iii < 3; iii++)
+//            {
+//                rOutput[Gauss_Point * 3 + iii] = rOutput_aux[Gauss_Point];
+//            }
+//        }
+//    }
 
     KRATOS_CATCH( "" );
 }
@@ -1514,7 +1562,7 @@ void SprismElement3D6N::SetValueOnIntegrationPoints(
     {
         if ( mConstitutiveLawVector.size() != rValues.size() )
         {
-            mConstitutiveLawVector.resize(rValues.size());
+            mConstitutiveLawVector.resize(rValues.size(), false);
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
             {
                 KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not has the correct size ", mConstitutiveLawVector.size() );
@@ -1530,7 +1578,7 @@ void SprismElement3D6N::SetValueOnIntegrationPoints(
     {
         if ( mConstitutiveLawVector.size() != rValues.size() )
         {
-            mConstitutiveLawVector.resize(rValues.size());
+            mConstitutiveLawVector.resize(rValues.size(), false);
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
             {
                 KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not has the correct size ", mConstitutiveLawVector.size() );
@@ -1653,7 +1701,7 @@ void SprismElement3D6N::GetValueOnIntegrationPoints(
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            rValues.resize(mConstitutiveLawVector.size());
+            rValues.resize(mConstitutiveLawVector.size(), false);
         }
         for(unsigned int i = 0; i < rValues.size(); i++)
         {
@@ -2083,7 +2131,7 @@ void SprismElement3D6N::Initialize()
     /* Constitutive Law initialisation */
     if ( mConstitutiveLawVector.size() != integration_points.size() )
     {
-        mConstitutiveLawVector.resize( integration_points.size() );
+        mConstitutiveLawVector.resize( integration_points.size(), false );
     }
 
     // Resizing jacobian inverses container
@@ -4693,7 +4741,7 @@ void SprismElement3D6N::CbartoFbar(
 
     // Assemble matrix C_bar
     Matrix C_bar;
-    C_bar.resize(3, 3,false);
+    C_bar.resize(3, 3, false);
     StructuralMechanicsMathUtilities::VectorToTensor(rVariables.C, C_bar);
 
 //    if (this->Id() == 1)
@@ -4835,7 +4883,7 @@ void SprismElement3D6N::InitializeGeneralVariables(GeneralVariables& rVariables)
     rVariables.StrainVector.resize(6, false);
     rVariables.StressVector.resize(6, false);
 
-    rVariables.DN_DX.resize( 6, 3 );
+    rVariables.DN_DX.resize( 6, 3, false);
 
     // Reading shape functions
     rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
