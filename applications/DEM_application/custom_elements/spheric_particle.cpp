@@ -958,7 +958,7 @@ void SphericParticle::ComputeConditionRelativeData(DEMWall* const wall,
 
     for (unsigned int inode = 0; inode < FE_size; inode++) {
 
-        if (Weight[inode] > 1.0e-6) {
+        if (Weight[inode] > 1.0e-12) {
           
             for (unsigned int j = 0; j < 3; j++)
             {
@@ -970,7 +970,7 @@ void SphericParticle::ComputeConditionRelativeData(DEMWall* const wall,
             if (points == 2) {inode2 = inode;}
         }
 
-        if (fabs(total_weight - 1.0) < 1.0e-6){
+        if (fabs(total_weight - 1.0) < 1.0e-12){
             break;
         }
     }
