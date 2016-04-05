@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/sd_math_utils.h"
 #include "structural_application.h"
 
-#define ENABLE_DEBUG_CONSTITUTIVE_LAW
+// #define ENABLE_DEBUG_CONSTITUTIVE_LAW
 
 //TODO: there is a potential bug at the CalculateRightHandSide, which is used for calculating the reaction. In principal, it should not tell the material to update themself, however, CalculateRightHandSide indirectly call CalculateMaterialResponse. THis should be fixed, by introducing another abstract layer to update the material in the input parameters for CalculateAll
 
@@ -192,10 +192,10 @@ namespace Kratos
             double IntegrationWeight = integration_points[PointNumber].Weight();
             //calculating and storing inverse of the jacobian and the parameters needed
             MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
-            //calculating the total area
+            //calculating the total domain size
             mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
         }
-        this->SetValue(AREA, mTotalDomainInitialSize);
+        this->SetValue(GEOMETRICAL_DOMAIN_SIZE, mTotalDomainInitialSize);
 
         //Set Up Initial displacement for StressFreeActivation of Elements
         mInitialDisp.resize( GetGeometry().size(), dim, false );
@@ -507,7 +507,7 @@ namespace Kratos
                 ( int )CalculateStiffnessMatrixFlag,
                 true
             );
-            
+
             //calculating weights for integration on the reference configuration
             double IntToReferenceWeight = integration_points[PointNumber].Weight();
 
@@ -705,6 +705,11 @@ namespace Kratos
 
     void KinematicLinear::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
     {
+        KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", "")
+    }
+
+    void KinematicLinear::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+    {
         KRATOS_TRY
 
         //lumped
@@ -745,9 +750,12 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    //************************************************************************************
-    //************************************************************************************
     void KinematicLinear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+    {
+        KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", "")
+    }
+
+    void KinematicLinear::CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
         unsigned int number_of_nodes = GetGeometry().size();
@@ -780,7 +788,7 @@ namespace Kratos
             beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
         }
 
-        MassMatrix( rDampMatrix, rCurrentProcessInfo );
+        CalculateMassMatrix( rDampMatrix, rCurrentProcessInfo );
 
         noalias( rDampMatrix ) = alpha * rDampMatrix + beta * StiffnessMatrix;
 
@@ -1340,11 +1348,41 @@ namespace Kratos
             }
             return;
         }
-
-        //reading integration points and local gradients
-        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+        else if( rVariable == STRAIN_ENERGY )
         {
-            rValues[Point] = mConstitutiveLawVector[Point]->GetValue( rVariable, rValues[Point] );
+            std::vector<Vector> StrainList(rValues.size());
+            GetValueOnIntegrationPoints(STRAIN, StrainList, rCurrentProcessInfo);
+
+            std::vector<Vector> StressList(rValues.size());
+            GetValueOnIntegrationPoints(STRESSES, StressList, rCurrentProcessInfo);
+
+            for( unsigned int i = 0; i < rValues.size(); ++i )
+            {
+                // calculate strain energy as C = 0.5 * <epsilon, sigma>
+                rValues[i] = 0.5 * inner_prod(StrainList[i], StressList[i]);
+            }
+        }
+        else if( rVariable == JACOBIAN_0 )
+        {
+            for( unsigned int i = 0; i < rValues.size(); ++i )
+            {
+                rValues[i] = mDetJ0[i];
+            }
+        }
+        else if( rVariable == MATERIAL_DENSITY )
+        {
+            for( unsigned int i = 0; i < rValues.size(); ++i )
+            {
+                rValues[i] = this->GetValue(MATERIAL_DENSITY);
+            }
+        }
+        else
+        {
+            //reading integration points and local gradients
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+            {
+                rValues[Point] = mConstitutiveLawVector[Point]->GetValue( rVariable, rValues[Point] );
+            }
         }
     }
 
