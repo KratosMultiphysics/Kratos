@@ -660,12 +660,12 @@ void SprismElement3D6N::CalculateMassMatrix(
     double Volume = GetGeometry().Volume();
     double TotalMass = Volume * Density;
 
-    bool ComputeLumpedMassMatrix = true;
+    bool ComputeLumpedMassMatrix = false;
     if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) )
     {
-        if(rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == false)
+        if(rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
         {
-            ComputeLumpedMassMatrix = false;
+            ComputeLumpedMassMatrix = true;
         }
     }
 
@@ -4135,65 +4135,65 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatri
   double TotalMass = Volume * Density;
 
   TotalMass *= 72.0; // Multipliying for the coefficient
-  for (unsigned int i = 0; i < 3; i++)
+  for (unsigned int i = 0; i < 6; i++) // Main nodes
   {
-      for (unsigned int j = 0; j < 6; j++)
+      for (unsigned int j = 0; j < 3; j++) // DOF (X, Y, Z)
       {
-          unsigned int index = i * 6 + j;
-          if (j == 0)
+          unsigned int index = i * 3 + j;
+          if (i == 0)
           {
               // Superior band
-              rLeftHandSideMatrix(index, index + 1) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index, index + 2) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index, index +  3) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index, index +  6) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index, index +  9) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index, index + 12) = TotalMass;
+              rLeftHandSideMatrix(index, index + 15) = TotalMass;
+              // Symmetric part
+              rLeftHandSideMatrix(index +  3, index) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index +  6, index) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index +  9, index) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index + 12, index) = TotalMass;
+              rLeftHandSideMatrix(index + 15, index) = TotalMass;
+          }
+          else if (i == 1)
+          {
+              // Superior band
+              rLeftHandSideMatrix(index, index +  3) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index, index +  6) = TotalMass;
+              rLeftHandSideMatrix(index, index +  9) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index, index + 12) = TotalMass;
+              // Symmetric part
+              rLeftHandSideMatrix(index +  3, index) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index +  6, index) = TotalMass;
+              rLeftHandSideMatrix(index +  9, index) = 2.0 * TotalMass;
+              rLeftHandSideMatrix(index + 12, index) = TotalMass;
+          }
+          else if (i == 2)
+          {
+              // Superior band
+              rLeftHandSideMatrix(index, index + 3) = TotalMass;
+              rLeftHandSideMatrix(index, index + 6) = TotalMass;
+              rLeftHandSideMatrix(index, index + 9) = 2.0 * TotalMass;
+              // Symmetric part
+              rLeftHandSideMatrix(index + 3, index) = TotalMass;
+              rLeftHandSideMatrix(index + 6, index) = TotalMass;
+              rLeftHandSideMatrix(index + 9, index) = 2.0 * TotalMass;
+          }
+          else if (i == 3)
+          {
+              // Superior band
               rLeftHandSideMatrix(index, index + 3) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index, index + 4) = TotalMass;
-              rLeftHandSideMatrix(index, index + 5) = TotalMass;
+              rLeftHandSideMatrix(index, index + 6) = 2.0 * TotalMass;
               // Symmetric part
-              rLeftHandSideMatrix(index + 1, index) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index + 2, index) = 2.0 * TotalMass;
               rLeftHandSideMatrix(index + 3, index) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index + 4, index) = TotalMass;
-              rLeftHandSideMatrix(index + 5, index) = TotalMass;
+              rLeftHandSideMatrix(index + 6, index) = 2.0 * TotalMass;
           }
-          if (j == 1)
+          else if (i == 4)
           {
               // Superior band
-              rLeftHandSideMatrix(index, index + 1) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index, index + 2) = TotalMass;
-              rLeftHandSideMatrix(index, index + 3) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index, index + 4) = TotalMass;
-              // Symmetric part
-              rLeftHandSideMatrix(index + 1, index) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index + 2, index) = TotalMass;
-              rLeftHandSideMatrix(index + 3, index) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index + 4, index) = TotalMass;
-          }
-          if (j == 2)
-          {
-              // Superior band
-              rLeftHandSideMatrix(index, index + 1) = TotalMass;
-              rLeftHandSideMatrix(index, index + 2) = TotalMass;
               rLeftHandSideMatrix(index, index + 3) = 2.0 * TotalMass;
               // Symmetric part
-              rLeftHandSideMatrix(index + 1, index) = TotalMass;
-              rLeftHandSideMatrix(index + 2, index) = TotalMass;
               rLeftHandSideMatrix(index + 3, index) = 2.0 * TotalMass;
-          }
-          if (j == 3)
-          {
-              // Superior band
-              rLeftHandSideMatrix(index, index + 1) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index, index + 2) = 2.0 * TotalMass;
-              // Symmetric part
-              rLeftHandSideMatrix(index + 1, index) = 2.0 * TotalMass;
-              rLeftHandSideMatrix(index + 2, index) = 2.0 * TotalMass;
-          }
-          if (j == 4)
-          {
-              // Superior band
-              rLeftHandSideMatrix(index, index + 1) = 2.0 * TotalMass;
-              // Symmetric part
-              rLeftHandSideMatrix(index + 1, index) = 2.0 * TotalMass;
           }
 
           // Diagonal part
@@ -4201,7 +4201,8 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatri
       }
   }
 
-  //KRATOS_WATCH( rLeftHandSideMatrix )
+//  KRATOS_WATCH( rLeftHandSideMatrix );
+
 }
 
 /***********************************************************************************/
