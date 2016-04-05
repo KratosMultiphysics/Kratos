@@ -10,6 +10,7 @@
   <appLink n="Structural" pn="Structural" active="0" appid="Structural"/>
   <appLink n="Solid" pn="Solid" active="0" appid="Solid"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid"/>
+  <appLink n="Pfem" pn="Pfem" active="0" appid="Pfem"/>
   <appLink n="BaseApp" pn="BaseApp" active="0" appid="BaseApp"/>
   <blockdata n="units" pn="Units" icon="units">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
@@ -22,37 +23,37 @@
     </container>
   </blockdata>     
   <procs>
-	<proc n='GetElements' args='args'>
-	  <![CDATA[
-	  
-		set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
-		set schemeUN [spdAux::ExecuteOnCurrentApp getUniqueName Scheme]
-		if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
-		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
-		  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] values
-		}
-		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
-		set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v]
-		
-		set elems [::Model::GetAvailableElements $solStratName $schemeName]
-		
-		
-		set names [list ]
-		set pnames [list ]
-		foreach cl $elems {
-			lappend names [$cl getName]
-			lappend pnames [$cl getName] 
-			lappend pnames [$cl getPublicName]
-		}
-		
-		$domNode setAttribute dict [join $pnames ","]
-		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-		spdAux::RequestRefresh
-		
-		return [join $names ","]
-		
-	  ]]>
-	</proc>
+        <proc n='GetElements' args='args'>
+          <![CDATA[
+          
+                set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+                set schemeUN [spdAux::ExecuteOnCurrentApp getUniqueName Scheme]
+                if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
+                  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
+                  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] values
+                }
+                set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
+                set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v]
+                
+                set elems [::Model::GetAvailableElements $solStratName $schemeName]
+                
+                
+                set names [list ]
+                set pnames [list ]
+                foreach cl $elems {
+                        lappend names [$cl getName]
+                        lappend pnames [$cl getName] 
+                        lappend pnames [$cl getPublicName]
+                }
+                
+                $domNode setAttribute dict [join $pnames ","]
+                if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
+                spdAux::RequestRefresh
+                
+                return [join $names ","]
+                
+          ]]>
+        </proc>
 	
 	<proc n='GetSolutionStrategies' args='args'>
 	  <![CDATA[
