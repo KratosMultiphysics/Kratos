@@ -256,6 +256,20 @@ KRATOS_CREATE_VARIABLE( double, VIRGIN_COMPRESSION_INDEX )
 KRATOS_CREATE_VARIABLE( double, SWELL_INDEX )
 KRATOS_CREATE_VARIABLE( double, VOID_RATIO )
 
+KRATOS_CREATE_VARIABLE( Vector, NEIGHBOUR_WEIGHTS )
+KRATOS_CREATE_VARIABLE( double, MATERIAL_DENSITY )
+KRATOS_CREATE_VARIABLE( double, MATERIAL_DENSITY_NEW )
+KRATOS_CREATE_VARIABLE( double, MATERIAL_DENSITY_FILTERED )
+KRATOS_CREATE_VARIABLE( double, ELEMENT_DC )
+KRATOS_CREATE_VARIABLE( double, ELEMENT_DC_FILTERED )
+KRATOS_CREATE_VARIABLE( double, ELEMENT_DV )
+KRATOS_CREATE_VARIABLE( double, ELEMENT_DV_FILTERED )
+KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_0 )
+KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_MIN )
+KRATOS_CREATE_VARIABLE( double, PENALIZATION_FACTOR )
+KRATOS_CREATE_VARIABLE( double, GEOMETRICAL_DOMAIN_SIZE )
+KRATOS_CREATE_VARIABLE( double, JACOBIAN_0 )
+
 //  KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
 //  KRATOS_CREATE_VARIABLE(Vector, PENALTY )
 // //  KRATOS_CREATE_VARIABLE(double, INITIAL_PENALTY )
@@ -327,6 +341,9 @@ KratosStructuralApplication::KratosStructuralApplication():
     mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mTimoshenkoBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mTimoshenkoBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mIsoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAnisoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAnisoLinearShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -389,12 +406,12 @@ KratosStructuralApplication::KratosStructuralApplication():
 
     mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFace3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mFace3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mFace3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mFace3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mFacePressure3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFacePressure3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mFacePressure3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mFacePressure3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mFacePressure3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mFacePressure3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
@@ -403,28 +420,28 @@ KratosStructuralApplication::KratosStructuralApplication():
     mLineForce3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mLineForce3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mFaceForce3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFaceForce3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mFaceForce3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mFaceForce3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mFaceForce3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mFaceForce3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mMasterContactFace3D( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mMasterContactFace3D3( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mMasterContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mMasterContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mMasterContactFace3D8( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mMasterContactFace3D9( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mSlaveContactFace3D( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mSlaveContactFace3D3( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSlaveContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mSlaveContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mSlaveContactFace3D8( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mSlaveContactFace3D9( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mMasterContactFace3DNewmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mMasterContactFace3D3Newmark( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mMasterContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mMasterContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mMasterContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mMasterContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mSlaveContactFace3DNewmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mSlaveContactFace3D3Newmark( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSlaveContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mSlaveContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mSlaveContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mSlaveContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mFaceVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -441,7 +458,7 @@ KratosStructuralApplication::KratosStructuralApplication():
     mElasticLineConstraint2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mElasticLineConstraint3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mElasticFaceConstraint3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mElasticFaceConstraint6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mElasticFaceConstraint6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mElasticFaceConstraint4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mElasticFaceConstraint8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mElasticFaceConstraint9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
@@ -452,7 +469,8 @@ KratosStructuralApplication::KratosStructuralApplication():
 
     mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mIsotropic3D()
+    mIsotropic3D(),
+    mDummyConstitutiveLaw()
 
 {}
 
@@ -625,6 +643,20 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( SWELL_INDEX )
     KRATOS_REGISTER_VARIABLE( VOID_RATIO )
 
+    KRATOS_REGISTER_VARIABLE( NEIGHBOUR_WEIGHTS )
+    KRATOS_REGISTER_VARIABLE( MATERIAL_DENSITY )
+    KRATOS_REGISTER_VARIABLE( MATERIAL_DENSITY_NEW )
+    KRATOS_REGISTER_VARIABLE( MATERIAL_DENSITY_FILTERED )
+    KRATOS_REGISTER_VARIABLE( ELEMENT_DC )
+    KRATOS_REGISTER_VARIABLE( ELEMENT_DC_FILTERED )
+    KRATOS_REGISTER_VARIABLE( ELEMENT_DV )
+    KRATOS_REGISTER_VARIABLE( ELEMENT_DV_FILTERED )
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_0 )
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_MIN )
+    KRATOS_REGISTER_VARIABLE( PENALIZATION_FACTOR )
+    KRATOS_REGISTER_VARIABLE( GEOMETRICAL_DOMAIN_SIZE )
+    KRATOS_REGISTER_VARIABLE( JACOBIAN_0 )
+
 
     //KRATOS_REGISTER_VARIABLE(TO_ERASE )
 //   KRATOS_REGISTER_VARIABLE(CONTACT_RAMP )
@@ -704,6 +736,9 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D8N", mTotalLagrangian2D8N )
     KRATOS_REGISTER_ELEMENT( "BeamElement3D2N",     mBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "BeamElement3D3N",     mBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D2N", mTimoshenkoBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D3N", mTimoshenkoBeamElement3D3N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D10N", mTotalLagrangian3D10N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D6N", mTotalLagrangian3D6N )
@@ -820,6 +855,7 @@ void KratosStructuralApplication::Register()
 
 // KratosComponents<ConstitutiveLaw >::Add("Isotropic3D", mIsotropic3D);
     Serializer::Register( "Isotropic3D", mIsotropic3D );
+    Serializer::Register( "DummyConstitutiveLaw", mDummyConstitutiveLaw );
 //        std::cout << "registered objects:" << std::endl;
 //
 //        for(Serializer::RegisteredObjectsContainerType::iterator i = Serializer::GetRegisteredObjects().begin() ; i != Serializer::GetRegisteredObjects().end() ; i++)

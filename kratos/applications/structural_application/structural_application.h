@@ -74,6 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_elements/linear_incompresible_element.h"
 #include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
+#include "custom_elements/timoshenko_beam_element.h"
 #include "custom_elements/kinematic_linear.h"
 #include "custom_elements/membrane_element.h"
 #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
@@ -111,6 +112,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
+#include "constitutive_laws/dummy_constitutive_law.h"
 
 
 #include "includes/variables.h"
@@ -277,6 +279,19 @@ KRATOS_DEFINE_VARIABLE( double, CSL_SLOPE )
 KRATOS_DEFINE_VARIABLE( double, VIRGIN_COMPRESSION_INDEX )
 KRATOS_DEFINE_VARIABLE( double, SWELL_INDEX )
 KRATOS_DEFINE_VARIABLE( double, VOID_RATIO )
+KRATOS_DEFINE_VARIABLE( Vector, NEIGHBOUR_WEIGHTS )
+KRATOS_DEFINE_VARIABLE( double, MATERIAL_DENSITY )
+KRATOS_DEFINE_VARIABLE( double, MATERIAL_DENSITY_NEW )
+KRATOS_DEFINE_VARIABLE( double, MATERIAL_DENSITY_FILTERED )
+KRATOS_DEFINE_VARIABLE( double, ELEMENT_DC )
+KRATOS_DEFINE_VARIABLE( double, ELEMENT_DC_FILTERED )
+KRATOS_DEFINE_VARIABLE( double, ELEMENT_DV )
+KRATOS_DEFINE_VARIABLE( double, ELEMENT_DV_FILTERED )
+KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_0 )
+KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_MIN )
+KRATOS_DEFINE_VARIABLE( double, PENALIZATION_FACTOR )
+KRATOS_DEFINE_VARIABLE( double, GEOMETRICAL_DOMAIN_SIZE )
+KRATOS_DEFINE_VARIABLE( double, JACOBIAN_0 )
 
 
 // 	KRATOS_DEFINE_VARIABLE(double, DP_EPSILON )
@@ -447,6 +462,9 @@ private:
     const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
     const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
     const BeamElement mBeamElement3D2N;
+    const BeamElement mBeamElement3D3N;
+    const TimoshenkoBeamElement mTimoshenkoBeamElement3D2N;
+    const TimoshenkoBeamElement mTimoshenkoBeamElement3D3N;
     const ShellIsotropic mIsoShellElement;
     const ShellAnisotropic mAnisoShellElement;
     const ShellAnisotropicLinear mAnisoLinearShellElement;
@@ -565,6 +583,7 @@ private:
     const MasterContactFace2D mMasterContactFace2D;
 
     const Isotropic3D mIsotropic3D;
+    const DummyConstitutiveLaw mDummyConstitutiveLaw;
 
 
 //             const UPCTestElement mUPCTestElement3D20N;
