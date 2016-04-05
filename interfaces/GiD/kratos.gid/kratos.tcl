@@ -80,12 +80,12 @@ proc Kratos::InitGIDProject { dir } {
     if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
         lappend ::auto_path [file join $dir scripts]
     }
-    # JG Sources iran en un proc a parte
+    # JG Sources will be in a different proc
     foreach filename {Applications.tcl Writing.tcl spdAuxiliar.tcl } {
         uplevel 1 [list source [file join $dir scripts $filename]]
     }
 
-    # JG Sources iran en un proc a parte
+    # JG Sources will be in a different proc
     foreach filename {Model.tcl Entity.tcl Parameter.tcl Topology.tcl Solver.tcl ConstitutiveLaw.tcl Condition.tcl Element.tcl SolutionStrategy.tcl Process.tcl} {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
@@ -98,7 +98,7 @@ proc Kratos::InitGIDProject { dir } {
     gid_groups_conds::SetLibDir [file join $dir exec] 
     gid_groups_conds::begin_problemtype [file join $dir kratos_default.spd] [Kratos::GiveKratosDefaultsFile]
 
-    #kike: try to use customlib::processIncludes instead of spdAux::xx procedures!!
+    #kike: TODO: try to use customlib::processIncludes instead of spdAux::xx procedures!! 
     #customlib::processIncludes $dir ;#require customlib_extras
     spdAux::processIncludes
     spdAux::parseRoutes
