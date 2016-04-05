@@ -119,6 +119,12 @@ void PlaneStress::SetValue( const Variable<int>& rThisVariable, const int& rValu
 void PlaneStress::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
+    //    if ( rThisVariable == PRESTRESS_FACTOR )
+//        mPrestressFactor = rValue;
+    if ( rThisVariable == YOUNG_MODULUS )
+        mE = rValue;
+    if ( rThisVariable == POISSON_RATIO )
+        mNU = rValue;
 }
 
 void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
