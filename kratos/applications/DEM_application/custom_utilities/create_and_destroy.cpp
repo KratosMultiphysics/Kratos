@@ -811,50 +811,51 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int)rElements.size(); k++){
-            Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k; 
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int k = 0; k < (int)rElements.size(); k++){
+                Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin() + k; 
 
-            if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+                if ((*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
 
-            const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
-            bool include = true;
+                const array_1d<double, 3 >& coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
+                bool include = true;
 
-            for (unsigned int i = 0; i < 3; i++) {
-                include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
+                for (unsigned int i = 0; i < 3; i++) {
+                    include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
+                }
+
+                if (!include) {
+                    (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
+                    (*particle_pointer_it)->Set(TO_ERASE);
+                }
+
             }
 
-            if (!include) {
-                (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
-                (*particle_pointer_it)->Set(TO_ERASE);
+            #pragma omp for
+            for (int k = 0; k < (int)rNodes.size(); k++) { //TODO: Can we remove this loop? For DEM it is useless. The job was done in the previous loop. Try it.
+                ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;                
+
+                if ((*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
+                const array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
+                bool include = true;
+
+                for (unsigned int i = 0; i < 3; i++) {
+                    include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
+                }
+
+                if (!include) {
+                    (*node_pointer_it)->Set(TO_ERASE);
+                }
+
             }
-
-        }
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int)rNodes.size(); k++) { //TODO: Can we remove this loop? For DEM it is useless. The job was done in the previous loop. Try it.
-            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;                
-
-            if ((*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-            const array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
-            bool include = true;
-
-            for (unsigned int i = 0; i < 3; i++) {
-                include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
-            }
-
-            if (!include) {
-                (*node_pointer_it)->Set(TO_ERASE);
-            }
-
         }
 
         KRATOS_CATCH("")
     }
 
     void ParticleCreatorDestructor::MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
-        ///ONLY FOR CONTINUUM!!!
-
         KRATOS_TRY
 
         Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
@@ -889,7 +890,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
 
         #pragma omp parallel for
-        for (int k = 0; k < (int)rNodes.size(); k++) { //TODO: Can we remove this loop? For DEM it is useless. The job was done in the previous loop. Try it.
+        for (int k = 0; k < (int)rNodes.size(); k++) { 
             ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
 
             array_1d<double, 3 >& coor = (*node_pointer_it)->Coordinates();
@@ -902,34 +903,27 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                 displ[0] -= period_0;
                 coor[0] -= period_0;
             }
-
             else if (coor[0] < mLowPoint[0]) {
                 displ[0] += period_0;
                 coor[0] += period_0;
             }
-
             if (coor[1] > mHighPoint[1]) {
                 displ[1] -= period_1;
                 coor[1] -= period_1;
             }
-
             else if (coor[1] < mLowPoint[1]) {
                 displ[1] += period_1;
                 coor[1] += period_1;
             }
-
             if (coor[2] > mHighPoint[2]) {
                 displ[2] -= period_2;
                 coor[2] -= period_2;
             }
-
             else if (coor[2] < mLowPoint[2]) {
                 displ[2] += period_2;
                 coor[2] += period_2;
             }
-
         }
-
         KRATOS_CATCH("")
     }
 
@@ -938,65 +932,21 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         DestroyContactElements(mcontacts_model_part);
     }
 
-    array_1d<double, 3 > ParticleCreatorDestructor::GetHighNode() {
-        return (mHighPoint);
-    }
+    array_1d<double, 3 > ParticleCreatorDestructor::GetHighNode() { return (mHighPoint);}
+    array_1d<double, 3 > ParticleCreatorDestructor::GetLowNode() { return (mLowPoint); }
+    array_1d<double, 3 > ParticleCreatorDestructor::GetStrictHighNode() { return (mStrictHighPoint); }
+    array_1d<double, 3 > ParticleCreatorDestructor::GetStrictLowNode() { return (mStrictLowPoint); }
+    double ParticleCreatorDestructor::GetDiameter() { return (mDiameter); }
+    double ParticleCreatorDestructor::GetStrictDiameter() { return (mStrictDiameter); }
+    void ParticleCreatorDestructor::SetHighNode(array_1d<double, 3 > node) { mHighPoint = node; }
+    void ParticleCreatorDestructor::SetLowNode(array_1d<double, 3 > node) { mLowPoint = node; }
+    unsigned int ParticleCreatorDestructor::GetCurrentMaxNodeId() { return mMaxNodeId; } 
+    unsigned int* ParticleCreatorDestructor::pGetCurrentMaxNodeId() { return &mMaxNodeId; }
+    void ParticleCreatorDestructor::SetMaxNodeId(unsigned int id) { mMaxNodeId = id; }
 
-    array_1d<double, 3 > ParticleCreatorDestructor::GetLowNode() {
-        return (mLowPoint);
-    }
-
-    array_1d<double, 3 > ParticleCreatorDestructor::GetStrictHighNode() {
-        return (mStrictHighPoint);
-    }
-
-    array_1d<double, 3 > ParticleCreatorDestructor::GetStrictLowNode() {
-        return (mStrictLowPoint);
-    }
-
-    double ParticleCreatorDestructor::GetDiameter() {
-        return (mDiameter);
-    }
-
-    double ParticleCreatorDestructor::GetStrictDiameter() {
-        return (mStrictDiameter);
-    }
-
-    void ParticleCreatorDestructor::SetHighNode(array_1d<double, 3 > node) {
-        mHighPoint = node;
-    }
-
-    void ParticleCreatorDestructor::SetLowNode(array_1d<double, 3 > node) {
-        mLowPoint = node;
-    }
-
-    unsigned int ParticleCreatorDestructor::GetCurrentMaxNodeId() {
-        return mMaxNodeId;
-    }
-    
-    unsigned int* ParticleCreatorDestructor::pGetCurrentMaxNodeId() {
-        return &mMaxNodeId;
-    }
-
-    void ParticleCreatorDestructor::SetMaxNodeId(unsigned int id) {
-        mMaxNodeId = id;
-    }
-
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
-
-    std::string ParticleCreatorDestructor::Info() const {
-        return "";
-    }
-
-    /// Print information about this object
-
-    void ParticleCreatorDestructor::PrintInfo(std::ostream& rOStream) const {
-    }
-
-    /// Print object's data
-
-    void ParticleCreatorDestructor::PrintData(std::ostream& rOStream) const {
-    }
+    std::string ParticleCreatorDestructor::Info() const { return ""; }
+    void ParticleCreatorDestructor::PrintInfo(std::ostream& rOStream) const {}
+    void ParticleCreatorDestructor::PrintData(std::ostream& rOStream) const {}
 
     void ParticleCreatorDestructor::Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size) {
         unsigned int buffer_size = node_it->GetBufferSize();
@@ -1015,7 +965,6 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         noalias(Aux_var) = ZeroVector(3);
     }
 
-    void ParticleCreatorDestructor::ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable) {
-    }
+    void ParticleCreatorDestructor::ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable) {}
 
 } //Namespace Kratos
