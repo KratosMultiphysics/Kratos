@@ -98,8 +98,6 @@ proc Kratos::InitGIDProject { dir } {
     gid_groups_conds::SetLibDir [file join $dir exec] 
     gid_groups_conds::begin_problemtype [file join $dir kratos_default.spd] [Kratos::GiveKratosDefaultsFile]
 
-    #kike: TODO: try to use customlib::processIncludes instead of spdAux::xx procedures!! 
-    #customlib::processIncludes $dir ;#require customlib_extras
     spdAux::processIncludes
     spdAux::parseRoutes
     after 500 [list spdAux::CreateWindow $dir]
@@ -114,16 +112,10 @@ proc Kratos::ChangeMenus { } {
     GidChangeDataLabel "Problem Data" ""
     GidChangeDataLabel "Local axes" ""
     GidAddUserDataOptions "---" "" 3
-    GidAddUserDataOptions [_ "Groups"] [list gid_groups_conds::open_groups .gid window] 5
-    GidAddUserDataOptions [_ "Data"] [list gid_groups_conds::open_conditions window] 6
-    GidAddUserDataOptions [_ "Data (internal)"] [list gid_groups_conds::open_conditions menu] 7
+    #GidAddUserDataOptions [_ "Groups"] [list gid_groups_conds::open_groups .gid window] 5
+    GidAddUserDataOptions [_ "Data"] [list gid_groups_conds::open_conditions menu] 7
     GidAddUserDataOptions "---" "" 10
     GidAddUserDataOptionsMenu [_ "Local axes"] [list gid_groups_conds::local_axes_menu %W] 11
-    GidAddUserDataOptions "---" "" 12
-    set x_path {/*/container[@n="Properties"]}
-    GidAddUserDataOptions [= "Check properties entities"] [list gid_groups_conds::check_properties_unicity .gid $x_path] 13
-    set x_path {/*/container[@n="Properties"]/container[@n="materials"]}
-    GidAddUserDataOptions [= "Import/export materials"] [list gid_groups_conds::import_export_materials .gid $x_path] 1
     GiDMenu::UpdateMenus
 }
 
