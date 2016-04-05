@@ -324,17 +324,12 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
-    }
+    }    
 
-    
-    void CreateContactElements() // TODO: Re-use existing bonds, because allocating and de-allocating all of them takes a lot of time and it is not parallel!!
+    void CreateContactElements() 
     {                
         KRATOS_TRY        
                 
-        ElementsArrayType rElements;
-        ((*mpContact_model_part).Elements()).swap(rElements);
-        
-        int index_new_ids = 1;                    
         std::string ElementName;
         ElementName = std::string("ParticleContactElement");
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
@@ -343,94 +338,100 @@ namespace Kratos
         //We create also a pointer from the node to the element, after creating it.
         //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
         //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
-                     
-        //Properties::Pointer properties;// = (*mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
-        
-        const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
-        
-        #pragma omp parallel for 
-        for (int i = 0; i < number_of_particles; i++) {
-            unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
-            mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
-            for (unsigned int j=0; j<mListOfSphericContinuumParticles[i]->mBondElements.size(); j++) {
-                
-                mListOfSphericContinuumParticles[i]->mBondElements[j] = NULL;
-            }            
-        }                
-        
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
-             
-            std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
-            unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+                             
+        const int number_of_particles = (int)mListOfSphericContinuumParticles.size();        
+        int used_bonds_counter = 0; 
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+                mListOfSphericContinuumParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
+                for (unsigned int j=0; j<mListOfSphericContinuumParticles[i]->mBondElements.size(); j++) {
+                    mListOfSphericContinuumParticles[i]->mBondElements[j] = NULL;
+                }            
+            }                
+            
+            int private_counter = 0;            
+            Element::Pointer p_new_contact_element;
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+	        bool add_new_bond = true;
+                std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
+                unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
 
-            for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
-                
-                SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*>(neighbour_elements[j]);
-                
-                if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
-
-                if (mListOfSphericContinuumParticles[i]->Id() > neighbour_element->Id()) continue;                                
-                
-                Geometry<Node<3> >::PointsArrayType  NodeArray(2);
-                
-                NodeArray.GetContainer()[0] = mListOfSphericContinuumParticles[i]->GetGeometry()(0);
-                NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
-                
-                Element::Pointer p_contact_element;
-                
-                Properties::Pointer properties = mListOfSphericContinuumParticles[i]->pGetProperties();
-                                
-                #pragma omp critical
-                {
-                    p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
-                    (*mpContact_model_part).Elements().push_back(p_contact_element);
-                    index_new_ids++;
-                }
-                
-                Element* raw_p_contact_element = p_contact_element.get();
-                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( raw_p_contact_element );     
-                mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;                                                                  
-            }            
-      
-        } //for all Spheric Continuum Particles
-        
-        #pragma omp parallel for
-        for (int i = 0; i < number_of_particles; i++) {
-
-            std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
-            unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
-      
-            for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
-                
-                SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*>(neighbour_elements[j]);
-                
-                if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                    //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
-                if (mListOfSphericContinuumParticles[i]->Id() < neighbour_element->Id()) continue;
-                    //In all functions using mBondElements we must check that this bond is not used.
+                for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
+                    SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*>(neighbour_elements[j]);
+                    if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
+                    if (mListOfSphericContinuumParticles[i]->Id() > neighbour_element->Id()) continue;                                               
                     
-                for (unsigned int k = 0; k < neighbour_element->mContinuumInitialNeighborsSize; k++ ) {
-                    //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
-                    //In all functions using mBondElements we must check that this bond is not used.
-                    //if (r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                    if (neighbour_element->mNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                    
-                    //if (r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k]->Id() == mListOfSphericContinuumParticles[i]->Id()) {
-                    if (neighbour_element->mNeighbourElements[k]->Id() == mListOfSphericContinuumParticles[i]->Id()) {
+                    #pragma omp critical
+                    {
+                        if (used_bonds_counter < (int)(*mpContact_model_part).Elements().size()) {
+                            add_new_bond = false;
+                            private_counter = used_bonds_counter;
+                            used_bonds_counter++;
+                        }      
+                    }
+                    if(!add_new_bond) {
+                        Element::Pointer& p_old_contact_element = (*mpContact_model_part).Elements().GetContainer()[private_counter];
+                        p_old_contact_element->GetGeometry()(0) = mListOfSphericContinuumParticles[i]->GetGeometry()(0);
+                        p_old_contact_element->GetGeometry()(1) = neighbour_element->GetGeometry()(0); 
+                        p_old_contact_element->SetId(used_bonds_counter);
+                        p_old_contact_element->SetProperties(mListOfSphericContinuumParticles[i]->pGetProperties());
+                    }
+                    else {
+                        Geometry<Node<3> >::PointsArrayType  NodeArray(2);
+                        NodeArray.GetContainer()[0] = mListOfSphericContinuumParticles[i]->GetGeometry()(0);
+                        NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);                                                
+                        const Properties::Pointer& properties = mListOfSphericContinuumParticles[i]->pGetProperties();
+                        p_new_contact_element = rReferenceElement.Create(used_bonds_counter+1, NodeArray, properties);
                         
-                        ParticleContactElement* bond = neighbour_element->mBondElements[k];
-                        mListOfSphericContinuumParticles[i]->mBondElements[j] = bond; 
-                        break;
+                        #pragma omp critical
+                        {                            
+                            (*mpContact_model_part).Elements().push_back(p_new_contact_element);
+                            used_bonds_counter++;
+                        }                        
+                    }
+                    ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( p_new_contact_element.get() );     
+                    mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;                                                                  
+                }            
+            }
+
+            #pragma omp single
+            {
+                if((int)(*mpContact_model_part).Elements().size() > used_bonds_counter){
+                    (*mpContact_model_part).Elements().erase((*mpContact_model_part).Elements().ptr_begin() + used_bonds_counter, (*mpContact_model_part).Elements().ptr_end());  
+                }
+            } 
+
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
+                unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
+
+                for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
+                    SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*>(neighbour_elements[j]);
+                    if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
+                        //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
+                    if (mListOfSphericContinuumParticles[i]->Id() < neighbour_element->Id()) continue;
+                        //In all functions using mBondElements we must check that this bond is not used.
+
+                    for (unsigned int k = 0; k < neighbour_element->mContinuumInitialNeighborsSize; k++ ) {
+                        //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
+                        //In all functions using mBondElements we must check that this bond is not used.
+                        if (neighbour_element->mNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!
+                        if (neighbour_element->mNeighbourElements[k]->Id() == mListOfSphericContinuumParticles[i]->Id()) {
+                            ParticleContactElement* bond = neighbour_element->mBondElements[k];
+                            mListOfSphericContinuumParticles[i]->mBondElements[j] = bond; 
+                            break;
+                        }
                     }
                 }
-            }
-        }                                
-        
-        KRATOS_CATCH("")        
-             
-    } //CreateContactElements
-    
+            }           
+        } //#pragma omp parallel        
+        KRATOS_CATCH("")                     
+    } //CreateContactElements    
     
     void InitializeContactElements()
     {
