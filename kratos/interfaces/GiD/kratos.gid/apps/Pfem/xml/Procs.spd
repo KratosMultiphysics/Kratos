@@ -2,22 +2,28 @@
 <container n="procs" pn="procs" includeContainer="No">
 
 	
-		  <proc n='CheckNodalConditionState' args='args'>
+<proc n='CheckNodalConditionState' args='args'>
+<![CDATA[
+# Overwritten the base function to add Solution Type restrictions
+  set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+  if {[spdAux::getRoute $parts_un] ne ""} {
+	  set conditionId [$domNode @n]
+	  set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
+	  set elemnames [list ]
+	  foreach elem $elems { lappend elemnames [$elem @v]}
+	  set elemnames [lsort -unique $elemnames]
+	  
+	  set soltype_un [spdAux::ExecuteOnCurrentApp getUniqueName SoluType]
+	  set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $soltype_un]] v]
+	  set params [list analysis_type $solutionType]
+	  if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
+  } {return "normal"}
+]]>
+</proc>
+		  <proc n='ChangeSpatialDimension' args='args'>
 	  <![CDATA[
-	  # Overwritten the base function to add Solution Type restrictions
-		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
-	    if {[spdAux::getRoute $parts_un] ne ""} {
-			set conditionId [$domNode @n]
-			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
-			set elemnames [list ]
-			foreach elem $elems { lappend elemnames [$elem @v]}
-			set elemnames [lsort -unique $elemnames]
-			
-		    set soltype_un [spdAux::ExecuteOnCurrentApp getUniqueName SoluType]
-			set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $soltype_un]] v]
-			set params [list analysis_type $solutionType]
-			if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
-		} {return "normal"}
+	  set appSpatialDimmension [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_dimensions]] v]
+	  [$domNode selectNodes [spdAux::getRoute nDim]] setAttribute v $appSpatialDimmension
 	  ]]>
 	</proc>
         
