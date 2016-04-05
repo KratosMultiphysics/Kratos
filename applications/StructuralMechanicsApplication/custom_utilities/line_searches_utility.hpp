@@ -83,10 +83,10 @@ public:
         //typename TSchemeType::Pointer pScheme,
         //typename TLinearSolver::Pointer pNewLinearSolver,
         unsigned  int& MaxLineSearchIterations,
-        double& tolls,         // energy tolerance factor on LineSearch (0.8 is ok)
-        double& amp,           // maximum amplification factor
-        double& etmxa,         // maximum allowed step length
-        double& etmna,       // minimum allowed step length
+        double& tolls,         // Energy tolerance factor on LineSearch (0.8 is ok)
+        double& amp,           // Maximum amplification factor
+        double& etmxa,         // Maximum allowed step length
+        double& etmna,         // Minimum allowed step length
         bool& MoveMeshFlag,
         bool& ApplyLineSearches
     )
@@ -111,9 +111,12 @@ public:
     
     virtual ~LineSearchesUtility () {}
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+
 protected:
 
-    // parameters of line searches
+    // Parameters of line searches
     unsigned int  mMaxLineSearchIterations;
     double mtolls;
     double mamp;
@@ -127,21 +130,23 @@ protected:
     /***********************************************************************************/
 
     /**
-    * 
+    * Methods of line searches
     * @param 
     * @return 
     */
     
-    // methods of line searches
-    void SetParametersLineSearches(unsigned int& MaxLineSearchIterations,
-                                   double& tolls,
-                                   double& amp,
-                                   double& etmxa,
-                                   double& etmna,
-                                   bool& MoveMeshFlag,
-                                   bool& ApplyLineSearches)
+    void SetParametersLineSearches(
+            unsigned int& MaxLineSearchIterations,
+            double& tolls,
+            double& amp,
+            double& etmxa,
+            double& etmna,
+            bool& MoveMeshFlag,
+            bool& ApplyLineSearches
+            )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
+
         mMaxLineSearchIterations = MaxLineSearchIterations;
         mtolls  = tolls;
         mamp    = amp;
@@ -149,8 +154,9 @@ protected:
         metmna  = etmna;
         mMoveMeshFlag      = MoveMeshFlag;
         mApplyLineSearches = ApplyLineSearches;
-        meta= 1.00;
-        KRATOS_CATCH("")
+        meta = 1.00;
+
+        KRATOS_CATCH("");
     }
 
     /***********************************************************************************/
@@ -162,24 +168,25 @@ protected:
     * @return 
     */
     
-    bool LineSearches( ModelPart& rmodel_part,
-                       typename TSchemeType::Pointer& pScheme,
-                       typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
-                       DofsArrayType& rDofSet,
-                       TSystemVectorType&  X_old,
-                       TSystemVectorType&  Delta_p,
-                       TSystemVectorType&  mDx,
-                       TSystemVectorType&  mb,
-                       TSystemMatrixType&  mA
-                     )
+    bool LineSearches(
+            ModelPart& rmodel_part,
+            typename TSchemeType::Pointer& pScheme,
+            typename TBuilderAndSolverType::Pointer& pBuilderAndSolver,
+            DofsArrayType& rDofSet,
+            TSystemVectorType&  X_old,
+            TSystemVectorType&  Delta_p,
+            TSystemVectorType&  mDx,
+            TSystemVectorType&  mb,
+            TSystemMatrixType&  mA
+            )
     {
 
-        KRATOS_TRY
+        KRATOS_TRY;
         double seta               = 0.00;
         double so                 = 0.00;
         unsigned int ils          = 0;
         unsigned int ico          = 0;
-        unsigned iteration_number = 1;
+        unsigned int iteration_number = 1;
         TSystemVectorType prodr(mMaxLineSearchIterations+1);
         TSystemVectorType lseta(mMaxLineSearchIterations+2);
         TSparseSpace::SetToZero(prodr);
@@ -190,8 +197,7 @@ protected:
         prodr(0) =  1.00;
         meta     = lseta(1);
 
-
-        so = TSparseSpace::Dot(Delta_p,mb); // mb inicial
+        so = TSparseSpace::Dot(Delta_p,mb); // Initial mb
         //if (so < 0.00)
         {
             while (iteration_number <= mMaxLineSearchIterations)
@@ -231,12 +237,13 @@ protected:
 
                     meta = lseta(ils+2);
                     TSparseSpace::Assign(mDx,meta, mDx); //mDx =lseta(iteration_number+1)*mDx
-
                 }
 
-                if (iteration_number>= mMaxLineSearchIterations)
+                if (iteration_number >= mMaxLineSearchIterations)
                 {
-                    MaxIterationsExceeded();
+                    std::cout << "*****************************************************************" << std::endl;
+                    std::cout << "******* ATTENTION: Max Iterations Line Searches Exceeded ********" << std::endl;
+                    std::cout << "*****************************************************************" << std::endl;
                     return false;
                     //break;
                 }
@@ -247,16 +254,24 @@ protected:
         }
 
         return true;
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+    *
+    * @param
+    * @return
+    */
 
     void SetDatabaseToValue(
-        DofsArrayType& rDofSet,
-        const TSystemVectorType& X_old
-    )
+            DofsArrayType& rDofSet,
+            const TSystemVectorType& X_old
+            )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
@@ -265,17 +280,25 @@ protected:
                 i_dof->GetSolutionStepValue() = X_old[i_dof->EquationId()];
             }
         }
-        KRATOS_CATCH("")
+
+        KRATOS_CATCH("");
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
 
-    // Permite escribir los desplazamientos antiguos en el X_old
+    /**
+    * It allows to write the old displacements in X_old
+    * @param
+    * @return
+    */
+
     void BackupDatabase(
-        DofsArrayType const& rDofSet,
-        TSystemVectorType& X_old
-    )
+            DofsArrayType const& rDofSet,
+            TSystemVectorType& X_old
+            )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         for(typename DofsArrayType::const_iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
@@ -284,8 +307,17 @@ protected:
                 X_old[i_dof->EquationId()] = i_dof->GetSolutionStepValue();
             }
         }
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+    *
+    * @param
+    * @return
+    */
 
 //realiza Line-Search local para encontrar la longitud del paso en eta(ils+2)
 //eta: historia de longitudes de pasos en la iteracion de L-S (eta(1)=0.,eta(2)=1.)
@@ -300,9 +332,14 @@ protected:
 //tambien busca el S-L maximo en etmaxp
 // si no hay existe un eta con prodr<0 ineg=999
 
-    void Search(unsigned int& ils,TSystemVectorType& prodr,TSystemVectorType& lseta, unsigned int& ico)
+    void Search(
+            unsigned int& ils,
+            TSystemVectorType& prodr,
+            TSystemVectorType& lseta,
+            unsigned int& ico
+            )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         double etaint      = 0.00;
         double etaneg      = 1e5;
@@ -320,7 +357,7 @@ protected:
             {
                 etmaxp=lseta(i);
             }
-            if (prodr(i)<0 && lseta(i)<=etaneg)
+            if (prodr(i) < 0 && lseta(i) <= etaneg)
             {
                 etaneg=lseta(i);
                 ineg=i;
@@ -420,30 +457,29 @@ protected:
             return;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
-    void MaxIterationsExceeded()
-    {
-        std::cout << "*****************************************************************" << std::endl;
-        std::cout << "******* ATTENTION: Max Iterations Line Searches Exceeded ********" << std::endl;
-        std::cout << "*****************************************************************" << std::endl;
-    }
+    /***********************************************************************************/
+    /***********************************************************************************/
 
+    /**
+    * It moves the nodes of the mesh when is invoqued
+    * @param rmodel_part: The model part
+    */
 
     void MoveMesh(ModelPart& rmodel_part)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        for(ModelPart::NodeIterator i = rmodel_part.NodesBegin() ;
-                i != rmodel_part.NodesEnd() ; ++i)
+        for(ModelPart::NodeIterator i = rmodel_part.NodesBegin() ; i != rmodel_part.NodesEnd() ; i++)
         {
             array_1d<double,3>& disp = i->FastGetSolutionStepValue(DISPLACEMENT);
             (i)->X() = (i)->X0() + disp[0];
             (i)->Y() = (i)->Y0() + disp[1];
             (i)->Z() = (i)->Z0() + disp[2];
         }
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
 }; // end class lineseaches
