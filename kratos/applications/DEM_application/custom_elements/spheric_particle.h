@@ -260,10 +260,6 @@ virtual void AddNeighbourContributionToStressTensor(const double GlobalElasticCo
                                                     const double distance,
                                                     const double radius_sum);
 
-virtual void AddContributionToRepresentativeVolume(const double distance,
-                                                    const double radius_sum,
-                                                    const double contact_area);
-
 virtual void AddWallContributionToStressTensor(const double GlobalElasticContactForce[3],
                                                 const double other_to_me_vect[3],
                                                 const double distance,

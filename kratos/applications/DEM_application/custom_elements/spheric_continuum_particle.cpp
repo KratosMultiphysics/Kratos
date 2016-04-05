@@ -356,6 +356,19 @@ namespace Kratos {
             KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce   
 
+    void SphericContinuumParticle::AddContributionToRepresentativeVolume(const double distance,
+                                                                const double radius_sum,
+                                                                const double contact_area) {
+
+        KRATOS_TRY
+
+        double gap = distance - radius_sum;
+        double real_distance = GetInteractionRadius() + 0.5 * gap;
+        double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+        rRepresentative_Volume += 0.33333333333333 * (real_distance * contact_area);
+
+        KRATOS_CATCH("")
+    }
 
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& r_process_info) {
         KRATOS_TRY
