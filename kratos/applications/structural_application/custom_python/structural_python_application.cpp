@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_parallel_strategies_to_python.h"
 #include "custom_python/add_conditions_to_python.h"
 #include "custom_python/add_fluency_criteria_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 namespace Kratos
 {
@@ -93,6 +94,7 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
     AddCustomParallelStrategiesToPython();
     AddCustomConditionsToPython();
     AddFluencyCriteriaToPython();
+    AddCustomProcessesToPython();
 
     //registering variables in python
             KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_E0 )
@@ -296,6 +298,12 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VOID_RATIO )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VIRGIN_COMPRESSION_INDEX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SWELL_INDEX )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( YOUNG_MODULUS_0 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( YOUNG_MODULUS_MIN )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PENALIZATION_FACTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATERIAL_DENSITY )
+
 }
 
 
