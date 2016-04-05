@@ -12,17 +12,6 @@
 //                   Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED)
 #define  KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED
 
@@ -446,17 +435,162 @@ public:
                 GiD_fEndGaussPoint(MeshFile);
             }
             /* START: Adding manually the custom prism */
-            else if ( mGidElementFamily == GiD_Prism  && mSize > 1 )
+            else if ( mGidElementFamily == GiD_Prism  && mSize > 1)
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
+
+                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+
                 GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
                 GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
                 GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0  - std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0  - std::sqrt(1.00 / 3.00)));
-                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0  - std::sqrt(1.00 / 3.00)));
+
                 GiD_fEndGaussPoint(MeshFile);
             }
+//            else if ( mGidElementFamily == GiD_Prism  && mSize == 2 )
+//            {
+//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 6, 0, 0 );
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 - std::sqrt(1.00 / 3.00)));
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5 * (1.0 + std::sqrt(1.00 / 3.00)));
+
+//                GiD_fEndGaussPoint(MeshFile);
+//            }
+//            else if ( mGidElementFamily == GiD_Prism  && mSize == 3 )
+//            {
+//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 9, 0, 0 );
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.1127016653792583114821);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.1127016653792583114821);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.1127016653792583114821);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.8872983346207416885180);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.8872983346207416885180);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.8872983346207416885180);
+
+//                GiD_fEndGaussPoint(MeshFile);
+//            }
+//            else if ( mGidElementFamily == GiD_Prism  && mSize == 5 )
+//            {
+//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 15, 0, 0 );
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0469100770306680036012);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0469100770306680036012);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0469100770306680036012);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.2307653449471584544819);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.2307653449471584544819);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.2307653449471584544819);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.7692346550528415455182);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.7692346550528415455182);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.7692346550528415455182);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9530899229693319963988);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9530899229693319963988);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9530899229693319963988);
+
+//                GiD_fEndGaussPoint(MeshFile);
+//            }
+//            else if ( mGidElementFamily == GiD_Prism  && mSize == 7 )
+//            {
+//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 21, 0, 0 );
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0254460438286207377369);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0254460438286207377369);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0254460438286207377369);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.1292344072003027800681);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.1292344072003027800681);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.1292344072003027800681);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.2970774243113014165467);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.2970774243113014165467);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.2970774243113014165467);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.7029225756886985834533);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.7029225756886985834533);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.7029225756886985834533);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.8707655927996972199320);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.8707655927996972199320);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.8707655927996972199320);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9745539561713792622631);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9745539561713792622631);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9745539561713792622631);
+
+//                GiD_fEndGaussPoint(MeshFile);
+//            }
+//            else if ( mGidElementFamily == GiD_Prism  && mSize == 11 )
+//            {
+//                GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Prism, NULL, 33, 0, 0 );
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0108856709269715035981);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0108856709269715035981);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0108856709269715035981);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.0564687001159523504624);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.0564687001159523504624);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.0564687001159523504624);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.1349239972129753379533);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.1349239972129753379533);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.1349239972129753379533);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.2404519353965940920372);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.2404519353965940920372);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.2404519353965940920372);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.3652284220238275138343);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.3652284220238275138343);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.3652284220238275138343);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.5000000000000000000000);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.5000000000000000000000);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.6347715779761724861657);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.6347715779761724861657);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.6347715779761724861657);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.7595480646034059079628);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.7595480646034059079628);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.7595480646034059079628);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.8650760027870246620467);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.8650760027870246620467);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.8650760027870246620467);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9435312998840476495376);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9435312998840476495376);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9435312998840476495376);
+
+//                GiD_fWriteGaussPoint3D( MeshFile, 1.00 / 3.00 , 2.00 / 3.00, 0.9891143290730284964020);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 1.00 / 3.00, 0.9891143290730284964020);
+//                GiD_fWriteGaussPoint3D( MeshFile, 2.00 / 3.00 , 2.00 / 3.00, 0.9891143290730284964020);
+
+//                GiD_fEndGaussPoint(MeshFile);
+//            }
             /* END: Adding manually the custom prism */
             else if ( mGidElementFamily == GiD_Point ||  mGidElementFamily == GiD_Sphere ||  mGidElementFamily == GiD_Circle )
             {
