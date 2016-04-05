@@ -150,7 +150,7 @@ public:
     static inline Matrix interpol_PrismGiD(const int nG)
     {
         Matrix interpol;
-        interpol.resize(nG, 6);
+        interpol.resize(nG, 6, false);
 
         /* Assigning values to the vectors */
         if (nG == 1)
@@ -222,6 +222,60 @@ public:
                 interpol(2, i) = 0.0293;
                 interpol(3, i) = 0.907868;
                 interpol(4, i) = 0.062831503549096234958;
+            }
+        }
+        else if (nG == 7)
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                interpol(0, i) = 0.0;
+                interpol(1, i) = 0.51090930312223869755;
+                interpol(2, i) = 0.48909069687776130245;
+                interpol(3, i) = 0.0;
+                interpol(4, i) = 0.0;
+                interpol(5, i) = 0.0;
+                interpol(6, i) = 0.0;
+            }
+            for (unsigned int i = 3; i < 6; i++)
+            {
+                interpol(0, i) = 0.0;
+                interpol(1, i) = 0.0;
+                interpol(2, i) = 0.0;
+                interpol(3, i) = 0.0;
+                interpol(4, i) = 0.48909069687776130245;
+                interpol(5, i) = 0.51090930312223869755;
+                interpol(6, i) = 0.0;
+            }
+        }
+        else if (nG == 11)
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                interpol( 0, i) = 0.0;
+                interpol( 1, i) = 0.0;
+                interpol( 2, i) = 0.27601287860590845062;
+                interpol( 3, i) = 0.72398712139409154938;
+                interpol( 4, i) = 0.0;
+                interpol( 5, i) = 0.0;
+                interpol( 6, i) = 0.0;
+                interpol( 7, i) = 0.0;
+                interpol( 8, i) = 0.0;
+                interpol( 9, i) = 0.0;
+                interpol(10, i) = 0.0;
+            }
+            for (unsigned int i = 3; i < 6; i++)
+            {
+                interpol( 0, i) = 0.0;
+                interpol( 1, i) = 0.0;
+                interpol( 2, i) = 0.0;
+                interpol( 3, i) = 0.0;
+                interpol( 4, i) = 0.0;
+                interpol( 5, i) = 0.0;
+                interpol( 6, i) = 0.0;
+                interpol( 7, i) = 0.72398712139409154938;
+                interpol( 8, i) = 0.27601287860590845062;
+                interpol( 9, i) = 0.0;
+                interpol(10, i) = 0.0;
             }
         }
         return interpol;
@@ -324,6 +378,20 @@ public:
             x_gauss[7] = 0.6794095682990244062343;
             x_gauss[8] = 0.8650633666889845107321;
             x_gauss[9] = 0.973906528517171720078;
+        }
+        else if (nG == 11)
+        {
+            x_gauss[0] = -0.9782286581460569928039;
+            x_gauss[1] = -0.8870625997680952990752;
+            x_gauss[2] = -0.7301520055740493240934;
+            x_gauss[3] = -0.5190961292068118159257;
+            x_gauss[4] = -0.2695431559523449723315;
+            x_gauss[5] = 0.0000000000000000000000;
+            x_gauss[6] = 0.2695431559523449723315;
+            x_gauss[7] = 0.5190961292068118159257;
+            x_gauss[8] = 0.7301520055740493240934;
+            x_gauss[9] = 0.8870625997680952990752;
+            x_gauss[10] = 0.9782286581460569928039;
         }
         else
         {
@@ -430,6 +498,20 @@ public:
             w_gauss[7] = 0.2190863625159820439955;
             w_gauss[8] = 0.1494513491505805931458;
             w_gauss[9] = 0.0666713443086881375936;
+        }
+        else if (nG == 11)
+        {
+            w_gauss[0] = 0.0556685671161736664828;
+            w_gauss[1] = 0.125580369464904624635;
+            w_gauss[2] = 0.1862902109277342514261;
+            w_gauss[3] = 0.233193764591990479919;
+            w_gauss[4] = 0.262804544510246662181;
+            w_gauss[5] = 0.2729250867779006307145;
+            w_gauss[6] = 0.262804544510246662181;
+            w_gauss[7] = 0.233193764591990479919;
+            w_gauss[8] = 0.1862902109277342514261;
+            w_gauss[9] = 0.125580369464904624635;
+            w_gauss[10] = 0.0556685671161736664828;
         }
         else
         {
@@ -754,7 +836,7 @@ public:
             Vector& solution
             )
     {
-        solution.resize(2,false);
+        solution.resize(2, false);
         noalias(solution)= ZeroVector(2);
 
         double disc = b*b - 4.00*a*c;
@@ -797,7 +879,7 @@ public:
             Vector& solution
             )
     {
-        solution.resize(3,false);
+        solution.resize(3, false);
         noalias(solution)= ZeroVector(3);
 
         if(a == 0)
@@ -1382,7 +1464,7 @@ public:
 
         if (Tensor.size1()==2)
         {
-            StrainVector.resize(3);
+            StrainVector.resize(3, false);
             noalias(StrainVector) = ZeroVector(3);
             StrainVector(0) = Tensor(0, 0);
             StrainVector(1) = Tensor(1, 1);
@@ -1390,7 +1472,7 @@ public:
         }
         else if (Tensor.size1()==3)
         {
-            StrainVector.resize(6);
+            StrainVector.resize(6, false);
             noalias(StrainVector) = ZeroVector(6);
             StrainVector(0) = Tensor(0, 0);
             StrainVector(1) = Tensor(1, 1);
@@ -1467,7 +1549,7 @@ public:
     {
         if(Stress.size() == 6)
         {
-            Tensor.resize(3, 3);
+            Tensor.resize(3, 3, false);
             Tensor(0, 0) = Stress(0);
             Tensor(0, 1) = Stress(3);
             Tensor(0, 2) = Stress(5);
@@ -1480,7 +1562,7 @@ public:
         }
         if(Stress.size() == 3)
         {
-            Tensor.resize(2, 2);
+            Tensor.resize(2, 2, false);
             Tensor(0, 0)= Stress(0);
             Tensor(0, 1)= Stress(2);
             Tensor(1, 0)= Stress(2);
@@ -1807,7 +1889,7 @@ public:
     {
         if(Matrix.size1()!=6 || Matrix.size2()!=6)
         {
-            Matrix.resize(6,6,false);
+            Matrix.resize(6,6, false);
         }
 
         Matrix(0, 0) = Tensor[0];

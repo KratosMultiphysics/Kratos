@@ -1,9 +1,12 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:      VMataix $
-//   Date:                $Date:   January 2016 $
-//   Revision:            $Revision:        0.0 $
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_SIMPLE_PRISM_3D_6_H_INCLUDED )
@@ -309,8 +312,10 @@ public:
     // Lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 6)
-           rResult.resize( 6, false );
+        if(rResult.size() != 6)
+        {
+            rResult.resize( 6, false );
+        }
         std::fill( rResult.begin(), rResult.end(), 1.00 / 6.00 );
         return rResult;
     }
@@ -417,7 +422,9 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         if ( rResult.size1() != 6 || rResult.size2() != 3 )
-            rResult.resize( 6, 3 );
+        {
+            rResult.resize( 6, 3, false );
+        }
 
         rResult( 0, 0 ) = 0.0;
         rResult( 0, 1 ) = 0.0;
@@ -916,7 +923,7 @@ template<class TPointType> inline std::ostream& operator << (
 
 template<class TPointType> const
 GeometryData SimplePrism3D6<TPointType>::msGeometryData(
-    3, 3, 3, GeometryData::GI_GAUSS_2,
+    3, 3, 3, GeometryData::GI_GAUSS_1,
     SimplePrism3D6<TPointType>::AllIntegrationPoints(),
     SimplePrism3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
