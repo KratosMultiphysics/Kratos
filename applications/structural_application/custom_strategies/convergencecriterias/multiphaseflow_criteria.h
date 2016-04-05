@@ -166,6 +166,18 @@ public:
      */
     /*@{ */
 
+    /*Criterias that need to be called before getting the solution */
+    virtual bool PreCriteria(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        return false;
+    }
+
     /*Criterias that need to be called after getting the solution */
     bool PostCriteria(
         ModelPart& r_model_part,
@@ -288,10 +300,11 @@ public:
                 ratioDisp_AIR = mFinalCorrectionNorm_AIR / referenceNorm_AIR;
 
             std::cout << "********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS********************************************" << std::endl;
-            std::cout.precision(3);
+            std::cout.precision(6);
             std::cout.setf(std::ios::scientific);
             std::cout << "** expected values: \t\t\t\t\t\tchange= " << mAlwaysConvergedNorm << "\t\t\t\tenergy= " << mRatioTolerance << " **" << std::endl;
-            std::cout << "** obtained values displascement:\tratio= " << ratioDisp << "\tchange= " << mFinalCorrectionNorm << "\tabsolute= " << referenceNorm << "\tenergy= " << EnergyNorm << " **" << std::endl;
+            std::cout << "counter = " << counter << ", mFinalCorrectionNorm before: " << pow(mFinalCorrectionNorm, 2) * counter << ", referenceNorm before: " << pow(referenceNorm, 2) * counter << std::endl;
+            std::cout << "** obtained values displacement:\tratio= " << ratioDisp << "\tchange= " << mFinalCorrectionNorm << "\tabsolute= " << referenceNorm << "\tenergy= " << EnergyNorm << " **" << std::endl;
             if (HasWaterPres)
             {
                 std::cout << "** obtained values water pressure:\tratio= " << ratioDisp_WATER << "\tchange= " << mFinalCorrectionNorm_WATER << "\tabsolute= " << referenceNorm_WATER << " \tenergy= " << EnergyNorm_WATER << " **" << std::endl;
