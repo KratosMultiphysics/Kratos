@@ -280,10 +280,10 @@ class VertexMorphingMethod:
                     print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,".")
                     break
 
-                # Check if value of objective increases
-                if(response[only_F_id]["func"]>previous_f):
-                    print("\n> Value of objective function increased!")
-                    break
+                # # Check if value of objective increases
+                # if(response[only_F_id]["func"]>previous_f):
+                #     print("\n> Value of objective function increased!")
+                #     break
 
             # Update design
             X = self.get_design()
