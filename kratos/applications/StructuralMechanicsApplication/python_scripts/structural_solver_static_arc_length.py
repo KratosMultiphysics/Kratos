@@ -30,10 +30,21 @@ def AddVariables(model_part, config=None):
     print("Variables for the Static Structural Arc Length Solution added correctly")
     print("*********************************************************************** ")
 
+def IncreasePointLoad(forcing_nodes_list, Load):
+    for node in forcing_nodes_list:
+        node.SetSolutionStepValue(POINT_LOAD_X, 0, Load[0])
+        node.SetSolutionStepValue(POINT_LOAD_Y, 0, Load[1])
+        node.SetSolutionStepValue(POINT_LOAD_Z, 0, Load[2])
 
-def ChangeCondition(model_part, lamda):
+def IncreaseDisplacement(forcing_nodes_list, disp):
+    for node in forcing_nodes_list:
+        node.SetSolutionStepValue(DISPLACEMENT_X, 0, disp[0])
+        node.SetSolutionStepValue(DISPLACEMENT_Y, 0, disp[1])
+        node.SetSolutionStepValue(DISPLACEMENT_Z, 0, disp[2])
+        
+def ChangeCondition(model_part):
     for node in model_part.Nodes:
-        new_load = node.GetSolutionStepValue(POINT_LOAD) * lamda;
+        new_load = node.GetSolutionStepValue(POINT_LOAD) * model_part.ProcessInfo[LAMBDA];
         node.SetSolutionStepValue(POINT_LOAD, 0, new_load)
 
 def AddDofs(model_part, config=None):
@@ -46,7 +57,6 @@ def AddDofs(model_part, config=None):
     print("*********************************************************************** ")
     print("Dofs for the Static Structural Arc Length Solution added correctly")
     print("*********************************************************************** ")
-
 
 class StaticArcLengthStructuralSolver:
     #
@@ -107,8 +117,11 @@ class StaticArcLengthStructuralSolver:
             self.mechanical_convergence_criterion,  self.Ide,  self.max_iteration,  self.factor_delta_lmax,  self.CalculateReactionFlag, self.ReformDofSetAtEachStep,  self.MoveMeshFlag )
     #
     def Solve(self):
+        
         (self.solver).Solve()
-
+        
+        print("LAMBDA: ", self.model_part.ProcessInfo[LAMBDA])
+        ChangeCondition(self.model_part)
     #
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
