@@ -130,9 +130,14 @@ protected:
     /***********************************************************************************/
 
     /**
-    * Methods of line searches
-    * @param 
-    * @return 
+    * Methods of line searches. It set the parameters of the line search
+    * @param MaxLineSearchIterations: Maximum number of line searchs
+    * @param tolls:
+    * @param amp:
+    * @param etmxa:
+    * @param etmna:
+    * @param MoveMeshFlag: Boolean ("flag") that determines if the mesh is moved
+    * @param ApplyLineSearches: Boolean that determines if the line search is applied
     */
     
     void SetParametersLineSearches(
@@ -163,9 +168,16 @@ protected:
     /***********************************************************************************/
 
     /**
-    * 
-    * @param 
-    * @return 
+    * It computes the line searches
+    * @param rmodel_part: Model part of the problem
+    * @param pScheme: The scheme used to solve the problem
+    * @param pBuilderAndSolver: The Builder and Solver used to solve the problem
+    * @param rDofSet: DOF that are set (BC, free or fix)
+    * @param X_old: The previous value of the "variables"
+    * @param Delta_p:
+    * @param mDx: The incremenent of "displacements" (variables of the problem)
+    * @param mb: The RHS of the system
+    * @param mA: The LHS of the system
     */
     
     bool LineSearches(
@@ -214,7 +226,7 @@ protected:
 
                 ils = iteration_number - 1;
                 prodr(ils+1) = (seta/so);
-                std::cout<<"Line_Search_Iteration:"<<iteration_number<<" Reaches Toler = "<<  prodr(ils+1) << "  Required Toler = " << mtolls<<std::endl;
+                std::cout<< "Line_Search_Iteration:" << iteration_number << " Reaches Toler. = " <<  prodr(ils + 1) << "  Required Toler. = " << mtolls<<std::endl;
 
                 if (fabs(prodr(ils+1)) < mtolls)
                 {
@@ -222,16 +234,21 @@ protected:
                 }
                 else
                 {
-                    //Search devuelve lseta(ils+2)
+                    // Search gives lseta(ils+2)
                     SetDatabaseToValue(rDofSet, X_old);
-                    if(mMoveMeshFlag == true) MoveMesh(rmodel_part);
-                    Search(ils,prodr,lseta,ico);
+
+                    if(mMoveMeshFlag == true)
+                    {
+                        MoveMesh(rmodel_part);
+                    }
+
+                    Search(ils, prodr, lseta, ico);
 
                     if (ico==2)
                     {
                         //ilfail = 2;
                         meta = 1.00;
-                        std::cout<<"******Line Search Trouble. No Convergence Was Reached *******"<<std::endl;
+                        std::cout<<"****** Line Search Trouble. No Convergence Was Reached *******"<<std::endl;
                         return false;
                     }
 
@@ -248,7 +265,6 @@ protected:
                     //break;
                 }
 
-
                 iteration_number++;
             }
         }
@@ -261,9 +277,9 @@ protected:
     /***********************************************************************************/
 
     /**
-    *
-    * @param
-    * @return
+    * It set the values in the database in the values that are free
+    * @param rDofSet: DOF that are set (BC, free or fix)
+    * @param X_old: The previous value of the "variables"
     */
 
     void SetDatabaseToValue(
@@ -289,8 +305,8 @@ protected:
 
     /**
     * It allows to write the old displacements in X_old
-    * @param
-    * @return
+    * @param rDofSet: DOF that are set (BC, free or fix)
+    * @param X_old: The previous value of the "variables"
     */
 
     void BackupDatabase(
@@ -314,23 +330,18 @@ protected:
     /***********************************************************************************/
 
     /**
-    *
-    * @param
-    * @return
+    * It realises a local Line-Search to look for the length in the step eta(ils+2)
+    * eta: History of the length of the steps in the iteration of the S-L(eta(1)=0.,eta(2)=1.)
+    * amp: Amplification factor for the load step in case of  extrapolation
+    * etmxa and etmna: mMaximal and minimal step lengths allowed
+    * Obtains ineg=false of the current S-L which is closer to the origin and with a negative prodr.
+    * It looks for the S-L maximal in etmaxp. There is a eta with prodr < 0 and ineg = 999
+    * @param ils
+    * @param prodr: r products
+    * @param lseta:
+    * @param ico: 1 when in the previous iteration etmxa or etmna have been employed, otherwise is 0.
+    * Once ended if etmxa or etmna have been employed the value of ico es 1 if it is the first time, and 2 if it is the second time
     */
-
-//realiza Line-Search local para encontrar la longitud del paso en eta(ils+2)
-//eta: historia de longitudes de pasos en la iteracion de L-S (eta(1)=0.,eta(2)=1.)
-//prodr: productos r
-//amp: factor de amplificacion maximo para el paso de carga en caso de extrapolacion
-//etmxa y etmna: longitudes de pasos maximos y minimos permitidos
-//ico: 1 si en el paso anterior ha sido necesario usar etmxa o etmna, sino es 0
-// al salir ico es 1 si en esta iteracion se ha usado etmxa o etmna y 2 si se han
-//usado por segunda vez.
-
-//obtener ineg=No del S-L actual que este mas cerca del origen y que su prodr sea negativo
-//tambien busca el S-L maximo en etmaxp
-// si no hay existe un eta con prodr<0 ineg=999
 
     void Search(
             unsigned int& ils,
@@ -351,109 +362,114 @@ protected:
         unsigned int ineg  = 999;
         //KRATOS_WATCH(ils);
 
-        for (unsigned int i=0; i<=ils+1; i++)
+        for (unsigned int i = 0; i <= ils+1; i++)
         {
-            if (lseta(i)>etmaxp)
+            if (lseta(i) > etmaxp)
             {
-                etmaxp=lseta(i);
+                etmaxp = lseta(i);
             }
             if (prodr(i) < 0 && lseta(i) <= etaneg)
             {
-                etaneg=lseta(i);
-                ineg=i;
+                etaneg = lseta(i);
+                ineg = i;
             }
         }
 
-        //Decide si interpola o extrapola
-        if (ineg !=999)
+        // It decided if interpole or extrapole
+        if (ineg != 999)
         {
-            //Interpola
-            //entontrar ipos=No del S-L con prodr positivo mas cercano a ineg pero con S-L mas peque�o
+            // Interpole
+            // Find ipos = false of the S-L with prodr positive closer to ineg, but with a smaller S-L
             ipos = 0;
-            for( unsigned int i=0; i<=ils+1; i++)
+            for( unsigned int i = 0; i<=ils+1; i++)
             {
-                if (prodr(i)>=0 && lseta(i)<=lseta(ineg) && lseta(i)>=lseta(ipos))
+                if (prodr(i) >= 0 && lseta(i) <= lseta(ineg) && lseta(i) >= lseta(ipos))
                 {
-                    ipos=i;
+                    ipos = i;
                 }
             }
-            //interpola para encontrar S-L etaint
-            etaint=prodr(ineg)*lseta(ipos)-prodr(ipos)*lseta(ineg);
-            if ((prodr(ineg)-prodr(ipos))==0)
+
+            // It interpoles to find a S-L etaint
+            etaint = prodr(ineg) * lseta(ipos) - prodr(ipos) * lseta(ineg);
+            if ((prodr(ineg)-prodr(ipos)) == 0)
             {
-                ico=2;
-                std::cout<<" Warning: Division By Zero. Line Searches Failed"<<std::endl;
+                ico = 2;
+                std::cout << " Warning: Division By Zero. Line Searches Failed" << std::endl;
                 return;
             }
             else
             {
-                etaint=etaint/(prodr(ineg)-prodr(ipos));
+                etaint = etaint/(prodr(ineg)-prodr(ipos));
             }
-            //alternativamente encuentra etaalt para asegurar un cambio razonable
+
+            // Alternatively finds etaalt fo ensure a feasible change
             etaalt = lseta(ipos) + 0.2*(lseta(ineg)-lseta(ipos));
-            //toma el maximo entre etaint y etaalt
+
+            // It tooks the maximal between etaint and etaalt
             etaint=std::max(etaint,etaalt);
-            //la longitud de paso minimo
-            if (etaint<metmna)
+
+            // Length of the minimal step
+            if (etaint < metmna)
             {
-                etaint=metmna;
-                if (ico==1)
+                etaint = metmna;
+                if (ico == 0)
                 {
-                    ico=2;
-                    std::cout<<"Min Step Length Reached Twice"<<std::endl;
+                    ico = 1;
                 }
-                else if (ico==0)
+                else if (ico == 1)
                 {
-                    ico=1;
+                    ico = 2;
+                    std::cout << "Min Step Length Reached Twice" << std::endl;
                 }
             }
-            lseta(ils+2)=etaint;
+
+            lseta(ils + 2) = etaint;
             meta = lseta(ils+2);
             return;
         }
-
-        else if (ineg==999)
+        else
         {
-
-            //extrapola
-            //asigna temporalmente la longitud de paso maxima
-            etmxt = mamp*etmaxp;
-            if(etmxt>metmxa)
+            // Extrapole
+            // It assigns temporally the length of the maximal step
+            etmxt = mamp * etmaxp;
+            if(etmxt > metmxa)
             {
-                etmxt=metmxa;
+                etmxt = metmxa;
             }
-            //extrapola la longitud de paso entre el actual y el anterior
-            etaext=prodr(ils+1)*lseta(ils)-prodr(ils)*lseta(ils+1);
-            if ((prodr(ils+1)-prodr(ils))==0)
+
+            // Extrapole the length between the current and previous step
+            etaext=prodr(ils + 1) * lseta(ils) - prodr(ils) * lseta(ils + 1);
+            if ((prodr(ils + 1) - prodr(ils)) == 0)
             {
-                ico=2;
-                std::cout<<" Warning: Division By Zero. Line Searches Filed"<<std::endl;
+                ico = 2;
+                std::cout << " Warning: Division By Zero. Line Searches Filed" << std::endl;
                 return;
             }
             else
             {
-                etaext=etaext/(prodr(ils+1)-prodr(ils));
+                etaext = etaext/(prodr(ils + 1) - prodr(ils));
             }
 
-            lseta(ils+2)=etaext;
+            lseta(ils + 2) = etaext;
 
-            //se acepta eta si esta dentro de los limites
-            if (etaext<=0 || etaext> etmxt)
+            // It is accepted that is between the limits
+            if (etaext <= 0 || etaext > etmxt)
             {
-                lseta(ils+2) = etmxt;
-                meta = lseta(ils+2);
+                lseta(ils + 2) = etmxt;
+                meta = lseta(ils + 2);
                 return;
             }
-            if (lseta(ils+2)==metmxa && ico==1)
+            if (lseta(ils + 2) == metmxa && ico == 1)
             {
-                ico=2;
-                std::cout<<"Max Step Length Again"<<std::endl;
+                ico = 2;
+                std::cout << "Max Step Length Again" << std::endl;
                 return;
             }
-            if (lseta(ils+2)==metmxa)
+            if (lseta(ils + 2) == metmxa)
             {
-                ico=1;
+                ico = 1;
             }
+
             return;
         }
 
@@ -479,6 +495,7 @@ protected:
             (i)->Y() = (i)->Y0() + disp[1];
             (i)->Z() = (i)->Z0() + disp[2];
         }
+
         KRATOS_CATCH("");
     }
 
