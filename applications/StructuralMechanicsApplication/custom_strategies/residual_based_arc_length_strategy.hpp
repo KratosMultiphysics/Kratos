@@ -487,13 +487,16 @@ public:
 
                     //TSparseSpace::Copy(mRHS_cond,h);
 
-                    std::cout << " Solution Formulation at Origin " << std::endl;
-                    std::cout << "   Arc length      = " << mdelta_l << std::endl;
-                    std::cout << "   A_o             = " << Ao << std::endl;
-                    std::cout << "   Delta Lamba Old = " << mdelta_lambda_old     << std::endl;
-                    std::cout << "   Delta Lamba     = " << mdelta_lambda << std::endl;
-                    std::cout << "   Eta Factor      = " << meta << std::endl;
-                    //KRATOS_WATCH(mDelta_p)
+                    if (this->GetEchoLevel() == 2)
+                    {
+                        std::cout << " Solution Formulation at Origin " << std::endl;
+                        std::cout << "   Arc length      = " << mdelta_l << std::endl;
+                        std::cout << "   A_o             = " << Ao << std::endl;
+                        std::cout << "   Delta Lamba Old = " << mdelta_lambda_old     << std::endl;
+                        std::cout << "   Delta Lamba     = " << mdelta_lambda << std::endl;
+                        std::cout << "   Eta Factor      = " << meta << std::endl;
+                        std::cout << "   Delta p      = " << mDelta_p << std::endl;
+                     }
 
                     is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
                 }
@@ -512,14 +515,17 @@ public:
                     mdelta_lambda = miu*mdelta_lambda_old;
                     // TSparseSpace::Assign(mDelta_p, 1.00, Sigma_q);
 
-                    std::cout << " Solution Iteration from  Converged Point "    << std::endl;
-                    std::cout << "   Arc length      = " << mdelta_l             << std::endl;
-                    std::cout << "   Lamda Old       = " << mlambda_old          << std::endl;
-                    std::cout << "   A_o             = " << Ao                   << std::endl;
-                    std::cout << "   Delta Lamba Old = " << mdelta_lambda_old    << std::endl;
-                    std::cout << "   Delta Lamba     = " << mdelta_lambda        << std::endl;
-                    std::cout << "   Eta Factor      = " << meta                 << std::endl;
-                    std::cout << "   Miu Factor      = " << miu                  << std::endl;
+                    if (this->GetEchoLevel() == 2)
+                    {
+                        std::cout << " Solution Iteration from  Converged Point "    << std::endl;
+                        std::cout << "   Arc length      = " << mdelta_l             << std::endl;
+                        std::cout << "   Lamda Old       = " << mlambda_old          << std::endl;
+                        std::cout << "   A_o             = " << Ao                   << std::endl;
+                        std::cout << "   Delta Lamba Old = " << mdelta_lambda_old    << std::endl;
+                        std::cout << "   Delta Lamba     = " << mdelta_lambda        << std::endl;
+                        std::cout << "   Eta Factor      = " << meta                 << std::endl;
+                        std::cout << "   Miu Factor      = " << miu                  << std::endl;
+                    }
 
                     TSparseSpace::Copy(mDelta_p, mDx);
 
@@ -544,9 +550,9 @@ public:
 
                 mlambda =  mlambda_old + mdelta_lambda;
 
-//                KRATOS_WATCH(mlambda);
-//                KRATOS_WATCH(mlambda_old);
-//                KRATOS_WATCH(mdelta_lambda);
+                //KRATOS_WATCH(mlambda);
+                //KRATOS_WATCH(mlambda_old);
+                //KRATOS_WATCH(mdelta_lambda);
 
                 //TSparseSpace::Assign(E, mlambda, q);
                 pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
@@ -572,7 +578,10 @@ public:
                 //KRATOS_WATCH(mlambda)
 
                 res        = std::fabs(num/(mlambda* std::sqrt(den)));
-                std::cout << " Convergence reached for e = " << res << "  Required Convergence = " << toler << std::endl;
+                if (this->GetEchoLevel() == 2)
+                {
+                    std::cout << " Convergence reached for e = " << res << "  Required Convergence = " << toler << std::endl;
+                }
 
                 if(res < toler)
                 {
@@ -594,7 +603,10 @@ public:
 
                 num        = std::sqrt(TSparseSpace::Dot(h,h));
                 res        = std::fabs(num/(mlambda * std::sqrt(den)));
-                std::cout << " Convergence reached for h = " << res << "  Required Convergence = " << toler << std::endl;
+                if (this->GetEchoLevel() == 2)
+                {
+                    std::cout << " Convergence reached for h = " << res << "  Required Convergence = " << toler << std::endl;
+                }
 
                 if(res < toler)
                 {
@@ -875,12 +887,16 @@ public:
         if (disc >= 0.00)
         {
             StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a,b,c,x_sol);
+
             TSparseSpace::ScaleAndAdd(x_sol[0],Sigma_q,meta,Sigma_h,Delta_p1); //Delta_p1 = x_sol(0)*Sigma_q + meta*Sigma_h
             TSparseSpace::ScaleAndAdd(x_sol[1],Sigma_q,meta,Sigma_h,Delta_p2); //Delta_p2 = x_sol(1)*Sigma_q + meta*Sigma_h
             
-            std::cout<<" Real roots found " << std::endl;
-            std::cout<<" First Solution  = " << x_sol(0) <<  std::endl;
-            std::cout<<" Second Solution = " << x_sol(1) <<  std::endl;
+            if (this->GetEchoLevel() == 2)
+            {
+                std::cout<<" Real roots found " << std::endl;
+                std::cout<<" First Solution  = " << x_sol(0) <<  std::endl;
+                std::cout<<" Second Solution = " << x_sol(1) <<  std::endl;
+            }
 	    
             // Choose the x value: the larges dot product
             // WARNING: The old code use the current incremental displacement
@@ -914,25 +930,34 @@ public:
 	    
             mdelta_lambda += - g + x;
 	    
-            std::cout << " Solution Chosen = " << x <<  std::endl;
-            std::cout << " New DeltaLamda  = " << mdelta_lambda <<  std::endl;
+            if (this->GetEchoLevel() == 2)
+            {
+                std::cout << " Solution Chosen = " << x <<  std::endl;
+                std::cout << " New DeltaLamda  = " << mdelta_lambda <<  std::endl;
+            }
         }
         else
         {
-            std::cout << "Warning: No real roots was found " << std::endl;
+            std::cout << "WARNING: No real roots was found " << std::endl;
             std::cout << "Introductiong a pseudo-line search to avoid complex roots " << std::endl;
-            std::cout << "Calculating eta" << std::endl;
-            Calculate_eta(Ao, pSigma_q, pSigma_h, g, imag);
+            if (this->GetEchoLevel() == 2)
+            {
+                std::cout << "Calculating eta" << std::endl;
+                Calculate_eta(Ao, pSigma_q, pSigma_h, g, imag);
+            }
 
             if (imag==false)
             {
-                std::cout << " eta was found with value = " << meta << std::endl;
-                std::cout << " Calling again the Recursive Function " << std::endl;
+                if (this->GetEchoLevel() == 2)
+                {
+                    std::cout << " eta was found with value = " << meta << std::endl;
+                    std::cout << " Calling again the Recursive Function " << std::endl;
+                }
                 Recursive_Function_Arc_Length(pq, pSigma_q, pSigma_h, pdx_aux, g, Ao);
             }
             else
             {
-                std::cout << "Warning: No real roots was found. Avoid " << std::endl;
+                std::cout << "WARNING: No real roots was found. Avoid " << std::endl;
                 TSystemVectorPointerType pDelta_pcr;
                 InitializeAuxVectors(pDelta_pcr);
                 TSystemVectorType& Delta_pcr = *pDelta_pcr;
@@ -966,13 +991,16 @@ public:
                 mdelta_lambda     = miu * delta_lambda_cr;
                 mdelta_l          = delta_lcr;
 	    
-                std::cout << "   Arc Length      = " << mdelta_l             << std::endl;
-                std::cout << "   Lamba Old       = " << mlambda_old          << std::endl;
-                std::cout << "   Delta Lamba     = " << mdelta_lambda        << std::endl;
-                std::cout << "   Lamda_cr        = " << lambda_cr            << std::endl;
-                std::cout << "   Delta_Lamda_cr  = " << delta_lambda_cr      << std::endl;
-                std::cout << "   Miu Factor      = " << miu                  << std::endl;
-                std::cout << "   Eta             = " << meta                 << std::endl;
+                if (this->GetEchoLevel() == 2)
+                {
+                    std::cout << "   Arc Length      = " << mdelta_l             << std::endl;
+                    std::cout << "   Lamba Old       = " << mlambda_old          << std::endl;
+                    std::cout << "   Delta Lamba     = " << mdelta_lambda        << std::endl;
+                    std::cout << "   Lamda_cr        = " << lambda_cr            << std::endl;
+                    std::cout << "   Delta_Lamda_cr  = " << delta_lambda_cr      << std::endl;
+                    std::cout << "   Miu Factor      = " << miu                  << std::endl;
+                    std::cout << "   Eta             = " << meta                 << std::endl;
+                }
 
                 //TSparseSpace::SetToZero(mDx);
                 //TSparseSpace::Copy(mDelta_p, mDx);
