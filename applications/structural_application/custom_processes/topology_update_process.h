@@ -100,9 +100,9 @@ class TopologyUpdateProcess : public Process
 public:
     ///@name Type Definitions
     ///@{
-    typedef typename Element::GeometryType GeometryType;
-    typedef typename GeometryType::PointType NodeType;
-    typedef typename GeometryType::PointType::PointType PointType;
+    typedef Element::GeometryType GeometryType;
+    typedef GeometryType::PointType NodeType;
+    typedef GeometryType::PointType::PointType PointType;
     typedef ModelPart::ElementsContainerType ElementsContainerType;
 
     /// Pointer definition of TopologyUpdateProcess
@@ -115,7 +115,7 @@ public:
     /// Default constructor.
     /// This constructor will take all elements of the model_part for topology optimization
     TopologyUpdateProcess(ModelPart& r_model_part, double volfrac, double rmin, int ft)
-    : mr_model_part(r_model_part), mvolfrac(volfrac), mrmin(rmin), mft(ft), mbinsize(100)
+    : mr_model_part(r_model_part), mvolfrac(volfrac), mrmin(rmin), mft(ft), mbinsize(100), mtotal_volume(0.0)
     {
         mrElements = r_model_part.Elements();
     }
@@ -145,76 +145,17 @@ public:
         mbinsize = size;
     }
 
+    std::size_t GetBinSize() const
+    {
+        return mbinsize;
+    }
+
     virtual void Execute()
     {
     }
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-//    virtual void ExecuteInitialize()
-//    {
-//        std::cout << "At TopologyUpdateProcess::" << __FUNCTION__ << std::endl;
-//        //TODO improve the neighbour seach process (use Bounding volume tree or spatial search)
-////        KRATOS_WATCH(mvolfrac)
-////        KRATOS_WATCH(mrmin)
-////        KRATOS_WATCH(mft)
-
-//        /* find the neighbour elements and initilize filter structure */
-//        // firstly compute the center of all elements and store it to list
-//        std::map<std::size_t, PointType> Centers;
-//        for(ElementsContainerType::iterator i_element = mrElements.begin(); i_element != mrElements.end(); ++i_element)
-//        {
-//            Centers[i_element->Id()] = i_element->GetGeometry().Center();
-//        }
-
-//        // loop through each center and find out the closest distance
-//        for(std::map<std::size_t, PointType>::iterator it = Centers.begin(); it != Centers.end(); ++it)
-//        {
-//            PointType& ThisCenter = it->second;
-//            std::vector<std::size_t> elemset;
-//            std::vector<double> distances;
-
-//            for(std::map<std::size_t, PointType>::iterator it2 = Centers.begin(); it2 != Centers.end(); ++it2)
-//            {
-//                PointType& Center = it2->second;
-//                double dist = norm_2(Center - ThisCenter);
-//                if(dist < mrmin)
-//                {
-//                    elemset.push_back(it2->first);
-//                    distances.push_back(dist);
-//                }
-//            }
-
-//            if(elemset.size() > 0)
-//            {
-//                mrElements[it->first].GetValue(NEIGHBOUR_ELEMENTS).reserve(elemset.size());
-//                for(std::size_t i = 0; i < elemset.size(); ++i)
-//                {
-//                    Element::WeakPointer temp = mr_model_part.pGetElement(elemset[i]);
-//                    AddUniqueWeakPointer(mrElements[it->first].GetValue(NEIGHBOUR_ELEMENTS), temp);
-//                }
-
-//                Vector weights(distances.size());
-//                for(std::size_t i = 0; i < distances.size(); ++i)
-//                    weights(i) = mrmin - distances[i];
-//                mrElements[it->first].GetValue(NEIGHBOUR_WEIGHTS) = weights;
-////                KRATOS_WATCH(weights)
-//            }
-//        }
-
-//        /* Initialize the material density and young modulus for each element */
-//        for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
-//        {
-//            i_element->SetValue(MATERIAL_DENSITY, mvolfrac);
-//            i_element->SetValue(MATERIAL_DENSITY_FILTERED, mvolfrac);
-
-//            const GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
-//            double young = GetModulus(i_element->GetProperties(), i_element->GetValue(MATERIAL_DENSITY_FILTERED));
-//            std::vector<double> Modulus(integration_points.size(), young);
-//            i_element->SetValueOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
-//        }
-//    }
-
     virtual void ExecuteInitialize()
     {
         std::cout << "At TopologyUpdateProcess::" << __FUNCTION__ << std::endl;
@@ -268,7 +209,7 @@ public:
         }
 
         /* Initialize the material density and young modulus for each element */
-        for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+        for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
         {
             i_element->SetValue(MATERIAL_DENSITY, mvolfrac);
             i_element->SetValue(MATERIAL_DENSITY_FILTERED, mvolfrac);
@@ -278,6 +219,12 @@ public:
             std::vector<double> Modulus(integration_points.size(), young);
             i_element->SetValueOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
         }
+
+        /* Compute the total volume of the system */
+        mtotal_volume = 0.0;
+        for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+            mtotal_volume += i_element->GetValue(GEOMETRICAL_DOMAIN_SIZE);
+        mtotal_volume = this->SumAll(mtotal_volume);
 
         double stop = OpenMPUtils::GetCurrentTime();
         std::cout << "TopologyUpdateProcess::" << __FUNCTION__ << " completed: " << (stop - start) << std::endl;
@@ -294,7 +241,7 @@ public:
         std::cout << "At TopologyUpdateProcess::" << __FUNCTION__ << std::endl;
         /*** OBJECTIVE FUNCTION AND SENSITIVITY ANALYSIS ***/
         double Compliance = 0.0;
-        for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+        for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
         {
             // get the integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
@@ -333,11 +280,14 @@ public:
         mobjective = Compliance;
 //        KRATOS_WATCH(Compliance)
 
+        // synchronize ELEMENT_DC and ELEMENT_DV
+        this->Synchronize();
+
         /*** FILTERING/MODIFICATION OF SENSITIVITIES ***/
         if(mft == 1)
         {
             double tol = 1.0e-3; // TODO parameterize this
-            for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+            for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
             {
                 double coeff = std::max(tol, i_element->GetValue(MATERIAL_DENSITY));
 		        double nom = 0.0, denom = 0.0;
@@ -356,7 +306,7 @@ public:
         }
         else if(mft == 2)
         {
-            for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+            for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
             {
                 double nom = 0.0, denom = 0.0;
                 WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
@@ -380,6 +330,9 @@ public:
         else
             KRATOS_THROW_ERROR(std::logic_error, "Invalid type of filter:", mft)
 
+        // synchronize ELEMENT_DC_FILTERED and ELEMENT_DV_FILTERED
+        this->Synchronize();
+
         /*** OPTIMALITY CRITERIA UPDATE OF DESIGN VARIABLES AND PHYSICAL DENSITIES ***/
         double l1 = 0.0;
         double l2 = 1.0e9;
@@ -393,7 +346,7 @@ public:
             lmid = 0.5 * (l1 + l2);
 
             // for each element, compute xnew
-            for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+            for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
             {
                 double x = i_element->GetValue(MATERIAL_DENSITY);
                 double dc = i_element->GetValue(ELEMENT_DC_FILTERED);
@@ -402,15 +355,18 @@ public:
                 i_element->SetValue(MATERIAL_DENSITY_NEW, xnew);
             }
 
+            // synchronize MATERIAL_DENSITY_NEW
+            this->Synchronize();
+
             // for each element, filter the density
             if(mft == 1)
             {
-                for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+                for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
                     i_element->SetValue(MATERIAL_DENSITY_FILTERED, i_element->GetValue(MATERIAL_DENSITY_NEW));
             }
             else if(mft == 2)
             {
-                for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+                for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
                 {
                     WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
                     const Vector& weights = i_element->GetValue(NEIGHBOUR_WEIGHTS);
@@ -424,18 +380,19 @@ public:
                 }
             }
 
+            // synchronize MATERIAL_DENSITY_FILTERED
+            this->Synchronize();
+
             // update the bisection
             double total_density_volume = 0.0;
-            for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+            for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
             {
                 total_density_volume += i_element->GetValue(MATERIAL_DENSITY_FILTERED) * i_element->GetValue(GEOMETRICAL_DOMAIN_SIZE);
 //                total_density_volume += i_element->GetValue(MATERIAL_DENSITY_FILTERED);
 //                KRATOS_WATCH(i_element->GetValue(GEOMETRICAL_DOMAIN_SIZE))
             }
-            double total_volume = 0.0;
-            for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
-                total_volume += i_element->GetValue(GEOMETRICAL_DOMAIN_SIZE);
-            if(total_density_volume > mvolfrac * total_volume)
+            total_density_volume = this->SumAll(total_density_volume);
+            if(total_density_volume > mvolfrac * mtotal_volume)
             {
                 l1 = lmid;
             }
@@ -455,21 +412,22 @@ public:
 
         // compute the change in total density
         mchange = 0.0;
-        for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+        for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
         {
             double aux = fabs(i_element->GetValue(MATERIAL_DENSITY_NEW) - i_element->GetValue(MATERIAL_DENSITY));
             if(mchange < aux)
                 mchange = aux;
         }
+        mchange = this->MaxAll(mchange);
 
         // update the material density
-        for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+        for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
         {
             i_element->SetValue(MATERIAL_DENSITY, i_element->GetValue(MATERIAL_DENSITY_NEW));
         }
 
         // update the element YOUNG_MODULUS
-        for(typename ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+        for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
         {
             const GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
             double young = GetModulus(i_element->GetProperties(), i_element->GetValue(MATERIAL_DENSITY_FILTERED));
@@ -495,6 +453,23 @@ public:
 
     double GetTopologyChange() const {return mchange;}
     double GetObjective() const {return mobjective;}
+
+    /// Reduce-Sum over all processes
+    virtual double SumAll(double value) const
+    {
+        return value;
+    }
+
+    /// Reduce-Max over all processes
+    virtual double MaxAll(double value) const
+    {
+        return value;
+    }
+
+    /// Synchronize the elemental data across processes
+    virtual void Synchronize()
+    {
+    }
 
     ///@}
     ///@name Access
@@ -544,6 +519,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    ModelPart& mr_model_part;
+    ElementsContainerType mrElements;
+    double mvolfrac;    // volume fraction
+    double mrmin;       // radius for neighbour search
+    int mft;            // filter type: 1: sensitivity filter, 2: density filter
 
     ///@}
     ///@name Protected Operators
@@ -581,13 +561,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
-    ElementsContainerType mrElements;
-    double mvolfrac;    // volume fraction
-    double mrmin;       // radius for neighbour search
     double mchange;     // convergence criteria
     double mobjective;  // value of objective function
-    int mft;            // filter type: 1: sensitivity filter, 2: density filter
+    double mtotal_volume;   // total volume of the domain
     std::size_t mbinsize; // for neighbour search using Bin
 
     ///@}
