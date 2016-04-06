@@ -566,8 +566,8 @@ public:
 		  std::cout<<"   Eta Factor      = "<< meta << std::endl;  
 		  //KRATOS_WATCH(mDelta_p)
 		  
-		  is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
-		  
+//		  is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
+          is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
 	      }
                  
               else if(iteration_number==1 && mstep!=1)   
@@ -612,8 +612,8 @@ public:
 		   //KRATOS_WATCH(mDelta_p[4517])
 		   //KRATOS_WATCH(mDelta_p[4588])
 		   //KRATOS_WATCH(mDelta_p[4589])
-		   is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
-		   
+
+           is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
 		  }
 		  
 		  else
