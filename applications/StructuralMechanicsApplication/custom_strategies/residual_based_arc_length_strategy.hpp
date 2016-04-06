@@ -91,8 +91,8 @@ public:
             typename TSchemeType::Pointer pScheme,
             typename TLinearSolver::Pointer pNewLinearSolver,
             typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-            unsigned  int Ide,
-            unsigned  int MaxIterations,
+            unsigned int Ide,
+            unsigned int MaxIterations,
             double factor_delta_lmax,
             bool CalculateReactions     = true,
             bool ReformDofSetAtEachStep = true,
@@ -585,7 +585,7 @@ public:
 
                 if(res < toler)
                 {
-                    local_converged_e= true;
+                    local_converged_e = true;
                 }
 
                 // Convergence for h
@@ -620,7 +620,7 @@ public:
 
                 // Compute the truth criteria of convergence
                 local_converged = bool(local_converged_e || local_converged_h);
-    //            local_converged = true;
+                //local_converged = true;
                 is_converged    = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, e);
                 is_converged    = bool((is_converged==true || local_converged==true) && iteration_number >= 5);
 
