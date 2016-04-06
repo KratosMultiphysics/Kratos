@@ -4,11 +4,14 @@
     <container n="Domains" pn="Domains" help="" open="1">
         <container n="Solids2D" pn="Solids" help="Solid Domains" open="0" state="[checkStateByUniqueName PFEM_dimensions 2D PFEM_dimensions 2Da]">
             <condition n="Rigid" pn="Rigid" ov="surface" ovm="Triangle,Quadrilateral" help="" open="0">  
-                <value n="Fixed" pn="Fixed Solid" un="PFEM_fixed_solid" values="Yes,No">
+                <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No">
                     <dependencies node="../value" actualize="1"/>
                 </value>
-                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
-                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+                <value n="Velocity" pn="Velocity" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
+                <value n="Mass" pn="Mass" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="Inertia" pn="Inertia" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>               
+                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
             </condition>
             <condition n="Deformable" pn="Deformable" ov="surface" ovm="Triangle,Quadrilateral" help="" open="0">
                 <value n="Element" pn="Element" values="A,B"/>
@@ -26,12 +29,20 @@
         </container>
         <container n="Solids3D" pn="Solids" help="" open="0" state="[checkStateByUniqueName PFEM_dimensions 3D]" >
             <condition n="Rigid" pn="Rigid" ov="volume" ovm="Tetrahedra,Hexahedra" help="" open="0">  
-                <value n="Fixed" pn="Fixed Solid" un="PFEM_fixed_solid" v="No" values="Yes,No" >
+                <value n="ImposedMotion" pn="Imposed Motion" un="PFEM_fixed_solid" v="Yes" values="Yes,No" >
                     <dependencies node="../value" actualize="1"/>
                 </value>
-                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
-                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
-                <value n="CenterOfGravityZ" pn="center of gravity Z" v="0.0" state="[getStateFromXPathValue {string(../value[@n='Fixed']/@v)} Yes]"/>
+                <value n="Velocity" pn="Velocity" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
+                <value n="Mass" pn="Mass" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="CenterOfGravityZ" pn="center of gravity Z" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="PrincipalAxisOfInertia1" pn="Principal Axis Of Inertia 1" v="1.0 0.0 0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="PrincipalMomentOfInertia1" pn="Principal Moment Of Inertia 1" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="PrincipalAxisOfInertia2" pn="Principal Axis Of Inertia 2" v="0.0 1.0 0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="PrincipalMomentOfInertia2" pn="Principal Moment Of Inertia 2" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="PrincipalAxisOfInertia3" pn="Principal Axis Of Inertia 3" v="0.0 0.0 1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
+                <value n="PrincipalMomentOfInertia3" pn="Principal Moment Of Inertia 3" v="1.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
             </condition>
             <condition n="Deformable" pn="Deformable"  ov="volume" ovm="Tetrahedra,Hexahedra" help="" open="0">
                 <value n="Element" pn="Element" values="A,B"/>
@@ -70,63 +81,70 @@
     <include n="Materials" active="1" path="apps/Pfem/xml/Materials.spd"/> 
     
     <container n="Loads" pn="Loads" help="Loads" open="0" icon="loads.gif">
-        <container n="VolumeAcceleration" pn="Self weight" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
-        <container n="Forces" pn="Forces" help="External Load" open="0" icon="groupsTreeNew.gif">
-            <condition n="PointLoad2D" pn="Point Load" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
-            </condition>
-            <condition n="PointLoad3D" pn="Point Load" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
-                <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F" units="N" help=""/>  
-            </condition>
-            <condition n="AxisymPointLoad" pn="Point Load" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
-            </condition>
-            <condition n="LineLoad3D" pn="Line Load" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="Enter the three components of the force per unit length">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
-                <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
-            </condition>
-            <condition n="LineLoad2D" pn="Line Load" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="Enter the three components of the force per unit length">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
-            </condition>
-            <condition n="AxisymLineLoad" pn="Line Load" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-            </condition>
-            <condition n="SurfaceLoad2D" pn="Surface Force" ov="surface" ovm="face_element" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-            </condition>
-            <condition n="SurfaceLoad3D" pn="Surface Force" ov="surface" ovm="face_element" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="">
-                <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-                <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-                <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
-            </condition>
-        </container>
-
-        <container n="Pressure" pn="Pressure Load" class="SameTemplateGroups" help="Pressure Load" open="0" icon="groupsTreeNew.gif">
-            <condition n="LinePressureLoad" pn="Over Lines" ov="line" ovm="node,linear" icon="groupsTreeNew.gif" help="">
-                <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
-                <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
-                <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
-            </condition>
-            <condition n="AxisymLinePressureLoad" pn="Over Axisym Lines" ov="line" ovm="node,linear" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
-                <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
-                <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
-                <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
-            </condition> 
-            <condition n="SurfacePressureLoad3D" pn="Over Surfaces" ov="surface" ovm="face_element" help="Define Surface Load" open="0">
-                <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
-                <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
-                <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
-            </condition>
-        </container>
-        <value n="IncrementalLoad" pn="Incremental" soluType="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" v="No" ivalues="Yes,No" values="Yes,No" help="Incremental Loads"/>            
+        <condition n="VolumeAcceleration2D" pn="Self weight" ov="surface" ovm="Triangle,Quadrilateral" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="Gravity (Body Force)">
+            <value n="GravityX" pn="Gravity X" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+            <value n="GravityY" pn="Gravity Y" v="-9.81" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+        </condition>
+        <condition n="VolumeAcceleration2Da" pn="Self weight" ov="surface" ovm="Triangle,Quadrilateral" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="Gravity (Body Force)">
+            <value n="GravityX" pn="Gravity X" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+            <value n="GravityY" pn="Gravity Y" v="-9.81" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+        </condition>
+        <condition n="VolumeAcceleration3D" pn="Self weight" ov="volume" ovm="Tetrahedra,Hexahedra" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="Gravity (Body Force)">
+            <value n="GravityX" pn="Gravity X" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+            <value n="GravityY" pn="Gravity Y" v="0.0" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+            <value n="GravityZ" pn="Gravity Z" v="-9.81" unit_magnitude="L/T^2" units="m/s^2" help=""/>  
+        </condition>
+        <condition n="PointLoad2D" pn="Force on a point" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
+        </condition>
+         <condition n="PointLoad2Da" pn="Force on a point" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
+        </condition>  
+        <condition n="PointLoad3D" pn="Force on a point" ov="point" ovm="node" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F" units="N" help=""/>  
+            <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F" units="N" help=""/>  
+        </condition>             
+        <condition n="LineLoad2D" pn="Force on a line" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="Enter the three components of the force per unit length">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+        </condition>
+        <condition n="LineLoad2Da" pn="Force on a line" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+        </condition>
+        <condition n="LineLoad3D" pn="Force on a line" ov="line" ovm="node,linear" icon="constraints" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="Enter the three components of the force per unit length">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+            <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L" units="N/m" help=""/>  
+        </condition>
+        <condition n="SurfaceLoad2D" pn="Force on a surface" ov="surface" ovm="Triangle,Quadrilateral" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+        </condition>
+        <condition n="SurfaceLoad3D" pn="Force on a surface" ov="surface" ovm="Triangle,Quadrilateral" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 3D]" help="">
+            <value n="ForceX" pn="Force X" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            <value n="ForceY" pn="Force Y" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+            <value n="ForceZ" pn="Force Z" v="0.0" unit_magnitude="F/L^2" units="N/m^2" help=""/>  
+        </condition>
+        <condition n="LinePressureLoad2D" pn="Pressure on a line" ov="line" ovm="node,linear" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2D]" help="">
+            <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
+            <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
+            <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
+        </condition>
+        <condition n="LinePressureLoad2Da" pn="Pressure on a line" ov="line" ovm="node,linear" icon="groupsTreeNew.gif" state="[checkStateByUniqueName PFEM_dimensions 2Da]" help="">
+            <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
+            <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
+            <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
+        </condition> 
+        <condition n="SurfacePressureLoad3D" pn="Pressure on a surface" ov="surface" ovm="face_element" help="Define Surface Load" open="0">
+            <value n="FixPressure" pn="Fix pressure" v="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
+            <value n="PressureType" pn="Face type" v="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
+            <value n="PressureValue" pn="Pressure value" v="0.0" help="Pressure value"/>
+        </condition>
+        <value n="IncrementalLoad" pn="Incremental Loads" soluType="Quasi-Static,Dynamic-Implicit,Dynamic-Explicit" v="No" ivalues="Yes,No" values="Yes,No" help="Incremental Loads"/>            
     </container>
 
     <container n="Conditions" pn="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
