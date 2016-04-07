@@ -1,20 +1,20 @@
 //
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
-//    . \  |   (   | |   (   |\__ `  
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "python/add_utilities_to_python.h"
-#include "utilities/variable_utils.h" 
+#include "utilities/variable_utils.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
@@ -59,7 +59,7 @@ namespace Kratos
             public:
                 PythonGenericFunctionUtility( Variable<double>& rVariable, ModelPart::NodesContainerType& rNodes, PyObject* obj): mrVariable(rVariable), mrNodes(rNodes), mpy_obj(obj)
                 {}
-                
+
                 void ApplyFunction(const double t)
                 {
                     //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
@@ -70,21 +70,21 @@ namespace Kratos
                         i->FastGetSolutionStepValue(mrVariable) = value;
                     }
                 }
-            
 
-            
+
+
             private:
                 Variable<double> mrVariable;
                 ModelPart::NodesContainerType& mrNodes;
                 PyObject* mpy_obj;
-                
-                
+
+
                 double CallFunction(const double x, const double y, const double z, const double t)
                 {
                     return boost::python::call_method<double>(mpy_obj, "f", x,y,z,t);
                 }
         };
-        
+
         void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
 {
     if( !KratosComponents< Element >::Has( ElementName ) )
@@ -101,11 +101,11 @@ namespace Kratos
         void AddUtilitiesToPython()
         {
             using namespace boost::python;
-            
+
             class_<PythonGenericFunctionUtility>("PythonGenericFunctionUtility", init<Variable<double>& , ModelPart::NodesContainerType& , PyObject*>() )
                 .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunction)
                 ;
-        
+
 
 	    class_<DeflationUtils>("DeflationUtils", init<>())
 		.def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
@@ -143,14 +143,14 @@ namespace Kratos
             CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;
             CalcOnSimplexWithDoubleVarType CalcOnSimplexWithDoubleVar = &NormalCalculationUtils::CalculateOnSimplex;
             CalcOnSimplexWithIntVarType CalcOnSimplexWithIntVar = &NormalCalculationUtils::CalculateOnSimplex;
-             CalcOnSimplexWithDoubleVarAlphaType CalcOnSimplexWithDoubleVarAlpha = &NormalCalculationUtils::CalculateOnSimplex;	    
+             CalcOnSimplexWithDoubleVarAlphaType CalcOnSimplexWithDoubleVarAlpha = &NormalCalculationUtils::CalculateOnSimplex;
 
             class_<NormalCalculationUtils > ("NormalCalculationUtils", init<>())
                     .def("CalculateOnSimplex", CalcOnSimplex_Cond)
                     .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
                     .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
                     .def("CalculateOnSimplex", CalcOnSimplexWithIntVar)
-                    .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)   
+                    .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)
                     .def("SwapNormals", &NormalCalculationUtils::SwapNormals)
 //                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
                     ;
@@ -189,6 +189,7 @@ namespace Kratos
                     ;
 
             class_<PointLocation > ("PointLocation", init<ModelPart& >())
+                    .def("Find", &PointLocation::Find)
                     .def("Find2D", &PointLocation::Find2D)
                     .def("Find3D", &PointLocation::Find3D)
                     .def("found", &PointLocation::found)
@@ -206,10 +207,10 @@ namespace Kratos
             class_<ParticleConvectUtily<3> > ("ParticleConvectUtily3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
                     .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
                     .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
-                    ;                    
-                    
+                    ;
 
-                    
+
+
            class_<IsosurfacePrinterApplication, boost::noncopyable >
                     ("IsosurfacePrinterApplication",
                      init<ModelPart& >() )
@@ -293,15 +294,15 @@ namespace Kratos
                     .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
                     .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
                     ;
-                    
+
             class_< ActivationUtilities > ("ActivationUtilities", init< >())
                     .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
                     ;
 
             class_< GeometryTesterUtility, boost::noncopyable> ("GeometryTesterUtility", init< >())
                     .def("RunTest", &GeometryTesterUtility::RunTest)
-                    ;    
-                    
+                    ;
+
             class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
                     .def("GenerateModelPart", GenerateModelPart)
     ;
@@ -310,4 +311,3 @@ namespace Kratos
     } // namespace Python.
 
 } // Namespace Kratos
-
