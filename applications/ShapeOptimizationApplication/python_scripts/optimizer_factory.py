@@ -62,7 +62,7 @@ from gid_output import GiDOutput
 
 # Further necessary imports
 import csv
-import numpy as np
+import math
 import time
 
 # ==============================================================================
@@ -657,7 +657,7 @@ class VertexMorphingMethod:
             sens_i[2] = objective_grads[node_Id][2]           
             self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
             eucledian_norm_obj_sens += sens_i[0] * sens_i[0] + sens_i[1] * sens_i[1] + sens_i[2] * sens_i[2]
-        eucledian_norm_obj_sens = np.sqrt(eucledian_norm_obj_sens) 
+        eucledian_norm_obj_sens = math.sqrt(eucledian_norm_obj_sens) 
 
         # When constraint_grads is defined also store constraint sensitivities (bool returns false if dictionary is empty)
         if(bool(constraint_grads)):
@@ -669,7 +669,7 @@ class VertexMorphingMethod:
                 sens_i[2] = constraint_grads[node_Id][2]           
                 self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)
                 eucledian_norm_cons_sens += sens_i[0] * sens_i[0] + sens_i[1] * sens_i[1] + sens_i[2] * sens_i[2]
-            eucledian_norm_cons_sens = np.sqrt(eucledian_norm_cons_sens)                  
+            eucledian_norm_cons_sens = math.sqrt(eucledian_norm_cons_sens)                  
 
     # --------------------------------------------------------------------------
     def get_design(self):
@@ -687,7 +687,7 @@ class VertexMorphingMethod:
 
         elif(self.config.design_output_mode=="absolute"):
             for node in self.opt_model_part.Nodes:
-                X[node.Id] = np.array([node.X,node.Y,node.Z])
+                X[node.Id] = [node.X,node.Y,node.Z]
 
         else:
             sys.exit("Wrong definition of design_output_mode!")
