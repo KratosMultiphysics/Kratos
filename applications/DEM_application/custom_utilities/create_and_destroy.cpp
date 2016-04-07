@@ -451,8 +451,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         double radius = (*r_params)[RADIUS];
         double max_radius = 1.5 * radius;
-        array_1d<double, 3> euler_angles;
-        double search_tolerance = 0.02 * radius;
+        array_1d<double, 3> euler_angles;        
         
         double std_deviation = (*r_params)[STANDARD_DEVIATION];
         std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
@@ -506,6 +505,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         else { 
             p_cluster->GetGeometry()[0].Set(TO_ERASE); //We do not add the cluster to the modelpart (will be erased at the end of this function) and we mark the central node for erasing (none are needed)
             p_cluster->SetContinuumGroupToBreakableClusterSpheres(r_Elem_Id);
+            double search_tolerance = 0.02 * radius;
             p_cluster->SetInitialNeighbours(search_tolerance);
             p_cluster->CreateContinuumConstitutiveLaws();
             p_cluster->SetInitialConditionsToSpheres((*r_params)[VELOCITY]);            
