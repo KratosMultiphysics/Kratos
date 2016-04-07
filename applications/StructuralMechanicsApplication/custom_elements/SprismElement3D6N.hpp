@@ -105,7 +105,7 @@ protected:
             Vector C ; // The Cauchy tensor components
             double detJ; // Volume variation, sqrt(det(C))
 
-            // Standar prism shape functions
+            // Standard prism shape functions
             Vector  N;
             Matrix  DN_DX;
 
@@ -124,7 +124,6 @@ protected:
             {
                 pDN_De=&rDN_De;
             }
-
 
             /**
              * Returns the value of a specified pointer variable
@@ -1160,9 +1159,13 @@ protected:
     /**
      * Calculation and addition of the matrices of the LHS
      * @return rLeftHandSideMatrix: LHS of the system
+     * @param rVariables: The internal variables in the element
      */
 
-    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix);
+    virtual void CalculateAndAddDynamicLHS(
+            MatrixType& rLeftHandSideMatrix,
+            GeneralVariables& rVariables
+            );
 
     /**
      * Calculation and addition of the vectors of the RHS
