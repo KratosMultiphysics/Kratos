@@ -23,7 +23,7 @@ proc Fluid::write::writeParametersEvent { } {
     set outputConfigDict [dict create]
     dict set outputConfigDict output_file_name "[file tail [GiD_Info Project ModelName]].out"
     
-    dict set GiDPostDict [dict create]
+    set GiDPostDict [dict create]
     dict set GiDPostDict GiDPostMode [write::getValue FLResults GiDPostMode]
     dict set GiDPostDict MultiFileFlag [write::getValue FLResults GiDMultiFileFlag]
     dict set GiDPostDict WriteMeshFlag True
