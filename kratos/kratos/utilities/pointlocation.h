@@ -128,6 +128,51 @@ public:
     }
 
 
+    int Find( const Vector &rThisPoint, Vector &rAreaCoordinates)
+    {
+        KRATOS_TRY;
+
+        int ElemId;
+
+        // Determine spatial dimension from the Geometry
+        Geometry< Node<3> > &rGeom = m_model_part.ElementsBegin()->GetGeometry();
+        if ( rGeom.GetGeometryFamily() == GeometryData::Kratos_Triangle && rGeom.WorkingSpaceDimension() == 2 )
+        {
+            if (rThisPoint.size() >= 2)
+            {
+                rAreaCoordinates.resize(3);
+                rAreaCoordinates = ZeroVector(3);
+                ElemId = this->Find2D(rThisPoint[0],rThisPoint[1],rAreaCoordinates);
+            }
+            else
+            {
+                KRATOS_THROW_ERROR(std::invalid_argument,"PointLocaltion::Find() input error: Could not extract x,y cooridinates from input rThisPoint.", "");
+            }
+        }
+        else if ( rGeom.GetGeometryFamily() == GeometryData::Kratos_Tetrahedra && rGeom.WorkingSpaceDimension() == 3 )
+        {
+            if (rThisPoint.size() > 2)
+            {
+                rAreaCoordinates.resize(4);
+                rAreaCoordinates = ZeroVector(4);
+                ElemId = this->Find3D(rThisPoint[0],rThisPoint[1],rThisPoint[2],rAreaCoordinates);
+            }
+            else
+            {
+                KRATOS_THROW_ERROR(std::invalid_argument,"PointLocaltion::Find() input error: Could not extract x,y,z cooridinates from input rThisPoint.", "");
+            }
+        }
+        else
+        {
+            KRATOS_THROW_ERROR(std::invalid_argument,"PointLocaltion::Find() called using an unsupported geometry (works for triangles in 2D or tetrahedra in 3D).", "");
+        }
+
+        return ElemId;
+
+        KRATOS_CATCH("");
+    }
+
+
     /// MAIN Function to be called from python, the others below are subroutines. 2D version
     int Find2D( double mxpoint, double mypoint, Vector& Avector)   //note that except mxpoint and mypoint all variables are passed by reference  ( & ). this way we'll be able to modify their values and return data
     {
@@ -644,6 +689,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_LOCATION_INCLUDED  defined 
-
-
+#endif // KRATOS_POINT_LOCATION_INCLUDED  defined
