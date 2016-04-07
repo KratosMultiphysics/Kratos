@@ -1483,6 +1483,9 @@ double SphericParticle::GetLnOfRestitCoeff()                                    
 double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                   }
 int    SphericParticle::GetParticleMaterial()                                            { return GetFastProperties()->GetParticleMaterial();          }
 double SphericParticle::GetParticleCohesion()                                            { return GetFastProperties()->GetParticleCohesion();          }
+double SphericParticle::GetParticleKNormal()                                             { return GetFastProperties()->GetParticleKNormal();           }
+double SphericParticle::GetParticleKTangential()                                         { return GetFastProperties()->GetParticleKTangential();       }
+
 array_1d<double, 3>& SphericParticle::GetForce()                                         { return GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);}
 
 void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                             }
@@ -1494,6 +1497,8 @@ void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_co
 void   SphericParticle::SetDensityFromProperties(double* density)                        { GetFastProperties()->SetDensityFromProperties( density);                         }
 void   SphericParticle::SetParticleMaterialFromProperties(int* particle_material)        { GetFastProperties()->SetParticleMaterialFromProperties( particle_material);      }
 void   SphericParticle::SetParticleCohesionFromProperties(double* particle_cohesion)     { GetFastProperties()->SetParticleCohesionFromProperties( particle_cohesion);      }
+void   SphericParticle::SetParticleKNormalFromProperties(double* particle_k_normal)      { GetFastProperties()->SetParticleKNormalFromProperties( particle_k_normal);       }
+void   SphericParticle::SetParticleKTangentialFromProperties(double* particle_k_tangential) { GetFastProperties()->SetParticleKTangentialFromProperties( particle_k_tangential); }
 
 PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                          }
 void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                        }
