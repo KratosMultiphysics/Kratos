@@ -14,12 +14,16 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
 // System includes
+#include <vector>
 
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
+#include "processes/find_elements_neighbours_process.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
 #include "custom_utilities/discrete_particle_configure.h"
@@ -42,11 +46,11 @@ public:
 
 typedef ModelPart::ElementsContainerType::iterator  ElementIterator;
 typedef ModelPart::NodesContainerType::iterator     NodeIterator;
-typedef ModelPart::NodesContainerType                         NodesArrayType;
+typedef ModelPart::NodesContainerType               NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
-CustomFunctionsCalculator(): mPressuresFilled(false){}
+CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true){}
 /// Calculator
 
 virtual ~CustomFunctionsCalculator(){}
@@ -97,6 +101,623 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         inode->FastGetSolutionStepValue(PRESSURE_GRADIENT) /= inode->FastGetSolutionStepValue(NODAL_AREA);
+    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
+{
+    if (mFirstGradientRecovery){
+        CalculateVectorsForGradientRecovery(r_model_part);
+        mFirstGradientRecovery = false;
+    }
+    // Getting nodal estimation from shape functions
+    //CalculatePressureGradient(r_model_part);
+
+    // Solving least squares problem (Chen, 2016)
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        array_1d <double, 3>& pressure_grad = inode->FastGetSolutionStepValue(PRESSURE_GRADIENT);
+
+        pressure_grad = ZeroVector(3);
+        const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
+        WeakPointerVector<Element>& neigh_elems = inode->GetValue(NEIGHBOUR_ELEMENTS);
+        unsigned int i = 0;
+
+        for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
+            Element& elem = neigh_elems[i_el];
+            Geometry<Node<3> >& geom = elem.GetGeometry();
+            unsigned int jj = 0;
+
+            if (geom[jj].Id() == inode->Id()){ // avoiding node inode
+                jj++;
+            }
+
+            for (unsigned int j = 0; j < TDim; ++j){
+                for (unsigned int d = 0; d < TDim; ++d){
+                    pressure_grad[d] += nodal_weights[i + j + d] * geom[jj].FastGetSolutionStepValue(PRESSURE);
+                }
+            }
+            jj++;
+
+
+
+//            unsigned int jj = 0;
+//            unsigned int row = 0;
+//             for (unsigned int j = 0; j < TDim; ++j){
+//                 row = i + j;
+//                 A(i + j, 0) = 1.0;
+
+
+
+
+
+
+//                 nodal_weights.resize(3 * n_nodal_neighs);
+
+//                 for (unsigned int i = 0; i < n_nodal_neighs; ++i){
+//                     for (unsigned int d = 0; d < TDim; ++d){
+//                         nodal_weights(3 * i + d) = B(d + 1, i) * h;
+//                     }
+//                 }
+
+            i += TDim;
+        }
+    }
+
+//    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+//        array_1d <double, 3>& pressure_grad = inode->FastGetSolutionStepValue(PRESSURE_GRADIENT);
+//        array_1d <double, 3>& pressure_grad_recov = inode->FastGetSolutionStepValue(RECOVERED_PRESSURE_GRADIENT);
+//        noalias(pressure_grad) = pressure_grad_recov;
+//    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateTheMaximumEdgeLength(ModelPart& r_model_part)
+{
+    double max_distance_yet = 0.0;
+
+    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
+
+        for (unsigned int k = 1; k < n_nodes - 1; ++k){
+            for (unsigned int i = k; i < n_nodes; ++i){
+                double distance_2 = 0.0;
+                for (unsigned int d = 1; d < 3; ++d){
+                    double delta_i = geom[k - 1][d] - geom[i][d];
+                    distance_2 += delta_i * delta_i;
+                }
+
+                max_distance_yet = max_distance_yet > distance_2 ? max_distance_yet : distance_2;
+            }
+        }
+    }
+
+    return(std::sqrt(max_distance_yet));
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+bool InvertMatrix(const boost::numeric::ublas::matrix<double>& input, boost::numeric::ublas::matrix<double>& inverse)
+{
+    double m[16];
+
+    for (unsigned int i = 0; i < 4; ++i){
+        for (unsigned int j = 0; j < 4; ++j){
+            m[4 * i + j] = input(i, j);
+        }
+    }
+
+    double inv[16], det;
+    int i;
+
+    inv[0] = m[5]  * m[10] * m[15] -
+             m[5]  * m[11] * m[14] -
+             m[9]  * m[6]  * m[15] +
+             m[9]  * m[7]  * m[14] +
+             m[13] * m[6]  * m[11] -
+             m[13] * m[7]  * m[10];
+
+    inv[4] = -m[4]  * m[10] * m[15] +
+              m[4]  * m[11] * m[14] +
+              m[8]  * m[6]  * m[15] -
+              m[8]  * m[7]  * m[14] -
+              m[12] * m[6]  * m[11] +
+              m[12] * m[7]  * m[10];
+
+    inv[8] = m[4]  * m[9] * m[15] -
+             m[4]  * m[11] * m[13] -
+             m[8]  * m[5] * m[15] +
+             m[8]  * m[7] * m[13] +
+             m[12] * m[5] * m[11] -
+             m[12] * m[7] * m[9];
+
+    inv[12] = -m[4]  * m[9] * m[14] +
+               m[4]  * m[10] * m[13] +
+               m[8]  * m[5] * m[14] -
+               m[8]  * m[6] * m[13] -
+               m[12] * m[5] * m[10] +
+               m[12] * m[6] * m[9];
+
+    inv[1] = -m[1]  * m[10] * m[15] +
+              m[1]  * m[11] * m[14] +
+              m[9]  * m[2] * m[15] -
+              m[9]  * m[3] * m[14] -
+              m[13] * m[2] * m[11] +
+              m[13] * m[3] * m[10];
+
+    inv[5] = m[0]  * m[10] * m[15] -
+             m[0]  * m[11] * m[14] -
+             m[8]  * m[2] * m[15] +
+             m[8]  * m[3] * m[14] +
+             m[12] * m[2] * m[11] -
+             m[12] * m[3] * m[10];
+
+    inv[9] = -m[0]  * m[9] * m[15] +
+              m[0]  * m[11] * m[13] +
+              m[8]  * m[1] * m[15] -
+              m[8]  * m[3] * m[13] -
+              m[12] * m[1] * m[11] +
+              m[12] * m[3] * m[9];
+
+    inv[13] = m[0]  * m[9] * m[14] -
+              m[0]  * m[10] * m[13] -
+              m[8]  * m[1] * m[14] +
+              m[8]  * m[2] * m[13] +
+              m[12] * m[1] * m[10] -
+              m[12] * m[2] * m[9];
+
+    inv[2] = m[1]  * m[6] * m[15] -
+             m[1]  * m[7] * m[14] -
+             m[5]  * m[2] * m[15] +
+             m[5]  * m[3] * m[14] +
+             m[13] * m[2] * m[7] -
+             m[13] * m[3] * m[6];
+
+    inv[6] = -m[0]  * m[6] * m[15] +
+              m[0]  * m[7] * m[14] +
+              m[4]  * m[2] * m[15] -
+              m[4]  * m[3] * m[14] -
+              m[12] * m[2] * m[7] +
+              m[12] * m[3] * m[6];
+
+    inv[10] = m[0]  * m[5] * m[15] -
+              m[0]  * m[7] * m[13] -
+              m[4]  * m[1] * m[15] +
+              m[4]  * m[3] * m[13] +
+              m[12] * m[1] * m[7] -
+              m[12] * m[3] * m[5];
+
+    inv[14] = -m[0]  * m[5] * m[14] +
+               m[0]  * m[6] * m[13] +
+               m[4]  * m[1] * m[14] -
+               m[4]  * m[2] * m[13] -
+               m[12] * m[1] * m[6] +
+               m[12] * m[2] * m[5];
+
+    inv[3] = -m[1] * m[6] * m[11] +
+              m[1] * m[7] * m[10] +
+              m[5] * m[2] * m[11] -
+              m[5] * m[3] * m[10] -
+              m[9] * m[2] * m[7] +
+              m[9] * m[3] * m[6];
+
+    inv[7] = m[0] * m[6] * m[11] -
+             m[0] * m[7] * m[10] -
+             m[4] * m[2] * m[11] +
+             m[4] * m[3] * m[10] +
+             m[8] * m[2] * m[7] -
+             m[8] * m[3] * m[6];
+
+    inv[11] = -m[0] * m[5] * m[11] +
+               m[0] * m[7] * m[9] +
+               m[4] * m[1] * m[11] -
+               m[4] * m[3] * m[9] -
+               m[8] * m[1] * m[7] +
+               m[8] * m[3] * m[5];
+
+    inv[15] = m[0] * m[5] * m[10] -
+              m[0] * m[6] * m[9] -
+              m[4] * m[1] * m[10] +
+              m[4] * m[2] * m[9] +
+              m[8] * m[1] * m[6] -
+              m[8] * m[2] * m[5];
+
+    det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+    if (det == 0)
+        return false;
+
+    det = 1.0 / det;
+    double invOut[16];
+
+    for (i = 0; i < 16; i++)
+        invOut[i] = inv[i] * det;
+
+    for (unsigned int i = 1; i < 16; ++i){
+        inverse(i / 4, i % 4) = invOut[i];
+    }
+    return true;
+}
+
+double CalcDeterminant(const boost::numeric::ublas::matrix<double>& m)
+{
+  assert(m.size1() == m.size2() && "Can only calculate the determinant of square matrices");
+  switch(m.size1())
+  {
+    case 1:
+    {
+      return m(0,0);
+    }
+    case 2:
+    {
+      const double a = m(0,0);
+      const double b = m(0,1);
+      const double c = m(1,0);
+      const double d = m(1,1);
+      const double determinant = (a * d) - (b * c);
+      return determinant;
+    }
+    case 3:
+    {
+      assert(m.size1() == 3 && m.size2() == 3 && "Only for 3x3 matrices");
+      const double a = m(0,0);
+      const double b = m(0,1);
+      const double c = m(0,2);
+      const double d = m(1,0);
+      const double e = m(1,1);
+      const double f = m(1,2);
+      const double g = m(2,0);
+      const double h = m(2,1);
+      const double k = m(2,2);
+      const double determinant
+        = (a * ((e*k) - (f*h)))
+        - (b * ((k*d) - (f*g)))
+        + (c * ((d*h) - (e*g)));
+      return determinant;
+    }
+    default:
+      assert(!"Should not get here: unsupported matrix size");
+      throw std::runtime_error("Unsupported matrix size");
+  }
+}
+
+///Chop returns a std::vector of sub-matrices
+//[ A at [0]   B at [1] ]
+//[ C at [2]   D at [4] ]
+const std::vector<boost::numeric::ublas::matrix<double> > Chop(
+  const boost::numeric::ublas::matrix<double>& m)
+{
+  using boost::numeric::ublas::range;
+  using boost::numeric::ublas::matrix;
+  using boost::numeric::ublas::matrix_range;
+  std::vector<matrix<double> > v;
+  v.reserve(4);
+  const int midy = m.size1() / 2;
+  const int midx = m.size2() / 2;
+  const matrix_range<const matrix<double> > top_left(    m,range(0   ,midy     ),range(0   ,midx     ));
+  const matrix_range<const matrix<double> > bottom_left( m,range(midy,m.size1()),range(0   ,midx     ));
+  const matrix_range<const matrix<double> > top_right(   m,range(0   ,midy     ),range(midx,m.size2()));
+  const matrix_range<const matrix<double> > bottom_right(m,range(midy,m.size1()),range(midx,m.size2()));
+  v.push_back(matrix<double>(top_left));
+  v.push_back(matrix<double>(top_right));
+  v.push_back(matrix<double>(bottom_left));
+  v.push_back(matrix<double>(bottom_right));
+  return v;
+}
+
+const boost::numeric::ublas::matrix<double> CreateMatrix(
+  const std::size_t n_rows,
+  const std::size_t n_cols,
+  const std::vector<double>& v)
+{
+  assert(n_rows * n_cols == v.size());
+  boost::numeric::ublas::matrix<double> m(n_rows,n_cols);
+  for (std::size_t row = 0; row!=n_rows; ++row)
+  {
+    for (std::size_t col = 0; col!=n_cols; ++col)
+    {
+      m(row,col) = v[ (col * n_rows) + row];
+    }
+  }
+  return m;
+}
+
+const boost::numeric::ublas::matrix<double> CreateRandomMatrix(const std::size_t n_rows, const std::size_t n_cols)
+{
+  boost::numeric::ublas::matrix<double> m(n_rows,n_cols);
+  for (std::size_t row=0; row!=n_rows; ++row)
+  {
+    for (std::size_t col=0; col!=n_cols; ++col)
+    {
+      m(row,col) = static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX);
+    }
+  }
+  return m;
+}
+
+///Unchop merges the 4 std::vector of sub-matrices produced by Chop
+const boost::numeric::ublas::matrix<double> Unchop(
+  const std::vector<boost::numeric::ublas::matrix<double> >& v)
+{
+  //Chop returns a std::vector of sub-matrices
+  //[ A at [0]   B at [1] ]
+  //[ C at [2]   D at [4] ]
+  using boost::numeric::ublas::range;
+  using boost::numeric::ublas::matrix;
+  using boost::numeric::ublas::matrix_range;
+  assert(v.size() == 4);
+  assert(v[0].size1() == v[1].size1());
+  assert(v[2].size1() == v[3].size1());
+  assert(v[0].size2() == v[2].size2());
+  assert(v[1].size2() == v[3].size2());
+  boost::numeric::ublas::matrix<double> m(v[0].size1() + v[2].size1(),v[0].size2() + v[1].size2());
+  for (int quadrant=0; quadrant!=4; ++quadrant)
+  {
+    const boost::numeric::ublas::matrix<double>& w = v[quadrant];
+    const std::size_t n_rows = v[quadrant].size1();
+    const std::size_t n_cols = v[quadrant].size2();
+    const int offset_x = quadrant % 2 ? v[0].size2() : 0;
+    const int offset_y = quadrant / 2 ? v[0].size1() : 0;
+    for (std::size_t row=0; row!=n_rows; ++row)
+    {
+      for (std::size_t col=0; col!=n_cols; ++col)
+      {
+        m(offset_y + row, offset_x + col) = w(row,col);
+      }
+    }
+  }
+
+  assert(v[0].size1() + v[2].size1() == m.size1());
+  assert(v[1].size1() + v[3].size1() == m.size1());
+  assert(v[0].size2() + v[1].size2() == m.size2());
+  assert(v[2].size2() + v[3].size2() == m.size2());
+
+  return m;
+}
+
+const boost::numeric::ublas::matrix<double> Inverse(
+  const boost::numeric::ublas::matrix<double>& m)
+{
+  assert(m.size1() == m.size2() && "Can only calculate the inverse of square matrices");
+
+  switch(m.size1())
+  {
+    case 1:
+    {
+      assert(m.size1() == 1 && m.size2() == 1 && "Only for 1x1 matrices");
+      const double determinant = CalcDeterminant(m);
+      assert(determinant != 0.0);
+      assert(m(0,0) != 0.0 && "Cannot take the inverse of matrix [0]");
+      boost::numeric::ublas::matrix<double> n(1,1);
+      n(0,0) =  1.0 / determinant;
+      return n;
+    }
+    case 2:
+    {
+      assert(m.size1() == 2 && m.size2() == 2 && "Only for 2x2 matrices");
+      const double determinant = CalcDeterminant(m);
+      assert(determinant != 0.0);
+      const double a = m(0,0);
+      const double b = m(0,1);
+      const double c = m(1,0);
+      const double d = m(1,1);
+      boost::numeric::ublas::matrix<double> n(2,2);
+      n(0,0) =  d / determinant;
+      n(0,1) = -b / determinant;
+      n(1,0) = -c / determinant;
+      n(1,1) =  a / determinant;
+      return n;
+    }
+    case 3:
+    {
+      assert(m.size1() == 3 && m.size2() == 3 && "Only for 3x3 matrices");
+      const double determinant = CalcDeterminant(m);
+      assert(determinant != 0.0);
+      const double a = m(0,0);
+      const double b = m(0,1);
+      const double c = m(0,2);
+      const double d = m(1,0);
+      const double e = m(1,1);
+      const double f = m(1,2);
+      const double g = m(2,0);
+      const double h = m(2,1);
+      const double k = m(2,2);
+      boost::numeric::ublas::matrix<double> n(3,3);
+      const double new_a =  ((e*k)-(f*h)) / determinant;
+      const double new_b = -((d*k)-(f*g)) / determinant;
+      const double new_c =  ((d*h)-(e*g)) / determinant;
+      const double new_d = -((b*k)-(c*h)) / determinant;
+      const double new_e =  ((a*k)-(c*g)) / determinant;
+      const double new_f = -((a*h)-(b*g)) / determinant;
+      const double new_g =  ((b*f)-(c*e)) / determinant;
+      const double new_h = -((a*f)-(c*d)) / determinant;
+      const double new_k =  ((a*e)-(b*d)) / determinant;
+      n(0,0) = new_a;
+      n(1,0) = new_b;
+      n(2,0) = new_c;
+      n(0,1) = new_d;
+      n(1,1) = new_e;
+      n(2,1) = new_f;
+      n(0,2) = new_g;
+      n(1,2) = new_h;
+      n(2,2) = new_k;
+      return n;
+    }
+    default:
+    {
+      //Use blockwise inversion
+      //Matrix::Chop returns a std::vector
+      //[ A at [0]   B at [1] ]
+      //[ C at [2]   D at [4] ]
+      const std::vector<boost::numeric::ublas::matrix<double> > v = Chop(m);
+      const boost::numeric::ublas::matrix<double>& a = v[0];
+      assert(a.size1() == a.size2());
+      const boost::numeric::ublas::matrix<double>  a_inv = Inverse(a);
+      const boost::numeric::ublas::matrix<double>& b = v[1];
+      const boost::numeric::ublas::matrix<double>& c = v[2];
+      const boost::numeric::ublas::matrix<double>& d = v[3];
+      const boost::numeric::ublas::matrix<double> term
+        = d
+        - prod(
+            boost::numeric::ublas::matrix<double>(prod(c,a_inv)),
+            b
+          );
+      const boost::numeric::ublas::matrix<double> term_inv = Inverse(term);
+      const boost::numeric::ublas::matrix<double> new_a
+        = a_inv
+        + boost::numeric::ublas::matrix<double>(prod(
+            boost::numeric::ublas::matrix<double>(prod(
+              boost::numeric::ublas::matrix<double>(prod(
+                boost::numeric::ublas::matrix<double>(prod(
+                  a_inv,
+                  b)),
+                term_inv)),
+             c)),
+            a_inv));
+
+      const boost::numeric::ublas::matrix<double> new_b
+        =
+        - boost::numeric::ublas::matrix<double>(prod(
+            boost::numeric::ublas::matrix<double>(prod(
+              a_inv,
+              b)),
+            term_inv));
+
+      const boost::numeric::ublas::matrix<double> new_c
+        =
+        - boost::numeric::ublas::matrix<double>(prod(
+            boost::numeric::ublas::matrix<double>(prod(
+              term_inv,
+              c)),
+            a_inv));
+
+      const boost::numeric::ublas::matrix<double> new_d = term_inv;
+      std::vector<boost::numeric::ublas::matrix<double> > w;
+      w.push_back(new_a);
+      w.push_back(new_b);
+      w.push_back(new_c);
+      w.push_back(new_d);
+      const boost::numeric::ublas::matrix<double> result = Unchop(w);
+      return result;
+    }
+  }
+}
+
+
+void CalculateVectorsForGradientRecovery(ModelPart& r_model_part)
+{
+    using namespace boost::numeric::ublas;
+
+    double h = CalculateTheMaximumEdgeLength(r_model_part);
+    double h_inv = 1.0 / h;
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
+    neighbour_finder.Execute();
+
+    vector<unsigned int> nodes_partition;
+    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
+
+    //#pragma omp parallel for
+    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+        NodeIterator node_begin = pNodes.ptr_begin() + nodes_partition[k];
+        NodeIterator node_end   = pNodes.ptr_begin() + nodes_partition[k + 1];
+
+        for (ModelPart::NodesContainerType::iterator inode = node_begin; inode != node_end; ++inode){
+            WeakPointerVector<Element>& neigh_elems = inode->GetValue(NEIGHBOUR_ELEMENTS);
+
+            unsigned int n_nodal_neighs = TDim * neigh_elems.size(); // we obviously repeat nodes here (room for optimizatin!)
+            unsigned int count = 0;
+
+            for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
+                Element elem = neigh_elems[i_el];
+                Geometry<Node<3> >& geom = elem.GetGeometry();
+                for (unsigned int j = 0; j < TDim + 1; ++j){
+                    if (geom[j].Id() == inode->Id()){
+                        count++;
+                    }
+                }
+            }
+
+            unsigned int n_columns;
+
+            if (TDim == 3) {
+                n_columns = 10;
+            }
+
+            else {
+                n_columns = 6;
+                KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
+            }
+
+            matrix<double> A(n_nodal_neighs, n_columns);
+
+            unsigned int i = 0;
+            count = 0;
+            for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
+                Element& elem = neigh_elems[i_el];
+                Geometry<Node<3> >& geom = elem.GetGeometry();
+                unsigned int jj = 0;
+                unsigned int row = 0;
+                 for (unsigned int j = 0; j < TDim; ++j){
+                     row = i + j;
+                     A(i + j, 0) = 1.0;
+
+                     if (geom[jj].Id() == inode->Id()){ // avoiding node inode
+                         jj++;
+                     }
+
+                     if (TDim == 3){
+                        for (unsigned int d = 1; d < 10; ++d){
+                            if (d < 4){
+                                A(i + j, d) = (geom[jj][d - 1] - inode->Coordinates()[d - 1]) * h_inv;
+                            }
+                            else if (d == 4){
+                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][1] - inode->Coordinates()[1]) * h_inv * h_inv;
+                            }
+                            else if (d == 5){
+                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][2] - inode->Coordinates()[2]) * h_inv * h_inv;
+                            }
+                            else if (d == 6){
+                                A(i + j, d) = (geom[jj][1] - inode->Coordinates()[1]) * (geom[jj][2] - inode->Coordinates()[2]) * h_inv * h_inv;
+                            }
+                            else {
+                                double difference = geom[jj][d - 7] - inode->Coordinates()[d - 7] * h_inv;
+                                A(i + j, d) = difference * difference;
+                            }
+                        }
+                     }
+                     else {
+                         KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
+                     }
+
+                     jj++;
+                 }
+                 i += TDim;
+            }
+
+            matrix<double> D(n_columns, n_columns);
+            D = prod(trans(A), A);
+            Inverse(D);
+            matrix<double> B(TDim + 1, n_nodal_neighs);
+            KRATOS_WATCH(h);
+
+            KRATOS_WATCH(prod(trans(A), A));
+            B = prod(D, trans(A));
+            Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
+            nodal_weights.resize(3 * n_nodal_neighs);
+
+            for (unsigned int i = 0; i < n_nodal_neighs; ++i){
+                for (unsigned int d = 0; d < TDim; ++d){
+                    nodal_weights(3 * i + d) = B(d + 1, i) * h;
+                }
+            }
+        }
     }
 }
 
@@ -344,10 +965,12 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
 private:
 
 bool mPressuresFilled;
+bool mFirstGradientRecovery;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
 std::vector<double> mPressures;
+std::vector<vector<double> > mFirstRowsOfB;
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
