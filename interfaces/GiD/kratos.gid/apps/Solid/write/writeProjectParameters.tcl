@@ -59,12 +59,14 @@ proc Solid::write::writeParametersEvent { } {
 
     # GiD output configuration
     set outputDict [dict create ]
-    dict set outputDict gid_post_mode               [write::getValue SLResults GiDPostMode]
-    dict set outputDict gid_write_mesh_flag         [write::getValue SLResults GiDWriteMeshFlag]
-    dict set outputDict gid_write_conditions_flag   [write::getValue SLResults GiDWriteConditionsFlag]
-    dict set outputDict gid_write_particles_flag    [write::getValue SLResults GiDWriteParticlesFlag]
-    dict set outputDict gid_multifile_flag          [write::getValue SLResults GiDMultiFileFlag]
-    dict set outputDict gid_write_frequency         [write::getValue SLResults OutputDeltaTime]
+    
+    dict set GiDPostDict [dict create]
+    dict set GiDPostDict GiDPostMode                 [write::getValue SLResults GiDPostMode]
+    dict set GiDPostDict WriteMeshFlag               [write::getValue SLResults GiDWriteMeshFlag]
+    dict set GiDPostDict WriteConditionsFlag         [write::getValue SLResults GiDWriteConditionsFlag]
+    dict set GiDPostDict WriteParticlesFlag          [write::getValue SLResults GiDWriteParticlesFlag]
+    dict set GiDPostDict gid_write_frequency         [write::getValue SLResults OutputDeltaTime]
+    dict set outputDict gidpost_flags $GiDPostDict
     
     dict set outputDict write_results "PreMeshing"
     dict set outputDict plot_graphs false

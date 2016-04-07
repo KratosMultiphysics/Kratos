@@ -21,20 +21,23 @@ proc Fluid::write::writeParametersEvent { } {
     
     # output configuration
     set outputConfigDict [dict create]
-    dict set outputConfigDict output_filename "[file tail [GiD_Info Project ModelName]].out"
-    dict set outputConfigDict gid_post_mode [write::getValue FLResults GiDPostMode]
-    dict set outputConfigDict gid_multi_file_flag [write::getValue FLResults GiDMultiFileFlag]
-    dict set outputConfigDict gid_write_mesh_flag True
-    dict set outputConfigDict gid_write_conditions_flag True
-    dict set outputConfigDict gid_write_particles_flag False
-    dict set outputConfigDict gid_write_frequency [write::getValue FLResults OutputDeltaTime]
+    dict set outputConfigDict output_file_name "[file tail [GiD_Info Project ModelName]].out"
+    
+    dict set GiDPostDict [dict create]
+    dict set GiDPostDict GiDPostMode [write::getValue FLResults GiDPostMode]
+    dict set GiDPostDict MultiFileFlag [write::getValue FLResults GiDMultiFileFlag]
+    dict set GiDPostDict WriteMeshFlag True
+    dict set GiDPostDict WriteConditionsFlag True
+    dict set GiDPostDict WriteParticlesFlag False
+    dict set GiDPostDict gid_write_frequency [write::getValue FLResults OutputDeltaTime]
+    dict set outputConfigDict gidpost_flags $GiDPostDict
+    
     dict set outputConfigDict plot_graphs False
     dict set outputConfigDict plot_frequency 0
     dict set outputConfigDict print_lists True
     dict set outputConfigDict output_time [write::getValue FLResults OutputDeltaTime]
     dict set outputConfigDict volume_output [write::getValue FLResults VolumeOutput]
     dict set outputConfigDict add_skin true
-    
     
     set cut_list [list ]
     set normal [list 0.0 1.0 0.0]
@@ -57,7 +60,6 @@ proc Fluid::write::writeParametersEvent { } {
     dict set restartDict Restart_Step 0
     dict set projectParametersDict restart_options $restartDict
     
-    
     # Solver settings
     set solverSettingsDict [dict create]
     set currentStrategyId [write::getValue FLSolStrat]
@@ -69,7 +71,6 @@ proc Fluid::write::writeParametersEvent { } {
     dict set modelDict input_type "mdpa"
     dict set modelDict input_filename $model_name
     dict set solverSettingsDict model_import_settings $modelDict
-    
     
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict] ]
