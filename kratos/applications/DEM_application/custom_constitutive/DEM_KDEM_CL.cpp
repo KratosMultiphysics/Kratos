@@ -43,15 +43,15 @@ namespace Kratos {
     }
     
     void DEM_KDEM::GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
-      if(vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
-      else CalculateContactArea(radius, other_radius, calculation_area);
+        if (vector_of_initial_areas.size()) calculation_area = vector_of_initial_areas[neighbour_position];
+        else CalculateContactArea(radius, other_radius, calculation_area);
     }
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area) {
         
         KRATOS_TRY
-        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); /////////////////// TODO Is this correct??????????????? SLS
+        double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
         KRATOS_CATCH("")  
