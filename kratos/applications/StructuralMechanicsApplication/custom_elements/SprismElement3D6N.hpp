@@ -1160,11 +1160,13 @@ protected:
      * Calculation and addition of the matrices of the LHS
      * @return rLeftHandSideMatrix: LHS of the system
      * @param rVariables: The internal variables in the element
+     * @param rIntegrationWeight: Contribution in the numerical integration
      */
 
     virtual void CalculateAndAddDynamicLHS(
             MatrixType& rLeftHandSideMatrix,
-            GeneralVariables& rVariables
+            GeneralVariables& rVariables,
+            double& rIntegrationWeight
             );
 
     /**
