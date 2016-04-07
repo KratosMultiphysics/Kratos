@@ -35,17 +35,19 @@ proc Fluid::write::writeParametersEvent { } {
     dict set outputConfigDict volume_output [write::getValue FLResults VolumeOutput]
     dict set outputConfigDict add_skin true
     
+    
     set cut_list [list ]
     set normal [list 0.0 1.0 0.0]
     set point [list 0.0 0.0 0.0]
     lappend cut_list [dict create normal $normal point $point]
     
-    dict set projectParametersDict cut_planes [dict create cut_list $cut_list]
+    dict set outputConfigDict cut_planes [dict create cut_list $cut_list]
 
     # on nodes
-    dict set projectParametersDict nodal_results [write::GetResultsList "FLNodalResults"]
+    dict set outputConfigDict nodal_results [write::GetResultsList "FLNodalResults"]
     # on elements
-    dict set projectParametersDict output_configuration [write::GetResultsList "FLElementResults"]
+    dict set outputConfigDict gauss_points_results [write::GetResultsList "FLElementResults"]
+    dict set projectParametersDict output_configuration $outputConfigDict
     
     # restart options
     set restartDict [dict create]
