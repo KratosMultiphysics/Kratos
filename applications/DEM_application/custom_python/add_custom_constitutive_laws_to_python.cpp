@@ -26,7 +26,7 @@
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "custom_constitutive/DEM_Dempack_torque_CL.h"
-
+#include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
 
 
 namespace Kratos {
@@ -37,8 +37,7 @@ namespace Kratos {
 
         void AddCustomConstitutiveLawsToPython() {
 
-
-//            DEM Discontinuum Constitutive Laws :  
+            // DEM Discontinuum Constitutive Laws:  
 
             class_< DEMDiscontinuumConstitutiveLaw, DEMDiscontinuumConstitutiveLaw::Pointer, boost::noncopyable > //bases< ConstitutiveLawBaseType >
                     ("DEMDiscontinuumConstitutiveLaw",
@@ -79,7 +78,7 @@ namespace Kratos {
             class_<DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb_DMT", init<>())
                     ;
             
-//            DEM Continuum Constitutive Laws :  
+            // DEM Continuum Constitutive Laws:  
 
             class_< DEMContinuumConstitutiveLaw, DEMContinuumConstitutiveLaw::Pointer, boost::noncopyable > //bases< ConstitutiveLawBaseType >
                     ("DEMContinuumConstitutiveLaw",
@@ -106,6 +105,9 @@ namespace Kratos {
                     ;
             
             class_<DEM_ExponentialHC, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_ExponentialHC",init<>())
+                    ;
+            
+            class_<DEM_D_Linear_Custom_Constants, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_Custom_Constants",init<>())
                     ;
         }
 
