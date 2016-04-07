@@ -37,8 +37,8 @@ namespace Kratos {
     double* PropertiesProxy::pGetTgOfFrictionAngle()                                          { return  mTgOfFrictionAngle;                 } 
     void    PropertiesProxy::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { mTgOfFrictionAngle = tg_of_friction_angle;  }
       
-    double  PropertiesProxy::GetCoefficientOfRestitution()                                             { return *mCoefficientOfRestitution;                   } 
-    double* PropertiesProxy::pGetCoefficientOfRestitution()                                            { return  mCoefficientOfRestitution;                   } 
+    double  PropertiesProxy::GetCoefficientOfRestitution()                                    { return *mCoefficientOfRestitution;          } 
+    double* PropertiesProxy::pGetCoefficientOfRestitution()                                   { return  mCoefficientOfRestitution;          } 
     void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)     { mCoefficientOfRestitution = coefficient_of_restitution;      }  
     
     double  PropertiesProxy::GetLnOfRestitCoeff()                                             { return *mLnOfRestitCoeff;                   } 
@@ -56,6 +56,14 @@ namespace Kratos {
     double  PropertiesProxy::GetParticleCohesion()                                            { return *mParticleCohesion;                  }
     double* PropertiesProxy::pGetParticleCohesion()                                           { return  mParticleCohesion;                  }
     void    PropertiesProxy::SetParticleCohesionFromProperties(double* particle_cohesion)     { mParticleCohesion = particle_cohesion;      }
+    
+    double  PropertiesProxy::GetParticleKNormal()                                            { return *mParticleKNormal;                }
+    double* PropertiesProxy::pGetParticleKNormal()                                           { return  mParticleKNormal;                }
+    void    PropertiesProxy::SetParticleKNormalFromProperties(double* particle_k_normal)     { mParticleKNormal = particle_k_normal;    }
+    
+    double  PropertiesProxy::GetParticleKTangential()                                            { return *mParticleKTangential;                }
+    double* PropertiesProxy::pGetParticleKTangential()                                           { return  mParticleKTangential;                }
+    void    PropertiesProxy::SetParticleKTangentialFromProperties(double* particle_k_tangential) { mParticleKTangential = particle_k_tangential;}
         
     PropertiesProxy PropertiesProxy::operator= (PropertiesProxy props) {
           
@@ -69,6 +77,8 @@ namespace Kratos {
         mDensity                  = props.pGetDensity();
         mParticleMaterial         = props.pGetParticleMaterial();
         mParticleCohesion         = props.pGetParticleCohesion();
+        mParticleKNormal          = props.pGetParticleKNormal();
+        mParticleKTangential      = props.pGetParticleKTangential();
                        
         return *this;
     } 
@@ -143,8 +153,14 @@ namespace Kratos {
               
             aux_pointer = &( props_it->GetValue(PARTICLE_COHESION) );
             vector_of_proxies[properties_counter].SetParticleCohesionFromProperties(aux_pointer);
-                                         
-            properties_counter++;                         
+                        
+            aux_pointer = &(props_it->GetValue(K_NORMAL));
+            vector_of_proxies[properties_counter].SetParticleKNormalFromProperties(aux_pointer);
+            
+            aux_pointer = &(props_it->GetValue(K_TANGENTIAL));
+            vector_of_proxies[properties_counter].SetParticleKTangentialFromProperties(aux_pointer);
+            
+            properties_counter++;
         }      
     }    
     
