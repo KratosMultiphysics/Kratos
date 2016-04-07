@@ -341,7 +341,7 @@ namespace Kratos
                              
         const int number_of_particles = (int)mListOfSphericContinuumParticles.size();        
         int used_bonds_counter = 0; 
-        #pragma omp parallel
+        //#pragma omp parallel TODO:
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
@@ -379,6 +379,8 @@ namespace Kratos
                         p_old_contact_element->GetGeometry()(1) = neighbour_element->GetGeometry()(0); 
                         p_old_contact_element->SetId(used_bonds_counter);
                         p_old_contact_element->SetProperties(mListOfSphericContinuumParticles[i]->pGetProperties());
+                        ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( p_old_contact_element.get() );     
+                        mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;  
                     }
                     else {
                         Geometry<Node<3> >::PointsArrayType  NodeArray(2);
@@ -391,10 +393,11 @@ namespace Kratos
                         {                            
                             (*mpContact_model_part).Elements().push_back(p_new_contact_element);
                             used_bonds_counter++;
-                        }                        
+                        } 
+                        ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( p_new_contact_element.get() );     
+                        mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;  
                     }
-                    ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*>( p_new_contact_element.get() );     
-                    mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;                                                                  
+                                                                                    
                 }            
             }
 
@@ -405,7 +408,7 @@ namespace Kratos
                 }
             } 
 
-            #pragma omp for
+            //#pragma omp for TODO:
             for (int i = 0; i < number_of_particles; i++) {
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
                 unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
