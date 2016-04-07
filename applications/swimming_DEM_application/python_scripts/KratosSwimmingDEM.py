@@ -44,9 +44,6 @@ import variables_management as vars_man
 import embedded
 import analytics
 
-# listing project parameters (to be put in problem type)
-pp.CFD_DEM                                   = DEM_parameters
-
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # Kratos MPI
@@ -69,9 +66,6 @@ else:
 
 import sphere_strategy as SolverStrategy
 
-pp.CFD_DEM.coupling_level_type = DEM_parameters.coupling_level_type
-#pp.CFD_DEM.lift_force_type = DEM_parameters.lift_force_option
-pp.CFD_DEM.drag_modifier_type = DEM_parameters.drag_modifier_type
 DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
 
 ##############################################################################
@@ -81,6 +75,8 @@ DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write d
 ##############################################################################
 
 #G
+pp.CFD_DEM = DEM_parameters
+pp.CFD_DEM.recover_gradient_option = True
 pp.CFD_DEM.faxen_force_type = 1
 #Z
 
@@ -745,7 +741,10 @@ while (time <= final_time):
     pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
     if pressure_gradient_counter.Tick():
-        custom_functions_tool.CalculatePressureGradient(fluid_model_part)
+        if pp.CFD_DEM.recover_gradient_option:
+            custom_functions_tool.RecoverSuperconvergentPressureGradient(fluid_model_part)
+        else:
+            custom_functions_tool.CalculatePressureGradient(fluid_model_part)
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
