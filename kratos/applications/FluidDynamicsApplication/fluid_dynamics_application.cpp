@@ -100,6 +100,9 @@ void KratosFluidDynamicsApplication::Register()
 
     KRATOS_REGISTER_VARIABLE(Q_VALUE);
     KRATOS_REGISTER_VARIABLE(VORTICITY_MAGNITUDE);
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RECOVERED_PRESSURE_GRADIENT);
+    KRATOS_REGISTER_VARIABLE(NODAL_WEIGHTS);
+
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
