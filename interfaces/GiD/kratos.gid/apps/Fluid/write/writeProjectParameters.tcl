@@ -40,10 +40,10 @@ proc Fluid::write::writeParametersEvent { } {
     set point [list 0.0 0.0 0.0]
     lappend cut_list [dict create normal $normal point $point]
     
-    dict set outputConfigDict cut_planes [dict create cut_list $cut_list]
+    dict set projectParametersDict cut_planes [dict create cut_list $cut_list]
 
     # on nodes
-    dict set outputConfigDict nodal_results [write::GetResultsList "FLNodalResults"]
+    dict set projectParametersDict nodal_results [write::GetResultsList "FLNodalResults"]
     # on elements
     dict set projectParametersDict output_configuration [write::GetResultsList "FLElementResults"]
     
