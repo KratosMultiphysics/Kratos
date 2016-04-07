@@ -4134,7 +4134,7 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatri
   double Volume = GetGeometry().Volume();
   double TotalMass = Volume * Density;
 
-  TotalMass *= 72.0; // Multipliying for the coefficient
+  TotalMass /= 72.0; // Dividing for the coefficient
   for (unsigned int i = 0; i < 6; i++) // Main nodes
   {
       for (unsigned int j = 0; j < 3; j++) // DOF (X, Y, Z)
@@ -4202,7 +4202,6 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatri
   }
 
 //  KRATOS_WATCH( rLeftHandSideMatrix );
-
 }
 
 /***********************************************************************************/
