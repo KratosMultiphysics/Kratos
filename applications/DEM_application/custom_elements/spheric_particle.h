@@ -110,6 +110,11 @@ int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
 double GetParticleCohesion();
 void   SetParticleCohesionFromProperties(double* particle_cohesion);
+double GetParticleKNormal();
+void   SetParticleKNormalFromProperties(double* particle_k_normal);
+double GetParticleKTangential();
+void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
+
 array_1d<double, 3>& GetForce();
 
 PropertiesProxy* GetFastProperties();
