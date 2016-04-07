@@ -141,7 +141,7 @@ SprismElement3D6N&  SprismElement3D6N::operator=(SprismElement3D6N const& rOther
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
 
     mConstitutiveLawVector.clear();
-    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size(), false );
+    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size() );
 
     mInvJ0.clear();
     mInvJ0.resize( rOther.mInvJ0.size());
@@ -2345,7 +2345,7 @@ void SprismElement3D6N::CalculateDynamicSystem(
         {
             LocalLeftHandSideMatrix.clear();
 
-            this->CalculateAndAddDynamicLHS ( LocalLeftHandSideMatrix );
+            this->CalculateAndAddDynamicLHS ( LocalLeftHandSideMatrix, Variables );
 
             MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
             rLeftHandSideMatrix += LocalLeftHandSideMatrix;
@@ -4113,7 +4113,10 @@ void SprismElement3D6N::CalculateAndAddLHS(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SprismElement3D6N::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix)
+void SprismElement3D6N::CalculateAndAddDynamicLHS(
+        MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables
+        )
 {
 
   // Mass matrix
@@ -4134,6 +4137,25 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatri
   double Volume = GetGeometry().Volume();
   double TotalMass = Volume * Density;
 
+//  // Shape functions
+//  unsigned int indexi = 0;
+//  unsigned int indexj = 0;
+
+//  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+//  {
+//      for ( unsigned int k = 0; k < 3; k++ )
+//      {
+//          indexj = 0;
+//          for ( unsigned int j = 0; j < GetGeometry().size(); j++ )
+//          {
+//              rLeftHandSideMatrix(indexi + k, indexj + k) += rVariables.N[i] * rVariables.N[j] * TotalMass;
+//              indexj += 3;
+//          }
+//      }
+//      indexi += 3;
+//  }
+
+  // Manually
   TotalMass /= 72.0; // Dividing for the coefficient
   for (unsigned int i = 0; i < 6; i++) // Main nodes
   {
