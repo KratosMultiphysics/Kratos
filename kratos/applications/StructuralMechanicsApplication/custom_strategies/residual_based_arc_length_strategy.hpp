@@ -19,6 +19,7 @@
 #include<iomanip>
 
 /* External includes */
+#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "structural_mechanics_application.h"
@@ -47,6 +48,8 @@ public:
     /**@name Type Definitions */
     /*@{ */
     typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
+
+    typedef LineSearchesUtility<TSparseSpace, TDenseSpace, TLinearSolver> TlineSearchesType;
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedArcLengthStrategy );
@@ -77,6 +80,7 @@ public:
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    typedef long double RealType;
 
     /*@} */
     /**@name Life Cycle
@@ -93,7 +97,8 @@ public:
             typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
             unsigned int Ide,
             unsigned int MaxIterations,
-            double factor_delta_lmax,
+            unsigned int MaxRecursive,
+            RealType factor_delta_lmax,
             bool CalculateReactions     = true,
             bool ReformDofSetAtEachStep = true,
             bool MoveMeshFlag           = true
@@ -105,15 +110,11 @@ public:
         // Set flags to default values
         SetMaxIterationNumber(MaxIterations);
         mCalculateReactionsFlag = CalculateReactions;
-        //KRATOS_WATCH(Parameters_Line_Searches)
-        //mstep = step;
-        // Creating models part for analysis
-        mAuxElementModelPart.SetBufferSize(model_part.GetBufferSize());
-        mAuxConditionModelPart.SetBufferSize(model_part.GetBufferSize());
         InitializeAuxiliaryModelParts(model_part);
 
         mfactor_delta_lmax      = factor_delta_lmax;
         mIde	                = Ide;
+        mMaxRecursive           = MaxRecursive;
 
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
@@ -135,6 +136,7 @@ public:
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
+        mInit                   = false;
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -314,22 +316,42 @@ public:
         TSystemVectorPointerType  pq_Inc_Aux;  
 	
         unsigned int iteration_number = 0;
-        double Ao    = 0.00;
-        double A     = 1.00;
-        //double aux   = 0.00;
-        double miu   = 0.00;
-        double g     = 0.00;
-        double toler = 0.0001;
-        double res   = 1.00;
-        double num   = 1.00;
-        double den   = 1.00;
-        bool reduce_arc_lenght  = true;
-        bool local_converged    = false;
-        bool local_converged_e  = false;
-        bool local_converged_h  = false;
-        bool is_converged       = false;
+        RealType Ao                   = 0.00;
+        RealType A                    = 1.00;
+        //RealType aux                  = 0.00;
+        RealType miu                  = 0.00;
+        RealType g                    = 0.00;
+        RealType toler                = 0.1;   // Residual tolerance
+        RealType toler_l              = 0.001; // Lambda tolerance
+        RealType res                  = 1.00;
+        RealType num                  = 1.00;
+        RealType den                  = 1.00;
+        RealType lambda_error         = 1.00;
+        RealType lambda_old_iter      = 0.00;
+        RealType fact                 = 0.00;
+        bool reduce_arc_lenght        = true;
+        bool local_converged          = false;
+        bool local_converged_e        = false; // Residual
+        bool local_converged_h        = false; // Orthogonal residual
+        bool local_converged_l        = false; // Lambda
+        bool is_converged             = false;
+        int recursive                 = 0;
 
-//        bool ResidualIsUpdated = false;
+        //vector<RealType> Parameters;
+        RealType old_residual = 0.00;
+        RealType new_residual = 0.00;
+
+        //unsigned int MaxLineSearchIter = 50;
+        //RealType tolls                 = 0.80;
+        //RealType amp                   = 1.618;
+        //RealType etmxa                 = 3.0;
+        //RealType etmna                 = 0.10;
+        //bool MoveMeshFlag              = BaseType::MoveMeshFlag();
+        //bool ApplyLineSearches         = true;
+
+        // Line searches utility
+        //TLineSearchesType Searches;
+        //TLineSearchesType LineSearches(MaxLineSearchIter, tolls, amp, etmxa, etmna, MoveMeshFlag, ApplyLineSearches);
 
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
@@ -344,6 +366,7 @@ public:
         std::cout<<" STEP NUMBER        = " << mstep << std::endl;
         std::cout<<" DESIRED ITERATIONS = " << mIde  << std::endl;
         std::cout<<" MAX ITERATIONS     = " << mMaxIterationNumber << std::endl;
+        std::cout<<" MAX RECURSIVE ITERATIONS     = " << mMaxRecursive << std::endl;
         std::cout<<" CURRENT TIME       = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
 
         // Initialisation of the convergence criteria and variables of arc lenght
@@ -462,10 +485,11 @@ public:
         do
         {
             iteration_number = 0;
+            if(recursive++ >= mMaxRecursive) break;
             while(  is_converged == false && iteration_number++ < mMaxIterationNumber)
             {
                 // Setting the number of iteration
-                std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << iteration_number << std::endl;
+                std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << iteration_number << "  RECURSIVE NUMBER = " << recursive << std::endl;
                 BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
               
                 // Setting variables in the begining of the iteraction
@@ -473,8 +497,9 @@ public:
                 meta = 1.00;
 	      
                 local_converged = false;
-                if(iteration_number == 1 && mstep == 1)
+                if(iteration_number == 1 && mInit == false)// mstep == 1)
                 {
+                    mInit            = true;
                     mlambda_old      = 0.00;
                     Ao               = TSparseSpace::Dot(Sigma_q, Sigma_q);        // Ao = inner_prod (Sigma_q, Sigma_q);
                     mdelta_l         = sqrt(2.00*Ao*mdelta_lambda*mdelta_lambda);
@@ -487,7 +512,7 @@ public:
 
                     //TSparseSpace::Copy(mRHS_cond,h);
 
-                    if (this->GetEchoLevel() == 2)
+                    if (this->GetEchoLevel() > 1)
                     {
                         std::cout << " Solution Formulation at Origin " << std::endl;
                         std::cout << "   Arc length      = " << mdelta_l << std::endl;
@@ -499,11 +524,13 @@ public:
                      }
 
                     is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
+                    //mpConvergenceCriteria->GetConvergenceData(Parameters);
+                    //old_residual = Parameters[0];
                 }
-                else if(iteration_number == 1 && mstep != 1)
+                else if(iteration_number == 1 && mInit == true)// mstep != 1)
                 {
-                    //double aux1  =  TSparseSpace::Dot(mX_old, mX_old);
-                    double aux2  =  TSparseSpace::Dot(mDelta_pold, mDelta_pold);   //inner_prod(mDelta_pold,mDelta_pold);
+                    //RealType aux1  =  TSparseSpace::Dot(mX_old, mX_old);
+                    RealType aux2  =  TSparseSpace::Dot(mDelta_pold, mDelta_pold);   //inner_prod(mDelta_pold,mDelta_pold);
                     Ao           =  aux2/(mlambda_old * mlambda_old);
                     miu          =  mdelta_l/std::sqrt(aux2 + Ao*mdelta_lambda_old*mdelta_lambda_old);
 
@@ -515,7 +542,7 @@ public:
                     mdelta_lambda = miu*mdelta_lambda_old;
                     // TSparseSpace::Assign(mDelta_p, 1.00, Sigma_q);
 
-                    if (this->GetEchoLevel() == 2)
+                    if (this->GetEchoLevel() > 1)
                     {
                         std::cout << " Solution Iteration from  Converged Point "    << std::endl;
                         std::cout << "   Arc length      = " << mdelta_l             << std::endl;
@@ -530,6 +557,8 @@ public:
                     TSparseSpace::Copy(mDelta_p, mDx);
 
                     is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, q_Inc_Aux);
+                    //mpConvergenceCriteria->GetConvergenceData(Parameters);
+                    //old_residual = Parameters[0];
                 }
                 else
                 {
@@ -548,6 +577,10 @@ public:
                     Recursive_Function_Arc_Length(pq, pSigma_q, pSigma_h, mpDx, g, Ao);
                 }
 
+                if (iteration_number != 1)
+                {
+                    lambda_old_iter = mlambda;
+                }
                 mlambda =  mlambda_old + mdelta_lambda;
 
                 //KRATOS_WATCH(mlambda);
@@ -564,7 +597,7 @@ public:
 
                 TSparseSpace::SetToZero(mb);
                 pBuilderAndSolver->BuildRHS(pScheme,mAuxElementModelPart, mb);
-                TSparseSpace::ScaleAndAdd(mlambda, q, A, mb, e);
+                TSparseSpace::ScaleAndAdd(mlambda, q, A, mb, e); // Residual convergence Fint-lambda*Fext
                 //noalias(e) = E + mb; /// WARNING = in Kratos Fint is compted like -mb
 
                 // Finalize the iteration
@@ -577,8 +610,8 @@ public:
                 //KRATOS_WATCH(den)
                 //KRATOS_WATCH(mlambda)
 
-                res        = std::fabs(num/(mlambda* std::sqrt(den)));
-                if (this->GetEchoLevel() == 2)
+                res        = 100.00 * std::fabs(num/(mlambda* std::sqrt(den)));
+                if (this->GetEchoLevel() > 1)
                 {
                     std::cout << " Convergence reached for e = " << res << "  Required Convergence = " << toler << std::endl;
                 }
@@ -602,8 +635,8 @@ public:
                 }
 
                 num        = std::sqrt(TSparseSpace::Dot(h,h));
-                res        = std::fabs(num/(mlambda * std::sqrt(den)));
-                if (this->GetEchoLevel() == 2)
+                res        = 100.00 * std::fabs(num/(mlambda * std::sqrt(den)));
+                if (this->GetEchoLevel() > 1)
                 {
                     std::cout << " Convergence reached for h = " << res << "  Required Convergence = " << toler << std::endl;
                 }
@@ -611,18 +644,46 @@ public:
                 if(res < toler)
                 {
                     local_converged_h = true;
-                    /*
-                    double num_2    = TSparseSpace::Dot(mb, q);
-                    mlambda       = num_2/den;
-                    mdelta_lambda = mlambda-mlambda_old;
-                   */
+                }
+
+                if(std::fabs(lambda_old_iter) < 1E-10)
+                {
+                    fact = 1.00;
+                }
+                else
+                {
+                    fact = lambda_old_iter;
+                }
+                lambda_error    = std::fabs(100.00 * (mlambda - lambda_old_iter)/(fact + 1E-20));
+                local_converged_l = (lambda_error < toler_l) ?  true : false;
+                if (this->GetEchoLevel() > 1)
+                {
+                    std::cout << " Convergence reached for l = " << lambda_error << "  Required Convergence = " << toler_l << std::endl;
                 }
 
                 // Compute the truth criteria of convergence
-                local_converged = bool(local_converged_e || local_converged_h);
+                local_converged = bool(local_converged_e || local_converged_h || local_converged_l);
                 //local_converged = true;
                 is_converged    = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, e);
-                is_converged    = bool((is_converged==true || local_converged==true) && iteration_number >= 5);
+                is_converged    = bool((is_converged == true && local_converged == true) && iteration_number > 2);
+
+                //mpConvergenceCriteria->GetConvergenceData(Parameters);
+                //new_residual = Parameters[0];
+                //KRATOS_WATCH(new_residual)
+                //KRATOS_WATCH(old_residual)
+
+                //if(new_residual>old_residual)
+                //{
+                //    std::cout << "Calling Line Searches " << std::endl; // In a line search, mDx is the total acumulated in that step
+                //    Searches.mso = TSparseSpace::Dot(mDelta_p, mb);
+                //    KRATOS_WATCH(Searches.mso)
+                //    Searches.LineSearches(BaseType::GetModelPart(), pScheme, pBuilderAndSolver, rDofSet, mX_old, mDelta_p, mDx, mb, mA);
+                //    mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, mb);
+                //    mpConvergenceCriteria->GetConvergenceData(Parameters);
+                //    new_residual = Parameters[0];
+                //}
+
+                old_residual = new_residual;
 
                 if(is_converged == true)
                 {
@@ -641,10 +702,25 @@ public:
                     TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
                 }
 
+                // Optional recomputing K(mA y sigma_q )
+                if(is_converged==false)
+                {
+                    TSparseSpace::SetToZero(mDx);
+                    TSparseSpace::SetToZero(mb);
+                    TSparseSpace::SetToZero(mA);
+                    std::cout << " Rebuilding Tangent Matrix " << std::endl;
+                    pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
+                    TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
+                    pBuilderAndSolver->SystemSolve(mA, Sigma_q, q_Inc_Aux);
+                    //noalias(Sigma_q) += mDelta_pold; /// Should be the total acumulated
+                    TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
+                }
+
                 if (is_converged == false && iteration_number >= mMaxIterationNumber)
                 {
                     reduce_arc_lenght = true;
-                    mdelta_l          = sqrt(mIde/iteration_number)*mdelta_l;
+                    mdelta_l          = std::sqrt(RealType(mIde)/RealType(iteration_number)) * mdelta_l;
+                    //mdelta_l          = (recursive + 1) * mdelta_lold; // Increasing the arc-length
                     mdelta_lambda     = mdelta_lambda_old;
                     meta              = 1.00;
                     mlambda           = mlambda_old;
@@ -658,6 +734,12 @@ public:
                     TSparseSpace::SetToZero(mA);
                     SetDatabaseToValue(rDofSet, mX_old);
                     pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
+
+                    // Solve again
+                    TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
+                    pBuilderAndSolver->SystemSolve(mA, Sigma_q, q_Inc_Aux);
+                    TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
+
                     std::cout << "Arc lenght modified  = " << mdelta_l  <<std::endl;
                 }
             }
@@ -675,7 +757,7 @@ public:
 
         //Finalisation of the solution step, operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
-        FinalizeSolutionStep_ArcLength(iteration_number,reduce_arc_lenght);
+        FinalizeSolutionStep(iteration_number,reduce_arc_lenght);
 	  
         ///Cleaning memory after the solution
         pScheme->Clean();
@@ -685,6 +767,12 @@ public:
         if (mReformDofSetAtEachStep == true)
         {
             Clear();
+        }
+        else
+        {
+            std::cout << "***************************************************" << std::endl;
+            std::cout << "*********** WARNING: Step no converged ************" << std::endl;
+            std::cout << "***************************************************" << std::endl;
         }
     }
 
@@ -787,6 +875,8 @@ public:
 
     /**
     * Recursive function inside the arc length that computes the new delta_lambda
+    * mDx are the increments, dx = dx_old + mDx()
+    * mDelta_p is the accumulated
     * @param pq:
     * @param pSigma_q:
     * @param pSigma_h:
@@ -801,8 +891,8 @@ public:
             TSystemVectorPointerType& pSigma_q,
             TSystemVectorPointerType& pSigma_h,
             TSystemVectorPointerType& pdx_aux,
-            double& g,
-            double& Ao
+            RealType& g,
+            RealType& Ao
             )
     {
         KRATOS_TRY;
@@ -812,18 +902,18 @@ public:
         typename TSchemeType::Pointer pScheme                     = GetScheme();
 
         // Coeficients to solve the  2nd equation.
-        double a    = 0.00;
-        double b    = 0.00;
-        double c    = 0.00;
-        double disc = 0.00;           // Discriminant of the quadratic equation
-        double x    = 0.00;
-        Vector x_sol(2);              // Solution of the second order equation
+        RealType a    = 0.00;
+        RealType b    = 0.00;
+        RealType c    = 0.00;
+        RealType disc = 0.00;           // Discriminant of the quadratic equation
+        RealType x    = 0.00;
+        std::vector<RealType> x_sol(2);              // Solution of the second order equation
         x_sol.resize(2,false);
 
-        double lambda_cr       = 0.00;
-        double delta_lambda_cr = 0.00;
-        double delta_lcr       = 0.00;
-        double miu             = 0.00;
+        RealType lambda_cr       = 0.00;
+        RealType delta_lambda_cr = 0.00;
+        RealType delta_lcr       = 0.00;
+        RealType miu             = 0.00;
         bool  imag = false;
         
         // Aux Variables
@@ -860,15 +950,15 @@ public:
         TSystemVectorType& q             = *pq;
 	
         // Constants needed for the Ublas operations
-        double A = 1.00;
-        //double B = 1.00;
+        RealType A = 1.00;
+        //RealType B = 1.00;
  
         // Calculate_Current_Delta(rDofSet, Delta_p);
 	
-        a = Ao + TSparseSpace::Dot(Sigma_q,Sigma_q);
-        TSparseSpace::ScaleAndAdd(A, mDelta_p, meta,Sigma_h,Aux_Vector); // Aux_Vector = A * mDelta_p + meta*Sigma_h
-        b = 2.00*(Ao*(mdelta_lambda-g) + TSparseSpace::Dot(Sigma_q,Aux_Vector));
-        c = Ao*(mdelta_lambda-g)*(mdelta_lambda-g) - mdelta_l*mdelta_l + TSparseSpace::Dot(Aux_Vector,Aux_Vector); 
+        a = Ao + TSparseSpace::Dot(Sigma_q, Sigma_q);
+        TSparseSpace::ScaleAndAdd(A, mDelta_p, meta, Sigma_h, Aux_Vector); // Aux_Vector = A * mDelta_p + meta*Sigma_h
+        b = 2.00 * (Ao * (mdelta_lambda-g) + TSparseSpace::Dot(Sigma_q, Aux_Vector));
+        c = Ao * (mdelta_lambda-g) * (mdelta_lambda-g) - mdelta_l * mdelta_l + TSparseSpace::Dot(Aux_Vector, Aux_Vector);
         
         //KRATOS_WATCH(Ao);
         //KRATOS_WATCH(meta);
@@ -891,18 +981,18 @@ public:
             TSparseSpace::ScaleAndAdd(x_sol[0],Sigma_q,meta,Sigma_h,Delta_p1); //Delta_p1 = x_sol(0)*Sigma_q + meta*Sigma_h
             TSparseSpace::ScaleAndAdd(x_sol[1],Sigma_q,meta,Sigma_h,Delta_p2); //Delta_p2 = x_sol(1)*Sigma_q + meta*Sigma_h
             
-            if (this->GetEchoLevel() == 2)
+            if (this->GetEchoLevel() > 1)
             {
                 std::cout<<" Real roots found " << std::endl;
-                std::cout<<" First Solution  = " << x_sol(0) <<  std::endl;
-                std::cout<<" Second Solution = " << x_sol(1) <<  std::endl;
+                std::cout<<" First Solution  = " << x_sol[0] <<  std::endl;
+                std::cout<<" Second Solution = " << x_sol[1] <<  std::endl;
             }
 	    
             // Choose the x value: the larges dot product
             // WARNING: The old code use the current incremental displacement
             // First roots
             noalias(Delta_p) = mDelta_p + Delta_p1;
-            double a1        = TSparseSpace::Dot(Delta_p, mDelta_pold);
+            RealType a1        = TSparseSpace::Dot(Delta_p, mDelta_pold);
 	    
             //KRATOS_WATCH(Delta_p1[0]);
             //KRATOS_WATCH(Delta_p2[0]);
@@ -912,25 +1002,25 @@ public:
             // Second roots
             TSparseSpace::SetToZero(Delta_p);
             noalias(Delta_p) = mDelta_p + Delta_p2;
-            double a2        = TSparseSpace::Dot(Delta_p,mDelta_pold);
+            RealType a2        = TSparseSpace::Dot(Delta_p,mDelta_pold);
             //KRATOS_WATCH(a2);
 	    
             if(a1 > a2)
             {
-                x = x_sol(0);
+                x = x_sol[0];
                 noalias(mDelta_p)+= Delta_p1; 
                 TSparseSpace::Copy(Delta_p1, dx_aux);
             }
             else
             {
-              x = x_sol(1);
+              x = x_sol[1];
               noalias(mDelta_p)+= Delta_p2;
               TSparseSpace::Copy(Delta_p2, dx_aux);
             }
 	    
             mdelta_lambda += - g + x;
 	    
-            if (this->GetEchoLevel() == 2)
+            if (this->GetEchoLevel() > 1)
             {
                 std::cout << " Solution Chosen = " << x <<  std::endl;
                 std::cout << " New DeltaLamda  = " << mdelta_lambda <<  std::endl;
@@ -940,7 +1030,7 @@ public:
         {
             std::cout << "WARNING: No real roots was found " << std::endl;
             std::cout << "Introductiong a pseudo-line search to avoid complex roots " << std::endl;
-            if (this->GetEchoLevel() == 2)
+            if (this->GetEchoLevel() > 1)
             {
                 std::cout << "Calculating eta" << std::endl;
                 Calculate_eta(Ao, pSigma_q, pSigma_h, g, imag);
@@ -948,7 +1038,7 @@ public:
 
             if (imag==false)
             {
-                if (this->GetEchoLevel() == 2)
+                if (this->GetEchoLevel() > 1)
                 {
                     std::cout << " eta was found with value = " << meta << std::endl;
                     std::cout << " Calling again the Recursive Function " << std::endl;
@@ -991,7 +1081,7 @@ public:
                 mdelta_lambda     = miu * delta_lambda_cr;
                 mdelta_l          = delta_lcr;
 	    
-                if (this->GetEchoLevel() == 2)
+                if (this->GetEchoLevel() > 1)
                 {
                     std::cout << "   Arc Length      = " << mdelta_l             << std::endl;
                     std::cout << "   Lamba Old       = " << mlambda_old          << std::endl;
@@ -1064,21 +1154,23 @@ private:
     */
     bool mCalculateReactionsFlag;
     bool mInitializeWasPerformed;
+    bool mInit;
 
     bool mSolutionStepIsInitialized;
     unsigned int mMaxIterationNumber;
     unsigned int mstep;
+    unsigned int mMaxRecursive;
 
-    double mdelta_l;         // Arc length
-    double mdelta_lold;      // Arc length from the previous increment
-    double mdelta_lmax;      // Maximum arc length allowed
-    double mfactor_delta_lmax;
-    double meta;
-    double mIde;
-    double mlambda;
-    double mlambda_old;
-    double mdelta_lambda;
-    double mdelta_lambda_old;
+    RealType mdelta_l;         // Arc length
+    RealType mdelta_lold;      // Arc length from the previous increment
+    RealType mdelta_lmax;      // Maximum arc length allowed
+    RealType mfactor_delta_lmax;
+    RealType meta;
+    int mIde;
+    RealType mlambda;
+    RealType mlambda_old;
+    RealType mdelta_lambda;
+    RealType mdelta_lambda_old;
     ModelPart mAuxElementModelPart;
     ModelPart mAuxConditionModelPart;
 
@@ -1111,6 +1203,12 @@ private:
         if (pScheme->ElementsAreInitialized() == false)
         {
             pScheme->InitializeElements(BaseType::GetModelPart());
+        }
+
+        // Initialize Conditions
+        if (pScheme->ConditionsAreInitialized() == false)
+        {
+            pScheme->InitializeConditions(mAuxConditionModelPart);
         }
 
         // Initialisation of the convergence criteria
@@ -1183,7 +1281,7 @@ private:
     * @param reduce_arc_lenght: Boolean that tells if the arc length has been computed with the reduced method
     */
 
-    void FinalizeSolutionStep_ArcLength(
+    void FinalizeSolutionStep(
              unsigned int& iteration_number,
              bool &reduce_arc_lenght
              )
@@ -1199,25 +1297,25 @@ private:
         TSystemVectorType& mDx           = *mpDx;
         TSystemVectorType& mb            = *mpb;
 	
-        double factor     = 1.00;
+        RealType factor     = 1.00;
         mdelta_lambda_old =  mdelta_lambda;
         mlambda_old       =  mlambda;
 	  
         // KRATOS_WATCH(mlambda_old)
 	
-        factor           = sqrt(mIde/iteration_number);
+        factor           = std::sqrt(RealType(mIde)/RealType(iteration_number));
 
         // Controling the size of the arc
-        if (factor > 1.5)
+        if (factor > 1.0)
         {
-            factor = 1.50;
+            factor = 1.00;
         }
         if (factor < 0.75)
         {
             factor = 0.75;
         }
 	
-        mdelta_l = factor*mdelta_lold;
+        mdelta_l = factor * mdelta_lold;
         if (mdelta_lold > mdelta_lmax)
         {
             mdelta_lold = mdelta_lmax;
@@ -1239,24 +1337,21 @@ private:
     /***********************************************************************************/
 
     /**
-    * It initialises an uxiliar model part
+    * It initialises an auxiliar model part
     * @param ThisModelPart: Model part
     */
 
     void InitializeAuxiliaryModelParts(ModelPart& ThisModelPart)
     {
-        // mAuxElementModelPart.SetBufferSize(ThisModelPart.GetBufferSize());
-        // mAuxConditionModelPart.SetBufferSize(ThisModelPart.GetBufferSize());
+        mAuxElementModelPart.SetBufferSize(ThisModelPart.GetBufferSize());
+        mAuxConditionModelPart.SetBufferSize(ThisModelPart.GetBufferSize());
 
-        mAuxElementModelPart.Nodes()   = ThisModelPart.Nodes();
-        mAuxConditionModelPart.Nodes() = ThisModelPart.Nodes();
-
-        // mAuxElementModelPart.Properties() = ThisModelPart.Properties();
-        // mAuxConditionModelPart.Properties() = ThisModelPart.Properties();
-
-        mAuxElementModelPart.Elements() = ThisModelPart.Elements();
-        mAuxConditionModelPart.Conditions() = ThisModelPart.Conditions();
-
+        mAuxElementModelPart.Nodes()             = ThisModelPart.Nodes();
+        mAuxConditionModelPart.Nodes()           = ThisModelPart.Nodes();
+        mAuxElementModelPart.PropertiesArray()   = ThisModelPart.PropertiesArray();
+        mAuxConditionModelPart.PropertiesArray() = ThisModelPart.PropertiesArray();
+        mAuxElementModelPart.Elements()          = ThisModelPart.Elements();
+        mAuxConditionModelPart.Conditions()      = ThisModelPart.Conditions();
     }
 
     /***********************************************************************************/
@@ -1273,18 +1368,18 @@ private:
     */
 
     void Calculate_eta(
-            double& Ao,
+            RealType& Ao,
             TSystemVectorPointerType& pSigma_q,
             TSystemVectorPointerType& pSigma_h,
-            double& g,
+            RealType& g,
             bool& imag
             )
     {
-        double a_prima = 0.00;
-        double b_prima = 0.00;
-        double c_prima = 0.00;
-        double disc    = 0.00;
-        Vector SOL;
+        RealType a_prima = 0.00;
+        RealType b_prima = 0.00;
+        RealType c_prima = 0.00;
+        RealType disc    = 0.00;
+        std::vector<RealType> SOL;
         SOL.resize(2, false);
 
         TSystemVectorType& Sigma_q     = *pSigma_q;
@@ -1306,12 +1401,12 @@ private:
         /// WARNING: Verify current mDelta_p
         //Calculate_Delta_pold(rDofSet,mDelta_p);
 	
-        double param_a = TSparseSpace::Dot(Sigma_q,  Sigma_q); 
-        double param_b = TSparseSpace::Dot(Sigma_h,  Sigma_h);
-        double param_c = TSparseSpace::Dot(Sigma_q,  Sigma_h);
-        double param_d = TSparseSpace::Dot(mDelta_p, Sigma_h);
-        double param_e = TSparseSpace::Dot(mDelta_p, mDelta_p);
-        double param_f = TSparseSpace::Dot(Sigma_q,  mDelta_p);
+        RealType param_a = TSparseSpace::Dot(Sigma_q,  Sigma_q);
+        RealType param_b = TSparseSpace::Dot(Sigma_h,  Sigma_h);
+        RealType param_c = TSparseSpace::Dot(Sigma_q,  Sigma_h);
+        RealType param_d = TSparseSpace::Dot(mDelta_p, Sigma_h);
+        RealType param_e = TSparseSpace::Dot(mDelta_p, mDelta_p);
+        RealType param_f = TSparseSpace::Dot(Sigma_q,  mDelta_p);
  
         a_prima = (Ao + param_a) * param_b - param_c * param_c;
         b_prima = 2.00 * ( (Ao + param_a)*param_d - ((Ao * (mdelta_lambda-g) + param_f)) * param_c);
@@ -1348,29 +1443,29 @@ private:
             //KRATOS_WATCH(b_prima);
             //KRATOS_WATCH(c_prima);
 
-            if (SOL(0)>SOL(1))
+            if (SOL[0] > SOL[1])
             {
-                double a =   SOL(1);
-                SOL(1)   =   SOL(0);
-                SOL(0)   =    a;
+                RealType a =   SOL[1];
+                SOL[1]     =   SOL[0];
+                SOL[0]     =   a;
             }
 
-            double shi  = 0.05*fabs((SOL(1)-SOL(0)));
-            if (SOL(1) < 1.00)
+            RealType shi  = 0.05 * fabs((SOL[1] - SOL[0]));
+            if (SOL[1] < 1.00)
             {
-                meta  = SOL(1)-shi;
+                meta  = SOL[1] - shi;
             }
-            else if ((1 > (-b_prima/a_prima)) && (SOL(1) > 1.00))
+            else if ((1 > (-b_prima/a_prima)) && (SOL[1] > 1.00))
             {
-                meta  = SOL(1) + shi;
+                meta  = SOL[1] + shi;
             }
-            else if ((1 < (-b_prima/a_prima)) && (SOL(0) < 1.00))
+            else if ((1 < (-b_prima/a_prima)) && (SOL[0] < 1.00))
             {
-                meta  = SOL(0) -shi;
+                meta  = SOL[0] -shi;
             }
             else
             {
-                meta  = SOL(0) + shi;
+                meta  = SOL[0] + shi;
             }
         }
         else

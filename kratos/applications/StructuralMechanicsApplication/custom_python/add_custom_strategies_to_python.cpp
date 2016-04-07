@@ -77,7 +77,7 @@ void  AddCustomStrategiesToPython()
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             (
                 "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer,
-                                                                unsigned int, unsigned int,double,bool, bool, bool>() )
+                                                                unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
             ;
 }
 

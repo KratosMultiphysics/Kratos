@@ -72,6 +72,7 @@ class StaticArcLengthStructuralSolver:
         self.Ide = 5
         self.factor_delta_lmax = 1.00
         self.max_iteration = 20
+        self.max_recursive = 50
         self.toler = 1.0E-10
         self.norm = 1.0E-7
         self.MaxLineSearchIterations = 20
@@ -114,7 +115,8 @@ class StaticArcLengthStructuralSolver:
 
         # Creating the solver
         self.solver = ResidualBasedArcLengthStrategy(self.model_part,  self.time_scheme, self.linear_solver, 
-            self.mechanical_convergence_criterion,  self.Ide,  self.max_iteration,  self.factor_delta_lmax,  self.CalculateReactionFlag, self.ReformDofSetAtEachStep,  self.MoveMeshFlag )
+            self.mechanical_convergence_criterion,  self.Ide,  self.max_iteration, self.max_recursive,  
+            self.factor_delta_lmax,  self.CalculateReactionFlag, self.ReformDofSetAtEachStep,  self.MoveMeshFlag )
     #
     def Solve(self):
         
@@ -179,6 +181,8 @@ def CreateSolver(model_part, config):
         structural_solver.factor_delta_lmax = config.factor_delta_lmax
     if(hasattr(config, "max_iteration")):
         structural_solver.max_iteration = config.max_iteration
+    if(hasattr(config, "max_recursive")):
+        structural_solver.max_recursive = config.max_recursive
     if(hasattr(config, "toler")):
         structural_solver.toler = config.toler
     if(hasattr(config, "norm")):
