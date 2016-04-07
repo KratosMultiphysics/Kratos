@@ -2345,7 +2345,7 @@ void SprismElement3D6N::CalculateDynamicSystem(
         {
             LocalLeftHandSideMatrix.clear();
 
-            this->CalculateAndAddDynamicLHS ( LocalLeftHandSideMatrix, Variables );
+            this->CalculateAndAddDynamicLHS ( LocalLeftHandSideMatrix, Variables, IntegrationWeight);
 
             MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
             rLeftHandSideMatrix += LocalLeftHandSideMatrix;
@@ -4115,10 +4115,10 @@ void SprismElement3D6N::CalculateAndAddLHS(
 
 void SprismElement3D6N::CalculateAndAddDynamicLHS(
         MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables
+        GeneralVariables& rVariables,
+        double& rIntegrationWeight
         )
 {
-
   // Mass matrix
   WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
 
@@ -4134,10 +4134,9 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(
 
   noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize);
 
-  double Volume = GetGeometry().Volume();
-  double TotalMass = Volume * Density;
+  double TotalMass = rIntegrationWeight * Density;
 
-//  // Shape functions
+//  // Using shape fucntions
 //  unsigned int indexi = 0;
 //  unsigned int indexj = 0;
 
@@ -4148,7 +4147,7 @@ void SprismElement3D6N::CalculateAndAddDynamicLHS(
 //          indexj = 0;
 //          for ( unsigned int j = 0; j < GetGeometry().size(); j++ )
 //          {
-//              rLeftHandSideMatrix(indexi + k, indexj + k) += rVariables.N[i] * rVariables.N[j] * TotalMass;
+//              rLeftHandSideMatrix(indexi + k,indexj + k) += rVariables.N[i] * rVariables.N[j] * TotalMass;
 //              indexj += 3;
 //          }
 //      }
@@ -4739,6 +4738,12 @@ void SprismElement3D6N::CalculateKinematics(
     }
 
     rVariables.detF = sqrt(rVariables.detF);
+
+    // Get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    // Set Shape Functions Values for this integration point
+    rVariables.N=row( Ncontainer, rPointNumber);
 
     KRATOS_CATCH( "" );
 }
