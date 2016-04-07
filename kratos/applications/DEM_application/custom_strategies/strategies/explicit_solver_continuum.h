@@ -341,7 +341,7 @@ namespace Kratos
                              
         const int number_of_particles = (int)mListOfSphericContinuumParticles.size();        
         int used_bonds_counter = 0; 
-        //#pragma omp parallel TODO:
+        #pragma omp parallel
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
@@ -408,7 +408,7 @@ namespace Kratos
                 }
             } 
 
-            //#pragma omp for TODO:
+            #pragma omp for 
             for (int i = 0; i < number_of_particles; i++) {
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
                 unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
