@@ -61,6 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/unordered_map.hpp> //TODO: remove this dependence when Kratos has en internal one
 #include <utility>
 
+#include "rapidjson/document.h"
+
 namespace Kratos
 {
 
@@ -94,7 +96,7 @@ namespace Kratos
 				return boost::hash_range(k.begin(), k.end());
 			}
 		};
-
+		
 		/*Unordered maps are associative containers that store elements
 		* formed by the combination of a key value and a mapped value,
 		* and which allows for fast retrieval of individual elements based on their keys.
@@ -118,22 +120,46 @@ namespace Kratos
 		*/
 		typedef boost::unordered_map<vector<int>, Vector, KeyHasher, KeyComparor > TagStrainVectorMap;
 
+		typedef std::map<double, vector<double> > DamageMap;
+
+		typedef boost::unordered_map<vector<int>, DamageMap, KeyHasher, KeyComparor > TagNestedMap;
+
+		typedef boost::unordered_map<vector<int>, matrix<double>, KeyHasher, KeyComparor > TagDamageMap;
+
+
 	public:
 
-		RvePredictorCalculator(std::string& file_name, ModelPart& modelPart);
+		RvePredictorCalculator(std::string C0_file_name, std::string hash_file_name, std::string json_file_name);
 
 		virtual ~RvePredictorCalculator();
 
 	private:
 
-		void ReadAndCreatePredictorData(std::string file_name, ModelPart& modelPart);
+		void ReadAndCreatePredictorData(std::string file_name);
+
+		void ReadAndCreateConstTensorData(std::string file_name);
+
+		void ReadAndCreatePredictorDataDamageHistory(std::string file_name);
 
 	public:
 
-		//bool Predict(const TagStrainVectorMap&, const Vector& trial_macro_scale_strain_vector) const;
-		bool Predict(const Vector& trial_macro_scale_strain_vector) const;
+		Matrix& GetTangentMatrix(Matrix& tangent_matrix);
+
+		void PredictElasticity(const Vector& trial_macro_scale_strain_vector, bool& Is_Elastic, Vector& stress_vector) const;
+
+		void PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged) const;
+		
+		void PredictStress3D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged) const;
+
+		double ShapeFunctionValue4N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
+
+		double ShapeFunctionValue8N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
+		
+		double ShapeFunctionValue27N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
 
 		Vector CalculateTheta(Vector NormalizedStrainVector) const;
+
+		Vector FindInterpolatedStress();
 
 		Matrix SelectInterpolationType(size_t IType) const;
 
@@ -144,7 +170,7 @@ namespace Kratos
 
 		double bicubicInterpolate(double p[4][4], double x, double y, Matrix& F) const;
 
-		/*double tricubicInterpolate(double p[4][4][4], double x, double y, double z, Matrix F) const;*/
+		double tricubicInterpolate(double p[4][4][4], double x, double y, double z, Matrix F) const;
 
 	public:
 
@@ -196,10 +222,16 @@ namespace Kratos
 
 	private:
 
-		std::string mFileName;
+		std::string mC0FileName;
+		std::string mHashFileName;
+		std::string mJsonFileName;
 		Matrix mC0;
 		TagStrainVectorMap mStrainMap;
-
+		TagNestedMap mTagNestedMap;
+		DamageMap mDamageMap;
+		TagDamageMap mTagDamageMap;
+		rapidjson::Value* mValue;
+		
 	public:
 
 		inline const size_t Dimension()const { return m_dimension; }
