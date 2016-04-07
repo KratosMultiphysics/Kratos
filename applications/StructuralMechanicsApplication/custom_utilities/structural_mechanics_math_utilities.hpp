@@ -36,6 +36,8 @@ public:
 
     typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
+    typedef long double RealType;
+
     /**
      * It gives the orthonormal base based in a orthogonal base
      * @return tig: The orthonormal base
@@ -830,17 +832,16 @@ public:
      */
 
     static inline bool Solve_Second_Order_Equation(
-            const double& a,
-            const double& b,
-            const double& c,
-            Vector& solution
+            const RealType& a,
+            const RealType& b,
+            const RealType& c,
+            std::vector<RealType>& solution
             )
     {
-        solution.resize(2, false);
-        noalias(solution)= ZeroVector(2);
+        RealType disc = b*b - 4.00*a*c;
+        RealType q = 0.00;
 
-        double disc = b*b - 4.00*a*c;
-        double q = 0.00;
+        solution.resize(2, false);
 
         if (b > 0.00)
         {
@@ -851,8 +852,8 @@ public:
             q = -0.5 * (b - sqrt(disc));
         }
 
-        solution(0) = q / a;
-        solution(1) = c / q;
+        solution[0] = q / a;
+        solution[1] = c / q;
 
         return true;
     }
