@@ -64,7 +64,15 @@ namespace Kratos {
         
         double  GetParticleCohesion();                                            
         double* pGetParticleCohesion();                                           
-        void    SetParticleCohesionFromProperties(double* particle_cohesion);    
+        void    SetParticleCohesionFromProperties(double* particle_cohesion);
+        
+        double  GetParticleKNormal();
+        double* pGetParticleKNormal();
+        void    SetParticleKNormalFromProperties(double* particle_k_normal);
+
+        double  GetParticleKTangential();
+        double* pGetParticleKTangential();
+        void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
         
         PropertiesProxy operator= (PropertiesProxy props);
                        
@@ -80,6 +88,8 @@ namespace Kratos {
         double* mDensity;
         int*    mParticleMaterial;
         double* mParticleCohesion;
+        double* mParticleKNormal;
+        double* mParticleKTangential;
                 
         friend class Serializer;
 
