@@ -140,27 +140,24 @@ namespace Kratos {
             int i_neighbour_count,
             int time_steps) {
 
-        KRATOS_TRY
-
-        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
-        double mTensionLimit;
-
-        mTensionLimit = 0.5 * 1e6 * (element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
-        const double limit_force = mTensionLimit * calculation_area;
+        KRATOS_TRY       
+        
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;          
         }
-        else { //tension            
-            if (failure_type == 0) {             
+        else { //tension   
+            int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+            if (failure_type == 0) {  
+                double mTensionLimit = 0.5 * 1e6 * (element1->GetProperties()[CONTACT_SIGMA_MIN] + element2->GetProperties()[CONTACT_SIGMA_MIN]); //N/m2
+                const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {          
                     failure_type = 4; //tension failure
                     LocalElasticContactForce[2] = 0.0;
                 }                
-            } else LocalElasticContactForce[2] = 0.0;             
+            } 
+            else { LocalElasticContactForce[2] = 0.0; 
+            }
         }
         KRATOS_CATCH("")      
     }
@@ -182,14 +179,14 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        int& mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];                
+        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];                
         LocalElasticContactForce[0] -= kt_el * LocalDeltDisp[0]; // 0: first tangential
         LocalElasticContactForce[1] -= kt_el * LocalDeltDisp[1]; // 1: second tangential
         
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
             
-        if (mNeighbourFailureId_count == 0) { //This means it has not broken 
+        if (failure_type == 0) { //This means it has not broken 
             Properties& element1_props = element1->GetProperties();
             Properties& element2_props = element2->GetProperties();
             const double mTauZero = 0.5 * 1e6 * (element1_props[CONTACT_TAU_ZERO] + element2_props[CONTACT_TAU_ZERO]);
@@ -205,7 +202,7 @@ namespace Kratos {
             }
 
             if (contact_tau > tau_strength) {                                
-                mNeighbourFailureId_count = 2; // shear
+                failure_type = 2; // shear
             }
         }
         else {
@@ -256,24 +253,15 @@ namespace Kratos {
                                                     double LocalCoordSystem[3][3],
                                                     array_1d<double, 3>& mContactMoment) {
 
+        KRATOS_TRY 
         double LocalRotationalMoment[3]      = {0.0};
-        double GlobalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaRotatedAngle[3]     = {0.0};
-        double TargetTotalRotatedAngle[3]    = {0.0};
-        double NeighborTotalRotatedAngle[3]  = {0.0};
-        double TargetAngularVelocity[3]      = {0.0};
-        double NeighborAngularVelocity[3]    = {0.0};
-        double GlobalDeltaAngularVelocity[3] = {0.0};
         double LocalDeltaAngularVelocity[3]  = {0.0};
-
-        for (int i = 0; i < 3; i++) {
-            TargetTotalRotatedAngle[i]    = element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE)[i];
-            NeighborTotalRotatedAngle[i]  = neighbor->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE)[i];
-            GlobalDeltaRotatedAngle[i]    = TargetTotalRotatedAngle[i] - NeighborTotalRotatedAngle[i];
-            TargetAngularVelocity[i]      = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[i];
-            NeighborAngularVelocity[i]    = neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[i];
-            GlobalDeltaAngularVelocity[i] = TargetAngularVelocity[i] - NeighborAngularVelocity[i];
-        }
+        
+        array_1d<double, 3> GlobalDeltaRotatedAngle;
+        noalias(GlobalDeltaRotatedAngle) = element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE) - neighbor->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+        array_1d<double, 3> GlobalDeltaAngularVelocity;
+        noalias(GlobalDeltaAngularVelocity) = element->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) - neighbor->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaRotatedAngle, LocalDeltaRotatedAngle);
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
@@ -293,7 +281,6 @@ namespace Kratos {
         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
              
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
-
         LocalRotationalMoment[0] -= (rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance + visc_param * LocalDeltaAngularVelocity[0]);
         LocalRotationalMoment[1] -= (rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance + visc_param * LocalDeltaAngularVelocity[1]);
         LocalRotationalMoment[2] -= (rot_k * equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance + visc_param * LocalDeltaAngularVelocity[2]);
@@ -315,7 +302,7 @@ namespace Kratos {
         }
         */
         GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
-        
+        KRATOS_CATCH("")
     }//ComputeParticleRotationalMoments
     
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
