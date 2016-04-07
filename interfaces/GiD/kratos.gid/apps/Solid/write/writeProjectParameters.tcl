@@ -60,7 +60,7 @@ proc Solid::write::writeParametersEvent { } {
     # GiD output configuration
     set outputDict [dict create ]
     
-    dict set GiDPostDict [dict create]
+    set GiDPostDict [dict create]
     dict set GiDPostDict GiDPostMode                 [write::getValue SLResults GiDPostMode]
     dict set GiDPostDict WriteMeshFlag               [write::getValue SLResults GiDWriteMeshFlag]
     dict set GiDPostDict WriteConditionsFlag         [write::getValue SLResults GiDWriteConditionsFlag]
