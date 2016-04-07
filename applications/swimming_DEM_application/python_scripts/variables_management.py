@@ -60,6 +60,10 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars += pp.fluid_printing_vars
     pp.fluid_vars += pp.coupling_fluid_vars
     pp.fluid_vars += [PRESSURE_GRADIENT]
+    pp.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
+
+    if pp.CFD_DEM.recover_gradient_option:
+        pp.fluid_vars += [NODAL_WEIGHTS]
 
     if pp.CFD_DEM.include_faxen_terms_option:
         pp.fluid_vars += [VELOCITY_LAPLACIAN]
@@ -292,6 +296,10 @@ def ConstructListsOfVariablesForCoupling(pp):
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
     pp.nodal_results += ["TORQUE"]
+
+    if pp.CFD_DEM.print_PRESSURE_GRADIENT_option:
+        pp.nodal_results += ["PRESSURE_GRADIENT"]
+
     if pp.CFD_DEM.print_FLUID_FRACTION_option:
         pp.nodal_results += ["FLUID_FRACTION"]
 
