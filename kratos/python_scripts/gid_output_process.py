@@ -10,9 +10,9 @@ class GiDOutputProcess(Process):
         "result_file_configuration": {
             "gidpost_flags": {
                 "GiDPostMode": "GiD_PostBinary",
-			    "WriteDeformedMeshFlag": "WriteUndeformed",
-			    "WriteConditionsFlag": "WriteElementsOnly",
-			    "MultiFileFlag": "SingleFile"
+                "WriteDeformedMeshFlag": "WriteUndeformed",
+                "WriteConditionsFlag": "WriteElementsOnly",
+                "MultiFileFlag": "SingleFile"
             },
             "file_label": "time",
             "output_control_type": "step",
@@ -86,13 +86,13 @@ class GiDOutputProcess(Process):
 
         self.model_part = model_part
         self.volume_io = None
-        self.volume_list_file = None
+        self.volume_list_files = []
 
         # The following are only used if we asked to print results on surfaces
         self.cut_model_part = None
         self.cut_io = None
         self.output_surface_index = 0
-        self.cut_list_file = None
+        self.cut_list_files = []
 
         point_data_configuration = self.param["point_data_configuration"]
         if point_data_configuration.size() > 0:
@@ -167,11 +167,12 @@ class GiDOutputProcess(Process):
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
 
-        if self.multifile_flag == MultiFileFlag.SingleFile:
             if self.post_mode == GiDPostMode.GiD_PostBinary:
                 self.__write_step_to_list()
             else:
                 self.__write_step_to_list(0)
+        else:
+            self.printed_step_count = 0
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -204,14 +205,15 @@ class GiDOutputProcess(Process):
 
         # Print the output
         time = self.model_part.ProcessInfo[TIME]
+        self.printed_step_count += 1
         if self.output_label_is_time:
             label = time
         else:
-            label = self.step_count
+            label = self.printed_step_count
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
-            self.__initialize_results(time)
+            self.__initialize_results(label)
 
         self.__write_nodal_results(time)
         self.__write_gp_results(time)
@@ -240,10 +242,10 @@ class GiDOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteFinalize()
 
-        if self.volume_list_file is not None:
-            self.volume_list_file.close()
-        if self.cut_list_file is not None:
-            self.cut_list_file.close()
+        for f in self.volume_list_files:
+            f.close()
+        for f in self.cut_list_files:
+            f.close()
 
 
     def __initialize_gidio(self,gidpost_flags,param):
@@ -314,22 +316,27 @@ class GiDOutputProcess(Process):
         list_file_name = "{0}.post.lst".format(model_name)
 
         if self.body_output:
-            self.volume_list_file = open(list_file_name,"w")
+            list_file = open(list_file_name,"w")
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                self.volume_list_file.write("Multiple\n")
+                list_file.write("Multiple\n")
             elif self.multifile_flag == MultiFileFlag.SingleFile:
-                self.volume_list_file.write("Single\n")
+                list_file.write("Single\n")
+
+            self.volume_list_files.append( list_file )
 
             list_file_name = "{0}_cuts.post.lst".format(model_name)
 
         if self.use_cuts:
-            self.cut_list_file = open(list_file_name,"w")
+
+            list_file = open(list_file_name,"w")
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                self.cut_list_file.write("Multiple\n")
+                list_file.write("Multiple\n")
             elif self.multifile_flag == MultiFileFlag.SingleFile:
-                self.cut_list_file.write("Single\n")
+                list_file.write("Single\n")
+
+            self.cut_list_files.append( list_file )
 
 
     def __define_output_plane(self,cut_data):
@@ -435,7 +442,9 @@ class GiDOutputProcess(Process):
             pretty_label = "_{0}".format(step_label) # int format
 
         if self.body_output:
-            self.volume_list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
+            for f in self.volume_list_files:
+                f.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
 
         if self.use_cuts:
-            self.cut_list_file.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
+            for f in self.cut_list_files:
+                f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
