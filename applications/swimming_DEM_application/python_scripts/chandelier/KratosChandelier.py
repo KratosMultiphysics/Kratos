@@ -73,7 +73,8 @@ pp.CFD_DEM.coupling_level_type = DEM_parameters.coupling_level_type
 #pp.CFD_DEM.lift_force_type = DEM_parameters.lift_force_option
 pp.CFD_DEM.drag_modifier_type = DEM_parameters.drag_modifier_type
 DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
-
+pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
+pp.CFD_DEM.recover_gradient_option = True
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
