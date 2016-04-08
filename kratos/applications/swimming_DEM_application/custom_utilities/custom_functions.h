@@ -107,70 +107,159 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+// This function is inspired in 2005 Zhang et al. "A new finite element gradient recovery method: superconvergence property"
+// It has been simplified, so that if a node does not form an invertible matrix with its concurring elements' nodes, the current pressure_gradient
+// is preserved (That's why we are still calling 'CalculatePressureGradient' at the beginning). This typically only happens near edges and corners
+// in good-quality meshes.
+
 void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
 {
     if (mFirstGradientRecovery){
         CalculateVectorsForGradientRecovery(r_model_part);
         mFirstGradientRecovery = false;
     }
+//    const double h_inv = 1.0 / CalculateTheMaximumEdgeLength(r_model_part); // we use it as a scaling parameter to improve stability
+
     // Getting nodal estimation from shape functions
-    //CalculatePressureGradient(r_model_part);
+    CalculatePressureGradient(r_model_part);
 
     // Solving least squares problem (Chen, 2016)
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         array_1d <double, 3>& pressure_grad = inode->FastGetSolutionStepValue(PRESSURE_GRADIENT);
-
-        pressure_grad = ZeroVector(3);
         const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
-        WeakPointerVector<Element>& neigh_elems = inode->GetValue(NEIGHBOUR_ELEMENTS);
-        unsigned int i = 0;
+        double sum = 0.0;
+        for (unsigned int i = 0; i < nodal_weights.size(); ++i){
+            sum += fabs(nodal_weights[i]);
+        }
+        if (sum > 0.0){
+            pressure_grad = ZeroVector(3);
+            WeakPointerVector<Element>& neigh_elems = inode->GetValue(NEIGHBOUR_ELEMENTS);
+            unsigned int i = 0;
 
-        for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
-            Element& elem = neigh_elems[i_el];
-            Geometry<Node<3> >& geom = elem.GetGeometry();
-            unsigned int jj = 0;
+            for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
+                Geometry<Node<3> >& geom = neigh_elems[i_el].GetGeometry();
 
-            if (geom[jj].Id() == inode->Id()){ // avoiding node inode
-                jj++;
-            }
-
-            for (unsigned int j = 0; j < TDim; ++j){
-                for (unsigned int d = 0; d < TDim; ++d){
-                    pressure_grad[d] += nodal_weights[i + j + d] * geom[jj].FastGetSolutionStepValue(PRESSURE);
+                unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
+                if (geom[jj].Id() == inode->Id()){ // avoiding node inode
+                    jj++;
                 }
+
+                for (unsigned int j = 0; j < TDim; ++j){
+                    for (unsigned int d = 0; d < TDim; ++d){
+                        pressure_grad[d] += nodal_weights[3 * (i + j) + d] * geom[jj].FastGetSolutionStepValue(PRESSURE);
+                    }
+                    jj++;
+                }
+
+                i += TDim;
             }
-            jj++;
 
-
-
-//            unsigned int jj = 0;
-//            unsigned int row = 0;
-//             for (unsigned int j = 0; j < TDim; ++j){
-//                 row = i + j;
-//                 A(i + j, 0) = 1.0;
-
-
-
-
-
-
-//                 nodal_weights.resize(3 * n_nodal_neighs);
-
-//                 for (unsigned int i = 0; i < n_nodal_neighs; ++i){
-//                     for (unsigned int d = 0; d < TDim; ++d){
-//                         nodal_weights(3 * i + d) = B(d + 1, i) * h;
-//                     }
-//                 }
-
-            i += TDim;
+            //pressure_grad *= h_inv; // Scaling back to physical units
         }
     }
+}
 
-//    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-//        array_1d <double, 3>& pressure_grad = inode->FastGetSolutionStepValue(PRESSURE_GRADIENT);
-//        array_1d <double, 3>& pressure_grad_recov = inode->FastGetSolutionStepValue(RECOVERED_PRESSURE_GRADIENT);
-//        noalias(pressure_grad) = pressure_grad_recov;
-//    }
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void CalculateVectorsForGradientRecovery(ModelPart& r_model_part)
+{
+    using namespace boost::numeric::ublas;
+
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
+    neighbour_finder.Execute();
+
+    vector<unsigned int> nodes_partition;
+    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
+
+    // obtaining largest h to normalize the relative coordinates coordinates
+//    const double h = CalculateTheMaximumEdgeLength(r_model_part);
+//    const double h_inv = 1.0 / CalculateTheMaximumEdgeLength(r_model_part); // we use it as a scaling parameter to improve stability
+    //#pragma omp parallel for
+    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+        NodeIterator node_begin = pNodes.ptr_begin() + nodes_partition[k];
+        NodeIterator node_end   = pNodes.ptr_begin() + nodes_partition[k + 1];
+        int count = 0;
+        for (ModelPart::NodesContainerType::iterator inode = node_begin; inode != node_end; ++inode){
+            WeakPointerVector<Element>& neigh_elems = inode->GetValue(NEIGHBOUR_ELEMENTS);
+
+            unsigned int n_nodal_neighs = TDim * neigh_elems.size(); // All nodes other than i_node. We obviously repeat nodes here (room for optimizatin!)
+            unsigned int n_poly_terms;
+
+            if (TDim == 3) {
+                n_poly_terms = 10;
+            }
+            else { // TDim == 2
+                n_poly_terms = 6;
+                KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
+            }
+
+            boost::numeric::ublas::matrix<double>A(n_nodal_neighs, n_poly_terms);
+            unsigned int i = 0;
+            for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
+                Geometry<Node<3> >& geom = neigh_elems[i_el].GetGeometry();
+
+                unsigned int jj = 0; // index for the position of the node j in geom
+                for (unsigned int j = 0; j < TDim; ++j){
+                     A(i + j, 0) = 1.0;
+
+                     if (geom[jj].Id() == inode->Id()){ // avoiding node inode
+                         jj++;
+                     }
+
+                     if (TDim == 3){
+                        for (unsigned int d = 1; d < 10; ++d){
+                            if (d < 4){
+                                A(i + j, d) = (geom[jj][d - 1] - inode->Coordinates()[d - 1]);// * h_inv;
+                            }
+                            else if (d == 4){
+                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][1] - inode->Coordinates()[1]);// * h_inv * h_inv;
+                            }
+                            else if (d == 5){
+                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][2] - inode->Coordinates()[2]);// * h_inv * h_inv;
+                            }
+                            else if (d == 6){
+                                A(i + j, d) = (geom[jj][1] - inode->Coordinates()[1]) * (geom[jj][2] - inode->Coordinates()[2]);// * h_inv * h_inv;
+                            }
+                            else {
+                                double difference = (geom[jj][d - 7] - inode->Coordinates()[d - 7]);// * h_inv;
+                                A(i + j, d) = difference * difference;
+                            }
+                        }
+                     }
+                     else {
+                         KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
+                     }
+                     jj++;
+                 }
+                 i += TDim;
+            }
+
+            boost::numeric::ublas::matrix<double>AtransA(n_poly_terms, n_poly_terms);
+            AtransA = prod(trans(A), A);
+            Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
+            nodal_weights.resize(3 * n_nodal_neighs);
+
+            if (fabs(determinant< boost::numeric::ublas::matrix<double> >(AtransA)) < 0.0000001){ // if non-invertible we keep the regular approximation
+                for (int i = 0; i < (int)nodal_weights.size(); ++i){
+                    nodal_weights[i] = 0.0;
+                }
+                count++;
+            }
+            else {
+                boost::numeric::ublas::matrix<double>AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
+                AtransAinvAtrans = prod(Inverse(AtransA), trans(A));
+
+                // storing rows 1, 2 and 3 in a nodal vector variable
+                for (unsigned int i = 0; i < n_nodal_neighs; ++i){
+                    for (unsigned int d = 0; d < TDim; ++d){
+                        nodal_weights(3 * i + d) = AtransAinvAtrans(d + 1, i);
+                    }
+                }
+            }
+        }
+    }
 }
 
 //**************************************************************************************************************************************************
@@ -200,6 +289,34 @@ double CalculateTheMaximumEdgeLength(ModelPart& r_model_part)
     return(std::sqrt(max_distance_yet));
 }
 
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+template<class matrix_T>
+double determinant(boost::numeric::ublas::matrix_expression<matrix_T> const& mat_r)
+{
+  double det = 1.0;
+
+  matrix_T mLu(mat_r() );
+  boost::numeric::ublas::permutation_matrix<std::size_t> pivots(mat_r().size1() );
+
+  int is_singular = lu_factorize(mLu, pivots);
+
+  if (!is_singular)
+  {
+    for (std::size_t i=0; i < pivots.size(); ++i)
+    {
+      if (pivots(i) != i)
+        det *= -1.0;
+
+      det *= mLu(i,i);
+    }
+  }
+  else
+    det = 0.0;
+
+  return det;
+}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
@@ -607,118 +724,6 @@ const boost::numeric::ublas::matrix<double> Inverse(
       return result;
     }
   }
-}
-
-
-void CalculateVectorsForGradientRecovery(ModelPart& r_model_part)
-{
-    using namespace boost::numeric::ublas;
-
-    double h = CalculateTheMaximumEdgeLength(r_model_part);
-    double h_inv = 1.0 / h;
-    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
-    neighbour_finder.Execute();
-
-    vector<unsigned int> nodes_partition;
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
-
-    //#pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-        NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
-        NodeIterator node_begin = pNodes.ptr_begin() + nodes_partition[k];
-        NodeIterator node_end   = pNodes.ptr_begin() + nodes_partition[k + 1];
-
-        for (ModelPart::NodesContainerType::iterator inode = node_begin; inode != node_end; ++inode){
-            WeakPointerVector<Element>& neigh_elems = inode->GetValue(NEIGHBOUR_ELEMENTS);
-
-            unsigned int n_nodal_neighs = TDim * neigh_elems.size(); // we obviously repeat nodes here (room for optimizatin!)
-            unsigned int count = 0;
-
-            for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
-                Element elem = neigh_elems[i_el];
-                Geometry<Node<3> >& geom = elem.GetGeometry();
-                for (unsigned int j = 0; j < TDim + 1; ++j){
-                    if (geom[j].Id() == inode->Id()){
-                        count++;
-                    }
-                }
-            }
-
-            unsigned int n_columns;
-
-            if (TDim == 3) {
-                n_columns = 10;
-            }
-
-            else {
-                n_columns = 6;
-                KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
-            }
-
-            matrix<double> A(n_nodal_neighs, n_columns);
-
-            unsigned int i = 0;
-            count = 0;
-            for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
-                Element& elem = neigh_elems[i_el];
-                Geometry<Node<3> >& geom = elem.GetGeometry();
-                unsigned int jj = 0;
-                unsigned int row = 0;
-                 for (unsigned int j = 0; j < TDim; ++j){
-                     row = i + j;
-                     A(i + j, 0) = 1.0;
-
-                     if (geom[jj].Id() == inode->Id()){ // avoiding node inode
-                         jj++;
-                     }
-
-                     if (TDim == 3){
-                        for (unsigned int d = 1; d < 10; ++d){
-                            if (d < 4){
-                                A(i + j, d) = (geom[jj][d - 1] - inode->Coordinates()[d - 1]) * h_inv;
-                            }
-                            else if (d == 4){
-                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][1] - inode->Coordinates()[1]) * h_inv * h_inv;
-                            }
-                            else if (d == 5){
-                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][2] - inode->Coordinates()[2]) * h_inv * h_inv;
-                            }
-                            else if (d == 6){
-                                A(i + j, d) = (geom[jj][1] - inode->Coordinates()[1]) * (geom[jj][2] - inode->Coordinates()[2]) * h_inv * h_inv;
-                            }
-                            else {
-                                double difference = geom[jj][d - 7] - inode->Coordinates()[d - 7] * h_inv;
-                                A(i + j, d) = difference * difference;
-                            }
-                        }
-                     }
-                     else {
-                         KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
-                     }
-
-                     jj++;
-                 }
-                 i += TDim;
-            }
-
-            matrix<double> D(n_columns, n_columns);
-            D = prod(trans(A), A);
-            Inverse(D);
-            matrix<double> B(TDim + 1, n_nodal_neighs);
-            KRATOS_WATCH(h);
-
-            KRATOS_WATCH(prod(trans(A), A));
-            B = prod(D, trans(A));
-            Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
-            nodal_weights.resize(3 * n_nodal_neighs);
-
-            for (unsigned int i = 0; i < n_nodal_neighs; ++i){
-                for (unsigned int d = 0; d < TDim; ++d){
-                    nodal_weights(3 * i + d) = B(d + 1, i) * h;
-                }
-            }
-        }
-    }
 }
 
 //**************************************************************************************************************************************************
