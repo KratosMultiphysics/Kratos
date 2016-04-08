@@ -624,21 +624,23 @@ swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_p
 
 
 # ANALYTICS BEGIN
-import analytics
-variables_to_measure = [PRESSURE]
-steps_between_measurements = 100
-gauge = analytics.Gauge(fluid_model_part, Dt, final_time, variables_to_measure, steps_between_measurements)
-point_coors = [0.0, 0.0, 0.01]
-target_node = swim_proc.FindClosestNode(fluid_model_part, point_coors)
-target_id = target_node.Id
-print(target_node.X, target_node.Y, target_node.Z)
-print(target_id)
-def condition(node):
-    return node.Id == target_id
+pp.CFD_DEM.perform_analytics_option = False
+if pp.CFD_DEM.perform_analytics_option:
+    import analytics
+    variables_to_measure = [PRESSURE]
+    steps_between_measurements = 100
+    gauge = analytics.Gauge(fluid_model_part, Dt, final_time, variables_to_measure, steps_between_measurements)
+    point_coors = [0.0, 0.0, 0.01]
+    target_node = swim_proc.FindClosestNode(fluid_model_part, point_coors)
+    target_id = target_node.Id
+    print(target_node.X, target_node.Y, target_node.Z)
+    print(target_id)
+    def condition(node):
+        return node.Id == target_id
 
-gauge.ConstructArrayOfNodes(condition)
-print(gauge.variables)
-print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
+    gauge.ConstructArrayOfNodes(condition)
+    print(gauge.variables)
+    print_analytics_counter = swim_proc.Counter( 5 * steps_between_measurements, 1, 1)
 # ANALYTICS END005
 
 # NANO BEGIN
@@ -704,11 +706,12 @@ while (time <= final_time):
                 sys.stdout.flush()
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 1
 #Z
-            gauge.MakeNodalMeasurement()
+            if pp.CFD_DEM.perform_analytics_option:
+                gauge.MakeNodalMeasurement()
 
-            if print_analytics_counter.Tick():
-                gauge.PrintMeasurements(main_path)
-                gauge.PlotPSD()
+                if print_analytics_counter.Tick():
+                    gauge.PrintMeasurements(main_path)
+                    gauge.PlotPSD()
 
     # assessing stationarity
 
