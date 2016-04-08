@@ -3,22 +3,22 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #### TIME MONITORING START ####
 
 # time control starts
-from time import *
-print(ctime())
+import time as timer
+print(timer.ctime())
 # measure process time
-t0p = clock()
+t0p = timer.clock()
 # measure wall time
-t0w = time()
+t0w = timer.time()
 
 #
 def StartTimeMeasuring():
     # measure process time
-    time_ip = clock()
+    time_ip = timer.clock()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
     # measure process time
-    time_fp = clock()
+    time_fp = timer.clock()
     if( report ):
         used_time = time_fp - time_ip
         print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
@@ -59,13 +59,13 @@ Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
 solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
-#add variables (always before importing the model part)
+#add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
 solver.AddVariables()
 
-#read model_part (note: the buffer_size is set here)
+#read model_part (note: the buffer_size is set here) (restart can be read here)
 solver.ImportModelPart()
 
-#add dofs (always after importing the model part)
+#add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
 solver.AddDofs()
 
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
@@ -90,7 +90,9 @@ if(echo_level>1):
 #obtain the list of the processes to be applied
 
 import process_factory
-list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
+list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
 #list_of_processes = []
 #process_definition = ProjectParameters["boundary_conditions_process_list"]
@@ -116,16 +118,15 @@ for process in list_of_processes:
 
 #### output settings start ####
 
-# initialize GiD  I/O (gid outputs, file_lists, output_frequency)
-from gid_output import GiDOutput
+problem_path = os.getcwd()
+problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
+
+# initialize GiD  I/O (gid outputs, file_lists)
+from gid_output_process import GiDOutput
 output_settings = ProjectParameters["output_configuration"]
-gid_io = GiDOutput(output_settings["output_filename"].GetString(),
-                   output_settings["volume_output"].GetBool(),
-                   output_settings["gid_post_mode"].GetString(),
-                   output_settings["gid_multi_file_flag"].GetString(),
-                   output_settings["gid_write_mesh_flag"].GetBool(),
-                   output_settings["gid_write_conditions_flag"].GetBool())
-output_time = output_settings["output_time"].GetDouble()
+gid_io = GiDOutputProcess(main_model_part,
+                          problem_name,
+                          output_settings)
 
 # restart write included in gid IO ¿?
 
@@ -148,6 +149,7 @@ for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
 ## Stepping and time settings (get from process info or solving info)
+
 #delta time
 delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
 #start step
@@ -157,9 +159,12 @@ time       = computing_model_part.ProcessInfo[TIME]
 #end time
 end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
+# monitoring info:  # must be contained in the solver
+#from solving_info_utility   as solving_info_utils
+#solving_info = solving_info_utils.SolvingInfoUtility(model_part)
 
 # writing a initial state results file (if no restart)
-gid_io.write_results(time, computing_model_part)
+# gid_io.write_results(time, computing_model_part) done in ExecuteBeforeSolutionLoop()
 
 # solving the problem (time integration)
 while(time <= end_time):
@@ -207,18 +212,18 @@ print("::[KSM Simulation]:: Analysis -END- ")
 print(" ")
 
 # check solving information for any problem
-solver.info_check()
+solver.InfoCheck()
 
 #### END SOLUTION ####
 
 # measure process time
-tfp = clock()
+tfp = timer.clock()
 # measure wall time
-tfw = time()
+tfw = timer.time()
 
 print("::[KSM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
 
-print(ctime())
+print(timer.ctime())
 
 # to create a benchmark: add standard benchmark files and decomment next two lines 
 # rename the file to: run_test.py
