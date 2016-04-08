@@ -12,7 +12,7 @@ import os
 import sys
 import math
 
-simulation_start_time = timer.monotonic()
+#simulation_start_time = timer.monotonic()
 
 print(os.getcwd())
 # Kratos
@@ -42,7 +42,6 @@ import swimming_DEM_procedures as swim_proc
 import CFD_DEM_coupling
 import variables_management as vars_man
 import embedded
-import analytics
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
@@ -78,6 +77,7 @@ DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write d
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recover_gradient_option = True
 pp.CFD_DEM.faxen_force_type = 1
+pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
 #Z
 
 # NANO BEGIN
@@ -505,7 +505,7 @@ if (DEM_parameters.dem_inlet_option):
         
     # constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
+    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, False)
 
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
@@ -625,6 +625,7 @@ swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, spheres_model_p
 
 # ANALYTICS BEGIN
 pp.CFD_DEM.perform_analytics_option = False
+
 if pp.CFD_DEM.perform_analytics_option:
     import analytics
     variables_to_measure = [PRESSURE]
@@ -847,8 +848,9 @@ while (time <= final_time):
 swimming_DEM_gid_io.finalize_results()
 
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
-simulation_end_time = timer.monotonic()
+'''simulation_end_time = timer.monotonic()
 print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
+'''
 sys.stdout.flush()
 
 for i in drag_file_output_list:
