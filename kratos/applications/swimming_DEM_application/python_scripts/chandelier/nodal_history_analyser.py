@@ -65,6 +65,6 @@ def ComputeNormOfErrorInTime(reference_path, my_path, var_name):
 if __name__ == "__main__":
     node_id = 604
     var_name = 'DISPLACEMENT'
-    my_path        = './My_Post_Files/results_node_' + str(node_id) + '.txt'
+    my_path        = './fluid_imposed_Post_Files/results_node_' + str(node_id) + '.txt'
     reference_path = './Reference_Post_Files/results_node_' + str(node_id) + '.txt'    
     ComputeNormOfErrorInTime(reference_path, my_path, var_name)

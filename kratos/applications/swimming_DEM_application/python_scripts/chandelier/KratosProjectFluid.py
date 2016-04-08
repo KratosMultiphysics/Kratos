@@ -12,7 +12,7 @@ import os
 import sys
 import math
 
-simulation_start_time = timer.monotonic()
+#simulation_start_time = timer.monotonic()
 
 print(os.getcwd())
 # Kratos
@@ -671,12 +671,17 @@ while (time <= final_time):
                 omega = ch_pp.omega
                 vx = - omega * r * sin
                 vy =   omega * r * cos
-                pressure = ch_pp.rho_f * (ch_pp.g * (0.25 - z) + omega ** 2 * r)
-                
+                pressure = ch_pp.rho_f * (ch_pp.g * (0.25 - z) + 0.5 * omega ** 2 * r ** 2)
+                pgrad_x = ch_pp.rho_f * omega ** 2 * x
+                pgrad_y = ch_pp.rho_f * omega ** 2 * y
+                pgrad_z = ch_pp.rho_f * (omega ** 2 * z - ch_pp.g)                                                                 
                 node.SetSolutionStepValue(VELOCITY_X, vx)
                 node.SetSolutionStepValue(VELOCITY_Y, vy)
                 node.SetSolutionStepValue(VELOCITY_Z, 0.0)                  
-                node.SetSolutionStepValue(PRESSURE, pressure)             
+                node.SetSolutionStepValue(PRESSURE, pressure)   
+                #node.SetSolutionStepValue(PRESSURE_GRADIENT_X, pgrad_x)  
+                #node.SetSolutionStepValue(PRESSURE_GRADIENT_Y, pgrad_y)  
+                #node.SetSolutionStepValue(PRESSURE_GRADIENT_Z, pgrad_z)  
 
             if VELOCITY_LAPLACIAN in pp.fluid_vars:
                 print("\nSolving for the Laplacian...")
@@ -745,28 +750,28 @@ while (time <= final_time):
 
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)     
-                #for node in spheres_model_part.Nodes:
-                    #x = node.X
-                    #y = node.Y
-                    #z = node.Z
-                    #r = math.sqrt(x**2 + y**2)
-                    #sin = y / r
-                    #cos = x / r
-                    #omega = ch_pp.omega
-                    #vx = - omega * r * sin
-                    #vy =   omega * r * cos
-                    #ax = - x * omega ** 2
-                    #ay = - y * omega ** 2
-                    #pgrad_x = - ax * ch_pp.rho_f
-                    #pgrad_y = - ay * ch_pp.rho_f 
-                    #pgrad_z = - ch_pp.g * ch_pp.rho_f
+                for node in spheres_model_part.Nodes:
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+                    r = math.sqrt(x**2 + y**2)
+                    sin = y / r
+                    cos = x / r
+                    omega = ch_pp.omega
+                    vx = - omega * r * sin
+                    vy =   omega * r * cos
+                    ax = - x * omega ** 2
+                    ay = - y * omega ** 2
+                    pgrad_x = - ax * ch_pp.rho_f
+                    pgrad_y = - ay * ch_pp.rho_f 
+                    pgrad_z = - ch_pp.g * ch_pp.rho_f
                     
-                    #node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
-                    #node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
-                    #node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
-                    #node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
-                    #node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
-                    #node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)                    
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)                    
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pgrad_x)             
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pgrad_y)                    
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pgrad_z)    
@@ -840,8 +845,8 @@ while (time <= final_time):
 swimming_DEM_gid_io.finalize_results()
 results_creator.PrintFile()
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
-simulation_end_time = timer.monotonic()
-print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
+#simulation_end_time = timer.monotonic()
+#print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
 sys.stdout.flush()
 
 for i in drag_file_output_list:
