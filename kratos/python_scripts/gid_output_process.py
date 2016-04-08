@@ -18,10 +18,12 @@ class GiDOutputProcess(Process):
             "output_control_type": "step",
             "output_frequency": 1,
             "body_output": true,
+            "node_output": false,
             "skin_output": false,
             "plane_output": [],
             "nodal_results": [],
-            "gauss_point_results": []
+            "gauss_point_results": [],
+            "additional_list_files": []
         },
         "point_data_configuration": []
     }''')
@@ -85,7 +87,7 @@ class GiDOutputProcess(Process):
         self.base_file_name = file_name
 
         self.model_part = model_part
-        self.volume_io = None
+        self.body_io = None
         self.volume_list_files = []
 
         # The following are only used if we asked to print results on surfaces
@@ -101,22 +103,26 @@ class GiDOutputProcess(Process):
         else:
             self.point_output_process = None
 
+        self.step_count = 0
+        self.printed_step_count = 0
+        self.next_output = 0.0
+
     def ExecuteInitialize(self):
 
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
 
-        # Define volume output
+        # If either of these is True, we will have a volume output file
         self.body_output = result_file_configuration["body_output"].GetBool()
+        self.node_output = result_file_configuration["node_output"].GetBool()
 
-        # Define cut output
+        # If skin_output is True or we have output planes, we will have a cut output file
         self.skin_output = result_file_configuration["skin_output"].GetBool()
         plane_output_configuration = result_file_configuration["plane_output"] # should be of array type
         self.num_planes = plane_output_configuration.size()
-        self.use_cuts = (self.skin_output or self.num_planes > 0)
 
         # Generate the cuts and store them in self.cut_model_part
-        if self.use_cuts:
+        if self.skin_output or self.num_planes > 0:
             self.__initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
@@ -125,7 +131,7 @@ class GiDOutputProcess(Process):
 
         self.__initialize_gidio(gidpost_flags,gidpost_flags)
 
-        # Process nodal and gauus point output
+        # Process nodal and gaus point output
         self.nodal_variables = self.__generate_variable_list_from_input(result_file_configuration["nodal_results"])
         self.gauss_point_variables = self.__generate_variable_list_from_input(result_file_configuration["gauss_point_results"])
 
@@ -149,11 +155,11 @@ class GiDOutputProcess(Process):
             raise Exception(msg)
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
-        self.next_output = 0
-        self.step_count = 0
 
         # Create .post.lst files
-        self.__initialize_listfiles()
+        additional_list_file_data = result_file_configuration["additional_list_files"]
+        additional_list_files = [ additional_list_file_data[i].GetInt() for i in range(0,additional_list_file_data.size()) ]
+        self.__initialize_listfiles(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -171,8 +177,6 @@ class GiDOutputProcess(Process):
                 self.__write_step_to_list()
             else:
                 self.__write_step_to_list(0)
-        else:
-            self.printed_step_count = 0
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -235,6 +239,7 @@ class GiDOutputProcess(Process):
 
 
     def ExecuteFinalize(self):
+        '''Finalize files and free resources.'''
 
         if self.multifile_flag == MultiFileFlag.SingleFile:
             self.__finalize_results()
@@ -242,14 +247,14 @@ class GiDOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteFinalize()
 
-        for f in self.volume_list_files:
+        for freq,f in self.volume_list_files:
             f.close()
-        for f in self.cut_list_files:
+        for freq,f in self.cut_list_files:
             f.close()
 
 
     def __initialize_gidio(self,gidpost_flags,param):
-        '''Initialize GidIO objects (for volume and cut outputs) and related data'''
+        '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
         self.volume_file_name = self.base_file_name
         self.cut_file_name = self.volume_file_name+"_cuts"
         self.post_mode = self.__get_gidpost_flag(param, "GiDPostMode", self.__post_mode)
@@ -257,14 +262,14 @@ class GiDOutputProcess(Process):
         self.write_conditions = self.__get_gidpost_flag(param,"WriteConditionsFlag",self.__write_conditions)
         self.multifile_flag = self.__get_gidpost_flag(param,"MultiFileFlag", self.__multi_file_flag)
 
-        if self.body_output:
-            self.volume_io = GidIO( self.volume_file_name,
+        if self.body_output or self.node_output:
+            self.body_io = GidIO( self.volume_file_name,
                                     self.post_mode,
                                     self.multifile_flag,
                                     self.write_deformed_mesh,
                                     self.write_conditions)
 
-        if self.use_cuts:
+        if self.skin_output or self.num_planes > 0:
             self.cut_io = GidIO(self.cut_file_name,
                                 self.post_mode,
                                 self.multifile_flag,
@@ -302,20 +307,54 @@ class GiDOutputProcess(Process):
 
             self.__define_output_plane(cut_data)
 
-    def __initialize_listfiles(self):
+    def __initialize_listfiles(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
         If we have only one tipe of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
         both types, call the volume one <gid_model_name>.post.lst and
-        the cut one <gid_model_name>_cuts.post.lst'''
+        the cut one <gid_model_name>_cuts.post.lst.
+        additional_frequencies should contain an array of ints N representing
+        the frequencies of additional list files. If it is not empty and GidIO
+        is configured to print multiple files, extra list files are written,
+        listing one in every N output files.'''
         # Get a name for the GiD list file
         # if the model folder is model.gid, the list file should be called
         # model.post.lst
         path, folder_name = os.path.split(os.getcwd())
         model_name, ext = os.path.splitext(folder_name)
-        list_file_name = "{0}.post.lst".format(model_name)
+        name_base = model_name
+        name_ext = ".post.lst"
 
-        if self.body_output:
+        # Remove 1 from extra frequencies (and remove duplicates)
+        used_frequencies = [1,]
+        extra_frequencies = []
+        for f in additional_frequencies:
+            if f not in used_frequencies:
+                used_frequencies.append(f)
+                extra_frequencies.append(f)
+
+        if self.body_io is not None:
+            list_file = open(name_base+name_ext,"w")
+
+            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+                list_file.write("Multiple\n")
+            elif self.multifile_flag == MultiFileFlag.SingleFile:
+                list_file.write("Single\n")
+
+            self.volume_list_files.append( [1,list_file] )
+
+            if self.multifile_flag == MultiFileFlag.MultipleFiles:
+                for freq in extra_frequencies:
+                    list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
+                    list_file = open(list_file_name,"w")
+                    list_file.write("Multiple\n")
+
+                    self.volume_list_files.append( [freq,list_file] )
+
+            name_base = "{0}_cuts".format(model_name)
+
+        if self.cut_io is not None:
+
             list_file = open(list_file_name,"w")
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
@@ -323,20 +362,15 @@ class GiDOutputProcess(Process):
             elif self.multifile_flag == MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
-            self.volume_list_files.append( list_file )
-
-            list_file_name = "{0}_cuts.post.lst".format(model_name)
-
-        if self.use_cuts:
-
-            list_file = open(list_file_name,"w")
+            self.cut_list_files.append( [1,list_file] )
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
-                list_file.write("Multiple\n")
-            elif self.multifile_flag == MultiFileFlag.SingleFile:
-                list_file.write("Single\n")
+                for freq in extra_frequencies:
+                    list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
+                    list_file = open(list_file_name,"w")
+                    list_file.write("Multiple\n")
 
-            self.cut_list_files.append( list_file )
+                    self.cut_list_files.append( [freq,list_file] )
 
 
     def __define_output_plane(self,cut_data):
@@ -378,10 +412,13 @@ class GiDOutputProcess(Process):
 
     def __write_mesh(self, label):
 
-        if self.volume_io is not None:
-            self.volume_io.InitializeMesh(label)
-            self.volume_io.WriteMesh(self.model_part.GetMesh())
-            self.volume_io.FinalizeMesh()
+        if self.body_io is not None:
+            self.body_io.InitializeMesh(label)
+            if self.body_output:
+                self.body_io.WriteMesh(self.model_part.GetMesh())
+            if self.node_output:
+                self.body_io.WriteNodeMesh(self.model_part.GetMesh())
+            self.body_io.FinalizeMesh()
 
         if self.cut_io is not None:
             self.cut_io.InitializeMesh(label)
@@ -390,17 +427,18 @@ class GiDOutputProcess(Process):
 
     def __initialize_results(self, label):
 
-        if self.volume_io is not None:
-            self.volume_io.InitializeResults(label, self.model_part.GetMesh())
+        if self.body_io is not None:
+            self.body_io.InitializeResults(label, self.model_part.GetMesh())
 
         if self.cut_io is not None:
             self.cut_io.InitializeResults(label,self.cut_model_part.GetMesh())
 
     def __write_nodal_results(self, label):
 
-        if self.volume_io is not None:
+        if self.body_io is not None:
             for variable in self.nodal_variables:
-                self.volume_io.WriteNodalResults(variable, self.model_part.Nodes, label, 0)
+                self.body_io.WriteNodalResults(variable, self.model_part.Nodes, label, 0)
+
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
@@ -408,17 +446,18 @@ class GiDOutputProcess(Process):
 
     def __write_gp_results(self, label):
 
-        if self.volume_io is not None:
+        #if self.body_io is not None:
+        if self.body_output: # Note: if we only print nodes, there are no GaussPoints
             for variable in self.gauss_point_variables:
-                self.volume_io.PrintOnGaussPoints(variable, self.model_part, label)
+                self.body_io.PrintOnGaussPoints(variable, self.model_part, label)
 
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
     def __finalize_results(self):
 
-        if self.volume_io is not None:
-            self.volume_io.FinalizeResults()
+        if self.body_io is not None:
+            self.body_io.FinalizeResults()
 
         if self.cut_io is not None:
             self.cut_io.FinalizeResults()
@@ -441,10 +480,12 @@ class GiDOutputProcess(Process):
         else:
             pretty_label = "_{0}".format(step_label) # int format
 
-        if self.body_output:
-            for f in self.volume_list_files:
-                f.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
+        if self.body_io is not None:
+            for freq,f in self.volume_list_files:
+                if (self.printed_step_count % freq) == 0:
+                    f.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
 
-        if self.use_cuts:
-            for f in self.cut_list_files:
-                f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
+        if self.cut_io is not None:
+            for freq,f in self.cut_list_files:
+                if (self.printed_step_count % freq) == 0:
+                    f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
