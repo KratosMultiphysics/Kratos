@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
-import numpy as np
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -99,12 +98,21 @@ def TransferFacePressuresToPressure(model_part):
         total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
         node.SetSolutionStepValue(PRESSURE, total_pressure)         
 
+def Norm(my_list):
+    return math.sqrt(sum([value ** 2 for value in my_list]))
+
 def FindClosestNode(model_part, coors):
-     coors = np.asarray(coors)
-     coors_nodes = np.asarray([[node.X, node.Y, node.Z] for node in model_part.Nodes])
+     relative_coors_nodes = [[node.X - coors[0], node.Y - coors[1], node.Z - coors[2]] for node in model_part.Nodes]
      nodes = [node for node in model_part.Nodes]
-     dist_2 = np.sum((coors_nodes - coors) ** 2, axis = 1)
-     return nodes[np.ndarray.argmin(dist_2)]
+     min_dist = Norm(coors_nodes[0])
+     min_i = 0
+     for i in range(len(nodes)):
+         norm_i = Norm(relative_coors_nodes[i])
+         if min_dist > norm_i:
+             min_dist = norm_i
+             min_i = i
+
+     return nodes[min_i]
 
 class FluidFractionFieldUtility:
 
