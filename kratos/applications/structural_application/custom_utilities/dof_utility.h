@@ -88,7 +88,7 @@ public:
         // get the set of variables in the dof set and count them by type
         std::set<VariableData> VarSet;
         std::map<VariableData::KeyType, std::size_t> VarCount;
-        for(typename ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
             if(dof_iterator->EquationId() < EquationSystemSize)
             {
