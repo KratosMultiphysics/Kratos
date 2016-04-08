@@ -108,9 +108,14 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 
 // This function is inspired in 2005 Zhang et al. "A new finite element gradient recovery method: superconvergence property"
-// It has been simplified, so that if a node does not form an invertible matrix with its concurring elements' nodes, the current pressure_gradient
-// is preserved (That's why we are still calling 'CalculatePressureGradient' at the beginning). This typically only happens near edges and corners
-// in good-quality meshes.
+//
+// At a given node i, it is basically performing a least squares fit of a second degree polynomial, p(x), where x are the
+// cartesian coordinates with i as their origin, of the nodal values of the pressure, P, for all nodes belonging to the
+// elements concurrent to i (but not i). The nodal value of grad(P) at i then set to grad(p(0)).
+//
+// The algorithm has been simplified, so that if a node does not form an invertible matrix with its concurring elements'
+// nodes, the current pressure_gradient is preserved (That's why we are still calling 'CalculatePressureGradient' at the
+// beginning). This typically only happens near edges and corners in good-quality meshes.
 
 void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
 {
@@ -118,7 +123,7 @@ void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
         CalculateVectorsForGradientRecovery(r_model_part);
         mFirstGradientRecovery = false;
     }
-//    const double h_inv = 1.0 / CalculateTheMaximumEdgeLength(r_model_part); // we use it as a scaling parameter to improve stability
+    const double h_inv = 1.0 / CalculateTheMaximumEdgeLength(r_model_part); // we use it as a scaling parameter to improve stability
 
     // Getting nodal estimation from shape functions
     CalculatePressureGradient(r_model_part);
@@ -154,7 +159,7 @@ void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
                 i += TDim;
             }
 
-            //pressure_grad *= h_inv; // Scaling back to physical units
+            pressure_grad *= h_inv; // Scaling back to physical units
         }
     }
 }
@@ -173,8 +178,8 @@ void CalculateVectorsForGradientRecovery(ModelPart& r_model_part)
     OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
 
     // obtaining largest h to normalize the relative coordinates coordinates
-//    const double h = CalculateTheMaximumEdgeLength(r_model_part);
-//    const double h_inv = 1.0 / CalculateTheMaximumEdgeLength(r_model_part); // we use it as a scaling parameter to improve stability
+    const double h = CalculateTheMaximumEdgeLength(r_model_part);
+    const double h_inv = 1.0 / h; // we use it as a scaling parameter to improve stability
     //#pragma omp parallel for
     for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
         NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
@@ -211,19 +216,19 @@ void CalculateVectorsForGradientRecovery(ModelPart& r_model_part)
                      if (TDim == 3){
                         for (unsigned int d = 1; d < 10; ++d){
                             if (d < 4){
-                                A(i + j, d) = (geom[jj][d - 1] - inode->Coordinates()[d - 1]);// * h_inv;
+                                A(i + j, d) = (geom[jj][d - 1] - inode->Coordinates()[d - 1]) * h_inv;
                             }
                             else if (d == 4){
-                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][1] - inode->Coordinates()[1]);// * h_inv * h_inv;
+                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][1] - inode->Coordinates()[1]) * h_inv * h_inv;
                             }
                             else if (d == 5){
-                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][2] - inode->Coordinates()[2]);// * h_inv * h_inv;
+                                A(i + j, d) = (geom[jj][0] - inode->Coordinates()[0]) * (geom[jj][2] - inode->Coordinates()[2]) * h_inv * h_inv;
                             }
                             else if (d == 6){
-                                A(i + j, d) = (geom[jj][1] - inode->Coordinates()[1]) * (geom[jj][2] - inode->Coordinates()[2]);// * h_inv * h_inv;
+                                A(i + j, d) = (geom[jj][1] - inode->Coordinates()[1]) * (geom[jj][2] - inode->Coordinates()[2]) * h_inv * h_inv;
                             }
                             else {
-                                double difference = (geom[jj][d - 7] - inode->Coordinates()[d - 7]);// * h_inv;
+                                double difference = (geom[jj][d - 7] - inode->Coordinates()[d - 7]) * h_inv;
                                 A(i + j, d) = difference * difference;
                             }
                         }
