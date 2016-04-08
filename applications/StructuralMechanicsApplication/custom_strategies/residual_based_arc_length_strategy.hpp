@@ -335,7 +335,7 @@ public:
         bool local_converged_h        = false; // Orthogonal residual
         bool local_converged_l        = false; // Lambda
         bool is_converged             = false;
-        int recursive                 = 0;
+        unsigned int recursive                 = 0;
 
         //vector<RealType> Parameters;
         RealType old_residual = 0.00;
@@ -363,11 +363,11 @@ public:
         InitializeAuxiliaryModelParts(BaseType::GetModelPart());
         mstep = BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS];
 	
-        std::cout<<" STEP NUMBER        = " << mstep << std::endl;
-        std::cout<<" DESIRED ITERATIONS = " << mIde  << std::endl;
-        std::cout<<" MAX ITERATIONS     = " << mMaxIterationNumber << std::endl;
-        std::cout<<" MAX RECURSIVE ITERATIONS     = " << mMaxRecursive << std::endl;
-        std::cout<<" CURRENT TIME       = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+        std::cout<<" STEP NUMBER                   = " << mstep << std::endl;
+        std::cout<<" DESIRED ITERATIONS            = " << mIde  << std::endl;
+        std::cout<<" MAX. ITERATIONS               = " << mMaxIterationNumber << std::endl;
+        std::cout<<" MAX. RECURSIVE ITERATIONS     = " << mMaxRecursive << std::endl;
+        std::cout<<" CURRENT TIME                  = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
 
         // Initialisation of the convergence criteria and variables of arc lenght
         if(mInitializeWasPerformed == false)
@@ -485,7 +485,10 @@ public:
         do
         {
             iteration_number = 0;
-            if(recursive++ >= mMaxRecursive) break;
+            if(recursive++ >= mMaxRecursive)
+            {
+                break;
+            }
             while(  is_converged == false && iteration_number++ < mMaxIterationNumber)
             {
                 // Setting the number of iteration

@@ -184,7 +184,7 @@ Element::Pointer SprismElement3D6N::Clone(
 
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size())
     {
-        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size(), false);
+        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
     }
 
     if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
@@ -1562,7 +1562,7 @@ void SprismElement3D6N::SetValueOnIntegrationPoints(
     {
         if ( mConstitutiveLawVector.size() != rValues.size() )
         {
-            mConstitutiveLawVector.resize(rValues.size(), false);
+            mConstitutiveLawVector.resize(rValues.size());
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
             {
                 KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not has the correct size ", mConstitutiveLawVector.size() );
@@ -1578,7 +1578,7 @@ void SprismElement3D6N::SetValueOnIntegrationPoints(
     {
         if ( mConstitutiveLawVector.size() != rValues.size() )
         {
-            mConstitutiveLawVector.resize(rValues.size(), false);
+            mConstitutiveLawVector.resize(rValues.size());
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
             {
                 KRATOS_THROW_ERROR( std::logic_error, "Constitutive law not has the correct size ", mConstitutiveLawVector.size() );
@@ -1701,7 +1701,7 @@ void SprismElement3D6N::GetValueOnIntegrationPoints(
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            rValues.resize(mConstitutiveLawVector.size(), false);
+            rValues.resize(mConstitutiveLawVector.size());
         }
         for(unsigned int i = 0; i < rValues.size(); i++)
         {
@@ -2131,7 +2131,7 @@ void SprismElement3D6N::Initialize()
     /* Constitutive Law initialisation */
     if ( mConstitutiveLawVector.size() != integration_points.size() )
     {
-        mConstitutiveLawVector.resize( integration_points.size(), false );
+        mConstitutiveLawVector.resize( integration_points.size() );
     }
 
     // Resizing jacobian inverses container
