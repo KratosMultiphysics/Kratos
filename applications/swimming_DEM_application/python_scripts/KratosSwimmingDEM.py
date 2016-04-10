@@ -12,7 +12,7 @@ import os
 import sys
 import math
 
-#simulation_start_time = timer.monotonic()
+simulation_start_time = timer.clock()
 
 print(os.getcwd())
 # Kratos
@@ -75,9 +75,10 @@ DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write d
 
 #G
 pp.CFD_DEM = DEM_parameters
-pp.CFD_DEM.recover_gradient_option = True
+pp.CFD_DEM.recover_gradient_option = False
 pp.CFD_DEM.faxen_force_type = 1
 pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
+pp.CFD_DEM.laplacian_calculation_type = 0
 #Z
 
 # NANO BEGIN
@@ -570,7 +571,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
 embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
+pressure_gradient_counter    = swim_proc.Counter(1, 1, (DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option))
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
 print_counter                = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
@@ -696,7 +697,8 @@ while (time <= final_time):
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
 #G
-            if VELOCITY_LAPLACIAN in pp.fluid_vars:
+            if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
+                current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
@@ -705,7 +707,7 @@ while (time <= final_time):
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 1
+                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = current_step
 #Z
             if pp.CFD_DEM.perform_analytics_option:
                 gauge.MakeNodalMeasurement()
@@ -848,9 +850,10 @@ while (time <= final_time):
 swimming_DEM_gid_io.finalize_results()
 
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
-'''simulation_end_time = timer.monotonic()
-print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
-'''
+simulation_elapsed_time = timer.clock() - simulation_start_time
+print("Elapsed time: " + "%.2f" + str(simulation_elapsed_time) + " s ")
+print("per fluid time step: " + str(simulation_elapsed_time / step) + " s ")
+print("per DEM time step: " + str(simulation_elapsed_time / DEM_step) + " s")
 sys.stdout.flush()
 
 for i in drag_file_output_list:
