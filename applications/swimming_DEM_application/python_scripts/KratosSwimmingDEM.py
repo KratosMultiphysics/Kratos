@@ -498,9 +498,11 @@ if (DEM_parameters.embedded_option):
 
 if (DEM_parameters.dem_inlet_option):    
     max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+    max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
     max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
-    max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
+    max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id, max_elem_Id)
+    #max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
 
     creator_destructor.SetMaxNodeId(max_node_Id)                            
         
@@ -696,8 +698,9 @@ while (time <= final_time):
 
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
-#G
-            if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
+#G          
+            #if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
+            if 0: #TODO: The previous CFD_DEM.laplacian_calculation_type == 1 option does not work at this moment
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
