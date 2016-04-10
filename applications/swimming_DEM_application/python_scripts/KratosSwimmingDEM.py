@@ -851,9 +851,9 @@ swimming_DEM_gid_io.finalize_results()
 
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
 simulation_elapsed_time = timer.clock() - simulation_start_time
-print("Elapsed time: " + "%.2f" + str(simulation_elapsed_time) + " s ")
-print("per fluid time step: " + str(simulation_elapsed_time / step) + " s ")
-print("per DEM time step: " + str(simulation_elapsed_time / DEM_step) + " s")
+print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
+print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
+print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 sys.stdout.flush()
 
 for i in drag_file_output_list:
