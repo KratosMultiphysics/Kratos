@@ -118,7 +118,7 @@ namespace Kratos {
             Element::Pointer dummy_element_pointer;
             std::string ElementNameString;
             if (using_strategy_for_continuum) ElementNameString = "SphericContinuumParticle3D";
-            else ElementNameString = mInletModelPart.GetProperties(mesh_number)[ELEMENT_TYPE];
+            else ElementNameString = "SphericParticle3D";
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
             for (int i = 0; i < mesh_size; i++) {                
