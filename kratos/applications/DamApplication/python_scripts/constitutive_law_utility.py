@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
+from KratosMultiphysics.PoromechanicsApplication import *
 CheckForPreviousImport()
 
 
@@ -21,3 +22,8 @@ def SetConstitutiveLaw(model_part):
             prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic2DPlaneStrain())
         elif(ConstitutiveLawName == "ThermalLinearElastic3D"):
             prop.SetValue(CONSTITUTIVE_LAW, ThermalLinearElastic3DLaw())
+        elif(ConstitutiveLawName == "BilinearCohesive2DLaw"):
+            prop.SetValue(CONSTITUTIVE_LAW, BilinearCohesive2DLaw())
+        elif(ConstitutiveLawName == "BilinearCohesive3DLaw"):
+            prop.SetValue(CONSTITUTIVE_LAW, BilinearCohesive3DLaw())
+
