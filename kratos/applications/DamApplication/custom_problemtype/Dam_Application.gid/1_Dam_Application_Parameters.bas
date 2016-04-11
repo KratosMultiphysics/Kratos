@@ -1,7 +1,6 @@
 ## General Data ---------------------------------------------------------------------------------------------------------------
 
 domain_size = *GenData(Domain_Size,INT)
-plane_state = "*GenData(Plane_State)"
 NumberofThreads = *GenData(Number_of_threads,INT)
 time_scale = "*GenData(Time_Scale)"
 evolution_type = "*GenData(Evolution_Type)" 
@@ -33,17 +32,19 @@ class MechanicalSolverSettings:
 
 class ConditionsOptions:
     Imposed_Displacement = "*GenData(Imposed_Displacement)"
+    Imposed_Temperature ="*GenData(Imposed_Temperature)"
     Imposed_PointLoad = "*GenData(Imposed_PointLoad)"
     Imposed_LineLoad = "*GenData(Imposed_LineLoad)"
     Imposed_SurfaceLoad = "*GenData(Imposed_SurfaceLoad)"
     Imposed_NormalLoad = "*GenData(Imposed_NormalLoad)"
-    Imposed_TangentialLoad = "*GenData(Imposed_TangentialLoad)"
-    Imposed_Temperature ="*GenData(Imposed_Temperature)"
+    Imposed_WaterLoad = "*GenData(Imposed_WaterLoad)"
+    Imposed_Bofang_Temperature = "*GenData(Imposed_Bofang_Temperature)"
+
     
 ## PostProcess Data -----------------------------------------------------------------------------------------------------------
 
-nodal_results = ["*GenData(Nodal_results_1)","*GenData(Nodal_results_2)","*GenData(Nodal_results_3)","*GenData(Nodal_results_4)","*GenData(Nodal_results_5)","*GenData(Nodal_results_6)","*GenData(Nodal_results_7)","*GenData(Nodal_results_8)"]
-gauss_points_results=["*GenData(Gauss_points_results_1)","*GenData(Gauss_points_results_2)","*GenData(Gauss_points_results_3)","*GenData(Gauss_points_results_4)","*GenData(Gauss_points_results_5)","*GenData(Gauss_points_results_6)"]
+nodal_results = ["*GenData(Nodal_results_1)","*GenData(Nodal_results_2)","*GenData(Nodal_results_3)","*GenData(Nodal_results_4)","*GenData(Nodal_results_5)","*GenData(Nodal_results_6)","*GenData(Nodal_results_7)"]
+gauss_points_results=["*GenData(Gauss_points_results_1)","*GenData(Gauss_points_results_2)","*GenData(Gauss_points_results_3)","*GenData(Gauss_points_results_4)","*GenData(Gauss_points_results_5)","*GenData(Gauss_points_results_6)","*GenData(Gauss_points_results_7)"]
 
 class GidOutputConfiguration:
     GiDWriteMeshFlag = *GenData(Write_deformed_mesh)

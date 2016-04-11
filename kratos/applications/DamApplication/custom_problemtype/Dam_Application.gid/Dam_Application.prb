@@ -3,19 +3,13 @@ PROBLEM DATA
 TITLE:General_Data
 QUESTION: Domain_Size#CB#(2,3)
 VALUE: 2
-DEPENDENCIES: (2,RESTORE,Plane_State,#CURRENT#)(3,HIDE,Plane_State,#CURRENT#)
-QUESTION: Plane_State#CB#(Plane_Stress,Plane_Strain)
-VALUE: Plane_Stress
+QUESTION: Analysis_Type#CB#(Quasi-Static,Dynamic)
+VALUE: Quasi-Static
 QUESTION: Deformation_Hypothesis#CB#(Small_Displacements)
 VALUE: Small_Displacements
-
-TITLE:Evolution_Data
 QUESTION: Time_Scale#CB#(Seconds,Hours,Days,Months)
 VALUE: Seconds
 HELP: Select the unit of time for the problem
-QUESTION: Evolution_Type#CB#(Exact,Interpolation)
-VALUE: Exact
-HELP: Exact: The conditions will change only when the times are the same. Interpolation: The conditions will be interpolated every step according with the table values.
 QUESTION: Delta_Time
 VALUE: 1
 HELP: The unit is provided by the time-scale
@@ -25,29 +19,68 @@ HELP: The unit is provided by the time-scale
 QUESTION: Write_Frequency
 VALUE: 1
 HELP: The unit is provided by the time-scale
+
+TITLE:Imposed_Conditions
+QUESTION: Imposed_Displacement#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Displacement-X_Table,#CURRENT#,HIDE,Displacement-Y_Table,#CURRENT#,HIDE,Displacement-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Displacement-X_Table,#CURRENT#,RESTORE,Displacement-Y_Table,#CURRENT#,RESTORE,Displacement-Z_Table,#CURRENT#)
+QUESTION: Displacement-X_Table(Time,Displacement_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Displacement-Y_Table(Time,Displacement_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Displacement-Z_Table(Time,Displacement_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_Temperature#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Temperature_Table,#CURRENT#)(Table_Interpolation,RESTORE,Temperature_Table,#CURRENT#)
+QUESTION: Temperature_Table(Time,Temperature)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_PointLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Point-Load-X_Table,#CURRENT#,HIDE,Point-Load-Y_Table,#CURRENT#,HIDE,Point-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Point-Load-X_Table,#CURRENT#,RESTORE,Point-Load-Y_Table,#CURRENT#,RESTORE,Point-Load-Z_Table,#CURRENT#)
+QUESTION: Point-Load-X_Table(Time,Point_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Point-Load-Y_Table(Time,Point_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Point-Load-Z_Table(Time,Point_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_LineLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Line-Load-X_Table,#CURRENT#,HIDE,Line-Load-Y_Table,#CURRENT#,HIDE,Line-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Line-Load-X_Table,#CURRENT#,RESTORE,Line-Load-Y_Table,#CURRENT#,RESTORE,Line-Load-Z_Table,#CURRENT#)
+QUESTION: Line-Load-X_Table(Time,Line_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Line-Load-Y_Table(Time,Line_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Line-Load-Z_Table(Time,Line_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_SurfaceLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,Surface-Load-X_Table,#CURRENT#,HIDE,Surface-Load-Y_Table,#CURRENT#,HIDE,Surface-Load-Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Surface-Load-X_Table,#CURRENT#,RESTORE,Surface-Load-Y_Table,#CURRENT#,RESTORE,Surface-Load-Z_Table,#CURRENT#)
+QUESTION: Surface-Load-X_Table(Time,Surface_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Surface-Load-Y_Table(Time,Surface_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Surface-Load-Z_Table(Time,Surface_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_NormalLoad#CB#(Unmodified,Table_Interpolation)
+VALUE: Unmodified
+DEPENDENCIES: (Unmodified,HIDE,NormalLoad_Table,#CURRENT#)(Table_Interpolation,RESTORE,NormalLoad_Table,#CURRENT#)
+QUESTION: NormalLoad_Table(Time,NormalLoad)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Imposed_WaterLoad#CB#(Unmodified,Table_Evolution_Data)
+VALUE: Unmodified
+QUESTION: Imposed_Bofang_Temperature#CB#(Unmodified,Table_Evolution_Data)
+VALUE: Unmodified
+
+TITLE:Table_Evolution_Data
+QUESTION: Evolution_Type#CB#(Exact,Interpolation)
+VALUE: Exact
+HELP: Exact: The conditions will change only when the times are the same. Interpolation: The conditions will be interpolated every step according with the table values.
 QUESTION: Evolution_Data(Time,Month,Water_Level(m),Temp_Out_of_Water,Reference_Temperature)
 VALUE: #N# 5 0.0 1 1.0 20.0 20.0
 HELP: If evolution type is interpolation the first time must be 0.0
 
-TITLE:Special_Imposed_Conditions
-QUESTION: Imposed_Displacement#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_PointLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_LineLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_SurfaceLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_NormalLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified,Table)
-VALUE: Table
-QUESTION: Imposed_TangentialLoad#CB#(Constant,Linearly_Incremented,Non-linearly_Modified)
-VALUE: Constant
-QUESTION: Imposed_Temperature#CB#(Constant,Linearly_Incremented,Non-linearly_Modified,Table)
-VALUE: Table
-
-TITLE:Solver
-QUESTION: Analysis_Type#CB#(Quasi-Static,Dynamic)
-VALUE: Quasi-Static
+TITLE:Mechanical_Solver
 QUESTION: Strategy_Type#CB#(Newton-Raphson)
 VALUE: Newton-Raphson
 QUESTION: Max_Iterations
@@ -101,14 +134,9 @@ QUESTION: Nodal_results_6#CB#(SURFACE_LOAD,NO_RESULT)
 VALUE: SURFACE_LOAD
 QUESTION: Write_Normal_Load#CB#(True,False)
 VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_7,NORMAL_CONTACT_STRESS)(False,HIDE,Nodal_results_7,NO_RESULT)
-QUESTION: Nodal_results_7#CB#(NORMAL_CONTACT_STRESS,NO_RESULT)
-VALUE: NORMAL_CONTACT_STRESS
-QUESTION: Write_Tangential_Load#CB#(True,False)
-VALUE: False
-DEPENDENCIES: (True,HIDE,Nodal_results_8,TANGENTIAL_CONTACT_STRESS)(False,HIDE,Nodal_results_8,NO_RESULT)
-QUESTION: Nodal_results_8#CB#(TANGENTIAL_CONTACT_STRESS,NO_RESULT)
-VALUE: TANGENTIAL_CONTACT_STRESS
+DEPENDENCIES: (True,HIDE,Nodal_results_7,NEGATIVE_FACE_PRESSURE)(False,HIDE,Nodal_results_7,NO_RESULT)
+QUESTION: Nodal_results_7#CB#(NEGATIVE_FACE_PRESSURE,NO_RESULT)
+VALUE: NEGATIVE_FACE_PRESSURE
 
 QUESTION: Write_Total_Strain#CB#(True,False)
 VALUE: False
@@ -140,6 +168,11 @@ VALUE: False
 DEPENDENCIES: (True,HIDE,Gauss_points_results_6,VON_MISES_STRESS)(False,HIDE,Gauss_points_results_6,NO_RESULT)
 QUESTION: Gauss_points_results_6#CB#(VON_MISES_STRESS,NO_RESULT)
 VALUE: VON_MISES_STRESS
+QUESTION: Write_Damage#CB#(True,False)
+VALUE: False
+DEPENDENCIES: (True,HIDE,Gauss_points_results_7,DAMAGE_VARIABLE)(False,HIDE,Gauss_points_results_7,NO_RESULT)
+QUESTION: Gauss_points_results_7#CB#(DAMAGE_VARIABLE,NO_RESULT)
+VALUE: DAMAGE_VARIABLE
 
 QUESTION: Write_deformed_mesh#CB#(False,True)
 VALUE: True
