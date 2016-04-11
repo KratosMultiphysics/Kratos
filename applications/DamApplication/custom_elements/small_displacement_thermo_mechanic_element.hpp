@@ -12,6 +12,8 @@
 #include "includes/serializer.h"
 #include "custom_elements/small_displacement_element.hpp"
 
+#include "dam_application_variables.h"
+
 namespace Kratos
 {
 

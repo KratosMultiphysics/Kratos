@@ -8,7 +8,6 @@
 /* Project includes */
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
 
-#include "dam_application.h"
 
 namespace Kratos
 {
