@@ -38,6 +38,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 
 #include "geometries/prism_3d_6.h"
@@ -114,6 +115,7 @@ public:
         if(TestTetrahedra3D4N( error_msg ) == false) succesful=false;
         if(TestTetrahedra3D10N( error_msg ) == false) succesful=false;
         if(TestHexahedra3D8N( error_msg ) == false) succesful=false;
+        if(TestHexahedra3D20N( error_msg ) == false) succesful=false;
         if(TestHexahedra3D27N( error_msg ) == false) succesful=false;
 
         if(TestPrism3D6N( error_msg ) == false) succesful=false;
@@ -451,6 +453,44 @@ protected:
         return succesful;
 
     }
+
+    bool TestHexahedra3D20N( std::stringstream& error_msg )
+    {
+        Hexahedra3D20<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
+                                      mModelPart.pGetNode(19), mModelPart.pGetNode(21), mModelPart.pGetNode(27), mModelPart.pGetNode(25),
+                                      mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
+                                      mModelPart.pGetNode(10), mModelPart.pGetNode(12), mModelPart.pGetNode(18), mModelPart.pGetNode(16),
+                                      mModelPart.pGetNode(20), mModelPart.pGetNode(24), mModelPart.pGetNode(26), mModelPart.pGetNode(22)
+                                    );
+
+        bool succesful = true;
+
+        //compute analytical volume
+
+        const double expected_vol = pow(2.0/3.0,3);
+
+        if(std::abs(geom.Volume() - expected_vol) > 1e-14)
+            error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
+
+        //now let's verify that all integration methods give the same
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+
+        error_msg << std::endl;
+
+        return succesful;
+
+    }
+
 
     bool TestHexahedra3D27N( std::stringstream& error_msg )
     {
