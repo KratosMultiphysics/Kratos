@@ -88,14 +88,14 @@ public:
         parameters.ValidateAndAssignDefaults(default_parameters);
 #endif
         
-        //read from the parameters and assign to the values
+        // Read from the parameters and assign to the values
         mmesh_id = parameters["mesh_id"].GetInt();
         
         this->Set(X_COMPONENT_FIXED,  parameters["is_fixed_x"].GetBool());
         this->Set(Y_COMPONENT_FIXED,  parameters["is_fixed_y"].GetBool());
         this->Set(Z_COMPONENT_FIXED,  parameters["is_fixed_z"].GetBool());
         
-        //get the 
+        // Get the factor and variable name
         mvariable_name = parameters["variable_name"].GetString();
         mfactor = parameters["factor"].GetDouble();
 //         mvalue = parameters["value"].GetDouble();
@@ -111,8 +111,11 @@ public:
         if(dim_norm < 1e-20)
             KRATOS_THROW_ERROR(std::runtime_error," norm of direction given is approximately zero. Please give a direction vector with a non zero norm : current value of direction vector = ",mdirection)
         
-        //normalize the direction
+        // Normalize the direction
         mdirection /= dim_norm;
+
+        // Otherwise, a unit normal vector will be always imposed
+        mfactor *= dim_norm;
             
         if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name)
