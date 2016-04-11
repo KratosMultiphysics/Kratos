@@ -43,9 +43,9 @@ class kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(kDOP);
 
-    typedef Node < 3 > NodeType;
+    typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
-    typedef GeometryType::PointType PointType;
+    typedef NodeType::PointType PointType;
 
     kDOP() {this->Initialize();}
 
@@ -362,9 +362,9 @@ public:
     ~BoundingVolumePartitioner() {}
 
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-    typedef Node < 3 > NodeType;
+    typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
-    typedef GeometryType::PointType PointType;
+    typedef NodeType::PointType PointType;
 
     virtual void Partition(ConditionsContainerType& rAllConditions,
                            const kDOP& rBoundingVolume,
