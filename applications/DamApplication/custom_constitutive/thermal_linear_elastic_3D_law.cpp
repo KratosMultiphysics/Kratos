@@ -8,7 +8,6 @@
 /* Project includes */
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 
-#include "dam_application.h"
 
 namespace Kratos
 {
