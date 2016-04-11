@@ -365,8 +365,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 20)
-           rResult.resize( 20, false );
+	    if(rResult.size() != 20)
+            rResult.resize( 20, false );
 
         for ( int i = 0; i < 8; i++ ) rResult[i] = -1.00 / 8.00;
 
@@ -785,7 +785,7 @@ public:
     {
         //setting up result matrix
         if ( result.size1() != 20 || result.size2() != 3 )
-            result.resize( 20, 3 );
+            result.resize( 20, 3, false );
 
         result( 0, 0 ) = (( -1.0 + rPoint[1] ) * ( 1.0 - 2.0 * rPoint[0] + rPoint[1] - rPoint[2] ) * ( 1.0
                           + rPoint[2] ) ) / 8.0;

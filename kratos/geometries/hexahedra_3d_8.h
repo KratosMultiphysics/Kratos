@@ -419,7 +419,7 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         if ( rResult.size1() != 8 || rResult.size2() != 3 )
-            rResult.resize( 8, 3 );
+            rResult.resize( 8, 3, false );
 
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -630,9 +630,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         if ( rResult.size1() != 8 || rResult.size2() != 3 )
-            rResult.resize( 8, 3 );
-
-        rResult = ZeroMatrix( 8, 3 );
+            rResult.resize( 8, 3, false );
 
         rResult( 0, 0 ) = -0.125 * ( 1.0 - rPoint[1] ) * ( 1.0 - rPoint[2] );
         rResult( 0, 1 ) = -0.125 * ( 1.0 - rPoint[0] ) * ( 1.0 - rPoint[2] );
@@ -683,7 +681,7 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); ++i )
         {
-            rResult[i].resize(3, 3);
+            rResult[i].resize(3, 3, false);
         }
 
         rResult[0]( 0, 0 ) = 0.0;

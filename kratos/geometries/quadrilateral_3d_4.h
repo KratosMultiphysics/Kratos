@@ -333,7 +333,7 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2, false );
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -349,8 +349,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 4)
-   	   rResult.resize( 4, false );
+	    if(rResult.size() != 4)
+   	        rResult.resize( 4, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
         return rResult;
     }
@@ -763,7 +763,7 @@ public:
                               IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -816,14 +816,16 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix(3, 2);
+
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
                                         shape_functions_gradients, rPoint );
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
 
+        //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
@@ -1124,7 +1126,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( int i = 0; i < 4; i++ )
             {
@@ -1244,7 +1246,7 @@ public:
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2, false );
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
@@ -1270,7 +1272,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2, false );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
         rResult( 1, 0 ) = 0.25 * ( 1.0 - rPoint.Y() );
@@ -1298,11 +1300,11 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
+        rResult[0].resize( 2, 2, false );
+        rResult[1].resize( 2, 2, false );
+        rResult[2].resize( 2, 2, false );
+        rResult[3].resize( 2, 2, false );
 
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
         rResult[0]( 1, 0 ) = 0.25;
@@ -1345,15 +1347,14 @@ public:
             rResult[i].swap( temp );
         }
 
-        rResult[0][0].resize( 2, 2 );
-
-        rResult[0][1].resize( 2, 2 );
-        rResult[1][0].resize( 2, 2 );
-        rResult[1][1].resize( 2, 2 );
-        rResult[2][0].resize( 2, 2 );
-        rResult[2][1].resize( 2, 2 );
-        rResult[3][0].resize( 2, 2 );
-        rResult[3][1].resize( 2, 2 );
+        rResult[0][0].resize( 2, 2, false );
+        rResult[0][1].resize( 2, 2, false );
+        rResult[1][0].resize( 2, 2, false );
+        rResult[1][1].resize( 2, 2, false );
+        rResult[2][0].resize( 2, 2, false );
+        rResult[2][1].resize( 2, 2, false );
+        rResult[3][0].resize( 2, 2, false );
+        rResult[3][1].resize( 2, 2, false );
 
         for ( int i = 0; i < 4; i++ )
         {
@@ -1521,6 +1522,10 @@ private:
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints2,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussLegendreIntegrationPoints3,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLegendreIntegrationPoints4,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussLegendreIntegrationPoints5,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1540,7 +1545,11 @@ private:
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_4 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1557,7 +1566,9 @@ private:
             {
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
                 Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 )
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
+                Quadrilateral3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
