@@ -466,7 +466,7 @@ namespace Kratos {
         return sqrt(dx * dx + dy * dy + dz * dz);
     }
 
-    static inline double DistanceOfTwoPointSquared(double coord1[3], double coord2[3])
+    static inline double DistanceOfTwoPointSquared(const array_1d<double,3>& coord1, const array_1d<double,3>& coord2)
     {
         double dx = coord1[0] - coord2[0];
         double dy = coord1[1] - coord2[1];
@@ -475,6 +475,14 @@ namespace Kratos {
         return (dx * dx + dy * dy + dz * dz);
     }
 
+    static inline double DistanceOfTwoPointSquared(double coord1[3], double coord2[3])
+    {
+        double dx = coord1[0] - coord2[0];
+        double dy = coord1[1] - coord2[1];
+        double dz = coord1[2] - coord2[2];
+
+        return (dx * dx + dy * dy + dz * dz);
+    }
     static inline double DistancePointToPlane(const array_1d<double,3>& CoordInPlane, double PlaneUnitNormalVector[3], double TestCoord[3])
     {
         double Vector1[3] = {0.0};
