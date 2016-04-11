@@ -60,13 +60,13 @@ solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].G
 solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
 #add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
-solver.AddVariables()
+#solver.AddVariables()
 
 #read model_part (note: the buffer_size is set here) (restart can be read here)
 solver.ImportModelPart()
 
 #add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
-solver.AddDofs()
+#solver.AddDofs()
 
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ##TODO: replace MODEL for the Kratos one ASAP
@@ -115,6 +115,11 @@ for process in list_of_processes:
 
 #### processes settings end ####
 
+#### START SOLUTION ####
+
+#TODO: think if there is a better way to do this
+computing_model_part = solver.GetComputeModelPart()
+
 
 #### output settings start ####
 
@@ -122,28 +127,26 @@ problem_path = os.getcwd()
 problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 
 # initialize GiD  I/O (gid outputs, file_lists)
-from gid_output_process import GiDOutput
+from gid_output_process import GiDOutputProcess
 output_settings = ProjectParameters["output_configuration"]
-gid_io = GiDOutputProcess(main_model_part,
-                          problem_name,
-                          output_settings)
+gid_output = GiDOutputProcess(computing_model_part,
+                              problem_name,
+                              output_settings)
+
+gid_output.ExecuteInitialize()
 
 # restart write included in gid IO ¿?
 
 #### output settings start ####
 
 
-#### START SOLUTION ####
-
-#TODO: think if there is a better way to do this
-computing_model_part = solver.GetComputeModelPart()
-
 
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
 
 ## Set results when are written in a single file
-gid_io.initialize_results(computing_model_part)
+gid_output.ExecuteBeforeSolutionLoop()
+
 
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
@@ -160,7 +163,7 @@ time       = computing_model_part.ProcessInfo[TIME]
 end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
 # monitoring info:  # must be contained in the solver
-#from solving_info_utility   as solving_info_utils
+#import solving_info_utility as solving_info_utils
 #solving_info = solving_info_utils.SolvingInfoUtility(model_part)
 
 # writing a initial state results file (if no restart)
@@ -171,21 +174,25 @@ while(time <= end_time):
 
     #TODO: this must be done by a solving_info utility in the solver
     # store previous time step
-    main_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
+    computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
     # set new time step ( it can change when solve is called )
-    delta_time = model_part.ProcessInfo[DELTA_TIME]
+    delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
 
     time = time + delta_time
     step = step + 1
-    main_model_part.CloneTimeStep(time)
+    computing_model_part.CloneTimeStep(time)
 
     # print process info
     ##
     
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
+
+    gid_output.ExecuteInitializeSolutionStep()
         
     solver.Solve()
+
+    gid_output.ExecuteFinalizeSolutionStep()
         
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
@@ -195,15 +202,16 @@ while(time <= end_time):
         process.ExecuteBeforeOutputStep()
     
     # write results and restart files: (frequency writing is controlled internally by the gid_io)
-    gid_io.write_results(time, computing_model_part)
-              
+    if gid_output.IsOutputStep():
+        gid_output.PrintOutput()
+                      
     #TODO: decide if it shall be done only when output is processed or not
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
 
 
 # ending the problem (time integration finished)
-gid_io.finalize_results()
+gid_output.ExecuteFinalize()
 
 for process in list_of_processes:
     process.ExecuteFinalize()
