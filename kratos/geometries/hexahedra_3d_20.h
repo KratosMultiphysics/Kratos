@@ -1387,6 +1387,10 @@ private:
                 Quadrature < HexahedronGaussLegendreIntegrationPoints2,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < HexahedronGaussLegendreIntegrationPoints3,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLegendreIntegrationPoints4,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < HexahedronGaussLegendreIntegrationPoints5,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1406,7 +1410,11 @@ private:
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_4 ),
+                Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1426,7 +1434,11 @@ private:
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_2 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::GI_GAUSS_4 ),
+                Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
