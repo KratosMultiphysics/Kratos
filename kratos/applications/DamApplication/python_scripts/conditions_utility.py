@@ -29,7 +29,7 @@ class ConditionsUtility:
     def Initialize(self, model_part):
       
         if(self.imposed_displacement=="Table_Interpolation"):
-            self.listofprocesses.append(DisplacementTableInterpolationProcess(model_part, self.time_unit_converter))
+            self.listofprocesses.append(DisplaTableInterpolationProcess(model_part, self.time_unit_converter))
         
         if(self.imposed_temperature=="Table_Interpolation"):
             self.listofprocesses.append(TemperatureTableInterpolationProcess(model_part, self.time_unit_converter))
