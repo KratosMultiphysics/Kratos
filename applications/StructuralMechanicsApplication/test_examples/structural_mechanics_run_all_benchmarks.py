@@ -107,14 +107,6 @@ def Run():
     ##### ADDING EXTERNAL TESTS ##### 
     ## SPRISM
     os.chdir("SPRISM_test")
-    # PATCH TESTS
-    os.chdir("Patch_test")
-    os.system("python3 run_all.py")
-    os.chdir("..")
-    # SPHERE TESTS
-    os.chdir("Sphere_test")
-    os.system("python3 run_all.py")
-    os.chdir("..")
     # SCORD TESTS
     os.chdir("Scord_test")
     os.system("python3 run_all.py")
