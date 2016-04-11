@@ -8,8 +8,6 @@
 /* Project includes */
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
 
-#include "dam_application.h"
-
 namespace Kratos
 {
 
