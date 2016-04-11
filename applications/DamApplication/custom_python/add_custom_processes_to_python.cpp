@@ -17,11 +17,17 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-#include "custom_processes/exact_evolution_conditions_load_process.hpp"
-#include "custom_processes/exact_evolution_conditions_temperature_process.hpp"
-#include "custom_processes/interpolation_evolution_conditions_load_process.hpp"
-#include "custom_processes/interpolation_evolution_conditions_temperature_process.hpp"
-#include "custom_processes/linear_evolution_conditions_temperature_process.hpp"
+// Processes
+#include "custom_processes/displa_table_interpolation_process.hpp"
+#include "custom_processes/temperature_table_interpolation_process.hpp"
+#include "custom_processes/point_load_table_interpolation_process.hpp"
+#include "custom_processes/line_load_table_interpolation_process.hpp"
+#include "custom_processes/surface_load_table_interpolation_process.hpp"
+#include "custom_processes/normal_load_table_interpolation_process.hpp"
+#include "custom_processes/exact_water_evolution_conditions_load_process.hpp"
+#include "custom_processes/exact_bofang_evolution_conditions_temperature_process.hpp"
+#include "custom_processes/interpolation_water_evolution_conditions_load_process.hpp"
+#include "custom_processes/interpolation_bofang_evolution_conditions_temperature_process.hpp"
 
 
 namespace Kratos
@@ -34,32 +40,46 @@ using namespace boost::python;
 
 void  AddCustomProcessesToPython() 
 {
-    typedef Process                                                 ProcessBaseType;
-    typedef ExactEvolutionConditionsLoadProcess                     ExactEvolutionConditionsLoadProcessType;
-    typedef ExactEvolutionConditionsTemperatureProcess              ExactEvolutionConditionsTemperatureProcessType;
-    typedef InterpolationEvolutionConditionsLoadProcess             InterpolationEvolutionConditionsLoadProcessType;
-    typedef InterpolationEvolutionConditionsTemperatureProcess      InterpolationEvolutionConditionsTemperatureProcessType;
-    typedef LinearEvolutionConditionsTemperatureProcess             LinearEvolutionConditionsTemperatureProcessType;
-   
-    // Exact case Evolution for Normal Load
-    class_< ExactEvolutionConditionsLoadProcessType, bases< ProcessBaseType >, boost::noncopyable > ( "ExactEvolutionConditionsLoadProcess",
+    // Interpolation table for displacements
+    class_< DisplaTableInterpolationProcess, bases< Process >, boost::noncopyable > ( "DisplaTableInterpolationProcess",
         init < ModelPart&,double >());
-        
-    // Exact case Evolution for Temperature
-    class_< ExactEvolutionConditionsTemperatureProcessType, bases< ProcessBaseType >, boost::noncopyable > ( "ExactEvolutionConditionsTemperatureProcess",
-        init < ModelPart&,double >());
-        
-    // Interpolation case Evolution for Normal Load
-    class_< InterpolationEvolutionConditionsLoadProcessType, bases< ProcessBaseType >, boost::noncopyable > ( "InterpolationEvolutionConditionsLoadProcess",
-        init < ModelPart&,double >());
-        
-    // Interpolation case Evolution for Temperature
-    class_< InterpolationEvolutionConditionsTemperatureProcessType, bases< ProcessBaseType >, boost::noncopyable > ( "InterpolationEvolutionConditionsTemperatureProcess",
-        init < ModelPart&,double >());        
 
-    // Linear case Evolution for Temperature
-    class_< LinearEvolutionConditionsTemperatureProcessType, bases< ProcessBaseType >, boost::noncopyable > ( "LinearEvolutionConditionsTemperatureProcess",
-        init < ModelPart& >());                
+    // Interpolation table for uniform temperature
+    class_< TemperatureTableInterpolationProcess, bases< Process >, boost::noncopyable > ( "TemperatureTableInterpolationProcess",
+        init < ModelPart&,double >());
+
+    // Interpolation table for point loads
+    class_< PointLoadTableInterpolationProcess, bases< Process >, boost::noncopyable > ( "PointLoadTableInterpolationProcess",
+        init < ModelPart&,double >());
+
+    // Interpolation table for line loads
+    class_< LineLoadTableInterpolationProcess, bases< Process >, boost::noncopyable > ( "LineLoadTableInterpolationProcess",
+        init < ModelPart&,double >());
+
+    // Interpolation table for surface loads
+    class_< SurfaceLoadTableInterpolationProcess, bases< Process >, boost::noncopyable > ( "SurfaceLoadTableInterpolationProcess",
+        init < ModelPart&,double >());  
+    
+    // Interpolation table for Uniform Normal loads    
+    class_< NormalLoadTableInterpolationProcess, bases< Process >, boost::noncopyable > ( "NormalLoadTableInterpolationProcess",
+        init < ModelPart&,double >());
+   
+    // Exact case Evolution for Temperature
+    class_< ExactBofangEvolutionConditionsTemperatureProcess, bases< Process >, boost::noncopyable > ( "ExactBofangEvolutionConditionsTemperatureProcess",
+        init < ModelPart&,double >());
+    
+    // Interpolation case Evolution for Temperature
+    class_< InterpolationBofangEvolutionConditionsTemperatureProcess, bases< Process >, boost::noncopyable > ( "InterpolationBofangEvolutionConditionsTemperatureProcess",
+        init < ModelPart&,double >());
+        
+    // Exact case Evolution for Water Loads
+    class_< ExactWaterEvolutionConditionsLoadProcess, bases< Process >, boost::noncopyable > ( "ExactWaterEvolutionConditionsLoadProcess",
+        init < ModelPart&,double >());
+        
+    // Interpolation case Evolution for Water Loads
+    class_< InterpolationWaterEvolutionConditionsLoadProcess, bases< Process >, boost::noncopyable > ( "InterpolationWaterEvolutionConditionsLoadProcess",
+        init < ModelPart&,double >());
+              
 }
 
 }  // namespace Python.
