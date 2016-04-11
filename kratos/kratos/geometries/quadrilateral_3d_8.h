@@ -327,8 +327,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 8)
-           rResult.resize( 8, false );
+	    if(rResult.size() != 8)
+            rResult.resize( 8, false );
 
         for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
 
@@ -488,7 +488,7 @@ public:
         Matrix invJ = ZeroMatrix( 2, 2 );
 
         if ( rResult.size() != 2 )
-            rResult.resize( 2 );
+            rResult.resize( 2, false );
 
         //starting with xi = 0
         rResult = ZeroVector( 2 );
@@ -505,7 +505,8 @@ public:
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
 
             //Caluclate Inverse of Jacobian
-            J.resize( 2, 2 );
+            noalias(J) = ZeroMatrix(2, 2);
+
             //derivatives of shape functions
             Matrix shape_functions_gradients;
             shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -513,7 +514,6 @@ public:
 
             //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
             //loop over all nodes
-
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
                 Point<3> dummyPoint = this->GetPoint( i );
@@ -707,14 +707,15 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix( 3, 2 );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 8 );
+        boost::numeric::ublas::vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 8 );
         /*vector<double>*/
         ShapeFunctionValuesInIntegrationPoint = row(
                 CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
@@ -761,7 +762,8 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix( 3, 2 );
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -1081,7 +1083,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( int i = 0; i < 4; i++ )
             {
@@ -1195,7 +1197,7 @@ public:
             const CoordinatesArrayType& rPoint ) const
     {
         //setting up result matrix
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2, false );
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
         rResult( 0, 0 ) = (( -1.0 + rPoint[1] ) * ( -2.0 ) * ( 1.0 + 2.0
@@ -1240,7 +1242,7 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2, false );
         noalias( rResult ) = ZeroMatrix( 8, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -1271,7 +1273,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 8, 2 );
+        rResult.resize( 8, 2, false );
         noalias( rResult ) = ZeroMatrix( 8, 2 );
 
         rResult( 0, 0 ) = (( -1.0 + rPoint.Y() ) * ( -2.0 ) * ( 1.0 + 2.0
@@ -1328,7 +1330,7 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 2, 2 );
+            rResult[i].resize( 2, 2, false );
             noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
         }
 
@@ -1405,7 +1407,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            vector<Matrix> temp( this->PointsNumber() );
+            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1413,13 +1415,12 @@ public:
         {
             for ( int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
+                rResult[i][j].resize( 2, 2, false );
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }
 
         rResult[0][0]( 0, 0 ) = 0.0;
-
         rResult[0][0]( 0, 1 ) = -0.5;
         rResult[0][0]( 1, 0 ) = -0.5;
         rResult[0][0]( 1, 1 ) = -0.5;

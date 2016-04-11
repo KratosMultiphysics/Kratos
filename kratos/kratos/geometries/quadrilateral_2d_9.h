@@ -650,7 +650,7 @@ public:
         double gy2 = 0.5 * ( 2 * rPoint[1] + 1 );
         double gy3 = -2.0 * rPoint[1];
 
-        rResult.resize( 9, 2 );
+        rResult.resize( 9, 2, false );
         noalias( rResult ) = ZeroMatrix( 9, 2 );
         rResult( 0, 0 ) = gx1 * fy1;
         rResult( 0, 1 ) = fx1 * gy1;
@@ -681,7 +681,7 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 9, 2 );
+        rResult.resize( 9, 2, false );
         noalias( rResult ) = ZeroMatrix( 9, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
@@ -728,7 +728,7 @@ public:
         double gy2 = 0.5 * ( 2 * rPoint.Y() + 1 );
         double gy3 = -2.0 * rPoint.Y();
 
-        rResult.resize( 9, 2 );
+        rResult.resize( 9, 2, false );
         noalias( rResult ) = ZeroMatrix( 9, 2 );
         rResult( 0, 0 ) = gx1 * fy1;
         rResult( 0, 1 ) = fx1 * gy1;
@@ -769,12 +769,11 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 9, 2 );
+            rResult[i].resize( 2, 2, false );
             noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
         }
 
         double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
-
         double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
         double fx3 = 1 - rPoint[0] * rPoint[0];
         double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
@@ -870,9 +869,9 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            for ( int j = 0; j < 2; j++ )
+            for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 9, 2 );
+                rResult[i][j].resize( 2, 2, false );
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }

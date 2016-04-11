@@ -333,8 +333,8 @@ public:
      */
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-	if(rResult.size() != 9)
-	   rResult.resize( 9, false );
+	    if(rResult.size() != 9)
+	        rResult.resize( 9, false );
 
         for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
 
@@ -487,7 +487,7 @@ public:
         Matrix invJ = ZeroMatrix( 2, 2 );
 
         if ( rResult.size() != 2 )
-            rResult.resize( 2 );
+            rResult.resize( 2, false );
 
         //starting with xi = 0
         rResult = ZeroVector( 2 );
@@ -504,7 +504,8 @@ public:
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
 
             //Caluclate Inverse of Jacobian
-            J.resize( 2, 2 );
+            noalias(J) = ZeroMatrix( 2, 2 );
+
             //derivatives of shape functions
             Matrix shape_functions_gradients;
             shape_functions_gradients = ShapeFunctionsLocalGradients(
@@ -512,7 +513,6 @@ public:
 
             //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
             //loop over all nodes
-
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
                 Point<3> dummyPoint = this->GetPoint( i );
@@ -533,7 +533,6 @@ public:
             invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
 
             invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
 
             DeltaXi( 0 ) = invJ( 0, 0 ) * CurrentGlobalCoords( orientation[0] ) + invJ( 0, 1 ) * CurrentGlobalCoords( orientation[1] );
 
@@ -708,7 +707,8 @@ public:
                               IntegrationMethod ThisMethod ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix( 3, 2 );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -752,14 +752,15 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 3, 2 );
+        rResult.resize( 3, 2, false );
+        noalias(rResult) = ZeroMatrix( 3, 2 );
         //derivatives of shape functions
         Matrix shape_functions_gradients;
         shape_functions_gradients = ShapeFunctionsLocalGradients(
                                         shape_functions_gradients, rPoint );
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
 
+        //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
@@ -1072,7 +1073,7 @@ public:
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            rResult[pnt].resize( 4, 2 );
+            rResult[pnt].resize( 4, 2, false );
 
             for ( int i = 0; i < 4; i++ )
             {
@@ -1207,7 +1208,7 @@ public:
         double gy2 = 0.5 * ( 2 * rPoint[1] + 1 );
         double gy3 = -2.0 * rPoint[1];
 
-        rResult.resize( 9, 2 );
+        rResult.resize( 9, 2, false );
         noalias( rResult ) = ZeroMatrix( 9, 2 );
         rResult( 0, 0 ) = gx1 * fy1;
         rResult( 0, 1 ) = fx1 * gy1;
@@ -1238,9 +1239,8 @@ public:
      */
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
-        rResult.resize( 9, 2 );
+        rResult.resize( 9, 2, false );
         noalias( rResult ) = ZeroMatrix( 9, 2 );
-        rResult.resize( 9, 2 );
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
         rResult( 1, 0 ) =  1.0;
@@ -1286,7 +1286,7 @@ public:
         double gy2 = 0.5 * ( 2 * rPoint.Y() + 1 );
         double gy3 = -2.0 * rPoint.Y();
 
-        rResult.resize( 9, 2 );
+        rResult.resize( 9, 2, false );
         noalias( rResult ) = ZeroMatrix( 9, 2 );
         rResult( 0, 0 ) = gx1 * fy1;
         rResult( 0, 1 ) = fx1 * gy1;
@@ -1327,12 +1327,11 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 2, 2 );
-            noalias( rResult[i] ) = ZeroMatrix();
+            rResult[i].resize( 2, 2, false );
+            noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
         }
 
         double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
-
         double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
         double fx3 = 1 - rPoint[0] * rPoint[0];
         double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
@@ -1430,7 +1429,7 @@ public:
         {
             for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
+                rResult[i][j].resize( 2, 2, false );
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }

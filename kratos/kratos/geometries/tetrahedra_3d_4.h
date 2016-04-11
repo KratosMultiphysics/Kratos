@@ -414,7 +414,7 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         if(rResult.size1()!= 4 || rResult.size2()!= 3)
-            rResult.resize(4,3);
+            rResult.resize(4, 3, false);
 
         rResult(0,0)=0.0;
         rResult(0,1)=0.0;
@@ -523,7 +523,7 @@ public:
     //Connectivities of faces required
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
-        NumberNodesInFaces.resize(4);
+        NumberNodesInFaces.resize(4, false);
         // Linear Tetrahedra have elements of 3 nodes as faces
         NumberNodesInFaces[0]=3;
         NumberNodesInFaces[1]=3;
@@ -534,7 +534,7 @@ public:
 
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
-        NodesInFaces.resize(4,4);
+        NodesInFaces.resize(4, 4, false);
         NodesInFaces(0,0)=0;//face or other node
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=2;
