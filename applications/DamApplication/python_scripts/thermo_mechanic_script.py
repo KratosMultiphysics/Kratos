@@ -14,7 +14,9 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
+from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
+
 
 # Import parameters
 import ProjectParameters
@@ -94,14 +96,11 @@ mechanical_solver.AddDofs(model_part)
 # Set ProcessInfo variables and fill the previous steps of the buffer with the initial conditions
 current_time = -(buffer_size-1)*delta_time
 model_part.ProcessInfo[TIME] = current_time #current_time and TIME = 0 after filling the buffer
-model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(4).GetNearestValue(0.0)      # To start computations at time = 0  / Table 5 = Reference Temperature Values
+model_part.ProcessInfo[REFERENCE_TEMPERATURE] = model_part.GetTable(18).GetNearestValue(0.0)      # To start computations at time = 0  / Table 5 = Reference Temperature Values
 for step in range(buffer_size-1):
     current_time = current_time + delta_time
     model_part.CloneTimeStep(current_time)
 
-# Print control
-print(model_part)
-print(model_part.Properties[1])
 
 ## Initialize ------------------------------------------------------------------------------------------------
 
@@ -144,8 +143,8 @@ while( (current_time+tol) < ending_time ):
     model_part.CloneTimeStep(current_time)
     print("--------------------------------------------------")
     print("STEP",current_step," - TIME","%.5f" % current_time)
-
-    # Update non-linear imposed conditions
+    
+    # Update imposed conditions
     conditions_util.UpdateImposedConditions(model_part,current_step)
 
     # Solve thermal step

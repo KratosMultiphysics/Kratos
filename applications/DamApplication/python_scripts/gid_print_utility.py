@@ -92,7 +92,7 @@ class GidPrintUtility(object):
             self._write_mesh(current_id, model_part)
             self.io.InitializeResults(current_id, model_part.GetMesh())
 
-
+            
     def CheckWriteResults(self, current_time):
         write = False
 
@@ -103,8 +103,8 @@ class GidPrintUtility(object):
             write = True
 
         return write
-        
 
+        
     def write_results(self, model_part, nodal_variables, gp_variables, current_time, current_step, current_id):
         print("WRITING RESULTS: ID", current_id, " - STEP", current_step, " - TIME", "%.5f" % current_time)
 
