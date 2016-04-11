@@ -45,6 +45,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/capsulecluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast5cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast6cluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/beadcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp        
