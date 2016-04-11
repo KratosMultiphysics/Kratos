@@ -649,6 +649,9 @@ void InterpolateFluidFraction(
 
     for (int i = 0; i < (int)r_dem_model_part.Elements().size(); i++){
         ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
+        if (i_particle->GetGeometry()[0].Is(BLOCKED)) {
+            continue;
+        }
         ParticleType& particle = dynamic_cast<ParticleType&> (*i_particle);
         Element::Pointer p_element;
 
