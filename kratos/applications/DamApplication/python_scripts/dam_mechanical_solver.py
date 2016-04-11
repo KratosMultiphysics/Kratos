@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
 #check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
@@ -20,16 +21,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
-    model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS)
-    model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS)
+    model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_POINT_LOAD)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_LINE_LOAD)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_SURFACE_LOAD)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_NORMAL_STRESS)
-    model_part.AddNodalSolutionStepVariable(IMPOSED_TANGENTIAL_STRESS)
-    #add variables for thermal conditions
-    model_part.AddNodalSolutionStepVariable(IMPOSED_TEMPERATURE)
     #add volume acceleration
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
 
@@ -49,13 +42,11 @@ def AddDofs(model_part):
 def CreateSolver(model_part, config):
 
     dam_mechanical_solver = DamMechanicalSolver()
-
-    #Setting solver parameters
+    
+    #Setting the strategy type
     dofs_rel_tol = config.dofs_relative_tolerance
     residual_rel_tol = config.residual_relative_tolerance
     max_iters = config.max_iteration
-
-    #Setting strategy options
     compute_react = config.compute_reactions
 
     #Setting the linear solver (direct, iterative...)
@@ -79,27 +70,24 @@ def CreateSolver(model_part, config):
 
     #Setting the solution scheme (quasi-static, dynamic)
     if(config.analysis_type == "Quasi-Static"):
-        is_dynamic = False
-        model_part.ProcessInfo[NEWMARK_BETA] = 0.25
-        model_part.ProcessInfo[NEWMARK_GAMMA] = 0.5
-        solution_scheme = NewmarkScheme(is_dynamic)
+        damp_factor_m = 0.00
+        dynamic_factor = 0
+        solution_scheme = ResidualBasedBossakScheme(damp_factor_m, dynamic_factor)
     elif(config.analysis_type == "Dynamic"):
-        is_dynamic = True
-        model_part.ProcessInfo[NEWMARK_BETA] = 0.25
-        model_part.ProcessInfo[NEWMARK_GAMMA] = 0.5
-        model_part.ProcessInfo[RAYLEIGH_ALPHA] = 0.0
-        model_part.ProcessInfo[RAYLEIGH_BETA ] = 0.0
-        solution_scheme = NewmarkScheme(is_dynamic)
+        damp_factor_m = -0.01
+        dynamic_factor = 1
+        solution_scheme = ResidualBasedBossakScheme(damp_factor_m, dynamic_factor)
 
     #Setting the builder_and_solver
     builder_and_solver = ResidualBasedEliminationBuilderAndSolver(linear_solver)
     if(config.linear_solver == "Iterative" and config.iterative_solver == "AMGCL"):
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(linear_solver)        
 
-    #Setting the strategy type
     if(config.strategy_type == "Newton-Raphson"):
         dam_mechanical_solver.strategy = NewtonRaphsonStrategy(model_part,solution_scheme,builder_and_solver,dofs_rel_tol,residual_rel_tol,max_iters,compute_react,
                                                      dam_mechanical_solver.reform_step_dofs,dam_mechanical_solver.move_mesh_flag)
+
+
 
     return dam_mechanical_solver
 
