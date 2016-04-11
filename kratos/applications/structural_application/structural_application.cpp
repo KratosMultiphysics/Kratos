@@ -402,6 +402,7 @@ KratosStructuralApplication::KratosStructuralApplication():
     mUnsaturatedSoilsElement3PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),        
     mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mEASElementQ4E4( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
 
     mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -470,7 +471,8 @@ KratosStructuralApplication::KratosStructuralApplication():
     mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mIsotropic3D(),
-    mDummyConstitutiveLaw()
+    mDummyConstitutiveLaw(),
+    mDruckerPrager()
 
 {}
 
@@ -786,6 +788,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3PhaseSmallStrain3D8N", mUnsaturatedSoilsElement3PhaseSmallStrain3D8N )
     KRATOS_REGISTER_ELEMENT( "Ebst3D3N", mEbst3D3N )
     KRATOS_REGISTER_ELEMENT( "EbstVel3D3N", mEbstVel3D3N )
+    KRATOS_REGISTER_ELEMENT( "EASElementQ4E4", mEASElementQ4E4 )
 
     KRATOS_REGISTER_CONDITION( "Face2D", mFace2D )
     KRATOS_REGISTER_CONDITION( "Face3D", mFace3D3N )
@@ -856,6 +859,7 @@ void KratosStructuralApplication::Register()
 // KratosComponents<ConstitutiveLaw >::Add("Isotropic3D", mIsotropic3D);
     Serializer::Register( "Isotropic3D", mIsotropic3D );
     Serializer::Register( "DummyConstitutiveLaw", mDummyConstitutiveLaw );
+    Serializer::Register( "DruckerPrager", mDruckerPrager );
 //        std::cout << "registered objects:" << std::endl;
 //
 //        for(Serializer::RegisteredObjectsContainerType::iterator i = Serializer::GetRegisteredObjects().begin() ; i != Serializer::GetRegisteredObjects().end() ; i++)

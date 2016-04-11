@@ -86,6 +86,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/crisfield_truss_element.h"
 #include "custom_elements/ebst.h"
 #include "custom_elements/ebst_vel.h"
+#include "custom_elements/eas_element_q4e4.h"
 
 #include "custom_conditions/pointforce3D.h"
 #include "custom_conditions/node_tying_lagrange.h"
@@ -113,6 +114,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
 #include "constitutive_laws/dummy_constitutive_law.h"
+#include "constitutive_laws/drucker_prager.h"
 
 
 #include "includes/variables.h"
@@ -523,6 +525,7 @@ private:
     const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D27N;
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
+    const EASElementQ4E4 mEASElementQ4E4;
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;
     const Face3D  mFace3D6N;
@@ -584,6 +587,7 @@ private:
 
     const Isotropic3D mIsotropic3D;
     const DummyConstitutiveLaw mDummyConstitutiveLaw;
+    const DruckerPrager mDruckerPrager;
 
 
 //             const UPCTestElement mUPCTestElement3D20N;
