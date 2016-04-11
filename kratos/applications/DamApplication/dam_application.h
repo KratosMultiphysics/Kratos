@@ -12,64 +12,26 @@
 #include <string>
 #include <iostream>
 
-// External includes
+// Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/constitutive_law.h"
-
-#include "includes/variables.h"
-#include "solid_mechanics_application_variables.h"
-
-#include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-#include "containers/flags.h"
 
-#include "custom_conditions/point_load_condition.hpp"
-#include "custom_conditions/line_load_condition.hpp"
-#include "custom_conditions/line_normal_load_condition.hpp"
-#include "custom_conditions/surface_load_condition.hpp"
-#include "custom_conditions/surface_normal_load_condition.hpp"
+//Variables
+#include "dam_application_variables.h"
 
+//Conditions
+
+//Elements
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
+#include "custom_elements/small_displacement_interface_element.hpp"
 
+//Constitutive Laws
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_strain.hpp"
 #include "custom_constitutive/thermal_linear_elastic_2D_plane_stress.hpp"
 
 namespace Kratos
 {
-
-//Define Variables
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_POINT_LOAD )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_LINE_LOAD )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_SURFACE_LOAD )
-KRATOS_DEFINE_VARIABLE( double, IMPOSED_NORMAL_STRESS )
-KRATOS_DEFINE_VARIABLE( double, IMPOSED_TANGENTIAL_STRESS )
-KRATOS_DEFINE_VARIABLE( double, IMPOSED_TEMPERATURE )
-
-//Bofang, Hidrostatic and uplift variables for evolution changes
-KRATOS_DEFINE_VARIABLE( std::string, GRAVITY_DIRECTION )
-KRATOS_DEFINE_VARIABLE( double, COORDINATE_BASE_DAM )
-KRATOS_DEFINE_VARIABLE( double, SURFACE_TEMP )
-KRATOS_DEFINE_VARIABLE( double, BOTTOM_TEMP )
-KRATOS_DEFINE_VARIABLE( double, HEIGHT_DAM )
-KRATOS_DEFINE_VARIABLE( double, AMPLITUDE )
-KRATOS_DEFINE_VARIABLE( double, FREQUENCY )
-KRATOS_DEFINE_VARIABLE( double, DAY_MAXIMUM )
-KRATOS_DEFINE_VARIABLE( double, SPECIFIC_WEIGHT )
-KRATOS_DEFINE_VARIABLE( std::string, UPLIFT_DIRECTION )
-KRATOS_DEFINE_VARIABLE( double, COORDINATE_BASE_DAM_UPLIFT )
-KRATOS_DEFINE_VARIABLE( double, BASE_OF_DAM )
-
-// Thermal Variables
-KRATOS_DEFINE_VARIABLE( Matrix, THERMAL_STRESS_TENSOR )
-KRATOS_DEFINE_VARIABLE( Matrix, MECHANICAL_STRESS_TENSOR )
-KRATOS_DEFINE_VARIABLE( Matrix, THERMAL_STRAIN_TENSOR )
-
-KRATOS_DEFINE_VARIABLE( Vector, THERMAL_STRESS_VECTOR )
-KRATOS_DEFINE_VARIABLE( Vector, MECHANICAL_STRESS_VECTOR )
-KRATOS_DEFINE_VARIABLE( Vector, THERMAL_STRAIN_VECTOR )
-
 
 class KratosDamApplication : public KratosApplication
 {
@@ -119,6 +81,10 @@ private:
 
 // Member Variables
 
+const SmallDisplacementInterfaceElement<2,4> mSmallDisplacementInterfaceElement2D4N;
+const SmallDisplacementInterfaceElement<3,6> mSmallDisplacementInterfaceElement3D6N;
+const SmallDisplacementInterfaceElement<3,8> mSmallDisplacementInterfaceElement3D8N;
+
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D3N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D6N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D4N;
@@ -131,30 +97,11 @@ const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicEle
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D20N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement3D27N;
 
-const PointLoadCondition mPointLoadCondition2D;
-const PointLoadCondition mPointLoadCondition3D;
-
-const LineLoadCondition mLineLoadCondition2N;
-const LineLoadCondition mLineLoadCondition3N;
-
-const LineNormalLoadCondition mLineNormalLoadCondition2N;
-const LineNormalLoadCondition mLineNormalLoadCondition3N;
-
-const SurfaceLoadCondition mSurfaceLoadCondition3N;
-const SurfaceLoadCondition mSurfaceLoadCondition4N;
-const SurfaceLoadCondition mSurfaceLoadCondition6N;
-const SurfaceLoadCondition mSurfaceLoadCondition8N;
-const SurfaceLoadCondition mSurfaceLoadCondition9N;
-
-const SurfaceNormalLoadCondition mSurfaceNormalLoadCondition3N;
-const SurfaceNormalLoadCondition mSurfaceNormalLoadCondition4N;
-const SurfaceNormalLoadCondition mSurfaceNormalLoadCondition6N;
-const SurfaceNormalLoadCondition mSurfaceNormalLoadCondition8N;
-const SurfaceNormalLoadCondition mSurfaceNormalLoadCondition9N;
 
 const ThermalLinearElastic3DLaw mThermalLinearElastic3DLaw;
 const ThermalLinearElastic2DPlaneStrain mThermalLinearElastic2DPlaneStrain;
 const ThermalLinearElastic2DPlaneStress mThermalLinearElastic2DPlaneStress;
+
 
 // Assignment operator.
 KratosDamApplication& operator=(KratosDamApplication const& rOther);
