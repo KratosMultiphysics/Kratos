@@ -323,6 +323,8 @@ namespace Kratos
     mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),        
     mBallast5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
     mBallast6Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+    mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+    mBeadCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
     mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
     {}
     
@@ -639,6 +641,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("CapsuleCluster3D", mCapsuleCluster3D)        
         KRATOS_REGISTER_ELEMENT("Ballast5Cluster3D", mBallast5Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast6Cluster3D", mBallast6Cluster3D)
+        KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
+        KRATOS_REGISTER_ELEMENT("BeadCluster3D", mBeadCluster3D)
         KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
         // SERIALIZER
