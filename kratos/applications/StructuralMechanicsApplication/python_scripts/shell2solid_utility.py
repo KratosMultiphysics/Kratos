@@ -25,7 +25,7 @@ def CalculateNormalElement(elem):
     return z
 
 
-def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop_vector):
+def Shell2SolidUtility(working_folder, output_name, layer_number,prop_vector):
     
     #### NOTE: It always extrudes in the normal direction!!!!!!
     os.chdir(working_folder)
@@ -42,6 +42,13 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     model_part_io=ModelPartIO(input_file_name)
     model_part_io.ReadModelPart(model_part)
     
+    prop_id = 1
+    properties = model_part.Properties[prop_id]
+    E = properties.GetValue(YOUNG_MODULUS)
+    nu = properties.GetValue(POISSON_RATIO)
+    rho = properties.GetValue(DENSITY)
+    thickness = properties.GetValue(THICKNESS)
+    
     if os.path.isfile(output_name+".mdpa"):
         os.remove(output_name+".mdpa")
         
@@ -55,12 +62,12 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     
     file.write("Begin Properties  1\n")
     file.write("CONSTITUTIVE_LAW_NAME  Elastic3DLaw\n")
-    file.write("YOUNG_MODULUS"+"          "+prop_vector[0]+"\n")
-    file.write("POISSON_RATIO"+"             "+prop_vector[1]+"\n")
-    file.write("DENSITY"+"                         "+prop_vector[2]+"\n")
-    file.write("NINT_TRANS"+"                   "+prop_vector[3]+"\n")
-    file.write("EAS_IMP"+"                         "+prop_vector[4]+"\n")
-    file.write("QUAD_ON"+"                      "+prop_vector[5]+"\n")
+    file.write("YOUNG_MODULUS"+"          "+str(E)+"\n")
+    file.write("POISSON_RATIO"+"             "+str(nu)+"\n")
+    file.write("DENSITY"+"                         "+str(rho)+"\n")
+    file.write("NINT_TRANS"+"                   "+prop_vector[0]+"\n")
+    file.write("EAS_IMP"+"                         "+prop_vector[1]+"\n")
+    file.write("QUAD_ON"+"                      "+prop_vector[2]+"\n")
     file.write("End Properties\n")
     
     file.write("\n")
