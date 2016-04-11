@@ -1,0 +1,17 @@
+This application is written to address the computing demand for application of the phase field method in fracture simulation. Following that, the methods covered in this application are taken from several papers:
+
+
+The corresponding element of [1] is PhaseFieldFracture, which implement a fully implicit, quasi-static, decoupled displacement-phase field crack element. The method in [1] is a simplified version, but fundamentally the same with the original phase field method for fracture described in [2]. Because the displacement field and phase field crack is solved separately, this element must be used together with a staggered scheme. This scheme in practice yields more robust convergence behaviour than the monolithic scheme. However, the accuracy can only be achieved with a small time step. The staggerred scheme for phase field method is implemented in phase_field_strategy.py
+
+
+Another phase field element is PhaseFieldFractureHybrid, which is implemented based on [3]. This element is an implicit/explicit, quasi-static, decoupled displacement-phase field crack element. Because the Jacobian of the problem is taken from secant stiffness, the equilibrium solution for displacement typically converges in one step. In the phase field updating step, the internal variable is updated using the normal implicit scheme. This element is highly robust, and computationally efficient. Although the time step must be chosen smaller, its robustness dominates the higher computing cost.
+
+
+Questions on the usage of the Phase Field Application should be addressed to Hoang Giang Bui at giang.bui@rub.de . The author encourages the usage of this application in research, to see its applicability, and to extend where possible. Potential bugs/improvements are welcome.
+
+
+REFERENCE:
+[1] D. Schillinger, M. Borden, H. K. Stolarski, Isogeometric collocation for phase-field fracture models
+[2] C. Miehe, M. Hofacker, F. Welschinger, A phase field model for rate-independent crack propagation: Robust algorithmic implementation based on operator splits
+[3] M. Ambati, T. Gerasimov, L. Lorenzis, A review on phase-field models of brittle fracture and a new fast hybrid formulation
+
