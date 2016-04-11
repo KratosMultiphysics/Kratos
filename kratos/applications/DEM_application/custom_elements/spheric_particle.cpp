@@ -403,41 +403,6 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
     mNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
 }
 
-void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
-{
-    array_1d<double, 3> vector_of_zeros = ZeroVector(3);
-    std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
-    unsigned int new_size              = rNeighbours.size();
-    std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
-    std::vector<array_1d<double, 3> > temp_neighbours_elastic_contact_forces(new_size);
-    std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
-
-    for (unsigned int i = 0; i<rNeighbours.size(); i++){
-                
-        noalias(temp_neighbours_elastic_contact_forces[i]) = vector_of_zeros;
-        noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
-        
-        if (rNeighbours[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
-            temp_neighbours_ids[i] = -1;
-            continue;
-        } 
-        
-        temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());        
-
-        for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
-            if (static_cast<int>(temp_neighbours_ids[i]) == mFemOldNeighbourIds[j] && mFemOldNeighbourIds[j] != -1) {
-                noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
-                noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
-                break;
-            }
-        }
-    }
-
-    mFemOldNeighbourIds.swap(temp_neighbours_ids);
-    mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_elastic_contact_forces);
-    mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
-}
-
 void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info){}
 
 void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info)
@@ -845,7 +810,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         
         //We update the values
         DEM_COPY_SECOND_TO_FIRST_4(mContactConditionWeights[i],Weight)
-                
+        
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
             
             double indentation = -(DistPToB - GetInteractionRadius()) - ini_delta;
@@ -881,6 +846,10 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
             }
 
+            double norm_Delta_Disp = GeometryFunctions::module(DeltDisp);
+            if(norm_Delta_Disp > mBoundDeltaDisp)
+            {mBoundDeltaDisp = norm_Delta_Disp;}
+            
             double LocalDeltDisp[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
             
@@ -888,7 +857,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce); 
             const double previous_indentation = indentation + LocalDeltDisp[2];
-            
+                       
             if (indentation > 0.0) {
                 double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
@@ -897,7 +866,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                                                                      previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);         
 			
             }
-
+            
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
 
@@ -1243,7 +1212,9 @@ void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
     }
 }
 
-void SphericParticle::CustomInitialize() {}
+void SphericParticle::CustomInitialize() {
+  mBoundDeltaDisp = 0.0;
+ }
 
 void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
                                               array_1d<double, 3>& externally_applied_moment,
@@ -1519,6 +1490,7 @@ double SphericParticle::SlowGetCoefficientOfRestitution()                       
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
 double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
+double SphericParticle::GetBoundDeltaDisp()                                              { return mBoundDeltaDisp;   }
 
 }  // namespace Kratos.
 
