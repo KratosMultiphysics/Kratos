@@ -9,6 +9,7 @@
 
 // External includes
 #include <boost/python.hpp>
+#include "boost/python/detail/wrap_python.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -16,8 +17,9 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
-
 #include "dam_application.h"
+
+
 
 namespace Kratos
 {
@@ -36,15 +38,6 @@ BOOST_PYTHON_MODULE(KratosDamApplication)
     AddCustomProcessesToPython();
 
     //Registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEWMARK_BETA )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEWMARK_GAMMA )
-
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_POINT_LOAD )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_LINE_LOAD )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_SURFACE_LOAD )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPOSED_NORMAL_STRESS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPOSED_TANGENTIAL_STRESS )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPOSED_TEMPERATURE )
     
     //Bofang and Hidrostatic variables for evolution changes
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( GRAVITY_DIRECTION )
@@ -53,7 +46,6 @@ BOOST_PYTHON_MODULE(KratosDamApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( BOTTOM_TEMP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( HEIGHT_DAM )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AMPLITUDE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( FREQUENCY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAY_MAXIMUM )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SPECIFIC_WEIGHT )   
     
