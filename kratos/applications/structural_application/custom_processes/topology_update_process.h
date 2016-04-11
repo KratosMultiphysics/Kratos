@@ -69,6 +69,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application.h"
 
 
+//#define DEBUG_WITH_MPI
+
+
+#ifdef DEBUG_WITH_MPI
+#include "mpi.h"
+#endif
+
+
 namespace Kratos
 {
 
@@ -179,6 +187,7 @@ public:
         BinsType SpatialBin(Centers.begin(), Centers.end());
 
         // loop through each center and find out the one in range
+        // TODO parallize the neighbour search (look for bins_dynamic.h, line 482)
         std::size_t max_number_of_results = mbinsize;
         NodesContainerType Results(max_number_of_results);
         std::vector<double> Distances(max_number_of_results);
@@ -189,11 +198,14 @@ public:
             std::size_t num_results = SpatialBin.SearchInRadius(*ThisCenter, mrmin, Results.begin(), Distances.begin(), max_number_of_results); // TODO parameterize this
 
             if(num_results >= max_number_of_results)
+            {
+                KRATOS_WATCH((*it)->Id())
                 KRATOS_THROW_ERROR(std::runtime_error, "The number of founded neighbour elements is larger than maximum number of results.", "Try to increase the maximum number of results.")
+            }
 
             if(num_results > 0)
             {
-                mrElements[(*it)->Id()].GetValue(NEIGHBOUR_ELEMENTS).reserve(num_results);
+//                mrElements[(*it)->Id()].GetValue(NEIGHBOUR_ELEMENTS).reserve(num_results); // TODO do we need this?
                 for(std::size_t i = 0; i < num_results; ++i)
                 {
                     Element::WeakPointer temp = mr_model_part.pGetElement(Results[i]->Id());
@@ -239,6 +251,13 @@ public:
     virtual void ExecuteFinalizeSolutionStep()
     {
         std::cout << "At TopologyUpdateProcess::" << __FUNCTION__ << std::endl;
+
+        #ifdef DEBUG_WITH_MPI
+        int mpi_rank, mpi_size;
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        #endif
+
         /*** OBJECTIVE FUNCTION AND SENSITIVITY ANALYSIS ***/
         double Compliance = 0.0;
         for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
@@ -280,8 +299,29 @@ public:
         mobjective = Compliance;
 //        KRATOS_WATCH(Compliance)
 
-        // synchronize ELEMENT_DC and ELEMENT_DV
-        this->Synchronize();
+        #ifdef DEBUG_WITH_MPI
+        if(mpi_rank == 0)
+        {
+            std::cout << "BaseType::mrElements (proc 0 before synchronize ELEMENT_DC and ELEMENT_DV):";
+            for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+                std::cout << " " << i_element->Id();
+            std::cout << std::endl;
+        }
+        #endif
+
+        // synchronize
+        this->Synchronize(ELEMENT_DC);
+        this->Synchronize(ELEMENT_DV);
+
+        #ifdef DEBUG_WITH_MPI
+        if(mpi_rank == 0)
+        {
+            std::cout << "BaseType::mrElements (proc 0 after synchronize ELEMENT_DC and ELEMENT_DV):";
+            for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
+                std::cout << " " << i_element->Id();
+            std::cout << std::endl;
+        }
+        #endif
 
         /*** FILTERING/MODIFICATION OF SENSITIVITIES ***/
         if(mft == 1)
@@ -299,6 +339,10 @@ public:
                     denom += weights[i];
                 }
                 denom *= coeff;
+                #ifdef DEBUG_WITH_MPI
+                if(mpi_rank == 0)
+                    std::cout << i_element->Id() << ": nom: " << nom << ", denom: " << denom << ", coeff: " << coeff << std::endl;
+                #endif
                 i_element->SetValue(ELEMENT_DC_FILTERED, nom/denom);
 
                 i_element->SetValue(ELEMENT_DV_FILTERED, i_element->GetValue(ELEMENT_DV));
@@ -330,8 +374,9 @@ public:
         else
             KRATOS_THROW_ERROR(std::logic_error, "Invalid type of filter:", mft)
 
-        // synchronize ELEMENT_DC_FILTERED and ELEMENT_DV_FILTERED
-        this->Synchronize();
+        // synchronize
+        this->Synchronize(ELEMENT_DC_FILTERED);
+        this->Synchronize(ELEMENT_DV_FILTERED);
 
         /*** OPTIMALITY CRITERIA UPDATE OF DESIGN VARIABLES AND PHYSICAL DENSITIES ***/
         double l1 = 0.0;
@@ -355,8 +400,8 @@ public:
                 i_element->SetValue(MATERIAL_DENSITY_NEW, xnew);
             }
 
-            // synchronize MATERIAL_DENSITY_NEW
-            this->Synchronize();
+            // synchronize
+            this->Synchronize(MATERIAL_DENSITY_NEW);
 
             // for each element, filter the density
             if(mft == 1)
@@ -380,8 +425,8 @@ public:
                 }
             }
 
-            // synchronize MATERIAL_DENSITY_FILTERED
-            this->Synchronize();
+            // synchronize
+            this->Synchronize(MATERIAL_DENSITY_FILTERED);
 
             // update the bisection
             double total_density_volume = 0.0;
@@ -403,7 +448,7 @@ public:
 //            ++cnt;
 //            KRATOS_WATCH(cnt)
 //            KRATOS_WATCH(total_density_volume)
-//            KRATOS_WATCH(total_volume)
+//            KRATOS_WATCH(mtotal_volume)
 //            KRATOS_WATCH(mvolfrac)
 //            KRATOS_WATCH(l1)
 //            KRATOS_WATCH(l2)
@@ -426,6 +471,9 @@ public:
             i_element->SetValue(MATERIAL_DENSITY, i_element->GetValue(MATERIAL_DENSITY_NEW));
         }
 
+        // synchronize
+        this->Synchronize(MATERIAL_DENSITY);
+
         // update the element YOUNG_MODULUS
         for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
         {
@@ -434,6 +482,8 @@ public:
             std::vector<double> Modulus(integration_points.size(), young);
             i_element->SetValueOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
         }
+
+        std::cout << "TopologyUpdateProcess::" << __FUNCTION__ << " completed" << std::endl;
     }
 
     /// this function is designed for being called at the end of the computations
@@ -466,9 +516,15 @@ public:
         return value;
     }
 
-    /// Synchronize the elemental data across processes
-    virtual void Synchronize()
+    /// Synchronize the elemental values across processes
+    virtual void Synchronize(const Variable<int>& rVariable)
     {
+        // DO NOTHING
+    }
+
+    virtual void Synchronize(const Variable<double>& rVariable)
+    {
+        // DO NOTHING
     }
 
     ///@}
@@ -521,9 +577,11 @@ protected:
 
     ModelPart& mr_model_part;
     ElementsContainerType mrElements;
-    double mvolfrac;    // volume fraction
-    double mrmin;       // radius for neighbour search
-    int mft;            // filter type: 1: sensitivity filter, 2: density filter
+    double mvolfrac;        // volume fraction
+    double mrmin;           // radius for neighbour search
+    double mtotal_volume;   // total volume of the domain
+    int mft;                // filter type: 1: sensitivity filter, 2: density filter
+    std::size_t mbinsize;   // for neighbour search using Bin
 
     ///@}
     ///@name Protected Operators
@@ -534,41 +592,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    double mchange;     // convergence criteria
-    double mobjective;  // value of objective function
-    double mtotal_volume;   // total volume of the domain
-    std::size_t mbinsize; // for neighbour search using Bin
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     //******************************************************************************************
     //******************************************************************************************
@@ -603,6 +626,41 @@ private:
         double penal = props[PENALIZATION_FACTOR];
         return penal * pow(xe, penal - 1) * (E0 - Emin);
     }
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    double mchange;     // convergence criteria
+    double mobjective;  // value of objective function
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -663,5 +721,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
+
+#undef DEBUG_WITH_MPI
 
 #endif // KRATOS_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED  defined
