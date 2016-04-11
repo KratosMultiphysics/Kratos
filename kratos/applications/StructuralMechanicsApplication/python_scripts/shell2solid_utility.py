@@ -18,7 +18,11 @@ def CalculateNormalElement(elem):
     x = [nodes[1].X - nodes[0].X , nodes[1].Y - nodes[0].Y, nodes[1].Z - nodes[0].Z]
     y = [nodes[2].X - nodes[0].X , nodes[2].Y - nodes[0].Y, nodes[2].Z - nodes[0].Z]
     
-    return cross(x, y)
+    z = cross(x, y)
+    
+    z = z/sqrt(inner(z, z))
+    
+    return z
 
 
 def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop_vector):
@@ -93,7 +97,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     for element in model_part.Elements:
         nodes = element.GetNodes()
         for layer in range(layer_number):
-            file.write(str(element.Id + layer * number_elements)+"\t 1 \t"+str(nodes[0].Id + (layer + 1) * number_nodes)+"\t"+str(nodes[1].Id + (layer + 1) * number_nodes)+"\t"+str(nodes[2].Id + (layer + 1) * number_nodes)+"\t"+str(nodes[0].Id + layer * number_nodes)+"\t"+str(nodes[1].Id+ layer * number_nodes)+"\t"+str(nodes[2].Id + layer * number_nodes)+"\n")
+            file.write(str(element.Id + layer * number_elements)+"\t 1 \t"+str(nodes[0].Id + layer * number_nodes)+"\t"+str(nodes[1].Id + layer * number_nodes)+"\t"+str(nodes[2].Id + layer * number_nodes)+"\t"+str(nodes[0].Id + (layer + 1) * number_nodes)+"\t"+str(nodes[1].Id+ (layer + 1) * number_nodes)+"\t"+str(nodes[2].Id + (layer + 1) * number_nodes)+"\n")
             
     file.write("End Elements\n")
     
@@ -104,7 +108,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     file.write("Begin NodalData DISPLACEMENT_X\n")
     for node in model_part.Nodes:
         if(node.IsFixed(DISPLACEMENT_X)):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                 file.write(str(node.Id + layer * number_nodes)+"\t1\t0.00000\n")
     file.write("End NodalData\n")
     
@@ -114,7 +118,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     file.write("Begin NodalData DISPLACEMENT_Y\n")
     for node in model_part.Nodes:
         if(node.IsFixed(DISPLACEMENT_Y)):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                 file.write(str(node.Id + layer * number_nodes)+"\t1\t0.00000\n")
     file.write("End NodalData\n")
     
@@ -124,7 +128,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     file.write("Begin NodalData DISPLACEMENT_Z\n")
     for node in model_part.Nodes:
         if(node.IsFixed(DISPLACEMENT_Z)):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                 file.write(str(node.Id + layer * number_nodes)+"\t1\t 0.00000\n")
     file.write("End NodalData\n")
     
@@ -136,7 +140,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     for node in model_part.Nodes:
         load = node.GetSolutionStepValue(POINT_LOAD, 0)
         if ((abs(load[0]) > 0.0) | (abs(load[1]) > 0.0) | (abs(load[2]) > 0.0)):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                 counter += 1
                 file.write(str(counter)+"\t1\t"+str(node.Id + layer * number_nodes)+"\n")
     file.write("End Conditions\n")
@@ -148,7 +152,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     for node in model_part.Nodes:
         load = node.GetSolutionStepValue(POINT_LOAD, 0)
         if (abs(load[0]) > 0):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                  file.write(str(node.Id + layer * number_nodes)+"\t1\t"+str(load[0])+"\n")
     file.write("End NodalData\n")
     
@@ -159,7 +163,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     for node in model_part.Nodes:
         load = node.GetSolutionStepValue(POINT_LOAD, 0)
         if (abs(load[1]) > 0):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                  file.write(str(node.Id + layer * number_nodes)+"\t1\t"+str(load[1])+"\n")
     file.write("End NodalData\n")
     
@@ -170,7 +174,7 @@ def Shell2SolidUtility(working_folder, output_name, thickness, layer_number,prop
     for node in model_part.Nodes:
         load = node.GetSolutionStepValue(POINT_LOAD, 0)
         if (abs(load[2]) > 0):
-            for layer in range(layer_number):
+            for layer in range(layer_number + 1):
                  file.write(str(node.Id + layer * number_nodes)+"\t1\t"+str(load[2])+"\n")
     file.write("End NodalData\n")
     
