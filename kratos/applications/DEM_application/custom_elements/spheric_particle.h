@@ -130,6 +130,8 @@ double SlowGetDensity();
 double SlowGetParticleCohesion();
 int    SlowGetParticleMaterial();
 
+double GetBoundDeltaDisp();
+
 /// Turn back information as a string.
 virtual std::string Info() const
 {
@@ -147,12 +149,12 @@ virtual void PrintData(std::ostream& rOStream) const {}
 virtual void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
 
-virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 
 std::vector<array_1d<double, 4> > mContactConditionWeights;
 std::vector<int>                  mContactConditionContactTypes;
+std::vector< array_1d<double,3> > mConditionContactPoints;
 
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesTotalContactForce;
 std::vector<array_1d<double, 3> > mNeighbourRigidFacesElasticContactForce;
@@ -167,6 +169,9 @@ array_1d<double, 3> mContactMoment; //SLS
 
 Matrix* mStressTensor;
 Matrix* mSymmStressTensor;
+
+std::vector<int> mOldNeighbourIds;
+std::vector<int> mFemOldNeighbourIds;
 
 protected:
 
@@ -284,9 +289,8 @@ double mRadius;
 double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
-std::vector<int> mOldNeighbourIds;
-std::vector<int> mFemOldNeighbourIds;
 int mClusterId;
+double mBoundDeltaDisp;
 
 private:
 
