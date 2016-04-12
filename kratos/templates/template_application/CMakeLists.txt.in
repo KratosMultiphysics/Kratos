@@ -7,9 +7,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 # generate variables with the sources
 set( KRATOS_@{APP_NAME_CAPS}_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_LOW}_application.cpp
-
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/@{APP_NAME_LOW}_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp@{APP_SOURCE_LIST}
 )
 
 # define library Kratos which defines the basic python interface

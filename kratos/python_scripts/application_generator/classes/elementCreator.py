@@ -83,7 +83,7 @@ class ElementCreator(ClassCreator):
             localFlagsValue += localFlagDefinition.format(upperName)
 
         # Locate the flag rule and replace the value
-        flagRule = self._GetRule('@{KRATOS_CLASS_LOCAL_FLAGS}')
+        flagRule = self.GetRule('@{KRATOS_CLASS_LOCAL_FLAGS}')
         flagRule['value'] += localFlagsValue
 
         return self
@@ -138,8 +138,8 @@ class ElementCreator(ClassCreator):
                 localDofEidValue += l.format(upperName)
 
         # Locate the rules and replace the values
-        dofListRule = self._GetRule('@{KRATOS_ELEMENT_LIST_DOFS}')
-        dofEidRule = self._GetRule('@{KRATOS_ELEMENT_ECUATION_ID_DOFS}')
+        dofListRule = self.GetRule('@{KRATOS_ELEMENT_LIST_DOFS}')
+        dofEidRule = self.GetRule('@{KRATOS_ELEMENT_ECUATION_ID_DOFS}')
 
         dofListRule['value'] = localDofListValue
         dofEidRule['value'] = localDofEidValue

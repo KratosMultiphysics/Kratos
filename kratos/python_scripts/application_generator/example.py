@@ -4,6 +4,7 @@ from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
 from classes.processCreator import ProcessCreator
 from classes.classMemberCreator import ClassMemberCreator
+from classes.variableCreator import VariableCreator
 
 from applicationGenerator import ApplicationGenerator
 
@@ -12,6 +13,12 @@ appCamel = sys.argv[1]
 
 # Fetch the applications directory
 debugApp = ApplicationGenerator(appCamel)
+
+# Add KratosVariables
+debugApp.AddVariables([
+    VariableCreator(name='1DVariable', vtype='double'),
+    VariableCreator(name='3DVariable', vtype='int', is3D=True),
+])
 
 # Add test element
 debugApp.AddElements([
