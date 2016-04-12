@@ -45,7 +45,7 @@ class SprismTests(KratosUnittest.TestCase):
         constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, 3);
         constitutive_law.Initialize();
 
-        max_iters = 10
+        max_iters = 30
 
         linear_solver = SkylineLUFactorizationSolver()
 
@@ -101,9 +101,9 @@ class SprismTests(KratosUnittest.TestCase):
 
         for node in self.model_part.Nodes:
             value = node.GetSolutionStepValue(DISPLACEMENT_X,0)
-            self.assertEqual(value, 1.0e-7 * (node.X + node.Y / 2))
+            self.assertAlmostEqual(value, 1.0e-7 * (node.X + node.Y / 2))
             value = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
-            self.assertEqual(value, 1.0e-7 * (node.Y + node.X / 2))
+            self.assertAlmostEqual(value, 1.0e-7 * (node.Y + node.X / 2))
 
     def test_BendingPacth(self):
         step = 0
@@ -138,15 +138,15 @@ class SprismTests(KratosUnittest.TestCase):
 
         for node in self.model_part.Nodes:
             value = node.GetSolutionStepValue(DISPLACEMENT_X,0)
-            self.assertEqual(
+            self.assertAlmostEqual(
                 value,
                 -1.0e-7 * (node.Z - 0.0005) * (node.X + node.Y / 2))
             value = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
-            self.assertEqual(
+            self.assertAlmostEqual(
                 value,
                 -1.0e-7 * (node.Z - 0.0005) * (node.Y + node.X / 2))
             value = node.GetSolutionStepValue(DISPLACEMENT_Z,0)
-            self.assertEqual(value,
+            self.assertAlmostEqual(value,
                 0.5 * 1.0e-7 * (node.X ** 2 + node.X * node.Y + node.Y **2 ))
 
     def tearDown(self):
