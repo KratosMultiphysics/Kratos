@@ -745,6 +745,9 @@ namespace Kratos
 
     void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
     {
+        KRATOS_THROW_ERROR(std::logic_error,"it should not call this block","")
+    }
+/*    {
         KRATOS_TRY
 //         KRATOS_THROW_ERROR(std::runtime_error, "this function shall be removed ReadNodesBlock(NodesContainerType& rThisNodes)","")
 
@@ -789,7 +792,7 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
+*/
     void ModelPartIO::ReadNodesBlock(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -936,8 +939,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties temp_properties;
-
+        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties& temp_properties = *props;
+        //Properties temp_properties;
+        
         std::string word;
         std::string variable_name;
 
@@ -1024,7 +1029,8 @@ namespace Kratos
 
         }
 
-        rThisProperties.push_back(temp_properties);
+        rThisProperties.push_back(props);
+//         rThisProperties.push_back(temp_properties);
 
         KRATOS_CATCH("")
     }
@@ -2063,7 +2069,7 @@ namespace Kratos
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
         for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
-            rModelPart.GetMeshes().push_back(empty_mesh.Clone());
+            rModelPart.GetMeshes().push_back(boost::make_shared<MeshType>(empty_mesh.Clone()));
 
         MeshType& mesh = rModelPart.GetMesh(mesh_id);
 
@@ -2263,7 +2269,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties temp_properties;
+        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties& temp_properties = *props;
+//         Properties temp_properties;
 
         std::string word;
         std::string variable_name;
@@ -2341,7 +2349,8 @@ namespace Kratos
 
         }
 
-        rMesh.Properties().push_back(temp_properties);
+        rMesh.Properties().push_back(props);
+//         rMesh.Properties().push_back(temp_properties);
 
         KRATOS_CATCH("")
     }
