@@ -250,7 +250,7 @@ class Procedures(object):
         if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-        if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):                   
+        if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
@@ -318,6 +318,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
         # Not really necessary but it is filled by inlet
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
+        model_part.AddNodalSolutionStepVariable(EXCENTRICITY)
 
     def AddMpiVariables(self, model_part):
         pass
@@ -371,21 +372,16 @@ class Procedures(object):
 
         Coordination_Number = 0.0
 
-        if(self.contact_mesh_OPTION):
-
+        if (self.contact_mesh_OPTION):
             for bar in contact_model_part.Elements:
-
                 Total_Contacts += 1.0
-
             Coordination_Number = 1.0 * (Total_Contacts * 2.0) / (Total_Particles)
 
         Model_Data.write("Total Number of Particles: " + str(Total_Particles) + '\n')
         Model_Data.write("Total Number of Contacts: " + str(Total_Contacts) + '\n')
         Model_Data.write("Coordination Number NC: " + str(Coordination_Number) + '\n')
         Model_Data.write('\n')
-
         #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
-
         Model_Data.close()
 
         return Coordination_Number
@@ -666,7 +662,7 @@ class DEMFEMProcedures(object):
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
         if (hasattr(self.DEM_parameters, "StressStrainOption")):
-            self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)
+            self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
         self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
 
         evaluate_computation_of_fem_results()
