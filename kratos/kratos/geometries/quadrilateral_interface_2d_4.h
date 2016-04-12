@@ -183,34 +183,34 @@ public:
     ///@name Life Cycle
     ///@{
 
-    QuadrilateralInterface2D4( const PointType& FirstPoint,
-                      const PointType& SecondPoint,
-                      const PointType& ThirdPoint,
-                      const PointType& FourthPoint )
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        double p2_p1_X = (ThirdPoint->X() + FourthPoint->X() - FirstPoint->X() - SecondPoint->X())*0.5;
-        double p2_p1_Y = (ThirdPoint->Y() + FourthPoint->Y() - FirstPoint->Y() - SecondPoint->Y())*0.5;
-        double p4_p3_X = (ThirdPoint->X() + SecondPoint->X() - FirstPoint->X() - FourthPoint->X())*0.5;
-        double p4_p3_Y = (ThirdPoint->Y() + SecondPoint->Y() - FirstPoint->Y() - FourthPoint->Y())*0.5;
-
-        double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
-        double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
-		if(lx > ly) 
-		{
-			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
-		}
-		else
-		{
-			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
-		}
-    }
+//     QuadrilateralInterface2D4( const PointType& FirstPoint,
+//                       const PointType& SecondPoint,
+//                       const PointType& ThirdPoint,
+//                       const PointType& FourthPoint )
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         double p2_p1_X = (ThirdPoint->X() + FourthPoint->X() - FirstPoint->X() - SecondPoint->X())*0.5;
+//         double p2_p1_Y = (ThirdPoint->Y() + FourthPoint->Y() - FirstPoint->Y() - SecondPoint->Y())*0.5;
+//         double p4_p3_X = (ThirdPoint->X() + SecondPoint->X() - FirstPoint->X() - FourthPoint->X())*0.5;
+//         double p4_p3_Y = (ThirdPoint->Y() + SecondPoint->Y() - FirstPoint->Y() - FourthPoint->Y())*0.5;
+// 
+//         double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
+//         double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
+// 		if(lx > ly) 
+// 		{
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
+// 		}
+// 		else
+// 		{
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
+// 		}
+//     }
 
     QuadrilateralInterface2D4( typename PointType::Pointer pFirstPoint,
                       typename PointType::Pointer pSecondPoint,
@@ -369,23 +369,23 @@ public:
     {
         return typename BaseType::Pointer( new QuadrilateralInterface2D4( ThisPoints ) );
     }
-
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+    
+        virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
         //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-        for ( IndexType i = 0 ; i < this->Points().size() ; i++ )
-            NewPoints.push_back( this->Points()[i] );
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > > p_clone( new QuadrilateralInterface2D4< Point<3> >( NewPoints ) );
-
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new QuadrilateralInterface2D4< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
+
 
     /**
      * returns the local coordinates of all nodes of the current geometry

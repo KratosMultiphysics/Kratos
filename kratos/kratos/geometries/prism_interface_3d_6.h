@@ -186,19 +186,19 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PrismInterface3D6( const PointType& Point1, const PointType& Point2,
-              const PointType& Point3, const PointType& Point4,
-              const PointType& Point5, const PointType& Point6 )
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        this->Points().reserve( 6 );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
-    }
+//     PrismInterface3D6( const PointType& Point1, const PointType& Point2,
+//               const PointType& Point3, const PointType& Point4,
+//               const PointType& Point5, const PointType& Point6 )
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         this->Points().reserve( 6 );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
+//     }
 
     PrismInterface3D6( typename PointType::Pointer pPoint1,
               typename PointType::Pointer pPoint2,
@@ -319,23 +319,23 @@ public:
     {
         return typename BaseType::Pointer( new PrismInterface3D6( ThisPoints ) );
     }
-
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+   
+            virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
         //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-        for ( IndexType i = 0 ; i < this->Points().size() ; i++ )
-            NewPoints.push_back( this->Points()[i] );
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > > p_clone( new PrismInterface3D6< Point<3> >( NewPoints ) );
-
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new PrismInterface3D6< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
+
 
     /**
      * returns the local coordinates of all nodes of the current geometry

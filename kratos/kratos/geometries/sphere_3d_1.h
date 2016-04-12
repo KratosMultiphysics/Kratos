@@ -144,11 +144,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Sphere3D1( const PointType& FirstPoint)
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-    }
+//     Sphere3D1( const PointType& FirstPoint)
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+//     }
 
     Sphere3D1( typename PointType::Pointer pFirstPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
@@ -254,20 +254,19 @@ public:
     {
         return typename BaseType::Pointer( new Sphere3D1( ThisPoints ) );
     }
-
+    
     virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
         //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-        for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back( BaseType::Points()[i] );
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new Sphere3D1< Point<3> >( NewPoints ) );
-
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new Sphere3D1< Point<3> >( NewPoints ) );
 
         return p_clone;
     }

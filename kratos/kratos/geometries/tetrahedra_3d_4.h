@@ -164,16 +164,16 @@ public:
      * Life Cycle
      */
 
-    Tetrahedra3D4( const PointType& Point1, const PointType& Point2,
-                   const PointType& Point3, const PointType& Point4 )
-        : BaseType(PointsArrayType(), &msGeometryData)
-    {
-        this->Points().reserve(4);
-        this->Points().push_back(typename PointType::Pointer(new PointType(Point1)));
-        this->Points().push_back(typename PointType::Pointer(new PointType(Point2)));
-        this->Points().push_back(typename PointType::Pointer(new PointType(Point3)));
-        this->Points().push_back(typename PointType::Pointer(new PointType(Point4)));
-    }
+//     Tetrahedra3D4( const PointType& Point1, const PointType& Point2,
+//                    const PointType& Point3, const PointType& Point4 )
+//         : BaseType(PointsArrayType(), &msGeometryData)
+//     {
+//         this->Points().reserve(4);
+//         this->Points().push_back(typename PointType::Pointer(new PointType(Point1)));
+//         this->Points().push_back(typename PointType::Pointer(new PointType(Point2)));
+//         this->Points().push_back(typename PointType::Pointer(new PointType(Point3)));
+//         this->Points().push_back(typename PointType::Pointer(new PointType(Point4)));
+//     }
 
     Tetrahedra3D4( typename PointType::Pointer pPoint1,
                    typename PointType::Pointer pPoint2,
@@ -293,17 +293,19 @@ public:
     virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
+
         //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for(IndexType i = 0 ; i < this->Points().size() ; i++)
-            NewPoints.push_back(this->Points()[i]);
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
+
         //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer
-        p_clone(new Tetrahedra3D4< Point<3> >(NewPoints));
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
-
+    
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors(Vector& rResult) const
     {

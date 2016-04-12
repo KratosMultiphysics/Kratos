@@ -26,6 +26,7 @@
 
 // Project includes
 #include "geometries/geometry_data.h"
+#include "geometries/point.h"
 #include "containers/pointer_vector.h"
 
 #include "utilities/math_utils.h"
@@ -381,7 +382,9 @@ public:
         //making a copy of the nodes TO POINTS (not Nodes!!!)
 
         for ( IndexType i = 0 ; i < this->size() ; i++ )
-            NewPoints.push_back(( *this )[i] );
+        {
+            NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+        }
 
         //NewPoints[i] = typename Point<3>::Pointer(new Point<3>(*mPoints[i]));
 
@@ -568,21 +571,22 @@ public:
 
     @return PointType which is the calculated center of this geometry.
     */
-    virtual PointType Center() const
+    virtual Point<3> Center() const
     {
         const SizeType points_number = this->size();
 
         if ( points_number == 0 )
-            return PointType();
+            KRATOS_THROW_ERROR(std::logic_error,"can not compute the ceneter of a geometry of zero points","");
+//             return PointType();
 
-        PointType result = ( *this )[0];
+        Point<3> result = ( *this )[0];
 
         for ( IndexType i = 1 ; i < points_number ; i++ )
-            result += ( *this )[i];
+            result.Coordinates() += ( *this )[i];
 
         double temp = 1.0 / double( points_number );
 
-        result *= temp;
+        result.Coordinates() *= temp;
 
         return result;
     }

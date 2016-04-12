@@ -184,40 +184,40 @@ public:
     ///@name Life Cycle
     ///@{
 
-    QuadrilateralInterface3D4( const PointType& FirstPoint,
-                      const PointType& SecondPoint,
-                      const PointType& ThirdPoint,
-                      const PointType& FourthPoint )
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        array_1d< double , 3 > vx;
-        vx.clear();
-        vx = SecondPoint + ThirdPoint - FirstPoint - FourthPoint;
-        vx *= 0.5;
-
-        array_1d< double , 3 > vy;
-        vy.clear();
-        vy = ThirdPoint + FourthPoint - FirstPoint - SecondPoint;
-        vy *= 0.5;
-        
-        double lx = MathUtils<double>::Norm3(vx);
-        double ly = MathUtils<double>::Norm3(vy);
-        
-		if(lx > ly) 
-		{
-			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
-		}
-		else
-		{
-			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
-		}
-    }
+//     QuadrilateralInterface3D4( const PointType& FirstPoint,
+//                       const PointType& SecondPoint,
+//                       const PointType& ThirdPoint,
+//                       const PointType& FourthPoint )
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         array_1d< double , 3 > vx;
+//         vx.clear();
+//         vx = SecondPoint + ThirdPoint - FirstPoint - FourthPoint;
+//         vx *= 0.5;
+// 
+//         array_1d< double , 3 > vy;
+//         vy.clear();
+//         vy = ThirdPoint + FourthPoint - FirstPoint - SecondPoint;
+//         vy *= 0.5;
+//         
+//         double lx = MathUtils<double>::Norm3(vx);
+//         double ly = MathUtils<double>::Norm3(vy);
+//         
+// 		if(lx > ly) 
+// 		{
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
+// 		}
+// 		else
+// 		{
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FourthPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+// 			this->Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
+// 		}
+//     }
 
     QuadrilateralInterface3D4( typename PointType::Pointer pFirstPoint,
                       typename PointType::Pointer pSecondPoint,
@@ -389,22 +389,22 @@ public:
         return typename BaseType::Pointer( new QuadrilateralInterface3D4( ThisPoints ) );
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const
+            virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
         //making a copy of the nodes TO POINTS (not Nodes!!!)
-
-        for ( IndexType i = 0 ; i < this->Points().size() ; i++ )
-            NewPoints.push_back( this->Points()[i] );
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new QuadrilateralInterface3D4< Point<3> >( NewPoints ) );
-
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new QuadrilateralInterface3D4< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
+
 
     /**
      * returns the local coordinates of all nodes of the current geometry

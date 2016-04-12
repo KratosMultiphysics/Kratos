@@ -142,13 +142,13 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Line3D3( const PointType& FirstPoint, const PointType& SecondPoint, const PointType& ThirdPoint )
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-        BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-        BaseType::Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
-    }
+//     Line3D3( const PointType& FirstPoint, const PointType& SecondPoint, const PointType& ThirdPoint )
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
+//     }
 
     Line3D3( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint,
              typename PointType::Pointer pThirdPoint )
@@ -255,19 +255,19 @@ public:
     virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
 
-        for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back( BaseType::Points()[i] );
+        //making a copy of the nodes TO POINTS (not Nodes!!!)
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone( new Line3D3< Point<3> >( NewPoints ) );
-
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new Line3D3< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
-
+    
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
