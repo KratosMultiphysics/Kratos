@@ -446,16 +446,19 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
                                                                          ElementsContainerType& array_of_injector_elements,
                                                                          int& number_of_added_spheres) {
         KRATOS_TRY
-                
+        
+        ProcessInfo& r_process_info = r_spheres_modelpart.GetProcessInfo();
+        
         Node<3>::Pointer pnew_node;
 
         double radius = (*r_params)[RADIUS];
-        double max_radius = 1.5 * radius;
+        double min_radius = 0.5 * radius; //TODO: this is a little bit arbitrary
+        double max_radius = 1.5 * radius; //TODO: this is a little bit arbitrary
+
         array_1d<double, 3> euler_angles;        
         
         double std_deviation = (*r_params)[STANDARD_DEVIATION];
         std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
-        double min_radius = 0.5 * radius;
 
         if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
         else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
@@ -465,14 +468,30 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
         
-        Geometry< Node < 3 > >::PointsArrayType nodelist;
+        // SphereCluster3D specific
+        std::string element_type = (*r_params)[ELEMENT_TYPE];
+        if (element_type == "SingleSphereCluster3D") {
+            double excentricity = (*r_params)[EXCENTRICITY];
+            excentricity *= radius;
+            double min_excentricity = 0.05 * excentricity; //TODO: this is a little bit arbitrary
+            double max_excentricity = 1.00 * excentricity; //TODO: this is a little bit arbitrary
+            double excentricity_std_deviation = (*r_params)[EXCENTRICITY_STANDARD_DEVIATION];
+            std::string excentricity_distribution_type = (*r_params)[EXCENTRICITY_PROBABILITY_DISTRIBUTION];
+            if (excentricity_distribution_type == "normal") excentricity = rand_normal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
+            else if (excentricity_distribution_type == "lognormal") excentricity = rand_lognormal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
+            else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
+            pnew_node->FastGetSolutionStepValue(EXCENTRICITY) = excentricity;
+        }
+        // SphereCluster3D specific
+
+        Geometry<Node<3> >::PointsArrayType nodelist;
 
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_new_cluster = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_new_cluster.get());
                           
-        p_cluster->Initialize();                        
+        p_cluster->Initialize(r_process_info);                        
                     
         if ((*r_params)[RANDOM_EULER_ANGLES]) {
             
@@ -524,7 +543,6 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             spheric_p_particle->Set(NEW_ENTITY);
             spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
             spheric_p_particle->SetFastProperties(p_fast_properties);
-            
         }
 
         p_cluster->Set(NEW_ENTITY);
