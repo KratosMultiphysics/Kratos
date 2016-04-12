@@ -1,49 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: mossaiby $
-//   Date:                $Date: 2008-12-22 14:46:36 $
-//   Revision:            $Revision: 1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_DEFLATED_CG_SOLVER_H_INCLUDED )
 #define  KRATOS_DEFLATED_CG_SOLVER_H_INCLUDED
@@ -146,6 +111,35 @@ public:
         , massume_constant_structure(assume_constant_structure)
     {
     }
+    
+    DeflatedCGSolver(Parameters settings,
+                    typename TPreconditionerType::Pointer pNewPreconditioner = boost::make_shared<TPreconditionerType>()
+                   ): BaseType ()
+
+    {
+        KRATOS_TRY
+
+//only include validation with c++11 since raw_literals do not exist in c++03
+#if __cplusplus >= 201103L
+
+        Parameters default_parameters( R"(
+{
+"tolerance" : 1.0e-6,
+"maximum_iterations" : 200,
+"assume_constant_structure" : false,
+"max_reduced_size" : 1024
+}  )" );
+
+        //now validate agains defaults -- this also ensures no type mismatch
+        settings.ValidateAndAssignDefaults(default_parameters);
+#endif
+        BaseType::mTolerance = settings["tolerance"].GetDouble();
+        BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
+        massume_constant_structure = settings["assume_constant_structure"].GetBool();
+        mmax_reduced_size = settings["max_reduced_size"].GetInt();
+        
+        KRATOS_CATCH("")
+    }
 
     /// Copy constructor.
 
@@ -187,21 +181,16 @@ public:
      */
     bool Solve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB)
     {
-//         KRATOS_WATCH("entered in solver")
         if (this->IsNotConsistent(rA, rX, rB))
             return false;
-
-        // 	  GetTimeTable()->Start(Info());
 
         // 	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
         //  	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
         // 	  BaseType::GetPreconditioner()->ApplyLeft(rB);
-//         KRATOS_WATCH("ln173")
+
         bool is_solved = IterativeSolve(rA, rX, rB);
 
         //  	  BaseType::GetPreconditioner()->Finalize(rX);
-//         KRATOS_WATCH("ln177")
-        // 	  GetTimeTable()->Stop(Info());
 
         return is_solved;
     }
@@ -336,7 +325,6 @@ private:
         //note that this has to be done only once if the matrix structure is preserved
         if (massume_constant_structure == false || mw.size() == 0)
         {
-//             std::cout << "constructing the W matrix and the reduced size one" << std::endl;
             DeflationUtils::ConstructW(mmax_reduced_size, rA, mw, mAdeflated);
         }
 
@@ -345,20 +333,15 @@ private:
 
         std::size_t reduced_size = mAdeflated.size1();
 
-//         std::cout << "within solver: full size=" << full_size << " reduced_size=" << reduced_size << " deflation factor = " << double(full_size) / double(reduced_size) << std::endl;
-
         // To save some time, we do the factorization once, and do the solve several times.
         // When this is available through the LinearSolver interface, replace this.
-
         LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> Factorization;
-
         //mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<TSparseSpaceType, TDenseSpaceType>);
 
         Factorization.copyFromCSRMatrix(mAdeflated);
         Factorization.factorize();
 
 //         std::cout << "********** Factorization done!" << std::endl;
-
         SparseVectorType r(full_size), t(full_size), d(full_size), p(full_size), q(full_size);
         SparseVectorType th(reduced_size), dh(reduced_size);
 
@@ -367,8 +350,6 @@ private:
 
         // r = rB - r
         TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
-
-//             std::cout << "********** ||r|| = " << TSparseSpaceType::TwoNorm(r) << std::endl;
 
         // th = W^T * r -> form reduced problem
         DeflationUtils::ApplyWtranspose(mw, r, th);
@@ -396,14 +377,12 @@ private:
 
         // th = W^T * t
         DeflationUtils::ApplyWtranspose(mw, t, th);
-        //	TSparseSpaceType::TransposeMult(W, t, th);
 
         // Solve mAdeflated * th = dh
         Factorization.backForwardSolve(reduced_size, th, dh);
 
         // p = W * dh
         DeflationUtils::ApplyW(mw, dh, p);
-        // 	TSparseSpaceType::Mult(W, dh, p);
 
         // p = r - p
         TSparseSpaceType::ScaleAndAdd(1.00, r, -1.00, p);
@@ -417,10 +396,7 @@ private:
         double roh1 = roh0;
         double beta = 0;
 
-        if (fabs(roh0) < 1.0e-30) //modification by Riccardo
-            //	if(roh0 == 0.00)
-
-            return false;
+        if (fabs(roh0) < 1.0e-30)   return false;
 
         do
         {
@@ -469,9 +445,6 @@ private:
             BaseType::mResidualNorm = sqrt(roh1);
 
             BaseType::mIterationsNumber++;
-
-            // 	    if (BaseType::mIterationsNumber % 100 == 0)
-//                 std::cout << "********** iteration = " << BaseType::mIterationsNumber << ", resnorm = " << BaseType::mResidualNorm << std::endl;
 
         }
         while (BaseType::IterationNeeded() && (fabs(roh0) > 1.0e-30)/*(roh0 != 0.00)*/);
