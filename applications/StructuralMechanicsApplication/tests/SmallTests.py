@@ -12,7 +12,7 @@ import constitutive_law_python_utility as constitutive_law_utils
 def GetFilePath(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
-class SprismTests(KratosUnittest.TestCase):
+class SprismPatchTests(KratosUnittest.TestCase):
 
     def setUp(self):
         # Modelpart for the solid

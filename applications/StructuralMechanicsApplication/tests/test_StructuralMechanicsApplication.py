@@ -7,7 +7,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from SmallTests import SprismTests as TSprismTests
+from SmallTests import SprismPatchTests as TSprismPatchTests
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -25,8 +25,8 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TSprismTests('test_MembranePacth'))
-    smallSuite.addTest(TSprismTests('test_BendingPacth'))
+    smallSuite.addTest(TSprismPatchTests('test_MembranePacth'))
+    smallSuite.addTest(TSprismPatchTests('test_BendingPacth'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -36,7 +36,7 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TSprismTests
+            TSprismPatchTests
         ])
     )
 
