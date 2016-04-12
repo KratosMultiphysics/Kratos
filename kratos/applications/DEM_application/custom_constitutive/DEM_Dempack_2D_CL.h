@@ -24,7 +24,6 @@ namespace Kratos {
         double mHistoryDisp;
         double mHistoryShearFlag;
 
-        void Initialize();
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
         ~DEM_Dempack2D() {}
