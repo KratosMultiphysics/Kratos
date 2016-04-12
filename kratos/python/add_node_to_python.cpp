@@ -158,7 +158,7 @@ void  AddNodeToPython()
 //			void (NodeType::*pointer_to_double_component_fix)(VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const&) = &NodeType::Fix;
 
 
-    class_<NodeType, NodeType::Pointer, bases<NodeType::BaseType, IndexedObject, Flags > >("Node", init<int, double, double, double>())
+    class_<NodeType, NodeType::Pointer, bases<NodeType::BaseType, IndexedObject, Flags >, boost::noncopyable >("Node", init<int, double, double, double>())
     .def(init<int, const Point<3>& >())
     .def(VariableIndexingPython<NodeType, Variable<bool> >())
     .def(VariableIndexingPython<NodeType, Variable<bool> >())
