@@ -11,8 +11,11 @@ class ExplicitStrategy:
 
         # Initialization of member variables
         # SIMULATION FLAGS
-        self.Parameters              = Param        
-        self.self_strain_option      = self.Var_Translator(Param.StressStrainOption)
+        self.Parameters              = Param
+        if not (hasattr(Param, "StressStrainOption")):
+            self.stress_strain_option = 0
+        else:
+            self.stress_strain_option = Param.StressStrainOption
         self.critical_time_option    = self.Var_Translator(Param.AutoReductionOfTimeStepOption)
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
@@ -31,15 +34,15 @@ class ExplicitStrategy:
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
-        self.search_control                 = 1
+        self.search_control = 1
 
         if (hasattr(Param, "LocalResolutionMethod")):
-            if(Param.LocalResolutionMethod == "hierarchical"):
-              self.local_resolution_method = 1
-            elif(Param.LocalResolutionMethod == "area_distribution"):
-              self.local_resolution_method = 2
+            if (Param.LocalResolutionMethod == "hierarchical"):
+                self.local_resolution_method = 1
+            elif (Param.LocalResolutionMethod == "area_distribution"):
+                self.local_resolution_method = 2
             else:
-              self.local_resolution_method = 1
+                self.local_resolution_method = 1
         else:
             self.local_resolution_method = 1
 
@@ -149,7 +152,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
-        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
+        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.stress_strain_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
 
@@ -202,12 +205,13 @@ class ExplicitStrategy:
                            "if that fact represents a problem. Otherwise, computations will resume in a few seconds.     \n"+\
                            "*********************************************************************************************\n"+\
                            "*********************************************************************************************\n"
+        delay = 1  # Inserting the desired delay in seconds
         counter = 0
         for properties in self.model_part.Properties:
             current_discontinuum_constitutive_law_string = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
             if ((counter > 0) and (previous_discontinuum_constitutive_law_string != current_discontinuum_constitutive_law_string)):
                 self.Procedures.KRATOSprint(output_message)
-                time.sleep(20) # Inserting a delay of 20 seconds so the user has ample time to read the message
+                time.sleep(delay) # Inserting a delay so the user has ample time to read the message
                 break
             previous_discontinuum_constitutive_law_string = current_discontinuum_constitutive_law_string
             counter += 1
