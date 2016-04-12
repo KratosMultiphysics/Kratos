@@ -866,7 +866,9 @@ private:
 
 public:
 
-    static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
+    //TODO: check -- changed to avoid copy construction
+//     static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
+    static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, const PointType& MaxPoint, const PointType& MinPoint, SizeType BucketSize)
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
