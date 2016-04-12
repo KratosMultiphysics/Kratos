@@ -41,7 +41,7 @@ namespace Kratos
 	{
 		mName = "Default";
 		MeshType mesh;
-		mMeshes.push_back(mesh.Clone());
+		mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
 		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 	}
 
@@ -59,7 +59,7 @@ namespace Kratos
 	{
 		mName = NewName;
 		MeshType mesh;
-		mMeshes.push_back(mesh.Clone());
+		mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
 		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 	}
 
@@ -77,7 +77,7 @@ namespace Kratos
 	{
 		mName = NewName;
 		MeshType mesh;
-		mMeshes.push_back(mesh.Clone());
+		mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
 		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 	}
 
