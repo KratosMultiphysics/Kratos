@@ -189,9 +189,9 @@ public:
         mpInterfaceMesh(MeshType::Pointer(new MeshType))
     {
         MeshType mesh;
-        mLocalMeshes.push_back(mesh.Clone());
-        mGhostMeshes.push_back(mesh.Clone());
-        mInterfaceMeshes.push_back(mesh.Clone());
+        mLocalMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
     }
 
     /// Copy constructor.
@@ -279,9 +279,9 @@ public:
 
         for (IndexType i = 0; i < mNumberOfColors; i++)
         {
-            mLocalMeshes.push_back(mesh.Clone());
-            mGhostMeshes.push_back(mesh.Clone());
-            mInterfaceMeshes.push_back(mesh.Clone());
+            mLocalMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+            mGhostMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+            mInterfaceMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
         }
     }
 
