@@ -164,26 +164,26 @@ public:
      * Life Cycle
      */
 
-    Tetrahedra3D10( const PointType& Point1, const PointType& Point2,
-                    const PointType& Point3, const PointType& Point4 ,
-                    const PointType& Point5, const PointType& Point6,
-                    const PointType& Point7, const PointType& Point8 ,
-                    const PointType& Point9, const PointType& Point10
-                  )
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        this->Points().reserve( 10 );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point7 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point8 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point9 ) ) );
-        this->Points().push_back( typename PointType::Pointer( new PointType( Point10 ) ) );
-    }
+//     Tetrahedra3D10( const PointType& Point1, const PointType& Point2,
+//                     const PointType& Point3, const PointType& Point4 ,
+//                     const PointType& Point5, const PointType& Point6,
+//                     const PointType& Point7, const PointType& Point8 ,
+//                     const PointType& Point9, const PointType& Point10
+//                   )
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         this->Points().reserve( 10 );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point7 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point8 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point9 ) ) );
+//         this->Points().push_back( typename PointType::Pointer( new PointType( Point10 ) ) );
+//     }
 
     Tetrahedra3D10( typename PointType::Pointer pPoint1,
                     typename PointType::Pointer pPoint2,
@@ -314,22 +314,22 @@ public:
         return typename BaseType::Pointer( new Tetrahedra3D10( ThisPoints ) );
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const
+        virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
 
-        for ( IndexType i = 0 ; i < this->Points().size() ; i++ )
-            NewPoints.push_back( this->Points()[i] );
+        //making a copy of the nodes TO POINTS (not Nodes!!!)
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer
-        p_clone( new Tetrahedra3D10< Point<3> >( NewPoints ) );
-
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D10< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
+
 
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const

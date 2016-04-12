@@ -143,12 +143,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    LineGL3D2( const PointType& FirstPoint, const PointType& SecondPoint )
-        : BaseType( PointsArrayType(), &msGeometryData )
-    {
-        BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
-        BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
-    }
+//     LineGL3D2( const PointType& FirstPoint, const PointType& SecondPoint )
+//         : BaseType( PointsArrayType(), &msGeometryData )
+//     {
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
+//         BaseType::Points().push_back( typename PointType::Pointer( new PointType( SecondPoint ) ) );
+//     }
 
     LineGL3D2( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint )
         : BaseType( PointsArrayType(), &msGeometryData )

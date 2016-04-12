@@ -141,12 +141,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Line2D(const PointType& FirstPoint, const PointType& SecondPoint)
-        : BaseType(PointsArrayType(), &msGeometryData)
-    {
-        BaseType::Points().push_back(typename PointType::Pointer(new PointType(FirstPoint)));
-        BaseType::Points().push_back(typename PointType::Pointer(new PointType(SecondPoint)));
-    }
+//     Line2D(const PointType& FirstPoint, const PointType& SecondPoint)
+//         : BaseType(PointsArrayType(), &msGeometryData)
+//     {
+//         BaseType::Points().push_back(typename PointType::Pointer(new PointType(FirstPoint)));
+//         BaseType::Points().push_back(typename PointType::Pointer(new PointType(SecondPoint)));
+//     }
 
     Line2D(typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint)
         : BaseType(PointsArrayType(), &msGeometryData)
@@ -258,12 +258,13 @@ public:
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
         //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for(IndexType i = 0 ; i < BaseType::Points().size() ; i++)
-            NewPoints.push_back(BaseType::Points()[i]);
+        for ( IndexType i = 0 ; i < this->size() ; i++ )
+        {
+                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+        }
 
         //creating a geometry with the new points
-       Geometry< Point<3> >::Pointer p_clone(new Line2D< Point<3> >(NewPoints));
-        p_clone->ClonePoints();
+        Geometry< Point<3> >::Pointer p_clone( new Line2D< Point<3> >( NewPoints ) );
 
         return p_clone;
     }
