@@ -136,7 +136,7 @@ SprismElement3D6N::~SprismElement3D6N()
 
 SprismElement3D6N&  SprismElement3D6N::operator=(SprismElement3D6N const& rOther)
 {
-    SprismElement3D6N::operator=(rOther);
+    Element::operator=(rOther);
 
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
 
