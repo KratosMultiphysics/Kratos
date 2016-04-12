@@ -50,7 +50,7 @@ namespace Kratos {
     RingCluster3D::~RingCluster3D() {}
       
     
-    void RingCluster3D::CustomInitialize() {
+    void RingCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         //total number of spheres in the circumference is 37 + 2 * 36 + 35 = 144
         //each of the four (1/4)circles divided into 36 sectors

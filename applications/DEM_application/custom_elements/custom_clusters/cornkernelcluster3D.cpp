@@ -50,7 +50,7 @@ namespace Kratos {
     CornKernelCluster3D::~CornKernelCluster3D() {}
       
     
-    void CornKernelCluster3D::CustomInitialize() {
+    void CornKernelCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 21;
         mListOfRadii.resize(number_of_spheres);

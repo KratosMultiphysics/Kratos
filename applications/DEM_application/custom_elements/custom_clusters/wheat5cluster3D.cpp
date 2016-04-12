@@ -50,7 +50,7 @@ namespace Kratos {
     Wheat5Cluster3D::~Wheat5Cluster3D() {}
       
     
-    void Wheat5Cluster3D::CustomInitialize() {
+    void Wheat5Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 5;
         mListOfRadii.resize(number_of_spheres);

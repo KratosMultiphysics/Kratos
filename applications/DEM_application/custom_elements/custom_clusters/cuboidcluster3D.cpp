@@ -50,7 +50,7 @@ namespace Kratos {
     CuboidCluster3D::~CuboidCluster3D() {}
       
     
-    void CuboidCluster3D::CustomInitialize() {
+    void CuboidCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres_in_first_sector = 9;
         int number_of_passes = 9;

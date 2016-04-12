@@ -50,7 +50,7 @@ namespace Kratos {
     Ballast5Cluster3D::~Ballast5Cluster3D() {}
       
     
-    void Ballast5Cluster3D::CustomInitialize() {
+    void Ballast5Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 45;
         mListOfRadii.resize(number_of_spheres);

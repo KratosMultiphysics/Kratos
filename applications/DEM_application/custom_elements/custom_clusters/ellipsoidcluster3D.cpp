@@ -50,7 +50,7 @@ namespace Kratos {
     EllipsoidCluster3D::~EllipsoidCluster3D() {}
       
     
-    void EllipsoidCluster3D::CustomInitialize() {
+    void EllipsoidCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres_in_first_sector = 7;
         int number_of_passes = 9;
