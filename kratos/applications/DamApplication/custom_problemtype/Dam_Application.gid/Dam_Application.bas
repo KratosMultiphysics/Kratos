@@ -1097,13 +1097,13 @@ End NodalData
 *if(CondNumEntities > 0)
 Begin NodalData CONDUCTIVITY
 *loop nodes *OnlyinCond
-*NodesNum  *cond(Fixed_Conductivity)  *cond(Conductivity_Value)
+*NodesNum  1  *cond(Conductivity_Value)
 *end nodes
 End NodalData
 
 Begin NodalData SPECIFIC_HEAT
 *loop nodes *OnlyinCond
-*NodesNum  *cond(Fixed_Specific_Heat) *cond(Specific_Heat_Value)  
+*NodesNum  1  *cond(Specific_Heat_Value)  
 *end nodes
 End NodalData
 
@@ -1113,7 +1113,7 @@ End NodalData
 *if(CondNumEntities > 0)
 Begin NodalData DENSITY
 *loop nodes *OnlyinCond
-*NodesNum  *cond(Fixed_Nodal_Density) *cond(Nodal_Density_Value)
+*NodesNum  1  *cond(Nodal_Density_Value)
 *end nodes
 End NodalData
 
@@ -1132,7 +1132,7 @@ End NodalData
 Begin NodalData VOLUME_ACCELERATION_X
 *loop nodes *OnlyInCond
 *if(cond(BODY_ACCELERATION_X,int)==1)
-*NodesNum  *cond(Fix_X)  *cond(X_Value)
+*NodesNum  1  *cond(X_Value)
 *endif
 *end nodes
 End NodalData
@@ -1149,7 +1149,7 @@ End NodalData
 Begin NodalData VOLUME_ACCELERATION_Y
 *loop nodes *OnlyInCond
 *if(cond(BODY_ACCELERATION_Y,int)==1)
-*NodesNum  *cond(Fix_Y)  *cond(Y_Value)
+*NodesNum  1  *cond(Y_Value)
 *endif
 *end nodes
 End NodalData
@@ -1166,7 +1166,7 @@ End NodalData
 Begin NodalData VOLUME_ACCELERATION_Z
 *loop nodes *OnlyInCond
 *if(cond(BODY_ACCELERATION_Z,int)==1)
-*NodesNum  *cond(Fix_Z)  *cond(Z_Value)
+*NodesNum  1  *cond(Z_Value)
 *endif
 *end nodes
 End NodalData
