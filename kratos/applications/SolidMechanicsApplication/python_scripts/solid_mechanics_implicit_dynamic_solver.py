@@ -183,10 +183,12 @@ class MechanicalSolver:
                                                             self.settings["compute_contact_forces"].GetBool())
 
         # Convergence criterion creation
-        mechanical_convergence_criterion = self._GetConvergenceCriterion(self.settings["convergence_criterion"].GetString(),
-                                                                         self.settings["rotation_dofs"].GetBool(),
-                                                                         self.settings["echo_level"].GetInt(),
-                                                                         self.settings["component_wise"].GetBool())  
+        #~ mechanical_convergence_criterion = self._GetConvergenceCriterion(self.settings["convergence_criterion"].GetString(),
+                                                                         #~ self.settings["rotation_dofs"].GetBool(),
+                                                                         #~ self.settings["echo_level"].GetInt(),
+                                                                         #~ self.settings["component_wise"].GetBool())  
+        
+        mechanical_convergence_criterion = self._GetConvergenceCriterion()
         
         # Mechanical solver creation
         self._CreateMechanicalSolver(mechanical_scheme,
@@ -297,61 +299,77 @@ class MechanicalSolver:
                                 
         return mechanical_scheme
     
-    def _GetConvergenceCriterion(self, convergence_criterion_type, rotation_dofs, echo_level, component_wise):
+    #~ def _GetConvergenceCriterion(self, convergence_criterion_type, rotation_dofs, echo_level, component_wise):
+    def _GetConvergenceCriterion(self):
+        
+        # Creation of an auxiliar Kratos parameters object to store the convergence settings
+        conv_params = KratosMultiphysics.Parameters("{}")
+        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
+        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
+        conv_params.AddValue("echo_level",self.settings["echo_level"])
+        conv_params.AddValue("component_wise",self.settings["component_wise"])
+        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
+        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
+        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
+        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+        
+        # Construction of the class convergence_criterion
+        import convergence_criteria_utility
+        convergence_criterion = convergence_criteria_utility.convergence_criterion(conv_params)
+               
+        #~ D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
+        #~ D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
+        #~ R_RT = self.settings["residual_relative_tolerance"].GetDouble()
+        #~ R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
 
-        D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-
-        if(rotation_dofs):
-            if(convergence_criterion_type == "Displacement_criteria"):
-                mechanical_convergence_criterion = SolMechApp.DisplacementCriteria(D_RT, D_AT)
-            elif(convergence_criterion_type == "Residual_criteria"):
-                mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            elif(convergence_criterion_type == "And_criteria"):
-                Displacement = SolMechApp.DisplacementCriteria(D_RT, D_AT)
-                Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-            elif(convergence_criterion_type == "Or_criteria"):
-                Displacement = SolMechApp.DisplacementCriteria(D_RT, D_AT)
-                Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            #~ elif(convergence_criterion_type == "Mixed_criteria"):
-                #~ Displacement = KratosMultiphysics.MixedElementCriteria(D_RT, D_AT)
+        #~ if(rotation_dofs):
+            #~ if(convergence_criterion_type == "Displacement_criteria"):
+                #~ mechanical_convergence_criterion = SolMechApp.DisplacementCriteria(D_RT, D_AT)
+            #~ elif(convergence_criterion_type == "Residual_criteria"):
+                #~ mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            #~ elif(convergence_criterion_type == "And_criteria"):
+                #~ Displacement = SolMechApp.DisplacementCriteria(D_RT, D_AT)
                 #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 #~ mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-        else:
-            if(echo_level > 1):
-                print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_type)
-
-            if(convergence_criterion_type == "Displacement_criteria"):
-                mechanical_convergence_criterion = SolMechApp.DisplacementConvergenceCriterion(D_RT, D_AT)
-            elif(convergence_criterion_type == "Residual_criteria"):
-                if(component_wise):
-                    mechanical_convergence_criterion = SolMechApp.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                else:
-                    mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            elif(convergence_criterion_type == "And_criteria"):
-                Displacement = SolMechApp.DisplacementConvergenceCriterion(D_RT, D_AT)
-                if(component_wise):
-                    Residual = SolMechApp.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                else:
-                    Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-            elif(convergence_criterion_type == "Or_criteria"):
-                Displacement = SolMechApp.DisplacementConvergenceCriterion(D_RT, D_AT)
-                if(self.component_wise):
-                    Residual = SolMechApp.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                else:
-                    Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            #~ elif(convergence_criterion_type == "Mixed_criteria"):
-                #~ Displacement = KratosMultiphysics.MixedElementConvergeCriteria(D_RT, D_AT)
+            #~ elif(convergence_criterion_type == "Or_criteria"):
+                #~ Displacement = SolMechApp.DisplacementCriteria(D_RT, D_AT)
                 #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                #~ mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+            #~ #elif(convergence_criterion_type == "Mixed_criteria"):
+                #~ #Displacement = KratosMultiphysics.MixedElementCriteria(D_RT, D_AT)
+                #~ #Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                #~ #mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+        #~ else:
+            #~ if(echo_level > 1):
+                #~ print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_type)
+#~ 
+            #~ if(convergence_criterion_type == "Displacement_criteria"):
+                #~ mechanical_convergence_criterion = SolMechApp.DisplacementConvergenceCriterion(D_RT, D_AT)
+            #~ elif(convergence_criterion_type == "Residual_criteria"):
+                #~ if(component_wise):
+                    #~ mechanical_convergence_criterion = SolMechApp.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
+                #~ else:
+                    #~ mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            #~ elif(convergence_criterion_type == "And_criteria"):
+                #~ Displacement = SolMechApp.DisplacementConvergenceCriterion(D_RT, D_AT)
+                #~ if(component_wise):
+                    #~ Residual = SolMechApp.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
+                #~ else:
+                    #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 #~ mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
+            #~ elif(convergence_criterion_type == "Or_criteria"):
+                #~ Displacement = SolMechApp.DisplacementConvergenceCriterion(D_RT, D_AT)
+                #~ if(self.component_wise):
+                    #~ Residual = SolMechApp.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
+                #~ else:
+                    #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                #~ mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+            #~ #elif(convergence_criterion_type == "Mixed_criteria"):
+                #~ #Displacement = KratosMultiphysics.MixedElementConvergeCriteria(D_RT, D_AT)
+                #~ #Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+                #~ #mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
             
-        return mechanical_convergence_criterion
+        return convergence_criterion.mechanical_convergence_criterion
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, time_integration_method):
         if (time_integration_method == "Implicit"):
