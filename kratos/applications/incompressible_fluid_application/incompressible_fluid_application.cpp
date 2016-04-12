@@ -72,70 +72,70 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
 
 
 KratosIncompressibleFluidApplication::KratosIncompressibleFluidApplication():
-//                mFluid2Dlevelset(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFluid2DCoupled(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFluid3DCoupled(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4,Node<3>())))),
-    mFluid3DNeumann(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+//                mFluid2Dlevelset(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
+    mFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mFluid2DCoupled(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mFluid3DCoupled(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mFluid3DNeumann(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
     mNDFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>
-               >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+               >(Element::GeometryType::PointsArrayType(3 )))),
     mNDFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>
-               >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+               >(Element::GeometryType::PointsArrayType(4 )))),
     mNDFluid2DCrankNicolson(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>
-                            >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+                            >(Element::GeometryType::PointsArrayType(3 )))),
 
 
 
-    mASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-mVP_PRECOND2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mASGSPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+mVP_PRECOND2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mASGSPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
 
 
 
 
-    mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-mASGS3D_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
- 		mASGS3D_COMP_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),	
-    mASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
+mASGS3D_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
+ 		mASGS3D_COMP_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),	
+    mASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
+    mASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 
-    mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-   mMonolithic3DNeumann(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+    mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2 )))),
+   mMonolithic3DNeumann(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1 )))),
 
-    mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFluid3DGLS_expl(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mFluid3DGLS_expl(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 
-    mFluid2DGLS(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mFluid2DGLS(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
 
-    mFluid2DGLS_expl_comp(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFluid3DGLS_expl_comp(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mFluid2DGLS_expl_comp(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mFluid3DGLS_expl_comp(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 
-    mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mProjDirichletCond3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mProjDirichletCond3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 
-    mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
 
-    mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mBinghamNonNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mBinghamNonNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
+    mBinghamNonNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mBinghamNonNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
 
-    mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-// 		mNoSlipFractStep(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+    mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2 )))),
+// 		mNoSlipFractStep(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2 ))))
 
-    mExplicitASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mExplicitASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-
-
-    mExplicitASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mExplicitASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mExplicitASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
+    mExplicitASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 )))),
 
 
-    //mABC2D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
-    //mExplicitHydro2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+    mExplicitASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 )))),
+    mExplicitASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 ))))
+
+
+    //mABC2D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1 ))))
+    //mExplicitHydro2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 ))))
 
 
 
@@ -264,11 +264,11 @@ void KratosIncompressibleFluidApplication::Register()
 
 
 /*	// Initializing static members
-	const Fluid3D  KratosIncompressibleFluidApplication::msFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))));
-	const Fluid2D  KratosIncompressibleFluidApplication::msFluid2D(0, Element::GeometryType::Pointer(new Triangle2D<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))));
+	const Fluid3D  KratosIncompressibleFluidApplication::msFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 ))));
+	const Fluid2D  KratosIncompressibleFluidApplication::msFluid2D(0, Element::GeometryType::Pointer(new Triangle2D<Node<3> >(Element::GeometryType::PointsArrayType(3 ))));
 
-	const Fluid2DCoupled  KratosIncompressibleFluidApplication::msFluid2DCoupled(0, Element::GeometryType::Pointer(new Triangle2D<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))));
-	const Fluid3DCoupled  KratosIncompressibleFluidApplication::msFluid3DCoupled(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))));
+	const Fluid2DCoupled  KratosIncompressibleFluidApplication::msFluid2DCoupled(0, Element::GeometryType::Pointer(new Triangle2D<Node<3> >(Element::GeometryType::PointsArrayType(3 ))));
+	const Fluid3DCoupled  KratosIncompressibleFluidApplication::msFluid3DCoupled(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4 ))));
 	*/
 }  // namespace Kratos.
 

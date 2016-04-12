@@ -40,7 +40,7 @@ namespace Kratos
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosPFEMApplication::KratosPFEMApplication():
-    mFreeSurfaceCond2d(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+    mFreeSurfaceCond2d(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2 ))))
 {}
 
 
