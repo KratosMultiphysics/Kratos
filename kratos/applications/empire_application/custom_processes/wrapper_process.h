@@ -155,15 +155,15 @@ public:
 	      {
 		if ((*i_condition).Is(INTERFACE))
 		  {
-		    NodeType& Node1 = (*i_condition).GetGeometry()[0];
-		    NodeType& Node2 = (*i_condition).GetGeometry()[1];
+                    typename Node<3>::Pointer pNode1 = i_condition->GetGeometry()(0);
+                    typename Node<3>::Pointer pNode2 = i_condition->GetGeometry()(1);
 		    // make sure the node was correctly set in the mDummyNodes2D map
-		    if (Node1.IsNot(INTERFACE) || Node2.IsNot(INTERFACE))
+		    if (pNode1->IsNot(INTERFACE) || pNode2->IsNot(INTERFACE))
 		      KRATOS_THROW_ERROR(std::logic_error, "A condition node is not INTERFACE","");
 	    
-		    NodeType& Node3 = *(mDummyNodes2D.find(Node2.Id()).base()->second);
-		    NodeType& Node4 = *(mDummyNodes2D.find(Node1.Id()).base()->second);
-		    GeometryType::Pointer pGeom(new Quadrilateral3D4<NodeType>(Node1,Node2,Node3,Node4));
+		    typename Node<3>::Pointer pNode3 = mDummyNodes2D(pNode2->Id());
+		    typename Node<3>::Pointer pNode4 = mDummyNodes2D(pNode1->Id());
+		    GeometryType::Pointer pGeom(new Quadrilateral3D4<Node<3> >(pNode1,pNode2,pNode3,pNode4));
                     mr_interface_part.Conditions().push_back( Condition::Pointer(new Condition(++ConditionId,pGeom)) );
 		  }
 	      }
