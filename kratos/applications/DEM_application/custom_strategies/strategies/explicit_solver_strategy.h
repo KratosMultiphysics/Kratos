@@ -405,7 +405,8 @@ namespace Kratos
 
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
             const int number_of_clusters = pElements.size();
-
+            ProcessInfo& r_process_info  = BaseType::GetModelPart().GetProcessInfo();
+	    
             //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
 
             #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
@@ -414,7 +415,7 @@ namespace Kratos
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
 
-                cluster_element.Initialize();
+                cluster_element.Initialize(r_process_info);
                 
                 PropertiesProxy* p_fast_properties = NULL;
                 int general_properties_id = cluster_element.GetProperties().Id();  
