@@ -488,7 +488,8 @@ public:
 
 public:
 
-    static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType HighPoint, PointType LowPoint,	SizeType BucketSize)
+//     static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType HighPoint, PointType LowPoint,	SizeType BucketSize)
+    static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, const PointType& HighPoint, const PointType& LowPoint,	SizeType BucketSize)
     {
         SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
         if (number_of_points == 0)
@@ -504,9 +505,13 @@ public:
 
             IteratorType partition = Partition(PointsBegin, PointsEnd, cutting_dimension, cutting_value);
 
-            PointType partition_high_point = HighPoint;
-            PointType partition_low_point = LowPoint;
-
+//             PointType partition_high_point = HighPoint;
+//             PointType partition_low_point = LowPoint;
+            PointType partition_high_point;
+            partition_high_point.Coordinates() =  HighPoint.Coordinates();
+            PointType partition_low_point;
+            partition_low_point.Coordinates() =  LowPoint.Coordinates();
+            
             partition_high_point[cutting_dimension] = cutting_value;
             partition_low_point[cutting_dimension] = cutting_value;
 

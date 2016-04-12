@@ -238,7 +238,11 @@ public:
                    min_point[i]  = (**point_iterator)[i];
             }
 
-        mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
+            //TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor
+//             KRATOS_THROW_ERROR(std::logic_error,"TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor - it completely breaks the code","")
+            //CHAPUZA CHAPUZA CHAPUZA
+            
+       mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
     }
 
 
