@@ -484,7 +484,8 @@ public:
         {
             if (m_used_nodes[i]==true)
             {
-                IsosurfaceNodes.push_back(*it);
+                IsosurfaceNodes.push_back(*it.base());
+//                 IsosurfaceNodes.push_back(*it);
             }
             ++i;
         }//closing node loop
