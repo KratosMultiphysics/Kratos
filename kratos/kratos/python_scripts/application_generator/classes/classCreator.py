@@ -9,14 +9,14 @@ from utils.io import ToUpperFromCamel, ToLowerFromCamel
 from utils.io import bcolors, Formatc, TestCamel
 
 from utils.constants import ctab
+from utils.templateRule import TemplateRule
 
 
-class ClassCreator(object):
+class ClassCreator(TemplateRule):
     def __init__(
         self, name, base=None, template=None,
         members=None, procedures=None, author='KratosAppGenerator'
     ):
-
         # Check that name is in camelcase, or at least something parseable
 
         if not TestCamel(name):
@@ -45,7 +45,7 @@ class ClassCreator(object):
 
         # List of common rules for all classes
 
-        self.rules = [
+        self.rules += [
             {'token': '@{KRATOS_APP_AUTHOR}', 'value': ', '+self.author},
             {'token': '@{KRATOS_NAME_CAMEL}', 'value': self.nameCamel},
             {'token': '@{KRATOS_NAME_UPPER}', 'value': self.nameUpper},
@@ -113,10 +113,10 @@ class ClassCreator(object):
                 The init values for the copy constructor.
         '''
 
-        membersRule = self._GetRule('@{KRATOS_MEMBERS_LIST}')
-        staticMembersRule = self._GetRule('@{KRATOS_STATIC_MEMBERS_LIST}')
-        initMembersRule = self._GetRule('@{KRATOS_INIT_MEMBER_LIST}')
-        ccInitMembersRule = self._GetRule('@{KRATOS_CC_INIT_MEMBER_LIST}')
+        membersRule = self.GetRule('@{KRATOS_MEMBERS_LIST}')
+        staticMembersRule = self.GetRule('@{KRATOS_STATIC_MEMBERS_LIST}')
+        initMembersRule = self.GetRule('@{KRATOS_INIT_MEMBER_LIST}')
+        ccInitMembersRule = self.GetRule('@{KRATOS_CC_INIT_MEMBER_LIST}')
 
         for m in members:
 
@@ -254,16 +254,3 @@ class ClassCreator(object):
             return appRep, appSim, repFiles, simFiles
         else:
             return appRep, repFiles
-
-    def _GetRule(self, ruleName):
-        try:
-            return next(r for r in self.rules if r['token'] == ruleName)
-        except:
-            msg = Formatc([
-                {'color': bcolors.FAIL, 'msg': '[ERROR]'},
-                {'color': None, 'msg': ' Rule: "'},
-                {'color': bcolors.CYAN, 'msg': '{}'.format(ruleName)},
-                {'color': None, 'msg': '" does not exist'},
-            ], sys.stderr)
-
-            raise ValueError(msg)

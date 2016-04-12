@@ -14,6 +14,21 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def TestCamel(s):
+    expr = re.compile(r'^(?:[A-Z][a-z]+)+$')
+    return expr.match(s)
+
+def Formatc(stringList, where):
+
+    string = ""
+
+    for sl in stringList:
+        if where.isatty() and sl['color']:
+            string += sl['color'] + sl['msg'] + bcolors.ENDC
+        else:
+            string += sl['msg']
+
+    return string
 
 def ToUpperFromCamel(appCamel):
     ''' Converts a Camel-Case string into a upercase snake_case string '''

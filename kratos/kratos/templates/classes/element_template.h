@@ -7,11 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand@{KRATOS_APP_AUTHOR}
 //
 
 #if !defined(KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED )
-#define  KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
+#define KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
 
 
 // System includes
@@ -20,24 +20,11 @@
 #include <algorithm>
 
 // External includes
-#include "includes/kratos_flags.h"
-
 
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
-#include "includes/kratos_flags.h"
 #include "includes/element.h"
-#include "includes/model_part.h"
-#include "geometries/geometry_data.h"
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "elements/distance_calculation_element_simplex.h"
 
 namespace Kratos
 {
@@ -48,7 +35,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
@@ -62,473 +48,552 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-
-
-
-/// Short class definition.
-/**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
-mantaining as much as possible the position of the zero of the function prior to the call.
-
-This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
-with the restriction that "distance" is a finite elment function
-*/
-
-template< unsigned int TDim,
-          class TSparseSpace,
-          class TDenseSpace,
-          class TLinearSolver >
-class @{KRATOS_NAME_CAMEL} @{KRATOS_CLASS_BASE} {
+@{KRATOS_CLASS_TEMPLATE}
+class @{KRATOS_NAME_CAMEL} @{KRATOS_CLASS_BASE_HEADER} {
 public:
 
-    KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
-    KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
+@{KRATOS_CLASS_LOCAL_FLAGS}
+  // KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
+  // KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
 
-    ///@name Type Definitions
-    ///@{
+  ///@name Type Definitions
+  ///@{
 
-    typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+  typedef BaseType @{KRATOS_CLASS_BASE}
 
-    ///@}
-    ///@name Pointer Definitions
-    /// Pointer definition of @{KRATOS_NAME_CAMEL}
-    KRATOS_CLASS_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
+  ///@}
+  ///@name Pointer Definitions
+  /// Pointer definition of @{KRATOS_NAME_CAMEL}
+  KRATOS_CLASS_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
+
+  ///@}
+  ///@name Life Cycle
+  ///@{
+
+  /**
+   * Constructor.
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId = 0)
+      : BaseType(NewId)
+      , Flags()
+      , mpProperties(new PropertiesType) @{KRATOS_INIT_MEMBER_LIST} {
+  }
+
+  /**
+   * Constructor using an array of nodes
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId, const NodesArrayType& ThisNodes)
+      : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
+      , Flags()
+      , mpProperties(new PropertiesType) @{KRATOS_INIT_MEMBER_LIST} {
+  }
+
+  /**
+   * Constructor using Geometry
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry)
+      : BaseType(NewId,pGeometry)
+      , Flags()
+      , mpProperties(new PropertiesType) @{KRATOS_INIT_MEMBER_LIST} {
+  }
+
+  /**
+   * Constructor using Properties
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+      : BaseType(NewId,pGeometry)
+      , Flags()
+      , mpProperties(pProperties) @{KRATOS_INIT_MEMBER_LIST} {
+  }
+
+  /**
+   * Copy Constructor
+   */
+  @{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther)
+      : BaseType(rOther)
+      , Flags(rOther)
+      , mpProperties(rOther.mpProperties) @{KRATOS_CC_INIT_MEMBER_LIST} {
+  }
+
+  /**
+   * Destructor
+   */
+  virtual ~@{KRATOS_NAME_CAMEL}() {
+  }
+
+  ///@}
+  ///@name Operators
+  ///@{
+
+  /// Assignment operator.
+  @{KRATOS_NAME_CAMEL} & operator=(@{KRATOS_NAME_CAMEL} const& rOther) {
+    BaseType::operator=(rOther);
+    Flags::operator =(rOther);
+    mpProperties = rOther.mpProperties;
+    return *this;
+  }
+
+  ///@}
+  ///@name Operations
+  ///@{
+
+  /**
+   * ELEMENTS inherited from this class have to implement next
+   * Create and Clone methods: MANDATORY
+   */
+
+  /**
+   * creates a new element pointer
+   * @param NewId: the ID of the new element
+   * @param ThisNodes: the nodes of the new element
+   * @param pProperties: the properties assigned to the new element
+   * @return a Pointer to the new element
+   */
+  virtual Pointer Create(
+      IndexType NewId,
+      NodesArrayType const& ThisNodes,
+      PropertiesType::Pointer pProperties) const {
+
+    KRATOS_TRY
+    return Element::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    KRATOS_CATCH("");
+  }
+
+  /**
+   * creates a new element pointer
+   * @param NewId: the ID of the new element
+   * @param pGeom: the geometry to be employed
+   * @param pProperties: the properties assigned to the new element
+   * @return a Pointer to the new element
+   */
+  virtual Pointer Create(
+      IndexType NewId,
+      GeometryType::Pointer pGeom,
+      PropertiesType::Pointer pProperties) const {
+
+    KRATOS_TRY
+    return Element::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, pGeom, pProperties));
+    KRATOS_CATCH("");
+  }
+
+  /**
+   * creates a new element pointer and clones the previous element data
+   * @param NewId: the ID of the new element
+   * @param ThisNodes: the nodes of the new element
+   * @param pProperties: the properties assigned to the new element
+   * @return a Pointer to the new element
+   */
+  virtual Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const {
+    KRATOS_TRY
+    return Element::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+    KRATOS_CATCH("");
+  }
+
+  /**
+   * this determines the elemental equation ID vector for all elemental
+   * DOFs
+   * @param rResult: the elemental equation ID vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    if (rResult.size() != number_of_nodes)
+      rResult.resize(number_of_nodes, false);
+
+@{KRATOS_ELEMENT_ECUATION_ID_DOFS}
+  }
+
+  /**
+   * determines the elemental list of DOFs
+   * @param ElementalDofList: the list of DOFs
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    if (ElementalDofList.size() != number_of_nodes)
+      ElementalDofList.resize(number_of_nodes);
+
+@{KRATOS_ELEMENT_LIST_DOFS}
+  }
+
+  /**
+   * ELEMENTS inherited from this class have to implement next
+   * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
+   * they can be managed internally with a private method to do the same calculations
+   * only once: MANDATORY
+   */
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate all elemental contributions to the global system
+   * matrix and the right hand side
+   * @param rLeftHandSideMatrix: the elemental left hand side matrix
+   * @param rRightHandSideVector: the elemental right hand side
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateLocalSystem(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) {
+  }
+
+  /**
+   * this function provides a more general interface to the element.
+   * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
+   * thus telling what is the desired output
+   * @param rLeftHandSideMatrices: container with the output left hand side matrices
+   * @param rLHSVariables: paramter describing the expected LHSs
+   * @param rRightHandSideVectors: container for the desired RHS output
+   * @param rRHSVariables: parameter describing the expected RHSs
+   */
+  virtual void CalculateLocalSystem(
+      std::vector< MatrixType >& rLeftHandSideMatrices, const std::vector< Variable< MatrixType > >& rLHSVariables,
+      std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables,
+      ProcessInfo& rCurrentProcessInfo) {
+  }
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental left hand side matrix only
+   * @param rLeftHandSideMatrix: the elemental left hand side matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
+  }
+
+  /**
+   * this function provides a more general interface to the element.
+   * it is designed so that rLHSvariables are passed TO the element
+   * thus telling what is the desired output
+   * @param rLeftHandSideMatrices: container for the desired LHS output
+   * @param rLHSVariables: parameter describing the expected LHSs
+   */
+  virtual void CalculateLeftHandSide(
+      std::vector< MatrixType >& rLeftHandSideMatrices,
+      const std::vector< Variable< MatrixType > >& rLHSVariables,
+      ProcessInfo& rCurrentProcessInfo) {
+  }
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental right hand side vector only
+   * @param rRightHandSideVector: the elemental right hand side vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+  }
+
+  /**
+   * this function provides a more general interface to the element.
+   * it is designed so that rRHSvariables are passed TO the element
+   * thus telling what is the desired output
+   * @param rRightHandSideVectors: container for the desired RHS output
+   * @param rRHSVariables: parameter describing the expected RHSs
+   */
+  virtual void CalculateRightHandSide(
+      std::vector< VectorType >& rRightHandSideVectors,
+      const std::vector< Variable< VectorType > >& rRHSVariables,
+      ProcessInfo& rCurrentProcessInfo) {
+  }
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the first derivatives contributions for the LHS and RHS
+   * @param rLeftHandSideMatrix: the elemental left hand side matrix
+   * @param rRightHandSideVector: the elemental right hand side
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateFirstDerivativesContributions(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) {
+
+    if (rLeftHandSideMatrix.size1() != 0)
+      rLeftHandSideMatrix.resize(0, 0, false);
+    if (rRightHandSideVector.size() != 0)
+      rRightHandSideVector.resize(0, false);
+  }
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental left hand side matrix for the first derivatives constributions
+   * @param rLeftHandSideMatrix: the elemental left hand side matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
+    if (rLeftHandSideMatrix.size1() != 0)
+      rLeftHandSideMatrix.resize(0, 0, false);
+  }
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental right hand side vector for the first derivatives constributions
+   * @param rRightHandSideVector: the elemental right hand side vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+    if (rRightHandSideVector.size() != 0)
+      rRightHandSideVector.resize(0, false);
+  }
+
+  /**
+   * ELEMENTS inherited from this class must implement this methods
+   * if they need to add dynamic element contributions
+   * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+   * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+   * CalculateSecondDerivativesContributions,
+   * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+   */
 
 
+ /**
+   * this is called during the assembling process in order
+   * to calculate the second derivative contributions for the LHS and RHS
+   * @param rLeftHandSideMatrix: the elemental left hand side matrix
+   * @param rRightHandSideVector: the elemental right hand side
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateSecondDerivativesContributions(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) {
 
+    if (rLeftHandSideMatrix.size1() != 0)
+      rLeftHandSideMatrix.resize(0, 0, false);
+    if (rRightHandSideVector.size() != 0)
+      rRightHandSideVector.resize(0, false);
+  }
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental left hand side matrix for the second derivatives constributions
+   * @param rLeftHandSideMatrix: the elemental left hand side matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateSecondDerivativesLHS(
+      MatrixType& rLeftHandSideMatrix,
+      ProcessInfo& rCurrentProcessInfo) {
 
-    /**This process recomputed the distance function mantaining the zero of the existing distance distribution
-     * for this reason the DISTANCE should be initialized to values distinct from zero in at least some portions of the domain
-     * alternatively, the DISTANCE shall be fixed to zero at least on some nodes, and the process will compute a positive distance
-     * respecting that zero
-     * @param base_model_parr - is the model part on the top of which the calculation will be performed
-     * @param plinear_solver  - linear solver to be used internally
-     * @max_iterations        - maximum number of iteration to be employed in the nonlinear optimization process.
-     *                        - can also be set to 0 if a (very) rough approximation is enough
-     *
-     * EXAMPLE OF USAGE FROM PYTHON:
-     *
-     class distance_linear_solver_settings:
-         solver_type = "AMGCL"
-         tolerance = 1E-3
-         max_iteration = 200
-         scaling = False
-         krylov_type = "CG"
-         smoother_type = "SPAI0"
-         verbosity = 0
+    if (rLeftHandSideMatrix.size1() != 0)
+      rLeftHandSideMatrix.resize(0, 0, false);
+  }
 
-     import linear_solver_factory
-     distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental right hand side vector for the second derivatives constributions
+   * @param rRightHandSideVector: the elemental right hand side vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateSecondDerivativesRHS(
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo) {
 
-     max_iterations=1
-     distance_calculator = @{KRATOS_NAME_CAMEL}2D(fluid_model_part, distance_linear_solver, max_iterations)
-     distance_calculator.Execute()
-     */
-    @{KRATOS_NAME_CAMEL}(ModelPart& base_model_part,
-                                          typename TLinearSolver::Pointer plinear_solver,
-                                          unsigned int max_iterations = 10
-                                         )
-        :mr_base_model_part(base_model_part)
-    {
-        KRATOS_TRY
+    if (rRightHandSideVector.size() != 0)
+      rRightHandSideVector.resize(0, false);
+  }
 
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental mass matrix
+   * @param rMassMatrix: the elemental mass matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
+    if (rMassMatrix.size1() != 0)
+      rMassMatrix.resize(0, 0, false);
+  }
 
-        mmax_iterations = max_iterations;
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental damping matrix
+   * @param rDampingMatrix: the elemental damping matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {
+    if (rDampingMatrix.size1() != 0)
+      rDampingMatrix.resize(0, 0, false);
+  }
 
-        mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
+  /**
+   * This method provides the place to perform checks on the completeness of the input
+   * and the compatibility with the problem options as well as the contitutive laws selected
+   * It is designed to be called only once (or anyway, not often) typically at the beginning
+   * of the calculations, so to verify that nothing is missing from the input
+   * or that no common error is found.
+   * @param rCurrentProcessInfo
+   * this method is: MANDATORY
+   */
+  virtual int Check(const ProcessInfo& rCurrentProcessInfo) {
 
-        //check that there is at least one element and node in the model
-        if(base_model_part.Nodes().size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the model has no Nodes","");
-        if(base_model_part.Elements().size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the model has no Elements","");
-        if(base_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
-        if(TDim == 2)
-        {
-            if(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle)
-                KRATOS_THROW_ERROR(std::logic_error, "In 2D the element type is expected to be a triangle","");
-        }
-        else if(TDim == 3)
-        {
-            if(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra)
-                KRATOS_THROW_ERROR(std::logic_error, "In 3D the element type is expected to be a tetrahedra","");
-        }
+    KRATOS_TRY
 
-        //generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        ReGenerateDistanceModelPart(base_model_part);
-
-        //generate a linear strategy
-
-
-        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
-
-        bool CalculateReactions = false;
-        bool ReformDofAtEachIteration = false;
-        bool CalculateNormDxFlag = false;
-
-        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
-        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
-
-        //TODO: check flag DO_EXPENSIVE_CHECKS
-        mp_solving_strategy->Check();
-
-        KRATOS_CATCH("")
+    if (this->Id() < 1) {
+      KRATOS_THROW_ERROR(std::logic_error, "@{KRATOS_NAME_CAMEL} found with Id 0 or negative","")
     }
 
-    /// Destructor.
-    virtual ~@{KRATOS_NAME_CAMEL}()
-    {
+    if (this->GetGeometry().Area() <= 0) {
+      std::cout << "error on @{KRATOS_NAME_CAMEL} -> " << this->Id() << std::endl;
+      KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
     }
 
+    return 0;
 
-    ///@}
-    ///@name Operators
-    ///@{
+    KRATOS_CATCH("");
+  }
 
-    void operator()()
-    {
-        Execute();
-    }
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    virtual void Execute()
-    {
-        KRATOS_TRY;
-
-        if(mdistance_part_is_initialized == false)
-            ReGenerateDistanceModelPart(mr_base_model_part);
-
-        //TODO: check flag    PERFORM_STEP1
-        //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
-        mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
-        mp_solving_strategy->Solve();
-
-        //compute the average gradient and scale the distance so that the gradient is approximately 1
-        ScaleDistance();
-
-        //step2 - minimize the target residual
-        mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
-        for(unsigned int it = 0; it<mmax_iterations; it++)
-        {
-            mp_solving_strategy->Solve();
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    virtual void Clear()
-    {
-        mp_distance_model_part->Nodes().clear();
-        mp_distance_model_part->Conditions().clear();
-        mp_distance_model_part->Elements().clear();
-//        mp_distance_model_part->GetProcessInfo().clear();
-        mdistance_part_is_initialized = false;
-
-        mp_solving_strategy->Clear();
-
-    }
-    ///@}
-    ///@name Access
-    ///@{
+  ///@}
+  ///@name Access
+  ///@{
 
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+  ///@}
+  ///@name Inquiry
+  ///@{
 
 
-    ///@}
-    ///@name Input and output
-    ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
 
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "@{KRATOS_NAME_CAMEL}";
-    }
+  /// Turn back information as a string.
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "@{KRATOS_NAME_CAMEL}";
-    }
+  virtual std::string Info() const {
+    std::stringstream buffer;
+    buffer << "@{KRATOS_NAME_CAMEL} #" << Id();
+    return buffer.str();
+  }
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
+  /// Print information about this object.
 
+  virtual void PrintInfo(std::ostream& rOStream) const {
+    rOStream << "@{KRATOS_NAME_CAMEL} #" << Id();
+  }
 
-    ///@}
-    ///@name Friends
-    ///@{
+  /// Print object's data.
 
+  virtual void PrintData(std::ostream& rOStream) const {
+    pGetGeometry()->PrintData(rOStream);
+  }
 
-    ///@}
+  ///@}
+  ///@name Friends
+  ///@{
+
+  ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
 
-    /// Minimal constructor for derived classes
-    @{KRATOS_NAME_CAMEL}(ModelPart &base_model_part, unsigned int max_iterations):
-        mr_base_model_part(base_model_part)
-    {
-        mdistance_part_is_initialized = false;
-        mmax_iterations = max_iterations;
-    }
+  ///@name Protected static Member Variables
+  ///@{
 
+  ///@}
+  ///@name Protected member Variables
+  ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    bool mdistance_part_is_initialized;
-    unsigned int mmax_iterations;
-    ModelPart::Pointer mp_distance_model_part;
-    ModelPart& mr_base_model_part;
+  ///@}
+  ///@name Protected Operators
+  ///@{
 
-    typename SolvingStrategyType::Pointer mp_solving_strategy;
+  ///@}
+  ///@name Protected Operations
+  ///@{
 
+  ///@}
+  ///@name Protected  Access
+  ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-    virtual void ReGenerateDistanceModelPart(ModelPart& base_model_part)
-    {
-        KRATOS_TRY
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
 
-        //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
-        mp_distance_model_part.swap(pAuxModelPart);
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
 
-        mp_distance_model_part->Nodes().clear();
-        mp_distance_model_part->Conditions().clear();
-        mp_distance_model_part->Elements().clear();
-
-        mp_distance_model_part->SetProcessInfo(  base_model_part.pGetProcessInfo() );
-        mp_distance_model_part->SetBufferSize(base_model_part.GetBufferSize());
-        mp_distance_model_part->SetProperties(base_model_part.pProperties());
-        mp_distance_model_part->Tables() = base_model_part.Tables();
-
-        //assigning the nodes to the new model part
-        mp_distance_model_part->Nodes() = base_model_part.Nodes();
-
-        //ensure that the nodes have distance as a DOF
-        for (ModelPart::NodesContainerType::iterator iii = base_model_part.NodesBegin(); iii != base_model_part.NodesEnd(); iii++)
-        {
-            iii->AddDof(DISTANCE);
-        }
-
-        //generating the elements
-        mp_distance_model_part->Elements().reserve(base_model_part.Elements().size());
-        for (ModelPart::ElementsContainerType::iterator iii = base_model_part.ElementsBegin(); iii != base_model_part.ElementsEnd(); iii++)
-        {
-            Properties::Pointer properties = iii->pGetProperties();
-            Element::Pointer p_element = Element::Pointer(new DistanceCalculationElementSimplex<TDim>(
-                                             iii->Id(),
-                                             iii->pGetGeometry(),
-                                             iii->pGetProperties() ) );
-
-            //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = iii->pGetGeometry();
-
-            mp_distance_model_part->Elements().push_back(p_element);
-        }
-
-
-        //using the conditions to mark the boundary with the flag boundary
-        //note that we DO NOT add the conditions to the model part
-        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-        {
-            iii->Set(BOUNDARY,false);
-        }
-        for (ModelPart::ConditionsContainerType::iterator iii = base_model_part.ConditionsBegin(); iii != base_model_part.ConditionsEnd(); iii++)
-        {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
-            for(unsigned int i=0; i<geom.size(); i++) geom[i].Set(BOUNDARY,true);
-        }
-
-        //next is for mpi (but mpi would also imply calling an mpi strategy)
-        Communicator::Pointer pComm = base_model_part.GetCommunicator().Create();
-        mp_distance_model_part->SetCommunicator(pComm);
-
-        mdistance_part_is_initialized = true;
-
-        KRATOS_CATCH("")
-    }
-
-    void ScaleDistance()
-    {
-//         double min_grad = 0.0;
-//         double max_grad = 0.0;
-        double avg_grad = 0.0;
-        double tot_vol = 0.0;
-        Vector grad_norms(mp_distance_model_part->Elements().size());
-        Vector vols(mp_distance_model_part->Elements().size());
-
-        for (ModelPart::ElementsContainerType::iterator iii = mp_distance_model_part->ElementsBegin();
-                iii != mp_distance_model_part->ElementsEnd(); iii++)
-        {
-            Geometry< Node<3> >& geom = iii->GetGeometry();
-
-            boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
-            array_1d<double, TDim+1 > N;
-            double vol;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
-
-            //get distances at the nodes
-            array_1d<double, TDim+1 > distances;
-            for(unsigned int i=0; i<TDim+1; i++)
-            {
-                distances[i] = geom[i].FastGetSolutionStepValue(DISTANCE);
-            }
-
-            const array_1d<double,TDim> grad = prod(trans(DN_DX),distances);
-            const double grad_norm = norm_2(grad);
-
-            tot_vol += vol;
-            avg_grad += vol*grad_norm;
-
-//             min_grad = std::min(min_grad, grad_norm);
-//             max_grad = std::max(max_grad, grad_norm);
-        }
-
-        // For MPI: assemble results across partitions
-        mp_distance_model_part->GetCommunicator().SumAll(avg_grad);
-        mp_distance_model_part->GetCommunicator().SumAll(tot_vol);
-
-        avg_grad /= tot_vol;
-
-
-        if(avg_grad < 1e-20)
-            KRATOS_THROW_ERROR(std::logic_error,"the average gradient is found to be zero after step 1. Something wrong!", "");
-
-
-        const double ratio = 1.0/avg_grad;
-
-//         KRATOS_WATCH(avg_grad);
-//         KRATOS_WATCH(max_grad);
-//         KRATOS_WATCH(min_grad);
-//         KRATOS_WATCH(ratio);
-
-        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-        {
-            iii->FastGetSolutionStepValue(DISTANCE) *= ratio;
-        }
-    }
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
+  ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
+  ///@name Static Member Variables
+  ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+@{KRATOS_STATIC_MEMBERS_LIST}
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+  ///@}
+  ///@name Member Variables
+  ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+@{KRATOS_MEMBERS_LIST}
 
+  ///@}
+  ///@name Private Operators
+  ///@{
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
 
+  ///@}
+  ///@name Serialization
+  ///@{
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
+  friend class Serializer;
 
+  virtual void save(Serializer& rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+    // List
+    rSerializer.save("Data", mData);
+  }
 
-    /// Assignment operator.
-    @{KRATOS_NAME_CAMEL}& operator=(@{KRATOS_NAME_CAMEL} const& rOther);
+  virtual void load(Serializer& rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
 
-    /// Copy constructor.
-    //@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther);
+    // List
+    rSerializer.load("Data", mData);
+  }
 
+  ///@}
+  ///@name Private  Access
+  ///@{
 
-    ///@}
+  ///@}
+  ///@name Private Inquiry
+  ///@{
+
+  ///@}
+  ///@name Un accessible methods
+  ///@{
+
+  /// Copy constructor.
+  //@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther);
+
+  ///@}
 
 }; // Class @{KRATOS_NAME_CAMEL}
-
-//avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
-const Kratos::Flags @{KRATOS_NAME_CAMEL}<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::PERFORM_STEP1(Kratos::Flags::Create(0));
-
-template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
-const Kratos::Flags @{KRATOS_NAME_CAMEL}<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
-
-
 
 ///@}
 
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  @{KRATOS_NAME_CAMEL}<TDim,TSparseSpace,TDenseSpace,TLinearSolver>& rThis);
+inline std::istream & operator >> (std::istream& rIStream, @{KRATOS_NAME_CAMEL}& rThis);
 
 /// output stream function
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const @{KRATOS_NAME_CAMEL}<TDim,TSparseSpace,TDenseSpace,TLinearSolver>& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
+inline std::ostream & operator << (std::ostream& rOStream, const @{KRATOS_NAME_CAMEL}& rThis) {
+  rThis.PrintInfo(rOStream);
+  rOStream << " : " << std::endl;
+  rThis.PrintData(rOStream);
+  return rOStream;
 }
+
 ///@}
 
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED  defined
