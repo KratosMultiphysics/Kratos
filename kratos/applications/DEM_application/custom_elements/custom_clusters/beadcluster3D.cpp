@@ -36,7 +36,7 @@ namespace Kratos {
     // Destructor
     BeadCluster3D::~BeadCluster3D() {}      
     
-    void BeadCluster3D::CustomInitialize() {
+    void BeadCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 5;
         mListOfRadii.resize(number_of_spheres);

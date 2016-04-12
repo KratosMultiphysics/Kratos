@@ -50,7 +50,7 @@ namespace Kratos {
     SoyBeanCluster3D::~SoyBeanCluster3D() {}
       
     
-    void SoyBeanCluster3D::CustomInitialize() {
+    void SoyBeanCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 13;
         mListOfRadii.resize(number_of_spheres);

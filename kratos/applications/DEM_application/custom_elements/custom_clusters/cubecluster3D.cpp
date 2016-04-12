@@ -50,7 +50,7 @@ namespace Kratos {
     CubeCluster3D::~CubeCluster3D() {}
       
     
-    void CubeCluster3D::CustomInitialize() {
+    void CubeCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres=26;
         mListOfRadii.resize(number_of_spheres);

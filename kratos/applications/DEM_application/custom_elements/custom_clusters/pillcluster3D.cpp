@@ -50,7 +50,7 @@ namespace Kratos {
     PillCluster3D::~PillCluster3D() {}
       
     
-    void PillCluster3D::CustomInitialize() {
+    void PillCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
 
 //        int number_of_spheres_in_first_sector = 6;
 //        int number_of_passes = 5;

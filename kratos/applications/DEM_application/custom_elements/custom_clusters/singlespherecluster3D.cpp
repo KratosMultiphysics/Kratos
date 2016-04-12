@@ -23,7 +23,7 @@ namespace Kratos {
         
     // using namespace GeometryFunctions;
 
-    SingleSphereCluster3D::SingleSphereCluster3D() : Cluster3D()  {}
+    SingleSphereCluster3D::SingleSphereCluster3D() : Cluster3D() {}
                   
     SingleSphereCluster3D::SingleSphereCluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Cluster3D(NewId, pGeometry) {}
@@ -41,7 +41,7 @@ namespace Kratos {
     // Destructor
     SingleSphereCluster3D::~SingleSphereCluster3D() {}      
     
-    void SingleSphereCluster3D::CustomInitialize() {
+    void SingleSphereCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 1;
         mListOfRadii.resize(number_of_spheres);
@@ -54,9 +54,12 @@ namespace Kratos {
         
         double radius = mListOfRadii[0];
         
-        double excentricity = 0.1 * cl; //TODO: Compute this properly
+        double excentricity = GetGeometry()[0].FastGetSolutionStepValue(EXCENTRICITY);
+        excentricity *= cl;
         
-        mListOfCoordinates[0][0] = excentricity; mListOfCoordinates[0][1] = excentricity; mListOfCoordinates[0][2] = excentricity;
+        mListOfCoordinates[0][0] = excentricity;
+        mListOfCoordinates[0][1] = 0.0;
+        mListOfCoordinates[0][2] = 0.0;
         
         double particle_density = this->SlowGetDensity();
          
@@ -69,7 +72,7 @@ namespace Kratos {
         double steiner_excentricity_term = 2.0 * cluster_mass * excentricity * excentricity;
         
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;        
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = inertia_ball + steiner_excentricity_term;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = inertia_ball;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = inertia_ball + steiner_excentricity_term;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = inertia_ball + steiner_excentricity_term;        
     }    

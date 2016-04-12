@@ -42,7 +42,7 @@ namespace Kratos {
     // Destructor
     CapsuleCluster3D::~CapsuleCluster3D() {}
 
-    void CapsuleCluster3D::CustomInitialize() {
+    void CapsuleCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 5;
         mListOfRadii.resize(number_of_spheres);

@@ -50,7 +50,7 @@ namespace Kratos {
     Rock2Cluster3D::~Rock2Cluster3D() {}
       
     
-    void Rock2Cluster3D::CustomInitialize() {
+    void Rock2Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
         int number_of_spheres = 76;
         mListOfRadii.resize(number_of_spheres);
