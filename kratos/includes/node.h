@@ -1,24 +1,14 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 
 #if !defined(KRATOS_NODE_H_INCLUDED )
@@ -239,62 +229,77 @@ public:
     }
 
     /** Copy constructor. Initialize this node with given node.*/
-    Node(Node const& rOtherNode)
-        : BaseType(rOtherNode)
-        , IndexedObject(rOtherNode)
-        , Flags(rOtherNode)
-        , mData(rOtherNode.mData)
-        , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
-        , mInitialPosition(rOtherNode.mInitialPosition)
-    {
-        //TODO ... this copy constructor should be removed sometimes as it is often source of error
-        //KRATOS_THROW_ERROR(std::logic_error, "copying Nodes is not allowed", "");
-
-        // Deep copying the dofs
-        for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
-           pAddDof(*i_dof);
-
-#ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
-#endif
-    }
+    Node(Node const& rOtherNode) = delete;
+//         : BaseType(rOtherNode)
+//         , IndexedObject(rOtherNode)
+//         , Flags(rOtherNode)
+//         , mData(rOtherNode.mData)
+//         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
+//         , mInitialPosition(rOtherNode.mInitialPosition)
+//     {
+//         //TODO ... this copy constructor should be removed sometimes as it is often source of error
+//         //KRATOS_THROW_ERROR(std::logic_error, "copying Nodes is not allowed", "");
+// 
+//         // Deep copying the dofs
+//         for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
+//            pAddDof(*i_dof);
+// 
+// #ifdef _OPENMP
+//         omp_init_lock(&mnode_lock);
+// #endif
+//     }
 
     /** Copy constructor from a node with different dimension.*/
     template<SizeType TOtherDimension>
-    Node(Node<TOtherDimension> const& rOtherNode)
-        : BaseType(rOtherNode)
-        , IndexedObject(rOtherNode)
-        , Flags(rOtherNode)
-        , mDofs(rOtherNode.mDofs)
-        , mData(rOtherNode.mData)
-        , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
-        , mInitialPosition(rOtherNode.mInitialPosition)
-    {
-
-#ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
-#endif
-    }
+    Node(Node<TOtherDimension> const& rOtherNode) = delete;
+//         : BaseType(rOtherNode)
+//         , IndexedObject(rOtherNode)
+//         , Flags(rOtherNode)
+//         , mDofs(rOtherNode.mDofs)
+//         , mData(rOtherNode.mData)
+//         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
+//         , mInitialPosition(rOtherNode.mInitialPosition)
+//     {
+// 
+// #ifdef _OPENMP
+//         omp_init_lock(&mnode_lock);
+// #endif
+//     }
 
     /** Copy constructor from a point with different dimension.*/
     template<SizeType TOtherDimension>
-    Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint)
-        : BaseType(rThisPoint)
-        , IndexedObject(NewId)
-        , Flags()
-        , mDofs()
-        , mData()
-        , mSolutionStepsNodalData()
-        , mInitialPosition(rThisPoint)
-    {
-        CreateSolutionStepData();
+    Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint) = delete;
+//         : BaseType(rThisPoint)
+//         , IndexedObject(NewId)
+//         , Flags()
+//         , mDofs()
+//         , mData()
+//         , mSolutionStepsNodalData()
+//         , mInitialPosition(rThisPoint)
+//     {
+//         CreateSolutionStepData();
+// 
+// #ifdef _OPENMP
+//         omp_init_lock(&mnode_lock);
+// #endif
+//     }
 
-#ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
-#endif
-    }
+//     Node(Node&& rOtherNode)
+//     {
+//         this->Coordinates() = rOtherNode.Coordinates();
+// //         (*this) = (*rOtherNode); //move the coordinates
+//         this->Flags = rOtherNode.Flags;
+//         mData = rOtherNode.mData;
+//         mSolutionStepsNodalData = rOtherNode.mSolutionStepsNodalData;
+//         mInitialPosition = rOtherNode.mInitialPosition;
+//         mDofs = rOtherNode.mDofs;
+//         mnode_lock = rOtherNode.mnode_lock;
+//     }
 
-    /** Constructor using coordinates stored in given array. Initialize
+    
+    
+    /** 
+     * Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template<class TVectorType>
     Node(IndexType NewId, vector_expression<TVectorType> const&  rOtherCoordinates)
@@ -347,6 +352,35 @@ public:
         omp_init_lock(&mnode_lock);
 #endif
     }
+
+        typename Node<TDimension>::Pointer CreateCopy()
+        {
+            Node<3>::Pointer pnew_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+            pnew_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
+            pnew_node->mDofs = this->mDofs;
+            pnew_node->mData = this->mData;
+            pnew_node->mInitialPosition = this->mInitialPosition;
+            KRATOS_THROW_ERROR(std::logic_error,"must implement correctly the copy of the flags","");
+            return pnew_node;
+        }
+//         : BaseType(rOtherNode)
+//         , IndexedObject(rOtherNode)
+//         , Flags(rOtherNode)
+//         , mData(rOtherNode.mData)
+//         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
+//         , mInitialPosition(rOtherNode.mInitialPosition)
+//     {
+//         //TODO ... this copy constructor should be removed sometimes as it is often source of error
+//         //KRATOS_THROW_ERROR(std::logic_error, "copying Nodes is not allowed", "");
+// 
+//         // Deep copying the dofs
+//         for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
+//            pAddDof(*i_dof);
+// 
+// #ifdef _OPENMP
+//         omp_init_lock(&mnode_lock);
+// #endif
+//     }
 
 
     /// Destructor.
@@ -965,7 +999,12 @@ public:
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
             return *(i_dof.base());
-        return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable)).base());
+        
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        mDofs.insert(mDofs.begin(), p_new_dof);
+        
+        return p_new_dof;
+//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable)).base());
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -980,7 +1019,9 @@ public:
         if(i_dof != mDofs.end())
             return *(i_dof.base());
 
-        typename DofType::Pointer p_new_dof(  *(mDofs.insert(mDofs.begin(), SourceDof).base())  );
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(SourceDof);
+        mDofs.insert(mDofs.begin(), p_new_dof);
+//         typename DofType::Pointer p_new_dof(  *(mDofs.insert(mDofs.begin(), make_shared<DofType>(  SourceDof).base())  );
 
         p_new_dof->SetId(Id());
 //		p_new_dof->Id() = Id();
@@ -1005,7 +1046,11 @@ public:
             i_dof->SetReaction(rDofReaction);
             return *(i_dof.base());
         }
-        return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction)).base());
+        
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        mDofs.insert(mDofs.begin(), p_new_dof);
+        return p_new_dof;
+//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction)).base());
 
         KRATOS_CATCH_LEVEL_3(*this);
 
@@ -1020,7 +1065,12 @@ public:
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
             return *i_dof;
-        return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable)));
+        
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        mDofs.insert(mDofs.begin(), p_new_dof);
+        return *p_new_dof;
+
+//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable)));
 
         KRATOS_CATCH_LEVEL_3(*this);
 
