@@ -343,44 +343,44 @@ public:
 //KRATOS_WATCH("finished pop_back")
     }
 
-    template<class TOtherDataType>
-    void push_back(TOtherDataType const& x)
-    {
-        push_back(TPointerType(new TOtherDataType(x)));
-    }
+//     template<class TOtherDataType>
+//     void push_back(TOtherDataType const& x)
+//     {
+//         push_back(TPointerType(new TOtherDataType(x)));
+//     }
 
-    template<class TOtherDataType>
-    iterator insert(iterator Position, const TOtherDataType& rData)
-    {
-        ptr_iterator sorted_part_end;
-
-        key_type key = KeyOf(rData);
-
-        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
-        {
-            Sort();
-            sorted_part_end = mData.end();
-        }
-        else
-            sorted_part_end	= mData.begin() + mSortedPartSize;
-
-        ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
-        if (i == sorted_part_end)
-        {
-            mSortedPartSize++;
-            return mData.insert(sorted_part_end, TPointerType(new TOtherDataType(rData)));
-        }
-
-        if (!EqualKeyTo(key)(*i))
-            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
-            {
-                mData.push_back(TPointerType(new TOtherDataType(rData)));
-                //return iterator(--mData.end());
-                return iterator(mData.end()-1);
-            }
-        **i = rData;
-        return i;
-    }
+//     template<class TOtherDataType>
+//     iterator insert(iterator Position, const TOtherDataType& rData)
+//     {
+//         ptr_iterator sorted_part_end;
+// 
+//         key_type key = KeyOf(rData);
+// 
+//         if(mData.size() - mSortedPartSize >= mMaxBufferSize)
+//         {
+//             Sort();
+//             sorted_part_end = mData.end();
+//         }
+//         else
+//             sorted_part_end	= mData.begin() + mSortedPartSize;
+// 
+//         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
+//         if (i == sorted_part_end)
+//         {
+//             mSortedPartSize++;
+//             return mData.insert(sorted_part_end, TPointerType(new TOtherDataType(rData)));
+//         }
+// 
+//         if (!EqualKeyTo(key)(*i))
+//             if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
+//             {
+//                 mData.push_back(TPointerType(new TOtherDataType(rData)));
+//                 //return iterator(--mData.end());
+//                 return iterator(mData.end()-1);
+//             }
+//         **i = rData;
+//         return i;
+//     }
 
     iterator insert(iterator Position, const TPointerType pData)
     {

@@ -152,13 +152,13 @@ public:
     PointerVector(std::size_t NewSize) :  mData(NewSize)
     {
     }
-
+/*
     template<class TOtherDataType>
     PointerVector(std::size_t NewSize, TOtherDataType const& Value) :  mData(NewSize)
     {
         for(size_type i = 0 ; i < NewSize ; i++)
             mData[i] = pointer(new TOtherDataType(Value));
-    }
+    }*/
 
     /// Destructor.
     virtual ~PointerVector() {}
@@ -312,17 +312,17 @@ public:
         mData.push_back(x);
     }
 
-    template<class TOtherDataType>
-    void push_back(TOtherDataType const& x)
-    {
-        push_back(TPointerType(new TOtherDataType(x)));
-    }
-
+//     template<class TOtherDataType>
+//     void push_back(TOtherDataType const& x)
+//     {
+//         push_back(TPointerType(new TOtherDataType(x)));
+//     }
+/*
     template<class TOtherDataType>
     iterator insert(iterator Position, const TOtherDataType& rData)
     {
         return iterator(mData.insert(Position, TPointerType(new TOtherDataType(rData))));
-    }
+    }*/
 
     iterator insert(iterator Position, const TPointerType pData)
     {
