@@ -68,7 +68,7 @@ namespace Kratos {
     }
 
       
-    void Cluster3D::Initialize() {
+    void Cluster3D::Initialize(ProcessInfo& r_process_info) {
         
         if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
@@ -83,11 +83,11 @@ namespace Kratos {
         if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed())  GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
         else                                                        GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
 
-        CustomInitialize();
+        CustomInitialize(r_process_info);
     }
     
     
-    void Cluster3D::CustomInitialize() {}
+    void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {}
     
     
     void Cluster3D::SetOrientation(const array_1d<double, 3>& euler_angles) {        
