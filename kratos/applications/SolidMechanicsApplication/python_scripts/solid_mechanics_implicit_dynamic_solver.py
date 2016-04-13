@@ -243,30 +243,11 @@ class MechanicalSolver:
     def _GetSolutionSchemeImplicit(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark"):
-<<<<<<< .mine
             self.settings.AddEmptyValue("damp_factor_m")  
             self.settings.AddEmptyValue("dynamic_factor")
             self.settings["damp_factor_m"].SetDouble(0.0)
             self.settings["dynamic_factor"].SetDouble(1.0)
-
-=======
-          damp_factor_m = 0.0;
-          dynamic_factor = 1;
-          
-          self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
-          self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = 0.0
-          
-          if(component_wise):
-              mechanical_scheme = SolidMechanicsApplication.ComponentWiseBossakScheme(damp_factor_m, 
-                                                                       dynamic_factor)
-          else:
-              if(compute_contact_forces):
-                  mechanical_scheme = SolidMechanicsApplication.ResidualBasedContactBossakScheme(damp_factor_m,
-                                                                                  dynamic_factor)
-              else:
-                  mechanical_scheme = SolidMechanicsApplication.ResidualBasedBossakScheme(damp_factor_m,
-                                                                           dynamic_factor)
->>>>>>> .r14658
+                                                                           
         elif(scheme_type == "Bossak"):
             self.settings.AddEmptyValue("damp_factor_m")  
             self.settings.AddEmptyValue("dynamic_factor")
@@ -278,7 +259,6 @@ class MechanicalSolver:
             #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
             #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = 0.0
           
-<<<<<<< .mine
             if(component_wise):
                 mechanical_scheme = SolidMechanicsApplication.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
                                                                                         self.settings["dynamic_factor"].GetDouble())
@@ -290,21 +270,6 @@ class MechanicalSolver:
                     mechanical_scheme = SolidMechanicsApplication.ResidualBasedBossakScheme(self.settings["damp_factor_m"].GetDouble(),
                                                                                             self.settings["dynamic_factor"].GetDouble())
 
-=======
-          self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
-          self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = 0.0
-          
-          if(component_wise):
-              mechanical_scheme = SolidMechanicsApplication.ComponentWiseBossakScheme(damp_factor_m, 
-                                                                       dynamic_factor)
-          else:
-              if(compute_contact_forces):
-                  mechanical_scheme = SolidMechanicsApplication.ResidualBasedContactBossakScheme(damp_factor_m,
-                                                                                  dynamic_factor)
-              else:
-                  mechanical_scheme = SolidMechanicsApplication.ResidualBasedBossakScheme(damp_factor_m,
-                                                                           dynamic_factor)
->>>>>>> .r14658
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)  
             
@@ -334,65 +299,9 @@ class MechanicalSolver:
         # Construction of the class convergence_criterion
         import convergence_criteria_utility
         convergence_criterion = convergence_criteria_utility.convergence_criterion(conv_params)
-<<<<<<< .mine
-=======
-               
-        #~ D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
-        #~ D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
-        #~ R_RT = self.settings["residual_relative_tolerance"].GetDouble()
-        #~ R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
-
-        #~ if(rotation_dofs):
-            #~ if(convergence_criterion_type == "Displacement_criteria"):
-                #~ mechanical_convergence_criterion = SolidMechanicsApplication.DisplacementCriteria(D_RT, D_AT)
-            #~ elif(convergence_criterion_type == "Residual_criteria"):
-                #~ mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            #~ elif(convergence_criterion_type == "And_criteria"):
-                #~ Displacement = SolidMechanicsApplication.DisplacementCriteria(D_RT, D_AT)
-                #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                #~ mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-            #~ elif(convergence_criterion_type == "Or_criteria"):
-                #~ Displacement = SolidMechanicsApplication.DisplacementCriteria(D_RT, D_AT)
-                #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                #~ mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            #~ #elif(convergence_criterion_type == "Mixed_criteria"):
-                #~ #Displacement = KratosMultiphysics.MixedElementCriteria(D_RT, D_AT)
-                #~ #Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                #~ #mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-        #~ else:
-            #~ if(echo_level > 1):
-                #~ print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_type)
-#~ 
-            #~ if(convergence_criterion_type == "Displacement_criteria"):
-                #~ mechanical_convergence_criterion = SolidMechanicsApplication.DisplacementConvergenceCriterion(D_RT, D_AT)
-            #~ elif(convergence_criterion_type == "Residual_criteria"):
-                #~ if(component_wise):
-                    #~ mechanical_convergence_criterion = SolidMechanicsApplication.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                #~ else:
-                    #~ mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-            #~ elif(convergence_criterion_type == "And_criteria"):
-                #~ Displacement = SolidMechanicsApplication.DisplacementConvergenceCriterion(D_RT, D_AT)
-                #~ if(component_wise):
-                    #~ Residual = SolidMechanicsApplication.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                #~ else:
-                    #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                #~ mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-            #~ elif(convergence_criterion_type == "Or_criteria"):
-                #~ Displacement = SolidMechanicsApplication.DisplacementConvergenceCriterion(D_RT, D_AT)
-                #~ if(self.component_wise):
-                    #~ Residual = SolidMechanicsApplication.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
-                #~ else:
-                    #~ Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                #~ mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-            #~ #elif(convergence_criterion_type == "Mixed_criteria"):
-                #~ #Displacement = KratosMultiphysics.MixedElementConvergeCriteria(D_RT, D_AT)
-                #~ #Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
-                #~ #mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
->>>>>>> .r14658
             
         return convergence_criterion.mechanical_convergence_criterion
         
-<<<<<<< .mine
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         if(component_wise):
             self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(self.main_model_part, 
@@ -415,22 +324,8 @@ class MechanicalSolver:
                                                                                                                 compute_reactions, 
                                                                                                                 reform_step_dofs, 
                                                                                                                 move_mesh_flag)
-=======
-    def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search, time_integration_method):
-        if (time_integration_method == "Implicit"):
-            if(component_wise):
-                self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(self.main_model_part, 
-                                                                                    mechanical_scheme, 
-                                                                                    self.linear_solver, 
-                                                                                    mechanical_convergence_criterion, 
-                                                                                    builder_and_solver, 
-                                                                                    max_iters, 
-                                                                                    compute_reactions, 
-                                                                                    reform_step_dofs, 
-                                                                                    move_mesh_flag)
->>>>>>> .r14658
+
             else:
-<<<<<<< .mine
                 self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part, 
                                                                                                mechanical_scheme, 
                                                                                                self.linear_solver, 
@@ -440,25 +335,3 @@ class MechanicalSolver:
                                                                                                compute_reactions, 
                                                                                                reform_step_dofs, 
                                                                                                move_mesh_flag)
-=======
-                if(line_search):
-                    self.mechanical_solver = SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(self.main_model_part, 
-                                                                                                    mechanical_scheme, 
-                                                                                                    self.linear_solver, 
-                                                                                                    mechanical_convergence_criterion, 
-                                                                                                    builder_and_solver, 
-                                                                                                    max_iters, 
-                                                                                                    compute_reactions, 
-                                                                                                    reform_step_dofs, 
-                                                                                                    move_mesh_flag)
-                else:
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part, 
-                                                                                                   mechanical_scheme, 
-                                                                                                   self.linear_solver, 
-                                                                                                   mechanical_convergence_criterion, 
-                                                                                                   builder_and_solver, 
-                                                                                                   max_iters, 
-                                                                                                   compute_reactions, 
-                                                                                                   reform_step_dofs, 
-                                                                                                   move_mesh_flag)
->>>>>>> .r14658
