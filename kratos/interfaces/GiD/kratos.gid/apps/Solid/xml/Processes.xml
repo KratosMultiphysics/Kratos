@@ -4,8 +4,16 @@
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="factor" pn="Factor" type="double"  v="1.0" unit_magnitude="0" units="0"/>
+      <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
       <parameter n="value" pn="Value" type="vector" v="0.0,-9.81,0.0" />
+    </inputs>
+  </Process>
+  <Process n="ApplyDisplacementProcess" pn="Displacement process" ImplementedInFile="apply_displacement_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
+		help="This process ">
+    <inputs>
+      <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
+      <parameter n="direction" pn="Value" type="vector" fixity="Is fixed" v="0.0,0.0,0.0" />
     </inputs>
   </Process>
   <Process n="ApplyConstantScalarValueProcess" pn="Constant calar value" ImplementedInFile="process_factory"

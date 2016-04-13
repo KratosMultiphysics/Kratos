@@ -26,7 +26,7 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess" analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
       <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
       <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
@@ -36,10 +36,10 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"/>
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor"  />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <ElementItem n="SmallDisplacementElementAxisym" pn="Small Displacements Axisymmetric" ImplementedInFile="axisym_small_displacement_element.cpp"
@@ -66,9 +66,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" help="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     help="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" help="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" help="Displacement" ProcessName="ApplyDisplacementProcess"  analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     help="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" help="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -77,7 +77,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <ElementItem n="SmallDisplacementElement3D" pn="Small Displacements" ImplementedInFile="small_displacement_element.cpp"
@@ -106,9 +106,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"   analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -117,7 +117,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
 
@@ -147,9 +147,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"   analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -160,7 +160,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <ElementItem n="TotalLagrangianElement3D" pn="Total Lagrangian" ImplementedInFile="total_lagrangian_element.cpp"
@@ -189,9 +189,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"   analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -200,7 +200,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <!--updated lagrangian-->
@@ -228,9 +228,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"   analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
       <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
@@ -240,7 +240,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <ElementItem n="UpdatedLagrangianElementAxisym" pn="Updated Lagrangian Axisymmetric" ImplementedInFile="axisym_updated_lagrangian_element.cpp"
@@ -267,9 +267,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"   analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>      
     </inputs>
@@ -278,7 +278,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <ElementItem n="UpdatedLagrangianElement3D" pn="Updated Lagrangian" ImplementedInFile="updated_lagrangian_element.cpp"
@@ -307,9 +307,9 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"   analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"   analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -318,7 +318,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <!--hybrid elements-->
@@ -340,10 +340,10 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction="REACTION"/>
       <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" 	  analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"  reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  fixity="Fix"    analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"  reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
       <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
@@ -353,7 +353,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
   <ElementItem n="UpdatedLagrangianElementUPAxisym" pn="Updated Lagrangian U-P Axisymmetric" ImplementedInFile="axisym_updated_lagrangian_U_P_element.cpp"
@@ -377,10 +377,10 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix"    analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"     analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
       <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix"    analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix"    analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"     analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"     analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -389,7 +389,7 @@
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
       <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
-      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" />
+      <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
 

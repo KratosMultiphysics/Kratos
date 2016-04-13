@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <container n="Solid" pn="Solid" icon="units" tree_state="open">
+  <container n="Solid" pn="Solid" icon="units" prefix="SL" tree_state="open">
     <include n="StageInfo" active="1" path="apps/Solid/xml/StageInfo.spd"/>
     <include n="Parts" active="1" path="apps/Solid/xml/Parts.spd"/>
     <include n="Intervals" active="0" path="apps/Solid/xml/Intervals.spd"/>
@@ -7,7 +7,7 @@
     <include n="Fields" active="0" path="apps/Solid/xml/Fields.spd"/>
     <include n="BoundaryConditions" active="1" path="apps/Solid/xml/BoundaryConditions.spd"/>
     <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd"/>
-    <include n="Processes" active="1" path="apps/Solid/xml/Processes.spd"/>
+    <include n="Processes" active="0" path="apps/Solid/xml/Processes.spd"/>
     <include n="SolutionStrategy" active="1" path="apps/Solid/xml/SolutionStrategy.spd"/>
     <include n="Results" active="1" path="apps/Solid/xml/Results.spd"/>
     <include n="materials" active="1" path="apps/Solid/xml/Materials.spd"/> 

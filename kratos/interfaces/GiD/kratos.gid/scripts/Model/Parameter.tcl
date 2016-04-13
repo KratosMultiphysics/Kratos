@@ -14,6 +14,8 @@ oo::class create Parameter {
     variable depname
     variable depv
     
+    variable actualize
+    
     variable values
     variable pvalues
     variable units
@@ -33,6 +35,8 @@ oo::class create Parameter {
         variable units
         variable unitMagnitude
         variable fix
+        
+        variable actualize
         
         my setPublicName $pn
         set type $t
@@ -61,6 +65,7 @@ oo::class create Parameter {
         } else {set pvalues $values}
         
         set fix 0
+        set actualize 0
     }
     
     method setDep {dn dv} {
@@ -81,6 +86,13 @@ oo::class create Parameter {
     method getUnitMagnitude { } {variable unitMagnitude; return $unitMagnitude}
     method setFixity {u} {variable fix; set fix $u}
     method getFixity { } {variable fix; return $fix}
+    
+    method getDepN {} {variable depname; return $depname}
+    method getDepV {} {variable depv; return $depv}
+    
+    
+    method setActualize {u} {variable actualize; set actualize $u}
+    method getActualize { } {variable actualize; return $actualize}
 }
 }
 
@@ -106,6 +118,7 @@ proc Model::ParseInputParamNode {st in} {
     set input [::Model::Parameter new $n $pn $t $v $units $unitMagnitude $h $vs $pvs]
     if {$fi eq ""} {set fi 0}
     $input setFixity $fi
+    if {[$in hasChildNodes]} {$input setActualize 1}
     $st addInputDone $input
     if {[$in hasAttribute "parent"]} {
         set dn [[$in parent] @n]

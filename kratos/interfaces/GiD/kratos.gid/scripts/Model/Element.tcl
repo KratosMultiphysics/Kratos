@@ -140,7 +140,10 @@ proc Model::ParseElemNode { node } {
     foreach out [[$node getElementsByTagName outputs] childNodes] {
         set n [$out @n]
         set pn [$out @pn]
-        $el addOutput $n $pn
+        set v false
+        catch {set v [$out @v]}
+        set outobj [::Model::Parameter new $n $pn bool $v "" "" "" ]
+        $el addOutputDone $outobj
     }
     foreach clf [[$node getElementsByTagName ConstitutiveLaw_FilterFeatures] childNodes]  {
         $el addConstLawFilter [$clf getAttribute field] [$clf getAttribute value]

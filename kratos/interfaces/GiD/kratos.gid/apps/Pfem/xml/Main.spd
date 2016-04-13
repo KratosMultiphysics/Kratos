@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?> 
-  <container n="pfem_data" pn="PFEM Data" icon="units" tree_state="open">
+  <container n="pfem_data" pn="PFEM Data" icon="units" prefix="PFEM_" tree_state="open">
     <value n="SpatialDimension" pn="Spatial dimension" un="PFEM_dimensions" v="3D" values="3D,2D,2Da" dict="3D,3D,2D,2D,2Da,2D Axisymmetric" help="Spatial Dimension" update_proc="ChangeSpatialDimension"/>           
     <container n="Domains" pn="Domains" help="" open="1">
         <container n="Solids2D" pn="Solids" help="Solid Domains" open="0" state="[checkStateByUniqueName PFEM_dimensions 2D PFEM_dimensions 2Da]">
