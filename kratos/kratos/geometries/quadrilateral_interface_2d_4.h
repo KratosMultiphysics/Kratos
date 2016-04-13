@@ -803,10 +803,10 @@ public:
     virtual GeometriesArrayType Edges( void )
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( EdgeType( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( EdgeType( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( EdgeType( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( EdgeType( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
