@@ -200,17 +200,13 @@ public:
         NormalCalculationUtils normal_util = NormalCalculationUtils();
         normal_util.CalculateOnSimplex(mr_opt_model_part,m_domain_size);
 
-        // Normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        // Take into account boundary conditions, normalize area normal and store in respective variable
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
-            ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
-
             // Normalize normal and assign to solution step value
-            array_3d area_normal = node_i.FastGetSolutionStepValue(NORMAL);
+            array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
             array_3d normalized_normal = area_normal / norm_2(area_normal);
-            noalias(node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)) = normalized_normal;
-
+            noalias(node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)) = normalized_normal;
         }
 
         KRATOS_CATCH("");
@@ -227,18 +223,15 @@ public:
 
         // We loop over all nodes and compute the part of the sensitivity which is in direction
         // to the surface normal
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
-            ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
-
             // We compute dFdX_n = (dFdX \cdot n) * n
-            array_3d node_sens = node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            array_3d node_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            array_3d node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
             array_3d normal_node_sens =  inner_prod(node_sens,node_normal) * node_normal;
 
             // Assign resulting sensitivity back to node
-            noalias(node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
+            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
 
             // Compute contribution to objective norm denominator
             J_norm += inner_prod(normal_node_sens,normal_node_sens);
@@ -247,12 +240,12 @@ public:
             if(constraint_given)
             {
                 // We compute dFdX_n = (dFdX \cdot n) * n
-                node_sens = node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                node_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
+                node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
                 normal_node_sens =  inner_prod(node_sens,node_normal) * node_normal;
 
                 // Assign resulting sensitivity back to node
-                noalias(node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
+                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
 
                 // Compute contribution to objective norm denominator
                 C_norm += inner_prod(normal_node_sens,normal_node_sens);
@@ -264,19 +257,16 @@ public:
         C_norm = sqrt(C_norm);
 
         // Normalize sensitivities
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
-            ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
-
-            array_3d node_sens = node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            noalias(node_i.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = node_sens/J_norm;
+            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = node_sens/J_norm;
 
           // Repeat for constraint
             if(constraint_given)
             {
-                node_sens = node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                noalias(node_i.FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = node_sens/C_norm;
+                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
+                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = node_sens/C_norm;
             }
         }
 
@@ -390,9 +380,9 @@ public:
         }
 
         // Filtered gradients are computed as dFds (dCds) normalized by its max-norm
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             m_filtered_dFdX[i_ID] = dFds[i_ID] / max_dFds;
 
             // If constraints are active, also normalize the filtered constraint gradients
@@ -464,9 +454,9 @@ public:
         KRATOS_TRY;
 
         // computation of update of design variable
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             m_design_variable_update[i_ID] = step_size * m_search_direction[i_ID];
         }
 
@@ -482,9 +472,9 @@ public:
 
         // Initialize variables
         std::map<int,array_3d> shape_update;
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             array_3d zero_array(3,0.0);
             shape_update[i_ID] = zero_array;
         }
@@ -531,19 +521,37 @@ public:
         }
 
         // Store shape updates and update coordinates in the mesh AFTER all shape updates have been computed (as mentioned above, this is different as in carat)
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
-            ModelPart::NodeType& node_i = mr_opt_model_part.Nodes()[i_ID];
+            // Get node ID
+            int i_ID = node_i->Id();
 
             // Update coordinates
-            node_i.X() += shape_update[i_ID][0];
-            node_i.Y() += shape_update[i_ID][1];
-            node_i.Z() += shape_update[i_ID][2];
+            node_i->X() += shape_update[i_ID][0];
+            node_i->Y() += shape_update[i_ID][1];
+            node_i->Z() += shape_update[i_ID][2];
 
-            // Save shape update
-            noalias(node_i.FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update[i_ID];
-            noalias(node_i.FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += shape_update[i_ID];
+            // Save shape update if nodal shape update is not deactivated (it remains zero if it is deactivated)
+			if(node_i->FastGetSolutionStepValue(SHAPE_UPDATES_DEACTIVATED))
+				continue;
+			// In case it is not deactivated it will be check if it is on a specified boundary beyond which no update is wanted
+			else
+			{
+				// Assign computed shape update
+				noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = shape_update[i_ID];
+
+				// Project shape update at boundary on specified boundary plane (Remove component that is normal to the boundary plane)
+				if(node_i->FastGetSolutionStepValue(IS_ON_BOUNDARY))
+				{
+				array_3d boundary_plane = node_i->FastGetSolutionStepValue(BOUNDARY_PLANE);
+				array_3d original_update = node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
+				array_3d projected_update = original_update - (inner_prod(original_update,boundary_plane))*boundary_plane/norm_2(boundary_plane);
+				noalias(node_i->FastGetSolutionStepValue(SHAPE_UPDATE)) = projected_update;
+				}
+			}
+
+			// Add final shape update to previous updates
+			noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE_ABSOLUTE)) += node_i->FastGetSolutionStepValue(SHAPE_UPDATE);
         }
 
         KRATOS_CATCH("");
@@ -563,9 +571,9 @@ public:
         m_search_direction.clear();
 
         // search direction is negative of filtered gradient
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             m_search_direction[i_ID] = -1.0 * m_filtered_dFdX[i_ID];
         }
 
@@ -616,9 +624,9 @@ public:
         double norm_search_direction = 0.0;
 
         // Compute search direction for each node
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
 
             // First term in the augmented lagrange function
             m_search_direction[i_ID] = m_filtered_dFdX[i_ID];
@@ -658,9 +666,9 @@ public:
 
         // Search direction is usually chosen as negative of gradient of augmented lagrange function
         // Furthermore we normalize the search direction
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-             int i_ID = node_itr->Id();
+             int i_ID = node_i->Id();
             m_search_direction[i_ID] = -1.0 * m_search_direction[i_ID] / norm_search_direction;
         }
 
@@ -787,9 +795,9 @@ public:
         // Compute norm of constraint and objective gradient
         double norm_2_dFdX = 0.0;
         double norm_2_dCdX = 0.0;
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             norm_2_dFdX += m_filtered_dFdX[i_ID] * m_filtered_dFdX[i_ID];
             norm_2_dCdX += m_filtered_dCdX[i_ID] * m_filtered_dCdX[i_ID];
         }
@@ -798,17 +806,17 @@ public:
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             dot_dFds_dCds += m_filtered_dFdX[i_ID] * (m_filtered_dCdX[i_ID] / norm_2_dCdX);
         }
 
         // Compute modified search direction (negative of modified objective derivative)
         double norm_2_search_dir = 0.0;
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             m_search_direction[i_ID] = -1 * (m_filtered_dFdX[i_ID] - dot_dFds_dCds * (m_filtered_dCdX[i_ID] / norm_2_dCdX) + c * norm_2_dFdX * (m_filtered_dCdX[i_ID] / norm_2_dCdX));
 
             // Compute norm
@@ -817,9 +825,9 @@ public:
         norm_2_search_dir = sqrt(norm_2_search_dir);
 
         // Normalize search direction
-        for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_itr->Id();
+            int i_ID = node_i->Id();
             m_search_direction[i_ID] /= norm_2_search_dir;
         }
 

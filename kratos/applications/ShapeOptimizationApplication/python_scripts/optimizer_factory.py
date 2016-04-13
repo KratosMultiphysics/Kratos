@@ -86,7 +86,12 @@ class VertexMorphingMethod:
         opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
         opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
-        opt_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE) 
+        opt_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
+        opt_model_part.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
+        opt_model_part.AddNodalSolutionStepVariable(BOUNDARY_PLANE) 
+        opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATES_DEACTIVATED) 
+        opt_model_part.AddNodalSolutionStepVariable(SENSITIVITIES_DEACTIVATED) 
+
         
         # Read and print model part (design surface)
         buffer_size = 1
@@ -651,6 +656,12 @@ class VertexMorphingMethod:
         # Read objective gradients
         eucledian_norm_obj_sens = 0.0
         for node_Id in objective_grads:
+
+            # If deactivated, nodal sensitivities will not be assigned
+            if(self.opt_model_part.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
+                continue
+
+            # If not deactivated, nodal sensitivities will be assigned
             sens_i = Vector(3)
             sens_i[0] = objective_grads[node_Id][0]
             sens_i[1] = objective_grads[node_Id][1]
@@ -663,6 +674,12 @@ class VertexMorphingMethod:
         if(bool(constraint_grads)):
             eucledian_norm_cons_sens = 0.0
             for node_Id in constraint_grads:
+
+                # If deactivated, nodal sensitivities will not be assigned
+                if(self.opt_model_part.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
+                    continue
+
+                # If not deactivated, nodal sensitivities will be assigned
                 sens_i = Vector(3)
                 sens_i[0] = constraint_grads[node_Id][0]
                 sens_i[1] = constraint_grads[node_Id][1]
