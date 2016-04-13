@@ -13,7 +13,7 @@ proc Structural::xml::Init { } {
      Model::getConditions Conditions.xml
      Model::getSolvers Solvers.xml
      
-     Model::getSolutionStrategies  "../../Solid/xml/strategydefinition.xml"
+     #Model::getSolutionStrategies  "../../Solid/xml/strategydefinition.xml"
      Model::getProcesses           "../../Solid/xml/Processes.xml"
      Model::getElements            "../../Solid/xml/Elements.xml"
      Model::getConstitutiveLaws    "../../Solid/xml/ConstitutiveLaws.xml"
