@@ -141,7 +141,7 @@ namespace Kratos {
             }
              
             Kratos::SphericParticle* new_sphere;
-            if(!breakable){
+            if (!breakable) {
                 new_sphere = p_creator_destructor->SphereCreatorForClusters(dem_model_part, 
                                                                             max_Id, 
                                                                             radius_of_sphere, 
@@ -149,7 +149,8 @@ namespace Kratos {
                                                                             mass,
                                                                             this->pGetProperties(), 
                                                                             r_reference_element,
-                                                                            cluster_id);
+                                                                            cluster_id,
+                                                                            p_fast_properties);
             }
             else{
                 new_sphere = p_creator_destructor->SphereCreatorForBreakableClusters(dem_model_part, 
