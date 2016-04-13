@@ -27,7 +27,7 @@ proc Solid::write::writeParametersEvent { } {
     dict set problemDataDict time_step [write::getValue SLTimeParameters DeltaTime]
     dict set problemDataDict end_time [write::getValue SLTimeParameters EndTime]
     set echo_level [write::getValue SLResults EchoLevel]
-    dict set problemDataDict EchoLevel $echo_level
+    dict set problemDataDict echo_level $echo_level
     
     # Add section to document
     dict set projectParametersDict problem_data $problemDataDict
