@@ -2609,8 +2609,8 @@ void SprismElement3D6N::CalculateCommonComponents()
     CalculateTransverseGradientF(TransverseGradientF2, mCC.mTransversalCartesianDerivativesGauss3, nodes_coord);
 
     /* Shear contribution to the deformation matrix */
-    CalculateAndAdd_B_Shear(mCC.mB_shear_lower, mCC.mC_shear_lower, mCC.mTransversalCartesianDerivativesGauss1, mCC.mTransversalCartesianDerivativesGauss2,\
-                            mCC.mTransversalCartesianDerivativesGauss3, TransverseGradientF0, TransverseGradientF1, TransverseGradientF2,\
+    CalculateAndAdd_B_Shear(mCC.mB_shear_lower, mCC.mC_shear_lower, mCC.mTransversalCartesianDerivativesGauss1, mCC.mTransversalCartesianDerivativesGauss2,
+                            mCC.mTransversalCartesianDerivativesGauss3, TransverseGradientF0, TransverseGradientF1, TransverseGradientF2,
                             TransverseGradientFt, TransverseGradientFxi, TransverseGradientFeta, mCC.mJinv_plane_lower, 0);
 
     // Upper face
@@ -2624,8 +2624,8 @@ void SprismElement3D6N::CalculateCommonComponents()
     CalculateTransverseGradientF(TransverseGradientF2, mCC.mTransversalCartesianDerivativesGauss6, nodes_coord);
 
     /* Shear contribution to the deformation matrix */
-    CalculateAndAdd_B_Shear(mCC.mB_shear_upper, mCC.mC_shear_upper, mCC.mTransversalCartesianDerivativesGauss4, mCC.mTransversalCartesianDerivativesGauss5,\
-                            mCC.mTransversalCartesianDerivativesGauss6, TransverseGradientF0, TransverseGradientF1, TransverseGradientF2,\
+    CalculateAndAdd_B_Shear(mCC.mB_shear_upper, mCC.mC_shear_upper, mCC.mTransversalCartesianDerivativesGauss4, mCC.mTransversalCartesianDerivativesGauss5,
+                            mCC.mTransversalCartesianDerivativesGauss6, TransverseGradientF0, TransverseGradientF1, TransverseGradientF2,
                             TransverseGradientFt, TransverseGradientFxi, TransverseGradientFeta, mCC.mJinv_plane_upper, 9);
 
     /* NORMAL TRANSVERSE */
@@ -3263,9 +3263,9 @@ void SprismElement3D6N::CalculateCartesianDerOnCenter_trans(
 
         for (unsigned int i = 0; i < 6 ; i++)
         {
-            mCC.mTransversalCartesianDerivativesCenter(i, 0) = \
-                      mvze[0] * TransversalCartesianDerivativesGauss_aux(i, 0) + \
-                      mvze[1] * TransversalCartesianDerivativesGauss_aux(i, 1) + \
+            mCC.mTransversalCartesianDerivativesCenter(i, 0) =
+                      mvze[0] * TransversalCartesianDerivativesGauss_aux(i, 0) +
+                      mvze[1] * TransversalCartesianDerivativesGauss_aux(i, 1) +
                       mvze[2] * TransversalCartesianDerivativesGauss_aux(i, 2);
         }
      }
@@ -4342,21 +4342,21 @@ void SprismElement3D6N::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix)
     /* MEMBRANE CONTRIBUTION */
     /* Adding the geometric membrane stiffness */
     // Lower face
-    CalculateAndAdd_Membrane_Kgeometric(mK, mCC.mInPlaneCartesianDerivativesGauss1, mCC.mInPlaneCartesianDerivativesGauss2,\
+    CalculateAndAdd_Membrane_Kgeometric(mK, mCC.mInPlaneCartesianDerivativesGauss1, mCC.mInPlaneCartesianDerivativesGauss2,
                                                 mCC.mInPlaneCartesianDerivativesGauss3, mPK2.mS_membrane_lower, 0);
     // Upper face
-    CalculateAndAdd_Membrane_Kgeometric(mK, mCC.mInPlaneCartesianDerivativesGauss4, mCC.mInPlaneCartesianDerivativesGauss5,\
+    CalculateAndAdd_Membrane_Kgeometric(mK, mCC.mInPlaneCartesianDerivativesGauss4, mCC.mInPlaneCartesianDerivativesGauss5,
                                                 mCC.mInPlaneCartesianDerivativesGauss6, mPK2.mS_membrane_upper, 9);
 
 //    /* SHEAR CONTRIBUTION */
 //    /* Adding the geometric shear stiffness */
 //    // Lower face
-//    CalculateAndAdd_Shear_Kgeometric(aux_mK, mCC.mTransversalCartesianDerivativesGauss1,\
-//                                          mCC.mTransversalCartesianDerivativesGauss2, mCC.mTransversalCartesianDerivativesGauss3,\
+//    CalculateAndAdd_Shear_Kgeometric(aux_mK, mCC.mTransversalCartesianDerivativesGauss1,
+//                                          mCC.mTransversalCartesianDerivativesGauss2, mCC.mTransversalCartesianDerivativesGauss3,
 //                                          mCC.mJinv_plane_lower, mPK2.mS_shear_lower, 0);
 //    // Upper face
-//    CalculateAndAdd_Shear_Kgeometric(aux_mK, mCC.mTransversalCartesianDerivativesGauss4,\
-//                                          mCC.mTransversalCartesianDerivativesGauss5, mCC.mTransversalCartesianDerivativesGauss6,\
+//    CalculateAndAdd_Shear_Kgeometric(aux_mK, mCC.mTransversalCartesianDerivativesGauss4,
+//                                          mCC.mTransversalCartesianDerivativesGauss5, mCC.mTransversalCartesianDerivativesGauss6,
 //                                          mCC.mJinv_plane_upper, mPK2.mS_shear_upper, 9);
 
     /* NORMAL TRANSVERSE */
@@ -4727,8 +4727,8 @@ void SprismElement3D6N::CalculateKinematics(
     rVariables.C[4] = L_1 * mCC.mC_shear_lower(1, 0)    + L_2 * mCC.mC_shear_upper(1, 0);    // yz
     rVariables.C[5] = L_1 * mCC.mC_shear_lower(0, 0)    + L_2 * mCC.mC_shear_upper(0, 0);    // xz
 
-    rVariables.detF = rVariables.C[0] * rVariables.C[1] * rVariables.C[2] + 2 * rVariables.C[3] * rVariables.C[4] * rVariables.C[5]\
-                    - rVariables.C[5] * rVariables.C[5] * rVariables.C[1] -     rVariables.C[4] * rVariables.C[4] * rVariables.C[0]\
+    rVariables.detF = rVariables.C[0] * rVariables.C[1] * rVariables.C[2] + 2 * rVariables.C[3] * rVariables.C[4] * rVariables.C[5]
+                    - rVariables.C[5] * rVariables.C[5] * rVariables.C[1] -     rVariables.C[4] * rVariables.C[4] * rVariables.C[0]
                     - rVariables.C[3] * rVariables.C[3] * rVariables.C[2];
 
     if (rVariables.detF < 1.0e-8)
