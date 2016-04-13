@@ -23,12 +23,12 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
-      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
-      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
-      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -62,9 +62,9 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -98,12 +98,12 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
-      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
-      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
-      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -134,12 +134,12 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
-      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
-      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
-      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -170,12 +170,12 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
-      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
-      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
-      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -208,12 +208,12 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
-      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
-      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
-      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
     </NodalConditions>
 
     <inputs>
@@ -244,12 +244,12 @@
     
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
-      <NodalCondition n="ROTATION"     pn="Rotation"     type="vector" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
-      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
-      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" type="vector" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="L" units="m"     reaction="REACTION"/>
+      <NodalCondition n="ROTATION"     pn="Rotation"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Static"  unit_magnitude="Angle" units="rad" reaction="TORQUE"/>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"     reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2"     reaction=""/>
+      <NodalCondition n="ANGULAR_VELOCITY"     pn="Angular Velocity"     ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T" units="rad/s"     reaction=""/>
+      <NodalCondition n="ANGULAR_ACCELERATION" pn="Angular Acceleration" ProcessName="ApplyConstantVectorValueProcess" fixity="Fix" analysis_type = "Dynamic" unit_magnitude="Angle/T^2" units="rad/s^2"    reaction=""/>
     </NodalConditions>
 
     <inputs>

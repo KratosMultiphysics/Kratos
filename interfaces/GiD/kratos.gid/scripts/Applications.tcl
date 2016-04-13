@@ -92,6 +92,16 @@ proc apps::getMyDir {appName} {
     return [file join $::Kratos::kratos_private(Path) apps $appName]
 }
 
+proc apps::getCurrentUniqueName {un} {
+    return [ExecuteOnCurrent $un getUniqueName]
+}
+proc apps::getAppUniqueName {appName un} {
+    variable appList
+    foreach app $appList {
+        if {[$app getName] eq $appName} {return [$app executexml getUniqueName $un]}
+    }
+}
+
 proc apps::ExecuteOnCurrent {elem func} {
     variable activeApp
     if {$activeApp ne ""} {

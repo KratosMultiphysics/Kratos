@@ -16,19 +16,20 @@ proc Structural::write::Init { } {
     set NodalConditionsGroup [list ]
 }
 
+
 proc Structural::write::writeCustomFilesEvent { } {
     WriteMaterialsFile
     
-    write::CopyFileIntoModel "python/KratosStructural.py"
+    write::CopyFileIntoModel "python/KratosSolid.py"
     write::RenameFileInModel "KratosSolid.py" "MainKratos.py"
     
-    write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
+    #write::RenameFileInModel "ProjectParameters.json" "ProjectParameters.py"
 }
 
 # MDPA Blocks
+
 proc Structural::write::writeModelPartEvent { } {
     write::initWriteData "STParts" "STMaterials"
-    write::setGroupsTypeName "Mesh"
     
     write::writeModelPartData
     write::WriteString "Begin Properties 0"
@@ -53,13 +54,15 @@ proc Structural::write::writeMeshes { } {
     write::writePartMeshes
     
     # Solo Malla , no en conditions
-    write::writeNodalConditions "STDoFs"
+    write::writeNodalConditions "STNodalConditions"
     
     # A Condition y a meshes-> salvo lo que no tenga topologia
     writeLoads
 }
 
 proc Structural::write::writeLoads { } {
+    #writeGravity "STGravity"
+    variable nodalwrite
     variable ConditionsDictGroupIterators
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -75,9 +78,10 @@ proc Structural::write::writeLoads { } {
     }
 }
 
+
 proc Structural::write::writeCustomBlock { } {
     write::WriteString "Begin Custom"
-    write::WriteString "Custom write for Structural, any app can call me, so be careful!"
+    write::WriteString "Custom write for Solid, any app can call me, so be careful!"
     write::WriteString "End Custom"
     write::WriteString ""
 }
@@ -92,7 +96,7 @@ proc Structural::write::WriteMaterialsFile { } {
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.SolidApplication import *
 #from beam_sections_python_utility import SetProperties
 #from beam_sections_python_utility import SetMaterialProperties
 
