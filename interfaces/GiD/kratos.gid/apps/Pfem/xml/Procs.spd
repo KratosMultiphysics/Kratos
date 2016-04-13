@@ -5,7 +5,7 @@
 <proc n='CheckNodalConditionState' args='args'>
 <![CDATA[
 # Overwritten the base function to add Solution Type restrictions
-  set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+  set parts_un [apps::getCurrentUniqueName Parts]
   if {[spdAux::getRoute $parts_un] ne ""} {
 	  set conditionId [$domNode @n]
 	  set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
@@ -13,7 +13,7 @@
 	  foreach elem $elems { lappend elemnames [$elem @v]}
 	  set elemnames [lsort -unique $elemnames]
 	  
-	  set soltype_un [spdAux::ExecuteOnCurrentApp getUniqueName SoluType]
+	  set soltype_un [apps::getCurrentUniqueName SoluType]
 	  set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $soltype_un]] v]
 	  set params [list analysis_type $solutionType]
 	  if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}

@@ -410,7 +410,7 @@ proc spdAux::injectSolvers {basenode} {
             set n [$se getName]
             set pn [$se getPublicName]
             set help [$se getHelp]
-            set un [ExecuteOnCurrentApp getUniqueName "$stn$n"]
+            set un [apps::getCurrentUniqueName "$stn$n"]
             set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$un\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\" >"
             # Inject solvers combo
             append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\" update_proc=\"Updateme\"/>"
