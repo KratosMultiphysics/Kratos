@@ -50,10 +50,11 @@ proc apps::getActiveAppId { } {
     return $id
 }
 
-proc apps::NewApp {appid publicname} {
+proc apps::NewApp {appid publicname prefix} {
     variable appList
     set ap [App new $appid]
     $ap setPublicName $publicname
+    $ap setPrefix $prefix
     lappend appList $ap
 }
 
@@ -125,6 +126,7 @@ oo::class create App {
     variable writeModelPartEvent
     variable writeParametersEvent
     variable writeCustomEvent
+    variable prefix
     
     constructor {n} {
         variable name
@@ -133,6 +135,7 @@ oo::class create App {
         variable writeModelPartEvent
         variable writeParametersEvent
         variable writeCustomEvent
+        variable prefix
         
         set name $n
         set publicname $n
@@ -146,7 +149,7 @@ oo::class create App {
         set writeCustomEvent $n
         append writeCustomEvent "::write"
         append writeCustomEvent "::writeCustomFilesEvent"
-        
+        set prefix ""
     }
     
     method activate { } {
@@ -158,6 +161,9 @@ oo::class create App {
         append func "::LoadMyFiles"
         eval $func
     }
+    
+    method getPrefix { } {variable prefix; return $prefix}
+    method setPrefix { p } {variable prefix; set prefix $p}
     
     method getPublicName { } {variable publicname; return $publicname}
     method setPublicName { pn } {variable publicname; set publicname $pn}
@@ -173,6 +179,7 @@ oo::class create App {
     method getWriteCustomEvent { } {variable writeCustomEvent; return $writeCustomEvent}
     
     method executexml { func args } {
+        #W "func $func "
         variable name
         set f ${name}::xml::${func}
         $f {*}$args

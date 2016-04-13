@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <container n="BaseApp" pn="Base App" icon="units" tree_state="open">
+  <container n="BaseApp" pn="Base App" prefix="BA" icon="units" tree_state="open">
     <include n="ModelInformation" active="1" path="apps/BaseApp/xml/ModelInformation.spd"/>
     <include n="Parts" active="1" path="apps/BaseApp/xml/Parts.spd"/>
     <include n="NodalConditions" active="1" path="apps/BaseApp/xml/NodalConditions.spd"/>

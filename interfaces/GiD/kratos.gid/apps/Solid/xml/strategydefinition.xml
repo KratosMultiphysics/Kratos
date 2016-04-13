@@ -24,17 +24,19 @@
 		 help=""/> 
       <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"
 		 help=""/> 
-      <parameter n="convergence_criterion" pn="Convergence criterion" type="string" v="Residual_criterion" 
+      <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="Residual_criterion" 
          values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
-		 help="These are the available convergence criteria for the nonlinear iteration"/>      
-      <parameter n="displacement_relative_tolerance" pn="Displacement relative tolerance" type="double" v="1e-4" 
-		 help="Relative displacement tolerance employed in the nonlinear iteration"/>      
-      <parameter n="displacement_absolute_tolerance" pn="Displacement absolute tolerance" type="double" v="1e-9" 
-		 help="Absolute displacement tolerance employed in the nonlinear iteration"/>      
-      <parameter n="residual_relative_tolerance" pn="Residual relative tolerance" type="double" v="1e-4" 
-		 help="Relative residual tolerance employed in the nonlinear iteration"/>      
-      <parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" 
-		 help="Absolute residual tolerance employed in the nonlinear iteration"/>      
+         pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
+		 help="These are the available convergence criteria for the nonlinear iteration">      
+		<parameter n="displacement_relative_tolerance" pn="Displacement relative tolerance" type="double" v="1e-4" parent="Displacement_criterion,And_criterion,Or_criterion" 
+		   help="Relative displacement tolerance employed in the nonlinear iteration"/>      
+		<parameter n="displacement_absolute_tolerance" pn="Displacement absolute tolerance" type="double" v="1e-9" parent="Displacement_criterion,And_criterion,Or_criterion" 
+		   help="Absolute displacement tolerance employed in the nonlinear iteration"/>      
+		<parameter n="residual_relative_tolerance" pn="Residual relative tolerance" type="double" v="1e-4" parent="Residual_criterion,And_criterion,Or_criterion" 
+		   help="Relative residual tolerance employed in the nonlinear iteration"/>      
+		<parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" parent="Residual_criterion,And_criterion,Or_criterion" 
+		   help="Absolute residual tolerance employed in the nonlinear iteration"/>
+	  </parameter>
       <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" 
 		 help="This number will break the iterative loop when reached"/> 
     </parameter_list>

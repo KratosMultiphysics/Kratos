@@ -325,6 +325,14 @@ proc Model::CheckSolStratInputState {SolStratName paramName} {
     if {[$SolStrat getInputPn $paramName] ne ""} {return 1} {return 0}
 }
 
+proc Model::GetSolStratParamDep {SolStratName paramName} {
+    set SolStrat [Model::GetSolutionStrategy $SolStratName]
+    set in [$SolStrat getInputPn $paramName]
+    set depN [$in getDepN]
+    set depV [$in getDepV]
+    return [list $depN $depV]
+}
+
 proc Model::CheckSchemeInputState {SolStratName SchemeName paramName} {
     set SolStrat [Model::GetSolutionStrategy $SolStratName]
     set Scheme [$SolStrat getScheme $SchemeName]

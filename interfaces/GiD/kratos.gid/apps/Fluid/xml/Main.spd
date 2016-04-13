@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-  <container n="Fluid" pn="Fluid" icon="units" tree_state="open">
+  <container n="Fluid" pn="Fluid" icon="units" prefix="FL" tree_state="open">
     <include n="AnalysisType" active="1" path="apps/Fluid/xml/AnalysisType.spd"/>
     <include n="Parts" active="1" path="apps/Fluid/xml/Parts.spd"/>
     <include n="InitialConditions" active="1" path="apps/Fluid/xml/InitialConditions.spd"/>
