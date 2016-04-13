@@ -353,7 +353,7 @@ public:
 #endif
     }
 
-        typename Node<TDimension>::Pointer CreateCopy()
+        typename Node<TDimension>::Pointer Clone()
         {
             Node<3>::Pointer pnew_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
             pnew_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
@@ -1085,7 +1085,13 @@ public:
         typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
         if(i_dof != mDofs.end())
             return *i_dof;
-        return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction)));
+        
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        mDofs.insert(mDofs.begin(), p_new_dof);
+        return *p_new_dof;        
+        
+        
+//         return *(mDofs.insert(mDofs.begin(), DofType(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction)));
 
         KRATOS_CATCH_LEVEL_3(*this);
 
