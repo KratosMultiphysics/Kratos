@@ -267,7 +267,7 @@ namespace Kratos
 				//now we resize the vector of particle pointers. it is double sized because we move the particles from an initial position (first half) to a final position (second half).
 				//for(int j=0; j<(mmaximum_number_of_particles*2); j++)
 				//        particle_pointers.push_back(&firstparticle);
-				mvector_of_particle_pointers_vectors[ii] = ParticlePointerVector( mmaximum_number_of_particles*2, &firstparticle );
+				mvector_of_particle_pointers_vectors[ii] = ParticlePointerVector( mmaximum_number_of_particles*2 );
 				ParticlePointerVector& particle_pointers = mvector_of_particle_pointers_vectors[ii];
 				//int & number_of_particles = ielem->GetValue(NUMBER_OF_BED_PARTICLES);
 				int & number_of_particles = mnumber_of_particles_in_elems[ii];
