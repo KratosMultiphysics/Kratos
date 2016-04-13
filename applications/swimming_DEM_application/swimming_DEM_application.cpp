@@ -32,14 +32,14 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 
   
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
-  mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-  mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-  mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-  mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-  mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-  mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-  mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType( 1, Node<3>())))),
-  mSwimmingNanoParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType( 1, Node<3>()))))
+  mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+  mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+  mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+  mMonolithicDEMCoupledWeak3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+  mMonolithicDEMCoupledWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
+  mMonolithicDEMCoupledWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
+  mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+  mSwimmingNanoParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1))))
 {}
 
 void KratosSwimmingDEMApplication::Register()
