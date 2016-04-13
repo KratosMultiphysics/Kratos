@@ -1384,7 +1384,7 @@ namespace Kratos
          for (int k = 0; k < (int)pElements.size(); k++) {
             typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
 
-            ModelPart::NodeType pNode = it->GetGeometry()[0];
+            ModelPart::NodeType& pNode = it->GetGeometry()[0];
 
             array_1d<double, 3>& total_force = pNode.FastGetSolutionStepValue(TOTAL_FORCES); 
             array_1d<double, 3>& velocity = pNode.FastGetSolutionStepValue(VELOCITY);
