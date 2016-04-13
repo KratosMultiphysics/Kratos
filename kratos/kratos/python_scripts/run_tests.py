@@ -110,9 +110,9 @@ def RunTestSuit(application, path, level, verbose, command):
 
 def main():
 
-    # We need to fetch the command who called us to avoid problems without
-    # python versions
-    command = sys.argv[0]
+    # We need to fetch the command who called us to avoid problems with
+    # python versions such as running python3 while default is python2
+    command = sys.executable
 
     verbose_values = [0, 1, 2]
     level_values = ['all', 'nightly', 'small']
