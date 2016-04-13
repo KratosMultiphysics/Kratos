@@ -18,6 +18,7 @@
 #include "DEM_application_variables.h"
 #include "includes/kratos_flags.h"
 #include "custom_utilities/properties_proxies.h"
+#include "custom_utilities/create_and_destroy.h"
 
 namespace Kratos {
         
@@ -54,8 +55,15 @@ namespace Kratos {
         
         double radius = mListOfRadii[0];
         
-        double excentricity = GetGeometry()[0].FastGetSolutionStepValue(EXCENTRICITY);
-        excentricity *= cl;
+        double excentricity = GetProperties()[EXCENTRICITY];
+        excentricity *= radius;
+        double min_excentricity = 0.05 * excentricity; //TODO: this is a little bit arbitrary
+        double max_excentricity = 1.00 * excentricity; //TODO: this is a little bit arbitrary
+        double excentricity_std_deviation = GetProperties()[EXCENTRICITY_STANDARD_DEVIATION];
+        std::string excentricity_distribution_type = GetProperties()[EXCENTRICITY_PROBABILITY_DISTRIBUTION];
+        if (excentricity_distribution_type == "normal") excentricity = ParticleCreatorDestructor::rand_normal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
+        else if (excentricity_distribution_type == "lognormal") excentricity = ParticleCreatorDestructor::rand_lognormal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
+        else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
         
         mListOfCoordinates[0][0] = excentricity;
         mListOfCoordinates[0][1] = 0.0;
@@ -134,6 +142,6 @@ namespace Kratos {
     void   SingleSphereCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info) {}
     void   SingleSphereCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info) {}
     double SingleSphereCluster3D::SlowGetDensity()                                      { return GetProperties()[PARTICLE_DENSITY];}
-
+    
 }  // namespace Kratos
 
