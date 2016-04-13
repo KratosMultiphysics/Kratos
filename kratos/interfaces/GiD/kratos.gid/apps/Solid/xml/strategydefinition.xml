@@ -1,27 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList>
   <StrategyItem n="Implicit" pn="Implicit" 
-		ImplementedInFile="mechanical_strategy.cpp"
-		ImplementedInApplication="SolidMechanicsApplication"
-		ImplementedInPythonFile="mechanical_solver"
-		MinimumKratosVersion="8500"
-		ProductionReady="true"
-		help="">
+                ImplementedInFile="mechanical_strategy.cpp"
+                ImplementedInApplication="SolidMechanicsApplication"
+                ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
+                MinimumKratosVersion="8500"
+                ProductionReady="true"
+                help="">
     
     <!-- list of options to be filled -->
     <parameter_list>
-      <parameter n="displacement_relative_tolerance" pn="Variables tolerance" type="double" v="1e-4" 
-		 help="This is the tolerance for the variables in dof's that will be employed in the nonlinear iteration"/>      
-      <parameter n="residual_relative_tolerance" pn="Residual tolerance" type="double" v="1e-4" 
-		 help="This is the residual tolerance that will be employed in the nonlinear iteration"/>      
-      <parameter n="residual_absolute_tolerance" pn="Absolute tolerance" type="double" v="1e-9" 
-		 help="This is the absolute residual tolerance that will be employed in the nonlinear iteration"/>      
-      <parameter n="max_iteration" pn="Maximum Iterations" type="integer" v="30" 
+      <parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  
+		 help="Activate/deactivate rotation degrees of freedom"/> 
+      <parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"
+		 help="Activate/deactivate pressure degrees of freedom"/> 
+      <parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" 
+		 help=""/> 
+      <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true"
+		 help=""/> 
+      <parameter n="line_search" pn="Line search" type="bool" v="false" values="false,true"
+		 help="Switch on/off line search"/> 
+      <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"
+		 help=""/> 
+      <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"
+		 help=""/> 
+      <parameter n="convergence_criterion" pn="Convergence criterion" type="string" v="Residual_criterion" 
+         values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
+		 help="These are the available convergence criteria for the nonlinear iteration"/>      
+      <parameter n="displacement_relative_tolerance" pn="Displacement relative tolerance" type="double" v="1e-4" 
+		 help="Relative displacement tolerance employed in the nonlinear iteration"/>      
+      <parameter n="displacement_absolute_tolerance" pn="Displacement absolute tolerance" type="double" v="1e-9" 
+		 help="Absolute displacement tolerance employed in the nonlinear iteration"/>      
+      <parameter n="residual_relative_tolerance" pn="Residual relative tolerance" type="double" v="1e-4" 
+		 help="Relative residual tolerance employed in the nonlinear iteration"/>      
+      <parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" 
+		 help="Absolute residual tolerance employed in the nonlinear iteration"/>      
+      <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" 
 		 help="This number will break the iterative loop when reached"/> 
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="linear_solver_config" pn="Linear Solver" >
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
         <filterFeatures>
 	  <!--<filter field="n" value="BiConjugate"/>
 	      <filter field="symmetric" value="false"/>
@@ -31,13 +50,16 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="Linear" pn="Linear (Static)" help="Shceme for linear or single-step static problems">
+<!--
+	  <scheme n="Linear" pn="Linear (Static)" help="Scheme for linear or single-step static problems">
 	            <parameter_list>
 			</parameter_list>
   		  <element_filters>
 			 <filter field="ElementType" value="Solid,Shell,Beam"/>
 		  </element_filters>
 	  </scheme>
+-->
+<!--
 	  <scheme n="NonLinear" pn="Non-Linear (Static)" help="Scheme for non-linear or multi-step static problems">
 	            <parameter_list>
 			</parameter_list>
@@ -45,48 +67,47 @@
 			 <filter field="ElementType" value="Solid,Shell,Beam"/>
 		  </element_filters>
 	  </scheme>
-	  <scheme n="Newmark" pn="Newmark (Dynamic)" help="Scheme for dynamic problems">
-	            <parameter_list>
-			  <parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
-			  <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/>
+-->
+	  <scheme n="Newmark" pn="Newmark" help="Scheme for dynamic problems">
+            <parameter_list>
+                <parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
+                <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/>
 			</parameter_list>
-  		  <element_filters>
-			 <filter field="ElementType" value="Solid,Shell,Beam"/>
+            <element_filters>
+                <filter field="ElementType" value="Solid,Shell,Beam"/>
 			 <!-- <forceIn field="n" value="MembraneElement"/>
 			 <forceOut field="n" value="SmallDisplacementElement2D"/> -->
-		  </element_filters>
+            </element_filters>
 	  </scheme>
-	  <scheme n="Bossak" pn="Bossak (Dynamic)" help="Scheme for dynamic problems with high frequency accelerations damping">
-		    <parameter_list>
-  		          <parameter n="Bossak" pn="Alpha" type="double" v="-0.01" help="Bossak parameter possible values Alpha = [0,-0.3]"/>
-			  <parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
-			  <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/>
+	  <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping">
+            <parameter_list>
+                <parameter n="Bossak" pn="Alpha" type="double" v="-0.01" help="Bossak parameter possible values Alpha = [0,-0.3]"/>
+                <parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
+                <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/>
 			</parameter_list>
-		  <element_filters>
-			 <filter field="ElementType" value="Solid,Shell,Beam"/>
-		  </element_filters>
+            <element_filters>
+                <filter field="ElementType" value="Solid,Shell,Beam"/>
+            </element_filters>
 	  </scheme>
 	</schemes>
   
   </StrategyItem>
   <StrategyItem n="Explicit" pn="Explicit" 
-		ImplementedInFile="mechanical_strategy.cpp"
-		ImplementedInApplication="SolidMechanicsApplication"
-		ImplementedInPythonFile="mechanical_solver"
-		MinimumKratosVersion="8500"
-		ProductionReady="true"
-		help="">
+                ImplementedInFile="mechanical_strategy.cpp"
+                ImplementedInApplication="SolidMechanicsApplication"
+                ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
+                MinimumKratosVersion="8500"
+                ProductionReady="true"
+                help="">
     
     <!-- list of options to be filled -->
     <parameter_list>
-           <parameter n="DeltaTimePredictionLevel" pn="Delta time prediction level" type="double" v="0" 
-		 help="This is the prediction level possibilities [0,1,2]"/>      
-           <parameter n="MaximumDeltatime" pn="Maximum Delta time" type="double" v="1e-3" 
-		 help="This is the maximum delta time allowed"/>
+           <parameter n="DeltaTimePredictionLevel" pn="Delta time prediction level" type="double" v="0" help="This is the prediction level possibilities [0,1,2]"/>      
+           <parameter n="MaximumDeltatime" pn="Maximum Delta time" type="double" v="1e-3" help="This is the maximum delta time allowed"/>
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="linear_solver_config" pn="Linear Solver" >
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
         <filterFeatures>
 	  <!--<filter field="n" value="BiConjugate"/>
 	      <filter field="symmetric" value="false"/>
