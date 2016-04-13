@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ProcessList>
-  <Process n="ApplyConstantVectorValueProcess" pn="Vector value" ImplementedInFile="process_factory"
+  <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" ImplementedInFile="process_factory"
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
@@ -8,7 +8,7 @@
       <parameter n="value" pn="Value" type="vector" v="0.0,-9.81,0.0" />
     </inputs>
   </Process>
-  <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" ImplementedInFile="process_factory"
+  <Process n="ApplyConstantScalarValueProcess" pn="Constant calar value" ImplementedInFile="process_factory"
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>

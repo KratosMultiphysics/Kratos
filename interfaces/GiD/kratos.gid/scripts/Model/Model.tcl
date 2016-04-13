@@ -47,7 +47,7 @@ proc Model::getSolutionStrategies { SolutionStrategyFileName } {
     variable SolutionStrategies
     variable dir
     
-    set SolutionStrategies [list ]
+    #set SolutionStrategies [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $SolutionStrategyFileName]] doc
     
     ParseSolutionStrategies $doc
@@ -57,7 +57,7 @@ proc Model::getElements { ElementsFileName } {
     variable Elements
     variable dir
     
-    set Elements [list ]
+    #set Elements [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $ElementsFileName]] doc
     
     ParseElements $doc
@@ -66,7 +66,7 @@ proc Model::getConditions { ConditionsFileName } {
     variable Conditions
     variable dir
     
-    set Conditions [list ]
+    #set Conditions [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $ConditionsFileName]] doc
     
     ParseConditions $doc
@@ -76,7 +76,7 @@ proc Model::getConstitutiveLaws { ConstitutiveLawsFileName } {
     variable ConstitutiveLaws
     variable dir
     
-    set ConstitutiveLaws [list ]
+    #set ConstitutiveLaws [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $ConstitutiveLawsFileName]] doc
     
     ParseConstitutiveLaws $doc
@@ -86,7 +86,7 @@ proc Model::getSolvers { SolversFileName } {
     variable Solvers
     variable dir
     
-    set Solvers [list ]
+    #set Solvers [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $SolversFileName]] doc
     
     ParseSolvers $doc
@@ -96,7 +96,7 @@ proc Model::getProcesses { ProcessesFileName } {
     variable Processes
     variable dir
     
-    set Processes [list ]
+    #set Processes [list ]
     dom parse [tDOM::xmlReadFile [file join $dir xml $ProcessesFileName]] doc
     
     ParseProcesses $doc
