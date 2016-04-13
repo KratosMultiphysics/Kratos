@@ -6,55 +6,70 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Additional imports
-import constitutive_law_python_utility as constitutive_law_utils
-
 def GetFilePath(fileName):
-    return os.path.dirname(__file__) + "/" + fileName
+  return os.path.dirname(__file__) + "/" + fileName
 
-class SprismPatchTests(KratosUnittest.TestCase):
+class ConstitutiveLawBuild:
+  def __init__(self, model_part, domain_size):
+    self.model_part = model_part
+    self.domain_size = domain_size
 
-    def setUp(self):
-        # Modelpart for the solid
-        model_part = ModelPart("StructuralPart")
-        model_part.AddNodalSolutionStepVariable(ALPHA_EAS)
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(REACTION)
+  def Initialize(self):
+    self.SetConstitutiveLaw()
 
-        # Initialize GiD  I/O
-        input_file_name = GetFilePath("SPRISM3D6N/patch_test")
+  def SetConstitutiveLaw(self):
+    AssignMaterial(self.model_part.Properties)
 
-        # Reading the fluid part
-        model_part_io_fluid = ModelPartIO(input_file_name)
-        model_part_io_fluid.ReadModelPart(model_part)
-        
-        # Find neighbours if required
-        sprism_neighbour_search = SprismNeighbours(model_part)
-        sprism_neighbour_search.Execute()
+def AssignMaterial(Properties):
+    prop_id = 1;
+    prop = Properties[prop_id]
+    mat = LinearElastic3DLaw();
+    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());
 
-        # Setting up the buffer size
-        model_part.SetBufferSize(3)
+def GeneralModelPartBuild(directory_name,file_name,list_tools):
+  # Modelpart for the solid
+  model_part = ModelPart("StructuralPart")
+  model_part.AddNodalSolutionStepVariable(ALPHA_EAS)
+  model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+  model_part.AddNodalSolutionStepVariable(REACTION)
 
-        # Adding dofs
-        for node in model_part.Nodes:
-          node.AddDof(DISPLACEMENT_X, REACTION_X)
-          node.AddDof(DISPLACEMENT_Y, REACTION_Y)
-          node.AddDof(DISPLACEMENT_Z, REACTION_Z)
-          
-        # Set the constitutive law
-        constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, 3);
-        constitutive_law.Initialize();
+  # Initialize GiD  I/O
+  input_file_name = GetFilePath(directory_name + "/" + file_name)
 
-        max_iters = 30
+  # Reading the fluid part
+  model_part_io_fluid = ModelPartIO(input_file_name)
+  model_part_io_fluid.ReadModelPart(model_part)
 
-        linear_solver = SkylineLUFactorizationSolver()
+  # Find neighbours
+  sprism_neighbour_search = SprismNeighbours(model_part)
+  sprism_neighbour_search.Execute()
 
-        # Create solver
-        builder_and_solver = ResidualBasedBuilderAndSolver(linear_solver)
-        mechanical_scheme = ResidualBasedStaticScheme()
-        mechanical_convergence_criterion = ResidualCriteria(1e-4, 1e-4)
+  # Setting up the buffer size
+  model_part.SetBufferSize(3)
 
-        self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(
+  # Adding dofs
+  for node in model_part.Nodes:
+    node.AddDof(DISPLACEMENT_X, REACTION_X)
+    node.AddDof(DISPLACEMENT_Y, REACTION_Y)
+    node.AddDof(DISPLACEMENT_Z, REACTION_Z)
+
+  return model_part
+      
+def GeneralSolverBuild(model_part, domain_size):
+  # Set the constitutive law
+  constitutive_law = ConstitutiveLawBuild(model_part, domain_size);
+  constitutive_law.Initialize();
+
+  max_iters = 30
+
+  linear_solver = SkylineLUFactorizationSolver()
+
+  # Create solver
+  builder_and_solver = ResidualBasedBuilderAndSolver(linear_solver)
+  mechanical_scheme = ResidualBasedStaticScheme()
+  mechanical_convergence_criterion = ResidualCriteria(1e-4, 1e-4)
+
+  mechanical_solver = ResidualBasedNewtonRaphsonStrategy(
             model_part,
             mechanical_scheme,
             linear_solver,
@@ -65,16 +80,34 @@ class SprismPatchTests(KratosUnittest.TestCase):
             True,
             True)
 
-        self.mechanical_solver.SetEchoLevel(0)
-        self.mechanical_solver.Initialize()
+  mechanical_solver.SetEchoLevel(0)
+  mechanical_solver.Initialize()
+  
+  return mechanical_solver
 
-        self.model_part = model_part
+def GeneralSolver(model_part, mechanical_solver, Dt, final_time):
+  
+  step = 0
+  time = 0.0
+  
+  while(time <= final_time):
+
+    model_part.CloneTimeStep(time)
+
+    time += Dt
+    step += 1
+
+    mechanical_solver.Solve()
+  
+  return model_part
+  
+class SprismPatchTests(KratosUnittest.TestCase):
+
+    def setUp(self):
+      self.model_part = GeneralModelPartBuild("SPRISM3D6N","patch_test",["SprismUtils"])
+      self.mechanical_solver = GeneralSolverBuild(self.model_part, 3)
 
     def test_MembranePacth(self):
-        step = 0
-        time = 0.0
-        Dt = 1.0
-        final_time = 1.0
 
         # Add BC
         for node in self.model_part.Nodes:
@@ -90,14 +123,11 @@ class SprismPatchTests(KratosUnittest.TestCase):
                     0,
                     1.0e-7 * (node.Y + node.X / 2))
 
-        while(time <= final_time):
 
-            self.model_part.CloneTimeStep(time)
-
-            time += Dt
-            step += 1
-
-            self.mechanical_solver.Solve()
+        Dt = 1.0
+        final_time = 1.0
+        
+        self.model_part = GeneralSolver(self.model_part, self.mechanical_solver, Dt, final_time)
 
         for node in self.model_part.Nodes:
             value = node.GetSolutionStepValue(DISPLACEMENT_X,0)
@@ -106,10 +136,6 @@ class SprismPatchTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(value, 1.0e-7 * (node.Y + node.X / 2))
 
     def test_BendingPacth(self):
-        step = 0
-        time = 0.0
-        Dt = 1.0
-        final_time = 1.0
 
         # Add BC
         for node in self.model_part.Nodes:
@@ -127,14 +153,10 @@ class SprismPatchTests(KratosUnittest.TestCase):
                     DISPLACEMENT_Z, 0,
                     0.5 * 1.0e-7 * (node.X ** 2 + node.X * node.Y + node.Y ** 2))
 
-        while(time <= final_time):
-
-            self.model_part.CloneTimeStep(time)
-
-            time += Dt
-            step += 1
-            
-            self.mechanical_solver.Solve()
+        Dt = 1.0
+        final_time = 1.0
+        
+        self.model_part = GeneralSolver(self.model_part, self.mechanical_solver, Dt, final_time)
 
         for node in self.model_part.Nodes:
             value = node.GetSolutionStepValue(DISPLACEMENT_X,0)
