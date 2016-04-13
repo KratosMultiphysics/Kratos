@@ -328,7 +328,7 @@ public:
         for(ModelPart::NodesContainerType::iterator it = rInletNodes.begin(); it!=rInletNodes.end(); it++)
 	{
 	    //create a new node as a copy of one of the inlet nodes
-	    Node<3>::Pointer p_new_node( it->CreateCopy() ); //*(*(it.base()))));
+	    Node<3>::Pointer p_new_node( it->Clone() ); //*(*(it.base()))));
 
 	    //assign an arbitrary Id
 	    p_new_node->SetId(aux_id++);
