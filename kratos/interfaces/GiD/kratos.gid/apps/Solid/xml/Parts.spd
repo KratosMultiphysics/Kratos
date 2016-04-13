@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<condition n="Parts" pn="Parts" ov="point,line,surface,volume" ovm="node,element" icon="shells16" help="Select your group" un="SLParts">
-	  <value n="Element" pn="Element" v="" dict="" actualize_tree="1" values="[GetElements]" state="normal">
-			<dependencies node="../value" actualize="1"/>
+<condition n="Parts" pn="Parts" ov="point,line,surface,volume" ovm="node,element" icon="shells16" help="Select your group" un="SLParts" >
+	  <value n="Element" pn="Element" actualize_tree="1" values="[GetElements]" v="" dict="" state="normal" >
+			<dependencies node="../value" actualize="1" />
 	  </value>
 	  <value n="ConstitutiveLaw" pn="Constitutive law" actualize_tree="1" v=""
 			 values="[GetConstitutiveLaws]" dict="" state="normal">
@@ -14,4 +14,5 @@
 	  </value>
 	  <dynamicnode command="injectElementInputs" args=""/>
 	  <dynamicnode command="injectConstitutiveLawInputs" args=""/>
+	  <!--<value n="test" pn="test" v="9" state="[Recalc]" />-->
 </condition>

@@ -5,7 +5,7 @@
 		  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
 	  # Overwritten the base function to add Solution Type restrictions
-		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+		set parts_un [apps::getCurrentUniqueName Parts]
 	    if {[spdAux::getRoute $parts_un] ne ""} {
 			set conditionId [$domNode @n]
 			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]

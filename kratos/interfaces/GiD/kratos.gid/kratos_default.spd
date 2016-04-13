@@ -26,8 +26,8 @@
         <proc n='GetElements' args='args'>
           <![CDATA[
           
-                set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
-                set schemeUN [spdAux::ExecuteOnCurrentApp getUniqueName Scheme]
+                set sol_stratUN [apps::getCurrentUniqueName SolStrat]
+                set schemeUN [apps::getCurrentUniqueName Scheme]
                 if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
                   get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
                   get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] values
@@ -78,7 +78,7 @@
 	</proc>
 	    <proc n='GetSchemes' args='args'>
 	  <![CDATA[
-		set sol_stratUN [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+		set sol_stratUN [apps::getCurrentUniqueName SolStrat]
 		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
 		set schemes [::Model::GetAvailableSchemes $solStratName]
 		
@@ -150,7 +150,7 @@
 	</proc>
 	  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
-		set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+		set parts_un [apps::getCurrentUniqueName Parts]
 	    if {[spdAux::getRoute $parts_un] ne ""} {
 			set conditionId [$domNode @n]
 			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
@@ -428,7 +428,7 @@
 	  <proc n='ActiveIfAnyPartState' args='args'>
 	  <![CDATA[
 	  set parts ""
-	  set parts_un [spdAux::ExecuteOnCurrentApp getUniqueName Parts]
+	  set parts_un [apps::getCurrentUniqueName Parts]
 	  catch {
 		set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]
 		}
