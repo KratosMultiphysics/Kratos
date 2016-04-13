@@ -106,7 +106,11 @@ proc spdAux::processAppIncludes { root } {
         if {$active} {
             set dir $::Kratos::kratos_private(Path)
             set f [file join $dir apps $appid xml Main.spd]
-            set processedAppnode [customlib::processIncludesRecurse $f $dir]
+            # Only keep pn2 when minimum GiD version > 12.1.11d
+            set pn1 ""; set pn2 "";
+            catch {set pn1 [customlib::processIncludesRecurse $f $dir]; set processedAppnode $pn1}
+            catch {set pn2 [customlib::ProcessIncludesRecurse $f $dir]; set processedAppnode $pn2}
+            #set processedAppnode [customlib::processIncludesRecurse $f $dir]
             $root insertBefore $processedAppnode $elem
             $elem delete
         }
