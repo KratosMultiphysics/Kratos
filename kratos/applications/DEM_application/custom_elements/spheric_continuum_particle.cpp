@@ -393,7 +393,9 @@ namespace Kratos {
         unsigned int initial_neighbors_size = mIniNeighbourIds.size();
         TempNeighbourElements.resize(initial_neighbors_size);
 
-        for (unsigned int i = 0; i < initial_neighbors_size; i++) { TempNeighbourElements[i] = NULL; }
+        for (unsigned int i = 0; i < initial_neighbors_size; i++) {
+            TempNeighbourElements[i] = NULL;
+        }
             
         // Loop over current neighbors
         for (unsigned int i = 0; i < current_neighbors_size; i++) {            
@@ -417,15 +419,22 @@ namespace Kratos {
                 double distance = DEM_MODULUS_3(other_to_me_vect);
                 double indentation = radius_sum - distance;
 
-                if (indentation > 0.0) { TempNeighbourElements.push_back(i_neighbour);}
+                if (indentation > 0.0) {
+                    TempNeighbourElements.push_back(i_neighbour);
+                }
             }
         }
                                   
         mNeighbourElements.swap(TempNeighbourElements);
         
-        if(mBondElements.size()) {
+        if (mBondElements.size()) {
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) { 
-                if(mNeighbourElements[i] == NULL) mBondElements[i]=NULL;            
+                if (mNeighbourElements[i] == NULL) {
+                    mBondElements[i] = NULL;
+                }
+                if ((mNeighbourElements[i] == NULL) && (mIniNeighbourFailureId[i] == 0)) {
+                    mIniNeighbourFailureId[i] = 6;
+                }
             }
         }
 
@@ -536,7 +545,7 @@ namespace Kratos {
     void SphericContinuumParticle::CalculateOnContactElements(size_t i, double LocalElasticContactForce[3], double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
         KRATOS_TRY
 
-        if(!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
+        if (!mBondElements.size()) return; // we skip this function if the vector of bonds hasn't been filled yet.
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
