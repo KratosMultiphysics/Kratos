@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 
 from classes.elementCreator import ElementCreator
@@ -9,6 +10,7 @@ from classes.variableCreator import VariableCreator
 from utils.io import ToUpperFromCamel
 from utils.io import ToLowerFromCamel
 from utils.io import GetApplicationsDirectory
+from utils.io import bcolors, Formatc
 
 from utils.constants import ptab, ctab
 from utils.templateRule import TemplateRule
@@ -156,8 +158,8 @@ class ApplicationGenerator(TemplateRule):
             fromContainer=self._variables)
 
         # add it to kratos
-        # self._addApplicationToCMake()
-        # self._addApplicationToAppList()
+        self._addApplicationToCMake()
+        self._addApplicationToAppList()
 
     # Interal goes here
     def _applyTemplateRulesToFile(self, src, dst, rules):
@@ -289,9 +291,23 @@ class ApplicationGenerator(TemplateRule):
 
         msgCount = 0
 
+        # We can check it this way, as is not that large
+        with open(srcFile, 'r') as src:
+            if self._nameCamel in src.read():
+                msg = Formatc([
+                    {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                    {'color': bcolors.CYAN, 'msg': ' {}'.format(self._nameCamel+'Application')},
+                    {'color': None, 'msg': ' already has an entry in "'},
+                    {'color': bcolors.CYAN, 'msg': '{}'.format('CMakeLists.txt')},
+                    {'color': None, 'msg': '". Skipping step.'},
+                ], sys.stderr)
+
+                print(msg, file=sys.stderr)
+
+                return
+
         with open(srcFile, 'r') as src, open(dstFile, 'w+') as dst:
             for l in src:
-
                 # Skip the first message
                 if 'message( " ")' in l and msgCount == 0:
                     msgCount += 1
@@ -344,10 +360,24 @@ class ApplicationGenerator(TemplateRule):
 
         currentBlock = 'header'
 
+        # We can check it this way, as is not that large
+        with open(srcFile, 'r') as src:
+            if self._nameCamel in src.read():
+                msg = Formatc([
+                    {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                    {'color': bcolors.CYAN, 'msg': ' {}'.format(self._nameCamel+'Application')},
+                    {'color': None, 'msg': ' already has an entry in "'},
+                    {'color': bcolors.CYAN, 'msg': '{}'.format('applications_interface.py')},
+                    {'color': None, 'msg': '". Skipping step.'},
+                ], sys.stderr)
+
+                print(msg, file=sys.stderr)
+
+                return
+
         # First read the file and parse all the info
         with open(srcFile, 'r') as src:
             for l in src:
-
                 # Select the block
                 if 'Import_' in l and 'Application = False' in l:
                     currentBlock = 'importFalseBlock'
