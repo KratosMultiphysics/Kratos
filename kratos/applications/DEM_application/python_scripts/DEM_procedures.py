@@ -318,7 +318,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
         # Not really necessary but it is filled by inlet
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
-        model_part.AddNodalSolutionStepVariable(EXCENTRICITY)
 
     def AddMpiVariables(self, model_part):
         pass
