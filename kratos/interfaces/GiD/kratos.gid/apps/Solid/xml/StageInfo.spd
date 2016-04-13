@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="StageInfo" pn="Model information" help="Stage information" state="normal">
-    <value n="AnalysisType" pn="Analysis type" state="hidden" un="SLAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type"/>
     <value n="SolutionType" pn="Solution type" un="SLSoluType" v="Static" values="Static,Dynamic" help="Solution type" actualize_tree="1"/>
-    <value n="SolStratCombo" pn="Solution Strategy" un="SLSolStrat" v="" values="[GetSolutionStrategies]" actualize_tree="1" state="normal"/>
+    <value n="SolStratCombo" pn="Solution strategy" un="SLSolStrat" v="" values="[GetSolutionStrategies]" actualize_tree="1" state="normal"/>
     <value n="Scheme" pn="Scheme" un="SLScheme" v="" values="[GetSchemes]" state="normal"  actualize_tree="1"/>
+    <value n="AnalysisType" pn="Analysis type" un="SLAnalysisType" v="Linear" values="Linear,Non-Linear" help="Analysis type"/>
 </container>
     
