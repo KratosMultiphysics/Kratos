@@ -11,92 +11,6 @@
 
 namespace Kratos {
     
-    
-    static double rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius) {
-
-        if (!stddev) return mean;
-
-        double return_value;
-
-        do {
-            double x, y, r;
-
-            do {
-                x = 2.0 * rand() / RAND_MAX - 1;
-                y = 2.0 * rand() / RAND_MAX - 1;
-                r = x * x + y*y;
-            } while (r == 0.0 || r > 1.0);
-
-            double d = sqrt(-2.0 * log(r) / r);
-            return_value = x * d * stddev + mean;
-
-        } while (return_value < min_radius || return_value > max_radius);
-
-        return return_value;
-    }
-
-    static double rand_lognormal(const double mean, const double stddev, const double max_radius, const double min_radius){
-        const double normal_mean = log(mean * mean / sqrt(stddev * stddev + mean * mean));
-        const double normal_stddev = sqrt(log(1 + stddev * stddev / (mean * mean)));
-        double normally_distributed_value = rand_normal(normal_mean, normal_stddev, log(max_radius), log(min_radius));
-
-        return exp(normally_distributed_value);
-    }
-
-    static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity, const double angle_in_degrees){
-        
-        double velocity_modulus = sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]);
-        array_1d<double, 3 > unitary_velocity;
-        noalias(unitary_velocity) = velocity / velocity_modulus;
-        array_1d<double, 3 > normal_1;
-        array_1d<double, 3 > normal_2;
-        
-        if(fabs(unitary_velocity[0])>=0.577) {
-            normal_1[0]= - unitary_velocity[1];
-            normal_1[1]= unitary_velocity[0];
-            normal_1[2]= 0.0;
-        }
-        else if(fabs(unitary_velocity[1])>=0.577) {
-            normal_1[0]= 0.0;
-            normal_1[1]= - unitary_velocity[2];
-            normal_1[2]= unitary_velocity[1];
-        }        
-        else {                   
-            normal_1[0]= unitary_velocity[2];
-            normal_1[1]= 0.0;
-            normal_1[2]= - unitary_velocity[0];
-        }        
-        
-        //normalize(normal_1);
-        double distance0 = DEM_MODULUS_3(normal_1);
-        double inv_distance0 = (distance0 != 0.0) ?  1.0 / distance0 : 0.00;
-        normal_1[0] = normal_1[0] * inv_distance0;
-        normal_1[1] = normal_1[1] * inv_distance0;
-        normal_1[2] = normal_1[2] * inv_distance0;
-        
-        //CrossProduct(NormalDirection,Vector0,Vector1);
-        normal_2[0] = unitary_velocity[1]*normal_1[2] - unitary_velocity[2]*normal_1[1];
-        normal_2[1] = unitary_velocity[2]*normal_1[0] - unitary_velocity[0]*normal_1[2];
-        normal_2[2] = unitary_velocity[0]*normal_1[1] - unitary_velocity[1]*normal_1[0];     
-        
-        double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
-        double radius = tan(angle_in_radians) * velocity_modulus;
-        double radius_square = radius * radius;
-        double local_added_velocity_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
-        array_1d<double, 3 > local_added_velocity; local_added_velocity[0] = local_added_velocity[1] = local_added_velocity[2] = 0.0;
-        
-        while (local_added_velocity_modulus_square > radius_square) {
-            //Random in a range: (max - min) * ( (double)rand() / (double)RAND_MAX ) + min
-            local_added_velocity[0] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
-            local_added_velocity[1] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
-            local_added_velocity_modulus_square = local_added_velocity[0]*local_added_velocity[0] + local_added_velocity[1]*local_added_velocity[1];
-        }
-        
-        noalias(velocity) += local_added_velocity[0] * normal_1 + local_added_velocity[1] * normal_2;
-        
-        
-    }
-
     ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0) {
         mScaleFactor = 1.0;
         mHighPoint[0] = 10e18;
@@ -365,7 +279,8 @@ namespace Kratos {
                                                                                   double cluster_mass,
                                                                                   Properties::Pointer r_params,
                                                                                   const Element& r_reference_element,
-                                                                                  const int cluster_id) {
+                                                                                  const int cluster_id, 
+                                                                                  PropertiesProxy* p_fast_properties) {
         Node<3>::Pointer pnew_node;
         
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
@@ -379,6 +294,7 @@ namespace Kratos {
 
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
+        spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->SetMass(cluster_mass);
         spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());        
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
@@ -468,22 +384,6 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
         
-        // SphereCluster3D specific
-        std::string element_type = (*r_params)[ELEMENT_TYPE];
-        if (element_type == "SingleSphereCluster3D") {
-            double excentricity = (*r_params)[EXCENTRICITY];
-            excentricity *= radius;
-            double min_excentricity = 0.05 * excentricity; //TODO: this is a little bit arbitrary
-            double max_excentricity = 1.00 * excentricity; //TODO: this is a little bit arbitrary
-            double excentricity_std_deviation = (*r_params)[EXCENTRICITY_STANDARD_DEVIATION];
-            std::string excentricity_distribution_type = (*r_params)[EXCENTRICITY_PROBABILITY_DISTRIBUTION];
-            if (excentricity_distribution_type == "normal") excentricity = rand_normal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
-            else if (excentricity_distribution_type == "lognormal") excentricity = rand_lognormal(excentricity, excentricity_std_deviation, max_excentricity, min_excentricity);
-            else KRATOS_THROW_ERROR(std::runtime_error, "Unknown probability distribution.", "")
-            pnew_node->FastGetSolutionStepValue(EXCENTRICITY) = excentricity;
-        }
-        // SphereCluster3D specific
-
         Geometry<Node<3> >::PointsArrayType nodelist;
 
         nodelist.push_back(pnew_node);
