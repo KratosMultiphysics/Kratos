@@ -189,7 +189,9 @@ public:
 //                                 NodeType::Pointer p_node(new NodeType(*i_node));
 //                 last_id++;
                 
-                                Node<3>::Pointer contact_node_global( new Node<3>( *(mr_model_part.NodesEnd()-1) ) );
+//                                 Node<3>::Pointer contact_node_global( new Node<3>( *(mr_model_part.NodesEnd()-1) ) );
+                                Node<3>::Pointer contact_node_global = (mr_model_part.NodesEnd()-1)->Clone(); //do you really want to clone it??
+                                
                                 contact_node_global->SetId(++lastExistingNodeId);
 //                                 contact_node_global->AddDof( DISPLACEMENT_X );
 //                                 contact_node_global->AddDof( DISPLACEMENT_Y );
