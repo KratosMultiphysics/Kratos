@@ -1,24 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ProcessList>
-  <Process n="ApplyConstantVectorValueProcess" pn="Vector value" ImplementedInFile="process_factory"
-		implemented_in_module="KratosMultiphysics"
-		help="This process ">
-    <inputs>
-      <parameter n="variable_name" pn="Variable name" type="String"   />
-      <parameter n="factor" pn="factor" type="double"  v="1.0" />
-      <parameter n="value" pn="value" type="vector" v="0.0,0.0,-9.81" />
-      <parameter n="is_fixed_x" pn="Fix X" type="bool" v="True" />
-      <parameter n="is_fixed_y" pn="Fix Y" type="bool" v="True" />
-      <parameter n="is_fixed_z" pn="Fix Z" type="bool" v="True" />
-    </inputs>
-  </Process>
-  <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" ImplementedInFile="process_factory"
-		implemented_in_module="KratosMultiphysics"
-		help="This process ">
-    <inputs>
-      <parameter n="variable_name" pn="Variable name" type="String"   />
-      <parameter n="value" pn="value" type="double" />
-      <parameter n="is_fixed" pn="Fix" type="bool" />
-    </inputs>
-  </Process>
+
 </ProcessList>

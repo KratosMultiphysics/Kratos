@@ -585,15 +585,15 @@ proc write::WriteJSON {processDict} {
 
 
 proc write::getSolutionStrategyParametersDict {} {
-    set solStratUN  [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
-    set schemeUN  [spdAux::ExecuteOnCurrentApp getUniqueName Scheme]
+    set solStratUN [apps::getCurrentUniqueName SolStrat]
+    set schemeUN [apps::getCurrentUniqueName Scheme]
     
     set solstratName [write::getValue $solStratUN]
     set schemeName [write::getValue $schemeUN]
     set sol [::Model::GetSolutionStrategy $solstratName]
     set sch [$sol getScheme $schemeName]
     
-    set paramsPath [spdAux::ExecuteOnCurrentApp getUniqueName StratParams]
+    set paramsPath [apps::getCurrentUniqueName StratParams]
     
     foreach {n in} [$sol getInputs] {
         dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
@@ -607,12 +607,12 @@ proc write::getSolutionStrategyParametersDict {} {
 
 
 proc write::getSolversParametersDict {} {
-    set solStratUN  [spdAux::ExecuteOnCurrentApp getUniqueName SolStrat]
+    set solStratUN  [apps::getCurrentUniqueName SolStrat]
     set solstratName [write::getValue $solStratUN]
     set sol [::Model::GetSolutionStrategy $solstratName]
     foreach se [$sol getSolversEntries] {
         set solverEntryDict [dict create]
-        set un [spdAux::ExecuteOnCurrentApp getUniqueName "$solstratName[$se getName]"] 
+        set un [apps::getCurrentUniqueName "$solstratName[$se getName]"] 
         set solverName [write::getValue $un Solver]
         dict set solverEntryDict solver_type $solverName
           
