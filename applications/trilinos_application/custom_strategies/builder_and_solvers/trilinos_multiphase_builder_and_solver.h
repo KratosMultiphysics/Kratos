@@ -882,7 +882,7 @@ public:
         {
             if ( dof_iterator->GetSolutionStepValue( PARTITION_INDEX ) != my_rank )
             {
-                all_dofs_to_send.push_back( *dof_iterator );
+                all_dofs_to_send.push_back( *(dof_iterator.base()) );
             }
         }
         std::cout << "process " << my_rank << ": size of dofs_send_buffer: " << all_dofs_to_send.size() << "; total dofs: " << Doftemp.size() << std::endl;
@@ -939,7 +939,7 @@ public:
                     {
                         if( dofs_key_recv_buffer[j] == static_cast<int>(jt->GetVariable().Key() ) )
                         {
-                            Doftemp.push_back( *jt );
+                            Doftemp.push_back( *(jt.base()) );
 //                             KRATOS_WATCH( dofs_index_recv_buffer[j] );
                         }
                     }
