@@ -3,7 +3,7 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyVolumeAccelerationProcess(Model, settings["parameters"])
+    return ApplyVolumeAccelerationProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
 class ApplyVolumeAccelerationProcess(KratosMultiphysics.ApplyConstantVectorValueProcess):

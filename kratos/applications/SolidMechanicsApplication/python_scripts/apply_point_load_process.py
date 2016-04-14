@@ -4,7 +4,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyPointLoadProcess(Model, settings["parameters"])
+    return ApplyPointLoadProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
 class ApplyPointLoadProcess(KratosMultiphysics.ApplyConstantVectorValueProcess):
