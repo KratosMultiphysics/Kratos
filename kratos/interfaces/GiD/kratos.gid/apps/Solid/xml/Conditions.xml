@@ -3,7 +3,7 @@
   <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Volume" ProcessName="ApplyConstantVectorValueProcess" help="The gravity modulus and its direction vector referred to global axes"
+	ElementType="Volume" ProcessName="ApplyVolumeAccelerationProcess" help="The gravity modulus and its direction vector referred to global axes"
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
@@ -14,13 +14,13 @@
     <inputs >
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F"/>
+      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface"  ProcessName="ApplyConstantVectorValueProcess" help="The gravity modulus and its direction vector referred to global axes"
+	ElementType="Surface"  ProcessName="ApplyVolumeAccelerationProcess" help="The gravity modulus and its direction vector referred to global axes"
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
@@ -31,13 +31,13 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F"/>
+      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>
     </outputs>
   </ConditionItem>
-  <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
+  <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="apply_point_load_process.py"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
+	ElementType="Point" ProcessName="ApplyPointLoadProcess" help="Load on points, load vector referred to global axes"
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
@@ -73,7 +73,7 @@
   <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
+	ElementType="Point" ProcessName="ApplyPointLoadProcess" help="Load on points, load vector referred to global axes"
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
