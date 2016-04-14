@@ -25,8 +25,8 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TSprismPatchTests('test_MembranePacth'))
-    smallSuite.addTest(TSprismPatchTests('test_BendingPacth'))
+    smallSuite.addTest(TSprismPatchTests('test_MembranePatch'))
+    smallSuite.addTest(TSprismPatchTests('test_BendingPatch'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
