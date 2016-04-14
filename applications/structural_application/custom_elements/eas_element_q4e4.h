@@ -76,14 +76,6 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-extern Variable<Vector> PRESTRESS;
-extern Variable<Vector> PLASTIC_STRAIN_VECTOR;
-extern Variable<Vector> STRESSES;
-extern Variable<double> PRESTRESS_FACTOR;
-extern Variable<double> OVERCONSOLIDATION_RATIO;
-
-
-
 ///@}
 ///@name Type Definitions
 ///@{
