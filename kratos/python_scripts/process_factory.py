@@ -7,9 +7,10 @@ class KratosProcessFactory(object):
         
     def ConstructListOfProcesses( self, process_list ):
         constructed_processes = []
-        for item in process_list:
-            module = __import__(item["implemented_in_module"])
-            interface_file = __import__(item["implemented_in_file"])
+        for i in range(0,process_list.size()):
+            item = process_list[i]
+            module = __import__(item["implemented_in_module"].GetString())
+            interface_file = __import__(item["implemented_in_file"].GetString())
             p = interface_file.Factory(item, self.Model)
             constructed_processes.append( p )
             #if( "implemented_in_python" in item): #check if implemented in python or in c++
