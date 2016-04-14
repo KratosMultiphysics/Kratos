@@ -59,8 +59,8 @@ class MechanicalSolver:
                 "scaling": false,
                 "verbosity": 1
             },
-            "skin_parts": [""],
-            "volume_model_part_name": "volume_model_part"
+            "processes_sub_model_part_list": [""],
+            "problem_domain_sub_model_part": "volume_model_part"
         }
         """)
         
@@ -119,11 +119,6 @@ class MechanicalSolver:
             # Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("    Import input model part.")
-            
-            # Here we shall check that the input read has the shape we like
-            aux_params = KratosMultiphysics.Parameters("{}")
-            aux_params.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-            aux_params.AddValue("skin_parts",self.settings["skin_parts"])
             
             # Constitutive law import
             import constitutive_law_python_utility as constitutive_law_utils
@@ -202,7 +197,7 @@ class MechanicalSolver:
         print("::[Mechanical Solver]:: -END- ")
         
     def GetComputeModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
+        return self.main_model_part.GetSubModelPart(self.settings["problem_domain_sub_model_part"].GetString())
         
     def GetOutputVariables(self):
         pass
