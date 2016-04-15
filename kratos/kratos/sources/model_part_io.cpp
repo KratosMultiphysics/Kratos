@@ -1,77 +1,76 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
 // Project includes
 #include "includes/model_part_io.h"
 #include "utilities/logger.h"
 
-
-
 namespace Kratos
 {
-	
-
     /// Constructor with  filenames.
-    ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options )
-        : mNumberOfLines(1)
-        , mBaseFilename(Filename)
-        , mFilename(Filename + ".mdpa")
-        , mOptions(Options)
+    ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
+      : mNumberOfLines(1)
+      , mBaseFilename(Filename)
+      , mFilename(Filename + ".mdpa")
+      , mOptions(Options)
     {
-		if (mOptions.Is(IO::READ))
-		{
-			mFile.open(mFilename.c_str(), std::fstream::in);
-			if(!(mFile.is_open()))
-				KRATOS_THROW_ERROR(std::invalid_argument, "Error opening input file : ", mFilename.c_str());
-		}
-		else if (mOptions.Is(IO::APPEND))
-		{
-			mFile.open(mFilename.c_str(), std::fstream::in|std::fstream::app);
-			if(!(mFile.is_open()))
-				KRATOS_THROW_ERROR(std::invalid_argument, "Error opening input file : ", mFilename.c_str());
-		}
-		else if(mOptions.Is(IO::WRITE))
-		{
-			mFile.open(mFilename.c_str(), std::fstream::out);
-			if(!(mFile.is_open()))
-				KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", mFilename.c_str());
-		}
-		else // if none of the READ, WRITE or APPEND are defined we will take READ as defualt.
-		{
-			mFile.open(mFilename.c_str(), std::fstream::in);
-			if(!(mFile.is_open()))
-				KRATOS_THROW_ERROR(std::invalid_argument, "Error opening input file : ", mFilename.c_str());
-		}
+        boost::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
+        std::fstream::openmode OpenMode;
 
+        // Set the mode
+        if (mOptions.Is(IO::READ))
+        {
+            OpenMode = std::fstream::in;
+        }
+        else if (mOptions.Is(IO::APPEND))
+        {
+            OpenMode = std::fstream::in | std::fstream::app;
+        }
+        else if (mOptions.Is(IO::WRITE))
+        {
+            OpenMode = std::fstream::out;
+        }
+        else
+        {
+            // If none of the READ, WRITE or APPEND are defined we will take READ as
+            // defualt.
+            OpenMode = std::fstream::in;
+        }
+
+        pFile->open(mFilename.c_str(), OpenMode);
+
+        if (!(pFile->is_open()))
+        {
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", mFilename.c_str());
+        }
+
+        // Store the pointer as a regular std::iostream
+        mpStream = pFile;
 
         Timer::SetOuputFile(Filename + ".time");
-
     }
 
+    /// Constructor with stream
+    ModelPartIO::ModelPartIO(boost::shared_ptr<std::iostream> Stream)
+      : mNumberOfLines(1)
+    {
+        if (Stream == nullptr)
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+
+        mpStream = Stream;
+    }
 
     /// Destructor.
     ModelPartIO::~ModelPartIO() {}
-
 
     ///@}
     ///@name Operators
@@ -95,7 +94,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Nodes")
@@ -117,7 +116,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if (mFile.eof())
+            if (mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Nodes")
@@ -132,10 +131,10 @@ namespace Kratos
 
     void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
     {
-        mFile << "Begin Nodes" << std::endl;
+        (*mpStream) << "Begin Nodes" << std::endl;
         for(NodesContainerType::const_iterator i_node = rThisNodes.begin() ; i_node != rThisNodes.end() ; i_node++)
-            mFile << i_node->Id() << "\t" << i_node->X()  << "\t" << i_node->Y() << "\t" << i_node->Z() << std::endl;
-        mFile << "End Nodes" << std::endl;
+            (*mpStream) << i_node->Id() << "\t" << i_node->X()  << "\t" << i_node->Y() << "\t" << i_node->Z() << std::endl;
+        (*mpStream) << "End Nodes" << std::endl;
     }
 
     void ModelPartIO::ReadProperties(Properties& rThisProperties)
@@ -151,7 +150,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Properties")
@@ -166,10 +165,10 @@ namespace Kratos
     {
         for(PropertiesContainerType::const_iterator i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; i_properties++)
         {
-            mFile << "Begin Properties " << i_properties->Id() << std::endl;
-            i_properties->PrintData(mFile);
-            mFile << std::endl;
-            mFile << "End Properties" << std::endl;
+            (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
+            i_properties->PrintData(*mpStream);
+            (*mpStream) << std::endl;
+            (*mpStream) << "End Properties" << std::endl;
         }
     }
 
@@ -186,7 +185,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Elements")
@@ -206,7 +205,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Elements")
@@ -222,8 +221,8 @@ namespace Kratos
     void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
     {
 		KRATOS_THROW_ERROR(std::logic_error, "This method has not been implemented yet!","");
-        mFile << "Begin Elements" << std::endl;
-        mFile << "End Elements" << std::endl;
+        (*mpStream) << "Begin Elements" << std::endl;
+        (*mpStream) << "End Elements" << std::endl;
     }
 
     void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
@@ -234,7 +233,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Conditions")
@@ -254,7 +253,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "Conditions")
@@ -269,24 +268,24 @@ namespace Kratos
     void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions)
     {
 		KRATOS_THROW_ERROR(std::logic_error, "This method has not been implemented yet!","");
-        mFile << "Begin Conditions" << std::endl;
-        mFile << "End Conditions" << std::endl;
+        (*mpStream) << "Begin Conditions" << std::endl;
+        (*mpStream) << "End Conditions" << std::endl;
     }
 
     void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     {
         KRATOS_TRY
-        
+
         ElementsContainerType& rThisElements = rThisModelPart.Elements();
         ConditionsContainerType& rThisConditions = rThisModelPart.Conditions();
-        
-        
+
+
         ResetInput();
         std::string word;
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "NodalData")
@@ -327,7 +326,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "ModelPartData")
@@ -371,8 +370,8 @@ namespace Kratos
     void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     {
 		KRATOS_THROW_ERROR(std::logic_error, "This method has not been implemented yet!","");
-        mFile << "Begin ModelPartData" << std::endl;
-        mFile << "End ModelPartData" << std::endl;
+        (*mpStream) << "Begin ModelPartData" << std::endl;
+        (*mpStream) << "End ModelPartData" << std::endl;
         WriteMesh(rThisModelPart.GetMesh());
     }
 
@@ -402,7 +401,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if (word == "Elements")
@@ -482,7 +481,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             ReadBlockName(word);
             if(word == "ModelPartData")
@@ -540,7 +539,7 @@ namespace Kratos
 
         std::string word;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
             if(word == "End")
@@ -574,7 +573,7 @@ namespace Kratos
 
         std::string variable_name;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(variable_name);
             if(CheckEndBlock("ModelPartData", variable_name))
@@ -667,7 +666,7 @@ namespace Kratos
         }
 		VariableData const& r_y_variable = KratosComponents<VariableData>::Get(variable_name);
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             double x;
             double y;
@@ -723,7 +722,7 @@ namespace Kratos
 
         //}
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             double x;
             double y;
@@ -760,7 +759,7 @@ namespace Kratos
 
         std::cout << "  [Reading Nodes    : ";
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
             if(CheckEndBlock("Nodes", word))
@@ -813,7 +812,7 @@ namespace Kratos
 
         std::cout << "  [Reading Nodes    : ";
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
             if(CheckEndBlock("Nodes", word))
@@ -851,13 +850,13 @@ namespace Kratos
 	std::string word;
 
 	SizeType number_of_nodes_read = 0;
-        
+
         typedef std::map< unsigned int, array_1d<double,3> > map_type;
         map_type read_coordinates;
 
         std::cout << "  [Reading Nodes    : ";
 
-	while(!mFile.eof())
+	while(!mpStream->eof())
 	{
 	  ReadWord(word);
 	  if(CheckEndBlock("Nodes", word))
@@ -878,7 +877,7 @@ namespace Kratos
          read_coordinates[id] = coords;
 	  number_of_nodes_read++;
 	}
-	
+
 	for(map_type::const_iterator it = read_coordinates.begin(); it!=read_coordinates.end(); ++it)
         {
             const unsigned int node_id = it->first;
@@ -905,7 +904,7 @@ namespace Kratos
 
 	//std::cout << "  [Reading Nodes    : ";
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
             if(CheckEndBlock("Nodes", word))
@@ -942,7 +941,7 @@ namespace Kratos
         Properties::Pointer props = boost::make_shared<Properties>();
         Properties& temp_properties = *props;
         //Properties temp_properties;
-        
+
         std::string word;
         std::string variable_name;
 
@@ -952,13 +951,13 @@ namespace Kratos
         ExtractValue(word, temp_properties_id);
         temp_properties.SetId(temp_properties_id);
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(variable_name);
             if(CheckEndBlock("Properties", variable_name))
                 break;
 
-		if(variable_name == "Begin") // here we have some nested block. 
+		if(variable_name == "Begin") // here we have some nested block.
 		{
             ReadBlockName(variable_name);
 			if(variable_name == "Table") // At this moment the only supported nested block is a table
@@ -1070,7 +1069,7 @@ namespace Kratos
         SizeType number_of_nodes = r_clone_element.GetGeometry().size();
         Element::NodesArrayType temp_element_nodes;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the element id or End
             if(CheckEndBlock("Elements", word))
@@ -1134,7 +1133,7 @@ namespace Kratos
         SizeType number_of_nodes = r_clone_condition.GetGeometry().size();
         Condition::NodesArrayType temp_condition_nodes;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the condition id or End
             if(CheckEndBlock("Conditions", word))
@@ -1167,15 +1166,15 @@ namespace Kratos
         KRATOS_TRY
 
         NodesContainerType& rThisNodes = rThisModelPart.Nodes();
-        
+
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
         std::string variable_name;
 
         ReadWord(variable_name);
-        
+
         VariablesList r_modelpart_nodal_variables_list = rThisModelPart.GetNodalSolutionStepVariablesList();
-        
+
 
         if(KratosComponents<Flags >::Has(variable_name))
         {
@@ -1195,7 +1194,7 @@ namespace Kratos
             }
         }
         else if(KratosComponents<Variable<double> >::Has(variable_name))
-        {                    
+        {
             bool has_been_added = r_modelpart_nodal_variables_list.Has(KratosComponents<Variable<double> >::Get(variable_name)) ;
             if( !has_been_added && mOptions.Is(IGNORE_VARIABLES_ERROR) ) {
                 std::cout<<std::endl<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
@@ -1204,7 +1203,7 @@ namespace Kratos
 			else if (!has_been_added)
 				KRATOS_THROW_ERROR(std::invalid_argument,"The nodal solution step container deos not have this variable: ", variable_name)
             else {
-                ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));                
+                ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
             }
         }
         else if(KratosComponents<array_1d_component_type>::Has(variable_name))
@@ -1212,7 +1211,7 @@ namespace Kratos
             ReadNodalDofVariableData(rThisNodes, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
         }
         else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
-        {         
+        {
             bool has_been_added = r_modelpart_nodal_variables_list.Has(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)) ;
             if( !has_been_added && mOptions.Is(IGNORE_VARIABLES_ERROR) ) {
                 std::cout<<std::endl<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
@@ -1261,7 +1260,7 @@ namespace Kratos
         std::string value;
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("NodalData", value))
@@ -1296,7 +1295,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("NodalData", value))
@@ -1321,7 +1320,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("NodalData", value))
@@ -1365,7 +1364,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("NodalData", value))
@@ -1450,7 +1449,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("ElementalData", value))
@@ -1483,7 +1482,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("ElementalData", value))
@@ -1506,7 +1505,7 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-    
+
 	void ModelPartIO::ReadConditionalDataBlock(ConditionsContainerType& rThisConditions)
     {
         KRATOS_TRY
@@ -1562,7 +1561,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("ConditionalData", value))
@@ -1595,7 +1594,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(value); // reading id
             if(CheckEndBlock("ConditionalData", value))
@@ -1645,7 +1644,7 @@ namespace Kratos
         SizeType number_of_nodes = r_clone_element.GetGeometry().size();
         ConnectivitiesContainerType::value_type temp_element_nodes;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the element id or End
             if(CheckEndBlock("Elements", word))
@@ -1708,7 +1707,7 @@ namespace Kratos
         SizeType number_of_nodes = r_clone_condition.GetGeometry().size();
         ConnectivitiesContainerType::value_type temp_condition_nodes;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the condition id or End
             if(CheckEndBlock("Conditions", word))
@@ -1771,7 +1770,7 @@ namespace Kratos
         SizeType n_nodes_in_elem = r_clone_element.GetGeometry().size();
         ConnectivitiesContainerType::value_type temp_element_nodes;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the element id or End
             if(CheckEndBlock("Elements", word))
@@ -1838,7 +1837,7 @@ namespace Kratos
         SizeType n_nodes_in_cond = r_clone_condition.GetGeometry().size();
         ConnectivitiesContainerType::value_type temp_condition_nodes;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the condition id or End
             if(CheckEndBlock("Conditions", word))
@@ -1889,7 +1888,7 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            if(mFile.eof())
+            if(mpStream->eof())
                 break;
             if(CheckEndBlock("CommunicatorData", word))
                 break;
@@ -1961,7 +1960,7 @@ namespace Kratos
             p_interface_mesh = &(rThisCommunicator.InterfaceMesh(interface_id-1));
         }
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the node id or End
             if(CheckEndBlock("LocalNodes", word))
@@ -2023,7 +2022,7 @@ namespace Kratos
             p_interface_mesh = &(rThisCommunicator.InterfaceMesh(interface_id-1));
         }
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the node id or End
             if(CheckEndBlock("GhostNodes", word))
@@ -2056,7 +2055,7 @@ namespace Kratos
         ReadWord(word);
         ExtractValue(word, mesh_id);
 
-        
+
 
         SizeType number_of_meshes = rModelPart.NumberOfMeshes();
 
@@ -2076,8 +2075,8 @@ namespace Kratos
         while(true)
         {
             ReadWord(word);
-            
-            if(mFile.eof())
+
+            if(mpStream->eof())
             {
                 break;
             }
@@ -2090,7 +2089,7 @@ namespace Kratos
             ReadBlockName(word);
             if(word == "MeshData")
             {
-               ReadMeshDataBlock(mesh);          
+               ReadMeshDataBlock(mesh);
             }
             else if(word == "MeshNodes")
             {
@@ -2109,8 +2108,8 @@ namespace Kratos
 
 //             else if(word == "MeshProperties")
 //                 ReadMeshPropertiesBlock(rModelPart, mesh);
-      
-         else 
+
+         else
              {
                  SkipBlock(word);
              }
@@ -2120,14 +2119,14 @@ namespace Kratos
 
     }
 
-	
+
     void ModelPartIO::ReadMeshDataBlock(MeshType& rMesh)
     {
         KRATOS_TRY
 
         std::string variable_name;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(variable_name);
             if(CheckEndBlock("MeshData", variable_name))
@@ -2177,7 +2176,7 @@ namespace Kratos
                 ReadWord(value); // reading value
                 ExtractValue(value,temp);
                 rMesh[KratosComponents<Variable<std::string> >::Get(variable_name)] = temp;
-            }    
+            }
             else
             {
                 std::stringstream buffer;
@@ -2202,7 +2201,7 @@ namespace Kratos
         std::string word;
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the node id or End
             if(CheckEndBlock("MeshNodes", word))
@@ -2226,7 +2225,7 @@ namespace Kratos
         std::string word;
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the element id or End
             if(CheckEndBlock("MeshElements", word))
@@ -2250,7 +2249,7 @@ namespace Kratos
         std::string word;
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the element id or End
             if(CheckEndBlock("MeshConditions", word))
@@ -2264,7 +2263,7 @@ namespace Kratos
         rMesh.Conditions().Sort();
         KRATOS_CATCH("")
     }
-    
+
     void ModelPartIO::ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh)
     {
         KRATOS_TRY
@@ -2283,7 +2282,7 @@ namespace Kratos
         temp_properties.SetId(temp_properties_id);
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(variable_name);
             if(CheckEndBlock("MeshProperties", variable_name))
@@ -2362,13 +2361,13 @@ namespace Kratos
 		std::string word;
 
 		ReadWord(word); // Reading the name of the sub model part
-		
+
 		ModelPart& r_sub_model_part = rParentModelPart.CreateSubModelPart(word);
 
 		while (true)
 		{
 			ReadWord(word);
-			//if (mFile.eof())
+			//if (mpStream->eof())
 			//	break;
 			if (CheckEndBlock("SubModelPart", word))
 				break;
@@ -2409,7 +2408,7 @@ namespace Kratos
 		SizeType table_id;
 		std::string word;
 
-		while (!mFile.eof())
+		while (!mpStream->eof())
 		{
 			ReadWord(word); // Reading the node id or End
 			if (CheckEndBlock("SubModelPartTables", word))
@@ -2429,7 +2428,7 @@ namespace Kratos
 		SizeType properties_id;
 		std::string word;
 
-		while (!mFile.eof())
+		while (!mpStream->eof())
 		{
 			ReadWord(word); // Reading the node id or End
 			if (CheckEndBlock("SubModelPartProperties", word))
@@ -2449,7 +2448,7 @@ namespace Kratos
 		SizeType node_id;
 		std::string word;
 
-		while (!mFile.eof())
+		while (!mpStream->eof())
 		{
 			ReadWord(word); // Reading the node id or End
 			if (CheckEndBlock("SubModelPartNodes", word))
@@ -2469,7 +2468,7 @@ namespace Kratos
 		SizeType element_id;
 		std::string word;
 
-		while (!mFile.eof())
+		while (!mpStream->eof())
 		{
 			ReadWord(word); // Reading the node id or End
 			if (CheckEndBlock("SubModelPartElements", word))
@@ -2489,7 +2488,7 @@ namespace Kratos
 		SizeType condition_id;
 		std::string word;
 
-		while (!mFile.eof())
+		while (!mpStream->eof())
 		{
 			ReadWord(word); // Reading the node id or End
 			if (CheckEndBlock("SubModelPartConditions", word))
@@ -2561,7 +2560,7 @@ namespace Kratos
 
         SizeType id;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
             if(CheckEndBlock("Nodes", word))
@@ -2636,7 +2635,7 @@ namespace Kratos
 
         SizeType id;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the element id or End
             if(CheckEndBlock("Elements", word))
@@ -2716,7 +2715,7 @@ namespace Kratos
 
         SizeType id;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // Reading the condition id or End
             if(CheckEndBlock("Conditions", word))
@@ -2843,7 +2842,7 @@ namespace Kratos
         std::string word;
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // reading id
             if(CheckEndBlock("NodalData", word))
@@ -2899,7 +2898,7 @@ namespace Kratos
 
         std::string value;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // reading id
             if(CheckEndBlock(BlockName, word))
@@ -3029,14 +3028,14 @@ namespace Kratos
         std::string word;
 
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word); // reading id
             if(CheckEndBlock(BlockName, word))
                 break;
 
             ExtractValue(word, id);
-			SizeType index = 0; 
+			SizeType index = 0;
 			if(BlockName == "ElementalData")
 				index = ReorderedElementId(id);
             else if(BlockName == "ConditionalData")
@@ -3157,7 +3156,7 @@ namespace Kratos
 
         WriteInAllFiles(OutputFiles, "Begin Mesh " + word);
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
 
@@ -3180,7 +3179,7 @@ namespace Kratos
         WriteInAllFiles(OutputFiles, "End Mesh\n");
 
         KRATOS_CATCH("")
-        
+
     }
 
 	void ModelPartIO::DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
@@ -3219,7 +3218,7 @@ namespace Kratos
 
         SizeType id;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
 
@@ -3269,7 +3268,7 @@ namespace Kratos
 
         SizeType id;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
 
@@ -3318,7 +3317,7 @@ namespace Kratos
 
         SizeType id;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             ReadWord(word);
 
@@ -3563,13 +3562,13 @@ namespace Kratos
         std::stringstream value;
 
         char c = SkipWhiteSpaces();
-        while((c != '(') && !mFile.eof())
+        while((c != '(') && !mpStream->eof())
         {
             value << c;
             c = GetCharacter();
         }
         int open_parantesis = 1;
-        while((open_parantesis != 0) && !mFile.eof())
+        while((open_parantesis != 0) && !mpStream->eof())
         {
             value << c;
             c = GetCharacter();
@@ -3601,7 +3600,7 @@ namespace Kratos
         Word.clear();
 
         char c = SkipWhiteSpaces();
-        while(!mFile.eof() && !IsWhiteSpace(c))
+        while(!mpStream->eof() && !IsWhiteSpace(c))
         {
             Word += c;
             c = GetCharacter();
@@ -3619,12 +3618,12 @@ namespace Kratos
         char c = GetCharacter();
         std::string word;
 
-        while(!mFile.eof())
+        while(!mpStream->eof())
         {
             if(c == 'E')
             {
                 word.clear();
-                while(!mFile.eof() && !IsWhiteSpace(c))
+                while(!mpStream->eof() && !IsWhiteSpace(c))
                 {
                     word += c;
                     c = GetCharacter();
@@ -3647,7 +3646,7 @@ namespace Kratos
 			else if (c == 'B')
 			{
 				word.clear();
-				while (!mFile.eof() && !IsWhiteSpace(c))
+				while (!mpStream->eof() && !IsWhiteSpace(c))
 				{
 					word += c;
 					c = GetCharacter();
@@ -3659,7 +3658,7 @@ namespace Kratos
 					ReadWord(word);
 					nested_block_names.push_back(word);
 				}
-					
+
 				Block += word;
 			}
 
@@ -3688,25 +3687,25 @@ namespace Kratos
     char ModelPartIO::GetCharacter() //Getting the next character skipping comments
     {
         char c;
-        if(mFile.get(c))
+        if(mpStream->get(c))
         {
             if(c == '\n')
                 mNumberOfLines++;
             else if(c == '/') // it may be a comment!
             {
-                char next_c = mFile.peek();
+                char next_c = mpStream->peek();
                 if(next_c == '/') // it's a line comment
                 {
-                    while((mFile.get(c)) && (c != '\n')); // so going to the end of line
-                    if(!mFile.eof())
+                    while((mpStream->get(c)) && (c != '\n')); // so going to the end of line
+                    if(!mpStream->eof())
                         mNumberOfLines++;
                 }
                 else if(next_c == '*') // it's a block comment
                 {
-                    while((mFile.get(c)) && !((c == '*') && (mFile.peek() == '/'))) // so going to the end of block
+                    while((mpStream->get(c)) && !((c == '*') && (mpStream->peek() == '/'))) // so going to the end of block
                         if(c == '\n')
                             mNumberOfLines++;
-                    mFile.get(c);
+                    mpStream->get(c);
                     c = GetCharacter(); // read a new character after comment
                 }
             }
@@ -3736,8 +3735,8 @@ namespace Kratos
 
     void ModelPartIO::ResetInput()
     {
-        mFile.clear();
-        mFile.seekg(0, std::ios_base::beg);
+        mpStream->clear();
+        mpStream->seekg(0, std::ios_base::beg);
         mNumberOfLines = 1;
     }
 
@@ -3780,4 +3779,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-

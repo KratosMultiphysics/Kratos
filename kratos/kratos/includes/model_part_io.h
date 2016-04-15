@@ -1,30 +1,17 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
 #define  KRATOS_MODEL_PART_IO_H_INCLUDED
-
 
 
 // System includes
@@ -77,39 +64,35 @@ public:
     /// Pointer definition of ModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartIO);
 
-   typedef IO BaseType;
+    typedef IO                                    BaseType;
 
-    typedef BaseType::NodeType NodeType;
-
-    typedef BaseType::MeshType MeshType;
-
-    typedef BaseType::NodesContainerType NodesContainerType;
-
-    typedef BaseType::PropertiesContainerType PropertiesContainerType;
-
-    typedef BaseType::ElementsContainerType ElementsContainerType;
-
-    typedef BaseType::ConditionsContainerType ConditionsContainerType;
-
+    typedef BaseType::NodeType                    NodeType;
+    typedef BaseType::MeshType                    MeshType;
+    typedef BaseType::NodesContainerType          NodesContainerType;
+    typedef BaseType::PropertiesContainerType     PropertiesContainerType;
+    typedef BaseType::ElementsContainerType       ElementsContainerType;
+    typedef BaseType::ConditionsContainerType     ConditionsContainerType;
     typedef BaseType::ConnectivitiesContainerType ConnectivitiesContainerType;
 
-    typedef std::vector<std::ofstream*> OutputFilesContainerType;
-
-    typedef std::size_t SizeType;
+    typedef std::vector<std::ofstream*>           OutputFilesContainerType;
+    typedef std::size_t                           SizeType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with  filenames.
-	ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
+    /// Constructor with filenames.
+    ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
+
+    /// Constructor with stream.
+    ModelPartIO(boost::shared_ptr<std::iostream> Stream);
 
 
     /// Constructor with filenames.
-//       ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
-// 	: mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))
-//       {
-//       }
+    // ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
+    //     : mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))
+    // {
+    // }
 
 
     /// Destructor.
@@ -252,9 +235,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
-	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
-	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
+  	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
+  	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
+  	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
 
     ///@}
     ///@name Protected  Access
@@ -283,10 +266,12 @@ protected:
     ///@{
 
     SizeType mNumberOfLines;
+
     std::string mBaseFilename;
     std::string mFilename;
-    std::fstream mFile;
     Flags mOptions;
+
+    boost::shared_ptr<std::iostream> mpStream;
 
 
     ///@}
@@ -383,7 +368,7 @@ protected:
 
     void ReadMeshBlock(ModelPart& rModelPart);
 
-	
+
     void ReadMeshDataBlock(MeshType& rMesh);
 
 
@@ -392,7 +377,7 @@ protected:
     void ReadMeshElementsBlock(ModelPart& rModelPart, MeshType& rMesh);
 
     void ReadMeshConditionsBlock(ModelPart& rModelPart, MeshType& rMesh);
-    
+
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
 	void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
@@ -581,5 +566,4 @@ protected:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODEL_PART_IO_H_INCLUDED  defined 
-
+#endif // KRATOS_MODEL_PART_IO_H_INCLUDED  defined
