@@ -873,7 +873,7 @@ private:
       if(particle_of_element[ii].size() > static_cast<unsigned int>(max_num_particle))
 	  {	    
 	    //sort 
-	    std::sort(particle_of_element[ii].begin(), particle_of_element[ii].end(), RadiusCompare() );
+	    std::sort(particle_of_element[ii].ptr_begin(), particle_of_element[ii].ptr_end(), RadiusCompare() );
 
 	    //delete extra nodes
 	    WeakPointerVector< Node< 3> >::iterator ele_pt_ptr = particle_of_element[ii].begin();
@@ -897,10 +897,10 @@ private:
  
 struct RadiusCompare{
   template<class TRefrenceType>
-bool operator()(TRefrenceType  ptr_a, TRefrenceType ptr_b) 
+bool operator()(const TRefrenceType  ptr_a, const TRefrenceType ptr_b) 
     { 
-      double a_radi = ptr_a.FastGetSolutionStepValue(PARTICLE_RADIUS);
-      double b_radi = ptr_b.FastGetSolutionStepValue(PARTICLE_RADIUS);		  
+      double a_radi = ptr_a.lock()->FastGetSolutionStepValue(PARTICLE_RADIUS);
+      double b_radi = ptr_b.lock()->FastGetSolutionStepValue(PARTICLE_RADIUS);		  
 	return (a_radi > b_radi);
     }  
 };
