@@ -113,11 +113,11 @@ public:
       if( (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY) )
      {
 
-        std::vector<Node<3> > list_of_nodes;
+        std::vector<Point<3> > list_of_points;
         std::vector<Condition::Pointer> list_of_conditions;
 
 	unsigned int conditions_size = mrModelPart.Conditions(mMeshId).size();
-        list_of_nodes.reserve(conditions_size);
+        list_of_points.reserve(conditions_size);
         list_of_conditions.reserve(conditions_size);
 
 
@@ -127,7 +127,7 @@ public:
         //*********************************************************************************
         // REFINE BOUNDARY CONDITIONS START
         //*********************************************************************************
-	RefineBoundary(list_of_nodes,list_of_conditions);
+	RefineBoundary(list_of_points,list_of_conditions);
 	//*********************************************************************************
 	// REFINE BOUNDARY CONDITIONS END
 	//*********************************************************************************
@@ -137,7 +137,7 @@ public:
         //*********************************************************************************
         //                   DOFS AND NEW CONDITIONS REBUILD START                       //
         //*********************************************************************************
-	BuildNewConditions(list_of_nodes,list_of_conditions);
+	BuildNewConditions(list_of_points,list_of_conditions);
         //*********************************************************************************
         //                   DOFS AND NEW CONDITIONS REBUILD END                         //
         //*********************************************************************************
@@ -289,9 +289,9 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    void RefineBoundary(std::vector<Node<3> >& list_of_nodes, std::vector<Condition::Pointer>& list_of_conditions){};
+    void RefineBoundary(std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions){};
   
-    void BuildNewConditions( std::vector<Node<3> >& list_of_nodes, std::vector<Condition::Pointer>& list_of_conditions){};
+    void BuildNewConditions( std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions){};
   
     void CleanConditionsAndFlags(){};
   
