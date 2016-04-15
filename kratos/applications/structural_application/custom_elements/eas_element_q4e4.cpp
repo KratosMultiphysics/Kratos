@@ -870,7 +870,8 @@ namespace Kratos
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int StrainSize = dim * (dim + 1) / 2;
-        double InternalForces[dim];
+
+        std::vector<double> InternalForces(dim);
         
         for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
         {
