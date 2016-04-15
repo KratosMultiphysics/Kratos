@@ -98,6 +98,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         spheres_model_part    = ModelPart("SpheresPart")
         rigid_face_model_part = ModelPart("RigidFace_Part")
         mixed_model_part      = ModelPart("Mixed_Part")
+        mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
         cluster_model_part    = ModelPart("Cluster_Part")
         DEM_inlet_model_part  = ModelPart("DEMInletPart")
         mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -224,6 +225,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         demio.SetMultifileLists(multifiles)
         os.chdir(post_path)
         demio.InitializeMesh(mixed_model_part,
+                             mixed_spheres_and_clusters_model_part,
                              spheres_model_part,
                              rigid_face_model_part,
                              cluster_model_part,
@@ -407,7 +409,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
-                demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+                demio.PrintResults(mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
 
                 os.chdir(main_path)
 

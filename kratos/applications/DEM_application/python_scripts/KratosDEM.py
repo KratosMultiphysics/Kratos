@@ -65,7 +65,7 @@ procedures.PreProcessModel(DEM_parameters)
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
 mixed_model_part      = ModelPart("Mixed_Part")
-particles_model_part  = ModelPart("Particles_Part")
+mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -154,7 +154,7 @@ KRATOSprint("\nInitializing Problem...")
 # Initialize GiD-IO
 demio.AddGlobalVariables()
 demio.AddSpheresVariables()
-demio.AddParticlesVariables()
+demio.AddSpheresAndClustersVariables()
 demio.AddFEMBoundaryVariables()
 demio.AddClusterVariables()
 demio.AddContactVariables()
@@ -183,7 +183,7 @@ demio.SetMultifileLists(multifiles)
 os.chdir(post_path)
 
 demio.InitializeMesh(mixed_model_part,
-                     particles_model_part,
+                     mixed_spheres_and_clusters_model_part,
                      spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
@@ -373,7 +373,7 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(mixed_model_part, particles_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+        demio.PrintResults(mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
         os.chdir(main_path)
         
         if nodeplotter:
