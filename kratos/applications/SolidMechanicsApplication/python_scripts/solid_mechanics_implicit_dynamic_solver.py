@@ -60,7 +60,7 @@ class MechanicalSolver:
                 "verbosity": 1
             },
             "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part": "volume_model_part"
+            "problem_domain_sub_model_part": "solid_model_part"
         }
         """)
         
@@ -71,7 +71,7 @@ class MechanicalSolver:
         #construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
+        
         print("Construction of MechanicalSolver finished")
         
     def GetMinimumBufferSize(self):
