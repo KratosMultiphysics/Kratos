@@ -555,8 +555,6 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
         voigtsize  = 6;
     }
 
-    rVariables.detF  = 1;
-
     rVariables.B.resize( voigtsize, number_of_nodes * dimension );
 
     rVariables.H.resize( dimension, dimension );
@@ -571,7 +569,7 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
 
     //needed parameters for consistency with the general constitutive law: small displacements
 
-    rVariables.detF  = 1;
+    rVariables.detF  = 1.0;
     rVariables.F     = identity_matrix<double>(dimension);
 
     //set variables including all integration points values
