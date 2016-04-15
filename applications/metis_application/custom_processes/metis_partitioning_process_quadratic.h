@@ -215,7 +215,7 @@ public:
         int* coloring_send_buffer = NULL;
 
         // Adding interface meshes
-        mrModelPart.GetMeshes().push_back(ModelPart::MeshType());
+        mrModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>());
 
         int colors_number;
 
@@ -284,7 +284,7 @@ public:
         int number_of_meshes =  ModelPart::Kratos_Ownership_Size + colors_number; // (all + local + ghost) + (colors_number for interfaces)
         if(mrModelPart.GetMeshes().size() < static_cast<unsigned int>(number_of_meshes))
             for(int i = mrModelPart.GetMeshes().size() ; i < number_of_meshes ; i++)
-                mrModelPart.GetMeshes().push_back(ModelPart::MeshType());
+	      mrModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>());
 
         for(ModelPart::NodeIterator i_node = temp_nodes.begin() ;
                 i_node != temp_nodes.end() ; i_node++)
