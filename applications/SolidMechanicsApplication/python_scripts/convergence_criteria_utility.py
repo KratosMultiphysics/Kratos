@@ -23,34 +23,34 @@ class convergence_criterion:
 
         # Convergence criteria if there are rotation DOFs in the problem
         if(convergence_criterion_parameters["rotation_dofs"].GetBool()):
-            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criteria"):
+            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
                 self.mechanical_convergence_criterion = SolidMechanicsApplication.DisplacementCriteria(D_RT, D_AT)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criteria"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
                 self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criteria"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
                 Displacement = SolidMechanicsApplication.DisplacementCriteria(D_RT, D_AT)
                 Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criteria"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
                 Displacement = SolidMechanicsApplication.DisplacementCriteria(D_RT, D_AT)
                 Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 self.mechanical_convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
             
         # Convergence criteria without rotation DOFs        
         else:
-            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criteria"):
+            if(convergence_criterion_parameters["convergence_criterion"].GetString() == "Displacement_criterion"):
                 self.mechanical_convergence_criterion = SolidMechanicsApplication.DisplacementConvergenceCriterion(D_RT, D_AT)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criteria"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Residual_criterion"):
                 if(convergence_criterion_parameters["component_wise"].GetBool()):
                     self.mechanical_convergence_criterion = SolidMechanicsApplication.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
                 else:
                     self.mechanical_convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                     
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criteria"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "And_criterion"):
                 Displacement = SolidMechanicsApplication.DisplacementConvergenceCriterion(D_RT, D_AT)
                 if(convergence_criterion_parameters["component_wise"].GetBool()):
                     Residual = SolidMechanicsApplication.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
@@ -58,7 +58,7 @@ class convergence_criterion:
                     Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
                 self.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
                 
-            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criteria"):
+            elif(convergence_criterion_parameters["convergence_criterion"].GetString() == "Or_criterion"):
                 Displacement = SolidMechanicsApplication.DisplacementConvergenceCriterion(D_RT, D_AT)
                 if(convergence_criterion_parameters["component_wise"].GetBool()):
                     Residual = SolidMechanicsApplication.ComponentWiseResidualConvergenceCriterion(R_RT, R_AT)
