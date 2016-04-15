@@ -111,11 +111,11 @@ public:
     {
     }
 
-    BoundingBox(const TPointType& LowPoint, const TPointType& HighPoint ) :  mLowPoint(LowPoint), mHighPoint(HighPoint)
+    BoundingBox(const TPointType& lowpoint, const TPointType& highpoint ) :  mLowPoint(lowpoint), mHighPoint(highpoint)
     {
     }
 
-    BoundingBox(const PointerType Object, const TPointType& LowPoint, const TPointType& HighPoint) :  mLowPoint(LowPoint), mHighPoint(HighPoint), mObject(Object)
+    BoundingBox(const PointerType Object, const TPointType& lowpoint, const TPointType& highpoint) :  mLowPoint(lowpoint), mHighPoint(highpoint), mObject(Object)
     {
     }
 
@@ -138,11 +138,11 @@ public:
     ///@name Access
     ///@{
 
-    void Set(const TPointerType Object, const TPointType& LowPoint, const TPointType& HighPoint)
+    void Set(const TPointerType Object, const TPointType& lowpoint, const TPointType& highpoint)
     {
-        mLowPoint  = LowPoint;
-        mHighPoint = HighPoint;
-        mObject     = Object;
+        mLowPoint  = lowpoint;
+        mHighPoint = highpoint;
+        mObject    = Object;
 
     }
 
