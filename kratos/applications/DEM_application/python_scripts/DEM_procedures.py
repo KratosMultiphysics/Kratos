@@ -1054,7 +1054,7 @@ class DEMIo(object):
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,          self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,           self.spheres_and_clusters_variables)
-            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.particles_local_axis_variables)
+            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.spheres_and_clusters_local_axis_variables)
         
     def AddSpheresVariables(self):
         self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
