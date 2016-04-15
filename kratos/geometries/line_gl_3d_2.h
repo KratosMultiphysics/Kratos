@@ -263,7 +263,7 @@ public:
         //making a copy of the nodes TO POINTS (not Nodes!!!)
 
         for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back( BaseType::Points()[i] );
+            NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
 
         //creating a geometry with the new points
        Geometry< Point<3> >::Pointer p_clone( new LineGL3D2< Point<3> >( NewPoints ) );
