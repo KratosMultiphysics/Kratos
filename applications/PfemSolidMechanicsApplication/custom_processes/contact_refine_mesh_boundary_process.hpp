@@ -158,11 +158,11 @@ public:
       if( (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY) )
 	{
 
-	  std::vector<Node<3> > list_of_nodes;
+	  std::vector<Point<3> > list_of_points;
 	  std::vector<Condition::Pointer> list_of_conditions;
 
 	  unsigned int conditions_size = mrModelPart.Conditions(mMeshId).size();
-	  list_of_nodes.reserve(conditions_size);
+	  list_of_points.reserve(conditions_size);
 	  list_of_conditions.reserve(conditions_size);
 
 
@@ -171,7 +171,7 @@ public:
 	  //*********************************************************************************
 	  // DEFORMABLE CONTACT CONDITIONS START
 	  //*********************************************************************************
-	  this->RefineContactBoundary(list_of_nodes,list_of_conditions,LocalRefineInfo);
+	  this->RefineContactBoundary(list_of_points,list_of_conditions,LocalRefineInfo);
 	  //*********************************************************************************
 	  // DEFORMABLE CONTACT CONDITIONS END
 	  //*********************************************************************************
@@ -181,7 +181,7 @@ public:
 	  //*********************************************************************************
 	  // RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS START
 	  //*********************************************************************************
-	  this->RefineOtherBoundary(list_of_nodes,list_of_conditions,LocalRefineInfo);
+	  this->RefineOtherBoundary(list_of_points,list_of_conditions,LocalRefineInfo);
 	  //*********************************************************************************
 	  // RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS END
 	  //*********************************************************************************
@@ -191,7 +191,7 @@ public:
 	  //*********************************************************************************
 	  //                   DOFS AND NEW CONDITIONS REBUILD START                       //
 	  //*********************************************************************************
-	  this->BuildNewConditions(list_of_nodes,list_of_conditions,LocalRefineInfo);
+	  this->BuildNewConditions(list_of_points,list_of_conditions,LocalRefineInfo);
 	  //*********************************************************************************
 	  //                   DOFS AND NEW CONDITIONS REBUILD END                         //
 	  //*********************************************************************************
@@ -361,7 +361,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void BuildNewConditions( std::vector<Node<3> >& list_of_nodes, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    void BuildNewConditions( std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -378,12 +378,12 @@ private:
       
       int id=0;
       //if points were added, new nodes must be added to ModelPart
-      for(unsigned int i = 0; i<list_of_nodes.size(); i++)
+      for(unsigned int i = 0; i<list_of_points.size(); i++)
         {
 	  id   = initial_node_size+i;
 
-	  double& x= list_of_nodes[i].X();
-	  double& y= list_of_nodes[i].Y();
+	  double& x= list_of_points[i].X();
+	  double& y= list_of_points[i].Y();
 
 	  Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id,x,y,z);
 
@@ -417,7 +417,7 @@ private:
 
 
 
-	  //int cond_id = list_of_nodes[i].Id();
+	  //int cond_id = list_of_points[i].Id();
 	  //Geometry< Node<3> >& rConditionGeometry = (*(mrModelPart.Conditions(mMeshId).find(cond_id).base()))->GetGeometry();
 
 	  for(unsigned int step = 0; step<buffer_size; step++)
@@ -516,7 +516,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineContactBoundary(std::vector<Node<3> >& list_of_nodes, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineContactBoundary(std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -779,7 +779,7 @@ private:
 
 		      // std::cout<<"   MasterCondition RELEASED (Id: "<<ContactMasterCondition->Id()<<") "<<std::endl;
 		      ContactMasterCondition->Set(TO_ERASE);
-		      list_of_nodes.push_back(new_point);
+		      list_of_points.push_back(new_point);
 		      list_of_conditions.push_back(ContactMasterCondition);
                     }		    
 		}
@@ -798,7 +798,7 @@ private:
         }
 
         // std::cout<<"   [ Contact Conditions : "<<rLocalRefineInfo.number_of_contact_conditions<<", (contacts in domain: "<<rLocalRefineInfo.number_of_contacts<<", of them active: "<<rLocalRefineInfo.number_of_active_contacts<<") ] "<<std::endl;
-        // std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
+        // std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_points.size()<<"]"<<std::endl;
       
       return true;
 
@@ -809,7 +809,7 @@ private:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool RefineOtherBoundary(std::vector<Node<3> >& list_of_nodes, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
+    bool RefineOtherBoundary(std::vector<Point<3> >& list_of_points, std::vector<Condition::Pointer>& list_of_conditions, RefineCounters& rLocalRefineInfo )
     {
 
       KRATOS_TRY
@@ -1240,7 +1240,7 @@ private:
 		  if( this->mEchoLevel > 0 )
 		    std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
 
-		  list_of_nodes.push_back(new_point);
+		  list_of_points.push_back(new_point);
 		  list_of_conditions.push_back(*(ic.base()));
 
 
