@@ -995,8 +995,8 @@ class DEMIo(object):
         self.DEM_parameters = DEM_parameters
         self.global_variables               = []
         self.spheres_variables              = []
-        self.particles_variables            = []
-        self.particles_local_axis_variables = []
+        self.spheres_and_clusters_variables = []
+        self.spheres_and_clusters_local_axis_variables = []
         self.sphere_local_axis_variables    = []
         self.fem_boundary_variables         = []
         self.mapping_variables              = []
@@ -1050,10 +1050,10 @@ class DEMIo(object):
         self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
         
-    def AddParticlesVariables(self):  # variables common to spheres and clusters
+    def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
-            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,          self.particles_variables)
-            self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,           self.particles_variables)
+            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,          self.spheres_and_clusters_variables)
+            self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,           self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.particles_local_axis_variables)
         
     def AddSpheresVariables(self):
@@ -1189,7 +1189,7 @@ class DEMIo(object):
         for mfilelist in self.multifilelists:
             mfilelist.file.close()
 
-    def InitializeMesh(self, mixed_model_part, particles_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part): #MIQUEL MAPPING
+    def InitializeMesh(self, mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part): #MIQUEL MAPPING
         if (self.filesystem == MultiFileFlag.SingleFile):
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, spheres_model_part)
@@ -1201,8 +1201,8 @@ class DEMIo(object):
             self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, mapping_model_part) #MIQUEL MAPPING
 
-            self.post_utility.AddModelPartToModelPart(particles_model_part, spheres_model_part)
-            self.post_utility.AddModelPartToModelPart(particles_model_part, cluster_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, spheres_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(0.0) 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
@@ -1218,15 +1218,15 @@ class DEMIo(object):
 
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.InitializeResults(0.0, particles_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.InitializeResults(0.0, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
-    def InitializeResults(self, mixed_model_part, particles_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
+    def InitializeResults(self, mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
         
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
-            particles_model_part.Elements.clear()
-            particles_model_part.Nodes.clear()
+            mixed_spheres_and_clusters_model_part.Elements.clear()
+            mixed_spheres_and_clusters_model_part.Nodes.clear()
                                     
             self.post_utility.AddModelPartToModelPart(mixed_model_part, spheres_model_part)
             if (self.contact_mesh_option == "ON"):                
@@ -1235,8 +1235,8 @@ class DEMIo(object):
             self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, mapping_model_part) #MIQUEL MAPPING
             
-            self.post_utility.AddModelPartToModelPart(particles_model_part, spheres_model_part)
-            self.post_utility.AddModelPartToModelPart(particles_model_part, cluster_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, spheres_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(time) 
             if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
@@ -1258,7 +1258,7 @@ class DEMIo(object):
             
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.InitializeResults(time, particles_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
     def FinalizeMesh(self):
         if (self.filesystem == MultiFileFlag.SingleFile):
@@ -1272,10 +1272,10 @@ class DEMIo(object):
         for variable in self.global_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
-    def PrintingParticlesVariables(self, export_model_part, time):
-        for variable in self.particles_variables:
+    def PrintingSpheresAndClustersVariables(self, export_model_part, time):
+        for variable in self.spheres_and_clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-        for variable in self.particles_local_axis_variables:
+        for variable in self.spheres_and_clusters_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)  
 
     def PrintingSpheresVariables(self, export_model_part, time):
@@ -1304,10 +1304,10 @@ class DEMIo(object):
     #def PrintingArlequinVariables(self, export_model_part, time):
     #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
 
-    def PrintResults(self, mixed_model_part, particles_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
+    def PrintResults(self, mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(mixed_model_part,
-                                   particles_model_part,
+                                   mixed_spheres_and_clusters_model_part,
                                    spheres_model_part,
                                    rigid_face_model_part,
                                    cluster_model_part,
@@ -1319,7 +1319,7 @@ class DEMIo(object):
                                    bounding_box_time_limits)
 
         self.PrintingGlobalVariables(mixed_model_part, time)
-        self.PrintingParticlesVariables(particles_model_part, time)
+        self.PrintingSpheresAndClustersVariables(mixed_spheres_and_clusters_model_part, time)
         self.PrintingSpheresVariables(spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)

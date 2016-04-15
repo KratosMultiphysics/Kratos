@@ -8,9 +8,9 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, spheres_model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures)
+        BaseExplicitStrategy.__init__(self, spheres_model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures)
 
         self.print_skin_sphere = self.Var_Translator(Param.PostSkinSphere)
 
@@ -34,16 +34,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetVariablesAndOptions()
 
         # ADDITIONAL VARIABLES AND OPTIONS
-        self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
-        self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
+        self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
+        self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
-            self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
+            self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
         else:
-            self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 0)
+            self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 0)
 
-        self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
-        self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
+        self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
+        self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
         ##################################
 
         if (self.Parameters.IntegrationScheme == 'Verlet_Velocity'):
@@ -64,9 +64,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def PrepareContactElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareContactElementsForPrinting()
 
-    def AddAdditionalVariables(self, model_part, Param):
-        model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
-        model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
+    def AddAdditionalVariables(self, spheres_model_part, Param):
+        spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
+        spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
     def ModifyProperties(self, properties):
         BaseExplicitStrategy.ModifyProperties(self, properties)

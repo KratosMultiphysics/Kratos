@@ -7,7 +7,7 @@ import time
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
+    def __init__(self, spheres_model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, Param, procedures):
 
         # Initialization of member variables
         # SIMULATION FLAGS
@@ -15,7 +15,7 @@ class ExplicitStrategy:
         if not (hasattr(Param, "StressStrainOption")):
             self.stress_strain_option = 0
         else:
-            self.stress_strain_option = Param.StressStrainOption
+            self.stress_strain_option = self.Var_Translator(Param.StressStrainOption)
         self.critical_time_option    = self.Var_Translator(Param.AutoReductionOfTimeStepOption)
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
@@ -85,7 +85,7 @@ class ExplicitStrategy:
             self.bounding_box_stop_time  = Param.BoundingBoxStopTime
 
         # MODEL
-        self.model_part = model_part
+        self.spheres_model_part = spheres_model_part
         self.fem_model_part = fem_model_part
         self.cluster_model_part = cluster_model_part
         self.inlet_model_part = inlet_model_part
@@ -142,40 +142,40 @@ class ExplicitStrategy:
         # Setting ProcessInfo variables
 
         # SIMULATION FLAGS
-        self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
-        self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
-        self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
-        self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
-        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
-        self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
-        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
-        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
-        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
-        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.stress_strain_option)
-        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
-        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
+        self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
+        self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
+        self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
+        self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
+        self.spheres_model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
+        self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
+        self.spheres_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
+        self.spheres_model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
+        self.spheres_model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.spheres_model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.stress_strain_option)
+        self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
+        self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
 
         # GLOBAL PHYSICAL ASPECTS
-        self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
+        self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
         # GLOBAL MATERIAL PROPERTIES
-        self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
+        self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
 
         # SEARCH-RELATED
-        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
-        self.model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
-        self.model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
+        self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
+        self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
 
         # PRINTING VARIABLES
 
-        self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
-        self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
+        self.spheres_model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
+        self.spheres_model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
-        for properties in self.model_part.Properties:
+        for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
 
         for properties in self.inlet_model_part.Properties:
@@ -187,7 +187,7 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
         self.settings = ExplicitSolverSettings()
-        self.settings.r_model_part = self.model_part
+        self.settings.r_model_part = self.spheres_model_part
         self.settings.contact_model_part = self.contact_model_part
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
@@ -207,7 +207,7 @@ class ExplicitStrategy:
                            "*********************************************************************************************\n"
         delay = 1  # Inserting the desired delay in seconds
         counter = 0
-        for properties in self.model_part.Properties:
+        for properties in self.spheres_model_part.Properties:
             current_discontinuum_constitutive_law_string = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
             if ((counter > 0) and (previous_discontinuum_constitutive_law_string != current_discontinuum_constitutive_law_string)):
                 self.Procedures.KRATOSprint(output_message)
@@ -236,30 +236,35 @@ class ExplicitStrategy:
 
 
     def Solve(self):
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
-        self.FixDOFsManually()
-        self.FixExternalForcesManually()
+        time = self.spheres_model_part.ProcessInfo[TIME]
+        self.FixDOFsManually(time)
+        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()        
+        self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
     def Compute_RigidFace_Movement(self):
         (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
 
-    def FixDOFsManually(self):
+    def FixDOFsManually(self,time):        
+    #if time>1.0:
+        #for node in self.spheres_model_part.Nodes:
+            #node.Fix(VELOCITY_X)
+            #node.SetSolutionStepValue(VELOCITY_X, 0.0)
         pass
     
-    def FixExternalForcesManually(self):
+    def FixExternalForcesManually(self,time):
         pass
         
     def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
         pass
 
-    def AddClusterVariables(self, model_part, Param):
+    def AddClusterVariables(self, spheres_model_part, Param):
         pass
 
-    def AddDofs(self, model_part):
+    def AddDofs(self, spheres_model_part):
 
-        for node in model_part.Nodes:
+        for node in spheres_model_part.Nodes:
             node.AddDof(VELOCITY_X, REACTION_X)
             node.AddDof(VELOCITY_Y, REACTION_Y)
             node.AddDof(VELOCITY_Z, REACTION_Z)
