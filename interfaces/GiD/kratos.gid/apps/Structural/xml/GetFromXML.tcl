@@ -26,4 +26,10 @@ proc Structural::xml::getUniqueName {name} {
     return ST$name
 }
 
+proc ::Structural::xml::MultiAppEvent {args} {
+   if {$args eq "init"} {
+     spdAux::ConvertAllUniqueNames SL ST
+   }
+}
+
 Structural::xml::Init

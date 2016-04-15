@@ -18,4 +18,8 @@ proc ::Structural::LoadMyFiles { } {
     uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
 }
 
+proc ::Structural::MultiAppEvent {args} {
+    W "$args"
+}
+
 ::Structural::Init
