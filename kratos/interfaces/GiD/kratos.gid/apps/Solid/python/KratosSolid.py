@@ -30,8 +30,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
-parallel = OpenMPUtils()
-print("::[KSM Simulation]:: OMP USING",parallel.GetNumThreads(),"THREADS ]")
 
 ######################################################################################
 ######################################################################################
@@ -60,19 +58,21 @@ solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].G
 solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
 #add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
-#solver.AddVariables()
+# if we integrate it in the model part we cannot use combined solvers
+solver.AddVariables()
 
 #read model_part (note: the buffer_size is set here) (restart can be read here)
 solver.ImportModelPart()
 
 #add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
-#solver.AddDofs()
+# if we integrate it in the model part we cannot use combined solvers
+solver.AddDofs()
 
 #build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ##TODO: replace MODEL for the Kratos one ASAP
 ##get the list of the submodel part in the object Model
-for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
-    part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
+    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
     Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
 
 #print model_part and properties
@@ -152,13 +152,12 @@ for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
 ## Stepping and time settings (get from process info or solving info)
-
 #delta time
-delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
+delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 #start step
-step       = computing_model_part.ProcessInfo[TIME_STEPS] 
+step       = 0
 #start time
-time       = computing_model_part.ProcessInfo[TIME]
+time       = ProjectParameters["problem_data"]["start_time"].GetDouble()
 #end time
 end_time   = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
@@ -174,13 +173,13 @@ while(time <= end_time):
 
     #TODO: this must be done by a solving_info utility in the solver
     # store previous time step
-    computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
+    #~ computing_model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = delta_time
     # set new time step ( it can change when solve is called )
-    delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
+    #~ delta_time = computing_model_part.ProcessInfo[DELTA_TIME]
 
     time = time + delta_time
     step = step + 1
-    computing_model_part.CloneTimeStep(time)
+    main_model_part.CloneTimeStep(time)
 
     # print process info
     ##
@@ -220,7 +219,7 @@ print("::[KSM Simulation]:: Analysis -END- ")
 print(" ")
 
 # check solving information for any problem
-solver.InfoCheck()
+#~ solver.InfoCheck() # InfoCheck not implemented yet.
 
 #### END SOLUTION ####
 
