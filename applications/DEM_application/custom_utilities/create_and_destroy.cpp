@@ -406,7 +406,13 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
             euler_angles[2] = (*r_params)[EULER_ANGLES][2];
         }
         
-        p_cluster->SetOrientation(euler_angles);            
+        p_cluster->SetOrientation(euler_angles);  
+        
+        const bool is_breakable = (*r_params)[BREAKABLE_CLUSTER]; //THIS IS NOT THREAD SAFE!!!
+        
+        if (!is_breakable) {  
+            mMaxNodeId++; //This must be done before CreateParticles because the creation of particles accesses mMaxNodeId to choose what Id is assigned to the new nodes/spheres
+        }
         
         ParticleCreatorDestructor* creator_destructor_ptr = this;
         p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties);                        
@@ -418,7 +424,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 	if (has_rotation) p_cluster->Set(DEMFlags::HAS_ROTATION, true);
         else p_cluster->Set(DEMFlags::HAS_ROTATION, false);
 
-        if (!(*r_params)[BREAKABLE_CLUSTER]) {  //THIS IS NOT THREAD SAFE!!!
+        if (!is_breakable) {  
             r_clusters_modelpart.Elements().push_back(p_new_cluster);  //We add the cluster element to the clusters modelpart               
         }
         else { 
