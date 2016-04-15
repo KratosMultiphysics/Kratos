@@ -113,6 +113,7 @@ proc spdAux::activeApp { appid } {
     [$root selectNodes "hiddenfield\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
     spdAux::processIncludes
     parseRoutes
+    catch {apps::ExecuteOnCurrent init MultiAppEvent}
     gid_groups_conds::actualize_conditions_window
 }
 
@@ -339,21 +340,18 @@ proc spdAux::CheckElemParamValue {node} {
     return $val
 }
 
-proc spdAux::ConvertAllUniqueNames {newPrefix} {
+proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
     variable uniqueNames
     set root [$gid_groups_conds::doc documentElement]
 
     foreach routeName [dict keys $uniqueNames] {
-        set route [getRoute $routeName]
-        set node [$root selectNodes $route]
-        
-        set un [get_domnode_attribute $node un]
-        W "Value [get_domnode_attribute $node v]"
-        gid_groups_conds::uncompress_subtree $node
-         
-        W "Value [get_domnode_attribute $node values]"
-        W "Value [get_domnode_attribute $node v]"
+        if {[string first $oldPrefix $routeName] eq 0} {
+            set route [getRoute $routeName]
+            set newrouteName [string map [list $oldPrefix $newPrefix] $routeName]
+            [$root selectNodes $route] setAttribute un $newrouteName
+        }
     }
+    spdAux::parseRoutes
 }
 
 proc spdAux::ListToValues {lista} {

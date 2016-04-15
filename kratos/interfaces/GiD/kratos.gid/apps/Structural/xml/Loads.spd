@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="Loads" pn="Loads" un="STLoads" icon="loads" >
-	  <dynamicnode command="injectConditions" args=""/>
-</container>

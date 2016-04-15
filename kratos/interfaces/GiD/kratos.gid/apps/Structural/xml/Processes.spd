@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="Processes" pn="Processes" un="STProcesses"  state="normal" open="1">    
-	<dynamicnode command="injectProcesses" args=""/>
-</container>
-    

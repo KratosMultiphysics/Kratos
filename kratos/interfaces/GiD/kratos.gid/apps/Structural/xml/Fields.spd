@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<container n="Fields" pn="Fields" un="STFields" >
-	  <blockdata n="Field" pn="Field" name="Field 1" sequence="1" editable_name="unique" sequence_type="non_void_disabled" help="Interval" >
-			<value n="Point1" pn="Point 1" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="1" help="Please enter an initial point \n(xi,yi,zi)"/>
-			<value n="Point2" pn="Point 2" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="1" help="Please enter an initial point \n(xi,yi,zi)"/>
-			<value n="Field" pn="Field" v="f(x,y)=x^2+9y" fieldtype="longtext" help="Field formula"/>
-	  </blockdata>
-</container>
