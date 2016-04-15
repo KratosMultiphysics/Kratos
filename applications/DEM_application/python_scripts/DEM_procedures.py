@@ -1218,7 +1218,7 @@ class DEMIo(object):
 
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.InitializeResults(0.0, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
+            #self.gid_io.InitializeResults(0.0, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
     def InitializeResults(self, mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
         
@@ -1258,7 +1258,7 @@ class DEMIo(object):
             
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
+            #self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
     def FinalizeMesh(self):
         if (self.filesystem == MultiFileFlag.SingleFile):
