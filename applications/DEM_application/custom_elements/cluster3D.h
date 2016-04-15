@@ -50,6 +50,7 @@ namespace Kratos
         /// Destructor.
         virtual ~Cluster3D();
       
+        using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
