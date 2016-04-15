@@ -25,6 +25,7 @@ proc Solid::write::writeParametersEvent { } {
     
     # Time Parameters
     dict set problemDataDict time_step [write::getValue SLTimeParameters DeltaTime]
+    dict set problemDataDict start_time [write::getValue SLTimeParameters StartTime]
     dict set problemDataDict end_time [write::getValue SLTimeParameters EndTime]
     set echo_level [write::getValue SLResults EchoLevel]
     dict set problemDataDict echo_level $echo_level
@@ -38,7 +39,7 @@ proc Solid::write::writeParametersEvent { } {
     set currentStrategyId [write::getValue SLSolStrat]
     set strategy_write_name [[::Model::GetSolutionStrategy $currentStrategyId] getAttribute "ImplementedInPythonFile"]
     dict set solverSettingsDict solver_type $strategy_write_name
-    dict set solverSettingsDict domain_size [expr $nDim]
+    #~ dict set solverSettingsDict domain_size [expr $nDim]
     dict set solverSettingsDict echo_level $echo_level
     dict set solverSettingsDict solution_type [write::getValue SLSoluType]
     
