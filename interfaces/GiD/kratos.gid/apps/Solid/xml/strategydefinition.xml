@@ -72,8 +72,10 @@
 -->
 	  <scheme n="Newmark" pn="Newmark" help="Scheme for dynamic problems">
             <parameter_list>
+<!--
                 <parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
                 <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/>
+-->
 			</parameter_list>
             <element_filters>
                 <filter field="ElementType" value="Solid,Shell,Beam"/>
@@ -83,9 +85,11 @@
 	  </scheme>
 	  <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping">
             <parameter_list>
+<!--
                 <parameter n="Bossak" pn="Alpha" type="double" v="-0.01" help="Bossak parameter possible values Alpha = [0,-0.3]"/>
                 <parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
                 <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/>
+-->
 			</parameter_list>
             <element_filters>
                 <filter field="ElementType" value="Solid,Shell,Beam"/>
