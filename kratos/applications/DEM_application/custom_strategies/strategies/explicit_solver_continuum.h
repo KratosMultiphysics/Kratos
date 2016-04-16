@@ -135,7 +135,7 @@ namespace Kratos
             }                       
 
             // 3. Search Neighbors with tolerance (after first repartition process)
-            SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
+            SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 0.0);
             SearchNeighbours();
 
             if (BaseType::GetDeltaOption() == 2) {
@@ -171,7 +171,7 @@ namespace Kratos
             ComputeNewNeighboursHistoricalData();                    
 
             if (fem_model_part.Nodes().size()>0) {  
-                SetSearchRadiiOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
+                SetSearchRadiiOnAllParticles(r_model_part, 0.0, 0.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
                 BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
                 SetInitialFemContacts();
                 RenewFEMContactList();        
@@ -269,7 +269,7 @@ namespace Kratos
 
                     ComputeNewNeighboursHistoricalData();
 
-                    BaseType::SetSearchRadiiOnAllParticles(r_model_part, 0.0, 1.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
+                    BaseType::SetSearchRadiiOnAllParticles(r_model_part, 0.0, 0.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
                     BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
                     RenewFEMContactList();
                     r_process_info[SEARCH_CONTROL] = 2;
@@ -530,7 +530,7 @@ namespace Kratos
                 break;
             }
             added_search_distance *= in_coordination_number/out_coordination_number;
-            SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
+            SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 0.0);
             SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
             out_coordination_number = ComputeCoordinationNumber();
         }//while

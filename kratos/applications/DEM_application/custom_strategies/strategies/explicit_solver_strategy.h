@@ -1030,14 +1030,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=1.0) {
+    void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance=0.0, const double amplification=0.0) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         mNumberOfElementsOldRadiusList = number_of_elements;
 
 	#pragma omp parallel for
         for (int i = 0; i < number_of_elements; i++ ){
-            mListOfSphericParticles[i]->SetSearchRadius(amplification*(added_search_distance + mListOfSphericParticles[i]->GetRadius()));
+            mListOfSphericParticles[i]->SetSearchRadius(amplification + added_search_distance + mListOfSphericParticles[i]->GetRadius());
         }
         KRATOS_CATCH("")
     }
