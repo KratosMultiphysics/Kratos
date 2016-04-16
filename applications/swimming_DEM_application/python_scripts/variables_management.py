@@ -62,7 +62,7 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars += [PRESSURE_GRADIENT]
     pp.fluid_vars += [RECOVERED_PRESSURE_GRADIENT]
 
-    if pp.CFD_DEM.recover_gradient_option:
+    if pp.CFD_DEM.gradient_calculation_type:
         pp.fluid_vars += [NODAL_WEIGHTS]
 
     if pp.CFD_DEM.include_faxen_terms_option:

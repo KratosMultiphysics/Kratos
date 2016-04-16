@@ -75,10 +75,8 @@ DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write d
 
 #G
 pp.CFD_DEM = DEM_parameters
-pp.CFD_DEM.recover_gradient_option = False
-pp.CFD_DEM.faxen_force_type = 1
-pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
-pp.CFD_DEM.laplacian_calculation_type = 0
+pp.CFD_DEM.gradient_calculation_type = False
+pp.CFD_DEM.faxen_terms_type = 1
 #Z
 
 # NANO BEGIN
@@ -107,6 +105,7 @@ procedures.PreProcessModel(DEM_parameters)
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
 mixed_model_part      = ModelPart("Mixed_Part")
+mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -305,6 +304,7 @@ demio.SetOutputName(DEM_parameters.problem_name)
 os.chdir(post_path)
 
 demio.InitializeMesh(mixed_model_part,
+                     mixed_spheres_and_clusters_model_part,
                      spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
@@ -750,7 +750,7 @@ while (time <= final_time):
     pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
     if pressure_gradient_counter.Tick():
-        if pp.CFD_DEM.recover_gradient_option:
+        if pp.CFD_DEM.gradient_calculation_type:
             custom_functions_tool.RecoverSuperconvergentPressureGradient(fluid_model_part)
         else:
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)
