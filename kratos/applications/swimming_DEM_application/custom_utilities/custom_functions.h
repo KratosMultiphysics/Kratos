@@ -215,6 +215,7 @@ void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
         const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(*(inode.base())); // we use it as a scaling parameter to improve stability
 
         array_1d <double, 3>& pressure_grad = inode->FastGetSolutionStepValue(PRESSURE_GRADIENT);
+        pressure_grad = ZeroVector(3);
         double& pressure                    = inode->FastGetSolutionStepValue(FLUID_FRACTION);
         const double& correct_pressure      = inode->FastGetSolutionStepValue(PRESSURE);
         const Vector& nodal_weights         = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
@@ -222,11 +223,11 @@ void RecoverSuperconvergentPressureGradient(ModelPart& r_model_part)
         pressure = 0.0;
 
         for (unsigned int i_neigh = 0; i_neigh < neigh_nodes.size(); ++i_neigh){
-            double& nigh_pressure = neigh_nodes[i_neigh].FastGetSolutionStepValue(PRESSURE);
-            pressure = nodal_weights[4 * i_neigh] * nigh_pressure;
+            const double& neigh_pressure = neigh_nodes[i_neigh].FastGetSolutionStepValue(PRESSURE);
+            pressure += nodal_weights[4 * i_neigh] * neigh_pressure;
 
             for (unsigned int d = 0; d < TDim; ++d){
-                pressure_grad[d] += nodal_weights[4 * i_neigh + d + 1] * h_inv;
+                pressure_grad[d] += nodal_weights[4 * i_neigh + d + 1] * neigh_pressure * h_inv;
             }
         }
     }
@@ -249,8 +250,8 @@ void SetNeighboursAndWeights(ModelPart& r_model_part)
         const std::size_t& n_neigbours = neigh_nodes.size();
         while (!the_cloud_of_neighbours_is_successful && n_neigbours <= max_n_neighbours){
             the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
+            KRATOS_WATCH(neigh_nodes.size())
         }
-
         i++;
     }
 }
@@ -343,7 +344,7 @@ bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p
 bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
 {
     WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
-    const unsigned int node_increase = 5;
+    const unsigned int node_increase = 1;
     std::map<std::size_t, std::size_t> ids;
     ids[p_node->Id()] = p_node->Id();
 
@@ -352,25 +353,32 @@ bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
         ids[p_neigh->Id()] = p_neigh->Id();
     }
 
-    for (unsigned int i = 0; i < (unsigned int)neigh_nodes.size(); ++i){
+    const unsigned int n_neigh = neigh_nodes.size();
+
+    for (unsigned int i = 0; i < n_neigh; ++i){
         Node<3>::Pointer p_neigh = neigh_nodes(i).lock();
         WeakPointerVector<Node<3> >& neigh_neigh_nodes = p_neigh->GetValue(NEIGHBOUR_NODES);
         unsigned int n_new_nodes = 0;
         for (unsigned int j = 0; j < (unsigned int)neigh_neigh_nodes.size(); ++j){
             Node<3>::Pointer p_neigh_neigh = neigh_neigh_nodes(j).lock();
-            if (ids.find(p_neigh_neigh->Id()) == ids.end() && n_new_nodes <= node_increase){
+            if (ids.find(p_neigh_neigh->Id()) == ids.end()){
                 neigh_nodes.push_back(p_neigh_neigh);
                 ids[p_neigh_neigh->Id()] = p_neigh_neigh->Id();
-                n_new_nodes ++;
+                n_new_nodes++;
+            }
+
+            if (n_new_nodes >= node_increase){
+                break;
             }
         }
     }
 
-    KRATOS_WATCH(neigh_nodes.size())
+    OrderByDistance(p_node, neigh_nodes);
 
     if (neigh_nodes.size() < 10){ // it is not worthwhile checking, since there are 10 independent coefficients to be determined
         return false;
     }
+
     else {
         return(SetWeightsAndRunLeastSquaresTest(r_model_part, p_node));
     }
@@ -419,7 +427,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
     unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
     const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
     const array_1d <double, 3> origin = p_node->Coordinates();
-    matrix<double> NodalValues(n_nodal_neighs, 1);
+    matrix<double> TestNodalValues(n_nodal_neighs, 1);
     matrix<double> A(n_nodal_neighs, n_poly_terms);
 
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
@@ -428,7 +436,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
         if (TDim == 3){
             Node<3>& neigh = neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
-            NodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);
+            TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);
 
             for (unsigned int d = 1; d < 10; ++d){
                 if (d < 4){
@@ -477,9 +485,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
         }
 
         matrix<double>C(n_nodal_neighs, 1);
-        C = prod(AtransAinvAtrans, NodalValues);
-        KRATOS_WATCH(C)
-        //matrix<double> RecoveredNodalValues(n_nodal_neighs, 1);
+        C = prod(AtransAinvAtrans, TestNodalValues);
 
         double abs_difference = 0.0;
 
@@ -489,7 +495,10 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
         }
 
         const double tolerance = 0.00001;
+
         if (abs_difference > tolerance){
+            KRATOS_WATCH(n_nodal_neighs)
+            KRATOS_WATCH(abs_difference)
             return false;
         }
 
