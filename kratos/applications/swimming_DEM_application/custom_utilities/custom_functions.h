@@ -272,28 +272,24 @@ void OrderByDistance(Node<3>::Pointer &p_node, WeakPointerVector<Node<3> >& neig
     const unsigned int n_nodes = neigh_nodes.size();
     std::vector<double> distances_squared;
     distances_squared.resize(n_nodes);
-
     const array_1d <double, 3>& origin = p_node->Coordinates();
 
     for (unsigned int i = 0; i < n_nodes; ++i){
         const array_1d <double, 3> rel_coordinates = (neigh_nodes[i] - origin);
         distances_squared[i] = DEM_INNER_PRODUCT_3(rel_coordinates, rel_coordinates);
     }
-
     std::vector <std::pair<unsigned int, double> > ordering;
     ordering.resize(n_nodes);
 
     for (unsigned int i = 0; i < n_nodes; ++i){
         ordering[i] = std::make_pair(i, distances_squared[i]);
     }
-
     std::sort(ordering.begin(), ordering.end(), IsCloser());
-
     WeakPointerVector<Node<3> > ordered_neighbours;
-    ordered_neighbours.resize(n_nodes);
 
     for (unsigned int i = 0; i < n_nodes; ++i){
-        ordered_neighbours[i] = neigh_nodes[ordering[i].first];
+        Node<3>::WeakPointer p_neigh = neigh_nodes(ordering[i].first);
+        ordered_neighbours.push_back(p_neigh);
     }
 
     ordered_neighbours.swap(neigh_nodes);
@@ -329,9 +325,8 @@ bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p
         }
         i += TDim;
     }
-    KRATOS_WATCH(neigh_nodes.size())
+
     OrderByDistance(p_node, neigh_nodes);
-    KRATOS_WATCH(neigh_nodes.size())
 
     if (neigh_nodes.size() < 10){ // Not worthwhile checking, since there are 10 independent coefficients to be determined
         return false;
@@ -371,7 +366,7 @@ bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
         }
     }
 
-    KRATOS_WATCH('Final neigh_nodes.size()')
+    KRATOS_WATCH(neigh_nodes.size())
 
     if (neigh_nodes.size() < 10){ // it is not worthwhile checking, since there are 10 independent coefficients to be determined
         return false;
