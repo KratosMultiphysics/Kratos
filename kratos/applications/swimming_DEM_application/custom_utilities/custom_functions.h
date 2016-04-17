@@ -129,15 +129,15 @@ void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& s
     // Solving least squares problem (Zhang, 2006)
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-        array_1d <double, 3>& recovred_gradient = inode->FastGetSolutionStepValue(scalar_gradient_container);
-        recovred_gradient = ZeroVector(3);
+        array_1d <double, 3>& recovered_gradient = inode->FastGetSolutionStepValue(scalar_gradient_container);
+        recovered_gradient = ZeroVector(3);
         const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
 
         for (unsigned int i_neigh = 0; i_neigh < neigh_nodes.size(); ++i_neigh){
             const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
 
             for (unsigned int d = 0; d < TDim; ++d){
-                recovred_gradient[d] += nodal_weights[3 * i_neigh + d] * neigh_nodal_value;
+                recovered_gradient[d] += nodal_weights[3 * i_neigh + d] * neigh_nodal_value;
             }
         }
     }
@@ -710,7 +710,8 @@ bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p
 bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
 {
     WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
-    const unsigned int node_increase = 1;
+    const unsigned int node_increase_per_neighbour = 1;
+    const unsigned int node_increase_overall = 1;
     std::map<std::size_t, std::size_t> ids;
     ids[p_node->Id()] = p_node->Id();
 
@@ -733,13 +734,15 @@ bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
                 n_new_nodes++;
             }
 
-            if (n_new_nodes >= node_increase){
+            if (n_new_nodes >= node_increase_per_neighbour){
                 break;
             }
         }
     }
 
     OrderByDistance(p_node, neigh_nodes);
+    const unsigned int new_size = std::min(n_neigh + node_increase_overall, (unsigned int)neigh_nodes.size());
+    neigh_nodes.resize(new_size); // keeping only nearest nodes
 
     if (neigh_nodes.size() < 10){ // it is not worthwhile checking, since there are 10 independent coefficients to be determined
         return false;
