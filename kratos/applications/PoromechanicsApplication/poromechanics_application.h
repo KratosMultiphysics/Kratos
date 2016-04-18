@@ -24,8 +24,8 @@
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
+//#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+//#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
 #include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
@@ -34,8 +34,8 @@
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
+//#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
+//#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 //#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"//TODO
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 
@@ -98,13 +98,13 @@ const UPwSmallStrainElement<2,4> mUPwSmallStrainElement2D4N;
 const UPwSmallStrainElement<3,4> mUPwSmallStrainElement3D4N;
 const UPwSmallStrainElement<3,8> mUPwSmallStrainElement3D8N;
 
-const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
-const UPwSmallStrainInterfaceElement<3,6> mUPwSmallStrainInterfaceElement3D6N;
-const UPwSmallStrainInterfaceElement<3,8> mUPwSmallStrainInterfaceElement3D8N;
+//const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
+//const UPwSmallStrainInterfaceElement<3,6> mUPwSmallStrainInterfaceElement3D6N;
+//const UPwSmallStrainInterfaceElement<3,8> mUPwSmallStrainInterfaceElement3D8N;
 
-const UPwSmallStrainLinkInterfaceElement<2,4> mUPwSmallStrainLinkInterfaceElement2D4N;
-const UPwSmallStrainLinkInterfaceElement<3,6> mUPwSmallStrainLinkInterfaceElement3D6N;
-const UPwSmallStrainLinkInterfaceElement<3,8> mUPwSmallStrainLinkInterfaceElement3D8N;
+//const UPwSmallStrainLinkInterfaceElement<2,4> mUPwSmallStrainLinkInterfaceElement2D4N;
+//const UPwSmallStrainLinkInterfaceElement<3,6> mUPwSmallStrainLinkInterfaceElement3D6N;
+//const UPwSmallStrainLinkInterfaceElement<3,8> mUPwSmallStrainLinkInterfaceElement3D8N;
 
 //TODO
 //const UPwSmallStrainFICElement<2,3> mUPwSmallStrainFICElement2D3N;
@@ -132,10 +132,10 @@ const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N;
 const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N;
 const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N;
 
-const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N;
-const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N;
-const UPwNormalFluxInterfaceCondition<2,2> mUPwNormalFluxInterfaceCondition2D2N;
-const UPwNormalFluxInterfaceCondition<3,4> mUPwNormalFluxInterfaceCondition3D4N;
+//const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N;
+//const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N;
+//const UPwNormalFluxInterfaceCondition<2,2> mUPwNormalFluxInterfaceCondition2D2N;
+//const UPwNormalFluxInterfaceCondition<3,4> mUPwNormalFluxInterfaceCondition3D4N;
 
 const UPwNormalFluxFICCondition<2,2> mUPwNormalFluxFICCondition2D2N;
 const UPwNormalFluxFICCondition<3,3> mUPwNormalFluxFICCondition3D3N;
