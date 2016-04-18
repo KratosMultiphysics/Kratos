@@ -44,7 +44,7 @@ proc Fluid::write::Validate {} {
     set root [$doc documentElement]
     
     # Check only 1 part in Parts
-    set xp1 "[apps::getRoute $PartsUN]/group"
+    set xp1 "[spdAux::getRoute $PartsUN]/group"
     if {[llength [$root selectNodes $xp1]] ne 1} {
         set err "You must set one part.\n"
     }
@@ -78,7 +78,7 @@ proc Fluid::write::writeBoundaryConditions { } {
     # Vamos a construir el array que nos permite escribir submodel parts y la malla de condiciones de contorno
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute $BCUN]/condition/group"
+    set xp1 "[spdAux::getRoute $BCUN]/condition/group"
     set iter 1
     foreach group [$root selectNodes $xp1] {
         set condid [[$group parent] @n]
@@ -110,7 +110,7 @@ proc Fluid::write::writeConditionsMesh { } {
     variable FluidConditions
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute "FLBC"]/condition/group"
+    set xp1 "[spdAux::getRoute "FLBC"]/condition/group"
     #W "Conditions $xp1 [$root selectNodes $xp1]"
     foreach group [$root selectNodes $xp1] {
         set groupid [$group @n]
@@ -125,7 +125,7 @@ proc Fluid::write::writeSkinMesh { } {
     variable FluidConditions
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute "FLBC"]/condition/group"
+    set xp1 "[spdAux::getRoute "FLBC"]/condition/group"
     #W "Conditions $xp1 [$root selectNodes $xp1]"
     set listiniend [list ]
     set listgroups [list ]
@@ -151,7 +151,7 @@ proc Fluid::write::CheckClosedVolume {} {
     
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute "FLBC"]/condition/group"
+    set xp1 "[spdAux::getRoute "FLBC"]/condition/group"
 
     set listgroups [list ]
     foreach group [$root selectNodes $xp1] {

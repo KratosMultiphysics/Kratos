@@ -14,6 +14,7 @@ proc InitGIDProject { dir } {
 }
 
 proc EndGIDProject {} {
+    spdAux::DestroyWindow
     spdAux::EndRefreshTree
     gid_groups_conds::end_problemtype [Kratos::GiveKratosDefaultsFile]
     unset -nocomplain ::Kratos::kratos_private

@@ -71,11 +71,11 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    #eval $wevent
-    if {$errcode eq 0 && [catch {eval $wevent} fid] } {
-        W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
-        set errcode 1
-    }
+    eval $wevent
+    #if {$errcode eq 0 && [catch {eval $wevent} fid] } {
+    #    W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
+    #    set errcode 1
+    #}
     catch {CloseFile}
         
     #### Custom File Write ####
@@ -235,7 +235,7 @@ proc write::writeConditions { baseUN } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set xp1 "[apps::getRoute $baseUN]/condition/group"
+    set xp1 "[spdAux::getRoute $baseUN]/condition/group"
     set iter 1
     foreach group [$root selectNodes $xp1] {
         set condid [[$group parent] @n]
@@ -338,7 +338,7 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
 proc write::writeNodalConditions { keyword } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute $keyword]/condition/group"
+    set xp1 "[spdAux::getRoute $keyword]/condition/group"
     foreach group [$root selectNodes $xp1] {
         set cid [[$group parent] @n]
         set groupid [$group @n]
@@ -640,7 +640,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
 
     set bcCondsDict [list ]
     
-    set xp1 "[apps::getRoute $un]/condition/group"
+    set xp1 "[spdAux::getRoute $un]/condition/group"
     set groups [$root selectNodes $xp1]    
     foreach group $groups {
         set groupName [$group @n]
@@ -714,7 +714,7 @@ proc write::GetResultsList { un } {
     set root [$doc documentElement]
     
     set result [list ]
-    set xp1 "[apps::getRoute $un]/value"
+    set xp1 "[spdAux::getRoute $un]/value"
     set resultxml [$root selectNodes $xp1]
     foreach res $resultxml {
         if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {

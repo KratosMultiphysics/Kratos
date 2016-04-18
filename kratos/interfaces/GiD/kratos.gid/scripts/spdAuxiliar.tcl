@@ -183,6 +183,12 @@ proc spdAux::CreateWindow {dir} {
     grid $sdcmb  -row 0 -column 1 -padx 20
     grid $frsd -sticky we
 }
+proc spdAux::DestroyWindow {} {
+    variable initwind
+    
+    catch {destroy $initwind}
+    return ""
+}
 
 # Routes
 proc spdAux::getRoute {name} {
