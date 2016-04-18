@@ -71,11 +71,11 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    eval $wevent
-    #if {$errcode eq 0 && [catch {eval $wevent} fid] } {
-    #    W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
-    #    set errcode 1
-    #}
+    #eval $wevent
+    if {$errcode eq 0 && [catch {eval $wevent} fid] } {
+        W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
+        set errcode 1
+    }
     catch {CloseFile}
         
     #### Custom File Write ####
