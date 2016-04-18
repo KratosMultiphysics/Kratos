@@ -54,6 +54,7 @@
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_Dempack_torque_CL.h"
+#include "custom_constitutive/DEM_KDEM_2D_CL.h"
 
 namespace Kratos
 {
