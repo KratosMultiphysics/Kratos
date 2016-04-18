@@ -303,4 +303,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINECLUSTER3D_INCLUDED  defined
+#endif // KRATOS_BEADCLUSTER3D_H_INCLUDED  defined
