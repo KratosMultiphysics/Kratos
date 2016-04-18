@@ -437,7 +437,6 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
 
 # setting fluid's body force to the same as DEM's
 if DEM_parameters.body_force_on_fluid_option:
-
     for node in fluid_model_part.Nodes:
         node.SetSolutionStepValue(BODY_FORCE_X, 0, DEM_parameters.GravityX)
         node.SetSolutionStepValue(BODY_FORCE_Y, 0, DEM_parameters.GravityY)
@@ -571,7 +570,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 ######################################################################################################################################
 
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
-embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+embedded_counter             = swim_proc.Counter(1, 3, 0)#DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
 pressure_gradient_counter    = swim_proc.Counter(1, 1, (DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option))
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
@@ -698,9 +697,8 @@ while (time <= final_time):
 
         if not pp.CFD_DEM.drag_force_type == 9:
             fluid_solver.Solve()
-#G          
-            #if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
-            if 0: #TODO: The previous CFD_DEM.laplacian_calculation_type == 1 option does not work at this moment
+#G                     
+            if pp.CFD_DEM.laplacian_calculation_type == 1 and VELOCITY_LAPLACIAN in pp.fluid_vars:
                 current_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
