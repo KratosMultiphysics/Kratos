@@ -11,6 +11,30 @@
 	  return "normal"
 	  ]]>
 	</proc>
+	
+		 	<proc n='GetSolutionStrategies' args='args'>
+	  <![CDATA[
+	  
+		set names ""
+		set pnames ""
+		set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SLSoluType]] v]
+		set Sols [::Model::GetSolutionStrategies "SolutionType" $solutionType]
+		foreach ss $Sols {
+			lappend ids [$ss getName]
+			append names [$ss getName] ","
+			append pnames [$ss getName] "," [$ss getPublicName] ","
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute dict $pnames
+		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
+		#spdAux::RequestRefresh
+		return $names
+	  
+	  ]]>
+	</proc>
+		  			
 		  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
 	  # Overwritten the base function to add Solution Type restrictions
@@ -29,39 +53,6 @@
 	  ]]>
 	</proc>
 	
-	  <proc n='ActiveIfAnyPartState' args='args'>
-	  <![CDATA[
-	  set parts ""
-	  catch {
-		set parts [$domNode selectNodes "[spdAux::getRoute SLParts]/group"]
-		}
-		if {$parts ne ""} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='SolStratParamState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::SolStratParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='SchemeParamState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::SchemeParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>	   
-	  <proc n='ConstLawOutputState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::CheckConstLawOutputState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='ElementOutputState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::CheckElementOutputState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
 	  
 	  <proc n='getIntervals' args='args'>
 	  <![CDATA[
