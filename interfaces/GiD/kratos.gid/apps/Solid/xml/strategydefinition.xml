@@ -107,9 +107,12 @@
                 help="">
     
     <!-- list of options to be filled -->
-    <parameter_list>
-           <parameter n="DeltaTimePredictionLevel" pn="Delta time prediction level" type="double" v="0" help="This is the prediction level possibilities [0,1,2]"/>      
-           <parameter n="MaximumDeltatime" pn="Maximum Delta time" type="double" v="1e-3" help="This is the maximum delta time allowed"/>
+    <parameter_list> 
+           <parameter n="max_delta_time" pn="Maximum delta time" type="double" v="1.0e-5" help="Maximum delta time allowed"/>            
+           <parameter n="fraction_delta_time" pn="Fraction delta time" type="double" v="0.9" help=""/>            
+           <parameter n="time_step_prediction_level" pn="Time step prediction level" type="double" v="0" values="0,1,2" help="Prediction level possibilities [0,1,2]"/>      
+           <parameter n="rayleigh_damping" pn="Rayleigh damping" type="bool" v="false" values="false,true" help="Switch on/off the Rayleigh damping"/>
+           
     </parameter_list>
     
     <linearSolvers>
