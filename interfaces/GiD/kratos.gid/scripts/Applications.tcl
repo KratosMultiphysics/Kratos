@@ -15,14 +15,6 @@ proc apps::Init { } {
     set appList [list ]
 }
 
-proc apps::getRoute {name} {
-    return [spdAux::getRoute $name]
-}
-
-proc apps::setRoute {name route} {
-    spdAux::setRoute $name $route
-}
-
 proc apps::setActiveApp {appid} {
     variable activeApp
     variable appList
@@ -107,6 +99,15 @@ proc apps::ExecuteOnCurrent {elem func} {
     variable activeApp
     if {$activeApp ne ""} {
         return [$activeApp executexml $func $elem]
+    }
+}
+proc apps::LoadAppById {appid} {
+    variable appList
+    foreach app $appList {
+        if {[$app getName] eq $appid} {
+            $app activate
+            break
+        }
     }
 }
 

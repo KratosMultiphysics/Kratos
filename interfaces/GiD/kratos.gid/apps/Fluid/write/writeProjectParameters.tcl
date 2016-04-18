@@ -95,7 +95,7 @@ proc Fluid::write::getBoundaryConditionMeshId {} {
     set root [$doc documentElement]
     
     set listOfBCGroups [list ]
-    set xp1 "[apps::getRoute $BCUN]/condition/group"
+    set xp1 "[spdAux::getRoute $BCUN]/condition/group"
     set groups [$root selectNodes $xp1]    
     foreach group $groups {
         set groupName [$group @n]

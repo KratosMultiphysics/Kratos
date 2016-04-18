@@ -66,7 +66,7 @@ proc Solid::write::writeLoads { } {
     variable ConditionsDictGroupIterators
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    set xp1 "[apps::getRoute "SLLoads"]/condition/group"
+    set xp1 "[spdAux::getRoute "SLLoads"]/condition/group"
     foreach group [$root selectNodes $xp1] {
         set groupid [$group @n]
         #W "Writing mesh of Load $groupid"

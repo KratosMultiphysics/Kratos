@@ -8,6 +8,8 @@ proc ::Structural::Init { } {
     variable dir
     
     set dir [apps::getMyDir "Structural"]
+    
+    apps::LoadAppById "Solid"
 }
 
 proc ::Structural::LoadMyFiles { } {
@@ -15,11 +17,6 @@ proc ::Structural::LoadMyFiles { } {
     
     uplevel #0 [list source [file join $dir xml GetFromXML.tcl]]
     uplevel #0 [list source [file join $dir write write.tcl]]
-    uplevel #0 [list source [file join $dir write writeProjectParameters.tcl]]
-}
-
-proc ::Structural::MultiAppEvent {args} {
-    W "$args"
 }
 
 ::Structural::Init
