@@ -10,14 +10,18 @@
 namespace Kratos {
 
     class DEM_KDEMFabric : public DEM_KDEM {
+    
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEMFabric);
-        DEM_KDEMFabric() {}    
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
-        ~DEM_KDEMFabric() {}
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
+
+        DEM_KDEMFabric() {}
         
+        ~DEM_KDEMFabric() {}
+
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+
+        DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                               SphericContinuumParticle* neighbor,
