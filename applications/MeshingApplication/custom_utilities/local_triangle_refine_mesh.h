@@ -47,6 +47,7 @@
 //#include "utilities/split_triangle.h"
 #include "utilities/split_triangle.c"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 #include "processes/node_erase_process.h"
 // #include "spatial_containers/spatial_containers.h"
 
@@ -464,7 +465,6 @@ public:
         int nint = 0;
         array_1d<int, 6 > aux;
 
-
         ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
         PointerVector< Element > Old_Elements;
 
@@ -478,9 +478,10 @@ public:
             Element::GeometryType& geom = it->GetGeometry();
             Calculate_Edges(geom, Coord, edge_ids, aux);
 
+            const unsigned int dimension = geom.WorkingSpaceDimension();
+
             ///* crea las nuevas conectividades
             create_element = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
-
 
             ///* crea los nuevos elementos
             if (create_element == true)
@@ -494,13 +495,22 @@ public:
                     unsigned int i1 = aux[t[base + 1]];
                     unsigned int i2 = aux[t[base + 2]];
 
-
-                    Triangle2D3<Node < 3 > > geom(
-                        this_model_part.Nodes()(i0),
-                        this_model_part.Nodes()(i1),
-                        this_model_part.Nodes()(i2)
-                    );
-
+                    if (dimension == 2)
+                    {
+                        Triangle2D3<Node < 3 > > geom(
+                            this_model_part.Nodes()(i0),
+                            this_model_part.Nodes()(i1),
+                            this_model_part.Nodes()(i2)
+                        );
+                    }
+                    else
+                    {
+                        Triangle3D3<Node < 3 > > geom(
+                            this_model_part.Nodes()(i0),
+                            this_model_part.Nodes()(i1),
+                            this_model_part.Nodes()(i2)
+                        );
+                    }
 
                     Element::Pointer p_element;
                     p_element = it->Create(current_id, geom, it->pGetProperties());
@@ -566,6 +576,8 @@ public:
 
                 Condition::GeometryType& geom = it->GetGeometry();
 
+                const unsigned int dimension = geom.WorkingSpaceDimension();
+
                 if (geom.size() == 2)
                 {
                     int index_0 = geom[0].Id() - 1;
@@ -582,29 +594,50 @@ public:
                     if (new_id > 0) //we need to create a new condition
                     {
                         to_be_deleted++;
-                        Line2D2<Node < 3 > > newgeom1(
-                            this_model_part.Nodes()(geom[0].Id()),
-                            this_model_part.Nodes()(new_id)
-                        );
+                        if (dimension == 2)
+                        {
+                            Line2D2<Node < 3 > > newgeom1(
+                                this_model_part.Nodes()(geom[0].Id()),
+                                this_model_part.Nodes()(new_id)
+                            );
 
-                        Line2D2<Node < 3 > > newgeom2(
-                            this_model_part.Nodes()(new_id),
-                            this_model_part.Nodes()(geom[1].Id())
-                        );
+                            Line2D2<Node < 3 > > newgeom2(
+                                this_model_part.Nodes()(new_id),
+                                this_model_part.Nodes()(geom[1].Id())
+                            );
 
+                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-                        Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
-                        Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+                            pcond1->Data() = it->Data();
+                            pcond2->Data() = it->Data();
 
-                        pcond1->Data() = it->Data();
-                        pcond2->Data() = it->Data();
+                            New_Conditions.push_back(pcond1);
+                            New_Conditions.push_back(pcond2);
+                        }
+                        else
+                        {
+                            Line3D2<Node < 3 > > newgeom1(
+                                this_model_part.Nodes()(geom[0].Id()),
+                                this_model_part.Nodes()(new_id)
+                            );
 
+                            Line3D2<Node < 3 > > newgeom2(
+                                this_model_part.Nodes()(new_id),
+                                this_model_part.Nodes()(geom[1].Id())
+                            );
 
-                        New_Conditions.push_back(pcond1);
-                        New_Conditions.push_back(pcond2);
+                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+
+                            pcond1->Data() = it->Data();
+                            pcond2->Data() = it->Data();
+
+                            New_Conditions.push_back(pcond1);
+                            New_Conditions.push_back(pcond2);
+                        }
 
                         //				  current_id++;
-
 
                         it->SetId(large_id);
                         large_id++;
