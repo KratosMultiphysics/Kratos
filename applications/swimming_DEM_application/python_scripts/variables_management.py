@@ -14,6 +14,12 @@ def AddNodalVariables(model_part, variable_list):
 
 def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
     fluid_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1)
+    gravity = Vector(3)
+    if pp.CFD_DEM.body_force_on_fluid_option:
+        gravity[0] = pp.CFD_DEM.GravityX
+        gravity[1] = pp.CFD_DEM.GravityY
+        gravity[2] = pp.CFD_DEM.GravityZ
+    fluid_model_part.ProcessInfo.SetValue(GRAVITY, gravity)
     dem_model_part.ProcessInfo.SetValue(COUPLING_TYPE, pp.CFD_DEM.coupling_level_type)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
