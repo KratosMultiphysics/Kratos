@@ -256,7 +256,7 @@ namespace Kratos
 			//using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
 			
 			moffset=0;
-			Convection_Particle& firstparticle =mparticles_vector[0];
+			//Convection_Particle& firstparticle =mparticles_vector[0];
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
