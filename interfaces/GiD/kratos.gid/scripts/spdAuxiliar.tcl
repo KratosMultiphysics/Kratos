@@ -454,6 +454,7 @@ proc spdAux::injectSolStratParams {basenode} {
             set pn [$par getPublicName]
             set type [$par getType]
             set dv [$par getDv]
+            if {$type eq "bool"} {set dv [GetBooleanForTree $dv]}
             set helptext [$par getHelp]
             set actualize [$par getActualize]
             set node "<value n=\"$parname\" pn=\"$pn\" state=\"\[SolStratParamState\]\" v=\"$dv\" help=\"$helptext\" "
@@ -463,6 +464,7 @@ proc spdAux::injectSolStratParams {basenode} {
             }
             
             if {$type eq "bool"} {
+                
                 append node " values=\"Yes,No\" "
             }
             if {$type eq "combo"} {
@@ -490,6 +492,7 @@ proc spdAux::injectSolStratParams {basenode} {
             set pn [$par getPublicName]
             set type [$par getType]
             set dv [$par getDv]
+            if {$type eq "bool"} {set dv [GetBooleanForTree $dv]}
             set helptext [$par getHelp]
             set node "<value n=\"$parname\" pn=\"$pn\" state=\"\[SchemeParamState\]\" v=\"$dv\" help=\"$helptext\" "
             if {$type eq "bool"} {
