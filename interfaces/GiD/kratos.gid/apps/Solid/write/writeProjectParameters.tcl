@@ -111,9 +111,7 @@ proc Solid::write::getSubModelPartNames { args } {
     
     set listOfProcessedGroups [list ]
     set groups [list ]
-    W "args $args"
     foreach un $args {
-        W "un $un"
         set xp1 "[spdAux::getRoute $un]/condition/group"
         set xp2 "[spdAux::getRoute $un]/group"
         set grs [$root selectNodes $xp1]
@@ -121,9 +119,7 @@ proc Solid::write::getSubModelPartNames { args } {
         set grs [$root selectNodes $xp2]
         if {$grs ne ""} {lappend groups {*}$grs}
     }
-    W $groups
     foreach group $groups {
-        W [$group asXML]
         set groupName [$group @n]
         set cid [[$group parent] @n]
         set gname [::write::getMeshId $cid $groupName]
