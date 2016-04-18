@@ -15,7 +15,7 @@ proc Pfem::xml::Init { } {
 }
 
 proc Pfem::xml::getUniqueName {name} {
-    return BA$name
+    return PFEM_$name
 }
 
 Pfem::xml::Init
