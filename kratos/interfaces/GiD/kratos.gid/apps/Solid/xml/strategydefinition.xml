@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <StrategyList>
-  <StrategyItem n="Implicit" pn="Implicit" 
+  <StrategyItem n="Implicit" pn="Implicit" SolutionType="Dynamic"
                 ImplementedInFile="mechanical_strategy.cpp"
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
@@ -98,7 +98,7 @@
 	</schemes>
   
   </StrategyItem>
-  <StrategyItem n="Explicit" pn="Explicit" 
+  <StrategyItem n="Explicit" pn="Explicit" SolutionType="Dynamic"
                 ImplementedInFile="mechanical_strategy.cpp"
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
@@ -127,6 +127,38 @@
 	
 	<schemes>
 	  <scheme n="CentralDifferences" pn="Central Differences">
+		  <parameter_list>
+			  <!--<parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
+			      <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/> -->
+		  </parameter_list>
+		  <element_filters>
+			 <filter field="ElementType" value="Solid"/>
+		  </element_filters>
+	  </scheme>
+	</schemes>
+  
+  </StrategyItem>
+  <StrategyItem n="GenericSolStrat" pn="Generic Solution" SolutionType="Static"
+                ImplementedInFile="mechanical_strategy.cpp"
+                ImplementedInApplication="SolidMechanicsApplication"
+                ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
+                MinimumKratosVersion="8500"
+                ProductionReady="true"
+                help="">
+    
+    <!-- list of options to be filled -->
+    <parameter_list> 
+    </parameter_list>
+    
+    <linearSolvers>
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
+        <filterFeatures>
+        </filterFeatures>
+      </linearSolverItem>     
+    </linearSolvers>
+	
+	<schemes>
+	  <scheme n="GenericScheme" pn="Generic scheme">
 		  <parameter_list>
 			  <!--<parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
 			      <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/> -->
