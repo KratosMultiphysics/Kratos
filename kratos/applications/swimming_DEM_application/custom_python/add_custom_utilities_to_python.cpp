@@ -97,7 +97,6 @@ void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim,SphericParticl
 void  AddCustomUtilitiesToPython(){
 using namespace boost::python;
 
-
     class_<RealFunction> ("RealFunction", init<const double, const double>())
         .def("Evaluate", &RealFunction::Evaluate)
         .def("CalculateDerivative", &RealFunction::CalculateDerivative)
@@ -214,6 +213,8 @@ using namespace boost::python;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
+        .def("CalculateGradient", &CustomFunctionsCalculator <2>::CalculateGradient)
+        .def("CalculateVelocityLaplacian", &CustomFunctionsCalculator <2>::CalculateVelocityLaplacian)
         .def("CalculateVelocityLaplacianRate", &CustomFunctionsCalculator <2>::CalculateVelocityLaplacianRate)
         .def("AssessStationarity", &CustomFunctionsCalculator <2>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <2>::CalculateDomainVolume)
@@ -222,8 +223,12 @@ using namespace boost::python;
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <2>::CalculateGlobalFluidVolume)
         ; 
 
+    //**********************************************************************************************************************************************
+    // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in comercial products.
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
+        .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
+        .def("CalculateVelocityLaplacian", &CustomFunctionsCalculator <3>::CalculateVelocityLaplacian)
         .def("RecoverSuperconvergentGradient", &CustomFunctionsCalculator <3>::RecoverSuperconvergentGradient)
         .def("CalculateVelocityLaplacianRate", &CustomFunctionsCalculator <2>::CalculateVelocityLaplacianRate)
         .def("AssessStationarity", &CustomFunctionsCalculator <3>::AssessStationarity)
@@ -232,7 +237,7 @@ using namespace boost::python;
         .def("CalculateTotalHydrodynamicForceOnFluid", &CustomFunctionsCalculator <3>::CalculateTotalHydrodynamicForceOnFluid)
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <3>::CalculateGlobalFluidVolume)
         ;
-    
+
     class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> >
             ("BinBasedDEMFluidCoupledMapping2D", init<double, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
@@ -242,7 +247,8 @@ using namespace boost::python;
         .def("AddDEMCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMCouplingVariable)
         .def("AddFluidCouplingVariable", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddFluidCouplingVariable)
         ;
-    
+    //**********************************************************************************************************************************************
+
     class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> >
             ("BinBasedNanoDEMFluidCoupledMapping2D", init<double, int, int, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
@@ -278,10 +284,7 @@ using namespace boost::python;
     class_<EmbeddedVolumeTool <3> >("EmbeddedVolumeTool", init<>())
         .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool <3> ::CalculateNegativeDistanceVolume)
         ;
-
     }
-
-
 }  // namespace Python.
 
 } // Namespace Kratos
