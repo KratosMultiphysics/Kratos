@@ -50,7 +50,7 @@ typedef ModelPart::NodesContainerType               NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
-CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true){}
+CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true), mSomeCloudsDontWork(false){}
 /// Calculator
 
 virtual ~CustomFunctionsCalculator(){}
@@ -106,6 +106,53 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+
+void CalculateGradient(ModelPart& r_model_part, Variable<double>& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
+{
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        noalias(inode->FastGetSolutionStepValue(gradient_container)) = ZeroVector(3);
+    }
+
+    array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
+    array_1d <double, TDim + 1 > elemental_pressures;
+    array_1d <double, TDim + 1 > N; // shape functions vector
+    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+
+    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+        // computing the shape function derivatives
+        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        double Volume;
+
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+
+        // getting the pressure gradients;
+
+        for (unsigned int i = 0; i < TDim + 1; ++i){
+            elemental_pressures[i] = geom[i].FastGetSolutionStepValue(scalar_container);
+        }
+
+
+        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_pressures); // its dimension may be 2
+
+        for (unsigned int i = 0; i < TDim; ++i){
+            grad[i] = grad_aux[i];
+        }
+
+        double nodal_area = Volume / static_cast<double>(TDim + 1);
+        grad *= nodal_area;
+
+        for (unsigned int i = 0; i < TDim + 1; ++i){
+            geom[i].FastGetSolutionStepValue(gradient_container) += grad;
+        }
+    }
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        inode->FastGetSolutionStepValue(gradient_container) /= inode->FastGetSolutionStepValue(NODAL_AREA);
+    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
 // this function assumes linear elements are used
 //
 // This function constructs the nodal values of the gradient of a scalar field from the nodal values of the field itself. For each node i, it is
@@ -119,21 +166,33 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 // The function was inspired by the 2005 Zhang et al. "A new finite element gradient recovery method: superconvergence property" and in the methodology
 // described by Enrique Ortega (eortega@cimne.upc.edu) to me (gcasas@cimne.upc.edu).
 
-void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& scalar_container, Variable<array_1d<double, 3> >& scalar_gradient_container)
+void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
 {
     if (mFirstGradientRecovery){
+        std::cout << "Constructing first-step neighbour clouds for gradient recovery...\n";
         SetNeighboursAndWeights(r_model_part);
         mFirstGradientRecovery = false;
+        std::cout << "Finished constructing neighbour clouds for gradient recovery.\n";
+    }
+
+    if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
+        CalculateGradient(r_model_part, scalar_container, gradient_container);
     }
 
     // Solving least squares problem (Zhang, 2006)
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-        array_1d <double, 3>& recovered_gradient = inode->FastGetSolutionStepValue(scalar_gradient_container);
+        unsigned int n_neigh = neigh_nodes.size();
+
+        if (!n_neigh){ // we keep the defualt value
+            continue;
+        }
+
+        array_1d <double, 3>& recovered_gradient = inode->FastGetSolutionStepValue(gradient_container);
         recovered_gradient = ZeroVector(3);
         const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
 
-        for (unsigned int i_neigh = 0; i_neigh < neigh_nodes.size(); ++i_neigh){
+        for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
             const double& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(scalar_container);
 
             for (unsigned int d = 0; d < TDim; ++d){
@@ -142,6 +201,12 @@ void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& s
         }
     }
 }
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void CalculateVelocityLaplacian(ModelPart& r_model_part)
+{}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -388,6 +453,7 @@ private:
 
 bool mPressuresFilled;
 bool mFirstGradientRecovery;
+bool mSomeCloudsDontWork;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
@@ -606,17 +672,27 @@ void SetNeighboursAndWeights(ModelPart& r_model_part)
     // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
     FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
     neighbour_finder.Execute();
-    const unsigned int max_n_neighbours = 250;
+    const unsigned int n_max_iterations = 100;
 
     unsigned int i = 0;
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
         WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
-        const std::size_t& n_neigbours = neigh_nodes.size();
-        while (!the_cloud_of_neighbours_is_successful && n_neigbours <= max_n_neighbours){
+
+        unsigned int iteration = 0;
+        while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
             the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
-            KRATOS_WATCH(neigh_nodes.size())
+            iteration++;
         }
+
+        if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
+            mSomeCloudsDontWork = true;
+            neigh_nodes.clear();
+            inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
+            std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
+            std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
+        }
+        KRATOS_WATCH(neigh_nodes.size())
         i++;
     }
 }
