@@ -7,7 +7,7 @@
 //
 
 #if !defined(KRATOS_BEADCLUSTER3D_H_INCLUDED )
-#define  KRATOS_LINECLUSTER3D_H_INCLUDED
+#define  KRATOS_BEADCLUSTER3D_H_INCLUDED
 
 // System includes
 #include <string>
