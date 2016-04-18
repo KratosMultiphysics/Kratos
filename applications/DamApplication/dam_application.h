@@ -23,7 +23,7 @@
 
 //Elements
 #include "custom_elements/small_displacement_thermo_mechanic_element.hpp"
-#include "custom_elements/small_displacement_interface_element.hpp"
+//#include "custom_elements/small_displacement_interface_element.hpp"
 
 //Constitutive Laws
 #include "custom_constitutive/thermal_linear_elastic_3D_law.hpp"
@@ -81,9 +81,9 @@ private:
 
 // Member Variables
 
-const SmallDisplacementInterfaceElement<2,4> mSmallDisplacementInterfaceElement2D4N;
-const SmallDisplacementInterfaceElement<3,6> mSmallDisplacementInterfaceElement3D6N;
-const SmallDisplacementInterfaceElement<3,8> mSmallDisplacementInterfaceElement3D8N;
+//const SmallDisplacementInterfaceElement<2,4> mSmallDisplacementInterfaceElement2D4N;
+//const SmallDisplacementInterfaceElement<3,6> mSmallDisplacementInterfaceElement3D6N;
+//const SmallDisplacementInterfaceElement<3,8> mSmallDisplacementInterfaceElement3D8N;
 
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D3N;
 const SmallDisplacementThermoMechanicElement mSmallDisplacementThermoMechanicElement2D6N;
