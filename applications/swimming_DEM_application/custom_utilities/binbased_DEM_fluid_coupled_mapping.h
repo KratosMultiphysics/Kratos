@@ -150,6 +150,7 @@ BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
         mParticlesPerDepthDistance = 1;
     }
 
+    mGravity = ZeroVector(3);
 }
 
 /// Destructor.
@@ -608,6 +609,7 @@ double mMaxNodalAreaInv;
 int mCouplingType;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
+array_1d<double, 3> mGravity;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 PointPointSearch::Pointer mpPointPointSearch;
@@ -1450,7 +1452,7 @@ void TransferWithLinearWeighing(
             const double& density                      = geom[i].FastGetSolutionStepValue(DENSITY);
             hydrodynamic_reaction -= mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume) * origin_data;
             body_force = hydrodynamic_reaction;
-            body_force[2] -= 9.81;
+            body_force += mGravity;
         }
     }
 
@@ -1686,17 +1688,15 @@ void ResetDEMVariables(ModelPart& r_dem_model_part)
 
 void ResetFluidVariables(ModelPart& r_fluid_model_part)
 {
+    const array_1d<double, 3>& gravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
+
     for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
 
         ClearVariable(node_it, FLUID_FRACTION);
 
         array_1d<double, 3>& body_force                = node_it->FastGetSolutionStepValue(BODY_FORCE);
         array_1d<double, 3>& old_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-        //body_force -= old_hydrodynamic_reaction;
-        body_force[0] = 0.0;
-        body_force[1] = 0.0;
-        body_force[2] = -9.81;
-
+        body_force = gravity;
         noalias(old_hydrodynamic_reaction) = ZeroVector(3);
     }
 }
