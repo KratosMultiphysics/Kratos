@@ -52,10 +52,15 @@ proc Solid::write::writeParametersEvent { } {
     # Solution strategy parameters and Solvers
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolutionStrategyParametersDict] ]
     set solverSettingsDict [dict merge $solverSettingsDict [write::getSolversParametersDict] ]
+    
+    dict set solverSettingsDict problem_domain_sub_model_part_list [getSubModelPartNames "SLParts"]
+    dict set solverSettingsDict processes_sub_model_part_list [getSubModelPartNames "SLNodalConditions" "SLLoads"]
+    
     dict set projectParametersDict solver_settings $solverSettingsDict
     
     # Lists of processes
     dict set projectParametersDict constraints_process_list [write::getConditionsParametersDict SLNodalConditions "Nodal"]
+    
     dict set projectParametersDict loads_process_list [write::getConditionsParametersDict SLLoads]
 
     # GiD output configuration
@@ -100,3 +105,30 @@ proc Solid::write::writeParametersEvent { } {
     write::WriteJSON $projectParametersDict
 }
 
+proc Solid::write::getSubModelPartNames { args } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set listOfProcessedGroups [list ]
+    set groups [list ]
+    W "args $args"
+    foreach un $args {
+        W "un $un"
+        set xp1 "[spdAux::getRoute $un]/condition/group"
+        set xp2 "[spdAux::getRoute $un]/group"
+        set grs [$root selectNodes $xp1]
+        if {$grs ne ""} {lappend groups {*}$grs}
+        set grs [$root selectNodes $xp2]
+        if {$grs ne ""} {lappend groups {*}$grs}
+    }
+    W $groups
+    foreach group $groups {
+        W [$group asXML]
+        set groupName [$group @n]
+        set cid [[$group parent] @n]
+        set gname [::write::getMeshId $cid $groupName]
+        if {$gname ni $listOfProcessedGroups} {lappend listOfProcessedGroups $gname}
+    }
+    
+    return $listOfProcessedGroups
+}

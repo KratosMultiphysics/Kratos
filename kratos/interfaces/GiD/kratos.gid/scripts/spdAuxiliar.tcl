@@ -325,12 +325,13 @@ proc spdAux::ViewDoc {} {
     W [$root asXML]
 }
 
-
+# TODO JG quitar la chapuza de .gid.cen......
 proc spdAux::CheckElemParamValue {node} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
     set id [$node getAttribute n]
+    set found 0
     set val 0.0
     set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
     set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
@@ -340,7 +341,24 @@ proc spdAux::CheckElemParamValue {node} {
     append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
 
     foreach valueNode [$root selectNodes $xp3] {
-        if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]}
+        if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
+    }
+    
+    if {!$found} {
+        set element_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Element'\]"] v]
+        #set claw_name [.gid.central.boundaryconds.gg.data.f0.e1 get]
+        set element [Model::getElement $element_name]
+        
+        set val [$element getInputDv $id]
+        if {$val ne ""} {set found 1}
+    }
+    
+    if {!$found} {
+        set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+        set claw [Model::getConstitutiveLaw $claw_name]
+        
+        set val [$claw getInputDv $id]
+        if {$val ne ""} {set found 1}
     }
     
     return $val
