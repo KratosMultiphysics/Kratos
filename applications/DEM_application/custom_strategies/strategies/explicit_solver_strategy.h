@@ -280,8 +280,9 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           int max_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( r_model_part );
           int max_FEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( *mpFem_model_part );
+          int max_cluster_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( *mpCluster_model_part );
 
-          max_Id = std::max(max_Id, max_FEM_Id);
+          max_Id = std::max({max_Id, max_FEM_Id,max_cluster_Id});
           mpParticleCreatorDestructor->SetMaxNodeId(max_Id);
 
       }
