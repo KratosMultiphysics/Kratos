@@ -77,6 +77,15 @@ oo::class create Entity {
         }
         return $pn
     }
+    method getInputDv {in} {
+        variable inputs
+        set dv ""
+        catch {
+            set i [dict get $inputs $in]
+            set dv [$i getDv]
+        }
+        return $dv
+    }
     
     method getOutputs { } {variable outputs; return $outputs}
     method getOutputPn {in} {

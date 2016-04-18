@@ -181,10 +181,10 @@
     
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
-      <filter field="Type" value="3D"/>
-      <filter field="Dimension" value="3D"/>
-      <filter field="StrainSize" value="6"/>
-      <filter field="HybridType" value="False"/>
+      <filter field="Type" 			value="3D"/>
+      <filter field="Dimension" 	value="3D"/>
+      <filter field="StrainSize" 	value="6"/>
+      <filter field="HybridType" 	value="False"/>
     </ConstitutiveLaw_FilterFeatures>
 
     <!--define list of NodalConditions-->
@@ -341,7 +341,7 @@
     <!--define list of NodalConditions-->
     <NodalConditions>
       <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction="REACTION"/>
-      <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" 	  analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
+      <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" 	  	analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
       <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"  reaction=""/>
       <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>

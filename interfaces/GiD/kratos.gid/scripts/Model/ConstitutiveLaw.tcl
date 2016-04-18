@@ -69,6 +69,14 @@ proc Model::GetConstitutiveLaws { args } {
     }
     return $cumplen
 }
+proc Model::getConstitutiveLaw {clid} { 
+    variable ConstitutiveLaws
+
+    foreach cl $ConstitutiveLaws {
+        if {[$cl getName] eq $clid} { return $cl}
+    }
+    return ""
+}
 
 proc Model::GetAllCLInputs {} {
     variable ConstitutiveLaws
