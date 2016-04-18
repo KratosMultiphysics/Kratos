@@ -96,12 +96,12 @@ private:
     /// 3D instance of the MonolithicDEMCoupledWeak element
     const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
 
-    const ShellRigid mRigidShellElement;
-
     /// Exact 2D slip condition using rotated coordinates (monolithic version)
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
     const  MonolithicDEMCoupledWallCondition<3,3> mMonolithicDEMCoupledWallCondition3D;
+
+    const ShellRigid mRigidShellElement;
 
     /// swimming derivation of spheric basic DEM element (SphericParticle)
     const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
