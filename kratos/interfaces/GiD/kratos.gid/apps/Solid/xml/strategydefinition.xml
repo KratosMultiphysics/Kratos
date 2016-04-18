@@ -24,6 +24,12 @@
 		 help=""/> 
       <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"
 		 help=""/> 
+      <parameter n="block_builder" pn="Block builder" type="bool" v="false" values="false,true"
+		 help=""/> 
+      <parameter n="component_wise" pn="Component wise" type="bool" v="false" values="false,true"
+		 help=""/> 
+      <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"
+		 help=""/> 
       <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="Residual_criterion" 
          values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
          pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
@@ -108,11 +114,26 @@
     
     <!-- list of options to be filled -->
     <parameter_list> 
-           <parameter n="max_delta_time" pn="Maximum delta time" type="double" v="1.0e-5" help="Maximum delta time allowed"/>            
-           <parameter n="fraction_delta_time" pn="Fraction delta time" type="double" v="0.9" help=""/>            
-           <parameter n="time_step_prediction_level" pn="Time step prediction level" type="double" v="0" values="0,1,2" help="Prediction level possibilities [0,1,2]"/>      
-           <parameter n="rayleigh_damping" pn="Rayleigh damping" type="bool" v="false" values="false,true" help="Switch on/off the Rayleigh damping"/>
-           
+            <parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  
+                help="Activate/deactivate rotation degrees of freedom"/> 
+            <parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"
+                help="Activate/deactivate pressure degrees of freedom"/>
+            <parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" 
+                help=""/>
+            <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true" 
+                help=""/> 
+            <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"
+                help=""/> 
+            <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"
+                help=""/> 
+            <parameter n="max_delta_time" pn="Maximum delta time" type="double" v="1.0e-5" 
+                help="Maximum delta time allowed"/>            
+            <parameter n="fraction_delta_time" pn="Fraction delta time" type="double" v="0.9" 
+                help=""/>            
+            <parameter n="time_step_prediction_level" pn="Time step prediction level" type="double" v="0" values="0,1,2" 
+                help="Prediction level possibilities [0,1,2]"/>      
+            <parameter n="rayleigh_damping" pn="Rayleigh damping" type="bool" v="false" values="false,true" 
+                help="Switch on/off the Rayleigh damping"/>            
     </parameter_list>
     
     <linearSolvers>
@@ -138,16 +159,51 @@
 	</schemes>
   
   </StrategyItem>
-  <StrategyItem n="GenericSolStrat" pn="Generic Solution" SolutionType="Static"
+  <StrategyItem n="GenericSolStrat" pn="Generic solution" SolutionType="Static"
                 ImplementedInFile="mechanical_strategy.cpp"
                 ImplementedInApplication="SolidMechanicsApplication"
-                ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
+                ImplementedInPythonFile="solid_mechanics_static_solver"
                 MinimumKratosVersion="8500"
                 ProductionReady="true"
                 help="">
     
     <!-- list of options to be filled -->
     <parameter_list> 
+        <parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  
+            help="Activate/deactivate rotation degrees of freedom"/> 
+        <parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"
+            help="Activate/deactivate pressure degrees of freedom"/> 
+        <parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" 
+            help=""/> 
+        <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true"
+            help=""/> 
+        <parameter n="line_search" pn="Line search" type="bool" v="false" values="false,true"
+            help="Switch on/off line search"/> 
+        <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"
+            help=""/> 
+        <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"
+            help=""/> 
+        <parameter n="block_builder" pn="Block builder" type="bool" v="false" values="false,true"
+            help=""/> 
+        <parameter n="component_wise" pn="Component wise" type="bool" v="false" values="false,true"
+            help=""/> 
+        <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"
+            help=""/> 
+        <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="Residual_criterion" 
+         values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
+         pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
+         help="These are the available convergence criteria for the nonlinear iteration">      
+            <parameter n="displacement_relative_tolerance" pn="Displacement relative tolerance" type="double" v="1e-4" parent="Displacement_criterion,And_criterion,Or_criterion" 
+               help="Relative displacement tolerance employed in the nonlinear iteration"/>      
+            <parameter n="displacement_absolute_tolerance" pn="Displacement absolute tolerance" type="double" v="1e-9" parent="Displacement_criterion,And_criterion,Or_criterion" 
+               help="Absolute displacement tolerance employed in the nonlinear iteration"/>      
+            <parameter n="residual_relative_tolerance" pn="Residual relative tolerance" type="double" v="1e-4" parent="Residual_criterion,And_criterion,Or_criterion" 
+               help="Relative residual tolerance employed in the nonlinear iteration"/>      
+            <parameter n="residual_absolute_tolerance" pn="Residual absolute tolerance" type="double" v="1e-9" parent="Residual_criterion,And_criterion,Or_criterion" 
+               help="Absolute residual tolerance employed in the nonlinear iteration"/>
+        </parameter>
+        <parameter n="max_iteration" pn="Maximum iterations" type="integer" v="10" 
+           help="This number will break the iterative loop when reached"/> 
     </parameter_list>
     
     <linearSolvers>
@@ -159,9 +215,7 @@
 	
 	<schemes>
 	  <scheme n="GenericScheme" pn="Generic scheme">
-		  <parameter_list>
-			  <!--<parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
-			      <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/> -->
+          <parameter_list>
 		  </parameter_list>
 		  <element_filters>
 			 <filter field="ElementType" value="Solid"/>
