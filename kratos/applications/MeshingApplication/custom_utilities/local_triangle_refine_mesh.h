@@ -502,6 +502,23 @@ public:
                             this_model_part.Nodes()(i1),
                             this_model_part.Nodes()(i2)
                         );
+
+                        Element::Pointer p_element;
+                        p_element = it->Create(current_id, geom, it->pGetProperties());
+                        p_element->Initialize();
+                        p_element->InitializeSolutionStep(rCurrentProcessInfo);
+                        p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+
+                        /// setting the internal variables in the child elem
+                        if (interpolate_internal_variables == true)
+                            InterpolateInteralVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
+
+                        // Transfer elemental variables
+                        p_element->Data() = it->Data();
+                        //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
+                        p_element->GetValue(SPLIT_ELEMENT) = false;
+                        //p_element->SetValue(REFINEMENT_LEVEL, 1);
+                        New_Elements.push_back(p_element);
                     }
                     else
                     {
@@ -510,26 +527,26 @@ public:
                             this_model_part.Nodes()(i1),
                             this_model_part.Nodes()(i2)
                         );
+
+                        Element::Pointer p_element;
+                        p_element = it->Create(current_id, geom, it->pGetProperties());
+                        p_element->Initialize();
+                        p_element->InitializeSolutionStep(rCurrentProcessInfo);
+                        p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+
+                        /// setting the internal variables in the child elem
+                        if (interpolate_internal_variables == true)
+                            InterpolateInteralVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
+
+                        // Transfer elemental variables
+                        p_element->Data() = it->Data();
+                        //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
+                        p_element->GetValue(SPLIT_ELEMENT) = false;
+                        //p_element->SetValue(REFINEMENT_LEVEL, 1);
+                        New_Elements.push_back(p_element);
                     }
 
-                    Element::Pointer p_element;
-                    p_element = it->Create(current_id, geom, it->pGetProperties());
-                    p_element->Initialize();
-                    p_element->InitializeSolutionStep(rCurrentProcessInfo);
-                    p_element->FinalizeSolutionStep(rCurrentProcessInfo);
-
-                    /// setting the internal variables in the child elem
-                    if (interpolate_internal_variables == true)
-                        InterpolateInteralVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
-
-                    // Transfer elemental variables
-                    p_element->Data() = it->Data();
-                    //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
-                    p_element->GetValue(SPLIT_ELEMENT) = false;
-                    //p_element->SetValue(REFINEMENT_LEVEL, 1);
-                    New_Elements.push_back(p_element);
                     current_id++;
-
                 }
                 it->SetId(large_id);
                 large_id++;
