@@ -16,7 +16,7 @@ class GiDOutputProcess(Process):
             },
             "file_label": "time",
             "output_control_type": "step",
-            "output_frequency": 1,
+            "output_frequency": 1.0,
             "body_output": true,
             "node_output": false,
             "skin_output": false,
