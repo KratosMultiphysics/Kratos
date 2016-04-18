@@ -156,7 +156,8 @@ namespace Kratos {
                     LocalElasticContactForce[2] = 0.0;
                 }                
             } 
-            else { LocalElasticContactForce[2] = 0.0; 
+            else {
+                LocalElasticContactForce[2] = 0.0; 
             }
         }
         KRATOS_CATCH("")      
