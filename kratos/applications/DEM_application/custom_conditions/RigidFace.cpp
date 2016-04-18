@@ -174,12 +174,6 @@ void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
 }//CalculateRightHandSide
 
 
-void RigidFace3D::GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode){
-
-  delta_displacement = this->GetGeometry()[inode].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-  
-}
-
 void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 
     array_1d<double, 3> v1, v2;
