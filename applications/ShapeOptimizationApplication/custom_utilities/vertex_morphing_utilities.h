@@ -217,10 +217,6 @@ public:
     {
         KRATOS_TRY;
 
-        // Initialize variables for normalization
-        double J_norm = 0.0;
-        double C_norm = 0.0;
-
         // We loop over all nodes and compute the part of the sensitivity which is in direction
         // to the surface normal
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
@@ -233,9 +229,6 @@ public:
             // Assign resulting sensitivity back to node
             noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
 
-            // Compute contribution to objective norm denominator
-            J_norm += inner_prod(normal_node_sens,normal_node_sens);
-
             // Repeat for constraint
             if(constraint_given)
             {
@@ -246,27 +239,6 @@ public:
 
                 // Assign resulting sensitivity back to node
                 noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
-
-                // Compute contribution to objective norm denominator
-                C_norm += inner_prod(normal_node_sens,normal_node_sens);
-            }
-        }
-
-        // Compute contribution to objective norm denominator
-        J_norm = sqrt(J_norm);
-        C_norm = sqrt(C_norm);
-
-        // Normalize sensitivities
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = node_sens/J_norm;
-
-          // Repeat for constraint
-            if(constraint_given)
-            {
-                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = node_sens/C_norm;
             }
         }
 
@@ -285,11 +257,6 @@ public:
 
         // Some output for information
         std::cout << "> Start backward filtering..." << std::endl;
-
-        // Initialization of needed variables
-        std::map<int,double> dFds; // Objective gradients
-        std::map<int,double> dCds; // Constraint gradients
-
 
         // Creating an auxiliary list for the nodes to be searched on
         PointVector list_of_nodes;
@@ -317,8 +284,6 @@ public:
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), m_max_nodes_affected);
 
         // Loop over all design variables
-        double max_dFds = 0.0;
-        double max_dCds = 0.0;
         for (ModelPart::NodeIterator node_itr = mr_opt_model_part.NodesBegin(); node_itr != mr_opt_model_part.NodesEnd(); ++node_itr)
         {
             int i_ID = node_itr->Id();
@@ -349,11 +314,7 @@ public:
                 // Compute dot-product
                 dFds_i += Ai[j_ID][0] * node_sens[0] + Ai[j_ID][1] * node_sens[1] + Ai[j_ID][2] * node_sens[2];
             }
-            dFds[i_ID] = dFds_i;
-
-            // Store max value for later normalization
-            if(fabs(dFds_i)>max_dFds)
-                max_dFds = fabs(dFds_i);
+            m_filtered_dFdX[i_ID] = dFds_i;
 
             // If constrainted optimization, then also compute filtered gradients for the constraints (dCds)
             if(constraint_given)
@@ -371,23 +332,8 @@ public:
                     // Compute dot-product
                     dCds_i += Ai[j_ID][0] * node_sens[0] + Ai[j_ID][1] * node_sens[1] + Ai[j_ID][2] * node_sens[2];
                 }
-                dCds[i_ID] = dCds_i;
-
-                // Store max value for later normalization
-                if(fabs(dCds_i)>max_dCds)
-                    max_dCds = fabs(dCds_i);
+                m_filtered_dCdX[i_ID] = dCds_i;
             }
-        }
-
-        // Filtered gradients are computed as dFds (dCds) normalized by its max-norm
-        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
-        {
-            int i_ID = node_i->Id();
-            m_filtered_dFdX[i_ID] = dFds[i_ID] / max_dFds;
-
-            // If constraints are active, also normalize the filtered constraint gradients
-            if(constraint_given)
-                m_filtered_dCdX[i_ID] = dCds[i_ID] / max_dCds;
         }
 
         std::cout << "> Finished backward filtering!" << std::endl;
@@ -453,11 +399,21 @@ public:
     {
         KRATOS_TRY;
 
-        // computation of update of design variable
+        // Compute max norm of search direction
+        double max_norm_search_dir = 0.0;
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
             int i_ID = node_i->Id();
-            m_design_variable_update[i_ID] = step_size * m_search_direction[i_ID];
+            if(fabs(m_search_direction[i_ID])>max_norm_search_dir)
+            	max_norm_search_dir = fabs(m_search_direction[i_ID]);
+        }
+
+        // computation of update of design variable & update search direction to its maxnorm to eliminate dependency of
+        // value of constant step size on lenght of search direction
+        for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
+        {
+            int i_ID = node_i->Id();
+            m_design_variable_update[i_ID] = step_size * ( m_search_direction[i_ID] / max_norm_search_dir );
         }
 
         KRATOS_CATCH("");

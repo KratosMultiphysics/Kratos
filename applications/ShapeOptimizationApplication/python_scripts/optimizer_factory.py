@@ -568,6 +568,12 @@ class VertexMorphingMethod:
             iterator = str(opt_itr) + ".0"
             self.analyzer( X, self.controller.get_controls(), iterator, response )
 
+            # Scale constraint if specified
+            response[only_C_id]["func"] = response[only_C_id]["func"]*self.config.constraint_scaling
+            if(self.config.constraint_scaling!=1.0):
+                for node_Id in response[only_C_id]["grad"]: 
+                    response[only_C_id]["grad"][node_Id] = response[only_C_id]["grad"][node_Id]*self.config.constraint_scaling
+
             # Check if constraint is active
             for func_id in self.config.constraints:
                 if(self.config.constraints[func_id]["type"] == "eq"):
@@ -592,7 +598,7 @@ class VertexMorphingMethod:
 
             # Compute search direction
             if(constraints_given):
-                self.vm_utils.compute_search_direction_penalized_projection( response[only_C_id]["func"]*self.config.constraint_scaling)
+                self.vm_utils.compute_search_direction_penalized_projection( response[only_C_id]["func"] )
             else:
                 self.vm_utils.compute_search_direction_steepest_descent()
 
@@ -657,7 +663,7 @@ class VertexMorphingMethod:
         eucledian_norm_obj_sens = 0.0
         for node_Id in objective_grads:
 
-            # If deactivated, nodal sensitivities will not be assigned
+            # If deactivated, nodal sensitivities will not be assigned and hence remain zero
             if(self.opt_model_part.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
                 continue
 
@@ -667,15 +673,13 @@ class VertexMorphingMethod:
             sens_i[1] = objective_grads[node_Id][1]
             sens_i[2] = objective_grads[node_Id][2]           
             self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,sens_i)
-            eucledian_norm_obj_sens += sens_i[0] * sens_i[0] + sens_i[1] * sens_i[1] + sens_i[2] * sens_i[2]
-        eucledian_norm_obj_sens = math.sqrt(eucledian_norm_obj_sens) 
 
         # When constraint_grads is defined also store constraint sensitivities (bool returns false if dictionary is empty)
         if(bool(constraint_grads)):
             eucledian_norm_cons_sens = 0.0
             for node_Id in constraint_grads:
 
-                # If deactivated, nodal sensitivities will not be assigned
+                # If deactivated, nodal sensitivities will not be assigned and hence remain zero
                 if(self.opt_model_part.Nodes[node_Id].GetSolutionStepValue(SENSITIVITIES_DEACTIVATED)):
                     continue
 
@@ -684,9 +688,7 @@ class VertexMorphingMethod:
                 sens_i[0] = constraint_grads[node_Id][0]
                 sens_i[1] = constraint_grads[node_Id][1]
                 sens_i[2] = constraint_grads[node_Id][2]           
-                self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)
-                eucledian_norm_cons_sens += sens_i[0] * sens_i[0] + sens_i[1] * sens_i[1] + sens_i[2] * sens_i[2]
-            eucledian_norm_cons_sens = math.sqrt(eucledian_norm_cons_sens)                  
+                self.opt_model_part.Nodes[node_Id].SetSolutionStepValue(CONSTRAINT_SENSITIVITY,0,sens_i)                 
 
     # --------------------------------------------------------------------------
     def get_design(self):
