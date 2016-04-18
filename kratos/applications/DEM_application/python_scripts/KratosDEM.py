@@ -214,7 +214,9 @@ dt = DEM_parameters.MaxTimeStep
 max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
 max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
 max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
-max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id)
+max_cluster_node_Id = creator_destructor.FindMaxNodeIdInModelPart(cluster_model_part)
+
+max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
 creator_destructor.SetMaxNodeId(max_Id)    
 
 #Strategy Initialization
