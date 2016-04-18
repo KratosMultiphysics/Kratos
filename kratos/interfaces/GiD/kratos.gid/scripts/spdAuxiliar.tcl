@@ -555,7 +555,7 @@ proc spdAux::injectNodalConditions { basenode } {
                     append node "
                         <value n=\"FixX\" pn=\"$fix X\" v=\"1\" values=\"1,0\" help=\"\"/>
                         <value n=\"FixY\" pn=\"$fix Y\" v=\"1\" values=\"1,0\" help=\"\"/>
-                        <value n=\"FixZ\" pn=\"$fix Z\" v=\"1\" values=\"1,0\" help=\"\"/>"
+                        <value n=\"FixZ\" pn=\"$fix Z\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
                 <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
@@ -604,7 +604,7 @@ proc spdAux::injectConditions { basenode } {
                     append node "
                         <value n=\"FixX\" pn=\"X $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
                         <value n=\"FixY\" pn=\"Y $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
-                        <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
+                        <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
                 <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
