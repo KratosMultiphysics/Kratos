@@ -7,9 +7,9 @@ import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
 KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
-    return MechanicalSolver(main_model_part, custom_settings)
+    return ImplicitMechanicalSolver(main_model_part, custom_settings)
 
-class MechanicalSolver:
+class ImplicitMechanicalSolver:
     
     
     ##constructor. the constructor shall only take care of storing the settings 
@@ -167,9 +167,9 @@ class MechanicalSolver:
                                                        self.settings["block_builder"].GetBool())
         
         # Solution scheme creation
-        mechanical_scheme = self._GetSolutionSchemeImplicit(self.settings["scheme_type"].GetString(), 
-                                                            self.settings["component_wise"].GetBool(),
-                                                            self.settings["compute_contact_forces"].GetBool())
+        mechanical_scheme = self._GetSolutionScheme(self.settings["scheme_type"].GetString(), 
+                                                    self.settings["component_wise"].GetBool(),
+                                                    self.settings["compute_contact_forces"].GetBool())
         
         # Get the convergence criterion
         mechanical_convergence_criterion = self._GetConvergenceCriterion()
@@ -235,7 +235,7 @@ class MechanicalSolver:
         
         return builder_and_solver
         
-    def _GetSolutionSchemeImplicit(self, scheme_type, component_wise, compute_contact_forces):
+    def _GetSolutionScheme(self, scheme_type, component_wise, compute_contact_forces):
 
         if(scheme_type == "Newmark"):
             self.settings.AddEmptyValue("damp_factor_m")  
