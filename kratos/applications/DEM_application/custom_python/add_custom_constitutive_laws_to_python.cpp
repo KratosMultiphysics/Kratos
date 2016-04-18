@@ -29,6 +29,7 @@
 #include "custom_constitutive/DEM_Dempack_torque_CL.h"
 #include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "../custom_constitutive/dem_kdem_2d_cl.h"
+#include "../custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
 namespace Kratos {
 
@@ -109,6 +110,9 @@ namespace Kratos {
                     ;
             
             class_<DEM_KDEM2D, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEM2D",init<>())
+                    ;
+            
+            class_<DEM_KDEMFabric2D, bases< DEM_KDEM2D >, boost::noncopyable >("DEM_KDEMFabric2D",init<>())
                     ;
             
             class_<DEM_ExponentialHC, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_ExponentialHC",init<>())
