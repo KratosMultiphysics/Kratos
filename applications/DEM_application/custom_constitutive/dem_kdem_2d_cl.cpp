@@ -1,8 +1,6 @@
 
 #include <iostream>
-
 #include "DEM_application.h"
-#include "dem_kdem_2d_cl.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
