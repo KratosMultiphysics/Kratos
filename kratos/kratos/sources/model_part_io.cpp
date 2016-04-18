@@ -63,7 +63,15 @@ namespace Kratos
     ModelPartIO::ModelPartIO(boost::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
     {
-        if (Stream == nullptr)
+        // nullptr test can be confusing with boost::shared_ptr. Commented until we move to std::shared_ptr
+        // if (Stream == nullptr)
+        //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+
+        // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
+        if (Stream == NULL || Stream == boost::shared_ptr<std::iostream>(NULL))
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+
+        if (Stream == NULL)
             KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
