@@ -27,6 +27,7 @@
 #include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
+#include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_elements/spheric_swimming_particle.h"
 #include "../DEM_application/custom_elements/spheric_particle.h"
@@ -94,6 +95,8 @@ private:
     const MonolithicDEMCoupledWeak<2> mMonolithicDEMCoupledWeak2D;
     /// 3D instance of the MonolithicDEMCoupledWeak element
     const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
+
+    const ShellRigid mRigidShellElement;
 
     /// Exact 2D slip condition using rotated coordinates (monolithic version)
     const  MonolithicDEMCoupledWallCondition<2,2> mMonolithicDEMCoupledWallCondition2D;
