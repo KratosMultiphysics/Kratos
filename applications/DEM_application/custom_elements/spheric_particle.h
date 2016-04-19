@@ -259,6 +259,10 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     array_1d<double, 3>& rContactForce,
                     const unsigned int iRigidFaceNeighbour);
 
+virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
+                                    double ElasticLocalRotationalMoment[3],
+                                    double ViscoLocalRotationalMoment[3]);
+
 virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
                          double mTimeStep, double density, bool sliding, double inverse_of_volume,
                          double LocalElasticContactForce, DEMWall* cast_neighbour);
