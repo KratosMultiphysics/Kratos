@@ -185,15 +185,27 @@ public:
         return mChildConditions.GetContainer();
     }
 
+ 
     /**
      * creates a new condition pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+			      PropertiesType::Pointer pProperties) const;
 
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param pGeom: the geometry to be employed
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(IndexType NewId,
+			      GeometryType::Pointer pGeom,
+			      PropertiesType::Pointer pProperties) const;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -437,13 +449,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Condition CompositeCondition #" << Id();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-    /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Condition CompositeCondition #" << Id();
+    }
+
     ///@}
     ///@name Friends
     ///@{
