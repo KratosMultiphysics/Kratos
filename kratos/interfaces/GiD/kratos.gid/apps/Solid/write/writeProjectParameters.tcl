@@ -42,6 +42,13 @@ proc Solid::write::writeParametersEvent { } {
     #~ dict set solverSettingsDict domain_size [expr $nDim]
     dict set solverSettingsDict echo_level $echo_level
     dict set solverSettingsDict solution_type [write::getValue SLSoluType]
+    set solutiontype [write::getValue SLSoluType]
+    if {$solutiontype eq "Static"} {
+        dict set solverSettingsDict analysis_type [write::getValue SLAnalysisType]
+    } elseif {$solutiontype eq "Dynamic"} {
+        dict set solverSettingsDict time_integration_method [write::getValue SLSolStrat]
+        dict set solverSettingsDict scheme_type [write::getValue SLScheme]
+    }
     
     # model import settings
     set modelDict [dict create]
