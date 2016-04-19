@@ -65,7 +65,7 @@ else:
 
 import sphere_strategy as SolverStrategy
 
-DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
+DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi # write down the volume you know it has
 
 ##############################################################################
 #                                                                            #
@@ -570,9 +570,9 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 ######################################################################################################################################
 
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
-embedded_counter             = swim_proc.Counter(1, 3, 0)#DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-pressure_gradient_counter    = swim_proc.Counter(1, 1, (DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option))
+pressure_gradient_counter    = swim_proc.Counter(1, 1, False)#(DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option))
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
 print_counter                = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
@@ -691,7 +691,6 @@ while (time <= final_time):
     # solving the fluid part
 
     if step >= 3 and not stationarity:
-
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
 
