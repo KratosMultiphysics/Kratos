@@ -29,7 +29,7 @@ namespace Kratos {
 
         /// Default constructor.
         NewmarkBetaScheme(const double gamma = 0.5, const double beta = 0.25):
-            mGamma(gamma), mBeta(beta) {}
+            /*mGamma(gamma),*/ mBeta(beta) {}
 
         /// Destructor.
         virtual ~NewmarkBetaScheme() {}
@@ -106,7 +106,7 @@ namespace Kratos {
 
     private:
 
-        double mGamma;
+        //double mGamma; commented out to avoid warning
         double mBeta;
 
 
