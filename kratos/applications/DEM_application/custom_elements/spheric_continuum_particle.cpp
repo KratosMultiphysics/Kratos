@@ -297,6 +297,8 @@ namespace Kratos {
             double ViscoDampingLocalContactForce[3] = {0.0};
             double equiv_visco_damp_coeff_normal;
             double equiv_visco_damp_coeff_tangential;
+            double ElasticLocalRotationalMoment[3] = {0.0};
+            double ViscoLocalRotationalMoment[3] = {0.0};
                 
             double LocalRelVel[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
@@ -336,10 +338,13 @@ namespace Kratos {
                 ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
                 if (i < mContinuumInitialNeighborsSize) {       
                     if (mIniNeighbourFailureId[i] == 0) {
-                        mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area, LocalCoordSystem, mContactMoment);
+                        mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
+                                                                                            LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
                     }
                 }
             }                            
+            
+            AddUpMomentsAndProject(LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
@@ -357,8 +362,8 @@ namespace Kratos {
     } //  ComputeBallToBallContactForce   
 
     void SphericContinuumParticle::AddContributionToRepresentativeVolume(const double distance,
-                                                                const double radius_sum,
-                                                                const double contact_area) {
+                                                                         const double radius_sum,
+                                                                         const double contact_area) {
 
         KRATOS_TRY
 
