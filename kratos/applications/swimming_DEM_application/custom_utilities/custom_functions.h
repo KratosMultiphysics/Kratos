@@ -114,7 +114,7 @@ void CalculateGradient(ModelPart& r_model_part, Variable<double>& scalar_contain
     }
 
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
-    array_1d <double, TDim + 1 > elemental_pressures;
+    array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
@@ -125,14 +125,14 @@ void CalculateGradient(ModelPart& r_model_part, Variable<double>& scalar_contain
 
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
 
-        // getting the pressure gradients;
+        // getting the gradients;
 
         for (unsigned int i = 0; i < TDim + 1; ++i){
-            elemental_pressures[i] = geom[i].FastGetSolutionStepValue(scalar_container);
+            elemental_values[i] = geom[i].FastGetSolutionStepValue(scalar_container);
         }
 
 
-        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_pressures); // its dimension may be 2
+        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
 
         for (unsigned int i = 0; i < TDim; ++i){
             grad[i] = grad_aux[i];
@@ -206,7 +206,104 @@ void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& s
 //**************************************************************************************************************************************************
 
 void CalculateVelocityLaplacian(ModelPart& r_model_part)
-{}
+{
+    std::cout << "Constructing the Laplacian by derivating nodal averages...\n";
+    std::vector<array_1d <double, 3> > laplacians;
+    laplacians.resize(r_model_part.Nodes().size());
+    std::map <std::size_t, unsigned int> id_to_position;
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        noalias(inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN)) = ZeroVector(3);
+        unsigned int entry = std::distance(r_model_part.NodesBegin(), inode);
+        id_to_position[inode->Id()] = entry;
+    }
+
+    array_1d <double, 3> grad = ZeroVector(3);
+    array_1d <double, TDim + 1 > elemental_values;
+    array_1d <double, TDim + 1 > N; // shape functions vector
+    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding velocity component v_j
+
+
+    for (unsigned int j = 0; j < TDim; ++j){ // for each component of the velocity
+
+        // for each element, constructing the gradient contribution (to its nodes) of the velocity component v_j and storing it in VELOCITY_LAPLACIAN
+
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+            // computing the shape function derivatives
+            Geometry<Node<3> >& geom = ielem->GetGeometry();
+            double Volume;
+            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+
+            for (unsigned int i = 0; i < TDim + 1; ++i){
+                elemental_values[i] = geom[i].FastGetSolutionStepValue(VELOCITY)[j];
+            }
+
+            array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+
+            for (unsigned int i = 0; i < TDim; ++i){
+                grad[i] = grad_aux[i];
+            }
+
+            double nodal_area = Volume / static_cast<double>(TDim + 1);
+            grad *= nodal_area;
+
+            for (unsigned int i = 0; i < TDim + 1; ++i){
+                geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += grad; // we use VELOCITY_LAPLACIAN to store the gradient of one component at a time
+            }
+        }
+
+        // normalizing the constributions to the gradient
+
+        for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+            inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= inode->FastGetSolutionStepValue(NODAL_AREA);
+        }
+
+        // for each element, constructing the divergence contribution (to its nodes) of the corresponding gradient of the velocity component v_j
+
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+            Geometry<Node<3> >& geom = ielem->GetGeometry();
+            double Volume;
+            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+
+            for (unsigned int i = 0; i < TDim + 1; ++i){
+                for (unsigned int k = 0; k < TDim + 1; ++k){
+                    elemental_vectors(i, k) = geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN)[k]; // it is actually the gradient of component v_j
+                }
+            }
+
+            boost::numeric::ublas::bounded_matrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
+            double divergence_of_vi = 0.0;
+
+            for (unsigned int k = 0; k < TDim; ++k){
+                divergence_of_vi += grad_aux(k, k);
+            }
+
+            double nodal_area = Volume / static_cast<double>(TDim + 1);
+            divergence_of_vi *= nodal_area;
+
+            for (unsigned int i = 0; i < TDim + 1; ++i){
+                laplacians[id_to_position[geom[i].Id()]][j] += divergence_of_vi; // adding the contribution of the elemental divergence to each of its nodes
+            }
+        }
+
+        // clearing the values stored in VELOCITY LAPLACIAN for the next component
+
+        for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+            array_1d <double, 3>& current_gradient_of_vi = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+            current_gradient_of_vi = ZeroVector(3);
+        }
+
+    } // for each component of the velocity
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        array_1d <double, 3>& stored_laplacian = laplacians[id_to_position[inode->Id()]];
+        array_1d <double, 3>& laplacian = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+        laplacian = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
+    }
+
+    std::cout << "Finished constructing the Laplacian by derivating nodal averages...\n";
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -375,15 +472,18 @@ void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, arr
 //**************************************************************************************************************************************************
 // this function assumes linear elements are used
 
-void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array_1d <double, 3>& force)
+void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array_1d <double, 3>& instantaneous_force, array_1d <double, 3>& mean_force)
 {
     OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
     added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    std::vector<array_1d <double, 3> > added_mean_force_vect;
+    added_mean_force_vect.resize(OpenMPUtils::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
+        added_mean_force_vect[k] = ZeroVector(3);
     }
 
     #pragma omp parallel for
@@ -393,6 +493,7 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
             Geometry< Node<3> >& geom = it->GetGeometry();
             double element_volume;
             array_1d <double, 3> element_force;
+            array_1d <double, 3> element_mean_force;
 
             if (geom[0].SolutionStepsDataHas(HYDRODYNAMIC_REACTION) && geom[0].SolutionStepsDataHas(FLUID_FRACTION)){
                 element_force  = CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(geom, HYDRODYNAMIC_REACTION, element_volume);
@@ -402,14 +503,25 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
                 element_force = ZeroVector(3);
             }
 
+            if (geom[0].SolutionStepsDataHas(MEAN_HYDRODYNAMIC_REACTION) && geom[0].SolutionStepsDataHas(FLUID_FRACTION)){
+                element_mean_force  = CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(geom, MEAN_HYDRODYNAMIC_REACTION, element_volume);
+            }
+
+            else {
+                element_mean_force = ZeroVector(3);
+            }
+
             added_force_vect[k] += element_force;
+            added_mean_force_vect[k] += element_mean_force;
         }
     }
 
-    force = added_force_vect[0];
+    instantaneous_force = added_force_vect[0];
+    mean_force          = added_force_vect[0];
 
     for (unsigned int k = 1; k < added_force_vect.size(); ++k){
-        force += added_force_vect[k];
+        instantaneous_force += added_force_vect[k];
+        mean_force          += added_mean_force_vect[k];
     }
 }
 
