@@ -90,9 +90,22 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 //*********************************CREATE*********************************************
 //************************************************************************************
 
-Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, 
+					       PropertiesType::Pointer pProperties ) const
 {
   return Condition::Pointer(new CompositeCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+}
+
+
+
+//*********************************CREATE*********************************************
+//************************************************************************************
+
+Condition::Pointer CompositeCondition::Create( IndexType NewId, GeometryType::Pointer pGeom,
+					       PropertiesType::Pointer pProperties) const
+{
+  
+  return Condition::Pointer(new CompositeCondition( NewId, pGeom, pProperties ) );
 }
 
 
