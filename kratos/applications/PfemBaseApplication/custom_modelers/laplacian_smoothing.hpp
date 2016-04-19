@@ -131,7 +131,7 @@ namespace Kratos
     //*******************************************************************************************
 
 
-    void IncrementalSmoothing(ModelPart& rModelPart,				  
+    void IncrementalSmoothing(ModelPart& rModelPart,
 			      ModelPart::IndexType MeshId=0)
     {
 
@@ -446,10 +446,9 @@ namespace Kratos
   
       KRATOS_WATCH( "Finished Laplacian Smoothing" )
     
+      KRATOS_CATCH( "" )
 
-	KRATOS_CATCH( "" )
-
-	}
+   }
 	
  
 	
@@ -743,10 +742,10 @@ namespace Kratos
 
 		      if(is_inside == true)
 			{
-			  //std::cout<<" node interpolate "<<(*it_found)->Id()<<std::endl;
+			  //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" VariablesList size "<<VariablesList.size()<<std::endl;
 			  if(UniquePosition [(*it_found)->Id()] == 0){
-			    UniquePosition [(*it_found)->Id()] = 1;
 			    
+			    UniquePosition [(*it_found)->Id()] = 1;			        
 			    VariablesList  [(*it_found)->Id()] = InterpolateVariables( Geometry, N, step_data_size, (*it_found) );
 			    
 			  }
@@ -1350,7 +1349,7 @@ namespace Kratos
 
 	      }
 
-	    //rNodes[in+1].Set(VISITED,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes plae
+	    //rNodes[in+1].Set(VISITED,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes place
 	  }
 	  
 
@@ -1366,7 +1365,7 @@ namespace Kratos
       }
 
       if(iters==smoothing_iters && !converged)
-	std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved "<<std::endl;
+	std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
 
 
     }
@@ -1626,6 +1625,9 @@ namespace Kratos
 		      unsigned int step_data_size,
 		      Node<3>::Pointer pnode)
     {
+
+      KRATOS_TRY
+
       unsigned int buffer_size = pnode->GetBufferSize();
 
       for(unsigned int step = 0; step<buffer_size; step++)
@@ -1652,6 +1654,7 @@ namespace Kratos
       if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
 	KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" );
 
+      KRATOS_CATCH( "" )
     }
 
 
@@ -1660,6 +1663,9 @@ namespace Kratos
 							  unsigned int step_data_size,
 							  Node<3>::Pointer pnode)
     {
+
+      KRATOS_TRY
+
       unsigned int buffer_size = pnode->GetBufferSize();
 	     
       double alpha = 0.25; //[0,1] //smoothing level of the interpolation 
@@ -1667,6 +1673,8 @@ namespace Kratos
       //Copy Variables List
       VariablesListDataValueContainer VariablesListData = (pnode)->SolutionStepData();
 	     
+      //std::cout<<" VariablesListData "<<VariablesListData<<std::endl;
+
       for(unsigned int step = 0; step<buffer_size; step++)
 	{
 	  //getting the data of the solution step
@@ -1682,13 +1690,15 @@ namespace Kratos
 	      //test intermediate value:
 	      step_data[j] = (alpha) * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]) + (1-alpha) * step_data[j];
 	    }
-
 	}
 	     
-      if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
+      if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0){
 	KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
-	     
-	  return VariablesListData;
+      }
+      
+      return VariablesListData;
+
+      KRATOS_CATCH( "" )
     }
 
 
