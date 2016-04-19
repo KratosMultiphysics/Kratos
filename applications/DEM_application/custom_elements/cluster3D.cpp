@@ -94,9 +94,7 @@ namespace Kratos {
         noalias(this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)) = euler_angles;        
     }
 
-    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties){
-
-        
+    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties){        
         KRATOS_TRY 
         
         int cluster_id = (int)this->Id();
@@ -163,7 +161,6 @@ namespace Kratos {
                                                                                     p_fast_properties);
             }
                         
-            p_creator_destructor->SetMaxNodeId(max_Id);       
             mListOfSphericParticles[i] = new_sphere;                 
         }
                 
