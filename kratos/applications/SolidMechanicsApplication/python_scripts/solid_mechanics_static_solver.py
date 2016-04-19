@@ -30,13 +30,13 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "solid_mechanics_static_solver",
+            "echo_level": 0,
+            "solution_type": "Static",
+            "analysis_type": "Non-Linear",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "echo_level": 0,
-            "time_integration_method": "Implicit",
-            "analysis_type": "nonlinear",
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
@@ -47,8 +47,6 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
             "block_builder": false,
             "component_wise": false,
             "move_mesh_flag": true,
-            "solution_type": "Static",
-            "scheme_type": "Bossak",
             "convergence_criterion": "Residual_criteria",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -63,7 +61,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                 "verbosity": 1
             },
             "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part": "solid_model_part"
+            "problem_domain_sub_model_part_list": "solid_model_part"
         }
         """)
         
@@ -119,10 +117,10 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
         
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
 
-        if(analysis_type == "linear"):
+        if(analysis_type == "Linear"):
             mechanical_scheme = SolidMechanicsApplication.ResidualBasedStaticScheme()
             
-        if(analysis_type == "nonlinear" ):
+        if(analysis_type == "Non-Linear" ):
             self.settings.AddEmptyValue("damp_factor_m")  
             self.settings.AddEmptyValue("dynamic_factor")
             self.settings["damp_factor_m"].SetDouble(0.0)
@@ -166,7 +164,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                                                                                                                 move_mesh_flag)
 
             else:
-                if self.settings["analysis_type"].GetString() == "linear":
+                if self.settings["analysis_type"].GetString() == "Linear":
                     self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part, 
                                                                                             mechanical_scheme, 
                                                                                             self.linear_solver, 
