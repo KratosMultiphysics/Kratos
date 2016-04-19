@@ -694,13 +694,14 @@ while (time <= final_time):
             if VELOCITY_LAPLACIAN in pp.fluid_vars:
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
+                current_fractional_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
                 #post_process_strategy.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 1
+                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = current_fractional_step
 #Z
     # assessing stationarity
 
@@ -748,7 +749,7 @@ while (time <= final_time):
             error += (exact_p_grad[i][0] - g0) ** 2 + (exact_p_grad[i][1] - g1) ** 2 + (exact_p_grad[i][2] - g2) ** 2
             i += 1
         
-        print(math.sqrt(error))
+        print("Error of the gradient calculation: ", math.sqrt(error))
         
         
         
@@ -772,20 +773,6 @@ while (time <= final_time):
 
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)     
-                #for node in spheres_model_part.Nodes:
-                    #x = node.X
-                    #y = node.Y
-                    #z = node.Z
-                    
-                    #node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
-                    #node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
-                    #node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
-                    #node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
-                    #node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
-                    #node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)                    
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pgrad_x)             
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pgrad_y)                    
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pgrad_z)    
                 
         # performing the time integration of the DEM part
 
