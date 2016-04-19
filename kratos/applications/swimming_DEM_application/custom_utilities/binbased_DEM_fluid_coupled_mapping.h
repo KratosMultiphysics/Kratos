@@ -135,14 +135,19 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 
 BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                const int coupling_type,
+                               const int time_averaging_type,
                                const int viscosity_modification_type,
                                const int n_particles_per_depth_distance = 1)
                              : mMustCalculateMaxNodalArea(true),
+                               mFluidDeltaTime(0.0),
+                               mFluidLastCouplingFromDEMTime(0.0),
                                mMinFluidFraction(min_fluid_fraction),
                                mMaxNodalAreaInv(0.0),
                                mCouplingType(coupling_type),
+                               mTimeAveragingTipe(time_averaging_type),
                                mViscosityModificationType(viscosity_modification_type),
-                               mParticlesPerDepthDistance(n_particles_per_depth_distance)
+                               mParticlesPerDepthDistance(n_particles_per_depth_distance),
+                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
 
 
 {
@@ -316,12 +321,23 @@ void InterpolateFromDEMMesh(
 {
     KRATOS_TRY
 
+    mFluidDeltaTime = r_fluid_model_part.GetProcessInfo()[DELTA_TIME];
+    mGravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
+    double current_fluid_time = r_fluid_model_part.GetProcessInfo()[TIME];
+
+    if (current_fluid_time > mFluidLastCouplingFromDEMTime){
+        mFluidLastCouplingFromDEMTime = current_fluid_time;
+        mNumberOfDEMSamplesSoFarInTheCurrentFluidStep = 0;
+    }
+
     // setting interpolated variables to their default values
     ResetFluidVariables(r_fluid_model_part);
     // calculating the fluid fraction
     InterpolateFluidFraction(r_dem_model_part, r_fluid_model_part, bin_of_objects_fluid);
     // calculating the rest of fluid variables (particle-fluid force etc.). The solid fraction must be known at this point as it may be used in this step
     InterpolateOtherFluidVariables(r_dem_model_part, r_fluid_model_part, bin_of_objects_fluid);
+
+    mNumberOfDEMSamplesSoFarInTheCurrentFluidStep++;
 
     KRATOS_CATCH("")
 }
@@ -604,11 +620,16 @@ vector<unsigned int> mNodesPartition;
 private:
 
 bool mMustCalculateMaxNodalArea;
+double mFluidDeltaTime;
+double mFluidLastCouplingFromDEMTime;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
 int mCouplingType;
+int mTimeAveragingTipe;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
+int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
+
 array_1d<double, 3> mGravity;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
@@ -1445,14 +1466,26 @@ void TransferWithLinearWeighing(
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
 
         for (unsigned int i = 0; i < TDim + 1; i++){
-            array_1d<double, 3>& hydrodynamic_reaction = geom[i].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-            array_1d<double, 3>& body_force            = geom[i].FastGetSolutionStepValue(BODY_FORCE);
-            const double& fluid_fraction               = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
-            const double& nodal_volume                 = geom[i].FastGetSolutionStepValue(NODAL_AREA);
-            const double& density                      = geom[i].FastGetSolutionStepValue(DENSITY);
-            hydrodynamic_reaction -= mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume) * origin_data;
-            body_force = hydrodynamic_reaction;
-            body_force += mGravity;
+            array_1d<double, 3>& hydrodynamic_reaction      = geom[i].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& body_force                 = geom[i].FastGetSolutionStepValue(BODY_FORCE);
+            const double& fluid_fraction                    = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
+            const double& nodal_volume                      = geom[i].FastGetSolutionStepValue(NODAL_AREA);
+            const double& density                           = geom[i].FastGetSolutionStepValue(DENSITY);
+
+            noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume) * origin_data;
+
+            if (mTimeAveragingTipe == 0){
+                noalias(body_force)                         = hydrodynamic_reaction + mGravity;
+            }
+
+            else{
+                array_1d<double, 3>& mean_hydrodynamic_reaction = geom[i].FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
+                mean_hydrodynamic_reaction                      = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep) * mean_hydrodynamic_reaction;
+                noalias(mean_hydrodynamic_reaction)            += hydrodynamic_reaction;
+                mean_hydrodynamic_reaction                      = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
+
+                noalias(body_force)                             = mean_hydrodynamic_reaction + mGravity;
+            }
         }
     }
 
@@ -1600,7 +1633,21 @@ void TransferByAveraging(
             array_1d<double, 3> contribution;
             noalias(contribution) = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
             //neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
-            neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION) += contribution;
+            array_1d<double, 3>& hydrodynamic_reaction      = neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& body_force                 = neighbours[i]->FastGetSolutionStepValue(BODY_FORCE);
+            hydrodynamic_reaction += contribution;
+
+            if (mTimeAveragingTipe == 0){
+                noalias(body_force) = hydrodynamic_reaction + mGravity;
+            }
+
+            else {
+                array_1d<double, 3>& mean_hydrodynamic_reaction = neighbours[i]->FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
+                mean_hydrodynamic_reaction = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep)* mean_hydrodynamic_reaction;
+                mean_hydrodynamic_reaction += hydrodynamic_reaction;
+                mean_hydrodynamic_reaction = 1.0 / (mNumberOfDEMSamplesSoFarInTheCurrentFluidStep + 1) * mean_hydrodynamic_reaction;
+                noalias(body_force) = mean_hydrodynamic_reaction + mGravity;
+            }
         }
     }
 }
@@ -1691,13 +1738,16 @@ void ResetFluidVariables(ModelPart& r_fluid_model_part)
     const array_1d<double, 3>& gravity = r_fluid_model_part.GetProcessInfo()[GRAVITY];
 
     for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
-
         ClearVariable(node_it, FLUID_FRACTION);
-
-        array_1d<double, 3>& body_force                = node_it->FastGetSolutionStepValue(BODY_FORCE);
-        array_1d<double, 3>& old_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(BODY_FORCE);
+        array_1d<double, 3>& hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+        hydrodynamic_reaction = ZeroVector(3);
         body_force = gravity;
-        noalias(old_hydrodynamic_reaction) = ZeroVector(3);
+
+        if (mTimeAveragingTipe > 0 && mNumberOfDEMSamplesSoFarInTheCurrentFluidStep == 0){ // There are 0 DEM accumulated samples when we move into a new fluid time step
+            array_1d<double, 3>& mean_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
+            mean_hydrodynamic_reaction = ZeroVector(3);
+        }
     }
 }
 
