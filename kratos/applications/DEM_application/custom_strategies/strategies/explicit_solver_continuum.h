@@ -174,7 +174,7 @@ namespace Kratos
                 SetSearchRadiiOnAllParticles(r_model_part, 0.0, 0.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
                 BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
                 SetInitialFemContacts();
-                RenewFEMContactList();        
+                BaseType::ComputeNewRigidFaceNeighboursHistoricalData();        
             }
 
             if (r_process_info[CONTACT_MESH_OPTION] == 1) {   
@@ -271,7 +271,7 @@ namespace Kratos
 
                     BaseType::SetSearchRadiiOnAllParticles(r_model_part, 0.0, 0.0); //Strict radius, not amplified (0.0 added distance, 1.0 factor of amplification)
                     BaseType::SearchRigidFaceNeighbours(r_process_info[LOCAL_RESOLUTION_METHOD]);
-                    RenewFEMContactList();
+                    BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
                     r_process_info[SEARCH_CONTROL] = 2;
                     //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
                         if (r_process_info[CONTACT_MESH_OPTION] == 1) {                            
@@ -312,17 +312,17 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
-    void RenewFEMContactList()
+    void ComputeNewRigidFaceNeighboursHistoricalData()
     {
         KRATOS_TRY
-        
         const int number_of_particles = (int)mListOfSphericParticles.size();
 
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++){
             mListOfSphericContinuumParticles[i]->ReorderFEMneighbours();
+            mListOfSphericParticles[i]->ComputeNewRigidFaceNeighboursHistoricalData();
         }
-        
+
         KRATOS_CATCH("")
     }    
 
@@ -356,7 +356,7 @@ namespace Kratos
             Element::Pointer p_new_contact_element;
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-	        bool add_new_bond = true;
+                bool add_new_bond = true;
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericContinuumParticles[i]->mNeighbourElements;
                 unsigned int continuous_initial_neighbors_size = mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize;
 
@@ -754,3 +754,4 @@ namespace Kratos
 }  // namespace Kratos
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined
+
