@@ -767,12 +767,14 @@ namespace Kratos
 			{
 		  
 			  if( mEchoLevel > 0 )
-			    std::cout<<"   NOT FOUND CONDITION :: CREATED-> "<<ConditionId<<"("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
+			    std::cout<<"   NOT FOUND CONDITION :: CREATED-> ["<<ConditionId<<"] ("<<FaceNodes[0].Id()<<","<<FaceNodes[1].Id()<<")"<<std::endl;
+			  
+			  //std::cout<<" ReferenceCondition "<<rReferenceCondition<<std::endl;
 
 			  p_cond = rReferenceCondition.Create(ConditionId, FaceNodes, properties);
 		      
 			  //if a condition is created new nodes must be labeled TO_REFINE
-			  for(unsigned int j=1; j<=NumberNodesInFace; j++)
+			  for(unsigned int j=0; j<NumberNodesInFace; j++)
 			    {
 			      FaceNodes[j].Set(TO_REFINE);
 			    }
@@ -801,7 +803,6 @@ namespace Kratos
 
 	  }
 	}
-
 
       this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
@@ -868,7 +869,7 @@ namespace Kratos
 
       if( mEchoLevel >= 1 ){
 
-	std::cout<<"    New Conditions : "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
+	std::cout<<"   New Conditions : "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
 
 	if(all_assigned == true)
 	  std::cout<<"   Boundary Conditions RELOCATED "<<std::endl;
