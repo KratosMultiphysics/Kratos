@@ -253,8 +253,8 @@ namespace Kratos
     //Register solids
     KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D3N", mLinearSolidElement2D3N )
     KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D4N", mLinearSolidElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D6N", mLinearSolidElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "LinearSolidElement2D8N", mLinearSolidElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "LinearSolidElement3D4N", mLinearSolidElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "LinearSolidElement3D8N", mLinearSolidElement3D8N )
 
     //Register small displacement elements
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D3N", mSmallDisplacementElement2D3N )
