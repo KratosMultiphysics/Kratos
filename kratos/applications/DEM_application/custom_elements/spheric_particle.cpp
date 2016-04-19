@@ -403,6 +403,41 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
     mNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
 }
 
+void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
+{
+    array_1d<double, 3> vector_of_zeros = ZeroVector(3);
+    std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
+    unsigned int new_size              = rNeighbours.size();
+    std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
+    std::vector<array_1d<double, 3> > temp_neighbours_elastic_contact_forces(new_size);
+    std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+
+    for (unsigned int i = 0; i<rNeighbours.size(); i++){
+                
+        noalias(temp_neighbours_elastic_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
+        
+        if (rNeighbours[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
+            temp_neighbours_ids[i] = -1;
+            continue;
+        } 
+        
+        temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());        
+
+        for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
+            if (static_cast<int>(temp_neighbours_ids[i]) == mFemOldNeighbourIds[j] && mFemOldNeighbourIds[j] != -1) {
+                noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
+                noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
+                break;
+            }
+        }
+    }
+
+    mFemOldNeighbourIds.swap(temp_neighbours_ids);
+    mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_elastic_contact_forces);
+    mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
+}
+
 void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info){}
 
 void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info)

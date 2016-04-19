@@ -202,7 +202,7 @@ namespace Kratos {
     } 
     
     void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                                                 array_1d<double, 3 > & rContactForce,
+                                                                 array_1d<double, 3>& rContactForce,
                                                                  array_1d<double, 3>& rInitialRotaMoment,
                                                                  ProcessInfo& r_process_info,
                                                                  const double dt,

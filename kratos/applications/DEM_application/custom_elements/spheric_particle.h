@@ -149,6 +149,7 @@ virtual void PrintData(std::ostream& rOStream) const {}
 virtual void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                 std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
 
+virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
 
