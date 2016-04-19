@@ -1255,6 +1255,22 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
     DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
 }
 
+void SphericParticle::AddUpMomentsAndProject(double LocalCoordSystem[3][3],
+                                             double LocalElasticRotationalMoment[3],
+                                             double LocalViscoRotationalMoment[3]) {
+    
+    double LocalContactRotationalMoment[3] = {0.0};
+    double GlobalContactRotationalMoment[3] = {0.0};
+    
+    for (unsigned int index = 0; index < 3; index++) {
+        LocalContactRotationalMoment[index] = LocalElasticRotationalMoment[index] + LocalViscoRotationalMoment[index];
+    }
+    
+    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactRotationalMoment, GlobalContactRotationalMoment);
+    
+    DEM_ADD_SECOND_TO_FIRST(mContactMoment, GlobalContactRotationalMoment)
+}
+
 void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                                double LocalContactForce[3],
                                                double LocalElasticContactForce[3],
