@@ -254,6 +254,9 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.CFD_DEM.coupling_level_type >= 1:
         pp.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
 
+    if pp.CFD_DEM.coupling_level_type >= 1 and pp.CFD_DEM.time_averaging_type > 0:
+        pp.coupling_fluid_vars += [MEAN_HYDRODYNAMIC_REACTION]
+
     if pp.CFD_DEM.drag_force_type >= 2:
         pp.coupling_fluid_vars += [POWER_LAW_N]
         pp.coupling_fluid_vars += [POWER_LAW_K]
@@ -323,6 +326,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM.print_HYDRODYNAMIC_REACTION_option:
         pp.nodal_results += ["HYDRODYNAMIC_REACTION"]
+
+    if pp.CFD_DEM.print_MEAN_HYDRODYNAMIC_REACTION_option:
+        pp.nodal_results += ["MEAN_HYDRODYNAMIC_REACTION"]
 
     if pp.CFD_DEM.embedded_option:
         pp.nodal_results += ["DISTANCE"]
