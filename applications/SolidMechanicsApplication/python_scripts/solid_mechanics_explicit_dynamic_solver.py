@@ -30,31 +30,24 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "solid_mechanics_explicit_dynamic_solver",
+            "echo_level": 0,
+            "solution_type": "Dynamic",
+            "time_integration_method": "Explicit",
+            "scheme_type": "CentralDifferences",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "echo_level": 0,
-            "time_integration_method": "Explicit",
-            "analysis_type": "nonlinear",
             "rotation_dofs": false,
             "pressure_dofs": false,
             "stabilization_factor": 1.0,
             "reform_dofs_at_each_iteration": false,
-            "line_search": false,
             "compute_reactions": true,
-            "compute_contact_forces": false,
-            "block_builder": false,
-            "component_wise": false,
             "move_mesh_flag": true,
-            "solution_type": "Dynamic",
-            "scheme_type": "CentralDifferences",
-            "convergence_criterion": "Residual_criteria",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-4,
-            "max_iteration": 10,
+            "max_delta_time": 1.0e-5,
+            "fraction_delta_time": 0.9,
+            "time_step_prediction_level": 0,
+            "rayleigh_damping": false,
             "linear_solver_settings":{
                 "solver_type": "Super LU",
                 "max_iteration": 500,
@@ -62,15 +55,11 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                 "scaling": false,
                 "verbosity": 1
             },
-            "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part": "solid_model_part",
-            "max_delta_time": 1.0e-5,
-            "fraction_delta_time": 0.9,
-            "time_step_prediction_level": 0,
-            "rayleigh_damping": true            
+            "problem_domain_sub_model_part_list": ["solid_model_part"],
+            "processes_sub_model_part_list": [""]
         }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -126,6 +115,9 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
 
         print("::[Mechanical Solver]:: -START-")
         
+        # Get the solid_computational_model_part 
+        self.compute_model_part = self.GetComputeModelPart()
+        
         # Solution scheme creation
         mechanical_scheme = self._GetSolutionScheme(self.settings["max_delta_time"].GetDouble(), 
                                                     self.settings["fraction_delta_time"].GetDouble(),
@@ -166,7 +158,7 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
     def _CreateMechanicalSolver(self, mechanical_scheme, compute_reactions, reform_step_dofs, move_mesh_flag):
 
-        self.mechanical_solver = SolidMechanicsApplication.ExplicitStrategy(self.main_model_part, 
+        self.mechanical_solver = SolidMechanicsApplication.ExplicitStrategy(self.compute_model_part, 
                                                                             mechanical_scheme, 
                                                                             self.linear_solver, 
                                                                             compute_reactions, 
