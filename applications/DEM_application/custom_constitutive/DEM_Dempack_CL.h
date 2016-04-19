@@ -100,7 +100,8 @@ namespace Kratos {
                                                       double distance,
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
-                                                      array_1d<double, 3>& mContactMoment);
+                                                      double ElasticLocalRotationalMoment[3],
+                                                      double ViscoLocalRotationalMoment[3]);
 
     private:
 
