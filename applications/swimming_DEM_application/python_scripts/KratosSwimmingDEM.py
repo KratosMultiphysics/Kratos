@@ -814,7 +814,7 @@ while (time <= final_time):
 
     # applying DEM-to-fluid coupling
 
-    if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
+    if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type > 1:
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
         projection_module.ProjectFromParticles()
