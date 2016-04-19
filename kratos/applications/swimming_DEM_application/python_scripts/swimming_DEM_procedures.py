@@ -306,46 +306,48 @@ class ProjectionDebugUtils:
         self.UpdateDataAndPrint(domain_volume, False)
 
     def UpdateDataAndPrint(self, domain_volume, is_time_to_print = True):
-        self.granul_utils                    = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
-        self.domain_volume                   = domain_volume
-        self.number_of_balls                 = self.balls_model_part.NumberOfElements(0)
-        self.discr_domain_volume             = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
-        self.proj_fluid_volume               = self.custom_utils.CalculateGlobalFluidVolume(self.fluid_model_part)
-        self.solid_volume                    = self.granul_utils.solid_volume
-        self.balls_per_area                  = self.granul_utils.spheres_per_area
-        self.fluid_volume                    = domain_volume - self.solid_volume
-        self.discr_fluid_volume              = self.discr_domain_volume - self.solid_volume
-        self.proj_solid_volume               = self.discr_domain_volume - self.proj_fluid_volume
-        self.global_fluid_fraction           = self.fluid_volume / self.domain_volume
-        self.global_solid_fraction           = 1.0 - self.global_fluid_fraction
-        self.fluid_on_balls_total_force      = Array3()
-        self.proj_balls_on_fluid_total_force = Array3()
+        self.granul_utils                         = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
+        self.domain_volume                        = domain_volume
+        self.number_of_balls                      = self.balls_model_part.NumberOfElements(0)
+        self.discr_domain_volume                  = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
+        self.proj_fluid_volume                    = self.custom_utils.CalculateGlobalFluidVolume(self.fluid_model_part)
+        self.solid_volume                         = self.granul_utils.solid_volume
+        self.balls_per_area                       = self.granul_utils.spheres_per_area
+        self.fluid_volume                         = domain_volume - self.solid_volume
+        self.discr_fluid_volume                   = self.discr_domain_volume - self.solid_volume
+        self.proj_solid_volume                    = self.discr_domain_volume - self.proj_fluid_volume
+        self.global_fluid_fraction                = self.fluid_volume / self.domain_volume
+        self.global_solid_fraction                = 1.0 - self.global_fluid_fraction
+        self.fluid_on_balls_total_force           = Array3()
+        self.proj_balls_on_fluid_total_force      = Array3()
+        self.mean_proj_balls_on_fluid_total_force = Array3()
         self.custom_utils.CalculateTotalHydrodynamicForceOnParticles(self.balls_model_part, self.fluid_on_balls_total_force)
-        self.custom_utils.CalculateTotalHydrodynamicForceOnFluid(self.fluid_model_part, self.proj_balls_on_fluid_total_force)
+        self.custom_utils.CalculateTotalHydrodynamicForceOnFluid(self.fluid_model_part, self.proj_balls_on_fluid_total_force, self.mean_proj_balls_on_fluid_total_force)
 
         if not is_time_to_print:
             return
 
         # printing
 
-        tot_len = 32 # total length of each line, including spaces
+        tot_len = 38 # total length of each line, including spaces
         print()
         print("Projection-related measurements")
-        print("*****************************************************")
-        print(GetWordWithSpaces("number_of_balls", tot_len)                 + '=', self.number_of_balls)
-        print(GetWordWithSpaces("domain_volume", tot_len)                   + '=', self.domain_volume)
-        print(GetWordWithSpaces("fluid_volume", tot_len)                    + '=', self.fluid_volume)
-        print(GetWordWithSpaces("solid_volume", tot_len)                    + '=', self.solid_volume)
-        print(GetWordWithSpaces("discr_domain_volume", tot_len)             + '=', self.discr_domain_volume)
-        print(GetWordWithSpaces("discr_fluid_volume", tot_len)              + '=', self.discr_fluid_volume)
-        print(GetWordWithSpaces("proj_fluid_volume", tot_len)               + '=', self.proj_fluid_volume)
-        print(GetWordWithSpaces("proj_solid_volume", tot_len)               + '=', self.proj_solid_volume)
-        print(GetWordWithSpaces("global_fluid_fraction", tot_len)           + '=', self.global_fluid_fraction)
-        print(GetWordWithSpaces("global_solid_fraction", tot_len)           + '=', self.global_solid_fraction)
-        print(GetWordWithSpaces("balls_per_area", tot_len)                  + '=', self.balls_per_area)
-        print(GetWordWithSpaces("fluid_on_balls_total_force", tot_len)      + '=', self.fluid_on_balls_total_force)
-        print(GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len) + '=', self.proj_balls_on_fluid_total_force)
-        print("*****************************************************")
+        print(tot_len * "**")
+        print(GetWordWithSpaces("number_of_balls", tot_len)                      + '=', self.number_of_balls)
+        print(GetWordWithSpaces("domain_volume", tot_len)                        + '=', self.domain_volume)
+        print(GetWordWithSpaces("fluid_volume", tot_len)                         + '=', self.fluid_volume)
+        print(GetWordWithSpaces("solid_volume", tot_len)                         + '=', self.solid_volume)
+        print(GetWordWithSpaces("discr_domain_volume", tot_len)                  + '=', self.discr_domain_volume)
+        print(GetWordWithSpaces("discr_fluid_volume", tot_len)                   + '=', self.discr_fluid_volume)
+        print(GetWordWithSpaces("proj_fluid_volume", tot_len)                    + '=', self.proj_fluid_volume)
+        print(GetWordWithSpaces("proj_solid_volume", tot_len)                    + '=', self.proj_solid_volume)
+        print(GetWordWithSpaces("global_fluid_fraction", tot_len)                + '=', self.global_fluid_fraction)
+        print(GetWordWithSpaces("global_solid_fraction", tot_len)                + '=', self.global_solid_fraction)
+        print(GetWordWithSpaces("balls_per_area", tot_len)                       + '=', self.balls_per_area)
+        print(GetWordWithSpaces("fluid_on_balls_total_force", tot_len)           + '=', self.fluid_on_balls_total_force)
+        print(GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len)      + '=', self.proj_balls_on_fluid_total_force)
+        print(GetWordWithSpaces("mean_proj_balls_on_fluid_total_force", tot_len) + '=', self.mean_proj_balls_on_fluid_total_force)
+        print(tot_len * "**")
         print()
 
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
