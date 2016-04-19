@@ -73,13 +73,13 @@ fluid_model_part = solver.GetComputeModelPart()
 # initialize GiD  I/O
 from gid_output import GiDOutput
 output_settings = ProjectParameters["output_configuration"]
-gid_io = GiDOutput(output_settings["output_filename"].GetString(),
+gid_io = GiDOutput(output_settings["output_file_name"].GetString(),
                    output_settings["volume_output"].GetBool(),
-                   output_settings["gid_post_mode"].GetString(),
-                   output_settings["gid_multi_file_flag"].GetString(),
-                   output_settings["gid_write_mesh_flag"].GetBool(),
-                   output_settings["gid_write_conditions_flag"].GetBool())
-output_time = output_settings["output_time"].GetDouble()
+                   output_settings["gidpost_flags"]["GiDPostMode"].GetString(),
+                   output_settings["gidpost_flags"]["MultiFileFlag"].GetString(),
+                   output_settings["gidpost_flags"]["WriteMeshFlag"].GetBool(),
+                   output_settings["gidpost_flags"]["WriteConditionsFlag"].GetBool())
+output_time = output_settings["gidpost_flags"]["gid_write_frequency"].GetDouble()
 
 gid_io.initialize_results(fluid_model_part)
 
