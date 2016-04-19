@@ -150,7 +150,8 @@ namespace Kratos {
                                                       double distance,
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
-                                                      array_1d<double, 3>& mContactMoment);
+                                                      double ElasticLocalRotationalMoment[3],
+                                                      double ViscoLocalRotationalMoment[3]);
         
         virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2);
 
