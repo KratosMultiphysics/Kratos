@@ -106,7 +106,6 @@ class NavierStokesSolver_FractionalStep:
             #here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             
-            
             #here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
             if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
@@ -125,14 +124,14 @@ class NavierStokesSolver_FractionalStep:
                     """)
             else:
                 raise Exception("domain size is not 2 or 3")
-            
+        
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             
             ##here we shall check that the input read has the shape we like
             self.settings.AddEmptyValue("prepare_model_part_settings")
             self.settings["prepare_model_part_settings"].AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
             self.settings["prepare_model_part_settings"].AddValue("skin_parts",self.settings["skin_parts"])
-            
+
             import check_and_preparemodel_process
             check_and_preparemodel_process.CheckAndPrepareModelProcess(self.main_model_part, self.settings["prepare_model_part_settings"]).Execute()
             
@@ -164,10 +163,10 @@ class NavierStokesSolver_FractionalStep:
 
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(KratosMultiphysics.PRESSURE)
-            node.AddDof(KratosMultiphysics.VELOCITY_X)
-            node.AddDof(KratosMultiphysics.VELOCITY_Y)
-            node.AddDof(KratosMultiphysics.VELOCITY_Z)
+            node.AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE)
+            node.AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X)
+            node.AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y)
+            node.AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z)
 
         print("dofs for the vms fluid solver added correctly")
 
@@ -184,50 +183,59 @@ class NavierStokesSolver_FractionalStep:
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
             self.solver_settings = cfd.FractionalStepSettingsPeriodic(compute_model_part,
-                                                                  compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                  self.settings.GetInt(),
-                                                                  self.use_slip_conditions,
-                                                                  MoveMeshFlag,
-                                                                  self.settings["reform_dofs_at_each_iteration]"].GetBool(),
-                                                                  cfd.PATCH_INDEX
-                                                                  )
+                                                                      compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                                      self.settings.GetInt(),
+                                                                      self.use_slip_conditions,
+                                                                      MoveMeshFlag,
+                                                                      self.settings["reform_dofs_at_each_iteration]"].GetBool(),
+                                                                      cfd.PATCH_INDEX
+                                                                      )
                                                                   
         else:
-            self.solver_settings = cfd.FractionalStepSettings(        compute_model_part,
-                                                                  compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                                                  self.settings["time_order"].GetInt(),
-                                                                  self.use_slip_conditions,
-                                                                  MoveMeshFlag,
-                                                                  self.settings["reform_dofs_at_each_iteration"].GetBool()
-                                                                  )
+            self.solver_settings = cfd.FractionalStepSettings(compute_model_part,
+                                                              compute_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                                                              self.settings["time_order"].GetInt(),
+                                                              self.use_slip_conditions,
+                                                              MoveMeshFlag,
+                                                              self.settings["reform_dofs_at_each_iteration"].GetBool()
+                                                              )
+                                                              
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver_settings.SetStrategy(cfd.StrategyLabel.Velocity,
                                          self.velocity_linear_solver,
                                          self.settings["velocity_tolerance"].GetDouble(),
-                                         self.settings["maximum_velocity_iterations"].GetInt())
+                                         self.settings["maximum_velocity_iterations"].GetInt()
+                                         )
 
         self.solver_settings.SetStrategy(cfd.StrategyLabel.Pressure,
                                          self.pressure_linear_solver,
                                          self.settings["pressure_tolerance"].GetDouble(),
-                                         self.settings["maximum_pressure_iterations"].GetInt())
+                                         self.settings["maximum_pressure_iterations"].GetInt()
+                                         )
 
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.solver = cfd.FSStrategy(compute_model_part,
-                                     self.solver_settings, 
-                                     self.settings["predictor_corrector"].GetBool(),
-                                     cfd.PATCH_INDEX)
+                                         self.solver_settings, 
+                                         self.settings["predictor_corrector"].GetBool(),
+                                         cfd.PATCH_INDEX
+                                         )
         else:
             self.solver = cfd.FSStrategy(compute_model_part,
-                                     self.solver_settings, 
-                                     self.settings["predictor_corrector"].GetBool())
+                                         self.solver_settings, 
+                                         self.settings["predictor_corrector"].GetBool()
+                                         )
 
         self.solver.Check()
         
         print ("Initialization NavierStokesSolver_FractionalStep Finished")
         
     def GetComputeModelPart(self):
+        # Get as computational model part the "volume_model_part_name" in the ProjectParameters Json string
+        #~ return self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString())
+        
+        # Get as computational model part the submodelpart generated in CheckAndPrepareModelProcess
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
         
     def GetOutputVariables(self):
@@ -238,7 +246,6 @@ class NavierStokesSolver_FractionalStep:
         
     def SaveRestart(self):
         pass #one should write the restart file here
-        
     
     def Solve(self):
         self.solver.Solve()
