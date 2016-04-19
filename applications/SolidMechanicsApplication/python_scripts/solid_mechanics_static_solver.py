@@ -60,8 +60,8 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                 "scaling": false,
                 "verbosity": 1
             },
-            "processes_sub_model_part_list": [""],
-            "problem_domain_sub_model_part_list": "solid_model_part"
+            "problem_domain_sub_model_part_list": ["solid_model_part"],
+            "processes_sub_model_part_list": [""]
         }
         """)
         
@@ -78,6 +78,9 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
     def Initialize(self):
 
         print("::[Mechanical Solver]:: -START-")
+        
+        # Get the solid_computational_model_part 
+        self.compute_model_part = self.GetComputeModelPart()
         
         # Builder and solver creation
         builder_and_solver = self._GetBuilderAndSolver(self.settings["component_wise"].GetBool(), 
@@ -142,7 +145,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         
         if(component_wise):
-            self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(self.main_model_part, 
+            self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(self.compute_model_part, 
                                                                                                   mechanical_scheme, 
                                                                                                   self.linear_solver, 
                                                                                                   mechanical_convergence_criterion, 
@@ -153,7 +156,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                                                                                                   move_mesh_flag)
         else:
             if(line_search):
-                self.mechanical_solver = SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(self.main_model_part, 
+                self.mechanical_solver = SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(self.compute_model_part, 
                                                                                                                 mechanical_scheme, 
                                                                                                                 self.linear_solver, 
                                                                                                                 mechanical_convergence_criterion, 
@@ -165,7 +168,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
 
             else:
                 if self.settings["analysis_type"].GetString() == "Linear":
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.main_model_part, 
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedLinearStrategy(self.compute_model_part, 
                                                                                             mechanical_scheme, 
                                                                                             self.linear_solver, 
                                                                                             builder_and_solver, 
@@ -175,7 +178,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                                                                                             move_mesh_flag)
                 
                 else:
-                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part, 
+                    self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.compute_model_part, 
                                                                                                    mechanical_scheme, 
                                                                                                    self.linear_solver, 
                                                                                                    mechanical_convergence_criterion, 
