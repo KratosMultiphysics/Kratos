@@ -66,6 +66,10 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                  if (it->GetGeometry()[0].Is(BLOCKED)) { // we exclude blocked elements from the volume calculation (e.g., inlet injectors)
+                      continue;
+                  }
+
                   SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
                   const double particle_radius = r_spheric_particle.GetRadius();
                   added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
