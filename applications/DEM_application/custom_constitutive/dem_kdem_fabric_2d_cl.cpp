@@ -30,11 +30,18 @@ namespace Kratos {
                                                     double distance,
                                                     double calculation_area,
                                                     double LocalCoordSystem[3][3],
-                                                    array_1d<double, 3>& mContactMoment) {
+                                                    double ElasticLocalRotationalMoment[3],
+                                                    double ViscoLocalRotationalMoment[3]) {
         KRATOS_TRY
         
-        DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem, mContactMoment);
-        mContactMoment *= 0.1; // TODO: Hardcoded the reduction of a 90% of the flection in relation to KDEM
+        double fabric_coefficient = element->GetProperties()[FABRIC_COEFFICIENT];
+        
+        DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+        
+        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, fabric_coefficient);
+        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, fabric_coefficient);
+
+        //mContactMoment *= 1.0; // TODO: Hardcoded the reduction of a 90% of the flection in relation to KDEM
         
         KRATOS_CATCH("")
     }
