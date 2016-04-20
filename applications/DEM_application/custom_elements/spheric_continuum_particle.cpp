@@ -69,8 +69,8 @@ namespace Kratos {
         
         double other_to_me_vect_total_modulus = DEM_MODULUS_3(other_to_me_vect_total);
         
-        if (other_to_me_vect_total_modulus > 0.9) {
-            this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1;
+        if ((other_to_me_vect_total_modulus < 0.85) || (mContinuumInitialNeighborsSize > 9)) {
+            this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 0.0;
         }
     } // SearchSkinParticles
     
@@ -534,6 +534,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::CustomInitialize() {
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
+        this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
     }
     
