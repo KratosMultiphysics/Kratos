@@ -13,7 +13,10 @@ def Factory(settings, Model):
 class SPRISM_process:
     def __init__(self,model_part):
         self.model_part =  model_part
-        
+   
+   def AddNodalVariables(self):
+       self.model_part.AddNodalSolutionStepVariable(ALPHA_EAS)
+   
     def ExecuteInitialize(self):
         # Find neighbours
         sprism_neighbour_search = SprismNeighbours(self.model_part)

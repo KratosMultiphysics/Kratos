@@ -1888,9 +1888,7 @@ int  SprismElement3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SprismElement3D6N::InitializeSolutionStep(
-        ProcessInfo& rCurrentProcessInfo
-        )
+void SprismElement3D6N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     ClearNodalForces();
 

@@ -27,7 +27,7 @@
 #include "geometries/geometry_data.h"
 #include "utilities/math_utils.h"
 
-#include <boost/functional/hash.hpp>  // Importante
+#include <boost/functional/hash.hpp>
 #include <boost/unordered_map.hpp> 
 #include <utility>
 
@@ -137,6 +137,10 @@ public:
 
         for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
         {
+            (ie->GetValue(NEIGHBOUR_NODES)).reserve(6); // Just in-plane neighbours
+            WeakPointerVector<Node<3> >& rN = ie->GetValue(NEIGHBOUR_NODES);
+            rN.erase(rN.begin(),rN.end() );
+
             (ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3); // Just in-plane neighbours
             WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
             rE.erase(rE.begin(),rE.end() );
@@ -251,14 +255,13 @@ public:
         vector<int> aux_2(2);
         vector<int> aux_3(2);
 
-        // Search the neighbour nodes
+        // Search the neighbour nodes(for elements)
         for (ModelPart::ElementIterator itElem = mr_model_part.ElementsBegin(); itElem != mr_model_part.ElementsEnd(); itElem++)
         {
             Geometry< Node<3> >& geom = itElem->GetGeometry();
             WeakPointerVector< Node < 3 > >& neighb_nodes = itElem->GetValue(NEIGHBOUR_NODES);
             neighb_nodes.resize(6);
 
-            // Nota: Quitar¿?
             for (unsigned int fill = 0; fill < 6; fill++)
             {
                 neighb_nodes(fill) = Node < 3 > ::WeakPointer(geom(fill));
@@ -271,19 +274,19 @@ public:
                 hashmap_no node_map;
                 Geometry< Node<3> >& geom_neig = nel->GetGeometry();
 
-                // Vertex 1
+                // Edge 1
                 ids[0] = geom_neig[0].Id();
                 ids[1] = geom_neig[1].Id();
                 std::sort(ids.begin(), ids.end());
                 node_map.insert( hashmap_no::value_type(ids, 2) );
 
-                // Vertex 2
+                // Edge 2
                 ids[0] = geom_neig[1].Id();
                 ids[1] = geom_neig[2].Id();
                 std::sort(ids.begin(), ids.end());
                 node_map.insert( hashmap_no::value_type(ids, 0) );
 
-                // Vertex 3
+                // Edge 3
                 ids[0] = geom_neig[2].Id();
                 ids[1] = geom_neig[0].Id();
                 std::sort(ids.begin(), ids.end());
@@ -334,6 +337,114 @@ public:
 //                std::cout << "Node " << i << " " << geom[i].Id() << " " << neighb_nodes[i].Id() <<std::endl;
 //            }
 //         }
+
+        // Add the neighbour elements to all the nodes in the mesh
+        for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+        {
+            Element::GeometryType& pGeom = ie->GetGeometry();
+            for(unsigned int i = 0; i < pGeom.size(); i++)
+            {
+                (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+            }
+        }
+
+//        // Adding the neighbouring nodes
+//        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+//        {
+//            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+
+//            for(unsigned int ie = 0; ie < rE.size(); ie++)
+//            {
+//                Element::GeometryType& pGeom = rE[ie].GetGeometry();
+//                for(unsigned int i = 0; i < pGeom.size(); i++)
+//                {
+//                    if(pGeom[i].Id() != in->Id() )
+//                    {
+//                        Element::NodeType::WeakPointer temp = pGeom(i);
+//                        AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
+//                    }
+//                }
+//            }
+//        }
+
+        // Adding the neighbouring nodes (in the same face)
+        for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+        {
+            Element::GeometryType& pGeom = ie->GetGeometry();
+
+            WeakPointerVector< Node < 3 > >& neighb_nodes = ie->GetValue(NEIGHBOUR_NODES);
+
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                Element::NodeType::WeakPointer temp;
+
+                // Adding nodes from the element
+                int aux_index1;
+                int aux_index2;
+
+                if (i == 0)
+                {
+                    aux_index1 = 2;
+                    aux_index2 = 1;
+                }
+                else if (i == 1)
+                {
+                    aux_index1 = 0;
+                    aux_index2 = 2;
+                }
+                else
+                {
+                    aux_index1 = 1;
+                    aux_index2 = 0;
+                }
+
+                // Lower face
+                temp = pGeom(aux_index1);
+                AddUniqueWeakPointer< Node<3> >(pGeom[i].GetValue(NEIGHBOUR_NODES), temp);
+                temp = pGeom(aux_index2);
+                AddUniqueWeakPointer< Node<3> >(pGeom[i].GetValue(NEIGHBOUR_NODES), temp);
+
+                // Upper face
+                temp = pGeom(aux_index1 + 3);
+                AddUniqueWeakPointer< Node<3> >(pGeom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                temp = pGeom(aux_index2 + 3);
+                AddUniqueWeakPointer< Node<3> >(pGeom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+
+                // Adding neighbour elements
+                if (neighb_nodes[aux_index1].Id() != pGeom[i].Id())
+                {
+                    // Lower face
+                    temp = neighb_nodes(aux_index1);
+                    AddUniqueWeakPointer< Node<3> >(pGeom[i].GetValue(NEIGHBOUR_NODES), temp);
+                    // Upper face
+                    temp = neighb_nodes(aux_index1 + 3);
+                    AddUniqueWeakPointer< Node<3> >(pGeom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                }
+                if (neighb_nodes[aux_index2].Id() != pGeom[i].Id())
+                {
+                    // Lower face
+                    temp = neighb_nodes(aux_index2);
+                    AddUniqueWeakPointer< Node<3> >(pGeom[i].GetValue(NEIGHBOUR_NODES), temp);
+                    // Upper face
+                    temp = neighb_nodes(aux_index2 + 3);
+                    AddUniqueWeakPointer< Node<3> >(pGeom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                }
+            }
+
+        }
+
+//        /* Print the result */
+//        for (ModelPart::NodeIterator itNode = mr_model_part.NodesBegin(); itNode != mr_model_part.NodesEnd(); itNode++)
+//        {
+//            WeakPointerVector< Node < 3 > >& aux_neighb = itNode->GetValue(NEIGHBOUR_NODES);
+//            unsigned int aux_index = aux_neighb.size();
+
+//            std::cout << "Node " << itNode->Id() << std::endl;
+//            for (unsigned int i = 0; i < aux_index; i++)
+//            {
+//                std::cout << "Neighbour " << i << " " << aux_neighb[i].Id() << std::endl;
+//            }
+//        }
         
         KRATOS_CATCH("");
     }
@@ -439,6 +550,21 @@ private:
     ///@name Private Operators
     ///@{
     
+    template< class TDataType > void  AddUniqueWeakPointer
+    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    {
+        typename WeakPointerVector< TDataType >::iterator i     = v.begin();
+        typename WeakPointerVector< TDataType >::iterator endit = v.end();
+        while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+        {
+            i++;
+        }
+        if( i == endit )
+        {
+            v.push_back(candidate);
+        }
+
+    }
 
     ///@}
     ///@name Private Operations

@@ -644,7 +644,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    virtual void Initialize();  
+    virtual void Initialize();
 
 protected:
 
