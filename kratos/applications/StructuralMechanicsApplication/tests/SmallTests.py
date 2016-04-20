@@ -113,11 +113,12 @@ class SprismPatchTests(KratosUnittest.TestCase):
       self.model_part = GeneralModelPartBuild("SPRISM3D6N","patch_test")
       
       # Create the list of processes 
-      my_process_list = [{"process_name":"SPRISM_process",
+      my_process_list_aux = [{"process_name":"SPRISM_process",
                           "implemented_in_python":True, 
                           "implemented_in_module":"KratosMultiphysics", 
                           "implemented_in_file":"sprism_process", 
                           "parameters":{"model_part_name":"model_part"}}]  
+      my_process_list = Parameters(my_process_list_aux)
       Model = { "model_part" : self.model_part}
       process_constructor = process_factory.KratosProcessFactory(Model)
       self.myprocesslist = process_constructor.ConstructListOfProcesses(my_process_list)

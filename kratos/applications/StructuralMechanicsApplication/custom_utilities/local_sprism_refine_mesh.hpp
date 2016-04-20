@@ -4,8 +4,8 @@
 //   Revision:            $Revision:    1.0 $
 //
 
-#if !defined(KRATOS_LOCAL_REFINE_PRISM_MESH)
-#define  KRATOS_LOCAL_REFINE_PRISM_MESH
+#if !defined(KRATOS_LOCAL_REFINE_SPRISM_MESH)
+#define  KRATOS_LOCAL_REFINE_SPRISM_MESH
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -151,10 +151,13 @@ public:
             compressed_matrix<int>& Coord
     )
     {
-        NodesContainerType& pNodes = this_model_part.Nodes();
+        NodesArrayType& pNodes = this_model_part.Nodes();
+        NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+        NodesArrayType::iterator it_end   = pNodes.ptr_end();
+
         Coord.resize(pNodes.size(), pNodes.size(), false);
 
-        for(NodesContainerType::iterator i = pNodes.begin(); i!=pNodes.end(); i++)
+        for(NodesArrayType::iterator i = it_begin; i!=it_end; i++)
         {
             int index_i = i->Id() - 1; // WARNING: MESH MUST BE IN ORDER
             WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
@@ -939,6 +942,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LOCAL_REFINE_PRISM_MESH  defined 
+#endif // KRATOS_LOCAL_REFINE_SPRISM_MESH  defined 
 
 
