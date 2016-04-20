@@ -27,7 +27,7 @@ proc Solid::write::writeParametersEvent { } {
     dict set problemDataDict time_step [write::getValue SLTimeParameters DeltaTime]
     dict set problemDataDict start_time [write::getValue SLTimeParameters StartTime]
     dict set problemDataDict end_time [write::getValue SLTimeParameters EndTime]
-    set echo_level [write::getValue SLResults EchoLevel]
+    set echo_level [write::getValue Results EchoLevel]
     dict set problemDataDict echo_level $echo_level
     
     # Add section to document
@@ -71,29 +71,7 @@ proc Solid::write::writeParametersEvent { } {
     dict set projectParametersDict loads_process_list [write::getConditionsParametersDict SLLoads]
 
     # GiD output configuration
-    set outputDict [dict create ]
-    
-    set GiDPostDict [dict create]
-    dict set GiDPostDict GiDPostMode                 [write::getValue SLResults GiDPostMode]
-    dict set GiDPostDict WriteMeshFlag               [write::getValue SLResults GiDWriteMeshFlag]
-    dict set GiDPostDict WriteConditionsFlag         [write::getValue SLResults GiDWriteConditionsFlag]
-    dict set GiDPostDict WriteParticlesFlag          [write::getValue SLResults GiDWriteParticlesFlag]
-    dict set GiDPostDict gid_write_frequency         [write::getValue SLResults OutputDeltaTime]
-    dict set outputDict gidpost_flags $GiDPostDict
-    
-    dict set outputDict write_results "PreMeshing"
-    dict set outputDict plot_graphs false
-    dict set outputDict plot_frequency 0
-    dict set outputDict print_lists true
-    dict set outputDict file_list [list ]
-    dict set outputDict output_time 0.01
-    dict set outputDict volume_output true
-    dict set outputDict add_skin true
-    
-    dict set outputDict nodal_results [write::GetResultsList "SLNodalResults"]
-    dict set outputDict gauss_points_results [write::GetResultsList "SLElementResults"]
-    
-    dict set projectParametersDict output_configuration $outputDict
+    dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
     
     # restart options
     set restartDict [dict create ]
