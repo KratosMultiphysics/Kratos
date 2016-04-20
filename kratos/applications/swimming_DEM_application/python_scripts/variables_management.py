@@ -71,9 +71,11 @@ def ConstructListsOfVariables(pp):
     if pp.CFD_DEM.gradient_calculation_type:
         pp.fluid_vars += [NODAL_WEIGHTS]
 
-    if pp.CFD_DEM.include_faxen_terms_option:
+    if pp.CFD_DEM.laplacian_calculation_type:
         pp.fluid_vars += [VELOCITY_LAPLACIAN]
-        pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
+
+        if pp.CFD_DEM.include_faxen_terms_option:
+            pp.fluid_vars += [VELOCITY_LAPLACIAN_RATE]
 
     if pp.CFD_DEM.drag_force_type >= 0:
         pp.fluid_vars += [POWER_LAW_N]
