@@ -22,8 +22,8 @@
 #include "includes/variables.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
-#include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
+#include "custom_utilities/mesh_data_transfer_utilities.hpp"
 
 #include "pfem_base_application_variables.h"
 
@@ -321,7 +321,7 @@ namespace Kratos
 	//Find out where the new nodes belong to:
 	array_1d<double,3> N;
 
-	std::vector<VariablesListDataValueContainer> VariablesList (list_of_nodes.size()+1);
+	std::vector<VariablesListDataValueContainer> VariablesListVector (list_of_nodes.size()+1);
 	std::vector<int>                 UniquePosition (list_of_nodes.size()+1);
 	std::fill( UniquePosition.begin(), UniquePosition.end(), 0 );
 
@@ -333,7 +333,8 @@ namespace Kratos
 	KdtreeType  nodes_tree(list_of_nodes.begin(),list_of_nodes.end(),bucket_size);
 	Node<3> work_point(0,0.0,0.0,0.0);    
 
-	unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+	VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+	//unsigned int  step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
 	//find the center and "radius" of the element
 	double xc = 0;
@@ -388,7 +389,9 @@ namespace Kratos
 		    if(UniquePosition [nodes_ids[(*it_found)->Id()]] == 0){
 		      UniquePosition [nodes_ids[(*it_found)->Id()]] = 1;
 
-		      VariablesList  [nodes_ids[(*it_found)->Id()]] = InterpolateVariables( ie->GetGeometry(), N, step_data_size, (*it_found) );
+		      double alpha = 0.25; //[0,1] //smoothing level of the interpolation
+		      MeshDataTransferUtilities DataTransferUtilities;
+		      VariablesListVector  [nodes_ids[(*it_found)->Id()]] = DataTransferUtilities.InterpolateVariables( ie->GetGeometry(), N, variables_list, (*it_found), alpha );
 
 
 		    }
@@ -418,7 +421,7 @@ namespace Kratos
 	      //recover the original position of the node
 	      id = i_node->Id();
 		  
-	      i_node->SolutionStepData() = VariablesList[nodes_ids[id]];
+	      i_node->SolutionStepData() = VariablesListVector[nodes_ids[id]];
 		  
 	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
 	      i_node->X0() = i_node->X() - disp[0];
@@ -658,13 +661,16 @@ namespace Kratos
 	      
 	      (list_of_nodes).push_back(*(i_node.base()));
 	    }
+	    else {
+	      std::cout <<" LLM:PSEUDOERROR node to erase : " << i_node->Id() << std::endl;
+	    }
 	  }
 	    
 	//Find out where the new nodes belong to:
 	array_1d<double,3> N;
 	array_1d<int,3>    ID;
 	    
-	std::vector<VariablesListDataValueContainer> VariablesList(rModelPart.NumberOfNodes(MeshId)+1);
+	std::vector<VariablesListDataValueContainer> VariablesListVector(rModelPart.NumberOfNodes(MeshId)+1);
 	std::vector<int>                 UniquePosition (rModelPart.NumberOfNodes(MeshId)+1);
 	std::fill( UniquePosition.begin(), UniquePosition.end(), 0 );
 	    
@@ -675,7 +681,10 @@ namespace Kratos
 	unsigned int   bucket_size = 20;
 	KdtreeType     nodes_tree(list_of_nodes.begin(),list_of_nodes.end(),bucket_size);
 	ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
-	unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+
+	//unsigned int  step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+	VariablesList&  variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+
 	//find the center and "radius" of the element
 	double xc = 0;
 	double yc = 0;
@@ -721,6 +730,7 @@ namespace Kratos
 
 		int number_of_points_in_radius = nodes_tree.SearchInRadius (work_point, radius*1.01, Results.begin(), ResultsDistances.begin(),  MaximumNumberOfResults);
 
+		//std::cout<<"[ID:"<<el<<"]: NumberOfPointsInRadius "<<number_of_points_in_radius<<std::endl;
 
 		//check if inside and eventually interpolate
 		for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
@@ -736,21 +746,27 @@ namespace Kratos
 						     (*it_found)->X(),(*it_found)->Y(),N);
 
 
-		      Triangle2D3<Node<3> > Geometry( *( (nodes_begin +  ID[0]-1).base() ),
-						      *( (nodes_begin +  ID[1]-1).base() ),
-						      *( (nodes_begin +  ID[2]-1).base() ) );
+		      PointsArrayType  PointsArray;
+		      PointsArray.push_back( *( (nodes_begin +  ID[0]-1).base() ) ); 
+		      PointsArray.push_back( *( (nodes_begin +  ID[1]-1).base() ) ); 
+		      PointsArray.push_back( *( (nodes_begin +  ID[2]-1).base() ) ); 
+
+		      Geometry<Node<3> > geom( PointsArray );
 
 		      if(is_inside == true)
 			{
-			  //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" VariablesList size "<<VariablesList.size()<<std::endl;
+			  //std::cout<<"  Node interpolation: "<<(*it_found)->Id()<<" VariablesList size "<<VariablesListVector.size()<<std::endl;
 			  if(UniquePosition [(*it_found)->Id()] == 0){
 			    
-			    UniquePosition [(*it_found)->Id()] = 1;			        
-			    VariablesList  [(*it_found)->Id()] = InterpolateVariables( Geometry, N, step_data_size, (*it_found) );
+			    UniquePosition [(*it_found)->Id()] = 1;
+
+			    double alpha = 0.25; //[0,1] //smoothing level of the interpolation
+			    MeshDataTransferUtilities DataTransferUtilities;
+			    VariablesListVector  [(*it_found)->Id()] = DataTransferUtilities.InterpolateVariables( geom, N, variables_list, (*it_found), alpha );
 			    
 			  }
 			  // else{
-			  //   std::cout<<" The node is relocated in a new element:: Something is Wrong "<<std::endl;
+			  //   std::cout<<" The node "<<(*it_found)->Id()<<" is relocated in a new element:: Something is Wrong "<<std::endl;
 			  //   std::cout<<" OldN "<<ShapeFunctions [(*it_found)->Id()]<<" NewN "<<N<<std::endl;
 			  // }
 
@@ -776,8 +792,19 @@ namespace Kratos
 
 	      // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
 
-	      i_node->SolutionStepData() = VariablesList[id];
- 		  
+	      //i_node->SolutionStepData() = VariablesListVector[id];
+
+	      if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
+		{
+		  std::cout << " PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
+		  std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
+		  std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
+		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		}
+	      else {
+		i_node->SolutionStepData() = VariablesListVector[id];
+	      }
+		  
 	      // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
 	      // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
 
@@ -787,45 +814,63 @@ namespace Kratos
 	      i_node->Y0() = i_node->Y() - disp[1];
 	      i_node->Z0() = i_node->Z() - disp[2];
 
-    }
-    // Set the position of boundary laplacian 
-    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
-    {
-       i_node->Set(VISITED, false);
-
-       //recover the original position of the node
-       id = i_node->Id();
-
-       // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
-
-       i_node->SolutionStepData() = VariablesList[id];
-
-       // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
-       // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
-
-       const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-       bool MoveFixedNodes = false; 
-       if (MoveFixedNodes)
-       {
-          i_node->X0() = i_node->X() - disp[0];
-          i_node->Y0() = i_node->Y() - disp[1];
-          i_node->Z0() = i_node->Z() - disp[2];
-       }
-       else {
-          if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
-             i_node->X0() = i_node->X() - disp[0];
-          }
-          if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
-             i_node->Y0() = i_node->Y() - disp[1];
-          }
-
-          if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
-             i_node->Z0() = i_node->Z() - disp[2];
-          }
-       }
-
 	    }
+	    // Set the position of boundary laplacian 
+	    else if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+	      {
+		i_node->Set(VISITED, false);
+
+		//recover the original position of the node
+		id = i_node->Id();
+
+		// double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
+
+		//i_node->SolutionStepData() = VariablesListVector[id];
+
+		if ( VariablesListVector[id].Has(DISPLACEMENT) == false)
+		  {
+		    std::cout << " OUT::PSEUDOERROR: IN this line, there is a node that does not have displacement" << std::endl;
+		    std::cout << " Laplacian. ThisNode new information does not have displacement " << i_node->Id() << std::endl;
+		    std::cout << " THIS IS BECAUSE THE NODE is out of the DOMAIN and the interpolation is wrong" << std::endl;
+		    std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		  }
+		else {
+		  i_node->SolutionStepData() = VariablesListVector[id];
+		}
+
+		// double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
+		// std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+
+		if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
+		  {
+		    std::cout << " AFTER WIERD " << std::endl;
+		    std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
+		    std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() << std::endl;
+		  }
+
+		const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+		bool MoveFixedNodes = false; 
+		if (MoveFixedNodes)
+		  {
+		    i_node->X0() = i_node->X() - disp[0];
+		    i_node->Y0() = i_node->Y() - disp[1];
+		    i_node->Z0() = i_node->Z() - disp[2];
+		  }
+		else {
+		  if ( i_node->pGetDof(DISPLACEMENT_X)->IsFixed() == false) {
+		    i_node->X0() = i_node->X() - disp[0];
+		  }
+		  if ( i_node->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) {
+		    i_node->Y0() = i_node->Y() - disp[1];
+		  }
+
+		  if ( i_node->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) {
+		    i_node->Z0() = i_node->Z() - disp[2];
+		  }
+		}
+
+	      }
 	  }
 
 	//New nodes created, element vertices must be set again: NOT NOW
@@ -1618,87 +1663,6 @@ namespace Kratos
 	return true;
 
       return false;
-    }
-
-    void Interpolate( Geometry<Node<3> > &geom,
-		      const array_1d<double,3>& N,
-		      unsigned int step_data_size,
-		      Node<3>::Pointer pnode)
-    {
-
-      KRATOS_TRY
-
-      unsigned int buffer_size = pnode->GetBufferSize();
-
-      for(unsigned int step = 0; step<buffer_size; step++)
-	{
-	  //getting the data of the solution step
-	  double* step_data = (pnode)->SolutionStepData().Data(step);
-
-	  double* node0_data = geom[0].SolutionStepData().Data(step);
-	  double* node1_data = geom[1].SolutionStepData().Data(step);
-	  double* node2_data = geom[2].SolutionStepData().Data(step);
-
-	  //copying this data in the position of the vector we are interested in
-	  for(unsigned int j= 0; j<step_data_size; j++)
-	    {
-	      //deffault interpolation value:
-	      //step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
-
-	      //test intermediate value:
-	      step_data[j] = 0.5 * step_data[j] + 0.5 * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]);
-	    }
-
-	}
-
-      if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-	KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" );
-
-      KRATOS_CATCH( "" )
-    }
-
-
-    VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> > &geom,
-							  const array_1d<double,3>& N,
-							  unsigned int step_data_size,
-							  Node<3>::Pointer pnode)
-    {
-
-      KRATOS_TRY
-
-      unsigned int buffer_size = pnode->GetBufferSize();
-	     
-      double alpha = 0.25; //[0,1] //smoothing level of the interpolation 
-
-      //Copy Variables List
-      VariablesListDataValueContainer VariablesListData = (pnode)->SolutionStepData();
-	     
-      //std::cout<<" VariablesListData "<<VariablesListData<<std::endl;
-
-      for(unsigned int step = 0; step<buffer_size; step++)
-	{
-	  //getting the data of the solution step
-	  double* step_data  = VariablesListData.Data(step);
-		 
-	  double* node0_data = geom[0].SolutionStepData().Data(step);
-	  double* node1_data = geom[1].SolutionStepData().Data(step);
-	  double* node2_data = geom[2].SolutionStepData().Data(step);
-		 
-	  //copying this data in the position of the vector we are interested in
-	  for(unsigned int j= 0; j<step_data_size; j++)
-	    {
-	      //test intermediate value:
-	      step_data[j] = (alpha) * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]) + (1-alpha) * step_data[j];
-	    }
-	}
-	     
-      if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0){
-	KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
-      }
-      
-      return VariablesListData;
-
-      KRATOS_CATCH( "" )
     }
 
 

@@ -142,7 +142,9 @@ namespace Kratos
 
       distance /= 2.0;
       mTangentialVariables.Neighb_distance = distance; 
-      ClearNodalForces();
+
+      //std::cout<<" Initialize Solution Step "<<std::endl;
+      //ClearNodalForces();
 
       KRATOS_CATCH( "" )
 
@@ -160,6 +162,8 @@ namespace Kratos
       //added to control force evolution per step:
       // array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
       // mTangentialVariables.PreviousTangentForceModulus = norm_2(ContactForce);
+
+      //std::cout<<" Initialize Non Linear Iteration "<<std::endl;
 
       ClearNodalForces();
    }

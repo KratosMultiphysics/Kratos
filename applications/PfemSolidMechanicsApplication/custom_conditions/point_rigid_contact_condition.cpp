@@ -243,6 +243,7 @@ namespace Kratos
       {
          GetGeometry()[i].SetLock();
          array_1d<double, 3> & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	 //std::cout<<" ContactForce["<<GetGeometry()[i].Id()<<"] "<<ContactForce<<std::endl;
          ContactForce.clear();
          GetGeometry()[i].UnSetLock();
       }
@@ -315,7 +316,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      ClearNodalForces();
+      //ClearNodalForces();
 
       KRATOS_CATCH( "" )
    }

@@ -815,17 +815,23 @@ namespace Kratos
 	    std::vector<Vector> ElementVectorVariableArray (integration_points_number);
 	    std::vector<Matrix> ElementMatrixVariableArray (integration_points_number);
       
+	    unsigned int buffer_size = rModelPart.GetBufferSize();
+	    VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+	    
 
 	    for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	      {
-	    	if(in->IsNot(RIGID)){
+
+		if(in->IsNot(RIGID)){
+
+		  this->FillVectorData(variables_list, *(in.base()));	  
 
 	    	  WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
 
 	    	  double Area         = 0;
 	    	  double ElementArea  = 0;
 		  std::fill( NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0);
-
+		  
 	    	  for(unsigned int ne=0; ne < neighb_elems.size(); ne++)
 	    	    {		    
 
@@ -898,30 +904,45 @@ namespace Kratos
 		      {			  
 			NodesDoubleVariableArray[i] /= Area;
 
-			if( (in)->SolutionStepsDataHas(*(rTransferVariables.DoubleVariables[i])))
+			if( (in)->SolutionStepsDataHas(*(rTransferVariables.DoubleVariables[i]))){
 			  (in)->FastGetSolutionStepValue(*(rTransferVariables.DoubleVariables[i])) = NodesDoubleVariableArray[i];
-			else
+			}
+			else{
 			  std::cout<<" ERROR TR: Something Wrong in node ["<<in->Id()<<"] : variable "<<*(rTransferVariables.DoubleVariables[i])<<" was not defined "<<std::endl;
+			}
 		      }
 		    //Array1D
 		    for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
 		      {			  
 			NodesArray1DVariableArray[i] /= Area;
 
-			if( (in)->SolutionStepsDataHas(*(rTransferVariables.Array1DVariables[i])))
+			if( (in)->SolutionStepsDataHas(*(rTransferVariables.Array1DVariables[i]))){
 			  (in)->FastGetSolutionStepValue(*(rTransferVariables.Array1DVariables[i])) = NodesArray1DVariableArray[i];
-			else
+			}
+			else{
 			  std::cout<<" ERROR TR: Something Wrong in node ["<<in->Id()<<"] : variable "<<*(rTransferVariables.Array1DVariables[i])<<" was not defined "<<std::endl;
+			}
 		      }
 		    //Vector
 		    for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
 		      {			  
 			NodesVectorVariableArray[i] /= Area;
 
-			if( (in)->SolutionStepsDataHas(*(rTransferVariables.VectorVariables[i])))
+			if( (in)->SolutionStepsDataHas(*(rTransferVariables.VectorVariables[i]))){
 			  (in)->FastGetSolutionStepValue(*(rTransferVariables.VectorVariables[i])) = NodesVectorVariableArray[i];
-			else
+			  //fill buffer if empty
+			  for(unsigned int step = 1; step<buffer_size; step++)
+			    {
+			      if((in)->FastGetSolutionStepValue(*(rTransferVariables.VectorVariables[i]), step).size() == 0){
+				(in)->FastGetSolutionStepValue(*(rTransferVariables.VectorVariables[i]), step) = NodesVectorVariableArray[i];
+				(in)->FastGetSolutionStepValue(*(rTransferVariables.VectorVariables[i]), step).clear();
+			      }
+			      
+			    }
+			}
+			else{
 			  std::cout<<" ERROR TR: Something Wrong in node ["<<in->Id()<<"] : variable "<<*(rTransferVariables.VectorVariables[i])<<" was not defined "<<std::endl;
+			}
 
 		      }
 		    //Matrix
@@ -929,10 +950,21 @@ namespace Kratos
 		      {			  
 			NodesMatrixVariableArray[i] /= Area;
 
-			if( (in)->SolutionStepsDataHas(*(rTransferVariables.MatrixVariables[i])))
+			if( (in)->SolutionStepsDataHas(*(rTransferVariables.MatrixVariables[i]))){
 			  (in)->FastGetSolutionStepValue(*(rTransferVariables.MatrixVariables[i])) = NodesMatrixVariableArray[i];
-			else
+			  //fill buffer if empty
+			  for(unsigned int step = 1; step<buffer_size; step++)
+			    {
+			      if((in)->FastGetSolutionStepValue(*(rTransferVariables.MatrixVariables[i]), step).size1() == 0 &&
+				 (in)->FastGetSolutionStepValue(*(rTransferVariables.MatrixVariables[i]), step).size2() == 0 ){
+				(in)->FastGetSolutionStepValue(*(rTransferVariables.MatrixVariables[i]), step) = NodesMatrixVariableArray[i];
+				(in)->FastGetSolutionStepValue(*(rTransferVariables.MatrixVariables[i]), step).clear();
+			      }
+			    }
+			}
+			else{
 			  std::cout<<" ERROR TR: Something Wrong in node ["<<in->Id()<<"] : variable "<<*(rTransferVariables.MatrixVariables[i])<<" was not defined "<<std::endl;
+			}
 
 		      }		    
 		  }
@@ -1206,15 +1238,222 @@ namespace Kratos
 	// }
 
 
+      //*******************************************************************************************
+      //*******************************************************************************************
+  
+      VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariables( Geometry<Node<3> > &geom,
+										       const array_1d<double,3>& N,
+										       VariablesList& rVariablesList,
+										       Node<3>::Pointer pnode,
+										       double& alpha)
+      {
+
+	  KRATOS_TRY
+
+	  //Copy Variables List
+	  VariablesListDataValueContainer PreviousVariablesListData = (pnode)->SolutionStepData();
+
+	  // std::cout<<" Data "<<(pnode)->SolutionStepData()<<std::endl;
+	  // std::cout<<" CopiedData "<<PreviousVariablesListData<<std::endl;
+
+      
+	  Interpolate( geom, N, rVariablesList, pnode, alpha);
+
+	  VariablesListDataValueContainer CurrentVariablesListData = (pnode)->SolutionStepData();
+
+	  (pnode)->SolutionStepData() = PreviousVariablesListData;
+      
+	  // std::cout<<" PreviousVariables "<<PreviousVariablesListData<<std::endl;
+	  // std::cout<<" CurrentVariables "<<CurrentVariablesListData<<std::endl;
+
+	  return CurrentVariablesListData;
+
+	  KRATOS_CATCH( "" )
+
+      }
+
+
+      //*******************************************************************************************
+      //*******************************************************************************************
+  
+      void MeshDataTransferUtilities::FillVectorData(VariablesList& rVariablesList,
+						     Node<3>::Pointer pnode)
+      {
+
+	  KRATOS_TRY
+
+	  unsigned int buffer_size = pnode->GetBufferSize();
+     
+	  for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
+	    {
+	      //std::cout<<" name "<<i_variable->Name()<<std::endl;
+	      //std::cout<<" type "<<typeid(*i_variable).name()<<std::endl;
+	      std::string variable_name = i_variable->Name();
+	      if(KratosComponents<Variable<Vector > >::Has(variable_name))
+		{
+		  //std::cout<<"Vector"<<std::endl;
+		  Variable<Vector> variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      Vector& node_data = pnode->FastGetSolutionStepValue(variable, step);
+		      
+		      if( node_data.size() == 0 ){
+			node_data = ZeroVector(1);	       		      
+		      }
+		      
+		    }
+		}
+	      
+	    }
+
+	    KRATOS_CATCH( "" )
+
+      }
+
+
+      //*******************************************************************************************
+      //*******************************************************************************************
+  
+      void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> > &geom,
+						   const array_1d<double,3>& N,
+						   VariablesList& rVariablesList,
+						   Node<3>::Pointer pnode,
+						   double& alpha)
+      {
+
+	  KRATOS_TRY
+
+	  unsigned int buffer_size = pnode->GetBufferSize();
+	     
+
+	  if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0){
+	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+	      }
+     
+	  for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
+	    {
+	      //std::cout<<" name "<<i_variable->Name()<<std::endl;
+	      //std::cout<<" type "<<typeid(*i_variable).name()<<std::endl;
+	      std::string variable_name = i_variable->Name();
+	      if(KratosComponents<Variable<double> >::Has(variable_name))
+		{
+		  //std::cout<<"double"<<std::endl;
+		  Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      double& node_data = pnode->FastGetSolutionStepValue(variable, step);
+		  
+		      double& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      double& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		      double& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
+		  
+		      node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;
+		  
+		    }
+		}
+	      else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+		{
+		  //std::cout<<"array1d"<<std::endl;
+		  Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      array_1d<double, 3>& node_data = pnode->FastGetSolutionStepValue(variable, step);
+		  
+		      array_1d<double, 3>& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		      array_1d<double, 3>& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
+		  
+		      node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;		  
+		    }
+
+		}
+	      else if(KratosComponents<Variable<int > >::Has(variable_name))
+		{
+		  //std::cout<<"int"<<std::endl;
+		  //NO INTERPOLATION
+		}
+	      else if(KratosComponents<Variable<bool > >::Has(variable_name))
+		{
+		  //std::cout<<"bool"<<std::endl;
+		  //NO INTERPOLATION
+		}
+	      else if(KratosComponents<Variable<Matrix > >::Has(variable_name))
+		{
+		  //std::cout<<"Matrix"<<std::endl;
+		  Variable<Matrix> variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      Matrix& node_data = pnode->FastGetSolutionStepValue(variable, step);
+		  
+		      Matrix& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      Matrix& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		      Matrix& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
+		  
+		      if( node_data.size1() > 0 && node_data.size2() ){
+			if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
+			    node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() &&
+			    node_data.size1() == node2_data.size1() && node_data.size2() == node2_data.size2()) {
+		      
+			  node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;	       
+			}
+		      }
+		    }
+
+		}
+	      else if(KratosComponents<Variable<Vector > >::Has(variable_name))
+		{
+		  //std::cout<<"Vector"<<std::endl;
+		  Variable<Vector> variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      Vector& node_data = pnode->FastGetSolutionStepValue(variable, step);
+		  
+		      Vector& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      Vector& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		      Vector& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
+		  
+		      if( node_data.size() > 0 ){
+			if( node_data.size() == node0_data.size() &&
+			    node_data.size() == node1_data.size() &&
+			    node_data.size() == node2_data.size()) {
+		      
+			  node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;	       
+			}
+		      }
+
+		    }
+		}
+
+	    }
+
+	    KRATOS_CATCH( "" )
+
+	}
+
+
 	//*******************************************************************************************
 	//*******************************************************************************************
 
-	void MeshDataTransferUtilities::Interpolate( Geometry<Node<3> >& geom,
-					    const array_1d<double,3>& N,
-					    unsigned int step_data_size,
-					    Node<3>::Pointer pnode)
+	void MeshDataTransferUtilities::InterpolateData( Geometry<Node<3> >& geom,
+							 const array_1d<double,3>& N,
+							 unsigned int step_data_size,
+							 Node<3>::Pointer pnode,
+							 double& alpha)
 	{
+
+   	    KRATOS_TRY
+
 	    unsigned int buffer_size = pnode->GetBufferSize();
+
+	    if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
+		KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+
+	    //alpha [0,1] //smoothing level of the interpolation
 
 	    for(unsigned int step = 0; step<buffer_size; step++)
 	    {
@@ -1228,55 +1467,41 @@ namespace Kratos
 		//copying this data in the position of the vector we are interested in
 		for(unsigned int j= 0; j<step_data_size; j++)
 		{
-		    step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+		  step_data[j] = (alpha) * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]) + (1-alpha) * step_data[j];
 		}
 	    }
 
-	    if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-		KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
-
+	    KRATOS_CATCH( "" )
 	}
 
 	//*******************************************************************************************
 	//*******************************************************************************************
   
-        VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariables( Triangle2D3<Node<3> >& geom,
-											 const array_1d<double,3>& N,
-											 unsigned int step_data_size,
-											 Node<3>::Pointer pnode)
+        VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariablesData( Geometry<Node<3> >& geom,
+											     const array_1d<double,3>& N,
+											     unsigned int step_data_size,
+											     Node<3>::Pointer pnode,
+											     double& alpha)
 	  
 	{
+	    KRATOS_TRY
 
-	  KRATOS_TRY
-
-	  unsigned int buffer_size = pnode->GetBufferSize();
-	 
-	  //Copy Variables List
-	  VariablesListDataValueContainer VariablesListData = (pnode)->SolutionStepData();
-	 
-	  for(unsigned int step = 0; step<buffer_size; step++)
-	    {
-	      //getting the data of the solution step
-	      double* step_data  = VariablesListData.Data(step);
-	     
-	      double* node0_data = geom[0].SolutionStepData().Data(step);
-	      double* node1_data = geom[1].SolutionStepData().Data(step);
-	      double* node2_data = geom[2].SolutionStepData().Data(step);
-	     
-	      //copying this data in the position of the vector we are interested in
-	      for(unsigned int j= 0; j<step_data_size; j++)
-		{
-		  step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
-		}
-	    }
-
-	  if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
-
-	  return VariablesListData;
-
-	  KRATOS_CATCH( "" )
-
+	    //Copy Variables List
+	    VariablesListDataValueContainer PreviousVariablesListData = (pnode)->SolutionStepData();
+      
+	    InterpolateData( geom, N, step_data_size, pnode, alpha);
+	    
+	    VariablesListDataValueContainer CurrentVariablesListData = (pnode)->SolutionStepData();
+	  
+	    (pnode)->SolutionStepData() = PreviousVariablesListData;
+      
+	    //std::cout<<" PreviousVariables "<<PreviousVariablesListData<<std::endl;
+	    //std::cout<<" CurrentVariables "<<CurrentVariablesListData<<std::endl;
+	    
+	    return CurrentVariablesListData;
+	    
+	    KRATOS_CATCH( "" )
+	    
 	}
 
 

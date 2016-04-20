@@ -8,7 +8,7 @@
 //
 
 #if !defined(KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED)
-#define  KRATOS_MESH_DATA_TRANSFER_UTILITITES_H_INCLUDED
+#define KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED
 
 // System includes
 #include <string>
@@ -21,7 +21,6 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
-#include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
 #include "containers/variables_list_data_value_container.h"
 
@@ -323,16 +322,37 @@ namespace Kratos
 
     //*******************************************************************************************
     //*******************************************************************************************
+
+
+    void FillVectorData(VariablesList& rVariablesList,
+			Node<3>::Pointer pnode);
+
     void Interpolate( Geometry<Node<3> >& geom,
 		      const array_1d<double,3>& N,
-		      unsigned int step_data_size,
-		      Node<3>::Pointer pnode);
+		      VariablesList& rVariablesList,
+		      Node<3>::Pointer pnode,
+		      double& alpha);
 	
 
-    VariablesListDataValueContainer InterpolateVariables( Triangle2D3<Node<3> >& geom,
+    VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
 							  const array_1d<double,3>& N,
-							  unsigned int step_data_size,
-							  Node<3>::Pointer pnode);
+							  VariablesList& rVariablesList,
+							  Node<3>::Pointer pnode,
+							  double& alpha);
+    
+
+    void InterpolateData( Geometry<Node<3> >& geom,
+			  const array_1d<double,3>& N,
+			  unsigned int step_data_size,
+			  Node<3>::Pointer pnode,
+			  double& alpha);
+	
+
+    VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node<3> >& geom,
+							      const array_1d<double,3>& N,
+							      unsigned int step_data_size,
+							      Node<3>::Pointer pnode,
+							      double& alpha);
 
 
     ///@}
@@ -476,6 +496,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED  defined 
+#endif //  KRATOS_MESH_DATA_TRANSFER_UTILITITES_H_INCLUDED defined 
 
 

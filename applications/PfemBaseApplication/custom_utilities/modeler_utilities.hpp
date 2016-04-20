@@ -17,7 +17,6 @@
 // Project includes
 #include "processes/process.h"
 #include "containers/flags.h"
-#include "geometries/triangle_2d_3.h"
 #include "custom_bounding/spatial_bounding_box.hpp"
 #include "custom_utilities/mesh_data_transfer_utilities.hpp"
 //#include "includes/kratos_flags.h"
