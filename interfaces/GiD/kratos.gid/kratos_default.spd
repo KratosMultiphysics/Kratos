@@ -196,15 +196,12 @@
 		if {$resp} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
-	<proc n='ConstLawParamValue' args='args'>
+	<proc n='PartParamValue' args='args'>
 	  <![CDATA[
-		return [spdAux::CheckConstLawParamValue $domNode]
-	  ]]>
-	</proc>
-	
-	<proc n='ElemParamValue' args='args'>
-	  <![CDATA[
-		return [spdAux::CheckElemParamValue $domNode]
+		set nodename [get_domnode_attribute $domNode n]
+		set matname [get_domnode_attribute $domNode v]
+		set node [[$domNode parent] selectNode "../value\[@n='$nodename'\]" ]
+		return [spdAux::CheckPartParamValue $node $matname]
 	  ]]>
 	</proc>
 	  <proc n='PartParamState' args='args'>
