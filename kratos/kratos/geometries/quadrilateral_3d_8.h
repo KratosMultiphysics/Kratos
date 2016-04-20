@@ -979,18 +979,18 @@ public:
      * Shape Function
      */
 
-    /**
-     * :TODO: implemented but not yet tested
-     */
-    /**
-     * Calculates the value of a given shape function at a given point.
-     *
-     * @param ShapeFunctionIndex The number of the desired shape function
-     * @param rPoint the given point in local coordinates at which the
-     * value of the shape function is calculated
-     *
-     * @return the value of the shape function at the given point
-     */
+    
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
+
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const
     {
@@ -1030,6 +1030,45 @@ public:
         }
 
         return 0;
+    }
+    
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
+
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    {
+        if(rResult.size() != 8) rResult.resize(8,false);
+
+        rResult[0] =   -(( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )
+                     *( 1.0 + rCoordinates[0]
+                        + rCoordinates[1] ) ) / 4.0;
+        rResult[1] =    -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 - rCoordinates[1] )*( 1.0
+                                            - rCoordinates[0] + rCoordinates[1] ) ) / 4.0;
+        rResult[2] =    -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 + rCoordinates[1] )*( 1.0
+                                            - rCoordinates[0] - rCoordinates[1] ) ) / 4.0;
+        rResult[3] =    -(( 1.0 - rCoordinates[0] )*( 1.0
+                                           + rCoordinates[1] )*( 1.0 )*( 1.0
+                                                   + rCoordinates[0] - rCoordinates[1] ) ) / 4.0;
+        rResult[4] =    (( 1.0 -rCoordinates[0]*rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1] ) ) / 2.0;
+        rResult[5] =    (( 1.0 + rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] ) ) / 2.0 ;
+        rResult[6] =    (( 1.0 -rCoordinates[0]
+                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] ) ) / 2.0 ;
+        rResult[7] =    (( 1.0 -rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] ) ) / 2.0 ;
+
+        return rResult;
     }
 
     /**

@@ -620,8 +620,6 @@ public:
     /** This method gives all non-zero shape functions values
     evaluated at the rCoordinates provided
 
-    \note There is no control if the return vector is empty or not!
-
     @return Vector of values of shape functions \f$ F_{i} \f$
     where i is the shape function index (for NURBS it is the index
     of the local enumeration in the element).
@@ -630,7 +628,6 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-
     virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
     {
       if(rResult.size() != 8) rResult.resize(8,false);
