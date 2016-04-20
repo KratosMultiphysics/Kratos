@@ -286,32 +286,6 @@ proc spdAux::CheckSolverEntryState {domNode} {
         return [expr [string compare $currentSolStrat $mySolStrat] == 0]
 }
 
-
-
-proc spdAux::CheckConstLawParamValue {node} {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    set id [$node getAttribute n]
-    set val 0.0
-    
-    # JG CHAPUZA A RESOLVER
-    set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
-    set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
-    
-    set mats_un [apps::getCurrentUniqueName Materials]
-    set xp3 [spdAux::getRoute $mats_un]
-    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-
-    foreach valueNode [$root selectNodes $xp3] {
-        if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]}
-    }   
-    #W "mat: $material_name prop $id val $val"
-    
-    return $val
-}
-
-
 proc spdAux::chk_loads_function_time { domNode load_name } {
     set loads [list [list scalar]]
     lappend loads [list interpolator_func x x T]
@@ -329,7 +303,8 @@ proc spdAux::ViewDoc {} {
 proc spdAux::CheckElemParamValue {node} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    
+    #W [$node asXML]
+    if {[$node hasAttribute n]} {
     set id [$node getAttribute n]
     set found 0
     set val 0.0
@@ -359,6 +334,39 @@ proc spdAux::CheckElemParamValue {node} {
         
         set val [$claw getInputDv $id]
         if {$val ne ""} {set found 1}
+    }
+    
+    return $val
+    }
+    return "Invalid"
+}
+
+proc spdAux::CheckConstLawParamValue {node} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set id [$node getAttribute n]
+    set val 0.0
+    set found 0
+    
+    # JG CHAPUZA A RESOLVER
+    set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
+    set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
+    
+    set mats_un [apps::getCurrentUniqueName Materials]
+    set xp3 [spdAux::getRoute $mats_un]
+    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
+
+    foreach valueNode [$root selectNodes $xp3] {
+        if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
+    }
+    
+    if {!$found} {
+        set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+        set claw [Model::getConstitutiveLaw $claw_name]
+        #W $claw_name
+        set val [$claw getInputDv $id]
+        if {$val eq ""} {set val 1.1 }
     }
     
     return $val
@@ -654,6 +662,7 @@ proc spdAux::injectElementInputs { basenode } {
         set units [$in getUnits]
         set um [$in getUnitMagnitude]
         set help [$in getHelp] 
+        #set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"-\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
         set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ElemParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
         catch {$parts appendXML $node}
     }

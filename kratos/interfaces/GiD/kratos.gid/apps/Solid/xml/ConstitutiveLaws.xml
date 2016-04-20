@@ -277,7 +277,7 @@
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
             <parameter n="STRENGTH_RATIO" pn="Strength Ratio"/>
             <parameter n="FRACTURE_ENERGY" pn="Fracture Energy"/>
-            <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+            <parameter n="THICKNESS" pn="Thickness"  v="1.0" unit_magnitude="L" units="m"   />
         </inputs>
         <outputs>
             <parameter n="DAMAGE_VARIABLE" pn="Damage Variable"/>

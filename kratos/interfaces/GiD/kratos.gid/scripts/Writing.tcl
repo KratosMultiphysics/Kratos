@@ -352,36 +352,6 @@ proc write::GetFormatDict { groupid n num} {
     return [dict create $groupid $f]
 }
 
-
-proc write::getEtype1 {group} {
-    dict set formats $group "%d"
-    set etype "none"
-    W "Data from $group"
-    W "Nodes [write_calc_data nodes -count $formats]"
-    W "Faces [write_calc_data has_elements -elements_faces "faces" $formats]"
-    W "Elements [write_calc_data elements -elemtype "Tetrahedra" -count $formats]"
-    set f {%5d }
-    set f [subst $f]
-    dict set fo $group $f
-    W "a ver [write_calc_data elements -return $fo]"
-    
-    if {[write_calc_data has_elements -elemtype "Triangle" -elements_faces "all" $formats]} {
-        set etype "Triangle"
-    } elseif {[write_calc_data has_elements -elemtype "Quadrilateral" $formats]} {
-        set etype "Quadrilateral"
-    } elseif {[write_calc_data has_elements -elemtype "Tetrahedra" $formats]} {
-        set etype "Tetrahedra"
-    } elseif {[write_calc_data has_elements -elemtype "Hexahedra" $formats]} {
-        set etype "Hexahedra"
-    } elseif {[write_calc_data has_elements -elemtype "Sphere" $formats]} {
-        set etype "Sphere"
-    } elseif {[write_calc_data has_elements -elemtype "Point" $formats]} {
-        set etype "Point"
-    }
-    W $etype
-    #return $etype
-}
-
 proc write::getEtype {ov} {
     set isquadratic [isquadratic]
     set ret [list "" ""]
@@ -538,6 +508,7 @@ proc write::dict2json {dictVal} {
 
 proc write::tcl2json { value } {
     # Guess the type of the value; deep *UNSUPPORTED* magic!
+    # display the representation of a Tcl_Obj for debugging purposes. Do not base the behavior of any command on the results of this one; it does not conform to Tcl's value semantics!
     regexp {^value is a (.*?) with a refcount} [::tcl::unsupported::representation $value] -> type
  
     switch $type {
@@ -581,7 +552,39 @@ proc write::WriteJSON {processDict} {
     WriteString [write::tcl2json $processDict]
 }
 
-
+proc write::GetDefaultOutputDict {} {
+    set outputDict [dict create]
+    set GiDPostDict [dict create]
+    dict set GiDPostDict GiDPostMode                [getValue Results GiDPostMode]
+    dict set GiDPostDict WriteDeformedMeshFlag      [getValue Results GiDWriteMeshFlag]
+    dict set GiDPostDict WriteConditionsFlag        [getValue Results GiDWriteConditionsFlag]
+    #dict set GiDPostDict WriteParticlesFlag        [getValue Results GiDWriteParticlesFlag]
+    dict set GiDPostDict MultiFileFlag              [getValue Results GiDMultiFileFlag]
+    dict set outputDict gidpost_flags $GiDPostDict
+    
+    dict set outputDict file_label                 [getValue Results FileLabel]
+    dict set outputDict output_control_type        [getValue Results OutputControlType]
+    dict set outputDict output_frequency           [getValue Results OutputDeltaTime]
+    
+    dict set outputDict body_output           [getValue Results BodyOutput]
+    dict set outputDict node_output           [getValue Results NodeOutput]
+    dict set outputDict skin_output           [getValue Results SkinOutput]
+    
+    dict set outputDict plane_output           [list ]
+    
+    #dict set outputDict write_results "PreMeshing"
+    #dict set outputDict plot_graphs false
+    #dict set outputDict plot_frequency 0
+    #dict set outputDict print_lists true
+    #dict set outputDict file_list [list ]
+    #dict set outputDict output_time 0.01
+    #dict set outputDict volume_output true
+    #dict set outputDict add_skin true
+    
+    dict set outputDict nodal_results [GetResultsList [apps::getCurrentUniqueName NodalResults]]
+    dict set outputDict gauss_points_results [GetResultsList [apps::getCurrentUniqueName ElementResults]]
+    return $outputDict
+}
 
 
 proc write::getSolutionStrategyParametersDict {} {
