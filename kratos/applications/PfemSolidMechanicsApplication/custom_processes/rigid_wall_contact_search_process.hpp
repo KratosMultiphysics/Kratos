@@ -214,37 +214,37 @@ namespace Kratos
                }
 
                for(ModelPart::NodesContainerType::const_iterator nd = NodesBegin; nd != NodesEnd; nd++)
-               {
-                  if( nd->Is(BOUNDARY) ){
+		 {
+		   if( nd->Is(BOUNDARY) ){
 
-                     if( nd->IsNot(RIGID) )
-                     {
-                        //to perform contact with a tube radius must be set
-                        double Radius = 0;
-                        //if( !RigidBodyPresent ){
-                        if( nd->IsNot(SLAVE) ){
-                           Radius = nd->GetValue(MEAN_RADIUS);
-                        }
-                        else{
-                           Radius = 0;
-                        }
+		     if( nd->IsNot(RIGID) )
+		       {
+			 //to perform contact with a tube radius must be set
+			 double Radius = 0;
+			 //if( !RigidBodyPresent ){
+			 if( nd->IsNot(SLAVE) ){
+			   Radius = nd->GetValue(MEAN_RADIUS);
+			 }
+			 else{
+			   Radius = 0;
+			 }
 
-                        Vector Point(3);
-                        Point[0] = nd->X();
-                        Point[1] = nd->Y();
-                        Point[2] = nd->Z();
+			 Vector Point(3);
+			 Point[0] = nd->X();
+			 Point[1] = nd->Y();
+			 Point[2] = nd->Z();
 
-                        if( mpRigidWall->IsInside(Point,Time,Radius) ){
-                           nd->Set(CONTACT);
-                        }
-                        else{ //clean nodal contact forces
-                           nd->FastGetSolutionStepValue(CONTACT_FORCE).clear();
-                        }
-                     }
+			 if( mpRigidWall->IsInside(Point,Time,Radius) ){
+			   nd->Set(CONTACT);
+			 }
+			 else{ //clean nodal contact forces
+			   nd->FastGetSolutionStepValue(CONTACT_FORCE).clear();
+			 }
+		       }
 
-                     }
+		   }
 
-                  }
+		 }
                }
 
 
@@ -476,6 +476,12 @@ namespace Kratos
 
                         counter++;
                      }
+		     
+		     //if( (*nd)->Is(BOUNDARY) ){			
+		     // array_1d<double, 3 > &ContactForce = (*nd)->FastGetSolutionStepValue(CONTACT_FORCE);
+		     // std::cout<<" ContactForce["<<(*nd)->Id()<<"] "<<ContactForce<<std::endl;
+		     //}
+
                   }
 
                   if( mEchoLevel > 1 )

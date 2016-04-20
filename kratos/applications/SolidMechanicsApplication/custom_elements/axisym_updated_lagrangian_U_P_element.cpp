@@ -352,6 +352,8 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
 {
     KRATOS_TRY
 
+    //unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
@@ -361,7 +363,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    Matrix InvJ;
+    Matrix InvJ = ZeroMatrix(2);
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;  
@@ -382,7 +384,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
-    Matrix Invj;
+    Matrix Invj = ZeroMatrix(2);
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]

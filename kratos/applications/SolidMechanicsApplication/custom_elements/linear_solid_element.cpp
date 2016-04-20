@@ -970,9 +970,13 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
       //calculate delta position (here coincides with the current displacement)
-      Matrix DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+      Matrix DeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+      DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+      //std::cout<<" DeltaPosition "<<DeltaPosition<<std::endl;
+      //std::cout<<" mThisIntegrationMethod "<<mThisIntegrationMethod<<std::endl;
+ 
       GeometryType::JacobiansType J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points
@@ -983,13 +987,14 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  //calculating the inverse of the jacobian for this integration point[d£/dx_n]
 	  Matrix InvJ;
 	  double detJ;
+	  //std::cout<<" Jacobian "<<J[PointNumber]<<std::endl;
 	  MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
 	  
 	  if(detJ<0)
 	    KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ )
 	    
           //compute cartesian derivatives for this integration point  [dN/dx_n]
-	  noalias( DN_DX ) = prod( DN_De[PointNumber] , InvJ );
+	  noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ );
 	
 	  //set shape functions for this integration point
 	  Vector N=row( Ncontainer, PointNumber);

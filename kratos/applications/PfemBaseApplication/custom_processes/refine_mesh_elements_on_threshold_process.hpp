@@ -251,7 +251,7 @@ private:
 		    
 	}
     
-      std::cout<<"   Refine Elements Threshold "<<counter<<std::endl;
+      std::cout<<"   Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
 
       KRATOS_CATCH( "" )
  

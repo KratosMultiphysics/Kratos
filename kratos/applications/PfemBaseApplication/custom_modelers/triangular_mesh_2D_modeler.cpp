@@ -141,7 +141,6 @@ namespace Kratos
 
     this->StartEcho(rModelPart,"Trigen PFEM DT Mesher",MeshId);
 
-    //int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
     if(rMeshingVariables.Options.Is(ModelerUtilities::REFINE)){
 
@@ -1962,7 +1961,8 @@ namespace Kratos
     PointPointerVector Results            (MaximumNumberOfResults);
     DistanceVector     ResultsDistances   (MaximumNumberOfResults);
 
-    int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+    VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();
+    //int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
     //if points were added
     if(out.numberofpoints-in.numberofpoints > 0)
@@ -2004,9 +2004,13 @@ namespace Kratos
 
 	    int number_of_points_in_radius = nodes_tree.SearchInRadius (work_point, radius*1.01, Results.begin(), ResultsDistances.begin(),  MaximumNumberOfResults);
 
-	    Triangle2D3<Node<3> > geom(*( (nodes_begin +  in.trianglelist[base]-1).base() 	),
-				       *( (nodes_begin +  in.trianglelist[base+1]-1).base() ),
-				       *( (nodes_begin +  in.trianglelist[base+2]-1).base() ) );
+
+	    PointsArrayType  PointsArray;
+	    PointsArray.push_back( *( (nodes_begin +  in.trianglelist[base]-1).base() ) ); 
+	    PointsArray.push_back( *( (nodes_begin +  in.trianglelist[base+1]-1).base() ) ); 
+	    PointsArray.push_back( *( (nodes_begin +  in.trianglelist[base+2]-1).base() ) ); 
+	    
+	    Geometry<Node<3> > geom( PointsArray );
 
 	    //check if inside and eventually interpolate
 	    for( PointPointerVectorIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
@@ -2027,7 +2031,9 @@ namespace Kratos
 
 		    // std::cout<<" PRESSURE Prev "<<(*it_found)->FastGetSolutionStepValue(PRESSURE)<<std::endl;
 
-		    mpDataTransferUtilities->Interpolate( geom, N, step_data_size, *(it_found ) );
+		    //mpDataTransferUtilities->Interpolate( geom, N, step_data_size, *(it_found ) );
+		    double alpha = 1; //[0,1] //smoothing level of the interpolation
+		    mpDataTransferUtilities->Interpolate( geom, N, variables_list, *(it_found ), alpha );
 
 		    // std::cout<<" PRESSURE Prev "<<(*it_found)->FastGetSolutionStepValue(PRESSURE)<<std::endl;
 		  }

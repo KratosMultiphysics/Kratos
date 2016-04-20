@@ -63,9 +63,9 @@ public:
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
-
     typedef Bucket<3, Node<3>, std::vector<Node<3>::Pointer>, Node<3>::Pointer, std::vector<Node<3>::Pointer>::iterator, std::vector<double>::iterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
+    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -872,7 +872,7 @@ private:
 		    if(condition_angle<critical_angle){
 		
 
-		      //Path of neighbour conditions in 2D:   (NodeA) ---[0]--- (Node0) ---[1]--- (Node1*) ---[2]--- (Node2) ---[2]--- (Node2) ---[3]--- (NodeB)
+		      //Path of neighbour conditions in 2D:   (NodeA) ---[0]--- (Node0) ---[1]--- (Node1*) ---[2]--- (Node2) --- [3]--- (NodeB)
 		    
 		      //realease positions:
 		      node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
@@ -892,23 +892,37 @@ private:
 		      Node0.Z() = 0.5 * ( Node0.Z() + Node2.Z() );
 
 		      //assign data to dofs
-		      unsigned int buffer_size = Node0.GetBufferSize();
-		      unsigned int step_data_size = mrModelPart.GetNodalSolutionStepDataSize();
+		      VariablesList& variables_list = mrModelPart.GetNodalSolutionStepVariablesList();		     
 
-		      for(unsigned int step = 0; step<buffer_size; step++)
-			{
-			  //getting the data of the solution step
-			  double* step_data = Node0.SolutionStepData().Data(step);
+		      PointsArrayType  PointsArray;
+		      PointsArray.push_back( *(in.base()) ); 
+		      PointsArray.push_back( Node<3>::Pointer(&Node2) ); 
 
-			  double* node0_data = Node0.SolutionStepData().Data(step);
-			  double* node1_data = Node0.SolutionStepData().Data(step);
+		      Geometry<Node<3> > geom( PointsArray );
 
-			  //copying this data in the position of the vector we are interested in
-			  for(unsigned int j= 0; j<step_data_size; j++)
-			    {
-			      step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
-			    }
-			}
+		      Vector N = ZeroVector(2);
+		      N[0] = 0.5;
+		      N[1] = 0.5;
+
+		      this->Interpolate( geom, N, variables_list, Node0);
+
+		      // unsigned int buffer_size = Node0.GetBufferSize();
+		      // unsigned int step_data_size = mrModelPart.GetNodalSolutionStepDataSize();
+
+		      // for(unsigned int step = 0; step<buffer_size; step++)
+		      // 	{
+		      // 	  //getting the data of the solution step
+		      // 	  double* step_data = Node0.SolutionStepData().Data(step);
+
+		      // 	  double* node0_data = Node0.SolutionStepData().Data(step);
+		      // 	  double* node1_data = Node2.SolutionStepData().Data(step);
+
+		      // 	  //copying this data in the position of the vector we are interested in
+		      // 	  for(unsigned int j= 0; j<step_data_size; j++)
+		      // 	    {
+		      // 	      step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
+		      // 	    }
+		      // 	}
 			
 		      //recover the original position of the node
 		      const array_1d<double,3>& disp = Node0.FastGetSolutionStepValue(DISPLACEMENT);
@@ -924,7 +938,7 @@ private:
 			i = 0;
 		      }
 		
-		      Geometry< Node<3> >& rConditionGeom0 = node_shared_conditions[Node0.Id()][i]->GetGeometry();
+		      Geometry<Node<3> >& rConditionGeom0 = node_shared_conditions[Node0.Id()][i]->GetGeometry();
 		      Node<3> & NodeA = rConditionGeom0[0];
 
 		      //search shared condition of Node2 and Node B
@@ -939,7 +953,7 @@ private:
 
 		      Condition::Pointer NewCond = node_shared_conditions[Node2.Id()][i];
 		      NewCond->Set(TO_ERASE);
-		      Geometry< Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
+		      Geometry<Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
 		      Node<3> & NodeB = rConditionGeom3[1];
 
 		      NodeA.Set(ModelerUtilities::ENGAGED_NODES);
@@ -1010,6 +1024,119 @@ private:
 	return false;
       
       KRATOS_CATCH(" ")
+
+    }
+
+
+
+    void Interpolate( Geometry<Node<3> > &geom,
+		      const Vector& N,
+		      VariablesList& rVariablesList,
+		      Node<3>& pnode)
+    {
+
+      KRATOS_TRY
+
+      unsigned int buffer_size = pnode.GetBufferSize();
+	     
+      if (N[0]==0.0 && N[1]==0.0){
+	KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+      }
+     
+      for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
+	{
+	  //std::cout<<" name "<<i_variable->Name()<<std::endl;
+	  //std::cout<<" type "<<typeid(*i_variable).name()<<std::endl;
+	  std::string variable_name = i_variable->Name();
+	  if(KratosComponents<Variable<double> >::Has(variable_name))
+            {
+	      //std::cout<<"double"<<std::endl;
+	      Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
+	      for(unsigned int step = 0; step<buffer_size; step++)
+		{
+		  //getting the data of the solution step
+		  double& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		  double& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		  double& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		  node_data = (N[0]*node0_data + N[1]*node1_data);
+		  
+		}
+	    }
+	  else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+            {
+	      //std::cout<<"array1d"<<std::endl;
+	      Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
+	      for(unsigned int step = 0; step<buffer_size; step++)
+		{
+		  //getting the data of the solution step
+		  array_1d<double, 3>& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		  array_1d<double, 3>& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		  array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		  node_data = (N[0]*node0_data + N[1]*node1_data);		  
+		}
+
+	    }
+	  else if(KratosComponents<Variable<int > >::Has(variable_name))
+            {
+	      //std::cout<<"int"<<std::endl;
+	      //NO INTERPOLATION
+	    }
+	  else if(KratosComponents<Variable<bool > >::Has(variable_name))
+            {
+	      //std::cout<<"bool"<<std::endl;
+	      //NO INTERPOLATION
+	    }
+	  else if(KratosComponents<Variable<Matrix > >::Has(variable_name))
+            {
+	      //std::cout<<"Matrix"<<std::endl;
+	      Variable<Matrix > variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
+	      for(unsigned int step = 0; step<buffer_size; step++)
+		{
+		  //getting the data of the solution step
+		  Matrix& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		  Matrix& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		  Matrix& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		  if( node_data.size1() > 0 && node_data.size2() ){
+		    if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
+			node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
+		      
+		      node_data = (N[0]*node0_data + N[1]*node1_data);	       
+		    }
+		  }
+		}
+
+	    }
+	  else if(KratosComponents<Variable<Vector > >::Has(variable_name))
+            {
+	      //std::cout<<"Vector"<<std::endl;
+	      Variable<Vector >variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+	      for(unsigned int step = 0; step<buffer_size; step++)
+		{
+		  //getting the data of the solution step
+		  Vector& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		  Vector& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		  Vector& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		  if( node_data.size() > 0 ){
+		    if( node_data.size() == node0_data.size() &&
+			node_data.size() == node1_data.size()) {
+		      
+		      node_data = (N[0]*node0_data + N[1]*node1_data);	       
+		    }
+		  }
+		}
+	    }
+
+	}
+
+      KRATOS_CATCH( "" )
 
     }
 

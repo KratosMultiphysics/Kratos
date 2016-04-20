@@ -26,7 +26,6 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "custom_modelers/laplacian_smoothing.hpp"
 #include "custom_utilities/modeler_utilities.hpp"
 
 #include "pfem_base_application_variables.h"
@@ -154,6 +153,17 @@ namespace Kratos
 
       // mrModelPart.Nodes().Sort();
       // mrModelPart.Nodes().Unique();
+
+      //check that contact forces are not cleared
+      // for(ModelPart::NodesContainerType::iterator in = mrModelPart.NodesBegin(); in!=mrModelPart.NodesEnd(); in++){
+
+      // 	if(in->Is(BOUNDARY) ){
+      // 	  array_1d<double, 3 > &ContactForce = in->FastGetSolutionStepValue(CONTACT_FORCE);
+      // 	  std::cout<<" ContactForce["<<in->Id()<<"] "<<ContactForce<<std::endl;
+      // 	}
+	
+      // }
+
 
       KRATOS_CATCH(" ")
     }
