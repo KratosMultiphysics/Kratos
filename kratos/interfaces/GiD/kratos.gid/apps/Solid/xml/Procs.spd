@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="procs" pn="procs" includeContainer="No">
 
-	
-		  <proc n='Recalc' args='args'>
-	  <![CDATA[
-	  set num [expr {int(rand()*20)}]
-	  $domNode setAttribute v $num
-	  W "colocamos un $num"
-	  #gid_groups_conds::actualize_conditions_window
-	  return "normal"
-	  ]]>
-	</proc>
-	
 		 	<proc n='GetSolutionStrategies' args='args'>
 	  <![CDATA[
 	  

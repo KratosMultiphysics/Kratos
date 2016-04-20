@@ -262,7 +262,7 @@ proc spdAux::insertDependencies { baseNode originUN } {
     # a lo bestia, cambiar cuando sepamos inyectar la dependencia, abajo esta a medias
     $insertonnode setAttribute "actualize_tree" 1
     
-    # Aun no soy capaz de insertar y que funcione
+    ## Aun no soy capaz de insertar y que funcione
     #set ready 1
     #foreach c [$insertonnode getElementsByTagName "dependencies"] {
     #    if {[$c getAttribute "node"] eq $originxpath} {set ready 0; break}
@@ -275,6 +275,22 @@ proc spdAux::insertDependencies { baseNode originUN } {
     #    $insertonnode appendChild [[dom parse $str] documentElement]
     #    W [$insertonnode asXML]
     #}
+}
+# Dependencies
+proc spdAux::insertDependenciesSoft { originxpath relativepath n attn attv} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    set insertonnode [$root selectNodes $originxpath]
+    
+    # Aun no soy capaz de insertar y que funcione
+    set ready 1
+    foreach c [$insertonnode getElementsByTagName "dependencies"] {
+        if {[$c getAttribute "node"] eq $originxpath} {set ready 0; break}
+    }
+    if {$ready} {
+        set str "<dependencies n=\"$n\" node=\"$relativepath\" att1=\"$attn\" v1=\"$attv\" actualize=\"1\"/>"
+        $insertonnode appendChild [[dom parse $str] documentElement]
+    }
 }
 
 proc spdAux::CheckSolverEntryState {domNode} {
@@ -300,76 +316,50 @@ proc spdAux::ViewDoc {} {
 }
 
 # TODO JG quitar la chapuza de .gid.cen......
-proc spdAux::CheckElemParamValue {node} {
+proc spdAux::CheckPartParamValue {node material_name} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
-    #W [$node asXML]
+    #W [get_domnode_attribute $node n]
     if {[$node hasAttribute n]} {
-    set id [$node getAttribute n]
-    set found 0
-    set val 0.0
-    set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
-    set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
-    
-    set mats_un [apps::getCurrentUniqueName Materials]
-    set xp3 [spdAux::getRoute $mats_un]
-    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-
-    foreach valueNode [$root selectNodes $xp3] {
-        if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
-    }
-    
-    if {!$found} {
-        set element_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Element'\]"] v]
-        #set claw_name [.gid.central.boundaryconds.gg.data.f0.e1 get]
-        set element [Model::getElement $element_name]
+        set id [$node getAttribute n]
+        set found 0
+        set val 0.0
         
-        set val [$element getInputDv $id]
-        if {$val ne ""} {set found 1}
-    }
-    
-    if {!$found} {
-        set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
-        set claw [Model::getConstitutiveLaw $claw_name]
+        # primero miramos si el material tiene ese campo
+        if {$material_name ne ""} {
+            set mats_un [apps::getCurrentUniqueName Materials]
+            set xp3 [spdAux::getRoute $mats_un]
+            append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
         
-        set val [$claw getInputDv $id]
-        if {$val ne ""} {set found 1}
-    }
-    
-    return $val
+            foreach valueNode [$root selectNodes $xp3] {
+                if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
+            }
+            #if {$found} {W "mat $material_name value $val"}
+        }
+        # si no está en el material, miramos en el elemento
+        if {!$found} {
+            set element_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Element'\]"] v]
+            #set claw_name [.gid.central.boundaryconds.gg.data.f0.e1 get]
+            set element [Model::getElement $element_name]
+            
+            set val [$element getInputDv $id]
+            if {$val ne ""} {set found 1}
+            #if {$found} {W "element $element_name value $val"}
+        }
+        # Si no está en el elemento, miramos en la ley constitutiva
+        if {!$found} {
+            set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
+            set claw [Model::getConstitutiveLaw $claw_name]
+            
+            set val [$claw getInputDv $id]
+            if {$val ne ""} {set found 1}
+            #if {$found} {W "claw $claw_name value $val"}
+        }
+        #if {!$found} {W "Not found $val"}
+        if {$val eq ""} {set val 0.0}
+        return $val
     }
     return "Invalid"
-}
-
-proc spdAux::CheckConstLawParamValue {node} {
-    set doc $gid_groups_conds::doc
-    set root [$doc documentElement]
-    
-    set id [$node getAttribute n]
-    set val 0.0
-    set found 0
-    
-    # JG CHAPUZA A RESOLVER
-    set material_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Material'\]"] v]
-    set material_name [.gid.central.boundaryconds.gg.data.f0.e2 get]
-    
-    set mats_un [apps::getCurrentUniqueName Materials]
-    set xp3 [spdAux::getRoute $mats_un]
-    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-
-    foreach valueNode [$root selectNodes $xp3] {
-        if {$id eq [$valueNode getAttribute n] } {set val [$valueNode getAttribute v]; set found 1; break}
-    }
-    
-    if {!$found} {
-        set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
-        set claw [Model::getConstitutiveLaw $claw_name]
-        #W $claw_name
-        set val [$claw getInputDv $id]
-        if {$val eq ""} {set val 1.1 }
-    }
-    
-    return $val
 }
 
 proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
@@ -442,7 +432,7 @@ proc spdAux::injectSolvers {basenode} {
             set help [$se getHelp]
             set un [apps::getCurrentUniqueName "$stn$n"]
             set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$un\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\" >"
-            # Inject solvers combo
+            
             append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\" update_proc=\"Updateme\"/>"
             #append container "<dependencies node=\"../value\" actualize=\"1\"/>"
             #append container "</value>"
@@ -663,8 +653,12 @@ proc spdAux::injectElementInputs { basenode } {
         set um [$in getUnitMagnitude]
         set help [$in getHelp] 
         #set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"-\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
-        set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ElemParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
+        set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"-\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
         catch {$parts appendXML $node}
+        
+        set originxpath "[$parts toXPath]/value\[@n='Material'\]"
+        set relativexpath "../value\[@n='$inName'\]"
+        spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
     }
     $basenode delete
 }
@@ -679,8 +673,13 @@ proc spdAux::injectConstitutiveLawInputs { basenode } {
             set units [$in getUnits]
             set um [$in getUnitMagnitude]
             set help [$in getHelp]
-            set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"\[ConstLawParamValue\]\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
+            set v [$in getDv]
+            set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"$v\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
             catch {$parts appendXML $node}
+            
+            set originxpath "[$parts toXPath]/value\[@n='Material'\]"
+            set relativexpath "../value\[@n='$inName'\]"
+            spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
         }
     }
     $basenode delete
