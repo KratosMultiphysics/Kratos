@@ -50,7 +50,7 @@ typedef ModelPart::NodesContainerType               NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
-CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true), mSomeCloudsDontWork(false){}
+CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false){}
 /// Calculator
 
 virtual ~CustomFunctionsCalculator(){}
@@ -168,6 +168,8 @@ void CalculateGradient(ModelPart& r_model_part, Variable<double>& scalar_contain
 
 void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
 {
+    mCalculatingTheGradient = true;
+
     if (mFirstGradientRecovery){
         std::cout << "Constructing first-step neighbour clouds for gradient recovery...\n";
         SetNeighboursAndWeights(r_model_part);
@@ -200,34 +202,94 @@ void RecoverSuperconvergentGradient(ModelPart& r_model_part, Variable<double>& s
             }
         }
     }
+
+    mCalculatingTheGradient = false;
 }
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-void CalculateVelocityLaplacian(ModelPart& r_model_part)
+void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
 {
-    std::cout << "Constructing the Laplacian by derivating nodal averages...\n";
-    std::vector<array_1d <double, 3> > laplacians;
-    laplacians.resize(r_model_part.Nodes().size());
-    std::map <std::size_t, unsigned int> id_to_position;
+    mCalculatingTheLaplacian = true;
+
+    if (mFirstLaplacianRecovery){
+        std::cout << "Constructing first-step neighbour clouds for laplacian recovery...\n";
+        SetNeighboursAndWeights(r_model_part);
+        mFirstLaplacianRecovery = false;
+        std::cout << "Finished constructing neighbour clouds for laplacian recovery.\n";
+    }
+
+    if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
+        CalculateVectorLaplacian(r_model_part, vector_container, laplacian_container);
+    }
+
+    // Solving least squares problem (Zhang, 2006)
+    unsigned int n_relevant_terms = 6;
+
+    std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the correspondgin values of the polynomial coefficients relevant for the calculation of the laplacian
+    polynomial_coefficients.resize(n_relevant_terms);
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        noalias(inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN)) = ZeroVector(3);
-        unsigned int entry = std::distance(r_model_part.NodesBegin(), inode);
-        id_to_position[inode->Id()] = entry;
+        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        unsigned int n_neigh = neigh_nodes.size();
+
+        if (!n_neigh){ // then we keep the defualt value
+            continue;
+        }
+
+        for (unsigned int i = 0; i < n_relevant_terms; i++){ // resetting polynomial_coefficients to 0
+            polynomial_coefficients[i] = ZeroVector(3);
+        }
+
+        const Vector& nodal_weights = inode->FastGetSolutionStepValue(NODAL_WEIGHTS);
+
+        for (unsigned int k = 0; k < TDim; ++k){
+            for (unsigned int i_neigh = 0; i_neigh < n_neigh; ++i_neigh){
+                const array_1d<double, 3>& neigh_nodal_value = neigh_nodes[i_neigh].FastGetSolutionStepValue(vector_container);
+                for (unsigned int d = 0; d < n_relevant_terms; ++d){
+                    polynomial_coefficients[d][k] += nodal_weights[n_relevant_terms * i_neigh + d] * neigh_nodal_value[k];
+                }
+            }
+        }
+
+        array_1d <double, 3>& recovered_laplacian = inode->FastGetSolutionStepValue(laplacian_container);
+        recovered_laplacian[0] = polynomial_coefficients[0][0] + polynomial_coefficients[1][0] + 2 * polynomial_coefficients[3][0];
+        recovered_laplacian[1] = polynomial_coefficients[0][0] + polynomial_coefficients[2][0] + 2 * polynomial_coefficients[4][0];
+        recovered_laplacian[2] = polynomial_coefficients[1][0] + polynomial_coefficients[2][0] + 2 * polynomial_coefficients[5][0];
     }
+
+    mCalculatingTheLaplacian = false;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
+{
+    std::cout << "Constructing the Laplacian by derivating nodal averages...\n";
+    std::map <std::size_t, unsigned int> id_to_position;
+    unsigned int entry = 0;
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        noalias(inode->FastGetSolutionStepValue(laplacian_container)) = ZeroVector(3);
+        id_to_position[inode->Id()] = entry;
+        entry++;
+    }
+
+    std::vector<array_1d <double, 3> > laplacians;
+    laplacians.resize(entry);
 
     array_1d <double, 3> grad = ZeroVector(3);
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding velocity component v_j
+    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
 
 
-    for (unsigned int j = 0; j < TDim; ++j){ // for each component of the velocity
+    for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
-        // for each element, constructing the gradient contribution (to its nodes) of the velocity component v_j and storing it in VELOCITY_LAPLACIAN
+        // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in laplacian_container
 
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
             // computing the shape function derivatives
@@ -236,7 +298,7 @@ void CalculateVelocityLaplacian(ModelPart& r_model_part)
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
-                elemental_values[i] = geom[i].FastGetSolutionStepValue(VELOCITY)[j];
+                elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
             }
 
             array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
@@ -249,17 +311,17 @@ void CalculateVelocityLaplacian(ModelPart& r_model_part)
             grad *= nodal_area;
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
-                geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += grad; // we use VELOCITY_LAPLACIAN to store the gradient of one component at a time
+                geom[i].FastGetSolutionStepValue(laplacian_container) += grad; // we use laplacian_container to store the gradient of one component at a time
             }
         }
 
         // normalizing the constributions to the gradient
 
         for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-            inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN) /= inode->FastGetSolutionStepValue(NODAL_AREA);
+            inode->FastGetSolutionStepValue(laplacian_container) /= inode->FastGetSolutionStepValue(NODAL_AREA);
         }
 
-        // for each element, constructing the divergence contribution (to its nodes) of the corresponding gradient of the velocity component v_j
+        // for each element, constructing the divergence contribution (to its nodes) of the corresponding gradient of the component v_j
 
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
             Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -268,14 +330,14 @@ void CalculateVelocityLaplacian(ModelPart& r_model_part)
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
                 for (unsigned int k = 0; k < TDim + 1; ++k){
-                    elemental_vectors(i, k) = geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN)[k]; // it is actually the gradient of component v_j
+                    elemental_vectors(i, k) = geom[i].FastGetSolutionStepValue(laplacian_container)[k]; // it is actually the gradient of component v_j
                 }
             }
 
             boost::numeric::ublas::bounded_matrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
             double divergence_of_vi = 0.0;
 
-            for (unsigned int k = 0; k < TDim; ++k){
+            for (unsigned int k = 0; k < TDim; ++k){ // the divergence is the trace of the gradient
                 divergence_of_vi += grad_aux(k, k);
             }
 
@@ -287,18 +349,18 @@ void CalculateVelocityLaplacian(ModelPart& r_model_part)
             }
         }
 
-        // clearing the values stored in VELOCITY LAPLACIAN for the next component
+        // clearing the values stored in laplacian_container for the next component
 
         for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-            array_1d <double, 3>& current_gradient_of_vi = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+            array_1d <double, 3>& current_gradient_of_vi = inode->FastGetSolutionStepValue(laplacian_container);
             current_gradient_of_vi = ZeroVector(3);
         }
 
-    } // for each component of the velocity
+    } // for each component of the vector value
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         array_1d <double, 3>& stored_laplacian = laplacians[id_to_position[inode->Id()]];
-        array_1d <double, 3>& laplacian = inode->FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+        array_1d <double, 3>& laplacian = inode->FastGetSolutionStepValue(laplacian_container);
         laplacian = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
     }
 
@@ -565,7 +627,10 @@ private:
 
 bool mPressuresFilled;
 bool mFirstGradientRecovery;
+bool mFirstLaplacianRecovery;
 bool mSomeCloudsDontWork;
+bool mCalculatingTheGradient;
+bool mCalculatingTheLaplacian;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
@@ -799,12 +864,44 @@ void SetNeighboursAndWeights(ModelPart& r_model_part)
 
         if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
             mSomeCloudsDontWork = true;
+            KRATOS_WATCH(mSomeCloudsDontWork)
             neigh_nodes.clear();
             inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
             std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
             std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
         }
-        KRATOS_WATCH(neigh_nodes.size())
+        i++;
+    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void SetNeighboursAndWeightsForTheLaplacian(ModelPart& r_model_part)
+{
+    // Finding elements concurrent to each node. The nodes of these elements will form the initial cloud of points
+    FindNodalNeighboursProcess neighbour_finder = FindNodalNeighboursProcess(r_model_part);
+    neighbour_finder.Execute();
+    const unsigned int n_max_iterations = 100;
+
+    unsigned int i = 0;
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
+        WeakPointerVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+
+        unsigned int iteration = 0;
+        while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
+            the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
+            iteration++;
+        }
+
+        if (iteration >= n_max_iterations){ // giving up on this method, settling for the default method
+            mSomeCloudsDontWork = true;
+            neigh_nodes.clear();
+            inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
+            std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
+            std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
+        }
         i++;
     }
 }
@@ -966,17 +1063,31 @@ double SecondDegreeGenericPolynomial(boost::numeric::ublas::matrix<double> C, co
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+inline int Factorial(const unsigned int n){
+
+    if (n == 0){
+        return 1;
+    }
+
+    unsigned int k = n;
+
+    for (unsigned int i = n - 1; i > 0; --i){
+        k *= i;
+    }
+
+    return k;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node)
 {
     using namespace boost::numeric::ublas;
 
-    unsigned int n_poly_terms;
+    unsigned int n_poly_terms = Factorial(TDim + 2) / (2 * Factorial(TDim)); // 2 is the polynomial order
 
-    if (TDim == 3) {
-        n_poly_terms = 10;
-    }
-    else { // TDim == 2
-        n_poly_terms = 6;
+    if (TDim == 2){
         KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
     }
 
@@ -1022,26 +1133,57 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
     matrix<double>AtransA(n_poly_terms, n_poly_terms);
     noalias(AtransA) = prod(trans(A), A);
 
-    Vector& nodal_weights = p_node->FastGetSolutionStepValue(NODAL_WEIGHTS);
-    nodal_weights.resize(3 * n_nodal_neighs);
-
     if (fabs(determinant< matrix<double> >(AtransA)) < 0.01){
         return false;
     }
 
     else {
+
+        unsigned int n_relevant_terms;
+
+        if (mCalculatingTheGradient){
+            n_relevant_terms = TDim;
+        }
+
+        else if (mCalculatingTheLaplacian){
+            n_relevant_terms = n_poly_terms - (TDim + 1);
+        }
+
+        std::vector<unsigned int> relevant_terms;
+        relevant_terms.resize(n_relevant_terms);
+        double normalization = 1.0;
+
+        if (mCalculatingTheGradient){
+            normalization = h_inv;
+            relevant_terms[0] = 1;
+            relevant_terms[1] = 2;
+            relevant_terms[2] = 3;
+        }
+
+        else if (mCalculatingTheLaplacian){
+            normalization = h_inv * h_inv;
+            relevant_terms[0] = 4;
+            relevant_terms[1] = 5;
+            relevant_terms[2] = 6;
+            relevant_terms[3] = 7;
+            relevant_terms[4] = 8;
+            relevant_terms[5] = 9;
+        }
+
+        Vector& nodal_weights = p_node->FastGetSolutionStepValue(NODAL_WEIGHTS);
+        nodal_weights.resize(n_relevant_terms * n_nodal_neighs);
         matrix<double>AtransAinv(n_poly_terms, n_poly_terms);
         noalias(AtransAinv) = Inverse(AtransA);
         matrix<double>AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
         noalias(AtransAinvAtrans) = prod(AtransAinv, trans(A));
 
         for (unsigned int i = 0; i < n_nodal_neighs; ++i){
-            for (unsigned int d = 0; d < TDim; ++d){
-                nodal_weights(3 * i + d) = AtransAinvAtrans(d + 1, i) * h_inv;
+            for (unsigned int d = 0; d < n_relevant_terms; ++d){
+                nodal_weights(n_relevant_terms * i + d) = AtransAinvAtrans(relevant_terms[d], i) * normalization;
             }
         }
 
-        matrix<double>C(n_nodal_neighs, 1);
+        matrix<double> C(n_nodal_neighs, 1);
         C = prod(AtransAinvAtrans, TestNodalValues);
 
         double abs_difference = 0.0;
@@ -1053,15 +1195,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
 
         const double tolerance = 0.00001;
 
-        if (abs_difference > tolerance){
-            KRATOS_WATCH(n_nodal_neighs)
-            KRATOS_WATCH(abs_difference)
-            return false;
-        }
-
-        else {
-            return true;
-        }
+        return (abs_difference > tolerance? false : true);
     }
 }
 
