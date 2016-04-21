@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="procs" pn="procs" includeContainer="No">
 
+		 	<proc n='GetSolutionStrategies' args='args'>
+	  <![CDATA[
+	  
+		set names ""
+		set pnames ""
+		set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute SLSoluType]] v]
+		set Sols [::Model::GetSolutionStrategies "SolutionType" $solutionType]
+		foreach ss $Sols {
+			lappend ids [$ss getName]
+			append names [$ss getName] ","
+			append pnames [$ss getName] "," [$ss getPublicName] ","
+		}
+		set names [string range $names 0 end-1]
+		set pnames [string range $pnames 0 end-1]
+		
+		$domNode setAttribute dict $pnames
+		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
+		#spdAux::RequestRefresh
+		return $names
+	  
+	  ]]>
+	</proc>
 	
 		  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[

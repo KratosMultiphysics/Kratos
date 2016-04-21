@@ -3,7 +3,7 @@
   <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Volume" ProcessName="ApplyVolumeAccelerationProcess" help="The gravity modulus and its direction vector referred to global axes"
+	ElementType="Line,Surface,Volume" ProcessName="ApplyVolumeAccelerationProcess" help="The gravity modulus and its direction vector referred to global axes"
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
@@ -20,7 +20,7 @@
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface"  ProcessName="ApplyVolumeAccelerationProcess" help="The gravity modulus and its direction vector referred to global axes"
+	ElementType="Line,Surface"  ProcessName="ApplyVolumeAccelerationProcess" help="The gravity modulus and its direction vector referred to global axes"
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
