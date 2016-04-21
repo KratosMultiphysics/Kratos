@@ -493,7 +493,7 @@ namespace Kratos
          const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
          BoundingBoxUtility(is_time_to_mark_and_remove);
          if (is_time_to_search_neighbours) {  
-            if (!is_time_to_mark_and_remove) { //Just in case that some marked TO_ERASE without a bounding box
+            if (!is_time_to_mark_and_remove) { //Just in case that some entities were marked as TO_ERASE without a bounding box (manual removal)
                 mpParticleCreatorDestructor->DestroyParticles(*mpCluster_model_part);
                 mpParticleCreatorDestructor->DestroyParticles(r_model_part);
             }
