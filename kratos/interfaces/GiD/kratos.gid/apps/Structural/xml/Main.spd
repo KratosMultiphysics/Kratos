@@ -7,7 +7,7 @@
     <include n="Fields" active="0" path="apps/Solid/xml/Fields.spd"/>
     <include n="BoundaryConditions" active="1" path="apps/Solid/xml/BoundaryConditions.spd"/>
     <include n="Loads" active="1" path="apps/Solid/xml/Loads.spd"/>
-    <include n="Processes" active="1" path="apps/Solid/xml/Processes.spd"/>
+    <include n="Processes" active="0" path="apps/Solid/xml/Processes.spd"/>
     <include n="SolutionStrategy" active="1" path="apps/Solid/xml/SolutionStrategy.spd"/>
     <include n="Results" active="1" path="apps/Common/xml/Results.spd"/>
     <include n="materials" active="1" path="apps/Solid/xml/Materials.spd"/> 
