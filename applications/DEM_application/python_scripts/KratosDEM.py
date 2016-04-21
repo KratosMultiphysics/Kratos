@@ -41,7 +41,11 @@ elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy    
 else:
     KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
-
+        
+def CleaningUpOperations(objects_to_destroy):
+    for object in objects_to_destroy:
+        del object
+        
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
@@ -65,7 +69,7 @@ procedures.PreProcessModel(DEM_parameters)
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
 mixed_model_part      = ModelPart("Mixed_Part")
-mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
+mixed_spheres_and_clusters_model_part = ModelPart("MixedSpheresAndClustersPart")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -410,19 +414,10 @@ os.chdir(main_path)
 # Print times and more info
 KRATOSprint(report.FinalReport(timer))
 
-del demio
-del procedures
-del creator_destructor
-del dem_fem_search
-del solver
-del DEMFEMProcedures
-del DEM_inlet
-del post_utils
-del mixed_model_part
-del mixed_spheres_and_clusters_model_part
-del cluster_model_part
-del rigid_face_model_part
-del spheres_model_part 
-del DEM_inlet_model_part
-del mapping_model_part
-del contact_model_part 
+# Freeing up memory
+objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, DEM_inlet, post_utils, 
+                      mixed_model_part, mixed_spheres_and_clusters_model_part, cluster_model_part, rigid_face_model_part,
+                      spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
+
+CleaningUpOperations(objects_to_destroy)
+
