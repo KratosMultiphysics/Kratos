@@ -30,8 +30,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
-parallel = OpenMPUtils()
-print("::[KSM Simulation]:: OMP USING",parallel.GetNumThreads(),"THREADS ]")
+#parallel = OpenMPUtils()
+#print("::[KSM Simulation]:: OMP USING",parallel.GetNumThreads(),"THREADS ]")
 
 ######################################################################################
 ######################################################################################
