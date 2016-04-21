@@ -55,7 +55,7 @@ namespace Kratos
   ///@{
 
   /// Short class definition.
-  /** Computes mesh error for a given variable. Setting the error to elements or nodes
+  /** Computes mesh error for a given variable. Setting the error to elements or nodes for 2D and 3D
    */
   class MeshErrorCalculationUtilities
   {
@@ -95,7 +95,8 @@ namespace Kratos
     void NodalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rNodalError,std::vector<int>& rIds,unsigned int MeshId,const Variable<double> &rVariable)
     {
       KRATOS_TRY
-	std::vector<double> ElementalError;
+
+      std::vector<double> ElementalError;
       std::vector<int>    elems_ids;
 
       ElementalErrorCalculation(rModelPart,ElementalError,elems_ids,MeshId,rVariable);
@@ -141,7 +142,7 @@ namespace Kratos
 	}
     
       KRATOS_CATCH( "" )
-	}
+    }
 
 
     //**************************************************************************
@@ -152,7 +153,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-	ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+      ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 
       std::vector<double>  ElementVariable(rModelPart.NumberOfElements(MeshId)+1);
@@ -163,7 +164,7 @@ namespace Kratos
       std::fill( elems_ids.begin(), elems_ids.end(), 0 );
 
 	
-      double VariableMax = 0;
+      double VariableMax = 0; //-1e-25;
       double VariableMin = 1e25;
 
       std::vector<double> Value(1);
@@ -195,10 +196,10 @@ namespace Kratos
       std::vector<int> nodes_ids (rModelPart.NumberOfNodes()+1); //mesh 0
       std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
 
-      double PatchArea  = 0;
+      double PatchSize  = 0;
       double PatchError = 0;
 
-      double Area  = 0;
+      double Size  = 0;
       double Error = 0;
   
       id=1;
@@ -207,7 +208,7 @@ namespace Kratos
 
 	  if(in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){
 
-	    PatchArea  = 0;
+	    PatchSize  = 0;
 	    PatchError = 0;
 
 	    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
@@ -218,21 +219,21 @@ namespace Kratos
 	           
 		Geometry<Node<3> >& pGeom = (ne)->GetGeometry();
 	     
-		Area   = pGeom.Area();
-		Error  = ElementVariable[elems_ids[ne->Id()]] * Area;
+		Size   = pGeom.DomainSize();  //Area(); or Volume();
+		Error  = ElementVariable[elems_ids[ne->Id()]] * Size;
 
-		PatchArea  += Area;
+		PatchSize  += Size;
 		PatchError += Error;
 
 	      }
 	      
-	    if(PatchArea!=0){
+	    if(PatchSize!=0){
 	      nodes_ids[in->Id()]=id;
-	      NodalError[id] = PatchError/PatchArea;
-	      //std::cout<<" Node ["<<in->Id()<<"] : ( NodalError: "<<NodalError[id]<<", PatchError: "<<" PatchArea:"<<PatchArea<<std::endl;
+	      NodalError[id] = PatchError/PatchSize;
+	      //std::cout<<" Node ["<<in->Id()<<"] : ( NodalError: "<<NodalError[id]<<", PatchError: "<<" PatchSize:"<<PatchSize<<std::endl;
 	    }
 	    else{
-	      std::cout<<" WARNING : Area surrounding node: "<<in->Id()<<" is null "<<std::endl;
+	      std::cout<<" WARNING : Size surrounding node: "<<in->Id()<<" is null "<<std::endl;
 	    }
 
 	  }
