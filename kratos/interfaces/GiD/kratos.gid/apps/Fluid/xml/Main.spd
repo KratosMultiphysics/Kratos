@@ -5,6 +5,6 @@
     <include n="InitialConditions" active="1" path="apps/Fluid/xml/InitialConditions.spd"/>
     <include n="BoundaryConditions" active="1" path="apps/Fluid/xml/BoundaryConditions.spd"/>
     <include n="SolutionStrategy" active="1" path="apps/Fluid/xml/SolutionStrategy.spd"/>
-    <include n="Results" active="1" path="apps/Fluid/xml/Results.spd"/>
+    <include n="Results" active="1" path="apps/Common/xml/Results.spd"/>
     <include n="materials" active="1" path="apps/Fluid/xml/Materials.spd"/> 
   </container>
