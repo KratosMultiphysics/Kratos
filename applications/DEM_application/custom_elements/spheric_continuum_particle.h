@@ -49,19 +49,21 @@ namespace Kratos
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         void ReorderFEMneighbours();
         
-        //virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
-      
+        //virtual void ComputeNewRigidFaceNeighboursHistoricalData();
+
+        virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);      
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 
                                                 double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
            
         virtual void ContactAreaWeighting();
+        virtual double GetInitialDelta(int index);
 
         /// Turn back information as a string
         virtual std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "SphericContinuumParticle" ;
+            buffer << "SphericCosntinuumParticle" ;
             return buffer.str();
         }
       
@@ -80,13 +82,14 @@ namespace Kratos
         
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;
+        std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
 
     protected:
 
         SphericContinuumParticle();
         
         virtual void CustomInitialize();
-        virtual double GetInitialDelta(int index);	
+
         virtual double GetInitialDeltaWithFEM(int index);              
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                    array_1d<double, 3>& rContactForce, 
@@ -103,7 +106,7 @@ namespace Kratos
         std::vector<double>         mContIniNeighArea;        
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;                        
-        std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+
 
     private:
 
