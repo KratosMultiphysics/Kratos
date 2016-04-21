@@ -402,12 +402,9 @@ namespace Kratos {
                         inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                         max_Id += number_of_added_spheres;
                     }        
-                }
-               
+                }               
             } //if (number_of_particles_to_insert)
-
             mLastInjectionTimes[mesh_number - 1] = current_time;
-
         } // for mesh_it
         
         creator.RemoveUnusedNodesOfTheClustersModelPart(r_clusters_modelpart);
