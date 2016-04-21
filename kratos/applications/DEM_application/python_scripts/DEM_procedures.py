@@ -1326,6 +1326,11 @@ class DEMIo(object):
         self.PrintingContactElementsVariables(contact_model_part, time)
         self.PrintingMappingVariables(mapping_model_part, time)
         #self.PrintingArlequinVariables(rigid_face_model_part, time)
+        
+        mixed_model_part.Elements.clear() #to remove the shared pointers that remain and prevent objects from being removed
+        mixed_model_part.Nodes.clear() #to remove the shared pointers that remain and prevent objects from being removed
+        mixed_spheres_and_clusters_model_part.Elements.clear() #to remove the shared pointers that remain and prevent objects from being removed
+        mixed_spheres_and_clusters_model_part.Nodes.clear() #to remove the shared pointers that remain and prevent objects from being removed
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
