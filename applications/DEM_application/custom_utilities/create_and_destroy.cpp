@@ -85,13 +85,24 @@ namespace Kratos {
         if (initial) {
             pnew_node = reference_node;
             pnew_node->SetId(aId);
-            r_modelpart.AddNode(pnew_node); // The same node is added to r_modelpart (the calculation model part)          
+            #pragma omp critical
+            {
+                r_modelpart.AddNode(pnew_node); // The same node is added to r_modelpart (the calculation model part) 
+            }
             pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
             //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
         }                                                                                             //layer of the inlet newly created spheres
-        else {
-            pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
+        else {                        
+            pnew_node = boost::make_shared< Node<3> >(aId, bx, cy, dz);
+            pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
+            pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
+            #pragma omp critical
+            {
+                //pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
+                r_modelpart.Nodes().push_back(pnew_node);
+            }
+                        
             array_1d<double, 3 > velocity = params[VELOCITY];
             double max_rand_deviation_angle = params[MAX_RAND_DEVIATION_ANGLE];
             AddRandomPerpendicularVelocityToGivenVelocity(velocity, max_rand_deviation_angle);
@@ -109,25 +120,6 @@ namespace Kratos {
 
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;        
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
-
-        //The next section is commented because initialization to 0 is done automatically of all variables in GetSolutionStepvariable
-        /*if (pnew_node->SolutionStepsDataHas(SOLID_FRACTION_PROJECTED)) {
-            pnew_node->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED) = 0.0;
-        }
-        
-        if (pnew_node->SolutionStepsDataHas(MESH_VELOCITY1)) {
-            pnew_node->SolutionStepsDataHas(MESH_VELOCITY1) = null_vector
-            //pnew_node->FastGetSolutionStepValue(MESH_VELOCITY1_X) = 0.0;
-            //pnew_node->FastGetSolutionStepValue(MESH_VELOCITY1_Y) = 0.0;
-            //pnew_node->FastGetSolutionStepValue(MESH_VELOCITY1_Z) = 0.0;
-        }
-
-        if (pnew_node->SolutionStepsDataHas(DRAG_REACTION)) {
-            pnew_node->SolutionStepsDataHas(DRAG_REACTION) = null_vector
-            //pnew_node->FastGetSolutionStepValue(DRAG_REACTION_X) = 0.0;
-            //pnew_node->FastGetSolutionStepValue(DRAG_REACTION_Y) = 0.0;
-            //pnew_node->FastGetSolutionStepValue(DRAG_REACTION_Z) = 0.0;
-        }*/
 
         pnew_node->AddDof(VELOCITY_X, REACTION_X);
         pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
@@ -221,24 +213,29 @@ namespace Kratos {
 
         spheric_p_particle->Initialize(r_modelpart.GetProcessInfo()); 
 
-        r_modelpart.Elements().push_back(p_particle);
+        #pragma omp critical
+        {
+            r_modelpart.Elements().push_back(p_particle);
+        }
         
         return spheric_p_particle;
     }
 
     void ParticleCreatorDestructor::NodeCreatorForClusters(ModelPart& r_modelpart,
-        Node<3>::Pointer& pnew_node,
-        int aId,
-        array_1d<double, 3>& reference_coordinates,
-        double radius,
-        Properties& params) {
-        double bx = reference_coordinates[0];
-        double cy = reference_coordinates[1];
-        double dz = reference_coordinates[2];
+                                                            Node<3>::Pointer& pnew_node,
+                                                            int aId,
+                                                            array_1d<double, 3>& reference_coordinates,
+                                                            double radius,
+                                                            Properties& params) {
+
+        pnew_node = boost::make_shared< Node<3> >( aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2] );
+        pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
+        pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
         #pragma omp critical
         {
-        pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
+        //pnew_node = r_modelpart.CreateNewNode(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]); //ACTUAL node creation and addition to model part
+            r_modelpart.Nodes().push_back(pnew_node);
         }
         
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
@@ -425,7 +422,10 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
         else p_cluster->Set(DEMFlags::HAS_ROTATION, false);
 
         if (!is_breakable) {  
+            #pragma omp critical
+            {
             r_clusters_modelpart.Elements().push_back(p_new_cluster);  //We add the cluster element to the clusters modelpart               
+            }
         }
         else { 
             p_cluster->GetGeometry()[0].Set(TO_ERASE); //We do not add the cluster to the modelpart (will be erased at the end of this function) and we mark the central node for erasing (none are needed)
