@@ -20,37 +20,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set projectParametersDict problem_data $problemDataDict
     
     # output configuration
-    set outputConfigDict [dict create]
-    dict set outputConfigDict output_file_name "[file tail [GiD_Info Project ModelName]].out"
-    
-    set GiDPostDict [dict create]
-    dict set GiDPostDict GiDPostMode [write::getValue FLResults GiDPostMode]
-    dict set GiDPostDict MultiFileFlag [write::getValue FLResults GiDMultiFileFlag]
-    dict set GiDPostDict WriteMeshFlag True
-    dict set GiDPostDict WriteConditionsFlag True
-    dict set GiDPostDict WriteParticlesFlag False
-    dict set GiDPostDict gid_write_frequency [write::getValue FLResults OutputDeltaTime]
-    dict set outputConfigDict gidpost_flags $GiDPostDict
-    
-    dict set outputConfigDict plot_graphs False
-    dict set outputConfigDict plot_frequency 0
-    dict set outputConfigDict print_lists True
-    dict set outputConfigDict output_time [write::getValue FLResults OutputDeltaTime]
-    dict set outputConfigDict volume_output [write::getValue FLResults VolumeOutput]
-    dict set outputConfigDict add_skin true
-    
-    set cut_list [list ]
-    set normal [list 0.0 1.0 0.0]
-    set point [list 0.0 0.0 0.0]
-    lappend cut_list [dict create normal $normal point $point]
-    
-    dict set outputConfigDict cut_planes [dict create cut_list $cut_list]
-
-    # on nodes
-    dict set outputConfigDict nodal_results [write::GetResultsList "FLNodalResults"]
-    # on elements
-    dict set outputConfigDict gauss_points_results [write::GetResultsList "FLElementResults"]
-    dict set projectParametersDict output_configuration $outputConfigDict
+    dict set projectParametersDict output_configuration [write::GetDefaultOutputDict]
     
     # restart options
     set restartDict [dict create]
