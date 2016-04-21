@@ -493,6 +493,9 @@ namespace Kratos
       //*******************************************************************
       //MOVE NODES: LAPLACIAN SMOOTHING:
 	 
+      if( GetEchoLevel() > 0 )
+	std::cout<<" Apply Mesh Smoothing in Mesh "<<MeshId<<std::endl;
+
       double convergence_tol =0.001;
       double smoothing_factor=0.1;
       double smoothing_iters =3;
@@ -505,11 +508,22 @@ namespace Kratos
       initial_nodes_position.resize(rNodes.size()+1);
       initial_nodes_position[0].clear();
 
-      std::vector<int> nodes_ids;
-      nodes_ids.resize(rModelPart.NumberOfNodes()+1); //mesh 0
-      std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
+      // std::vector<int> nodes_ids;
+      // nodes_ids.resize(rModelPart.NumberOfNodes()+1); //mesh 0
+      // std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
 
-		  
+      // unsigned int id=1;
+      // for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+      // 	{
+      // 	  //point position
+      // 	  //std::cout<<" Initial Position ["<<in->Id()<<"]: ("<<in->X()<<", "<<in->Y()<<", "<<in->Z()<<") "<<std::endl;	
+      // 	  //std::cout<<" Initial Position ["<<in->Id()<<"]"<<std::endl;	
+      // 	  //std::cout<<" Data "<<in->SolutionStepData()<<std::endl;
+      // 	  nodes_ids[in->Id()] = id;
+      // 	  id++;
+      // 	}
+
+
       //initial loop to set the position to MESH_DISPLACEMENT
       rNodes.Sort();
 	    
@@ -521,7 +535,7 @@ namespace Kratos
 	  initial_nodes_position[in+1].clear();
 	  for(int pn=0; pn<dimension; pn++)
 	    {
-	      initial_nodes_position[in+1][pn] = out.pointlist[in*dimension+pn];	
+	      initial_nodes_position[in+1][pn] = out.pointlist[in*dimension+pn];
 	    }
 
 	}
@@ -663,6 +677,7 @@ namespace Kratos
 	  
 	for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
 	  {
+	    //std::cout<<" node["<<i_node->Id()<<"]"<<std::endl;
 	    if( i_node->IsNot(TO_ERASE) ){
 	      //set new positions:
 	      int id =i_node->Id()-1;

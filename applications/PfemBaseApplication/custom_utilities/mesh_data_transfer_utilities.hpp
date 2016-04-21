@@ -346,8 +346,13 @@ namespace Kratos
     //*******************************************************************************************
 
 
-    void FillVectorData(VariablesList& rVariablesList,
-			Node<3>::Pointer pnode);
+    void FillVectorData( VariablesList& rVariablesList,
+			 Node<3>::Pointer pnode);
+
+    void Interpolate2Nodes( Geometry<Node<3> > &geom,
+			    const Vector& N,
+			    VariablesList& rVariablesList,
+			    Node<3>& pnode);
 
     void Interpolate( Geometry<Node<3> >& geom,
 		      const array_1d<double,3>& N,
@@ -355,14 +360,12 @@ namespace Kratos
 		      Node<3>::Pointer pnode,
 		      double& alpha);
 	
-
     VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
 							  const array_1d<double,3>& N,
 							  VariablesList& rVariablesList,
 							  Node<3>::Pointer pnode,
 							  double& alpha);
     
-
     void InterpolateData( Geometry<Node<3> >& geom,
 			  const array_1d<double,3>& N,
 			  unsigned int step_data_size,

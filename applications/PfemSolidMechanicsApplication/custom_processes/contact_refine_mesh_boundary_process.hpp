@@ -60,7 +60,7 @@ public:
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
-
+    typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
     struct RefineCounters
     {
@@ -368,7 +368,7 @@ private:
 	    
       //node to get the DOFs from
       Node<3>::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin(mMeshId))->GetDofs();
-      unsigned int step_data_size = mrModelPart.GetNodalSolutionStepDataSize();
+      //unsigned int step_data_size = mrModelPart.GetNodalSolutionStepDataSize();
       double z = 0.0;
 
       unsigned int initial_node_size = mrModelPart.Nodes().size()+1; //total model part node size
@@ -397,7 +397,6 @@ private:
 
 
 	  //assign data to dofs
-	  unsigned int buffer_size = pnode->GetBufferSize();
 
 	  //2D edges:
 	  Geometry< Node<3> >& rConditionGeometry  = list_of_conditions[i]->GetGeometry(); 
@@ -415,25 +414,41 @@ private:
 		(p_new_dof)->FreeDof();
 	    }
 
+	  //assign data to dofs
+	  VariablesList& variables_list = mrModelPart.GetNodalSolutionStepVariablesList();		     
+	  
+	  PointsArrayType  PointsArray;
+	  PointsArray.push_back( rConditionGeometry(0) ); 
+	  PointsArray.push_back( rConditionGeometry(1) ); 
+	  
+	  Geometry<Node<3> > geom( PointsArray );
+	  
+	  Vector N = ZeroVector(2);
+	  N[0] = 0.5;
+	  N[1] = 0.5;
+	  
+	  MeshDataTransferUtilities DataTransferUtilities;
+	  DataTransferUtilities.Interpolate2Nodes( geom, N, variables_list, *pnode);
 
+	  // //int cond_id = list_of_points[i].Id();
+	  // //Geometry< Node<3> >& rConditionGeometry = (*(mrModelPart.Conditions(mMeshId).find(cond_id).base()))->GetGeometry();
 
-	  //int cond_id = list_of_points[i].Id();
-	  //Geometry< Node<3> >& rConditionGeometry = (*(mrModelPart.Conditions(mMeshId).find(cond_id).base()))->GetGeometry();
+	  // unsigned int buffer_size = pnode->GetBufferSize();
 
-	  for(unsigned int step = 0; step<buffer_size; step++)
-	    {
-              //getting the data of the solution step
-              double* step_data = (pnode)->SolutionStepData().Data(step);
+	  // for(unsigned int step = 0; step<buffer_size; step++)
+	  //   {
+          //     //getting the data of the solution step
+          //     double* step_data = (pnode)->SolutionStepData().Data(step);
 
-              double* node0_data = rConditionGeometry[0].SolutionStepData().Data(step);
-              double* node1_data = rConditionGeometry[1].SolutionStepData().Data(step);
+          //     double* node0_data = rConditionGeometry[0].SolutionStepData().Data(step);
+          //     double* node1_data = rConditionGeometry[1].SolutionStepData().Data(step);
 
-              //copying this data in the position of the vector we are interested in
-              for(unsigned int j= 0; j<step_data_size; j++)
-		{
-		  step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
-		}
-	    }
+          //     //copying this data in the position of the vector we are interested in
+          //     for(unsigned int j= 0; j<step_data_size; j++)
+	  // 	{
+	  // 	  step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
+	  // 	}
+	  //   }
 
 
 	  //set specific control values and flags:
@@ -819,15 +834,15 @@ private:
       //***SIZES :::: parameters do define the tolerance in mesh size: 
 
       //RIGID WALL CONTACT:
-      double factor_for_tip_radius               = 0.2; //deformable contact tolerance in radius for detection tip sides to refine
+      double factor_for_tip_radius               = 0.20; //deformable contact tolerance in radius for detection tip sides to refine
 
       double size_for_wall_tip_contact_side      = 0.50 * mrRemesh.Refine->CriticalSide; 
       double size_for_wall_semi_tip_contact_side = 0.75 * mrRemesh.Refine->CriticalSide; // semi contact or contact which a node in a tip
-      double size_for_wall_non_tip_contact_side  = 1.25 * mrRemesh.Refine->CriticalSide; // semi contact or contact which no node in a tip
+      double size_for_wall_non_tip_contact_side  = 1.50 * mrRemesh.Refine->CriticalSide; // semi contact or contact which no node in a tip
       
       //NON CONTACT:
       double size_for_energy_side                = 1.50 * mrRemesh.Refine->CriticalSide; // non contact side which dissipates energy
-      double size_for_non_contact_side           = 3.0  * mrRemesh.Refine->CriticalSide;
+      double size_for_non_contact_side           = 2.50  * mrRemesh.Refine->CriticalSide;
 
 
       double tool_radius= 0;

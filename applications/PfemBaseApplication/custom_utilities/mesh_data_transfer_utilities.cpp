@@ -1239,6 +1239,121 @@ namespace Kratos
 	// }
 
 
+        //*******************************************************************************************
+        //*******************************************************************************************
+
+        void MeshDataTransferUtilities::Interpolate2Nodes( Geometry<Node<3> > &geom,
+							   const Vector& N,
+							   VariablesList& rVariablesList,
+							   Node<3>& pnode)
+	{ 
+	  
+	  KRATOS_TRY
+
+	  unsigned int buffer_size = pnode.GetBufferSize();
+	     
+	  if (N[0]==0.0 && N[1]==0.0){
+	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+	      }
+     
+	  for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
+	    {
+	      //std::cout<<" name "<<i_variable->Name()<<std::endl;
+	      //std::cout<<" type "<<typeid(*i_variable).name()<<std::endl;
+	      std::string variable_name = i_variable->Name();
+	      if(KratosComponents<Variable<double> >::Has(variable_name))
+		{
+		  //std::cout<<"double"<<std::endl;
+		  Variable<double> variable = KratosComponents<Variable<double> >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      double& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		      double& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      double& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		      node_data = (N[0]*node0_data + N[1]*node1_data);
+		  
+		    }
+		}
+	      else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+		{
+		  //std::cout<<"array1d"<<std::endl;
+		  Variable<array_1d<double, 3> > variable = KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      array_1d<double, 3>& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		      array_1d<double, 3>& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		      node_data = (N[0]*node0_data + N[1]*node1_data);		  
+		    }
+
+		}
+	      else if(KratosComponents<Variable<int > >::Has(variable_name))
+		{
+		  //std::cout<<"int"<<std::endl;
+		  //NO INTERPOLATION
+		}
+	      else if(KratosComponents<Variable<bool > >::Has(variable_name))
+		{
+		  //std::cout<<"bool"<<std::endl;
+		  //NO INTERPOLATION
+		}
+	      else if(KratosComponents<Variable<Matrix > >::Has(variable_name))
+		{
+		  //std::cout<<"Matrix"<<std::endl;
+		  Variable<Matrix > variable = KratosComponents<Variable<Matrix > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      Matrix& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		      Matrix& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      Matrix& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		      if( node_data.size1() > 0 && node_data.size2() ){
+			if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
+			    node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
+		      
+			  node_data = (N[0]*node0_data + N[1]*node1_data);	       
+			}
+		      }
+		    }
+
+		}
+	      else if(KratosComponents<Variable<Vector > >::Has(variable_name))
+		{
+		  //std::cout<<"Vector"<<std::endl;
+		  Variable<Vector >variable = KratosComponents<Variable<Vector > >::Get(variable_name);
+		  for(unsigned int step = 0; step<buffer_size; step++)
+		    {
+		      //getting the data of the solution step
+		      Vector& node_data = pnode.FastGetSolutionStepValue(variable, step);
+		  
+		      Vector& node0_data = geom[0].FastGetSolutionStepValue(variable, step);
+		      Vector& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
+		  
+		      if( node_data.size() > 0 ){
+			if( node_data.size() == node0_data.size() &&
+			    node_data.size() == node1_data.size()) {
+		      
+			  node_data = (N[0]*node0_data + N[1]*node1_data);	       
+			}
+		      }
+		    }
+		}
+
+	    }
+
+	  KRATOS_CATCH( "" )
+
+      }
+
+
       //*******************************************************************************************
       //*******************************************************************************************
   
@@ -1252,11 +1367,11 @@ namespace Kratos
 	  KRATOS_TRY
 
 	  //Copy Variables List
-	  std::cout<<" node["<<pnode->Id()<<"] Data "<<(pnode)->SolutionStepData()<<std::endl;
+	  // std::cout<<" node["<<pnode->Id()<<"] Data "<<(pnode)->SolutionStepData()<<std::endl;
 
 	  VariablesListDataValueContainer PreviousVariablesListData = (pnode)->SolutionStepData();
 
-	  std::cout<<" CopiedData "<<PreviousVariablesListData<<std::endl;
+	  // std::cout<<" CopiedData "<<PreviousVariablesListData<<std::endl;
 
       
 	  Interpolate( geom, N, rVariablesList, pnode, alpha);
@@ -1300,11 +1415,11 @@ namespace Kratos
 		      //getting the data of the solution step
 		      Vector& node_data = pnode->FastGetSolutionStepValue(variable, step);
 		      
-		      if( variable == CONSTRAINT_LABELS ){
-			std::cout<<" node ["<<pnode->Id()<<"]"<<std::endl;
-			std::cout<<" variable "<<variable<<std::endl;
-			std::cout<<" node data "<<node_data<<std::endl;
-		      }
+		      // if( variable == CONSTRAINT_LABELS ){
+		      // 	std::cout<<" node ["<<pnode->Id()<<"]"<<std::endl;
+		      // 	std::cout<<" variable "<<variable<<std::endl;
+		      // 	std::cout<<" node data "<<node_data<<std::endl;
+		      // }
 
 		      if( node_data.size() == 0 ){
 			node_data = ZeroVector(1);	       		      
@@ -1435,9 +1550,9 @@ namespace Kratos
 		  
 		      if( variable != CONSTRAINT_LABELS && variable != LOAD_LABELS && variable != MARKER_LABELS )
 			{
-			  std::cout<<" node ["<<pnode->Id()<<"]"<<std::endl;
-			  std::cout<<" variable "<<variable<<std::endl;
-			  std::cout<<" node data "<<node_data<<std::endl;
+			  // std::cout<<" node ["<<pnode->Id()<<"]"<<std::endl;
+			  // std::cout<<" variable "<<variable<<std::endl;
+			  // std::cout<<" node data "<<node_data<<std::endl;
 			  if( node_data.size() > 0 ){
 			    if( node_data.size() == node0_data.size() &&
 				node_data.size() == node1_data.size() &&
