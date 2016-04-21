@@ -62,7 +62,7 @@ namespace Kratos {
                 double other_radius,
                 std::vector<double> & v) {            
             return 0.0;
-        };
+        }
         
         virtual void GetContactArea(const double radius, 
                                     const double other_radius, 
@@ -154,6 +154,10 @@ namespace Kratos {
                                                       double ViscoLocalRotationalMoment[3]);
         
         virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2);
+
+        virtual double LocalMaxSearchDistance(const int i,
+                                              SphericContinuumParticle* element1,
+                                              SphericContinuumParticle* element2);
 
     private:
 

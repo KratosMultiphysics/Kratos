@@ -79,6 +79,47 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
     
+
+
+    double DEM_KDEM::LocalMaxSearchDistance(const int i,
+                                          SphericContinuumParticle* element1,
+                                          SphericContinuumParticle* element2) {
+
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+        double mTensionLimit;
+
+        // calculation of equivalent young modulus
+        double myYoung = element1->GetYoung();
+        double other_young = element2->GetYoung();
+        double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+
+        const double my_radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        double calculation_area = 0;
+
+        CalculateContactArea(my_radius, other_radius, calculation_area);
+
+        double radius_sum = my_radius + other_radius;
+        double initial_delta = element1->GetInitialDelta(i);
+        double initial_dist = radius_sum - initial_delta;
+
+        // calculation of elastic constants
+        double kn_el = equiv_young * calculation_area / initial_dist;
+
+        if (&element1_props == &element2_props) {
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+        } else {
+            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+        }
+
+        const double Ntstr_el = mTensionLimit * calculation_area;
+        double u1 = Ntstr_el / kn_el;
+        return u1;
+
+    }
+
+
     void DEM_KDEM::CalculateForces(const ProcessInfo& r_process_info,
                                    double LocalElasticContactForce[3],
             double LocalDeltDisp[3],

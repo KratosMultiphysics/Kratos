@@ -74,5 +74,15 @@ namespace Kratos {
                                                             double& normal_force, 
                                                             double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2){    
     }
-    
+
+
+    double DEMContinuumConstitutiveLaw::LocalMaxSearchDistance(const int i,
+                                          SphericContinuumParticle* element1,
+                                          SphericContinuumParticle* element2) {
+
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::LocalMaxSearchDistance) should not be called.","")
+
+    }
+
+
 } //kratos
