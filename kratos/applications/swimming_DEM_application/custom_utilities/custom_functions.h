@@ -301,7 +301,7 @@ void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double,
                 elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
             }
 
-            array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+            array_1d <double, 3> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
 
             for (unsigned int i = 0; i < TDim; ++i){
                 grad[i] = grad_aux[i];
@@ -1139,7 +1139,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
 
     else {
 
-        unsigned int n_relevant_terms;
+        unsigned int n_relevant_terms = 0;
 
         if (mCalculatingTheGradient){
             n_relevant_terms = TDim;
