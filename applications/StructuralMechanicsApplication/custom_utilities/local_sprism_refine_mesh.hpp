@@ -1,7 +1,12 @@
-//   Project Name:        KratosMeshingApplication
-//   Last Modified by:    $Author:  VMataix $
-//   Date:                $Date: 20-04-2016 $
-//   Revision:            $Revision:    1.0 $
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_LOCAL_REFINE_SPRISM_MESH)

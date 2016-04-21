@@ -26,7 +26,9 @@
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
+#include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "custom_geometries/simple_prism_3d_6.hpp"
 
@@ -47,8 +49,12 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding the SPRISM element
     mSprismElement3D6N( 0, Element::GeometryType::Pointer( new SimplePrism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
     /* CONDITIONS */
-    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) )
-
+    // Beam's point moment condition
+    mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    // Contact mortar conditions
+    mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) )
 {}
 
 void KratosStructuralMechanicsApplication::Register()
@@ -89,22 +95,23 @@ void KratosStructuralMechanicsApplication::Register()
     // Conditions
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
+    KRATOS_REGISTER_VARIABLE(MASTER_SLAVE); // True for master and false for slave
 
+//    // Orthotropy
+//    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
+//    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
+//    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Z )
+//    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY )
+//    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_YZ )
+//    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XZ )
+//    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XY )
+//    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_YZ )
+//    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XZ )
 
-//     KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
-//     KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
-//     KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Z )
-//     KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY )
-//     KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_YZ )
-//     KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XZ )
-//     KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XY )
-//     KRATOS_REGISTER_VARIABLE( POISSON_RATIO_YZ )
-//     KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XZ )
-
-//material orientation
-// KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
-// KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
-// KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
+//    // Material orientation
+//    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
+//    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
+//    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
 
     // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
@@ -140,8 +147,14 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SprismElement3D6N", mSprismElement3D6N);
 
     // Register the conditions
-    KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N )
+    // Beam's point moment condition
+    KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
+    // Mortar contcat condition
+    KRATOS_REGISTER_CONDITION( "mMortarContactCondition2D2N", mMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "mMortarContactCondition3D3N", mMortarContactCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "mMortarContactCondition3D4N", mMortarContactCondition3D4N );
 
+    // This is necessary to use the serializer with the SPRISM
     SimplePrism3D6<Node<3> > SimplePrism3D6Prototype( Element::GeometryType::PointsArrayType( 6 ) );
     Serializer::Register( "SimplePrism3D6", SimplePrism3D6Prototype );
 }
