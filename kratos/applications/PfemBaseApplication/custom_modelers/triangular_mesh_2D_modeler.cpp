@@ -2032,7 +2032,7 @@ namespace Kratos
 		    // std::cout<<" PRESSURE Prev "<<(*it_found)->FastGetSolutionStepValue(PRESSURE)<<std::endl;
 
 		    //mpDataTransferUtilities->Interpolate( geom, N, step_data_size, *(it_found ) );
-		    double alpha = 1; //[0,1] //smoothing level of the interpolation
+		    double alpha = 1; //1 to interpolate, 0 to leave the original data
 		    mpDataTransferUtilities->Interpolate( geom, N, variables_list, *(it_found ), alpha );
 
 		    // std::cout<<" PRESSURE Prev "<<(*it_found)->FastGetSolutionStepValue(PRESSURE)<<std::endl;
