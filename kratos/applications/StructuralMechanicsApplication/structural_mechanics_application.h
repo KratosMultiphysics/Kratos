@@ -37,9 +37,12 @@
 /* Adding the SPRISM element */
 #include "custom_elements/SprismElement3D6N.hpp"
 
-//conditions
+/* CONDITIONS */
 #include "custom_conditions/point_moment_3D_condition.hpp"
+#include "custom_conditions/mortar_contact_2D_condition.hpp"
+#include "custom_conditions/mortar_contact_3D_condition.hpp"
 
+/* UTILITIES */
 //cross sections
 #include "custom_utilities/shell_cross_section.hpp"
 
@@ -227,6 +230,9 @@ private:
 
     /* CONDITIONS*/
     const PointMoment3DCondition mPointMomentCondition3D1N;
+    const MortarContact2DCondition mMortarContactCondition2D2N;
+    const MortarContact3DCondition mMortarContactCondition3D3N;
+    const MortarContact3DCondition mMortarContactCondition3D4N;
 
     ///@}
     ///@name Private Operators
