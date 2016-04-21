@@ -823,7 +823,8 @@ namespace Kratos
 	      {
 
 		if(in->IsNot(RIGID)){
-
+		  
+		  //fill variables that are non assigned vectors
 		  this->FillVectorData(variables_list, *(in.base()));	  
 
 	    	  WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
@@ -1251,10 +1252,11 @@ namespace Kratos
 	  KRATOS_TRY
 
 	  //Copy Variables List
+	  std::cout<<" node["<<pnode->Id()<<"] Data "<<(pnode)->SolutionStepData()<<std::endl;
+
 	  VariablesListDataValueContainer PreviousVariablesListData = (pnode)->SolutionStepData();
 
-	  // std::cout<<" Data "<<(pnode)->SolutionStepData()<<std::endl;
-	  // std::cout<<" CopiedData "<<PreviousVariablesListData<<std::endl;
+	  std::cout<<" CopiedData "<<PreviousVariablesListData<<std::endl;
 
       
 	  Interpolate( geom, N, rVariablesList, pnode, alpha);
@@ -1298,6 +1300,12 @@ namespace Kratos
 		      //getting the data of the solution step
 		      Vector& node_data = pnode->FastGetSolutionStepValue(variable, step);
 		      
+		      if( variable == CONSTRAINT_LABELS ){
+			std::cout<<" node ["<<pnode->Id()<<"]"<<std::endl;
+			std::cout<<" variable "<<variable<<std::endl;
+			std::cout<<" node data "<<node_data<<std::endl;
+		      }
+
 		      if( node_data.size() == 0 ){
 			node_data = ZeroVector(1);	       		      
 		      }
@@ -1326,7 +1334,6 @@ namespace Kratos
 
 	  unsigned int buffer_size = pnode->GetBufferSize();
 	     
-
 	  if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0){
 	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 	      }
@@ -1349,8 +1356,10 @@ namespace Kratos
 		      double& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
 		      double& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
 		  
-		      node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;
-		  
+		      if(alpha != 1 )
+			node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;
+		      else
+			node_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data;
 		    }
 		}
 	      else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
@@ -1366,7 +1375,10 @@ namespace Kratos
 		      array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
 		      array_1d<double, 3>& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
 		  
-		      node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;		  
+		      if(alpha != 1 )
+			node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;
+		      else
+			node_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data;
 		    }
 
 		}
@@ -1398,7 +1410,11 @@ namespace Kratos
 			    node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() &&
 			    node_data.size1() == node2_data.size1() && node_data.size2() == node2_data.size2()) {
 		      
-			  node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;	       
+			  if(alpha != 1 )
+			    node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;
+			  else
+			    node_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data;
+			  
 			}
 		      }
 		    }
@@ -1417,14 +1433,24 @@ namespace Kratos
 		      Vector& node1_data = geom[1].FastGetSolutionStepValue(variable, step);
 		      Vector& node2_data = geom[2].FastGetSolutionStepValue(variable, step);
 		  
-		      if( node_data.size() > 0 ){
-			if( node_data.size() == node0_data.size() &&
-			    node_data.size() == node1_data.size() &&
-			    node_data.size() == node2_data.size()) {
-		      
-			  node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;	       
+		      if( variable != CONSTRAINT_LABELS && variable != LOAD_LABELS && variable != MARKER_LABELS )
+			{
+			  std::cout<<" node ["<<pnode->Id()<<"]"<<std::endl;
+			  std::cout<<" variable "<<variable<<std::endl;
+			  std::cout<<" node data "<<node_data<<std::endl;
+			  if( node_data.size() > 0 ){
+			    if( node_data.size() == node0_data.size() &&
+				node_data.size() == node1_data.size() &&
+				node_data.size() == node2_data.size()) {
+			      
+			      if(alpha != 1 )
+				node_data = (alpha) * (N[0]*node0_data + N[1]*node1_data + N[2]*node2_data) + (1-alpha) * node_data;
+			      else
+				node_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data;
+			      
+			    }
+			  }
 			}
-		      }
 
 		    }
 		}
