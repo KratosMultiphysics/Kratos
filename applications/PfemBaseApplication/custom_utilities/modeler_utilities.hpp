@@ -518,7 +518,7 @@ public:
    
     static inline double CalculateSideLength(PointType& P1,PointType& P2)
     {
-      return sqrt( (P1.X()-P2.X())*(P1.X()-P2.X()) + (P1.Y()-P2.Y())*(P1.Y()-P2.Y()) );
+      return sqrt( (P1.X()-P2.X())*(P1.X()-P2.X()) + (P1.Y()-P2.Y())*(P1.Y()-P2.Y()) + (P1.Z()-P2.Z())*(P1.Z()-P2.Z()));
     };
 
     static inline double CalculateTriangleRadius(Geometry< Node<3> >& rGeometry)
@@ -531,13 +531,64 @@ public:
       
       double Area = rGeometry.Area();
       
-      
+      //inradius
       double Rcrit = Area*2/(L1+L2+L3);
       
       return Rcrit;
       
     };
   
+    static inline double CalculateTetrahedronRadius(Geometry< Node<3> >& rGeometry)
+    {
+
+      //edges
+      double L1 = CalculateSideLength (rGeometry[0],rGeometry[1]);
+      double L2 = CalculateSideLength (rGeometry[1],rGeometry[2]);
+      double L3 = CalculateSideLength (rGeometry[2],rGeometry[3]);
+      double L4 = CalculateSideLength (rGeometry[3],rGeometry[0]);
+      double L5 = CalculateSideLength (rGeometry[3],rGeometry[1]);
+      double L6 = CalculateSideLength (rGeometry[2],rGeometry[0]);
+           
+      //inradius      
+      double S   = 0.5*(L1+L4+L5);  //semiperimeter
+      double R1  = sqrt( S*(S-L1)*(S-L4)*(S-L5) ) / S;
+      
+      S   = 0.5*(L2+L3+L5);  //semiperimeter
+      double R2  = sqrt( S*(S-L2)*(S-L3)*(S-L5) ) / S;
+
+      S   = 0.5*(L3+L4+L6);  //semiperimeter
+      double R3  = sqrt( S*(S-L3)*(S-L4)*(S-L6) ) / S;
+
+      S   = 0.5*(L1+L2+L6);  //semiperimeter
+      double R4  = sqrt( S*(S-L1)*(S-L2)*(S-L6) ) / S;
+      
+      S = 1.0/(R1*R1) + 1.0/(R2*R2) + 1.0/(R3*R3) + 1.0/(R4*R4); 
+
+      double Rcrit = sqrt(2.0/S);  //this is always bigger than the inradius
+      
+      return Rcrit;
+     
+    };
+
+    static inline double CalculateElementRadius(Geometry< Node<3> >& rGeometry)
+    {
+      const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+      
+      if( dimension == 2 )
+	return CalculateTriangleRadius( rGeometry );
+      else
+	return CalculateTetrahedronRadius( rGeometry );
+      
+    };
+
+
+    static inline double CalculateTriangleArea(const double x0, const double y0,
+					       const double x1, const double y1,
+					       const double x2, const double y2)
+    {
+      return 0.5*( (x1-x0)*(y2-y0) - (y1-y0)*(x2-x0) );
+    }
+
 
     static inline double CalculateTriangleRadius(const double x0, const double y0,
 						 const double x1, const double y1,
@@ -553,9 +604,77 @@ public:
       
       // std::cout<< " Area "<<Area<<" L1 "<<L1<<" L2 "<<L2<<" L3 "<<L3<<std::endl;
       
+      //inradius
       double Rcrit = Area*2/(L1+L2+L3);
       
       return Rcrit;
+    }
+
+
+
+    static inline double CalculateTetrahedronVolume(const double x0, const double y0, const double z0,
+						    const double x1, const double y1, const double z1,
+						    const double x2, const double y2, const double z2,
+						    const double x3, const double y3, const double z3)
+    { 					  
+      //volume
+      double Volume = 0;
+      
+      Volume  = CalculateDeterminant(x1,y1,z1,x2,y2,z2,x3,y3,z3);
+      Volume -= CalculateDeterminant(x0,y0,z0,x2,y2,z2,x3,y3,z3);
+      Volume += CalculateDeterminant(x0,y0,z0,x1,y1,z1,x3,y3,z3);
+      Volume -= CalculateDeterminant(x0,y0,z0,x1,y1,z1,x2,y2,z2);
+      
+      Volume *= (1.0/6.0);
+
+      return Volume;
+    }
+
+
+    static inline double CalculateTetrahedronRadius(const double x0, const double y0, const double z0,
+						    const double x1, const double y1, const double z1,
+						    const double x2, const double y2, const double z2,
+						    const double x3, const double y3, const double z3,
+						    double& Volume)
+    {
+
+      //edges
+      double L1 = sqrt((x0-x1)*(x0-x1) + (y0-y1)*(y0-y1) + (z0-z1)*(z0-z1));
+      double L2 = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+      double L3 = sqrt((x2-x3)*(x2-x3) + (y2-y3)*(y2-y3) + (z2-z3)*(z2-z3)); 
+      double L4 = sqrt((x3-x0)*(x3-x0) + (y3-y0)*(y3-y0) + (z3-z0)*(z3-z0));
+      double L5 = sqrt((x3-x1)*(x3-x1) + (y3-y1)*(y3-y1) + (z3-z1)*(z3-z1));
+      double L6 = sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0) + (z2-z0)*(z2-z0));
+      
+      //volume
+      Volume = CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3);
+      
+      //inradius      
+      double S   = 0.5*(L1+L4+L5);  //semiperimeter
+      double R1  = sqrt( S*(S-L1)*(S-L4)*(S-L5) ) / S;
+      
+      S   = 0.5*(L2+L3+L5);  //semiperimeter
+      double R2  = sqrt( S*(S-L2)*(S-L3)*(S-L5) ) / S;
+
+      S   = 0.5*(L3+L4+L6);  //semiperimeter
+      double R3  = sqrt( S*(S-L3)*(S-L4)*(S-L6) ) / S;
+
+      S   = 0.5*(L1+L2+L6);  //semiperimeter
+      double R4  = sqrt( S*(S-L1)*(S-L2)*(S-L6) ) / S;
+      
+      S = 1.0/(R1*R1) + 1.0/(R2*R2) + 1.0/(R3*R3) + 1.0/(R4*R4); 
+
+      double Rcrit = sqrt(2.0/S);  //this is always bigger than the inradius
+      
+      return Rcrit;
+    }
+
+
+    static inline double CalculateDeterminant(const double x0, const double y0, const double z0,
+					      const double x1, const double y1, const double z1,
+					      const double x2, const double y2, const double z2)
+    {
+      return (x0*y1*z2-x0*y2*z1-x1*y0*z2+x1*y2*z0+x2*y0*z1-x2*y1*z0);
     }
 
     static inline double CalculateAverageSideLength(const double x0, const double y0,
@@ -568,6 +687,59 @@ public:
       
       return 0.5*( length_0 + length_1 + length_2 );
     };
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+    static inline bool CalculatePosition(const double x0, const double y0, const double z0,
+					 const double x1, const double y1, const double z1,
+					 const double x2, const double y2, const double z2,
+					 const double x3, const double y3, const double z3,
+					 const double xc, const double yc, const double zc,
+					 array_1d<double,3>& N)
+    {
+      //double volume = ModelerUtilities::CalculateTetrahedronVolume(x0,y0,z0,x1,y1,z1,x2,y2,z2);
+
+      //To implement 3D
+
+      return false;
+    }
+
+
+    //*******************************************************************************************
+    //*******************************************************************************************
+
+
+    static inline bool CalculatePosition(const double x0, const double y0,
+					 const double x1, const double y1,
+					 const double x2, const double y2,
+					 const double xc, const double yc,
+					 array_1d<double,3>& N)
+    {
+      double area = CalculateTriangleArea(x0,y0,x1,y1,x2,y2);
+
+      //std::cout<<" Area "<<area<<std::endl;
+	    
+      if(area < 1e-15)
+	{
+	  //KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" );
+	  std::cout<<" ERROR LS: element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
+	}
+
+      N[0] = CalculateTriangleArea(x1,y1,x2,y2,xc,yc) / area;
+      N[1] = CalculateTriangleArea(x2,y2,x0,y0,xc,yc) / area;
+      N[2] = CalculateTriangleArea(x0,y0,x1,y1,xc,yc) / area;
+
+      double tol = 1e-5;
+      double upper_limit = 1.0+tol;
+      double lower_limit = -tol;
+
+      if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit) //if the xc yc is inside the triangle
+	return true;
+
+      return false;
+    }
 
     //*******************************************************************************************
     //*******************************************************************************************				           

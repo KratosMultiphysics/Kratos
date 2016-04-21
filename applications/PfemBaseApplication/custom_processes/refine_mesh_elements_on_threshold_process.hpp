@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Refine Mesh Elements Process
+/// Refine Mesh Elements Process 2D and 3D
 /** The process labels the nodes to be refined (TO_REFINE)
     if the ThresholdVariable  is larger than a ReferenceThreshold
 */
@@ -230,9 +230,10 @@ private:
 	  (iii)->GetValueOnIntegrationPoints(mrRefine.GetThresholdVariable(),Value,CurrentProcessInfo);
 	    
 	  //the expected returned value is an "specific" value (per unit of Area) (usually PlasticPower)
-	  variable_value = Value[0] * iii->GetGeometry().Area();
+	  //variable_value = Value[0] * iii->GetGeometry().Area();
+	  variable_value = Value[0] * iii->GetGeometry().DomainSize(); //Area() or Volume()
 
-	  double critical_value = mrRefine.ReferenceThreshold; // * iii->GetGeometry().Area();
+	  double critical_value = mrRefine.ReferenceThreshold; // * iii->GetGeometry().DomainSize(); //Area() Volume()
 	
 	  // if(variable_value>0)
 	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRefine.GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().Area()<<std::endl;

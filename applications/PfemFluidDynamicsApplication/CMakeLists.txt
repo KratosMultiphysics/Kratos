@@ -3,11 +3,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosPfemFluidDynamicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemFluidDynamicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/triangle )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/tetgen/tetgen1.4.3 )
 
+if(${INCLUDE_TRIANGLE} MATCHES ON)
+  include_directories( ${TRIANGLE_INSTALL_DIR} )
+endif(${INCLUDE_TRIANGLE} MATCHES ON)
+
+if(${INCLUDE_TETGEN} MATCHES ON)
+  include_directories( ${TETGEN_INSTALL_DIR} )
+endif(${INCLUDE_TETGEN} MATCHES ON)
 
 ## generate variables with the sources
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES     
