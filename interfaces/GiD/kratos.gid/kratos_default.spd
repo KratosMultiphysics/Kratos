@@ -433,6 +433,23 @@
 	  ]]>
 	</proc>
 	  
+		  <proc n='DisableIfUniqueName' args='args'>
+	  <![CDATA[
+		set total 1
+		
+		foreach {un val} $args {
+		  set xpath [spdAux::getRoute $un]
+		  spdAux::insertDependencies $domNode $un
+		  set realval [get_domnode_attribute [$domNode selectNodes $xpath] v]
+		  if {$realval eq ""} {W "Warning: Check unique name $un"}
+		  if {[lsearch $val $realval] == -1} {
+			set total 0
+			break
+		  }
+		}
+		if {$total} {return "normal"} else {return "disabled"}
+	  ]]>
+	</proc>
 		<proc n='CheckGeometry' args='args'>
 	  <![CDATA[
 		set level [lindex $args 0]

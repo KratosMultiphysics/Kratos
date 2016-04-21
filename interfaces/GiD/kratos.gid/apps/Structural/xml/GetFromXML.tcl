@@ -13,12 +13,13 @@ proc Structural::xml::Init { } {
      Model::getConditions Conditions.xml
      Model::getSolvers Solvers.xml
      
+     # As we do load all the Solid app in the Start.tcl file apps::LoadAppById "Solid" we do not need to load it's files
      #Model::getSolutionStrategies  "../../Solid/xml/strategydefinition.xml"
-     Model::getProcesses           "../../Solid/xml/Processes.xml"
-     Model::getElements            "../../Solid/xml/Elements.xml"
-     Model::getConstitutiveLaws    "../../Solid/xml/ConstitutiveLaws.xml"
-     Model::getConditions          "../../Solid/xml/Conditions.xml"
-     Model::getSolvers             "../../Solid/xml/Solvers.xml"
+     #Model::getProcesses           "../../Solid/xml/Processes.xml"
+     #Model::getElements            "../../Solid/xml/Elements.xml"
+     #Model::getConstitutiveLaws    "../../Solid/xml/ConstitutiveLaws.xml"
+     #Model::getConditions          "../../Solid/xml/Conditions.xml"
+     #Model::getSolvers             "../../Solid/xml/Solvers.xml"
      
 }
 

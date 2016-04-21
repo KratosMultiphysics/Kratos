@@ -113,6 +113,7 @@ proc spdAux::activeApp { appid } {
     [$root selectNodes "hiddenfield\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
     spdAux::processIncludes
     parseRoutes
+    #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
     gid_groups_conds::actualize_conditions_window
 }
@@ -203,9 +204,8 @@ proc spdAux::setRoute {name route} {
     variable uniqueNames
     #if {[dict exists $uniqueNames $name]} {W "Warning: Unique name $name already exists.\n    Previous value: [dict get $uniqueNames $name],\n    Updated value: $route"}
     set uniqueNames [dict set uniqueNames $name $route]
-        
-        set uniqueNames [dict remove $uniqueNames dummy]
-    # W "Add $name $route"
+    set uniqueNames [dict remove $uniqueNames dummy]
+     #W "Add $name $route"
     # set doc $gid_groups_conds::doc
     # set root [$doc documentElement]
     # W "checking [[$root selectNodes $route] asXML]"
@@ -223,7 +223,9 @@ proc spdAux::parseRecurse { root } {
         catch {
             #W [$node asXML]
             if {[$node hasAttribute un] == "1"} {
-                setRoute [$node getAttribute un] [$node toXPath]
+                foreach u [split [$node getAttribute un] ","] {
+                    setRoute $u [$node toXPath]
+                }
             }
         }
         if {[$node hasChildNodes]} {
@@ -370,9 +372,13 @@ proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
         if {[string first $oldPrefix $routeName] eq 0} {
             set route [getRoute $routeName]
             set newrouteName [string map [list $oldPrefix $newPrefix] $routeName]
-            [$root selectNodes $route] setAttribute un $newrouteName
+            set node [$root selectNodes $route]
+            set uns [split [get_domnode_attribute $node un] ","]
+            lappend uns $newrouteName
+            $node setAttribute un [ListToValues $uns]
         }
     }
+    
     spdAux::parseRoutes
 }
 
