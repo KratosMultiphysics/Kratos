@@ -1276,8 +1276,8 @@ void WindTurbineRotationUtilities::DoExtractFaceNodes(ModelPart& auxModelPart, c
 
         auxModelPart.Elements() = mCrownElems;
     }
-    else
-        auxModelPart.Clear();
+    // else
+      //auxModelPart.Clear();
 }
 
 

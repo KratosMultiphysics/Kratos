@@ -285,6 +285,28 @@ namespace Kratos
       R = sqrt(R);
     }
 	
+    inline void CalculateCenterAndSearchRadius(const double x0, const double y0, const double z0,
+					       const double x1, const double y1, const double z1,
+					       const double x2, const double y2, const double z2,
+					       const double x3, const double y3, const double z3,
+					       double& xc, double& yc, double& zc, double& R)
+    {
+      xc = 0.25*(x0+x1+x2);
+      yc = 0.25*(y0+y1+y2);
+      zc = 0.25*(z0+z1+z2);
+
+      double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0); 
+      double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
+      double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2) + (zc-z2)*(zc-z2);
+      double R4 = (xc-x3)*(xc-x3) + (yc-y3)*(yc-y3) + (zc-z3)*(zc-z3);
+	  
+      R = R1;
+      if(R2 > R) R = R2;
+      if(R3 > R) R = R3;
+      if(R4 > R) R = R4;
+	  
+      R = sqrt(R);
+    }
 
     inline double CalculateVol(const double x0, const double y0,
 			       const double x1, const double y1,

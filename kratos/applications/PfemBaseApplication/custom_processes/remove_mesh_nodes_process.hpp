@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Remove Mesh Nodes Process
+/// Remove Mesh Nodes Process for 2D and 3D cases
 /** The process labels the nodes to be erased (TO_ERASE)
     if they are too close (mRemoveOnDistance == true)
     if the error of the patch they belong is very small (REMOVE_NODES_ON_ERROR)
@@ -132,7 +132,7 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))	      
 	    {
-	      any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed);
+	      any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
 	    }
 	  //////////////////////////////////////////////////////////// 
 
@@ -140,7 +140,7 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES))
 	    {
-	      any_convex_condition_removed = RemoveNonConvexBoundary();
+	      any_convex_condition_removed = RemoveNonConvexBoundary(); //2D only
 	    }
 	  //////////////////////////////////////////////////////////// 
 
@@ -149,7 +149,7 @@ public:
 	  ////////////////////////////////////////////////////////////
 	  if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) || mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE))	      
 	    {
-	      any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, any_condition_removed);
+	      any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, any_condition_removed); //2D only (RebuildBoundary is only 2D)
 	    }
 	  // REMOVE ON DISTANCE
 	  ////////////////////////////////////////////////////////////
@@ -351,7 +351,9 @@ private:
 	       double mean_node_radius = 0;
 	       for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 		 {
-		   mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
+		   mean_node_radius+= mModelerUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
+		   //mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
+		   //mean_node_radius+= mModelerUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
 		 }
 	       
 	       mean_node_radius /= double(neighb_elems.size());
@@ -543,7 +545,7 @@ private:
     //**************************************************************************
     //**************************************************************************
 
-    bool RebuildBoundary()
+    bool RebuildBoundary() 
     {
       KRATOS_TRY
 	   

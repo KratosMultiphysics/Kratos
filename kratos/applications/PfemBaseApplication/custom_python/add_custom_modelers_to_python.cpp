@@ -21,7 +21,7 @@
 
 // Meshers
 #include "custom_modelers/triangular_mesh_2D_modeler.hpp"
-//#include "custom_modelers/tetrahedral_mesh_3D_modeler.hpp"
+#include "custom_modelers/tetrahedral_mesh_3D_modeler.hpp"
 
 // Bounding Boxes
 
@@ -58,9 +58,9 @@ namespace Python
       ;
 
     //class that allows 3D adaptive remeshing (inserting and erasing nodes)
-    // class_<TetrahedralMesh3DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
-    //   ("TetrahedralMesh3DModeler",init< >())
-    //   ;
+    class_<TetrahedralMesh3DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
+      ("TetrahedralMesh3DModeler",init< >())
+      ;
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
     class_<TriangularMesh2DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
