@@ -47,6 +47,9 @@ namespace Kratos {
                 double kn_el,
                 double kt_el);
 
+        virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1,
+                                              SphericContinuumParticle* element2);
+
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],

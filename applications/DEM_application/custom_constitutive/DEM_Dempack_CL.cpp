@@ -43,6 +43,69 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }
 
+
+
+
+    double DEM_Dempack::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1,
+                                               SphericContinuumParticle* element2) {
+
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+        double mDamageMaxDisplacementFactor;
+        double mTensionLimit;
+
+        // calculation of equivalent young modulus
+        double myYoung = element1->GetYoung();
+        double other_young = element2->GetYoung();
+        double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+
+        const double my_radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        double calculation_area = 0;
+        // calculation area  DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area)
+        CalculateContactArea(my_radius, other_radius, calculation_area);
+//        double rmin = my_radius;
+//        if (other_radius < my_radius) rmin = other_radius;
+//        calculation_area = KRATOS_M_PI * rmin*rmin;
+
+        double radius_sum = my_radius + other_radius;
+        double initial_delta = element1->GetInitialDelta(i);
+        double initial_dist = radius_sum - initial_delta;
+
+        // calculation of elastic constants
+        double kn_el = equiv_young * calculation_area / initial_dist;
+
+        if (&element1_props == &element2_props) {
+             mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
+             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]*1e6;
+        } else {
+            mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
+            mTensionLimit = 0.5*1e6*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]);
+        }
+
+        const double Ntstr_el = mTensionLimit * calculation_area;
+        double u1 = Ntstr_el / kn_el;
+        double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
+        return u2;
+
+//        int max_Id = 1;
+//        std::vector<int> thread_maximums(OpenMPUtils::GetNumThreads(),1);
+
+//        #pragma omp parallel for
+//        for(int i=0; i<(int)r_modelpart.GetCommunicator().LocalMesh().Nodes().size(); i++){
+//            ModelPart::NodesContainerType::iterator node_it = r_modelpart.GetCommunicator().LocalMesh().NodesBegin() + i;
+//            if ((int) (node_it->Id()) > thread_maximums[OpenMPUtils::ThisThread()]) thread_maximums[OpenMPUtils::ThisThread()] = node_it->Id();
+//        }
+
+//        for(int i=0; i<OpenMPUtils::GetNumThreads(); i++){
+//            if(thread_maximums[i] > max_Id) max_Id = thread_maximums[i];
+//        }
+
+//        r_modelpart.GetCommunicator().MaxAll(max_Id);
+//        return max_Id;
+
+    }
+
     void DEM_Dempack::CalculateElasticConstants(double &kn_el,
             double &kt_el,
             double initial_dist,
