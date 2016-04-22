@@ -71,7 +71,7 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    eval $wevent
+    #eval $wevent
     if {$errcode eq 0 && [catch {eval $wevent} fid] } {
         W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
         set errcode 1
@@ -510,7 +510,7 @@ proc write::tcl2json { value } {
     # Guess the type of the value; deep *UNSUPPORTED* magic!
     # display the representation of a Tcl_Obj for debugging purposes. Do not base the behavior of any command on the results of this one; it does not conform to Tcl's value semantics!
     regexp {^value is a (.*?) with a refcount} [::tcl::unsupported::representation $value] -> type
- 
+
     switch $type {
         string {
             return [json::write string $value]
@@ -554,23 +554,27 @@ proc write::WriteJSON {processDict} {
 
 proc write::GetDefaultOutputDict {} {
     set outputDict [dict create]
+    set resultDict [dict create]
+    
     set GiDPostDict [dict create]
     dict set GiDPostDict GiDPostMode                [getValue Results GiDPostMode]
     dict set GiDPostDict WriteDeformedMeshFlag      [getValue Results GiDWriteMeshFlag]
     dict set GiDPostDict WriteConditionsFlag        [getValue Results GiDWriteConditionsFlag]
     #dict set GiDPostDict WriteParticlesFlag        [getValue Results GiDWriteParticlesFlag]
     dict set GiDPostDict MultiFileFlag              [getValue Results GiDMultiFileFlag]
-    dict set outputDict gidpost_flags $GiDPostDict
+    dict set resultDict gidpost_flags $GiDPostDict
     
-    dict set outputDict file_label                 [getValue Results FileLabel]
-    dict set outputDict output_control_type        [getValue Results OutputControlType]
-    dict set outputDict output_frequency           [getValue Results OutputDeltaTime]
+    dict set resultDict file_label                 [getValue Results FileLabel]
+    dict set resultDict output_control_type        [getValue Results OutputControlType]
+    dict set resultDict output_frequency           [getValue Results OutputDeltaTime]
     
-    dict set outputDict body_output           [getValue Results BodyOutput]
-    dict set outputDict node_output           [getValue Results NodeOutput]
-    dict set outputDict skin_output           [getValue Results SkinOutput]
+    dict set resultDict body_output           [getValue Results BodyOutput]
+    dict set resultDict node_output           [getValue Results NodeOutput]
+    dict set resultDict skin_output           [getValue Results SkinOutput]
     
-    dict set outputDict plane_output           [list ]
+    
+    dict set resultDict dummy [GetEmptyList]
+    dict set resultDict plane_output [GetEmptyList]
     
     #dict set outputDict write_results "PreMeshing"
     #dict set outputDict plot_graphs false
@@ -581,11 +585,18 @@ proc write::GetDefaultOutputDict {} {
     #dict set outputDict volume_output true
     #dict set outputDict add_skin true
     
-    dict set outputDict nodal_results [GetResultsList [apps::getCurrentUniqueName NodalResults]]
-    dict set outputDict gauss_points_results [GetResultsList [apps::getCurrentUniqueName ElementResults]]
+    dict set resultDict nodal_results [GetResultsList NodalResults]
+    dict set resultDict gauss_point_results [GetResultsList ElementResults]
+    
+    dict set outputDict "result_file_configuration" $resultDict
+    dict set outputDict "point_data_configuration" [GetEmptyList]
     return $outputDict
 }
-
+proc write::GetEmptyList { } {
+    # This is a gypsy code
+    set a [list ]
+    return $a
+}
 
 proc write::getSolutionStrategyParametersDict {} {
     set solStratUN [apps::getCurrentUniqueName SolStrat]
