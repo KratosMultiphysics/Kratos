@@ -514,7 +514,7 @@ class ModelerUtility:
             if(self.contact_search):
                 self.ContactTransfer()
 
-            if( self.echo_level > 0 ):
+            if( self.echo_level >= 0 ):
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
 
             meshing_options = Flags()

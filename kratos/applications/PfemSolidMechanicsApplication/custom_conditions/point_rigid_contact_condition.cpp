@@ -316,6 +316,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
+      //when implex is active --> it deletes contact forces at last implex step<--
       //ClearNodalForces();
 
       KRATOS_CATCH( "" )
