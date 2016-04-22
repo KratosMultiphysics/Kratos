@@ -16,23 +16,26 @@ proc Solid::write::writeParametersEvent { } {
     # Parallelization
     set paralleltype [write::getValue ParallelType]
     if {$paralleltype eq "OpenMP"} {
-        set nthreads [write::getValue Parallelization OpenMPNumberOfThreads]
-        dict set problemDataDict NumberofThreads $nthreads
+        #set nthreads [write::getValue Parallelization OpenMPNumberOfThreads]
+        #dict set problemDataDict NumberofThreads $nthreads
     } else {
-        set nthreads [write::getValue Parallelization MPINumberOfProcessors]
-        dict set problemDataDict NumberofProcessors $nthreads
+        #set nthreads [write::getValue Parallelization MPINumberOfProcessors]
+        #dict set problemDataDict NumberofProcessors $nthreads
     }
-    
+    set solutiontype [write::getValue SLSoluType]
     # Time Parameters
-    dict set problemDataDict time_step [write::getValue SLTimeParameters DeltaTime]
-    dict set problemDataDict start_time [write::getValue SLTimeParameters StartTime]
-    dict set problemDataDict end_time [write::getValue SLTimeParameters EndTime]
     set echo_level [write::getValue Results EchoLevel]
-    dict set problemDataDict echo_level $echo_level
-    
-    # Add section to document
-    dict set projectParametersDict problem_data $problemDataDict
-    
+    if {$solutiontype eq "Static"} {
+        
+    } elseif {$solutiontype eq "Dynamic"} {
+        dict set problemDataDict time_step [write::getValue SLTimeParameters DeltaTime]
+        dict set problemDataDict start_time [write::getValue SLTimeParameters StartTime]
+        dict set problemDataDict end_time [write::getValue SLTimeParameters EndTime]
+        dict set problemDataDict echo_level $echo_level
+        
+        # Add section to document
+        dict set projectParametersDict problem_data $problemDataDict
+    }
     
     # Solution strategy
     set solverSettingsDict [dict create]
@@ -42,7 +45,7 @@ proc Solid::write::writeParametersEvent { } {
     #~ dict set solverSettingsDict domain_size [expr $nDim]
     dict set solverSettingsDict echo_level $echo_level
     dict set solverSettingsDict solution_type [write::getValue SLSoluType]
-    set solutiontype [write::getValue SLSoluType]
+    
     if {$solutiontype eq "Static"} {
         dict set solverSettingsDict analysis_type [write::getValue SLAnalysisType]
     } elseif {$solutiontype eq "Dynamic"} {
