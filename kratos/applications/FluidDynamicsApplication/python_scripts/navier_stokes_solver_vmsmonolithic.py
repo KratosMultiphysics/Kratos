@@ -28,46 +28,40 @@ class NavierStokesSolver_VMSMonolithic:
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "navier_stokes_solver_vmsmonolithic",
-            "alpha":-0.3,
-            "move_mesh_strategy": 0,
-            "periodic": "periodic",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "maximum_iterations": 10,
+            "dynamic_tau": 0.0,
+            "oss_switch": 0,
+            "echo_level": 0,
+            "consider_periodic_conditions": false,
+            "time_order": 2,
+            "compute_reactions": false,
+            "divergence_clearance_steps": 0,
+            "reform_dofs_at_each_iteration": true,
             "relative_velocity_tolerance": 1e-5,
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
-            "oss_switch": 0,
-            "regularization_coef": 1000,
-            "maximum_iterations": 30,
-            "predictor_corrector": false,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "time_order": 2,
-            "dynamic_tau": 0.0,
-            "compute_reactions": false,
-            "divergence_clearance_steps": 0,
-            "reform_dofs_at_each_iteration": true,
-            "CalculateNormDxFlag": false,
-            "MoveMeshFlag": false,
-            "use_slip_conditions": false,
-            "turbulence_model": "None",
-            "use_spalart_allmaras": false,
-            "use_des": false,
-            "Cdes": 1.0,
-            "wall_nodes": [],
-            "spalart_allmaras_linear_solver": "None",
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts": [""],
-            "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name"
-            },
             "linear_solver_settings": {
                     "solver_type": "Super LU",
                     "max_iteration": 500,
                     "tolerance": 1e-9,
                     "scaling": false,
                     "verbosity": 1
-            }
+            },
+            "volume_model_part_name" : "volume_model_part",
+            "skin_parts": [""],
+            "alpha":-0.3,
+            "move_mesh_strategy": 0,
+            "periodic": "periodic",
+            "regularization_coef": 1000,
+            "MoveMeshFlag": false,
+            "use_slip_conditions": false,
+            "turbulence_model": "None",
+            "use_spalart_allmaras": false
         }""")
         
         ##overwrite the default settings with user-provided parameters
