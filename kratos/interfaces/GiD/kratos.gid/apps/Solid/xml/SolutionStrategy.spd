@@ -9,10 +9,6 @@
 	  <container n="StratParams" pn="Strategy parameters" un="SLStratParams" icon="groupsTreeNew.gif"  state="normal" >
 			<dynamicnode command="injectSolStratParams" args=""/>
 	  </container>
-	  <container n="ParallelType" pn="Parallel type" un="SLParallelization" help="Parallel type"  icon="groupsTreeNew.gif"  state="normal" >
-			<value n="ParallelSolutionType" pn="Parallelization" un="SLParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1"/>
-			<value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName SLParallelType MPI]"/>
-			<value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName SLParallelType OpenMP]"/>
-      </container>
+	  <include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
 	  <dynamicnode command="injectSolvers" args=""/>
     </container>

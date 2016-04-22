@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolutionStrat" pn="Solution" help="Solution Strategy" >
 	  <!--<container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" >-->
-			<container n="ParallelType" pn="Parallel type" un="FLParallelization" help="Parallel type">
-				  <value n="ParallelSolutionType" pn="Parallelization" un="FLParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1"/>
-				  <value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName FLParallelType MPI]"/>
-				  <value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName FLParallelType OpenMP]"/>
-			</container>
+			<include n="Parallelism" active="1" path="apps/Common/xml/Parallelism.spd"/> 
 			<dynamicnode command="injectSolvers" args=""/>
 			<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" >
 				  <dynamicnode command="injectSolStratParams" args=""/>

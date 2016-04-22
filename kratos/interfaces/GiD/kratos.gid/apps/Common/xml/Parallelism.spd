@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container n="ParallelType" pn="Parallel type" un="Parallelization" help="Parallel type">
+        <value n="ParallelSolutionType" pn="Parallelization" un="ParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1" state="disabled"/>
+        <!--<value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName ParallelType MPI]"/>-->
+        <!--<value n="OpenMPNumberOfThreads" pn="Number of threads" v="1" help="Number of threads" state="[checkStateByUniqueName ParallelType OpenMP]"/>-->
+  </container>
+    

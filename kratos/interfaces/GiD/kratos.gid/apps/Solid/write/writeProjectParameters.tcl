@@ -14,12 +14,12 @@ proc Solid::write::writeParametersEvent { } {
     dict set problemDataDict domain_size $nDim
         
     # Parallelization
-    set paralleltype [write::getValue SLParallelType]
+    set paralleltype [write::getValue ParallelType]
     if {$paralleltype eq "OpenMP"} {
-        set nthreads [write::getValue SLParallelization OpenMPNumberOfThreads]
+        set nthreads [write::getValue Parallelization OpenMPNumberOfThreads]
         dict set problemDataDict NumberofThreads $nthreads
     } else {
-        set nthreads [write::getValue SLParallelization MPINumberOfProcessors]
+        set nthreads [write::getValue Parallelization MPINumberOfProcessors]
         dict set problemDataDict NumberofProcessors $nthreads
     }
     
