@@ -345,18 +345,20 @@ proc spdAux::CheckPartParamValue {node material_name} {
             set element_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='Element'\]"] v]
             #set claw_name [.gid.central.boundaryconds.gg.data.f0.e1 get]
             set element [Model::getElement $element_name]
-            
-            set val [$element getInputDv $id]
-            if {$val ne ""} {set found 1}
+            if {$element ne ""} {
+                set val [$element getInputDv $id]
+                if {$val ne ""} {set found 1}
+            }
             #if {$found} {W "element $element_name value $val"}
         }
         # Si no está en el elemento, miramos en la ley constitutiva
         if {!$found} {
             set claw_name [get_domnode_attribute [[$node parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
             set claw [Model::getConstitutiveLaw $claw_name]
-            
-            set val [$claw getInputDv $id]
-            if {$val ne ""} {set found 1}
+            if {$claw ne ""} {
+                set val [$claw getInputDv $id]
+                if {$val ne ""} {set found 1}
+            }
             #if {$found} {W "claw $claw_name value $val"}
         }
         #if {!$found} {W "Not found $val"}
