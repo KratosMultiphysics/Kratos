@@ -231,7 +231,7 @@ if (DEM_parameters.ContactMeshOption =="ON"):
   
 #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
 #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-if (DEM_parameters.dem_inlet_option):                                        
+if (DEM_parameters.dem_inlet_option):
     #Constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, solver.continuum_type)
@@ -415,9 +415,12 @@ os.chdir(main_path)
 KRATOSprint(report.FinalReport(timer))
 
 # Freeing up memory
-objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, DEM_inlet, post_utils, 
+objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
                       mixed_model_part, mixed_spheres_and_clusters_model_part, cluster_model_part, rigid_face_model_part,
                       spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
+
+if (DEM_parameters.dem_inlet_option):
+    objects_to_destroy.append(DEM_inlet)
 
 CleaningUpOperations(objects_to_destroy)
 
