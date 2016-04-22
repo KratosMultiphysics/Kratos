@@ -143,7 +143,8 @@ namespace Kratos
       distance /= 2.0;
       mTangentialVariables.Neighb_distance = distance; 
 
-      //std::cout<<" Initialize Solution Step "<<std::endl;
+      //when implex is active --> it deletes contact forces at last implex step<--
+      //std::cout<<" Initialize Solution Step ["<<this->Id()<<"]"<<std::endl;
       //ClearNodalForces();
 
       KRATOS_CATCH( "" )

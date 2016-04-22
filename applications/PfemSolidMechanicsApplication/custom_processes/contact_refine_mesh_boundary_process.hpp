@@ -842,7 +842,7 @@ private:
       
       //NON CONTACT:
       double size_for_energy_side                = 1.50 * mrRemesh.Refine->CriticalSide; // non contact side which dissipates energy
-      double size_for_non_contact_side           = 2.50  * mrRemesh.Refine->CriticalSide;
+      double size_for_non_contact_side           = 3.50  * mrRemesh.Refine->CriticalSide;
 
 
       double tool_radius= 0;
@@ -1032,6 +1032,9 @@ private:
 
 		Geometry<Node<3> >& pGeom = MasterElement.GetGeometry();
 		plastic_power = Value[0] * pGeom.Area();
+
+		// if( Value[0] > 0 )
+		//   std::cout<<" plastic_power "<<plastic_power<<std::endl;
 
 		//computation of the condition master element radius start: 
 		//PointsArrayType& vertices = pGeom.Points();

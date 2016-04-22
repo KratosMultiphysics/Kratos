@@ -236,7 +236,7 @@ private:
 	  double critical_value = mrRefine.ReferenceThreshold; // * iii->GetGeometry().DomainSize(); //Area() Volume()
 	
 	  // if(variable_value>0)
-	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRefine.GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().Area()<<std::endl;
+	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRefine.GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
 	 
 	  if( variable_value > critical_value )
 	    {
@@ -252,7 +252,8 @@ private:
 		    
 	}
     
-      std::cout<<"   Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
+      if( mEchoLevel >= 1 )
+	std::cout<<"   Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
 
       KRATOS_CATCH( "" )
  
