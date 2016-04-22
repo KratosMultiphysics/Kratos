@@ -115,7 +115,9 @@ proc spdAux::activeApp { appid } {
     parseRoutes
     #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
+    gid_groups_conds::open_conditions menu
     gid_groups_conds::actualize_conditions_window
+    
 }
 
 proc spdAux::CreateWindow {dir} {

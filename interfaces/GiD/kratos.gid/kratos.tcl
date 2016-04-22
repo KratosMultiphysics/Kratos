@@ -101,6 +101,7 @@ proc Kratos::InitGIDProject { dir } {
 
     spdAux::processIncludes
     spdAux::parseRoutes
+    after 1 [list gid_groups_conds::close_all_windows]
     after 500 [list spdAux::CreateWindow $dir]
 }
 
@@ -114,7 +115,7 @@ proc Kratos::ChangeMenus { } {
     GidChangeDataLabel "Local axes" ""
     GidAddUserDataOptions "---" "" 3
     #GidAddUserDataOptions [_ "Groups"] [list gid_groups_conds::open_groups .gid window] 5
-    GidAddUserDataOptions [_ "Data"] [list gid_groups_conds::open_conditions menu] 7
+    GidAddUserDataOptions [_ "Kratos data"] [list gid_groups_conds::open_conditions menu] 7
     GidAddUserDataOptions "---" "" 10
     GidAddUserDataOptionsMenu [_ "Local axes"] [list gid_groups_conds::local_axes_menu %W] 11
     GiDMenu::UpdateMenus
