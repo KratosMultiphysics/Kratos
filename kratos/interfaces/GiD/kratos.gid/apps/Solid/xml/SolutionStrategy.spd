@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolStrat" pn="Solution" un="SLStratSection" help="Solution Strategy">
-      <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" state="normal" >
+      <container n="TimeParameters" pn="Time parameters" un="SLTimeParameters" help="Problem parameters" state="[checkStateByUniqueName SLSoluType Dynamic]" >
 			<value n="StartTime" pn="Start time" v="0.0" help=""/>
 			<value n="EndTime" pn="End time" v="0.1" help=""/>
 			<value n="DeltaTime"  pn="Delta time" v="0.1" help=""/>
