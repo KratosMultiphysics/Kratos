@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="SolutionStrat" pn="Solution" help="Solution Strategy" >
-	  <container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" >
+	  <!--<container n="SolutionStrategy" pn="Solution strategy" help="Solution Strategy" >-->
 			<container n="ParallelType" pn="Parallel type" un="FLParallelization" help="Parallel type">
 				  <value n="ParallelSolutionType" pn="Parallelization" un="FLParallelType" v="OpenMP" values="OpenMP,MPI" help="Parallelization type"  actualize="1"/>
 				  <value n="MPINumberOfProcessors" pn="Number of processors" v="1" help="Number of processors" state="[checkStateByUniqueName FLParallelType MPI]"/>
@@ -10,20 +10,20 @@
 			<container n="StratParams" pn="Strategy parameters" un="FLStratParams" icon="groupsTreeNew.gif" state="normal" >
 				  <dynamicnode command="injectSolStratParams" args=""/>
 			</container>
-            <container n="Advanced" pn="Advanced" help="Advanced Solver Parameters">
-				  <value n="RedistanceFrequency" pn="Redistance frequency" v="5" help="Redistance frequency" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
-				  <value n="ExtrapolationLayers" pn="Extrapolation layers" v="10" help="Extrapolation layers" state="[checkStateByUniqueName FLFreeSurface Yes]"/>
-				  <value n="StabdtPressureFactor" pn="Stabilized dt pressure factor" v="1.0" help="Stabilized dt pressure factor"/>
-				  <value n="StabdtConvectionFactor" pn="Stabilized convection factor" v="0.01" help="Stabilized convection factor"/>
-				  <value n="SafetyFactor" pn="Safety factor"  v="0.8" help="Safety factor"/>
-            </container>
-			<container n="Gravity" pn="Gravity" help="Body forces" >
-				  <value n="GravityValue" pn="Gravity value" v="9.8" help="Gravity value"/>
+<!--            <container n="Advanced" pn="Advanced" help="Advanced Solver Parameters">-->
+<!--				  <value n="RedistanceFrequency" pn="Redistance frequency" v="5" help="Redistance frequency" state="[checkStateByUniqueName FLFreeSurface Yes]"/>-->
+<!--				  <value n="ExtrapolationLayers" pn="Extrapolation layers" v="10" help="Extrapolation layers" state="[checkStateByUniqueName FLFreeSurface Yes]"/>-->
+<!--				  <value n="StabdtPressureFactor" pn="Stabilized dt pressure factor" v="1.0" help="Stabilized dt pressure factor"/>-->
+<!--				  <value n="StabdtConvectionFactor" pn="Stabilized convection factor" v="0.01" help="Stabilized convection factor"/>-->
+<!--				  <value n="SafetyFactor" pn="Safety factor"  v="0.8" help="Safety factor"/>-->
+<!--            </container>-->
+			<container n="Gravity" pn="Gravity" un="FLGravity" help="Body forces" >
+				  <value n="GravityValue" pn="Gravity value" v="9.8" help="Gravity value" unit_magnitude="Acceleration" units="m/s^2"  />
 				  <value n="Cx" pn="Cx" v="0.0" help="X Vector"/>
 				  <value n="Cy" pn="Cy" v="0.0" help="Y Vector"/>
 				  <value n="Cz" pn="Cz" v="-1.0" help="Z Vector"/>
 			</container>
-	  </container>
+	  <!--</container>-->
 	  <container n="TimeParameters" pn="Time parameters" un="FLTimeParameters" help="Time parameters" >
 		  <value n="StartTime" pn="Start time" v="0.0" help=""/>
 		  <value n="EndTime" pn="End time" v="1" help=""/>
