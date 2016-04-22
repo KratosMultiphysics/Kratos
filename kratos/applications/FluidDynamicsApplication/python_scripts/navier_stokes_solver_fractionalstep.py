@@ -27,11 +27,15 @@ class NavierStokesSolver_FractionalStep:
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "navier_stokes_solver_fractionalstep",
-            "velocity_tolerance": 1e-3,
-            "pressure_tolerance": 1e-2,
+            "model_import_settings": {
+                    "input_type": "mdpa",
+                    "input_filename": "unknown_name"
+            },
+            "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
             "maximum_pressure_iterations": 3,
-            "predictor_corrector": false,
+            "velocity_tolerance": 1e-3,
+            "pressure_tolerance": 1e-2,
             "echo_level": 1,
             "consider_periodic_conditions": false,
             "time_order": 2,
@@ -39,12 +43,6 @@ class NavierStokesSolver_FractionalStep:
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_iteration": false,
-            "volume_model_part_name" : "volume_model_part",
-            "skin_parts":[""],
-            "model_import_settings": {
-                    "input_type": "mdpa",
-                    "input_filename": "unknown_name"
-            },
             "pressure_linear_solver_settings": {
                     "solver_type": "Super LU",
                     "max_iteration": 500,
@@ -58,7 +56,9 @@ class NavierStokesSolver_FractionalStep:
                     "tolerance": 1e-9,
                     "scaling": false,
                     "verbosity": 1
-            }
+            },
+            "volume_model_part_name" : "volume_model_part",
+            "skin_parts":[""]
         }""")
         
         ##overwrite the default settings with user-provided parameters
