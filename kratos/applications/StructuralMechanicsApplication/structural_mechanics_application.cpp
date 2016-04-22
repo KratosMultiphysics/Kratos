@@ -92,10 +92,15 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
     KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
-    // Conditions
+    // CONDITIONS
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
-    KRATOS_REGISTER_VARIABLE(MASTER_SLAVE); // True for master and false for slave
+    // Contact conditions
+    KRATOS_REGISTER_VARIABLE(MASTER_SLAVE); // A condition to indicate if the node/element is slave or master
+    /* Mortar method */
+    KRATOS_REGISTER_VARIABLE( CONTACT_POINTER_MASTER )  // A pointer to the master surfaces
+    KRATOS_REGISTER_VARIABLE( CONTACT_POINTER_SLAVE  )  // A pointer to the slave surfaces
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_MESH_TYING_FORCE ) // The "force" resulting from contact
 
 //    // Orthotropy
 //    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
