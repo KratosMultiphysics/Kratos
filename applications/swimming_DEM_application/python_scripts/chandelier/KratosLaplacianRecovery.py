@@ -564,7 +564,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
 embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-pressure_gradient_counter    = swim_proc.Counter(1, 1, (DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option))
+pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
 print_counter                = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
@@ -634,7 +634,7 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # GRADIENT RECOVERY TEST BEGIN
 import gradient_recovery_analyser as gra
 p_field = gra.sinus_field()
-v_field = gra.sinus_vector_field() 
+v_field = gra.polynomial_vector_field() 
 analyser = gra.GradientRecoveryAnalyser(p_field, v_field)
 # GRADIENT RECOVERY TEST END
 
@@ -672,6 +672,7 @@ while (time <= final_time):
             #fluid_solver.Solve()
             
             exact_p_grad = []
+            exact_v_laplacian = []
 
             for node in fluid_model_part.Nodes:
                 x = node.X
@@ -682,14 +683,15 @@ while (time <= final_time):
                 node.SetSolutionStepValue(VELOCITY_X, analyser.v0)
                 node.SetSolutionStepValue(VELOCITY_Y, analyser.v1)
                 node.SetSolutionStepValue(VELOCITY_Z, analyser.v2) 
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, analyser.lx)
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, analyser.ly)
-                node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, analyser.lz)   
+                #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, analyser.lx)
+                #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, analyser.ly)
+                #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, analyser.lz)   
                 node.SetSolutionStepValue(PRESSURE, analyser.value)
                 node.SetSolutionStepValue(PRESSURE_GRADIENT_X, analyser.gx)  
                 node.SetSolutionStepValue(PRESSURE_GRADIENT_Y, analyser.gy)  
                 node.SetSolutionStepValue(PRESSURE_GRADIENT_Z, analyser.gz)  
                 exact_p_grad += [[analyser.gx, analyser.gy, analyser.gz]]
+                exact_v_laplacian += [[analyser.lx, analyser.ly, analyser.lz]]
 
             if VELOCITY_LAPLACIAN in pp.fluid_vars:
                 print("\nSolving for the Laplacian...")
@@ -738,24 +740,33 @@ while (time <= final_time):
         elif pp.CFD_DEM.gradient_calculation_type == 1:            
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
         if pp.CFD_DEM.laplacian_calculation_type == 1:
-            custom_functions_tool.CalculateVelocityLaplacian(fluid_model_part)
+            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
         elif pp.CFD_DEM.laplacian_calculation_type == 2:
-            RecoverSuperconvergentVelocityLaplacian(fluid_model_part)
+            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
             
     
     if step >= 3 and not stationarity:
-        error = 0.0
+        gradient_error = 0.0
+        gradient_norm = 0.0
+        laplacian_error = 0.0    
+        laplacian_norm = 0.0
+        
         i = 0
         for node in fluid_model_part.Nodes:
             g0 = node.GetSolutionStepValue(PRESSURE_GRADIENT_X)
             g1 = node.GetSolutionStepValue(PRESSURE_GRADIENT_Y)
             g2 = node.GetSolutionStepValue(PRESSURE_GRADIENT_Z)
-            error += (exact_p_grad[i][0] - g0) ** 2 + (exact_p_grad[i][1] - g1) ** 2 + (exact_p_grad[i][2] - g2) ** 2
+            gradient_error += (exact_p_grad[i][0] - g0) ** 2 + (exact_p_grad[i][1] - g1) ** 2 + (exact_p_grad[i][2] - g2) ** 2
+            gradient_norm += (exact_p_grad[i][0]) ** 2 + (exact_p_grad[i][1]) ** 2 + (exact_p_grad[i][2]) ** 2
+            l0 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
+            l1 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)
+            l2 = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)
+            laplacian_error += (exact_v_laplacian[i][0] - l0) ** 2 + (exact_v_laplacian[i][1] - l1) ** 2 + (exact_v_laplacian[i][2] - l2) ** 2
+            laplacian_norm += (exact_v_laplacian[i][0]) ** 2 + (exact_v_laplacian[i][1]) ** 2 + (exact_v_laplacian[i][2]) ** 2
             i += 1
         
-        print(math.sqrt(error))
-        
-        
+        print("error in gradient", math.sqrt(gradient_error / gradient_norm))
+        print("error in velocitiy laplacian", math.sqrt(laplacian_error / laplacian_norm))                
         
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -825,7 +836,7 @@ while (time <= final_time):
 
     # applying DEM-to-fluid coupling
 
-    if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time:
+    if DEM_to_fluid_counter.Tick() and time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type > 1:
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
         #projection_module.ProjectFromParticles()
