@@ -1,5 +1,6 @@
 # Project Parameters
 proc Fluid::write::writeParametersEvent { } {
+    variable BCUN
     set projectParametersDict [dict create]
     
     # First section -> Problem data
@@ -52,10 +53,36 @@ proc Fluid::write::writeParametersEvent { } {
     dict set projectParametersDict solver_settings $solverSettingsDict
         
     # Boundary conditions processes
-    variable BCUN
     dict set projectParametersDict boundary_conditions_process_list [write::getConditionsParametersDict $BCUN]
+    dict set projectParametersDict gravity [getGravityProcessDict]
     
     write::WriteJSON $projectParametersDict
+}
+
+# Skin SubModelParts ids
+proc Fluid::write::getGravityProcessDict {} {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+    
+    set xp1 [spdAux::getRoute "FLGravity"]
+    set value [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='GravityValue'\]"] v]
+    set cx [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='Cx'\]"] v]
+    set cy [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='Cy'\]"] v]
+    set cz [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='Cz'\]"] v]
+    #W "Gravity $value on \[$cx , $cy , $cz\]"
+    set pdict [dict create]
+    dict set pdict "implemented_in_file" "apply_gravity_process"
+    dict set pdict "implemented_in_module" "KratosMultiphysics.FluidDynamicsApplication"
+    dict set pdict "process_name" "ApplyGravity"
+    set params [dict create]
+    dict set params "mesh_id" 0
+    set partgroup [write::getPartsMeshId]
+    dict set params "model_part_name" $partgroup
+    dict set params "value" $value
+    dict set params "vector" [list $cx $cy $cz]
+    dict set pdict "Parameters" $params
+    
+    return $pdict
 }
 
 # Skin SubModelParts ids
