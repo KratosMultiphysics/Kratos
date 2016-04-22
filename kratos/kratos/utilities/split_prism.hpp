@@ -169,7 +169,7 @@ inline void PrismGetNewConnectivityGID(
 
 int Split_Prism(
   const int  edges[6], 
-  int t[24], 
+  int  t[24],
   int* number_elem, 
   int* splitted_edges, 
   int* nint
@@ -187,7 +187,7 @@ int Split_Prism(
     for (unsigned int i = 0; i < 6; i++) 
     {
         if (edges[i] > 2)
-	{
+        {
             topology[i] = 1;
             *splitted_edges = *splitted_edges + 1;
         }
@@ -197,23 +197,23 @@ int Split_Prism(
     {
         /* No splitting needed */
         *number_elem = 1;
-	// Lower face 
+        // Lower face
         t[0] = 0;
         t[1] = 1;
         t[2] = 2;
-	
-	// Upper face
+
+        // Upper face
         t[3] = 3;
         t[4] = 4;
         t[5] = 5;
+
         return 0;
     }
-   /*WARNING = case new central node needed*/
+    /*WARNING = case new central node needed*/
     else if (*splitted_edges == 0 && *nint == 1) 
     {
         *number_elem = 3;
-
-	// Lower face
+        // Lower face
         t[0] = 6;
         t[1] = 0;
         t[2] = 1;
@@ -225,8 +225,8 @@ int Split_Prism(
         t[8] = 6;
         t[8] = 2;
         t[8] = 0;
-	
-	// Upper face
+
+        // Upper face
         t[3] = 9;
         t[4] = 3;
         t[5] = 4;
@@ -241,15 +241,14 @@ int Split_Prism(
 	
         return 1;
     }
-
-    else if (*splitted_edges == 1) 
+    else if (*splitted_edges == 2)
     {
         *number_elem = 2;
         /* Case 1*/
-        if (topology[0] == 1) 
-	{
+        if (topology[0] == 1)
+        {
             // Lower face
-	    t[0] = 6;
+            t[0] = 6;
             t[1] = 2;
             t[2] = 0;
 
@@ -258,7 +257,7 @@ int Split_Prism(
             t[8] = 2;
 	    
             // Upper face
-	    t[3] = 9;
+            t[3] = 9;
             t[4] = 5;
             t[5] = 3;
 
@@ -266,10 +265,10 @@ int Split_Prism(
             t[10] = 4;
             t[11] = 5;
         }
-	/* Case 2*/
-        else if (topology[1] == 1) 
-	{
-	    // Lower face
+        /* Case 2*/
+        else if (topology[1] == 1)
+        {
+            // Lower face
             t[0] = 7;
             t[1] = 0;
             t[2] = 1;
@@ -277,8 +276,8 @@ int Split_Prism(
             t[6] = 7;
             t[7] = 2;
             t[8] = 0;
-	    
-	    // Upper face
+
+            // Upper face
             t[3] = 10;
             t[4] = 3;
             t[5] = 4;
@@ -287,11 +286,11 @@ int Split_Prism(
             t[10] = 5;
             t[11] = 3;
         }
-	/* Case 3*/
-        else if (topology[2] == 1) 
-	{
+        /* Case 3*/
+        else if (topology[2] == 1)
+        {
             // Lower face
-	    t[0] = 8;
+            t[0] = 8;
             t[1] = 1;
             t[2] = 2;
 
@@ -300,7 +299,7 @@ int Split_Prism(
             t[8] = 1;
 	    
             // Upper face
-	    t[3] = 11;
+            t[3] = 11;
             t[4] = 4;
             t[5] = 5;
 
@@ -311,16 +310,15 @@ int Split_Prism(
 
         return 1;
     }
-
-    else if (*splitted_edges == 2) 
+    else if (*splitted_edges == 4)
     {
         *number_elem = 3;
         /* Case 4*/
-        if (topology[0] == 1 && topology[1] == 1) 
-	{
+        if (topology[0] == 1 && topology[1] == 1)
+        {
             if (edges[2] == 0) // If I colapse to the node 0 local
             {
-	        // Lower face
+                // Lower face
                 t[0] = 7;
                 t[1] = 6;
                 t[2] = 1;
@@ -333,7 +331,7 @@ int Split_Prism(
                 t[13] = 2;
                 t[14] = 0;
 		
-	        // Upper face
+                // Upper face
                 t[3] = 10;
                 t[4] = 9;
                 t[5] = 4;
@@ -349,7 +347,7 @@ int Split_Prism(
             }
             else if (edges[2] == 2) // If I colapse to the node 2 local
             {
-	        // Lower face
+                // Lower face
                 t[0] = 7;
                 t[1] = 6;
                 t[2] = 1;
@@ -362,7 +360,7 @@ int Split_Prism(
                 t[13] = 2;
                 t[14] = 0;
 		
-	        // Upper face
+                // Upper face
                 t[3] = 10;
                 t[4] = 9;
                 t[5] = 4;
@@ -376,12 +374,12 @@ int Split_Prism(
                 t[17] = 3;
             }
         }
-	/* Case 5*/
-        else if (topology[1] == 1 && topology[2] == 1) 
-	{
+        /* Case 5*/
+        else if (topology[1] == 1 && topology[2] == 1)
+        {
             if (edges[0] == 0) // If I colapse to the node 0 local
             {
-	        // Lower face
+                // Lower face
                 t[0] = 5;
                 t[1] = 4;
                 t[2] = 2;
@@ -396,7 +394,7 @@ int Split_Prism(
             }
             else if (edges[0] == 1) 
             {
-	        // Lower face
+                // Lower face
                 t[0] = 5;
                 t[1] = 4;
                 t[2] = 2;
@@ -410,13 +408,12 @@ int Split_Prism(
                 t[14] = 1;
             }
         }
-
         /* Case 6 */
-        else if (topology[0] == 1 && topology[2] == 1) 
-	{
+        else if (topology[0] == 1 && topology[2] == 1)
+        {
             if (edges[1] == 1) 
             {
-	        // Lower face
+                // Lower face
                 t[0] = 8;
                 t[1] = 0;
                 t[2] = 6;
@@ -429,7 +426,7 @@ int Split_Prism(
                 t[13] = 1;
                 t[14] = 2;
 		
-	        // Upper face
+                // Upper face
                 t[3] = 11;
                 t[4] = 3;
                 t[5] = 9;
@@ -444,7 +441,7 @@ int Split_Prism(
             }
             else if (edges[1] == 2) 
             {
-	        // Lower face
+                // Lower face
                 t[0] = 8;
                 t[1] = 0;
                 t[2] = 6;
@@ -457,7 +454,7 @@ int Split_Prism(
                 t[13] = 1;
                 t[14] = 2;
 		
-	        // Upper face
+                // Upper face
                 t[3] = 11;
                 t[4] = 3;
                 t[5] = 9;
@@ -470,14 +467,13 @@ int Split_Prism(
                 t[16] = 4;
                 t[17] = 5;
             }
-	}
-
+        }
         return 1;
     }
-    else if (*splitted_edges == 3) 
+    else if (*splitted_edges == 6)
     {
         *number_elem = 4;
-	// Lower face
+        // Lower face
         t[0] = 8;
         t[1] = 0;
         t[2] = 6;
@@ -494,7 +490,7 @@ int Split_Prism(
         t[19] = 7;
         t[20] = 2;
 	
-	// Upper face
+        // Upper face
         t[3] = 11;
         t[4] = 3;
         t[5] = 9;
