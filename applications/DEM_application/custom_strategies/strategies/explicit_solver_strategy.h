@@ -284,7 +284,7 @@ namespace Kratos
 
           //max_Id = std::max({max_Id, max_FEM_Id,max_cluster_Id});
           max_Id = std::max(max_Id, max_FEM_Id);
-          max_Id = std::max(max_Id, max_cluster_Id;
+          max_Id = std::max(max_Id, max_cluster_Id);
           mpParticleCreatorDestructor->SetMaxNodeId(max_Id);
 
       }
