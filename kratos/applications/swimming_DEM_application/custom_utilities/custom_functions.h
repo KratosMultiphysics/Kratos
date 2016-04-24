@@ -265,6 +265,77 @@ void RecoverSuperconvergentLaplacian(ModelPart& r_model_part, Variable<array_1d<
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_container_rate, Variable<array_1d<double, 3> >& material_derivative_container)
+{
+    std::cout << "Constructing the Material derivative by derivating nodal averages...\n";
+    std::map <std::size_t, unsigned int> id_to_position;
+    unsigned int entry = 0;
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        noalias(inode->FastGetSolutionStepValue(material_derivative_container)) = ZeroVector(3);
+        id_to_position[inode->Id()] = entry;
+        entry++;
+    }
+
+    std::vector<array_1d <double, 3> > convective_contributions_to_the_derivative;
+    convective_contributions_to_the_derivative.resize(entry);
+
+    array_1d <double, 3> grad = ZeroVector(3);
+    array_1d <double, TDim + 1 > elemental_values;
+    array_1d <double, TDim + 1 > N; // shape functions vector
+    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+
+    for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
+
+        // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in material_derivative_container
+
+        for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
+            // computing the shape function derivatives
+            Geometry<Node<3> >& geom = ielem->GetGeometry();
+            double Volume;
+            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+
+            for (unsigned int i = 0; i < TDim + 1; ++i){
+                elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
+            }
+
+            array_1d <double, 3> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+
+            for (unsigned int i = 0; i < TDim; ++i){
+                grad[i] = grad_aux[i];
+            }
+
+            double nodal_area = Volume / static_cast<double>(TDim + 1);
+            grad *= nodal_area;
+
+            for (unsigned int i = 0; i < TDim + 1; ++i){
+                geom[i].FastGetSolutionStepValue(material_derivative_container) += grad; // we use material_derivative_container to store the gradient of one component at a time
+            }
+        }
+
+        // normalizing the constributions to the gradient and getting the j-component of the material derivative
+
+        for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+            array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
+            stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
+            const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
+            convective_contributions_to_the_derivative[id_to_position[inode->Id()]][j] = DEM_INNER_PRODUCT_3(velocity, stored_gradient_of_component_j);
+        }
+    }
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        const array_1d <double, 3>& stored_convective_contribution = convective_contributions_to_the_derivative[id_to_position[inode->Id()]];
+        const array_1d <double, 3>& eulerian_rate_of_change = inode->FastGetSolutionStepValue(vector_container_rate);
+        array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
+        material_derivative = eulerian_rate_of_change + stored_convective_contribution;
+    }
+
+    std::cout << "Finished constructing the Laplacian by derivating nodal averages...\n";
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
 {
     std::cout << "Constructing the Laplacian by derivating nodal averages...\n";
@@ -321,7 +392,7 @@ void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double,
             inode->FastGetSolutionStepValue(laplacian_container) /= inode->FastGetSolutionStepValue(NODAL_AREA);
         }
 
-        // for each element, constructing the divergence contribution (to its nodes) of the corresponding gradient of the component v_j
+        // for each element, constructing the divergence contribution (to its nodes) of the gradient of component v_j
 
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
             Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -329,7 +400,7 @@ void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double,
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
-                for (unsigned int k = 0; k < TDim + 1; ++k){
+                for (unsigned int k = 0; k < TDim; ++k){
                     elemental_vectors(i, k) = geom[i].FastGetSolutionStepValue(laplacian_container)[k]; // it is actually the gradient of component v_j
                 }
             }
@@ -1193,7 +1264,7 @@ bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer&
             abs_difference += fabs(SecondDegreeGenericPolynomial(C, rel_coordinates) - SecondDegreeTestPolynomial(rel_coordinates));
         }
 
-        const double tolerance = 0.00001;
+        const double tolerance = 0.001; // recommended by E Ortega
 
         return (abs_difference > tolerance? false : true);
     }
