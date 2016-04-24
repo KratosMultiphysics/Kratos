@@ -228,6 +228,7 @@ using namespace boost::python;
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
+        .def("CalculateVectorMaterialDerivative", &CustomFunctionsCalculator <3>::CalculateVectorMaterialDerivative)
         .def("CalculateVectorLaplacian", &CustomFunctionsCalculator <3>::CalculateVectorLaplacian)
         .def("RecoverSuperconvergentGradient", &CustomFunctionsCalculator <3>::RecoverSuperconvergentGradient)
         .def("RecoverSuperconvergentLaplacian", &CustomFunctionsCalculator <3>::RecoverSuperconvergentLaplacian)
