@@ -70,6 +70,9 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM.gradient_calculation_type:
         pp.fluid_vars += [NODAL_WEIGHTS]
+    pp.CFD_DEM.material_acceleration_calculation_type = 1
+    if pp.CFD_DEM.material_acceleration_calculation_type:
+        pp.fluid_vars += [MATERIAL_ACCELERATION]
 
     if pp.CFD_DEM.laplacian_calculation_type:
         pp.fluid_vars += [VELOCITY_LAPLACIAN]
@@ -147,6 +150,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if pp.CFD_DEM.print_PRESSURE_GRAD_PROJECTED_option:
             pp.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
+        pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+        if pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option:
+            pp.dem_nodal_results += ["MATERIAL_FLUID_ACCEL_PROJECTED"]
 
         if pp.CFD_DEM.print_HYDRODYNAMIC_FORCE_option:
             pp.dem_nodal_results += ["HYDRODYNAMIC_FORCE"]
@@ -278,6 +284,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
         pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
+        pp.coupling_dem_vars += [MATERIAL_FLUID_ACCEL_PROJECTED]
 
         if pp.CFD_DEM.include_faxen_terms_option:
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
@@ -334,6 +341,10 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM.embedded_option:
         pp.nodal_results += ["DISTANCE"]
+
+    pp.CFD_DEM.print_MATERIAL_ACCELERATION_option = True
+    if pp.CFD_DEM.print_MATERIAL_ACCELERATION_option:
+        pp.nodal_results += ["MATERIAL_ACCELERATION"]
 
     if pp.CFD_DEM.print_VELOCITY_LAPLACIAN_option:
         pp.nodal_results += ["VELOCITY_LAPLACIAN"]
