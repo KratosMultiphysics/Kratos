@@ -157,7 +157,7 @@ public:
     /**
      * Life Cycle
      */
-    HexahedraInterface3D8( const PointType& Point1, const PointType& Point2,
+/*    HexahedraInterface3D8( const PointType& Point1, const PointType& Point2,
                   const PointType& Point3, const PointType& Point4,
                   const PointType& Point5, const PointType& Point6,
                   const PointType& Point7, const PointType& Point8 )
@@ -278,7 +278,7 @@ public:
 			}
 		}
 	}
-
+*/
     HexahedraInterface3D8( typename PointType::Pointer pPoint1,
                   typename PointType::Pointer pPoint2,
                   typename PointType::Pointer pPoint3,
@@ -295,7 +295,6 @@ public:
         noalias(vx) += - *pPoint4 - *pPoint8;
         noalias(vx) += *pPoint2 + *pPoint6;
         noalias(vx) += *pPoint3 + *pPoint7;
-
         vx *= 0.25;
 
         array_1d< double , 3 > vy;
@@ -304,7 +303,6 @@ public:
         noalias(vy) += *pPoint7 + *pPoint8;
         noalias(vy) += - *pPoint1 - *pPoint2;
         noalias(vy) += - *pPoint6 - *pPoint5;
-
         vy *= 0.25;
 
         array_1d< double , 3 > vz;
@@ -313,17 +311,18 @@ public:
         noalias(vz) += *pPoint7 + *pPoint8;
         noalias(vz) += - *pPoint1 - *pPoint2;
         noalias(vz) += - *pPoint3 - *pPoint4;
-
         vz *= 0.25;
 
         double lx = MathUtils<double>::Norm3(vx);
         double ly = MathUtils<double>::Norm3(vy);
         double lz = MathUtils<double>::Norm3(vz);
+        
 		if(lz < lx)
 		{
 			if(lz < ly)
 			{
-				// LZ
+				// lz < lx && lz < ly
+                
 				this->Points().push_back( pPoint1 );
 				this->Points().push_back( pPoint2 );
 				this->Points().push_back( pPoint3 );
@@ -335,37 +334,8 @@ public:
 			}
 			else
 			{
-				if(ly < lx)
-				{
-					// LY
-					this->Points().push_back( pPoint2 );
-					this->Points().push_back( pPoint1 );
-					this->Points().push_back( pPoint5 );
-					this->Points().push_back( pPoint6 );
-					this->Points().push_back( pPoint3 );
-					this->Points().push_back( pPoint4 );
-					this->Points().push_back( pPoint8 );
-					this->Points().push_back( pPoint7 );
-				}
-				else
-				{
-					// LX
-					this->Points().push_back( pPoint1 );
-					this->Points().push_back( pPoint4 );
-					this->Points().push_back( pPoint8 );
-					this->Points().push_back( pPoint5 );
-					this->Points().push_back( pPoint2 );
-					this->Points().push_back( pPoint3 );
-					this->Points().push_back( pPoint7 );
-					this->Points().push_back( pPoint6 );
-				}
-			}
-		}
-		else
-		{
-			if(lx < ly)
-			{
-				// LX
+                // ly < lz < lx
+                
 				this->Points().push_back( pPoint1 );
 				this->Points().push_back( pPoint4 );
 				this->Points().push_back( pPoint8 );
@@ -374,156 +344,119 @@ public:
 				this->Points().push_back( pPoint3 );
 				this->Points().push_back( pPoint7 );
 				this->Points().push_back( pPoint6 );
-			}
-			else
-			{
-				if(lz < ly)
-				{
-					// LZ
-					this->Points().push_back( pPoint1 );
-					this->Points().push_back( pPoint2 );
-					this->Points().push_back( pPoint3 );
-					this->Points().push_back( pPoint4 );
-					this->Points().push_back( pPoint5 );
-					this->Points().push_back( pPoint6 );
-					this->Points().push_back( pPoint7 );
-					this->Points().push_back( pPoint8 );
-				}
-				else
-				{
-					// LY
-					this->Points().push_back( pPoint2 );
-					this->Points().push_back( pPoint1 );
-					this->Points().push_back( pPoint5 );
-					this->Points().push_back( pPoint6 );
-					this->Points().push_back( pPoint3 );
-					this->Points().push_back( pPoint4 );
-					this->Points().push_back( pPoint8 );
-					this->Points().push_back( pPoint7 );
-				}
-			}
-		}
+            }
+        }
+        else if( ly < lx )
+        {
+            // ly < lx < lz
+            
+            this->Points().push_back( pPoint1 );
+            this->Points().push_back( pPoint4 );
+            this->Points().push_back( pPoint8 );
+            this->Points().push_back( pPoint5 );
+            this->Points().push_back( pPoint2 );
+            this->Points().push_back( pPoint3 );
+            this->Points().push_back( pPoint7 );
+            this->Points().push_back( pPoint6 );
+        }
+        else
+        {
+            // lx < lz && lx < ly
+            
+            this->Points().push_back( pPoint1 );
+            this->Points().push_back( pPoint5 );
+            this->Points().push_back( pPoint6 );
+            this->Points().push_back( pPoint2 );
+            this->Points().push_back( pPoint4 );
+            this->Points().push_back( pPoint8 );
+            this->Points().push_back( pPoint7 );
+            this->Points().push_back( pPoint3 );
+        }
     }
 
     HexahedraInterface3D8( const PointsArrayType& ThisPoints )
-        : BaseType( PointsArrayType(), &msGeometryData )
+        : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( ThisPoints.size() != 8 )
+        if ( this->PointsNumber() != 8 )
             KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 8, given " ,
-                          this->PointsNumber() );
+                          "Invalid points number. Expected 8, given " , this->PointsNumber() );
+        
+        if( ThisPoints(7) != NULL )
+        {
+            TPointType& rPoint1 = this->GetPoint(0);
+            TPointType& rPoint2 = this->GetPoint(1);
+            TPointType& rPoint3 = this->GetPoint(2);
+            TPointType& rPoint4 = this->GetPoint(3);
+            TPointType& rPoint5 = this->GetPoint(4);
+            TPointType& rPoint6 = this->GetPoint(5);
+            TPointType& rPoint7 = this->GetPoint(6);
+            TPointType& rPoint8 = this->GetPoint(7);
 
-		const typename PointType::Pointer& pPoint1 = ThisPoints(0);
-		const typename PointType::Pointer& pPoint2 = ThisPoints(1);
-		const typename PointType::Pointer& pPoint3 = ThisPoints(2);
-		const typename PointType::Pointer& pPoint4 = ThisPoints(3);
-		const typename PointType::Pointer& pPoint5 = ThisPoints(4);
-		const typename PointType::Pointer& pPoint6 = ThisPoints(5);
-		const typename PointType::Pointer& pPoint7 = ThisPoints(6);
-		const typename PointType::Pointer& pPoint8 = ThisPoints(7);
+            array_1d< double , 3 > vx;
+            noalias(vx) = (- rPoint1 - rPoint5 - rPoint4 - rPoint8 + rPoint2 + rPoint6 + rPoint3 + rPoint7)*0.25;
 
-        array_1d< double , 3 > vx;
-        vx.clear();
-        vx = - (*pPoint1) - (*pPoint5) - (*pPoint4) - (*pPoint8) + (*pPoint2) + (*pPoint6) + (*pPoint3) + (*pPoint7);
-        vx *= 0.25;
+            array_1d< double , 3 > vy;
+            noalias(vy) = (rPoint4 + rPoint3 + rPoint7 + rPoint8 - rPoint1 - rPoint2 - rPoint6 - rPoint5)*0.25;
 
-        array_1d< double , 3 > vy;
-        vy.clear();
-        vy = (*pPoint4) + (*pPoint3) +(*pPoint7) + (*pPoint8) - (*pPoint1) - (*pPoint2) - (*pPoint6) - (*pPoint5);
-        vy *= 0.25;
+            array_1d< double , 3 > vz;
+            noalias(vz) = (rPoint6 + rPoint5 + rPoint7 + rPoint8 - rPoint1 - rPoint2 - rPoint3 - rPoint4)*0.25;
 
-        array_1d< double , 3 > vz;
-        vz.clear();
-        vz = (*pPoint6) + (*pPoint5) + (*pPoint7) + (*pPoint8) - (*pPoint1) - (*pPoint2) - (*pPoint3) - (*pPoint4);
-        vz *= 0.25;
-
-        double lx = MathUtils<double>::Norm3(vx);
-        double ly = MathUtils<double>::Norm3(vy);
-        double lz = MathUtils<double>::Norm3(vz);
-		if(lz < lx)
-		{
-			if(lz < ly)
-			{
-				// LZ
-				this->Points().push_back(pPoint1);
-				this->Points().push_back(pPoint2);
-				this->Points().push_back(pPoint3);
-				this->Points().push_back(pPoint4);
-				this->Points().push_back(pPoint5);
-				this->Points().push_back(pPoint6);
-				this->Points().push_back(pPoint7);
-				this->Points().push_back(pPoint8);
-			}
-			else
-			{
-				if(ly < lx)
-				{
-					// LY
-					this->Points().push_back(pPoint2);
-					this->Points().push_back(pPoint1);
-					this->Points().push_back(pPoint5);
-					this->Points().push_back(pPoint6);
-					this->Points().push_back(pPoint3);
-					this->Points().push_back(pPoint4);
-					this->Points().push_back(pPoint8);
-					this->Points().push_back(pPoint7);
-				}
-				else
-				{
-					// LX
-					this->Points().push_back(pPoint1);
-					this->Points().push_back(pPoint4);
-					this->Points().push_back(pPoint8);
-					this->Points().push_back(pPoint5);
-					this->Points().push_back(pPoint2);
-					this->Points().push_back(pPoint3);
-					this->Points().push_back(pPoint7);
-					this->Points().push_back(pPoint6);
-				}
-			}
-		}
-		else
-		{
-			if(lx < ly)
-			{
-				// LX
-				this->Points().push_back(pPoint1);
-				this->Points().push_back(pPoint4);
-				this->Points().push_back(pPoint8);
-				this->Points().push_back(pPoint5);
-				this->Points().push_back(pPoint2);
-				this->Points().push_back(pPoint3);
-				this->Points().push_back(pPoint7);
-				this->Points().push_back(pPoint6);
-			}
-			else
-			{
-				if(lz < ly)
-				{
-					// LZ
-					this->Points().push_back(pPoint1);
-					this->Points().push_back(pPoint2);
-					this->Points().push_back(pPoint3);
-					this->Points().push_back(pPoint4);
-					this->Points().push_back(pPoint5);
-					this->Points().push_back(pPoint6);
-					this->Points().push_back(pPoint7);
-					this->Points().push_back(pPoint8);
-				}
-				else
-				{
-					// LY
-					this->Points().push_back(pPoint2);
-					this->Points().push_back(pPoint1);
-					this->Points().push_back(pPoint5);
-					this->Points().push_back(pPoint6);
-					this->Points().push_back(pPoint3);
-					this->Points().push_back(pPoint4);
-					this->Points().push_back(pPoint8);
-					this->Points().push_back(pPoint7);
-				}
-			}
-		}
+            double lx = MathUtils<double>::Norm3(vx);
+            double ly = MathUtils<double>::Norm3(vy);
+            double lz = MathUtils<double>::Norm3(vz);
+            
+            if( lx < lz )
+            {
+                if( lx < ly )
+                {
+                    // lx < lz && lx < ly
+                    
+                    const TPointType& AuxPoint1 = rPoint2;
+                    
+                    rPoint2 = rPoint5;
+                    rPoint5 = rPoint4;
+                    rPoint4 = AuxPoint1;
+                    
+                    const TPointType& AuxPoint2 = rPoint3;
+                    
+                    rPoint3 = rPoint6;
+                    rPoint6 = rPoint8;
+                    rPoint8 = AuxPoint2;
+                }
+                else
+                {
+                    // ly < lx < lz
+                    
+                    const TPointType& AuxPoint1 = rPoint2;
+                    
+                    rPoint2 = rPoint4;
+                    rPoint4 = rPoint5;
+                    rPoint5 = AuxPoint1;
+                    
+                    const TPointType& AuxPoint2 = rPoint3;
+                    
+                    rPoint3 = rPoint8;
+                    rPoint8 = rPoint6;
+                    rPoint6 = AuxPoint2;
+                }
+            }
+            else if( ly < lz )
+            {
+                // ly < lz < lx
+                
+                const TPointType& AuxPoint1 = rPoint2;
+                
+                rPoint2 = rPoint4;
+                rPoint4 = rPoint5;
+                rPoint5 = AuxPoint1;
+                
+                const TPointType& AuxPoint2 = rPoint3;
+                
+                rPoint3 = rPoint8;
+                rPoint8 = rPoint6;
+                rPoint6 = AuxPoint2;
+            }
+        }
     }
 
     /**

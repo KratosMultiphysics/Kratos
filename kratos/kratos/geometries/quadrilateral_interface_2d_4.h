@@ -225,7 +225,8 @@ public:
 
         double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
         double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
-		if(lx > ly) 
+		
+        if(ly < lx) 
 		{
 			this->Points().push_back( pFirstPoint );
 			this->Points().push_back( pSecondPoint );
@@ -242,38 +243,37 @@ public:
     }
 
     QuadrilateralInterface2D4( const PointsArrayType& ThisPoints )
-        : BaseType( PointsArrayType(), &msGeometryData )
+        : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( ThisPoints.size() != 4 )
+        if ( this->PointsNumber() != 4 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
+        
+        if( ThisPoints(3) != NULL )
+        {
+            TPointType& rFirstPoint = this->GetPoint(0);
+            TPointType& rSecondPoint = this->GetPoint(1);
+            TPointType& rThirdPoint = this->GetPoint(2);
+            TPointType& rFourthPoint = this->GetPoint(3);
 
-		const typename PointType::Pointer& pFirstPoint  = ThisPoints(0);
-		const typename PointType::Pointer& pSecondPoint = ThisPoints(1);
-		const typename PointType::Pointer& pThirdPoint  = ThisPoints(2);
-		const typename PointType::Pointer& pFourthPoint = ThisPoints(3);
+            double p2_p1_X = (rThirdPoint.X() + rFourthPoint.X() - rFirstPoint.X() - rSecondPoint.X())*0.5;
+            double p2_p1_Y = (rThirdPoint.Y() + rFourthPoint.Y() - rFirstPoint.Y() - rSecondPoint.Y())*0.5;
+            double p4_p3_X = (rThirdPoint.X() + rSecondPoint.X() - rFirstPoint.X() - rFourthPoint.X())*0.5;
+            double p4_p3_Y = (rThirdPoint.Y() + rSecondPoint.Y() - rFirstPoint.Y() - rFourthPoint.Y())*0.5;
 
-        double p2_p1_X = (pThirdPoint->X() + pFourthPoint->X() - pFirstPoint->X() - pSecondPoint->X())*0.5;
-        double p2_p1_Y = (pThirdPoint->Y() + pFourthPoint->Y() - pFirstPoint->Y() - pSecondPoint->Y())*0.5;
-        double p4_p3_X = (pThirdPoint->X() + pSecondPoint->X() - pFirstPoint->X() - pFourthPoint->X())*0.5;
-        double p4_p3_Y = (pThirdPoint->Y() + pSecondPoint->Y() - pFirstPoint->Y() - pFourthPoint->Y())*0.5;
-
-        double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
-        double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
-		if(lx > ly) 
-		{
-			this->Points().push_back( pFirstPoint );
-			this->Points().push_back( pSecondPoint );
-			this->Points().push_back( pThirdPoint );
-			this->Points().push_back( pFourthPoint );
-		}
-		else
-		{
-			this->Points().push_back( pFourthPoint );
-			this->Points().push_back( pFirstPoint );
-			this->Points().push_back( pSecondPoint );
-			this->Points().push_back( pThirdPoint );
-		}
+            double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
+            double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
+            
+            if( lx < ly )
+            {
+                const TPointType& AuxPoint = rFourthPoint;
+                
+                rFourthPoint = rThirdPoint;
+                rThirdPoint = rSecondPoint;
+                rSecondPoint = rFirstPoint;
+                rFirstPoint = AuxPoint;
+            }
+        }
     }
 
     /**

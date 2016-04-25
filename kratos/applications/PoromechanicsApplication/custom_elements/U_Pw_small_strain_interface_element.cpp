@@ -43,7 +43,7 @@ Element::Pointer UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Clone(IndexType
     }
     
     if ( NewElement.mInitialGap.size() != mInitialGap.size() )
-        NewElement.mInitialGap.resize(mInitialGap.size(),false);
+        NewElement.mInitialGap.resize(mInitialGap.size());
     
     for(unsigned int i=0; i<mInitialGap.size(); i++)
     {
@@ -628,7 +628,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPoint
 template< >
 void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(2,false);
+    mInitialGap.resize(2);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
@@ -643,7 +643,7 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateInitialGap(const GeometryType
 template< >
 void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(3,false);
+    mInitialGap.resize(3);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 3 ) - Geom.GetPoint( 0 );
@@ -661,7 +661,7 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateInitialGap(const GeometryType
 template< >
 void UPwSmallStrainInterfaceElement<3,8>::CalculateInitialGap(const GeometryType& Geom)
 {
-    mInitialGap.resize(4,false);
+    mInitialGap.resize(4);
     
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 4 ) - Geom.GetPoint( 0 );

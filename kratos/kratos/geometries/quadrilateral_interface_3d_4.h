@@ -226,19 +226,15 @@ public:
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         array_1d< double , 3 > vx;
-        vx.clear();
-        vx = *pSecondPoint + *pThirdPoint - *pFirstPoint - *pFourthPoint;
-        vx *= 0.5;
+        noalias(vx) = (*pSecondPoint + *pThirdPoint - *pFirstPoint - *pFourthPoint)*0.5;
 
         array_1d< double , 3 > vy;
-        vy.clear();
-        vy = *pThirdPoint + *pFourthPoint - *pFirstPoint - *pSecondPoint;
-        vy *= 0.5;
+        noalias(vy) = (*pThirdPoint + *pFourthPoint - *pFirstPoint - *pSecondPoint)*0.5;
                 
         double lx = MathUtils<double>::Norm3(vx);
         double ly = MathUtils<double>::Norm3(vy);
         
-		if(lx > ly) 
+		if(ly < lx) 
 		{
 			this->Points().push_back( pFirstPoint );
 			this->Points().push_back( pSecondPoint );
@@ -255,44 +251,38 @@ public:
     }
 
     QuadrilateralInterface3D4( const PointsArrayType& ThisPoints )
-        : BaseType( PointsArrayType(), &msGeometryData )
+        : BaseType( ThisPoints, &msGeometryData )
     {
-        if ( ThisPoints.size() != 4 )
+        if ( this->PointsNumber() != 4 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
 
-		const typename PointType::Pointer& pFirstPoint  = ThisPoints(0);
-		const typename PointType::Pointer& pSecondPoint = ThisPoints(1);
-		const typename PointType::Pointer& pThirdPoint  = ThisPoints(2);
-		const typename PointType::Pointer& pFourthPoint = ThisPoints(3);
+        if( ThisPoints(3) != NULL )
+        {
+            TPointType& rFirstPoint = this->GetPoint(0);
+            TPointType& rSecondPoint = this->GetPoint(1);
+            TPointType& rThirdPoint = this->GetPoint(2);
+            TPointType& rFourthPoint = this->GetPoint(3);
 
-        array_1d< double , 3 > vx;
-        vx.clear();
-        vx = *pSecondPoint + *pThirdPoint - *pFirstPoint - *pFourthPoint;
-        vx *= 0.5;
+            array_1d<double,3> vx;
+            noalias(vx) = (rSecondPoint + rThirdPoint - rFirstPoint - rFourthPoint)*0.5;
 
-        array_1d< double , 3 > vy;
-        vy.clear();
-        vy = *pThirdPoint + *pFourthPoint - *pFirstPoint - *pSecondPoint;
-        vy *= 0.5;
-        
-        double lx = MathUtils<double>::Norm3(vx);
-        double ly = MathUtils<double>::Norm3(vy);
-        
-		if(lx > ly) 
-		{
-			this->Points().push_back( pFirstPoint );
-			this->Points().push_back( pSecondPoint );
-			this->Points().push_back( pThirdPoint );
-			this->Points().push_back( pFourthPoint );
-		}
-		else
-		{
-			this->Points().push_back( pFourthPoint );
-			this->Points().push_back( pFirstPoint );
-			this->Points().push_back( pSecondPoint );
-			this->Points().push_back( pThirdPoint );
-		}
+            array_1d<double,3> vy;
+            noalias(vy) = (rThirdPoint + rFourthPoint - rFirstPoint - rSecondPoint)*0.5;
+            
+            double lx = MathUtils<double>::Norm3(vx);
+            double ly = MathUtils<double>::Norm3(vy);
+            
+            if( lx < ly ) 
+            {
+                const TPointType& AuxPoint = rFourthPoint;
+                
+                rFourthPoint = rThirdPoint;
+                rThirdPoint = rSecondPoint;
+                rSecondPoint = rFirstPoint;
+                rFirstPoint = AuxPoint;
+            }
+        }
     }
 
     /**
