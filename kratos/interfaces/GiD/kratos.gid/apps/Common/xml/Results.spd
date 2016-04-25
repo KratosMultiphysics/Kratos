@@ -11,6 +11,7 @@
         <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
     </container>
     <container n="OnNodes" pn="On nodes" un="NodalResults" help="On nodes" >
+        <dynamicnode command="injectNodalConditionsOutputs" args=""/>
     </container>
     <container n="GiDOptions" pn="Options" help="GiD postprocess options" >
         <value n="GiDPostMode" pn="Result format" v="GiD_PostBinary" values="GiD_PostBinary,GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostHDF5" dict="GiD_PostBinary,Binary,GiD_PostAscii,Ascii,GiD_PostAsciiZipped,Ascii zipped,GiD_PostHDF5,HDF5" help="GiD result file format" />
