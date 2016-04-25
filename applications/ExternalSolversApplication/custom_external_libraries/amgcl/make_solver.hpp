@@ -167,7 +167,7 @@ class make_solver {
          *   typedef amgcl::make_solver<
          *     amgcl::make_solver<
          *       amgcl::amg<
-         *         Backend, amgcl::coarsening::smoothed_agregation, amgcl::relaxation::spai0
+         *         Backend, amgcl::coarsening::smoothed_aggregation, amgcl::relaxation::spai0
          *         >,
          *       amgcl::solver::cg<Backend>
          *       >,

@@ -274,7 +274,9 @@ struct parallel_ilu0 {
             const params &prm
             ) const
     {
-        apply(A, rhs, x, tmp, prm);
+        backend::residual(rhs, A, x, tmp);
+        solve(tmp, prm);
+        backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
@@ -284,7 +286,16 @@ struct parallel_ilu0 {
             const params &prm
             ) const
     {
-        apply(A, rhs, x, tmp, prm);
+        backend::residual(rhs, A, x, tmp);
+        solve(tmp, prm);
+        backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
+    }
+
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    {
+        backend::copy(rhs, x);
+        solve(x, prm);
     }
 
     private:
@@ -292,17 +303,11 @@ struct parallel_ilu0 {
         boost::shared_ptr<matrix_diagonal> D;
         boost::shared_ptr<vector> t1, t2;
 
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-                const params &prm
-                ) const
+        template <class VectorX>
+        void solve(VectorX &x, const params &prm) const
         {
-            backend::residual(rhs, A, x, tmp);
             relaxation::detail::parallel_ilu_solve(
-                    *L, *U, *D, tmp, *t1, *t2, prm.jacobi_iters
-                    );
-            backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
+                    *L, *U, *D, x, *t1, *t2, prm.jacobi_iters);
         }
 };
 

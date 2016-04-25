@@ -38,7 +38,6 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <amgcl/backend/builtin.hpp>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/range/irange.hpp>
 #include <boost/range/algorithm.hpp>
