@@ -321,6 +321,10 @@ class ModelerUtility:
             meshing_options.Set(ModelerUtilities.MESH_SMOOTHING, parameters["MeshSmoothing"])
             meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, parameters["JacobiSmoothing"])
             
+            if(parameters["JacobiSmoothing"]):
+                jacobian = "DETERMINANT_F"
+                self.MeshingParameters.SetTransferVariable(globals()[jacobian])
+            
             self.MeshingParameters.SetOptions(meshing_options)
 
             self.MeshingParameters.SetOffsetFactor(self.offset_factor)
