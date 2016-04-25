@@ -284,7 +284,6 @@ namespace Kratos {
             
             RotateOldContactForces(OldLocalCoordSystem, LocalCoordSystem, mNeighbourElasticContactForces[i]);
             
-            // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if necessary
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce);
         
             GlobalElasticContactForce[0] = mNeighbourElasticContactForces[i][0];
@@ -292,7 +291,6 @@ namespace Kratos {
             GlobalElasticContactForce[2] = mNeighbourElasticContactForces[i][2];
                         
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
-            //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
                         
             double ViscoDampingLocalContactForce[3] = {0.0};
             double equiv_visco_damp_coeff_normal;
@@ -336,15 +334,12 @@ namespace Kratos {
                     noalias(rInitialRotaMoment) = coeff_acc * ang_vel; // the moment needed to stop the spin in a single time step
                 }   
                 ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
-                if (i < mContinuumInitialNeighborsSize) {       
-                    if (mIniNeighbourFailureId[i] == 0) {
-                        mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
+                if (i < mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {       
+                    mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
                                                                                             LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
-                    }
                 }
-            }                            
-            
-            AddUpMomentsAndProject(LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+                AddUpMomentsAndProject(LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+            }                                                    
             
             if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
                 CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
@@ -355,10 +350,8 @@ namespace Kratos {
             }
 
             AddContributionToRepresentativeVolume(distance, radius_sum, calculation_area);
-
         } // for each neighbor
-
-            KRATOS_CATCH("")
+        KRATOS_CATCH("")
     } //  ComputeBallToBallContactForce   
 
     void SphericContinuumParticle::AddContributionToRepresentativeVolume(const double distance,
