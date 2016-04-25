@@ -24,7 +24,7 @@ namespace Kratos
 
       /// Default constructor.
       VerletVelocitySolverStrategy(){}
-     
+
       VerletVelocitySolverStrategy(
                              ExplicitSolverSettings& settings,
                              const double max_delta_time,
@@ -44,20 +44,20 @@ namespace Kratos
       {
          Timer::SetOuputFile("TimesPartialRelease");
          Timer::PrintTimingInformation();
-      }      
+      }
 
       void Initialize()
       {
-        
+
         KRATOS_TRY
         ModelPart& r_model_part = this->GetModelPart();
         TBaseStrategy::Initialize();
         this->InitializeSolutionStep();
         this->ForceOperations(r_model_part);
-        this->FinalizeSolutionStep();  
-                  
-        KRATOS_CATCH("")        
-      }     
+        this->FinalizeSolutionStep();
+
+        KRATOS_CATCH("")
+      }
 
       double Solve()
       {
@@ -69,14 +69,15 @@ namespace Kratos
           if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
 
           this->InitializeSolutionStep();
-          
+
           this->PerformTimeIntegrationOfMotion(1);
-          
-          this->SearchOperations(r_model_part, has_mpi);
+
+          this->SearchDEMOperations(r_model_part, has_mpi);
+          this->SearchFEMOperations(r_model_part, has_mpi);
           this->ForceOperations(r_model_part);
-          
+
           this->PerformTimeIntegrationOfMotion(2);
-          
+
           this->FinalizeSolutionStep();
 
           KRATOS_CATCH("")
@@ -84,14 +85,10 @@ namespace Kratos
           return 0.0;
 
       }//Solve()
-    
+
   }; // Class VerletVelocitySolverStrategy<TBaseStrategy>
 
 
 }  // namespace Kratos.
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined
-
-
-
-
