@@ -44,6 +44,7 @@ proc write::setGroupsTypeName {name} {
 
 # Write Events
 proc write::writeEvent { filename } {
+    #W $filename
     variable dir
     set dir [file dirname $filename]
     set errcode 0
@@ -510,7 +511,7 @@ proc write::tcl2json { value } {
     # Guess the type of the value; deep *UNSUPPORTED* magic!
     # display the representation of a Tcl_Obj for debugging purposes. Do not base the behavior of any command on the results of this one; it does not conform to Tcl's value semantics!
     regexp {^value is a (.*?) with a refcount} [::tcl::unsupported::representation $value] -> type
-
+    if {$value eq ""} {return [json::write array {*}[lmap v $value {tcl2json $v}]]}
     switch $type {
         string {
             return [json::write string $value]
@@ -572,8 +573,6 @@ proc write::GetDefaultOutputDict {} {
     dict set resultDict node_output           [getValue Results NodeOutput]
     dict set resultDict skin_output           [getValue Results SkinOutput]
     
-    
-    dict set resultDict dummy [GetEmptyList]
     dict set resultDict plane_output [GetEmptyList]
     
     #dict set outputDict write_results "PreMeshing"
@@ -596,6 +595,11 @@ proc write::GetEmptyList { } {
     # This is a gypsy code
     set a [list ]
     return $a
+}
+
+proc write::GetDataType {value} {
+    regexp {^value is a (.*?) with a refcount} [::tcl::unsupported::representation $value] -> type
+    return $type
 }
 
 proc write::getSolutionStrategyParametersDict {} {
