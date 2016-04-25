@@ -724,7 +724,69 @@ public:
         return 0;
     }
 
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
 
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    {
+      if(rResult.size() != 20) rResult.resize(20,false);
+        rResult[0] = -(( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 2.0
+                                            - rCoordinates[0] + rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
+        rResult[1] = -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 + rCoordinates[1] )*( 2.0
+                                            - rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;  
+        rResult[2] = -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
+                             - rCoordinates[0] - rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
+        rResult[3] = -(( 1.0 + rCoordinates[0] )
+                     *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
+                             - rCoordinates[0] + rCoordinates[1] + rCoordinates[2] ) ) / 8.0;    
+        rResult[4] = -(( 1.0 - rCoordinates[0] )
+                     *( 1.0 - rCoordinates[1] )*( 2.0
+                                            + rCoordinates[0] + rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;
+        rResult[5] = -(( 1.0 - rCoordinates[0] )
+                     *( 1.0 + rCoordinates[1] )*( 2.0
+                                            + rCoordinates[0] - rCoordinates[1] - rCoordinates[2] )*( 1.0 + rCoordinates[2] ) ) / 8.0;    
+        rResult[6] = -(( 1.0 - rCoordinates[0] )*( 1.0
+                                           + rCoordinates[1] )*( 1.0 - rCoordinates[2] )*( 2.0
+                                                   + rCoordinates[0] - rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
+        rResult[7] = -(( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )
+                     *( 1.0 - rCoordinates[2] )*( 2.0 + rCoordinates[0]
+                                            + rCoordinates[1] + rCoordinates[2] ) ) / 8.0;
+        rResult[8] = (( 1.0 + rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ) / 4.0 ;
+        rResult[9] = (( 1.0 + rCoordinates[0] )*( 1.0 + rCoordinates[1] )
+                    *( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
+        rResult[10] = (( 1.0 + rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;
+        rResult[11] = (( 1.0 + rCoordinates[0] )*( 1.0 - rCoordinates[1] )
+                    *( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
+        rResult[12] = (( 1.0 -rCoordinates[0]
+                      *rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ) / 4.0 ;
+        rResult[13] = (( 1.0 -rCoordinates[0]
+                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ) / 4.0 ;
+        rResult[14] = (( 1.0 -rCoordinates[0]
+                      *rCoordinates[0] )*( 1.0 + rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;    
+        rResult[15] = (( 1.0 -rCoordinates[0]*rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0;
+        rResult[16] = (( 1.0 -rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 + rCoordinates[2] ) ) / 4.0 ;
+        rResult[17] = (( 1.0 -rCoordinates[0] )*( 1.0 + rCoordinates[1] )
+                    *( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;
+        rResult[18] = (( 1.0 -rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1]*rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ) / 4.0 ;      
+        rResult[19] = (( 1.0 -rCoordinates[0] )
+                    *( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2]*rCoordinates[2] ) ) / 4.0 ;      
+        return rResult;
+    }
 
     /**
      * Input and output
