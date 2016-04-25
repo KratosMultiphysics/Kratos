@@ -157,7 +157,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
     else {
         const double volume = TBaseElement::CalculateVolume();
 
-        if (mDragForceType == 2){ // Weatherford
+        if (mBuoyancyForceType == 2 || mDragForceType == 2){ // Maxey-Riley form of buoyancy (minus the fluid acceleration term); Weatherford
             noalias(buoyancy) =  - gravity *  mFluidDensity * volume;
         }
 
@@ -202,7 +202,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
     else {
         const double volume                     = CalculateVolume();
         //const double delta_t_inv                = 1 / r_current_process_info[DELTA_TIME];
-        const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+        const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED);
         //const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 1));
         const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
         array_1d<double, 3> slip_acc;
@@ -232,7 +232,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
         virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
     }
 
-    noalias(virtual_mass_force) = virtual_mass_coeff * mFluidDensity * volume * slip_acc;
+    noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid
     }
 }
 
