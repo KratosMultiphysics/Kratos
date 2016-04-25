@@ -17,13 +17,13 @@ def Var_Translator(variable):
     else:
         variable = 1
 
-    return variable    
+    return variable
 
 
 class MdpaCreator(object):
 
     def __init__(self, path, DEM_parameters):
-        
+
         self.DEM_parameters = DEM_parameters
         self.current_path = path
 
@@ -42,7 +42,7 @@ class MdpaCreator(object):
         mdpa.write('//  VARIABLE_NAME value')
         mdpa.write('End ModelPartData'+'\n'+'\n'+'\n'+'\n')
         mdpa.write('Begin Nodes'+'\n')
-        
+
         for node in model_part.Nodes:
             mdpa.write(str(node.Id) + ' ' + str(node.X) + ' ' + str(node.Y) + ' ' + str(node.Z)+'\n')
         mdpa.write('End Nodes'+'\n'+'\n')
@@ -60,7 +60,7 @@ class MdpaCreator(object):
 
 
     def WriteVariableData(self, variable_name, mdpa, model_part):
-        
+
         mdpa.write('Begin NodalData '+str(variable_name)+'\n')
         for node in model_part.Nodes:
             mdpa.write(str(node.Id) + ' ' + str(0) + ' ' + str(node.GetSolutionStepValue(variable_name))+'\n')
@@ -78,7 +78,7 @@ class GranulometryUtils(object):
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
-        
+
         self.physics_calculator = SphericElementGlobalPhysicsCalculator(self.spheres_model_part)
         self.number_of_spheres  = self.spheres_model_part.NumberOfElements(0)
         self.solid_volume       = self.physics_calculator.CalculateTotalVolume(self.spheres_model_part)
@@ -93,7 +93,7 @@ class GranulometryUtils(object):
         self.global_porosity = self.voids_volume / domain_volume
 
     def PrintCurrentData(self):
-        
+
         print("number_of_spheres: ", self.number_of_spheres)
         print("solid volume: ", self.solid_volume)
         print("voids volume: ", self.voids_volume)
@@ -105,7 +105,7 @@ class GranulometryUtils(object):
 class PostUtils(object):
 
     def __init__(self, DEM_parameters, spheres_model_part):
-        
+
         self.DEM_parameters = DEM_parameters
         self.spheres_model_part = spheres_model_part
         self.post_utilities = PostUtilities()
@@ -115,16 +115,16 @@ class PostUtils(object):
         self.vel_trap_graph_frequency = int(self.dem_io.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
-        
+
         self.previous_vector_of_inner_nodes = []
         self.previous_time = 0.0;
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem, compute_flow):
 
         if (self.DEM_parameters.VelocityTrapOption):
-            
+
             self.vel_trap_graph_counter += 1
-            
+
             if (self.vel_trap_graph_counter == self.vel_trap_graph_frequency):
                 self.vel_trap_graph_counter = 0
                 average_velocity = Array3()
@@ -139,16 +139,16 @@ class PostUtils(object):
                 high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
 
                 average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
-                
+
                 if compute_flow == True:
                     vector_of_inner_nodes = []
                     for node in self.spheres_model_part.Nodes:
                         if (node.X > low_point[0]) & (node.Y > low_point[1]) & (node.Z > low_point[2]) & (node.X < high_point[0]) & (node.Y < high_point[1]) & (node.Z < high_point[2]) :
                             vector_of_inner_nodes.append(node)
-                            
+
                     crossing_spheres = 0
                     crossing_volume = 0.0
-                    
+
                     for node in vector_of_inner_nodes:
                         id_found = False
                         for previous_node in self.previous_vector_of_inner_nodes:
@@ -159,24 +159,24 @@ class PostUtils(object):
                             crossing_spheres = crossing_spheres + 1
                             radius = node.GetSolutionStepValue(RADIUS)
                             crossing_volume = crossing_volume + 4.0/3.0 * math.pi * radius*radius*radius
-                        
-                    time_between_measures = self.spheres_model_part.ProcessInfo.GetValue(TIME) - self.previous_time                
+
+                    time_between_measures = self.spheres_model_part.ProcessInfo.GetValue(TIME) - self.previous_time
                     number_of_spheres_flow = float(crossing_spheres) / time_between_measures
                     net_volume_flow = crossing_volume / time_between_measures
-                    
+
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
-                    
-                
+
+
                 f = open(file_name, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
                 if compute_flow == True:
-                    tmp = tmp + "   " + str(net_volume_flow)  + "   " + str(number_of_spheres_flow)             
-                tmp = tmp + "\n" 
-                
+                    tmp = tmp + "   " + str(net_volume_flow)  + "   " + str(number_of_spheres_flow)
+                tmp = tmp + "\n"
+
                 f.write(tmp)
                 f.flush()
-                
+
 
 class Procedures(object):
 
@@ -192,12 +192,14 @@ class Procedures(object):
         self.rotation_OPTION               = Var_Translator(self.DEM_parameters.RotationOption)
         self.bounding_box_OPTION           = Var_Translator(self.DEM_parameters.BoundingBoxOption)
         self.automatic_bounding_box_OPTION = Var_Translator(self.DEM_parameters.AutomaticBoundingBoxOption)
-        self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
+        self.contact_mesh_OPTION           = 0
+        if (hasattr(DEM_parameters, "contact_mesh_OPTION")):
+            self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
         self.arlequin                      = 0
         if (hasattr(DEM_parameters, "arlequin")):
             self.arlequin                    = Var_Translator(self.DEM_parameters.arlequin)
         #self.solver = solver
-        
+
         # SIMULATION SETTINGS
         self.b_box_minX = self.DEM_parameters.BoundingBoxMinX
         self.b_box_minY = self.DEM_parameters.BoundingBoxMinY
@@ -206,23 +208,23 @@ class Procedures(object):
         self.b_box_maxY = self.DEM_parameters.BoundingBoxMaxY
         self.b_box_maxZ = self.DEM_parameters.BoundingBoxMaxZ
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
-       
+
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
- 
+
     def AddCommonVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-                
+
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
-        # KINEMATIC        
+        # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION) #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)  #TODO: only if self.DEM_parameters.RotationOption! Check that no one accesses them in c++ without checking the rotation option
-         
+
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
@@ -245,7 +247,7 @@ class Procedures(object):
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-                
+
         # LOCAL AXIS
         if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
@@ -281,12 +283,12 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DEM_NODAL_AREA)
         model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
         model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
-        
+
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,self.DEM_parameters)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-    
-    def AddMappingVariables(self, model_part, DEM_parameters): 
+
+    def AddMappingVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(SOLUTION)
@@ -297,7 +299,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_1)
         model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_2)
         model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_3)
-     
+
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
@@ -305,14 +307,14 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
-        
+
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-        
+
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
-        model_part.AddNodalSolutionStepVariable(NODAL_MASS)     
+        model_part.AddNodalSolutionStepVariable(NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
         model_part.AddNodalSolutionStepVariable(RADIUS)
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
@@ -323,7 +325,7 @@ class Procedures(object):
         pass
 
     def ModelData(self, spheres_model_part, contact_model_part, solver):
-        
+
         # Previous Calculations.
         Model_Data = open('Model_Data.txt', 'w')
 
@@ -386,7 +388,7 @@ class Procedures(object):
         return Coordination_Number
 
     def MeasureBOT(self, solver):
-        
+
         tol = 2.0
         y_mean = 0.0
         counter = 0.0
@@ -400,7 +402,7 @@ class Procedures(object):
         return (y_mean, counter)
 
     def MeasureTOP(self, solver):
-        
+
         tol = 2.0
         y_mean = 0.0
         counter = 0.0
@@ -415,7 +417,7 @@ class Procedures(object):
         return (y_mean, counter)
 
     def MonitorPhysicalProperties(self, model_part, physics_calculator, properties_list):
-        
+
         # This function returns a list of arrays (also lists)
         # Each array contains the values of the physical properties at the current time
         time = model_part.ProcessInfo.GetValue(TIME)
@@ -497,15 +499,15 @@ class Procedures(object):
             # plt.ylabel(entries[i])
             # plt.title('Evolution of ' + entries[i] + ' in time')
             # plt.savefig(entries[i] + '.pdf')
-                
+
     def SetCustomSkin(self,spheres_model_part):
-    
+
         for element in spheres_model_part.Elements:
 
             x = element.GetNode(0).X
             y = element.GetNode(0).Y
             #z = element.GetNode(0).Z
-          
+
             if(x>21.1):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(x<1.25):
@@ -516,7 +518,7 @@ class Procedures(object):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
     def CreateDirectories(self, main_path, problem_name):
-        
+
         root             = os.path.join(main_path, problem_name)
         post_path        = root + '_Post_Files'
         data_and_results = root + '_Results_and_Data'
@@ -530,16 +532,16 @@ class Procedures(object):
         else:
             sys.exit("\nExecution was aborted.\n")
         '''
-        
+
         shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files'), ignore_errors = True)
         shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'    ), ignore_errors = True)
-                
+
         for directory in [post_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
                 os.makedirs(str(directory))
 
         return [post_path,data_and_results,graphs_path,MPI_results]
-    
+
     def FindMaxNodeIdInModelPart(self, model_part):
 
         maxid = 0
@@ -551,7 +553,7 @@ class Procedures(object):
         return maxid
 
     def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
-        
+
         b_box_low = Array3()
         b_box_high = Array3()
         b_box_low[0] = self.b_box_minX
@@ -560,22 +562,22 @@ class Procedures(object):
         b_box_high[0] = self.b_box_maxX
         b_box_high[1] = self.b_box_maxY
         b_box_high[2] = self.b_box_maxZ
-        
-               
+
+
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
-        
+
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
-                    
+
     def PreProcessModel(self, DEM_parameters):
         pass
 
     def KRATOSprint(self,message):
         print(message)
         sys.stdout.flush()
-        
-                
-# #~CHARLIE~# Aixo no ho entenc 
+
+
+# #~CHARLIE~# Aixo no ho entenc
 class DEMFEMProcedures(object):
 
     def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
@@ -588,7 +590,9 @@ class DEMFEMProcedures(object):
         # SIMULATION FLAGS
         self.rotation_OPTION     = Var_Translator(self.DEM_parameters.RotationOption)
         self.bounding_box_OPTION = Var_Translator(self.DEM_parameters.BoundingBoxOption)
-        self.contact_mesh_OPTION = Var_Translator(self.DEM_parameters.ContactMeshOption)
+        self.contact_mesh_OPTION           = 0
+        if (hasattr(DEM_parameters, "contact_mesh_OPTION")):
+            self.contact_mesh_OPTION           = Var_Translator(self.DEM_parameters.ContactMeshOption)
 
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
@@ -605,40 +609,40 @@ class DEMFEMProcedures(object):
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
         os.chdir(self.graphs_path)
         #self.graph_forces = open(self.DEM_parameters.problem_name +"_force_graph.grf", 'w')
-        
+
         def open_graph_files(self, RigidFace_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+                if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                     self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w')
                     self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("#time").rjust(12)+" "+str("total_force[0]").rjust(13)+" "+str("total_force[1]").rjust(13)+" "+str("total_force[2]").rjust(13)+" "+str("total_moment[0]").rjust(13)+" "+str("total_moment[1]").rjust(13)+" "+str("total_moment[2]").rjust(13)+"\n")
-                
-        self.graph_forces = {}  
-                                
+
+        self.graph_forces = {}
+
         def open_balls_graph_files(self, spheres_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+                if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                     self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
                     self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("#time").rjust(12)+" "+str("total_force_x").rjust(13)+" "+str("total_force_y").rjust(13)+" "+str("total_force_z").rjust(13)+" "+str("total_disp_y").rjust(13)+"\n")
 
         def evaluate_computation_of_fem_results():
-        
+
             self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 0)
             elastic_forces            = Var_Translator(self.DEM_parameters.PostElasticForces)
             tangential_elastic_forces = Var_Translator(self.DEM_parameters.PostTangentialElasticForces)
             dem_pressure              = Var_Translator(self.DEM_parameters.PostPressure)
             if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 contact_forces = 0
-            else:   
+            else:
                 contact_forces = Var_Translator(self.DEM_parameters.PostContactForces)
             if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 shear_stress = 0
-            else:   
+            else:
                 shear_stress = Var_Translator(self.DEM_parameters.PostShearStress)
             if not (hasattr(self.DEM_parameters, "PostContactForces")):
                 dem_nodal_area = 0
-            else:   
+            else:
                 dem_nodal_area = Var_Translator(self.DEM_parameters.PostNodalArea)
             integration_groups        = False
             if self.RigidFace_model_part.NumberOfMeshes() > 1:
@@ -648,16 +652,16 @@ class DEMFEMProcedures(object):
                         break
             if (elastic_forces or contact_forces or dem_pressure or tangential_elastic_forces or shear_stress or dem_nodal_area or integration_groups):
                 self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 1)
-        
-        self.particle_graph_forces = {}      
-               
-        if self.TestType == "None":  
-            open_graph_files(self, RigidFace_model_part)            
-            open_balls_graph_files(self,spheres_model_part)   
+
+        self.particle_graph_forces = {}
+
+        if self.TestType == "None":
+            open_graph_files(self, RigidFace_model_part)
+            open_balls_graph_files(self,spheres_model_part)
 
         # SIMULATION SETTINGS
         self.bounding_box_enlargement_factor = self.DEM_parameters.BoundingBoxEnlargementFactor
-        
+
         # MODEL
         self.domain_size = self.DEM_parameters.Dimension
         if (hasattr(self.DEM_parameters, "StressStrainOption")):
@@ -665,19 +669,19 @@ class DEMFEMProcedures(object):
         self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
 
         evaluate_computation_of_fem_results()
-                       
+
     def close_graph_files(self, RigidFace_model_part):
         for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-            if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+            if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                 self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
-                    
+
     def close_balls_graph_files(self, spheres_model_part):
         for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-            if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
-                self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].close()            
-    
+            if (self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].close()
+
     def MeasureForces(self):    # not used atm
-        
+
         if self.TestType == "None":
             if self.RigidFace_model_part.NumberOfMeshes() > 1:
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
@@ -697,31 +701,31 @@ class DEMFEMProcedures(object):
 
     def PrintGraph(self, time):
 
-        if self.DEM_parameters.TestType == "None":            
+        if self.DEM_parameters.TestType == "None":
             if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
                 if self.RigidFace_model_part.NumberOfMeshes() > 1:
-                    
+
                     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                         if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                             mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-                            
+
                             total_force = Array3()
 
                             total_force[0] = 0.0
                             total_force[1] = 0.0
                             total_force[2] = 0.0
-                            
+
                             total_moment = Array3()
 
                             total_moment[0] = 0.0
                             total_moment[1] = 0.0
                             total_moment[2] = 0.0
-                            
+
                             rotation_center = self.RigidFace_model_part.GetMesh(mesh_number)[ROTATION_CENTER]
-                            
+
                             PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
-                                                                                      
+
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+" "+str("%.6g"%total_moment[0]).rjust(13)+" "+str("%.6g"%total_moment[1]).rjust(13)+" "+str("%.6g"%total_moment[2]).rjust(13)+"\n")
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
 
@@ -731,17 +735,17 @@ class DEMFEMProcedures(object):
 
         if self.DEM_parameters.TestType == "None":
             self.close_graph_files(RigidFace_model_part)
-                    
+
     def PrintBallsGraph(self, time):
 
         if self.TestType == "None":
-            
+
             if (self.balls_graph_counter == self.graph_frequency):
                 self.balls_graph_counter = 0
-                
+
                 if self.spheres_model_part.NumberOfMeshes() > 1:
                     for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
-                 
+
                         if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                             self.mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
                             self.total_force_x = 0.0
@@ -763,12 +767,12 @@ class DEMFEMProcedures(object):
                             self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()
 
             self.balls_graph_counter += 1
-            
+
     def FinalizeBallsGraphs(self,spheres_model_part):
 
         if self.DEM_parameters.TestType == "None":
             self.close_balls_graph_files(spheres_model_part)
-                    
+
 
     def ApplyNodalRotation(self,time):
 
@@ -832,15 +836,15 @@ class DEMFEMProcedures(object):
                              node.Fix(VELOCITY_X)
                              node.Fix(VELOCITY_Y)
 
-           
+
     def ApplyMovementbySteps(self,time):
 
-                    
-            if (time < 0.001e-0 ) :    
-                
+
+            if (time < 0.001e-0 ) :
+
                 #while ( time < self.DEM_parameters.FinalTime):
                 #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            
+
                 vy = 0.1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
@@ -851,8 +855,8 @@ class DEMFEMProcedures(object):
                               node.SetSolutionStepValue(VELOCITY_Y, vy)
                               node.Fix(VELOCITY_Y)
 
-            if (time > 0.001e-0 ) and (time < 1e-1 ) :    
-                
+            if (time > 0.001e-0 ) and (time < 1e-1 ) :
+
                 vy = 10
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
@@ -863,8 +867,8 @@ class DEMFEMProcedures(object):
                               node.SetSolutionStepValue(VELOCITY_Y, vy)
                               node.Fix(VELOCITY_Y)
 
-            else :    
-                
+            else :
+
                 vy = 0.1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
@@ -896,31 +900,31 @@ class Report(object):
         return report
 
     def StepiReport(self, timer, time, step):
-        
+
         incremental_time = (timer.time() - self.initial_re_time) - self.prev_time
 
         report = ""
 
         if (incremental_time > self.control_time):
-        
+
             percentage = 100 * (float(step) / self.total_steps_expected)
 
             report = report + "Real time calculation: " + str(timer.time() - self.initial_re_time) + "\n"\
                 + "Simulation time: " + str(time) + "\n"\
                 + "%s %.5f %s"%("Percentage Completed: ", percentage,"%") + "\n"\
                 + "Time Step: " + str(step) + "\n"
-        
+
             self.prev_time  = (timer.time() - self.initial_re_time)
-        
+
         if ((timer.time() - self.initial_re_time > 60) and self.first_print == True and step != 0):
-            
+
             self.first_print = False
             estimated_sim_duration = 60.0 * (self.total_steps_expected / step) # seconds
 
             report = report + "The total estimated computation time is " + str(estimated_sim_duration) + " seconds" + "\n"\
                 + "In minutes: " + str(estimated_sim_duration / 60.0)    + " minutes" + "\n"\
                 + "In hours:   " + str(estimated_sim_duration / 3600.0)  + " hours" + "\n"\
-                + "In days:    " + str(estimated_sim_duration / 86400.0) + " days" + "\n" 
+                + "In days:    " + str(estimated_sim_duration / 86400.0) + " days" + "\n"
 
             if ((estimated_sim_duration / 86400.0) > 2.0):
                 report = report +"WARNING: VERY LONG CALCULATION......!!!!!!" + "\n"
@@ -952,7 +956,7 @@ class MaterialTest(object):
         if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()
- 
+
     def PrepareDataForGraph(self):
         if (self.TestType != "None"):
             self.script.PrepareDataForGraph()
@@ -960,7 +964,7 @@ class MaterialTest(object):
     def MeasureForcesAndPressure(self):
         if (self.TestType != "None"):
             self.script.MeasureForcesAndPressure()
-            
+
     def PrintGraph(self, time):
         if (self.TestType != "None"):
             self.script.PrintGraph(time)
@@ -968,17 +972,17 @@ class MaterialTest(object):
     def FinalizeGraphs(self):
         if (self.TestType != "None"):
             self.script.FinalizeGraphs()
-            
-            
-    def PrintChart(self):        
+
+
+    def PrintChart(self):
         if (self.TestType != "None"):
-            self.script.PrintChart()  
-            
-    def ApplyMovementbySteps(self, time):        
+            self.script.PrintChart()
+
+    def ApplyMovementbySteps(self, time):
         if (self.TestType != "None"):
             self.script.ApplyMovementbySteps(time)
-            
-            
+
+
 class MultifileList(object):
 
     def __init__(self,name,step):
@@ -1003,8 +1007,8 @@ class DEMIo(object):
         self.cluster_variables              = []
         self.contact_variables              = []
         self.multifilelists                 = []
-        
-        # Reading Post options from DEM_parameters  
+
+        # Reading Post options from DEM_parameters
         self.PostDisplacement             = getattr(self.DEM_parameters, "PostDisplacement", 0)
         self.PostVelocity                 = getattr(self.DEM_parameters, "PostVelocity", 0)
         self.PostTotalForces              = getattr(self.DEM_parameters, "PostTotalForces", 0)
@@ -1033,14 +1037,14 @@ class DEMIo(object):
         self.VelTrapGraphExportFreq       = getattr(self.DEM_parameters, "VelTrapGraphExportFreq", 0)
         self.PostTemperature              = getattr(self.DEM_parameters, "PostTemperature", 0)
         self.PostHeatFlux                 = getattr(self.DEM_parameters, "PostHeatFlux", 0)
-  
+
         if not (hasattr(self.DEM_parameters, "PostBoundingBox")):
             self.PostBoundingBox = 0
         else:
             self.PostBoundingBox = getattr(self.DEM_parameters, "PostBoundingBox", 0)
 
         self.continuum_element_types = ["SphericContPartDEMElement3D","CylinderContPartDEMElement2D"]
-  
+
     def PushPrintVar(self, variable, name, print_list):
         if (Var_Translator(variable)):
             print_list.append(name)
@@ -1049,13 +1053,13 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement,     DISPLACEMENT,                 self.global_variables)
         self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
-        
+
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,          self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,           self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.spheres_and_clusters_local_axis_variables)
-        
+
     def AddSpheresVariables(self):
         self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
@@ -1072,7 +1076,7 @@ class DEMIo(object):
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
-        
+
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
           if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
@@ -1086,7 +1090,7 @@ class DEMIo(object):
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
             self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
             #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
-    
+
     def AddArlequinVariables(self):
         self.PushPrintVar( 1, DISTANCE, self.global_variables)
         self.PushPrintVar( 1, BORDER, self.global_variables)
@@ -1097,7 +1101,7 @@ class DEMIo(object):
         self.PushPrintVar( 1, ALPHA_ARLEQUIN, self.global_variables)
         self.PushPrintVar( 1, NODAL_MASS, self.global_variables)
         self.PushPrintVar( 1, TOTAL_FORCES, self.global_variables)
-     
+
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostContactForces,            CONTACT_FORCES, self.fem_boundary_variables)
@@ -1108,16 +1112,16 @@ class DEMIo(object):
         if (Var_Translator(self.PostNonDimensionalVolumeWear)):
             self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
             self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
-        
+
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_1, self.mapping_variables)
         self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_2, self.mapping_variables)
         self.PushPrintVar( 1,                                               NODAL_MASS, self.mapping_variables)
         #self.PushPrintVar( 1,                                               TOTAL_FORCES, self.mapping_variables)
-        
+
     def AddClusterVariables(self):
         pass
-    
+
     def AddContactVariables(self):
         # Contact Elements Variables
         if (self.DEM_parameters.ElementType in self.continuum_element_types):
@@ -1152,9 +1156,9 @@ class DEMIo(object):
         self.write_conditions    = WriteConditionsFlag.WriteConditions
         self.contact_mesh_option = contact_mesh_option
 
-        self.gid_io = GidIO(self.problem_name, 
-                            self.encoding, 
-                            self.filesystem, 
+        self.gid_io = GidIO(self.problem_name,
+                            self.encoding,
+                            self.filesystem,
                             self.deformed_mesh_flag,
                             self.write_conditions)
 
@@ -1173,9 +1177,9 @@ class DEMIo(object):
 
     def PrintMultifileLists(self,time, post_path):
         for mfilelist in self.multifilelists:
-            
+
             if mfilelist.index == mfilelist.step:
-                
+
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
                     mfilelist.file.write(self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%time+".post.bin\n")
                 else:
@@ -1207,7 +1211,7 @@ class DEMIo(object):
             self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, cluster_model_part)
 
-            self.gid_io.InitializeMesh(0.0) 
+            self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteNodeMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh())         #MIQUEL MAPPING
@@ -1224,24 +1228,24 @@ class DEMIo(object):
             #self.gid_io.InitializeResults(0.0, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
     def InitializeResults(self, mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits): #MIQUEL MAPPING
-        
+
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
             mixed_spheres_and_clusters_model_part.Elements.clear()
             mixed_spheres_and_clusters_model_part.Nodes.clear()
-                                    
+
             self.post_utility.AddModelPartToModelPart(mixed_model_part, spheres_model_part)
-            if (self.contact_mesh_option == "ON"):                
+            if (self.contact_mesh_option == "ON"):
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, mapping_model_part) #MIQUEL MAPPING
-            
+
             self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_spheres_and_clusters_model_part, cluster_model_part)
 
-            self.gid_io.InitializeMesh(time) 
+            self.gid_io.InitializeMesh(time)
             if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
@@ -1250,7 +1254,7 @@ class DEMIo(object):
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9184
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
-                
+
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteNodeMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh()) #MSIMSI MIQUEL MAPPING
@@ -1258,8 +1262,8 @@ class DEMIo(object):
             if ((getattr(self.DEM_parameters, "BoundingBoxOption", 0) == "ON") and (time >= bounding_box_time_limits[0] and time <= bounding_box_time_limits[1])):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
-            
-            self.gid_io.FinalizeMesh()            
+
+            self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
             #self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
@@ -1269,7 +1273,7 @@ class DEMIo(object):
 
     def FinalizeResults(self):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
-            self.gid_io.FinalizeResults() 
+            self.gid_io.FinalizeResults()
 
     def PrintingGlobalVariables(self, export_model_part, time):
         for variable in self.global_variables:
@@ -1279,18 +1283,18 @@ class DEMIo(object):
         for variable in self.spheres_and_clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
         for variable in self.spheres_and_clusters_local_axis_variables:
-            self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)  
+            self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
 
     def PrintingSpheresVariables(self, export_model_part, time):
         for variable in self.spheres_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
         for variable in self.sphere_local_axis_variables:
-            self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)            
+            self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
 
     def PrintingFEMBoundaryVariables(self, export_model_part, time):
         for variable in self.fem_boundary_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-    
+
     def PrintingClusterVariables(self, export_model_part, time):
         for variable in self.cluster_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
@@ -1303,9 +1307,9 @@ class DEMIo(object):
     def PrintingMappingVariables(self, export_model_part, time):
         for variable in self.mapping_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-    
+
     #def PrintingArlequinVariables(self, export_model_part, time):
-    #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
+    #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)
 
     def PrintResults(self, mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
@@ -1339,27 +1343,27 @@ class DEMIo(object):
             self.FinalizeResults()
 
     def ComputeAndPrintBoundingBox(self, spheres_model_part, rigid_face_model_part, creator_destructor):
-        
+
         bounding_box_model_part = ModelPart("BoundingBoxPart") # Creation of bounding box's model part
-                            
+
         max_node_Id        = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id    = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
         max_element_Id     = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
         max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
-                                    
+
         if (max_FEM_node_Id > max_node_Id):
             max_node_Id = max_FEM_node_Id
-                
+
         if (max_FEM_element_Id > max_element_Id):
             max_element_Id = max_FEM_element_Id
-                       
+
         BBMaxX = creator_destructor.GetHighNode()[0]
         BBMaxY = creator_destructor.GetHighNode()[1]
         BBMaxZ = creator_destructor.GetHighNode()[2]
         BBMinX = creator_destructor.GetLowNode()[0]
         BBMinY = creator_destructor.GetLowNode()[1]
         BBMinZ = creator_destructor.GetLowNode()[2]
-            
+
         # BB Nodes:
         node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
         node2 = bounding_box_model_part.CreateNewNode(max_node_Id + 2, BBMaxX, BBMinY, BBMinZ)
@@ -1369,9 +1373,9 @@ class DEMIo(object):
         node6 = bounding_box_model_part.CreateNewNode(max_node_Id + 6, BBMaxX, BBMinY, BBMaxZ)
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
-           
+
         props = Properties(10000)
-        # BB Elements:                        
+        # BB Elements:
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  3, [node8.Id, node5.Id], props)
@@ -1384,22 +1388,22 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
-            
+
         if (self.PostBoundingBox):
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
 
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
-        
+
         bounding_box_model_part = ModelPart("BoundingBoxPart")
-    
+
         max_node_Id        = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id    = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
         max_element_Id     = ParticleCreatorDestructor().FindMaxElementIdInModelPart(spheres_model_part)
         max_FEM_element_Id = ParticleCreatorDestructor().FindMaxElementIdInModelPart(rigid_face_model_part)
-                            
+
         if (max_FEM_node_Id > max_node_Id):
             max_node_Id = max_FEM_node_Id
-        
+
         if (max_FEM_element_Id > max_element_Id):
             max_element_Id = max_FEM_element_Id
 
@@ -1409,11 +1413,11 @@ class DEMIo(object):
         BBMinX = dem_fem_search.GetBBLowPoint()[0]
         BBMinY = dem_fem_search.GetBBLowPoint()[1]
         BBMinZ = dem_fem_search.GetBBLowPoint()[2]
-        
+
         DX = (BBMaxX-BBMinX)
         DY = (BBMaxY-BBMinY)
         DZ = (BBMaxZ-BBMinZ)
-        
+
         #The cases with 0 thickness in one direction, a 10% of the shortest other two is given to the 0-thickness direction.
         if (DX == 0):
           height = min(DY,DZ)
@@ -1427,9 +1431,9 @@ class DEMIo(object):
           height = min(DX,DY)
           BBMinZ = BBMinZ - 0.05*height
           BBMaxZ = BBMaxZ + 0.05*height
-          
+
         volume = DX*DY*DZ
-                        
+
         if (abs(volume) > 1e21) :
           BBMaxX = 0.0
           BBMaxY = 0.0
@@ -1437,7 +1441,7 @@ class DEMIo(object):
           BBMinX = 0.0
           BBMinY = 0.0
           BBMinZ = 0.0
-        
+
         # BB Nodes:
         node1 = bounding_box_model_part.CreateNewNode(max_node_Id + 1, BBMinX, BBMinY, BBMinZ)
         node2 = bounding_box_model_part.CreateNewNode(max_node_Id + 2, BBMaxX, BBMinY, BBMinZ)
@@ -1447,8 +1451,8 @@ class DEMIo(object):
         node6 = bounding_box_model_part.CreateNewNode(max_node_Id + 6, BBMaxX, BBMinY, BBMaxZ)
         node7 = bounding_box_model_part.CreateNewNode(max_node_Id + 7, BBMaxX, BBMaxY, BBMaxZ)
         node8 = bounding_box_model_part.CreateNewNode(max_node_Id + 8, BBMinX, BBMaxY, BBMaxZ)
-    
-        # BB Elements:                        
+
+        # BB Elements:
         props = Properties(10000)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  1, [node1.Id, node4.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id +  2, [node4.Id, node8.Id], props)
@@ -1462,10 +1466,12 @@ class DEMIo(object):
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 10, [node2.Id, node3.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 11, [node3.Id, node7.Id], props)
         bounding_box_model_part.CreateNewCondition("RigidEdge3D", max_element_Id + 12, [node7.Id, node6.Id], props)
-    
+
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
         
-        
+
+
+
 class ParallelUtils(object):
 
     def __init__(self):
@@ -1482,5 +1488,3 @@ class ParallelUtils(object):
 
     def GetSearchStrategy(self, solver, model_part):
         return solver.search_strategy
-        
-        
