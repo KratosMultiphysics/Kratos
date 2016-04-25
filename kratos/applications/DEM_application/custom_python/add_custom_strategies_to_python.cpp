@@ -2,10 +2,10 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include <boost/timer.hpp>
 #include "spaces/ublas_space.h"
 
 // Project includes
@@ -47,7 +47,7 @@
 namespace Kratos
 {
     namespace Python
-    {   
+    {
         using namespace boost::python;
 
         void  AddCustomStrategiesToPython()
@@ -58,7 +58,7 @@ namespace Kratos
           typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
           typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
           //typedef Scheme< SparseSpaceType, LocalSpaceType >                             BaseSchemeType;
-          
+
           typedef OMP_DEMSearch                                                         OmpDemSearchType;
           typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
 
@@ -74,8 +74,8 @@ namespace Kratos
                     "ForwardEulerScheme", init<>()
                   )
                   ;
-                  
-          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable> 
+
+          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "SymplecticEulerScheme", init<>()
                   )
@@ -92,7 +92,7 @@ namespace Kratos
                     "VerletVelocityScheme", init<>()
                   )
                   ;
-                  
+
           class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>
           (
                     "TaylorScheme", init<>()
@@ -103,16 +103,17 @@ namespace Kratos
           (
                     "ConstAverageAccelerationScheme", init<>()
                   )
-                  ;                    
-        
+                  ;
+
           class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
                     ("OMP_DEMSearch", init<double, double, double>())
                     ;
 
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
+          typedef DistributedExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > DistributedExplicitSolverStrategyType;
           typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
-          
+
           class_< ExplicitSolverSettings, boost::noncopyable >
           (
             "ExplicitSolverSettings", init<>() )
@@ -122,7 +123,7 @@ namespace Kratos
           .def_readwrite("cluster_model_part",&ExplicitSolverSettings::cluster_model_part)
           .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
           ;
-          
+
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
           "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
@@ -131,23 +132,23 @@ namespace Kratos
                   .def("PrepareElementsForPrinting", &ExplicitSolverStrategyType::PrepareElementsForPrinting)
                   .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategyType::ResetPrescribedMotionFlagsRespectingImposedDofs)
           ;
-          
+
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
           "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                  .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)                  
+                  .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)
           ;
-         
+
           class_< IterativeSolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
           "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-          
+
           ;
-         
+
           class_< VerletVelocitySolverStrategy<ExplicitSolverStrategyType>, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
           "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                                         
+
           ;
 
           class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategyType>, bases< ContinuumExplicitSolverStrategyType >,  boost::noncopyable>
