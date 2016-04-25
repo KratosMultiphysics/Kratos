@@ -16,7 +16,6 @@
 #include "includes/variables.h"
 #include "spatial_containers/spatial_search.h"
 #include "GeometryFunctions.h"
-#include "DistributedContactUtilities.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
