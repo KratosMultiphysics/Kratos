@@ -6,7 +6,12 @@
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
+#include <stdint.h>
+#include <limits.h>
+#include <bitset>
+#include <string.h>
 #include "octree_binary.h"
+#include "octree_binary_cell.h"
 #include <assert.h>
 
 using namespace std;
@@ -21,14 +26,14 @@ const int OCTREE_MAX_LEVELS=30;//max number of levels for octree. This is to avo
 
 struct DataInsideOctreeCell
 {
-  char is_outer_cell;
+	char is_outer_cell;
+	int rank;
   //==0 means that the cell intersects triangles
   //==n>0 values indicate that the cell is outer, and it is n levels far from a 0 cell
   //==n<0 values indicate that the cell is inner, and it is abs(n) levels far from a 0 cell
   //GetRank and SetRank functions refer to the abs(is_outer_cell) value
 
 public:
-
   DataInsideOctreeCell();
   ~DataInsideOctreeCell();
 
@@ -93,19 +98,16 @@ public:
 
 class OctreeConfigure {
 public:
-
   enum {
     CHILDREN_NUMBER = 8,
     DIMENSION = 3,
     MAX_LEVEL = OCTREE_MAX_LEVELS,
     MIN_LEVEL = 2 // this cannot be less than 2!!! Pooyan
   };
-
   typedef DataInsideOctreeCell data_type;
   typedef double* point_coords;
   typedef Triangle* pointer_type;
-
-
+  
   static data_type* AllocateData() {
     return new data_type;
   }
@@ -138,6 +140,7 @@ typedef std::vector<OctreeCell*> OctreeCell_vector;
 struct OctreeDriver
 {
   Octree* octree_bin;
+  int *rank_leaves;
 public:
 
   OctreeDriver();
@@ -202,15 +205,19 @@ public:
     return ret;
   }
 
-  void GetCoordOctreePosition(const OctreeCell* cell,int ipos,double* coord_point) const;
-
-  double GetCoordinate(Octree::key_type key) const {return GetOctree()->GetCoordinateNormalized(key);}
-  double CalcSize(const OctreeCell* cell) const {return GetOctree()->CalcSizeNormalized(cell);}
-  void PrintMeshGiD();
-  void SubdivideCellsIntersected(const int n_levels,Triangle *tri, Octree *octree);
-  
-  
+	void GetCoordOctreePosition(const OctreeCell* cell,int ipos,double* coord_point) const;
+	double GetCoordinate(Octree::key_type key) const {return GetOctree()->GetCoordinateNormalized(key);}
+	double CalcSize(const OctreeCell* cell) const {return GetOctree()->CalcSizeNormalized(cell);}
+	void PrintMeshGiD(int rank);
+	void SubdivideCellsIntersected(const int n_levels,Triangle *tri, Octree *octree, int rank);
+	void AsignRankLeaves( Octree *octree, 	OctreeCell_vector leaves);
+	void BalanceOctreeMPI( Octree *octree,int rank);
 };
+size_t InvertKey(size_t key);
+size_t GetMortonKey(size_t key_x,size_t key_y,size_t key_z);
+void QuickSort(size_t *vec,int *position,int n);
+void Sort_Single(size_t *vec,int *position,int L_izq,int L_der);
+int GetRankLeaf(size_t *keys);
 
 
 //this vector indicate the position (in father) corresponding to the iposition in the linear positions in childs
@@ -251,4 +258,3 @@ const int aristes_cell_faces[6][8]=
   { 3,16,7,20,4,13,0,12 },//left face
   { 4,20,7,19,6,18,5,17 } //upper face
 };
-
