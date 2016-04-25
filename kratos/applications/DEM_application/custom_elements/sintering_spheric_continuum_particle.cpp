@@ -38,9 +38,9 @@ namespace Kratos
 
 	void SinteringSphericContinuumParticle::UpdatingNeighboursVector(ProcessInfo& r_process_info)
 	{
-		double h = 1;
-		double h1;
-		h1 = GetRadius() + 1;
+		//double h = 1;
+		//double h1;double
+		//h1 = GetRadius() + 1;
 	};
 
 	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(ProcessInfo& r_process_info)
@@ -67,7 +67,7 @@ namespace Kratos
 			double distance = DEM_MODULUS_3(other_to_me_vect);
 			double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
 			double initial_delta = radius_sum - distance;
-			int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
+			//int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
 
 			if (initial_delta > 0) {
 
@@ -171,14 +171,14 @@ namespace Kratos
 	}
 
 	void SinteringSphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-		array_1d<double, 3 > & rContactForce,
-		array_1d<double, 3>& rInitialRotaMoment,
-		ProcessInfo& r_process_info,
-		const double dt,
-		const bool multi_stage_RHS) {
+                                                                            array_1d<double, 3 > & rContactForce,
+                                                                            array_1d<double, 3>& rInitialRotaMoment,
+                                                                            ProcessInfo& r_process_info,
+                                                                            const double dt,
+                                                                            const bool multi_stage_RHS) {
 		KRATOS_TRY
 
-			const int time_steps = r_process_info[TIME_STEPS];
+                const int time_steps = r_process_info[TIME_STEPS];
 		const int& search_control = r_process_info[SEARCH_CONTROL];
 		vector<int>& search_control_vector = r_process_info[SEARCH_CONTROL_VECTOR];
 
@@ -186,12 +186,6 @@ namespace Kratos
 		const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
 		const array_1d<double, 3>& ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
-	//	if (this->Is(DEMFlags::IS_SINTERING))
-	//	{
-			
-	//	}
-
-		
 		for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 
 			if (mNeighbourElements[i] == NULL) continue;
@@ -208,10 +202,11 @@ namespace Kratos
 
 			double distance = DEM_MODULUS_3(other_to_me_vect);
 			double radius_sum = GetRadius() + other_radius;
+                        
 			double initial_delta = GetInitialDelta(i);
+            
 			double initial_dist = radius_sum - initial_delta;
 			double indentation = initial_dist - distance;
-			
 			double myYoung = GetYoung();
 			double myPoisson = GetPoisson();
 
@@ -236,7 +231,6 @@ namespace Kratos
 			else { equiv_poisson = 0.0; }
 
 			double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
-			double equiv_young_poisson = myYoung * other_young / (other_young * (1.0 - myPoisson * myPoisson) + myYoung * (1.0 - other_poisson * other_poisson));
 			double calculation_area = 0.0;
 
 	//		if (i < mContinuumInitialNeighborsSize && this->IsNot(DEMFlags::IS_SINTERING)) {
@@ -272,6 +266,8 @@ namespace Kratos
 			double ViscoDampingLocalContactForce[3] = { 0.0 };
 			double equiv_visco_damp_coeff_normal;
 			double equiv_visco_damp_coeff_tangential;
+            double ElasticLocalRotationalMoment[3] = {0.0};
+            double ViscoLocalRotationalMoment[3] = {0.0};
 
 			double LocalRelVel[3] = { 0.0 };
 			GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
@@ -287,9 +283,7 @@ namespace Kratos
 				int failure_id = mIniNeighbourFailureId[i];
 				penetration = radius_sum - distance;
 				sintering_displ = mOldNeighbourSinteringDisplacement[i];
-				//KRATOS_WATCH(this->Id());
-				//KRATOS_WATCH(neighbour_iterator->Id());		\\ The Neighbours Ids and rest datas are not ordered from 1 to mContinuumInitialNeighborsSize.
-				//KRATOS_WATCH(mContinuumInitialNeighborsSize);
+
 				if (this->Is(DEMFlags::IS_SINTERING))
 				{
 					mContinuumConstitutiveLawArray[i]->CalculateForcesOfSintering(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, rel_vel, penetration, 
@@ -315,7 +309,6 @@ namespace Kratos
 			double LocalContactForce[3] = { 0.0 };
 			double GlobalContactForce[3] = { 0.0 };
 
-
 			if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it. 
 				mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator);
 			}
@@ -334,11 +327,14 @@ namespace Kratos
 					ComputeMoments(LocalElasticContactForce[2], mNeighbourTotalContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
 					if (i < mContinuumInitialNeighborsSize) {
 						if (mIniNeighbourFailureId[i] == 0) {
-							mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area, LocalCoordSystem, mContactMoment);
+							mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
+                                                                                            LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
 						}
 					}
 				}
-			}
+                        }
+            
+                        AddUpMomentsAndProject(LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
 
 			if (r_process_info[CONTACT_MESH_OPTION] == 1 && (i < mContinuumInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
 				CalculateOnContactElements(i, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
