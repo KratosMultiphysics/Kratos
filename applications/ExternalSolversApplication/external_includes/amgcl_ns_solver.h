@@ -22,7 +22,11 @@
 // #include <amgcl/bicgstab.hpp>
 // #include <amgcl/cg.hpp>
 #include <amgcl/adapter/ublas.hpp>
+#include <amgcl/make_solver.hpp>
 #include <amgcl/runtime.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/relaxation/as_preconditioner.hpp>
+#include <amgcl/preconditioner/schur_complement.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
@@ -44,17 +48,6 @@ class AMGCL_NS_Solver : public LinearSolver< TSparseSpaceType,
     TDenseSpaceType, TReordererType>
 {
 public:
-    
-    struct pmask {
-        const std::vector<bool> &pm;
-
-        pmask(const std::vector<bool> &pm) : pm(pm) {}
-
-        bool operator()(size_t i) const {
-            return pm[i];
-        }
-    };
-
     /**
      * Counted pointer of AMGCL_NS_Solver
      */
@@ -67,81 +60,86 @@ public:
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    AMGCL_NS_Solver(AMGCLSmoother smoother,
-                AMGCLIterativeSolverType solver,
-                AMGCLCoarseningType coarsening,
-                double NewMaxTolerance,
-                int NewMaxIterationsNumber,
-                int verbosity,
-                int gmres_size = 50
-               )
+    AMGCL_NS_Solver(Parameters rParameters)
     {
-        mfallback_to_gmres = false;
-        std::cout << "setting up AMGCL for iterative solve " << std::endl;
-        mTol = NewMaxTolerance;
-        mmax_it = NewMaxIterationsNumber;
-        mverbosity=verbosity;
-        mndof = 1;
 
-        //choose smoother
-//         switch(smoother)
+        Parameters default_parameters( R"(
+                                   {
+                                       "solver_type" : "AMGCL_NS_Solver",
+                                       "velocity_block_preconditioner" : 
+                                       {
+                                           "tolerance" : 1e-3,
+                                           "precondioner_type" : "ilu0"
+                                       },
+                                       "pressure_block_preconditioner" : 
+                                       {
+                                           "tolerance" : 1e-1,
+                                           "precondioner_type" : "ilu0"
+                                       },
+                                       "tolerance" : 1e-9,
+                                       "smoother_type":"ilu0",
+                                       "krylov_type": "gmres",
+                                       "coarsening_type": "aggregation",
+                                       "max_iteration": 100,
+                                       "gmres_krylov_space_dimension": 100,
+                                       "verbosity" : 1,
+                                       "scaling": false,
+                                       "coarse_enough" : 5000
+                                   }  )" );
+
+
+        //now validate agains defaults -- this also ensures no type mismatch
+        rParameters.ValidateAndAssignDefaults(default_parameters);
+
+        std::stringstream msg;
+
+        //validate if values are admissible
+         std::set<std::string> available_preconditioners = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
+
+        //check velocity block settings
+        if(available_preconditioners.find(rParameters["velocity_block_preconditioner"]["precondioner_type"].GetString()) == available_preconditioners.end())
+        {
+            msg << "currently prescribed velocity_block_preconditioner precondioner_type : " << rParameters["velocity_block_preconditioner"]["smoother_type"].GetString() << std::endl;
+            msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
+            KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
+        }
+        
+        
+//         //check outer (Pressure Schur) settings
+//         if(available_solvers.find(rParameters["krylov_type"].GetString()) == available_solvers.end())
 //         {
-//         case SPAI0:
-//             mrelaxation = amgcl::runtime::relaxation::spai0;
-//             break;
-//         case ILU0:
-//             mrelaxation = amgcl::runtime::relaxation::ilu0;
-//             break;
-//         case DAMPED_JACOBI:
-//             mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
-//             break;
-//         case GAUSS_SEIDEL:
-//             mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
-//             break;
-//         case CHEBYSHEV:
-//             mrelaxation = amgcl::runtime::relaxation::chebyshev;
-//             break;
-//         };
-// 
-//         switch(solver)
-//         {
-//         case GMRES:
-//             miterative_solver = amgcl::runtime::solver::gmres;
-//             break;
-//         case BICGSTAB:
-//             miterative_solver = amgcl::runtime::solver::bicgstab;
-//             break;
-//         case CG:
-//             miterative_solver = amgcl::runtime::solver::cg;
-//             break;
-//         case BICGSTAB2:
-//             miterative_solver = amgcl::runtime::solver::bicgstabl;
-//             break;
-//         case BICGSTAB_WITH_GMRES_FALLBACK:
-//         {
-//             mfallback_to_gmres=true;
-//             miterative_solver = amgcl::runtime::solver::bicgstab;
-//             break;
+//             msg << "currently prescribed krylov_type : " << rParameters["krylov_type"].GetString() << std::endl;
+//             msg << "admissible values are : gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback"<< std::endl;
+//             KRATOS_THROW_ERROR(std::invalid_argument," krylov_type is invalid: available possibilities are : ",msg.str());
 //         }
-//         };
-// 
-//         switch(coarsening)
+//         if(available_coarsening.find(rParameters["coarsening_type"].GetString()) == available_coarsening.end())
 //         {
-//         case RUGE_STUBEN:
-//             mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
-//             break;
-//         case AGGREGATION:
-//             mcoarsening = amgcl::runtime::coarsening::aggregation;
-//             break;
-//         case SA:
-//             mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-//             break;
-//         case SA_EMIN:
-//             mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
-//             break;
-// 
-//         };
+//             msg << "currently prescribed krylov_type : " << rParameters["coarsening_type"].GetString() << std::endl;
+//             msg << "admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
+//             KRATOS_THROW_ERROR(std::invalid_argument," coarsening_type is invalid: available possibilities are : ",msg.str());
+//         }
 
+        mcoarse_enough = rParameters["coarse_enough"].GetInt();
+
+        mTol = rParameters["tolerance"].GetDouble();
+        mmax_it = rParameters["max_iteration"].GetInt();
+        mverbosity=rParameters["verbosity"].GetInt();
+        mgmres_size = rParameters["gmres_krylov_space_dimension"].GetInt();
+        mprm.put("solver.type", rParameters["krylov_type"].GetString());
+
+        mprm.put("precond.relaxation.type", rParameters["smoother_type"].GetString());
+        mprm.put("precond.coarsening.type",  rParameters["coarsening_type"].GetString());
+
+        mndof = 1; //this will be computed automatically later on
+        mprm.put("solver.M",  mgmres_size);
+        
+        //setting velocity solver options
+        mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
+        mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["precondioner_type"].GetString());
+        
+        //setting pressure solver options
+        mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
+        mprm.put("precond.psolver.precond", rParameters["pressure_block_preconditioner"]["precondioner_type"].GetString());
     }
 
     /**
@@ -159,45 +157,56 @@ public:
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        //set block size
-//         mprm.put("coarsening.aggr.eps_strong",0.0);
-//         //mprm.put("amg.coarsening.aggr.block_size",mndof);
-//         mprm.put("tol", mTol);
-//         mprm.put("maxiter", mmax_it);
-// 
-//         //construct the mask of pressure
-//         pmask pressure_mask(mp);
-// 
-//         typedef amgcl::preconditioner::simple<
-//             amgcl::backend::builtin<double>,
-//             amgcl::coarsening::smoothed_aggregation,
-//             amgcl::relaxation::spai0
-//             > PrecondType;
-//         typedef amgcl::solver::gmres< amgcl::backend::builtin<double> > SolverType;
-//         
-//         
-// 
-//         size_t iters;
-//         double resid;
-//         {
-//             //please do not remove this parenthesis!
-//             PrecondType P(amgcl::backend::map(rA), pressure_mask, mprm);
-//             SolverType  S(rA.size1(), mprm);
-//             boost::tie(iters, resid)  = S(P.system_matrix(), P, rB, rX);
-//         } //please do not remove this parenthesis!
-// 
-// 
-//         if(mverbosity > 0)
-//         {
-// 
-//             std::cout << "Iterations: " << iters << std::endl
-//                       << "Error: " << resid << std::endl
-//                       << std::endl;
-//         }
-// 
-         bool is_solved = true;
-//         if(resid > mTol)
-//             is_solved = false;
+        mprm.put("precond.coarsening.aggr.eps_strong",0.0);
+        mprm.put("precond.coarsening.aggr.block_size",mndof);
+        mprm.put("solver.tol", mTol);
+        mprm.put("solver.maxiter", mmax_it);
+        
+        mprm.put("precond.coarse_enough",mcoarse_enough/mndof);
+        
+        mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
+        mprm.put("precond.pmask_size", mp.size());
+        
+        typedef amgcl::backend::builtin<double> Backend;
+
+        typedef amgcl::make_solver<
+            amgcl::runtime::relaxation::as_preconditioner<Backend>,
+            amgcl::runtime::iterative_solver<Backend>
+            > USolver;
+
+        typedef amgcl::make_solver<
+            amgcl::runtime::amg<Backend>,
+            amgcl::runtime::iterative_solver<Backend>
+            > PSolver;
+            
+            
+            
+       size_t n = rA.size1();
+
+//         amgcl::make_solver<
+//             amgcl::preconditioner::schur_complement<USolver, PSolver>,
+//             amgcl::runtime::iterative_solver<Backend>
+//             > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
+        amgcl::make_solver<
+            amgcl::preconditioner::schur_complement<USolver, PSolver>,
+            amgcl::runtime::iterative_solver<Backend>
+            > solve(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() ), mprm);
+
+            
+        size_t iters;
+        double resid;
+        boost::tie(iters, resid) = solve(rB, rX);
+        
+        if(mverbosity > 0)
+        {
+            std::cout << "Iterations: " << iters << std::endl
+                      << "Error: " << resid << std::endl
+                      << std::endl;
+        }
+
+        bool is_solved = true;
+        if(resid > mTol)
+            is_solved = false;
 
         return is_solved;
     }
@@ -309,12 +318,9 @@ private:
     int mndof;
     unsigned int mgmres_size;
     bool mfallback_to_gmres;
-    std::vector< bool > mp;
+    std::vector< char > mp;
+    unsigned int mcoarse_enough;
 
-
-    amgcl::runtime::coarsening::type mcoarsening;
-    amgcl::runtime::relaxation::type mrelaxation;
-    amgcl::runtime::solver::type miterative_solver;
     boost::property_tree::ptree mprm;
 
     /**
