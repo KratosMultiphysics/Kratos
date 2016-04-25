@@ -25,9 +25,9 @@ def Alpha(n, j):
     if 0 < j and j < n:
         return 4. / 3 * ((j - 1) ** 1.5 + (j + 1) ** 1.5 - 2 * j ** 1.5)
     elif j == 0:
-       return 4. / 3
+        return 4. / 3
     else:
-       return 4. / 3 * ((n - 1) ** 1.5 - n ** 1.5 + 1.5 * math.sqrt(n))
+        return 4. / 3 * ((n - 1) ** 1.5 - n ** 1.5 + 1.5 * math.sqrt(n))
 
 def Beta(n, j):
     sqrt_2 = math.sqrt(2)
@@ -82,12 +82,12 @@ def Coefficient(order, n, j):
 
 def Daitche(order, times, f):
     sqrt_of_h = math.sqrt(times[-1] - times[-2])    
-    n = len(times) + 1
+    n = len(times)
     total = 0.0
     
-    for j in range(1 , n):
+    for j in range(0 , n):
         coefficient = Coefficient(order, n, j)
-        total += coefficient * f(times[-j])
+        total += coefficient * f(times[-j - 1])
     
     return sqrt_of_h * total
     
