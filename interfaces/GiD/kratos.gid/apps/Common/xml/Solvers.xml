@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Solvers>
+    <solver n="Default" pn="Default">
+        <inputs>
+        </inputs>
+    </solver>
     <solver n="Super_LU" pn="Super LU">
         <inputs>
             <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>

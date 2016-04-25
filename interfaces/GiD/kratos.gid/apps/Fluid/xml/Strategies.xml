@@ -32,7 +32,7 @@
               <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
 		<defaults>
-		  <solver n="Super_LU">
+		  <solver n="Default">
 			<!--Not ready yet-->
 			<!--<parameter n="verbosity" v="3"/>-->
 		  </solver>
@@ -43,7 +43,7 @@
         <filterFeatures>
         </filterFeatures>
 		<defaults>
-		  <solver n="Conjugate_gradient">
+		  <solver n="Default">
 			<!--Not ready yet-->
 			<!--<parameter n="verbosity" v="3"/>-->
 		  </solver>
@@ -95,6 +95,12 @@
 	      <filter field="symmetric" value="false"/>
               <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
+		<defaults>
+		  <solver n="Default">
+			<!--Not ready yet-->
+			<!--<parameter n="verbosity" v="3"/>-->
+		  </solver>
+		</defaults>
       </linearSolverItem>     
     </linearSolvers>
 	

@@ -628,24 +628,27 @@ proc write::getSolversParametersDict {} {
     set solStratUN  [apps::getCurrentUniqueName SolStrat]
     set solstratName [write::getValue $solStratUN]
     set sol [::Model::GetSolutionStrategy $solstratName]
+    set solverSettingsDict [dict create]
     foreach se [$sol getSolversEntries] {
         set solverEntryDict [dict create]
         set un [apps::getCurrentUniqueName "$solstratName[$se getName]"] 
         set solverName [write::getValue $un Solver]
-        dict set solverEntryDict solver_type $solverName
-          
-        foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
-            # JG temporal, para la precarga de combos
-            if {[$in getType] ni [list "bool" "integer" "double"]} {
-                set v ""
-                catch {set v [write::getValue $un $n]}
-                if {$v eq ""} {set v [write::getValue $un $n]}
-                dict set solverEntryDict $n $v
-            } {
-                dict set solverEntryDict $n [write::getValue $un $n]
+        if {$solverName ne "Default"} {
+            dict set solverEntryDict solver_type $solverName
+            #W "Solver Name $solverName"
+            foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
+                # JG temporal, para la precarga de combos
+                if {[$in getType] ni [list "bool" "integer" "double"]} {
+                    set v ""
+                    catch {set v [write::getValue $un $n]}
+                    if {$v eq ""} {set v [write::getValue $un $n]}
+                    dict set solverEntryDict $n $v
+                } {
+                    dict set solverEntryDict $n [write::getValue $un $n]
+                }
             }
+            dict set solverSettingsDict [$se getName] $solverEntryDict
         }
-        dict set solverSettingsDict [$se getName] $solverEntryDict
         unset solverEntryDict
     }
     return $solverSettingsDict
