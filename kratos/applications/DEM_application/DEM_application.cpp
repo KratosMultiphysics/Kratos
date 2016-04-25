@@ -114,175 +114,128 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, DAMAGE_FACTOR)
     KRATOS_CREATE_VARIABLE(double, SHEAR_ENERGY_COEF)        
     KRATOS_CREATE_VARIABLE(double, DONZE_G1)
-	KRATOS_CREATE_VARIABLE(double, DONZE_G2)
-	KRATOS_CREATE_VARIABLE(double, DONZE_G3)
-	KRATOS_CREATE_VARIABLE(double, DONZE_MAX_DEF)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_FAILURE)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_SIGMA)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_TAU)
-	KRATOS_CREATE_VARIABLE(double, FAILURE_CRITERION_STATE)
-	KRATOS_CREATE_VARIABLE(double, UNIDIMENSIONAL_DAMAGE)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_ORIENTATION)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_SIGMA_MIN)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_TAU_ZERO)
-	KRATOS_CREATE_VARIABLE(double, CONTACT_INTERNAL_FRICC)
-	KRATOS_CREATE_VARIABLE(double, LOW_POISSON_FORCE)
-	KRATOS_CREATE_VARIABLE(double, HIGH_POISSON_FORCE)
-	// *************** Continuum only END *************
+        KRATOS_CREATE_VARIABLE(double, DONZE_G2)
+        KRATOS_CREATE_VARIABLE(double, DONZE_G3)
+        KRATOS_CREATE_VARIABLE(double, DONZE_MAX_DEF)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_FAILURE)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_SIGMA)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_TAU)
+        KRATOS_CREATE_VARIABLE(double, FAILURE_CRITERION_STATE)
+        KRATOS_CREATE_VARIABLE(double, UNIDIMENSIONAL_DAMAGE)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_ORIENTATION)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_SIGMA_MIN)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_TAU_ZERO)
+        KRATOS_CREATE_VARIABLE(double, CONTACT_INTERNAL_FRICC)
+        KRATOS_CREATE_VARIABLE(double, LOW_POISSON_FORCE)
+        KRATOS_CREATE_VARIABLE(double, HIGH_POISSON_FORCE)
+        // *************** Continuum only END *************
 
-	// GEOMETRIC PARAMETERS
-	// *************** Continuum only BEGIN *************
-	KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
-	KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
-	KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
-	KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
-	KRATOS_CREATE_VARIABLE(Vector, PARTICLE_INITIAL_DELTA)
-	KRATOS_CREATE_VARIABLE(Vector, PARTICLE_CONTACT_DELTA)
-	// *************** Continuum only END ***************      
+        // GEOMETRIC PARAMETERS
+        // *************** Continuum only BEGIN *************
+        KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
+        KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
+        KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
+        KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
+        KRATOS_CREATE_VARIABLE(Vector, PARTICLE_INITIAL_DELTA)
+        KRATOS_CREATE_VARIABLE(Vector, PARTICLE_CONTACT_DELTA)
+        // *************** Continuum only END ***************      
 
-	//INLET PARAMETERS
-	KRATOS_CREATE_VARIABLE(double, INLET_START_TIME)
-	KRATOS_CREATE_VARIABLE(double, INLET_STOP_TIME)
-	KRATOS_CREATE_VARIABLE(double, INLET_NUMBER_OF_PARTICLES)
-	KRATOS_CREATE_VARIABLE(double, STANDARD_DEVIATION)
-	KRATOS_CREATE_VARIABLE(double, MAX_RAND_DEVIATION_ANGLE)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
+        //INLET PARAMETERS
+        KRATOS_CREATE_VARIABLE(double, INLET_START_TIME)
+        KRATOS_CREATE_VARIABLE(double, INLET_STOP_TIME)
+        KRATOS_CREATE_VARIABLE(double, INLET_NUMBER_OF_PARTICLES)
+        KRATOS_CREATE_VARIABLE(double, STANDARD_DEVIATION)
+        KRATOS_CREATE_VARIABLE(double, MAX_RAND_DEVIATION_ANGLE)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
 
-	// KINEMATICS
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_ROTATION_ANGLE)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EULER_ANGLES)
-	KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
-	KRATOS_CREATE_VARIABLE(double, VELOCITY_START_TIME)
-	KRATOS_CREATE_VARIABLE(double, VELOCITY_STOP_TIME)
-	KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_START_TIME)
-	KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_STOP_TIME)
-	KRATOS_CREATE_VARIABLE(int, RIGID_BODY_MOTION)
+        // KINEMATICS
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_ROTATION_ANGLE)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EULER_ANGLES)
+        KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
+        KRATOS_CREATE_VARIABLE(double, VELOCITY_START_TIME)
+        KRATOS_CREATE_VARIABLE(double, VELOCITY_STOP_TIME)
+        KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_START_TIME)
+        KRATOS_CREATE_VARIABLE(double, ANGULAR_VELOCITY_STOP_TIME)
+        KRATOS_CREATE_VARIABLE(int, RIGID_BODY_MOTION)
 
-	// FORCE AND MOMENTUM
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TOTAL_FORCES)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAX_ROTA_MOMENT)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTACT_FORCES)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_ELEMENT_FORCE)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TANGENTIAL_ELASTIC_FORCES)
-	KRATOS_CREATE_VARIABLE(double, DEM_PRESSURE)
-	KRATOS_CREATE_VARIABLE(double, DEM_NODAL_AREA)
+        // FORCE AND MOMENTUM
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TOTAL_FORCES)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_MOMENT)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAX_ROTA_MOMENT)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONTACT_FORCES)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_ELEMENT_FORCE)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TANGENTIAL_ELASTIC_FORCES)
+        KRATOS_CREATE_VARIABLE(double, DEM_PRESSURE)
+        KRATOS_CREATE_VARIABLE(double, DEM_NODAL_AREA)
 
-	// ENERGY
-	KRATOS_CREATE_VARIABLE(double, PARTICLE_ELASTIC_ENERGY)
-	KRATOS_CREATE_VARIABLE(double, PARTICLE_KINEMATIC_ENERGY)
-	KRATOS_CREATE_VARIABLE(double, PARTICLE_GRAVITATIONAL_ENERGY)
-	KRATOS_CREATE_VARIABLE(double, PARTICLE_INELASTIC_VISCODAMPING_ENERGY)
-	KRATOS_CREATE_VARIABLE(double, PARTICLE_INELASTIC_FRICTIONAL_WORK)
-	KRATOS_CREATE_VARIABLE(int, COMPUTE_ENERGY_OPTION)
+        // ENERGY
+        KRATOS_CREATE_VARIABLE(double, PARTICLE_ELASTIC_ENERGY)
+        KRATOS_CREATE_VARIABLE(double, PARTICLE_KINEMATIC_ENERGY)
+        KRATOS_CREATE_VARIABLE(double, PARTICLE_GRAVITATIONAL_ENERGY)
+        KRATOS_CREATE_VARIABLE(double, PARTICLE_INELASTIC_VISCODAMPING_ENERGY)
+        KRATOS_CREATE_VARIABLE(double, PARTICLE_INELASTIC_FRICTIONAL_WORK)
+        KRATOS_CREATE_VARIABLE(int, COMPUTE_ENERGY_OPTION)
 
-	// *************** Continuum only BEGIN *************
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INITIAL_ROTA_MOMENT)
-	KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FORCE)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_FORCE)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
-	KRATOS_CREATE_VARIABLE(VectorArray3Double, PARTICLE_CONTACT_FORCES)
+        // *************** Continuum only BEGIN *************
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INITIAL_ROTA_MOMENT)
+        KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FORCE)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_APPLIED_FORCE)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE)
+        KRATOS_CREATE_VARIABLE(VectorArray3Double, PARTICLE_CONTACT_FORCES)
 
-	// CONCRETE TEST
-	KRATOS_CREATE_VARIABLE(double, FIXED_VEL_TOP)
-	KRATOS_CREATE_VARIABLE(double, FIXED_VEL_BOT)
-	KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_TAPA)
-	KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_CENTRE)
+        // CONCRETE TEST
+        KRATOS_CREATE_VARIABLE(double, FIXED_VEL_TOP)
+        KRATOS_CREATE_VARIABLE(double, FIXED_VEL_BOT)
+        KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_TAPA)
+        KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_CENTRE)
 
-	// TENSION
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XX)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XY)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XZ)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_YX)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_YY)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_YZ)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_ZX)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_ZY)
-	KRATOS_CREATE_VARIABLE(double, DEM_STRESS_ZZ)
-	// *************** Continuum only END *************
+        // TENSION
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XX)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XY)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XZ)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_YX)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_YY)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_YZ)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_ZX)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_ZY)
+        KRATOS_CREATE_VARIABLE(double, DEM_STRESS_ZZ)
+        // *************** Continuum only END *************
 
-	// Possible future blocks (no FEM) interaction
-	KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FAILURE_ID)
-	KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_IF_INITIAL_CONTACT)
-	KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
-	KRATOS_CREATE_VARIABLE(WeakPointerVector<Condition >, NEIGHBOUR_RIGID_FACES)
-	KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_PRAM)
-	KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
-	KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)
-	KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
-	KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SINTERING, 1);
+        // Possible future blocks (no FEM) interaction
+        KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FAILURE_ID)
+        KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_IF_INITIAL_CONTACT)
+        KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
+        KRATOS_CREATE_VARIABLE(WeakPointerVector<Condition >, NEIGHBOUR_RIGID_FACES)
+        KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_PRAM)
+        KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
+        KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)
+        KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
+        
 
 
     // DUMMY INT AND DOUBLE VARIABLES
     KRATOS_CREATE_VARIABLE(int, DUMMY_SWITCH)
-	KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
+    KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
   
-  // *************** Thermal only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, HEATFLUX)
-  KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
-  // *************** Thermal only END ***************  
+    // *************** Thermal only BEGIN *************
+    KRATOS_CREATE_VARIABLE(double, HEATFLUX)
+    KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
+    // *************** Thermal only END ***************  
 
     // EXPORTS
     KRATOS_CREATE_VARIABLE(double, EXPORT_PARTICLE_FAILURE_ID)
     KRATOS_CREATE_VARIABLE(double, EXPORT_ID)
     KRATOS_CREATE_VARIABLE(int,    PRINT_EXPORT_ID)
 
-
-  /************************************************************************************************************************************************************/
-  /************************************************************************************************************************************************************/
-
     //For DEM_FEM element
     KRATOS_CREATE_VARIABLE(double, LOCAL_DAMP_RATIO)        
     //  For DEM_FEM condition
     //  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_RESIDUAL )
     //  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
-  //ELEMENTS
-    
-  KratosDEMApplication::KratosDEMApplication():
-  mCylinderParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mCylinderContinuumParticle2D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mSinteringSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-  mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-  mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-  mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-  mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-  mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-  mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mLineCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mCubeCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mRingCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mCuboidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mCornKernelCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mCorn3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mSoyBeanCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mRock1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mRock2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))), 
-  mWheat5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mBallast1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mBallast2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mBallast3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mBallast4Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),        
-  mBallast5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mBallast6Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-  mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
-  {}
-    
-  void KratosDEMApplication::Register()
-  {
-    // Calling base class register to register Kratos components
 
     // DUMMY VARIABLES FOR CALCULATE
     KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA)
@@ -325,6 +278,7 @@ namespace Kratos
 
     //FLAGS
     KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROTATION, 0);
+    KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SINTERING, 1);
     KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROLLING_FRICTION, 2);
     KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_CRITICAL_TIME, 4);
     KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_X, 5);
@@ -336,16 +290,6 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG(DEMFlags, BELONGS_TO_A_CLUSTER, 11);
     KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_STRESS_TENSOR, 12);
 
-    KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
-
-    // *************** Thermal only BEGIN *************
-    KRATOS_CREATE_VARIABLE(double, HEATFLUX)
-    KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
-    // *************** Thermal only END ***************   
-
-    /************************************************************************************************************************************************************/
-    /************************************************************************************************************************************************************/
-
     //ELEMENTS
 
     KratosDEMApplication::KratosDEMApplication():
@@ -356,6 +300,7 @@ namespace Kratos
     mSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSinteringSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -521,30 +466,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(PARTICLE_INITIAL_DELTA)
         KRATOS_REGISTER_VARIABLE(PARTICLE_CONTACT_DELTA)
 
-    //FOR RECAREY FORMULAE
-    KRATOS_REGISTER_VARIABLE(TOTAL_CONTACT_DISTANCES)
-            
-    // ELEMENTS
-    KRATOS_REGISTER_ELEMENT("CylinderParticle2D", mCylinderParticle2D)
-    KRATOS_REGISTER_ELEMENT("CylinderContinuumParticle2D", mCylinderContinuumParticle2D)
-    KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
-    KRATOS_REGISTER_ELEMENT("NanoParticle3D", mNanoParticle3D)
-    KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)
-	KRATOS_REGISTER_ELEMENT("SinteringSphericContinuumParticle3D", mSinteringSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)		
-	
-    KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
-    KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
-    KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
-    KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
-    KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
-    KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
-    KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
-    KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
-
-
         // *************** Continuum only END ***************
 
         // INLET PARAMETERS
@@ -629,7 +550,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
         KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES)
         KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES_PRAM)
-        KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTICLE_OF_RIGID_FACE)	
+        KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTICLE_OF_RIGID_FACE)      
         KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)
         KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
 
@@ -697,7 +618,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
         KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
         KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)
-        KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)		
+        KRATOS_REGISTER_ELEMENT("SinteringSphericContinuumParticle3D", mSinteringSphericContinuumParticle3D)
+        KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)              
 
         KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
         KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
