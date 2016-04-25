@@ -24,7 +24,6 @@
 // Search
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/bins_dynamic.h"
-#include "custom_utilities/bins_object_dynamics_utils.h" //msimsi
 
 // External includes
 //#define CUSTOMTIMER
@@ -346,6 +345,7 @@ class DEM_FEM_Search : public SpatialSearch
 
     KRATOS_CATCH("")
   }
+
 
   array_1d<double, 3 > GetBBHighPoint() {
     return (mGlobal_BB_HighPoint);
