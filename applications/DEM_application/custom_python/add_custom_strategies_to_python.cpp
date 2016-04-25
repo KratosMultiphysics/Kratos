@@ -111,7 +111,6 @@ namespace Kratos
 
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
-          typedef DistributedExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > DistributedExplicitSolverStrategyType;
           typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
 
           class_< ExplicitSolverSettings, boost::noncopyable >
