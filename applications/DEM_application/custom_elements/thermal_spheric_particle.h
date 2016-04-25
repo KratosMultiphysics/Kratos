@@ -53,7 +53,10 @@ namespace Kratos
       using TBaseElement::GetProperties;
       using TBaseElement::mNeighbourElements;
       using TBaseElement::GetRadius;
+      using TBaseElement::SetRadius;
       using TBaseElement::GetMass;
+      using TBaseElement::GetValue;
+      using TBaseElement::SetValue;
 
       /// Default constructor. 
       ThermalSphericParticle():TBaseElement(){};
