@@ -24,6 +24,7 @@
 // Search
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/bins_dynamic.h"
+#include "custom_utilities/bins_object_dynamics_utils.h" //msimsi
 
 // External includes
 //#define CUSTOMTIMER
@@ -99,9 +100,9 @@ class DEM_FEM_Search : public SpatialSearch
 
       /// Default constructor.
       DEM_FEM_Search(){
-        
+
         mBins = NULL;
-        
+
       }
 
       /// Destructor.
@@ -111,7 +112,6 @@ class DEM_FEM_Search : public SpatialSearch
   void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
       ElementsContainerType   const& rElements,
       ConditionsContainerType const& rConditions,
-      const RadiusArrayType & r_vector_of_radii,
       VectorResultConditionsContainerType& rResults,
       VectorDistanceType& rResultsDistance)
     {
@@ -170,27 +170,27 @@ class DEM_FEM_Search : public SpatialSearch
       typedef ConditionsContainerType::ContainerType::iterator Cond_iter;
 
       //2. CALCULATE THE DEM BBX
-    
-      #pragma omp parallel 
-      {                
+
+      #pragma omp parallel
+      {
         double radius = 0.0;
         int k = OpenMPUtils::ThisThread();
-      
+
         for(std::size_t i = 0; i < 3; i++) {
             Vector_DEM_BB_LowPoint[k][i]  = inf;
             Vector_DEM_BB_HighPoint[k][i] = -inf;
         }
-            
-        #pragma omp for 
+
+        #pragma omp for
         for (int p = 0; p <(int) elements_sear.size(); p++) {
-          
+
             Elem_iter it = elements_sear.begin() + p;
             GeometryType& pGeometry = (*it)->GetGeometry();
             const array_1d<double, 3 >& aux_coor = pGeometry[0].Coordinates();
-            
+
             SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
-            radius = p_particle->GetSearchRadius();
-            //radius                  = r_vector_of_radii[p];
+            radius = p_particle->GetSearchRadiusWithFem();
+
             Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
 
             for(std::size_t i = 0; i < 3; i++) {
@@ -200,7 +200,7 @@ class DEM_FEM_Search : public SpatialSearch
           } //pragma
       }//pragma parallel
 
-      
+
       //3. GATHER DEM BOUNDING BOX
       for(int k = 0; k < num_of_threads; k++) {
         for(std::size_t i = 0; i < 3; i++) {
@@ -219,7 +219,7 @@ class DEM_FEM_Search : public SpatialSearch
 
        //4. FIND THE FE INSIDE DEM_BB TO BUILD THE BINS AND CONSTRUCT THE GLOBAL BBX
 
-      #pragma omp parallel 
+      #pragma omp parallel
       {
         int k = OpenMPUtils::ThisThread();
         Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].reserve(total_fem_partition_index[k+1]);
@@ -234,9 +234,9 @@ class DEM_FEM_Search : public SpatialSearch
 
         #pragma omp for private(rHighPoint,rLowPoint)
         for (int c = 0; c < (int)conditions_bins.size(); c++) {
-        
+
           Cond_iter it = conditions_bins.begin() + c;
-        
+
           const GeometryType& pGeometry = (*it)->GetGeometry();
           noalias(rLowPoint)  = pGeometry[0];
           noalias(rHighPoint) = pGeometry[0];
@@ -265,9 +265,9 @@ class DEM_FEM_Search : public SpatialSearch
             Vector_BinsConditionPointerToGeometricalObjecPointerTemporalVector[k].push_back(*it);
           }
         }//parallel for
-        
+
       }//parallel omp
-        
+
       //5. GATHER FEM ELEMENTS AND THE GLOBAL BBX
       int fem_total_size = 0;
       for(int k = 0; k < num_of_threads; k++) {
@@ -295,8 +295,8 @@ class DEM_FEM_Search : public SpatialSearch
 
       //if (mBins) free(mBins);
       delete mBins;
-      mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());       
-      
+      mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());
+
       //7. PERFORM THE SEARCH ON THE SPHERES
       #pragma omp parallel 
       {
@@ -306,43 +306,42 @@ class DEM_FEM_Search : public SpatialSearch
 
         #pragma omp for schedule(dynamic, 100)
         for (int p = 0; p < (int)elements_sear.size(); p++) {
-         
+
           Elem_iter it = elements_sear.begin() + p;
-                  
+
             GeometricalObject::Pointer go_it(*it);
             bool search_particle = true;
 
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
-            
+
             SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
-            double Rad = p_particle->GetSearchRadius();
-            //double Rad = r_vector_of_radii[p];
+            double Rad = p_particle->GetSearchRadiusWithFem();
 
             for(unsigned int i = 0; i < 3; i++ ) {
               search_particle &= !(aux_coor[i]  < (mGlobal_BB_LowPoint[i] - Rad) ) || (aux_coor[i]  > (mGlobal_BB_HighPoint[i] + Rad) ); //amplify the BBX with the radius for every particle
             }
 
             if(search_particle) {
-              
+
               GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
               DistanceType::iterator                           ResultsDistancesPointer = localResultsDistances.begin();
 
               NumberOfResults = (*mBins).SearchObjectsInRadiusExclusive(go_it,Rad,ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
 
               rResults[p].reserve(NumberOfResults);
-              
+
               for(GeometricalObjectType::ContainerType::iterator c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
                   Condition::Pointer condition = boost::dynamic_pointer_cast<Condition>(*c_it);
                   rResults[p].push_back(condition);
               }
-              
-              rResultsDistance[p].insert(rResultsDistance[p].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+
+              rResultsDistance[p].insert(rResultsDistance[p].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
 
             }
-          
+
           } //loop elements
         } //parallel
-        
+
     }//if Bins is not empty--> search
 
     KRATOS_CATCH("")
