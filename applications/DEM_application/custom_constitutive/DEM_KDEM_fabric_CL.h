@@ -35,7 +35,7 @@ namespace Kratos {
         void AddPoissonContribution(const double equiv_poisson, 
                                     double LocalCoordSystem[3][3], 
                                     double& normal_force, 
-                                    double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2);
+                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2);
 
     private:
 
