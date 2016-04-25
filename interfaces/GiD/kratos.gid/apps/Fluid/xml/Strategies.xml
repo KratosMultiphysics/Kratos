@@ -31,11 +31,23 @@
 	      <filter field="symmetric" value="false"/>
               <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
+		<defaults>
+		  <solver n="Super_LU">
+			<!--Not ready yet-->
+			<!--<parameter n="verbosity" v="3"/>-->
+		  </solver>
+		</defaults>
       </linearSolverItem>
 	  
       <linearSolverItem n="pressure_linear_solver_settings" pn="Pressure linear solver" >
         <filterFeatures>
         </filterFeatures>
+		<defaults>
+		  <solver n="Conjugate_gradient">
+			<!--Not ready yet-->
+			<!--<parameter n="verbosity" v="3"/>-->
+		  </solver>
+		</defaults>
       </linearSolverItem> 
     </linearSolvers>
 	

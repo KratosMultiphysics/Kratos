@@ -442,8 +442,8 @@ proc spdAux::injectSolvers {basenode} {
             set help [$se getHelp]
             set un [apps::getCurrentUniqueName "$stn$n"]
             set container "<container help=\"$help\" n=\"$n\" pn=\"$pn\" un=\"$un\" state=\"\[SolverEntryState\]\" solstratname=\"$stn\" >"
-            
-            append container "<value n=\"Solver\" pn=\"Solver\" v=\"\" values=\"\[GetSolvers\]\" actualize=\"1\" update_proc=\"Updateme\"/>"
+            set defsolver [lindex [$se getDefaultSolvers] 0]
+            append container "<value n=\"Solver\" pn=\"Solver\" v=\"$defsolver\" values=\"\[GetSolvers\]\" actualize=\"1\" update_proc=\"Updateme\"/>"
             #append container "<dependencies node=\"../value\" actualize=\"1\"/>"
             #append container "</value>"
             append container $paramsnodes
