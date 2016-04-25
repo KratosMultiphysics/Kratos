@@ -821,7 +821,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
         DEMWall* wall = rNeighbours[i];
         if(wall == NULL) continue;
-        size_t FE_size = wall->GetGeometry().size();
 
         double LocalElasticContactForce[3]       = {0.0};
         double GlobalElasticContactForce[3]      = {0.0};
@@ -903,8 +902,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                                                                      previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);
 
             }
-
-            const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
