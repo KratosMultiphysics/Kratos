@@ -137,19 +137,8 @@ class DEMIo(DEM_procedures.DEMIo):
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name + "_" + str(mpi.rank))
 
-    def PrintMultifileLists(self,time, post_path):
-        for mfilelist in self.multifilelists:
-            
-            if mfilelist.index == mfilelist.step:
-                
-                if (self.encoding == GiDPostMode.GiD_PostBinary):
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.bin\n")
-                else:
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.msh\n")
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.res\n")
-                mfilelist.file.flush()
-                mfilelist.index = 0
-            mfilelist.index += 1
+    def GetMultiFileListName(self, name):
+        return name + "_" + str(mpi.rank)            
 
 
 class ParallelUtils(DEM_procedures.ParallelUtils):
