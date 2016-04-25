@@ -38,6 +38,13 @@ solver.ImportModelPart()
 ###add AddDofs
 solver.AddDofs()
 
+# initialize GiD  I/O
+from gid_output_process import GiDOutputProcess
+gid_output = GiDOutputProcess(solver.GetComputeModelPart(),
+                              ProjectParameters["problem_data"]["problem_name"].GetString() ,
+                              ProjectParameters["output_configuration"])
+
+gid_output.ExecuteInitialize()
 
 ##here all of the allocation of the strategies etc is done
 solver.Initialize()
@@ -70,21 +77,8 @@ for process in list_of_processes:
 fluid_model_part = solver.GetComputeModelPart()
 
 
-# initialize GiD  I/O
-from gid_output import GiDOutput
-output_settings = ProjectParameters["output_configuration"]
-gid_io = GiDOutput(output_settings["output_file_name"].GetString(),
-                   output_settings["volume_output"].GetBool(),
-                   output_settings["gidpost_flags"]["GiDPostMode"].GetString(),
-                   output_settings["gidpost_flags"]["MultiFileFlag"].GetString(),
-                   output_settings["gidpost_flags"]["WriteMeshFlag"].GetBool(),
-                   output_settings["gidpost_flags"]["WriteConditionsFlag"].GetBool())
-output_time = output_settings["gidpost_flags"]["gid_write_frequency"].GetDouble()
 
-gid_io.initialize_results(fluid_model_part)
-
-
-
+gid_output.ExecuteBeforeSolutionLoop()
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
 
@@ -109,7 +103,11 @@ while(time <= end_time):
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
         
+        gid_output.ExecuteInitializeSolutionStep()
+        
         solver.Solve()
+        
+        gid_output.ExecuteFinalizeSolutionStep()
         
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -118,29 +116,15 @@ while(time <= end_time):
         for process in list_of_processes:
             process.ExecuteBeforeOutputStep()
     
-        if(output_time <= out):
-            #TODO: following lines shall not be needed once the gid_io is adapted to using the parameters
-            nodal_results = []
-            for i in range(output_settings["nodal_results"].size()):
-                nodal_results.append(output_settings["nodal_results"][i].GetString())
-            gauss_points_results = []
-            for i in range(output_settings["gauss_points_results"].size()):
-                gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
-                
-            gid_io.write_results(
-                time,
-                fluid_model_part,
-                nodal_results,
-                gauss_points_results)
-            out = 0
-        
+        if gid_output.IsOutputStep():
+            gid_output.PrintOutput()
         
         for process in list_of_processes:
             process.ExecuteAfterOutputStep()
 
         out = out + Dt
 
-gid_io.finalize_results()
+gid_output.ExecuteFinalize()
 
 for process in list_of_processes:
     process.ExecuteFinalize()
