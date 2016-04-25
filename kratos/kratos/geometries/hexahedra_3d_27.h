@@ -752,7 +752,61 @@ public:
         return 0;
     }
 
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
 
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    {
+      if(rResult.size() != 27) rResult.resize(27,false);
+      
+        double fx1 = 0.5 * ( rCoordinates[0] - 1.0 ) * ( rCoordinates[0] );
+        double fx2 = 0.5 * ( rCoordinates[0] + 1.0 ) * ( rCoordinates[0] );
+        double fx3 = 1.0 - ( rCoordinates[0] * rCoordinates[0] );
+        double fy1 = 0.5 * ( rCoordinates[1] - 1.0 ) * ( rCoordinates[1] );
+        double fy2 = 0.5 * ( rCoordinates[1] + 1.0 ) * ( rCoordinates[1] );
+        double fy3 = 1.0 - ( rCoordinates[1] * rCoordinates[1] );
+        double fz1 = 0.5 * ( rCoordinates[2] - 1.0 ) * ( rCoordinates[2] );
+        double fz2 = 0.5 * ( rCoordinates[2] + 1.0 ) * ( rCoordinates[2] );
+        double fz3 = 1.0 - ( rCoordinates[2] * rCoordinates[2] );
+      
+        rResult[0] = ( fx1*fy1*fz1 );
+        rResult[1] = ( fx2*fy1*fz1 );
+        rResult[2] = ( fx2*fy2*fz1 );
+        rResult[3] = ( fx1*fy2*fz1 );
+        rResult[4] = ( fx1*fy1*fz2 );
+        rResult[5] = ( fx2*fy1*fz2 );
+        rResult[6] = ( fx2*fy2*fz2 );
+        rResult[7] = ( fx1*fy2*fz2 );
+        rResult[8] = ( fx3*fy1*fz1 );
+        rResult[9] = ( fx2*fy3*fz1 );
+        rResult[10] = ( fx3*fy2*fz1 );
+        rResult[11] = ( fx1*fy3*fz1 );
+        rResult[12] = ( fx1*fy1*fz3 );
+        rResult[13] = ( fx2*fy1*fz3 );
+        rResult[14] = ( fx2*fy2*fz3 );
+        rResult[15] = ( fx1*fy2*fz3 );
+        rResult[16] = ( fx3*fy1*fz2 );
+        rResult[17] = ( fx2*fy3*fz2 );
+        rResult[18] = ( fx3*fy2*fz2 );
+        rResult[19] = ( fx1*fy3*fz2 );
+        rResult[20] = ( fx3*fy3*fz1 );
+        rResult[21] = ( fx3*fy1*fz3 );
+        rResult[22] = ( fx2*fy3*fz3 );
+        rResult[23] = ( fx3*fy2*fz3 );
+        rResult[24] = ( fx1*fy3*fz3 );
+        rResult[25] = ( fx3*fy3*fz2 );
+        rResult[26] = ( fx3*fy3*fz3 );
+
+        return rResult;
+    }
     /**
      * Input and output
      */
