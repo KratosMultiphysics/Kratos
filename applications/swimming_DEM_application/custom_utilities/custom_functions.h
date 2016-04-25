@@ -320,7 +320,9 @@ void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1
             stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
             const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
             convective_contributions_to_the_derivative[id_to_position[inode->Id()]][j] = DEM_INNER_PRODUCT_3(velocity, stored_gradient_of_component_j);
+            stored_gradient_of_component_j = ZeroVector(3);
         }
+
     }
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
