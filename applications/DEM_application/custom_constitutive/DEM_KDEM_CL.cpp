@@ -184,14 +184,14 @@ namespace Kratos {
         KRATOS_TRY       
         
         if (indentation >= 0.0) { //COMPRESSION
-            LocalElasticContactForce[2] = kn_el * indentation;          
+            LocalElasticContactForce[2] = kn_el * indentation;  
         }
         else { //tension   
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {  
                 double mTensionLimit = 0.5 * 1e6 * (element1->GetProperties()[CONTACT_SIGMA_MIN] + element2->GetProperties()[CONTACT_SIGMA_MIN]); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
-                LocalElasticContactForce[2] = kn_el * indentation;
+                LocalElasticContactForce[2] = kn_el * indentation;;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {          
                     failure_type = 4; //tension failure
                     LocalElasticContactForce[2] = 0.0;
