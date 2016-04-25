@@ -434,7 +434,7 @@ public:
        Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
        Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
        Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
-       double Radius                    = rObj_1->GetSearchRadius(); //MSI: in the Distributed utilities GetRadius is used instead
+       double Radius                    = rObj_1->GetSearchRadius(); 
 
        const GeometryType& FE_Geom = rObj_2->GetGeometry();
        unsigned int FE_size = FE_Geom.size();
@@ -525,7 +525,7 @@ public:
       Particle_Coord[0]                = DE_Geom[0].Coordinates()[0];
       Particle_Coord[1]                = DE_Geom[0].Coordinates()[1];
       Particle_Coord[2]                = DE_Geom[0].Coordinates()[2];
-      double Radius                    = rObj_1->GetSearchRadius(); //MSI: in the Distributed utilities GetRadius is used instead
+      double Radius                    = rObj_1->GetSearchRadius(); 
 
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
