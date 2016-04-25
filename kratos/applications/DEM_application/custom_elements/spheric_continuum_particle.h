@@ -79,6 +79,7 @@ namespace Kratos
         std::vector<int> mIniNeighbourIds;
         std::vector<int> mIniNeighbourFailureId;
         std::vector<double> mIniNeighbourDelta;
+
         
         unsigned int mContinuumInitialNeighborsSize;
         unsigned int mInitialNeighborsSize;

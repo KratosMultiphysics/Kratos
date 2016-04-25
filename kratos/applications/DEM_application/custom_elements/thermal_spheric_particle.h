@@ -69,7 +69,8 @@ namespace Kratos
       virtual ~ThermalSphericParticle(){};
        
     
-      double GetTemperature();     
+      double& GetTemperature();   
+	  double& GetPreviousTemperature();
       void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
       void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
       void CalculateRightHandSide(ProcessInfo& r_current_process_info,
@@ -78,6 +79,11 @@ namespace Kratos
                                   int search_control);  
       void FinalizeSolutionStep(ProcessInfo& r_process_info); 
       void UpdateTemperature(const ProcessInfo& r_process_info); 
+	  void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
+	  void UpdateTemperatureDependentRadii(const ProcessInfo& r_process_info, ThermalSphericParticle<SphericContinuumParticle>* element1,
+		  ThermalSphericParticle<SphericContinuumParticle>* element2);
+	  void UpdateNormalRelativeVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalRelVel, ThermalSphericParticle<SphericContinuumParticle>* element1, 
+		  ThermalSphericParticle<SphericContinuumParticle>* element2);
           
     
       /// Turn back information as a string.
@@ -103,7 +109,8 @@ namespace Kratos
         double mTemperature;
         double mConductiveHeatFlux;
         double mThermalConductivity;
-        double mSpecificHeat;       
+        double mSpecificHeat;   
+		double mPrevTemperature;
     
 
     private:

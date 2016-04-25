@@ -57,7 +57,7 @@ virtual void CalculateRightHandSide(ProcessInfo& r_process_info, double dt, cons
 virtual void FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt, int search_control);
 virtual void CollectCalculateRightHandSide(ProcessInfo& r_process_info);
 virtual void FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
-virtual void InitializeForceComputation();
+virtual void InitializeForceComputation(ProcessInfo& r_process_info);
 virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info);
 virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info);
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);

@@ -26,6 +26,7 @@
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/thermal_spheric_particle.h"
+#include "custom_elements/sintering_spheric_continuum_particle.h"
 #include "custom_elements/custom_clusters/linecluster3D.h"
 #include "custom_elements/custom_clusters/cubecluster3D.h"
 #include "custom_elements/custom_clusters/pillcluster3D.h"
@@ -112,6 +113,7 @@ private:
     const SphericContinuumParticle mSphericContinuumParticle3D; 
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;  
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;  
+	const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
     const ParticleContactElement mParticleContactElement;
     const VariablesList mVariablesList;
     const SolidFace3D  mSolidFace3D3N;
