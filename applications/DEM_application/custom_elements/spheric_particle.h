@@ -19,6 +19,7 @@
 #include "includes/kratos_export_api.h"
 //#include "../kratos_DEMApplication_export_dll.h"
 #include "../custom_utilities/properties_proxies.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -71,14 +72,15 @@ virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
-virtual void ComputeConditionRelativeData(DEMWall* const wall, 
-                                            double LocalCoordSystem[3][3], 
-                                            double& DistPToB, 
-                                            array_1d<double, 4> Weight,  
+virtual void ComputeConditionRelativeData(DEMWall* const wall,
+                                            double LocalCoordSystem[3][3],
+                                            double& DistPToB,
+                                            array_1d<double, 4> Weight,
                                             array_1d<double, 3>& wall_delta_disp_at_contact_point,
                                             array_1d<double, 3>& wall_velocity_at_contact_point,
                                             int& ContactType
                                             );
+virtual void RenewContactPoint( array_1d<double, 3>& node_coordinates,int i_neigh, double Normal[3],double DistPToB);
 int   GetClusterId();
 void  SetClusterId(const int Id);
 
@@ -88,7 +90,9 @@ virtual double CalculateVolume();
 virtual double GetInteractionRadius();
 virtual void SetInteractionRadius(const double radius);
 virtual double GetSearchRadius();
+virtual double GetSearchRadiusWithFem();
 virtual void SetSearchRadius(const double radius);
+virtual void SetSearchRadiusWithFem(const double radius);
 virtual double GetMass();
 virtual void   SetMass(double real_mass);
 virtual double   CalculateMomentOfInertia();
@@ -140,7 +144,7 @@ buffer << "SphericParticle" ;
 return buffer.str();
 }
 
-/// Print information about this object. 
+/// Print information about this object.
 virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericParticle";}
 
 /// Print object's data.
@@ -292,6 +296,7 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
 double mRadius;
 double mSearchRadius;
+double mSearchRadiusWithFem;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
@@ -349,5 +354,3 @@ return rOStream;
 }  // namespace Kratos.
 
 #endif // KRATOS_SPHERIC_PARTICLE_H_INCLUDED  defined
-
-
