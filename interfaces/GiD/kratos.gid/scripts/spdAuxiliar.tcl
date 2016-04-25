@@ -708,6 +708,18 @@ proc spdAux::injectElementOutputs { basenode } {
     $basenode delete
 }
 
+proc spdAux::injectNodalConditionsOutputs { basenode } {
+    set parts [$basenode parent]
+    set nodal_conditions [::Model::getAllNodalConditions]
+    foreach n [dict keys $nodal_conditions] {
+        set nc [dict get $nodal_conditions $n]
+        set pn [$nc getPublicName]
+        set node "<value n=\"$n\" pn=\"$pn\" v=\"Yes\" values=\"Yes,No\" />"
+        catch {$parts appendXML $node}
+    }
+    $basenode delete
+}
+
 proc spdAux::GetBooleanForTree {raw} {
     set goodList [list "Yes" "1" "yes" "ok" "YES" "Ok" "True" "TRUE" "true"]
     if {$raw in $goodList} {return "Yes" } {return "No"}

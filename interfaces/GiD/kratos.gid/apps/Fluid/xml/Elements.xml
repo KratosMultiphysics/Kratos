@@ -16,8 +16,8 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY" pn="Initial Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="PRESSURE" pn="Initial Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -41,8 +41,8 @@
 	</ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY" pn="Initial Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="PRESSURE" pn="Initial Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -66,8 +66,8 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY" pn="Initial Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="PRESSURE" pn="Initial Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
@@ -91,8 +91,8 @@
 	</ConstitutiveLaw_FilterFeatures>
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY" pn="Initial Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="PRESSURE" pn="Initial Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
+      <NodalCondition n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa" reaction=""/>
     </NodalConditions>
     <inputs>
     </inputs>
