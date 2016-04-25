@@ -741,7 +741,7 @@ private:
             area += DetJ0 * IntegrationWeight;
         }
 
-        if( std::abs(area - reference_area)/reference_area < 1e-15)
+        if( std::abs(area - reference_area)/reference_area < 1e-13)
         {
             error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " Area Calculation Test: OK "  << std::endl;
             return true;
