@@ -156,6 +156,7 @@ virtual void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighbour
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
+std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
 std::vector<array_1d<double, 4> > mContactConditionWeights;
 std::vector<int>                  mContactConditionContactTypes;
