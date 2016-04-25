@@ -1013,6 +1013,10 @@ void Project(Element::Pointer p_elem,
         InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
     }
 
+    else if (*r_destination_variable == MATERIAL_FLUID_ACCEL_PROJECTED){
+        Interpolate(p_elem, N, p_node, MATERIAL_ACCELERATION, MATERIAL_FLUID_ACCEL_PROJECTED);
+    }
+
     else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
         InterpolateShearRate(p_elem, N, p_node, SHEAR_RATE_PROJECTED);
     }
@@ -1077,6 +1081,10 @@ void Project(Element::Pointer p_elem,
 
     else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
         InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
+    }
+
+    else if (*r_destination_variable == MATERIAL_FLUID_ACCEL_PROJECTED){
+        Interpolate(p_elem, N, p_node, MATERIAL_ACCELERATION, MATERIAL_FLUID_ACCEL_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
