@@ -210,8 +210,8 @@ namespace Kratos
 			double myYoung = GetYoung();
 			double myPoisson = GetPoisson();
 
-			double kn_el;
-			double kt_el;
+			double kn_el = 0.0;
+			double kt_el = 0.0;
 			double DeltDisp[3] = { 0.0 };
 			double RelVel[3] = { 0.0 };
 			double LocalCoordSystem[3][3] = { { 0.0 },{ 0.0 },{ 0.0 } };
