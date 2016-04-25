@@ -270,11 +270,13 @@ def ConstructSolver(configuration):
                 
             linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(
                 amgcl_smoother, amgcl_krylov_type, amgcl_coarsening_type, tol, max_it, verbosity, m, provide_coordinates)
-
-
+            
         else: ##construction by parameters
             linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(params)
-            
+
+    elif(solver_type == "AMGCL_NS_Solver"):
+        import KratosMultiphysics.ExternalSolversApplication
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCL_NS_Solver(params)
     #
     elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
         import KratosMultiphysics.MKLSolversApplication
