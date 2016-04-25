@@ -270,6 +270,7 @@ void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1
     std::cout << "Constructing the Material derivative by derivating nodal averages...\n";
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
+    double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         noalias(inode->FastGetSolutionStepValue(material_derivative_container)) = ZeroVector(3);
@@ -327,7 +328,7 @@ void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         const array_1d <double, 3>& stored_convective_contribution = convective_contributions_to_the_derivative[id_to_position[inode->Id()]];
-        const array_1d <double, 3>& eulerian_rate_of_change = inode->FastGetSolutionStepValue(vector_container_rate);
+        const array_1d <double, 3>& eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(VELOCITY, 1));
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
         material_derivative = eulerian_rate_of_change + stored_convective_contribution;
     }
