@@ -191,7 +191,7 @@ namespace Kratos {
             if (failure_type == 0) {  
                 double mTensionLimit = 0.5 * 1e6 * (element1->GetProperties()[CONTACT_SIGMA_MIN] + element2->GetProperties()[CONTACT_SIGMA_MIN]); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
-                LocalElasticContactForce[2] = kn_el * indentation;;
+                LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {          
                     failure_type = 4; //tension failure
                     LocalElasticContactForce[2] = 0.0;
@@ -354,7 +354,7 @@ namespace Kratos {
     }//ComputeParticleRotationalMoments
     
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, 
-                                          double calculation_area, Matrix* mSymmStressTensor, SphericParticle* element1, SphericParticle* element2) {
+                                          double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
         double force[3];
         Matrix average_stress_tensor = ZeroMatrix(3,3);
         

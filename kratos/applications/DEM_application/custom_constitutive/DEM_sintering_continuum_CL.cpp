@@ -84,9 +84,9 @@ namespace Kratos {
 			double atomic_volume = element1->GetProperties()[ATOMIC_VOLUME];
 			double surface_energy = element1->GetProperties()[SURFACE_ENERGY];
 
-			double relaxation_time = element1->GetProperties()[RELAXATION_TIME];
-			double large_visco_coeff = element1->GetProperties()[LARGE_VISCOSITY_COEFFICIENT];
-			double thermal_alpha = element1->GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+			//double relaxation_time = element1->GetProperties()[RELAXATION_TIME];
+			//double large_visco_coeff = element1->GetProperties()[LARGE_VISCOSITY_COEFFICIENT];
+			//double thermal_alpha = element1->GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
 			double pre_Dgb = element1->GetProperties()[PRE_EXP_DIFFUSION_COEFFICIENT];
 			double gb_width = element1->GetProperties()[GB_WIDTH];
 			double enth_activ = element1->GetProperties()[ENTHAPLY_ACTIVATION];
@@ -322,7 +322,7 @@ namespace Kratos {
 
 		const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
 		const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-		const double equiv_shear = 1.0 / ((2.0 - my_poisson) / my_shear_modulus + (2.0 - other_poisson) / other_shear_modulus);
+		//const double equiv_shear = 1.0 / ((2.0 - my_poisson) / my_shear_modulus + (2.0 - other_poisson) / other_shear_modulus);
 
 		//Normal and Tangent elastic constants
 		const double sqrt_equiv_radius = sqrt(equiv_radius);
