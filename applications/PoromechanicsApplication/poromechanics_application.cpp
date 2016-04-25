@@ -45,13 +45,13 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication():
     mUPwSmallStrainElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
     mUPwSmallStrainElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
 
-    //mUPwSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
-    //mUPwSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
-    //mUPwSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
+    mUPwSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
+    mUPwSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
 
-    //mUPwSmallStrainLinkInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
-    //mUPwSmallStrainLinkInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
-    //mUPwSmallStrainLinkInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
+    mUPwSmallStrainLinkInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwSmallStrainLinkInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
+    mUPwSmallStrainLinkInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
 
     //TODO
     //mUPwSmallStrainFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
@@ -79,10 +79,10 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication():
     mUPwNormalFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwNormalFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
 
-    //mUPwFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
-    //mUPwFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
-    //mUPwNormalFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
-    //mUPwNormalFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwFaceLoadInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwFaceLoadInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
+    mUPwNormalFluxInterfaceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
+    mUPwNormalFluxInterfaceCondition3D4N( 0, Condition::GeometryType::Pointer( new QuadrilateralInterface3D4 <Node<3> >( Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwNormalFluxFICCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwNormalFluxFICCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType(3)))),
@@ -115,13 +115,13 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D4N", mUPwSmallStrainElement3D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement3D8N", mUPwSmallStrainElement3D8N )
     
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N )
 
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement2D4N", mUPwSmallStrainLinkInterfaceElement2D4N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement2D4N", mUPwSmallStrainLinkInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N )
     
     //TODO
     //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N )
@@ -149,10 +149,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N )
     
-    //KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
-    //KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
-    //KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N )
-    //KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition3D4N", mUPwNormalFluxInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition2D2N", mUPwNormalFluxInterfaceCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "UPwNormalFluxInterfaceCondition3D4N", mUPwNormalFluxInterfaceCondition3D4N )
     
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition2D2N", mUPwNormalFluxFICCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxFICCondition3D3N", mUPwNormalFluxFICCondition3D3N )

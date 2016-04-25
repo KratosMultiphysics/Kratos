@@ -45,9 +45,9 @@ namespace Kratos
 
 KratosDamApplication::KratosDamApplication():
 
-    //mSmallDisplacementInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
-    //mSmallDisplacementInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
-    //mSmallDisplacementInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
+    mSmallDisplacementInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
+    mSmallDisplacementInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
+    mSmallDisplacementInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
 
     mSmallDisplacementThermoMechanicElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
     mSmallDisplacementThermoMechanicElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
@@ -70,9 +70,9 @@ void KratosDamApplication::Register()
     std::cout << "Initializing KratosDamApplication... " << std::endl;
 
     //Register Elements
-    //KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement2D4N", mSmallDisplacementInterfaceElement2D4N )
-    //KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D6N", mSmallDisplacementInterfaceElement3D6N )
-    //KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D8N", mSmallDisplacementInterfaceElement3D8N )  
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement2D4N", mSmallDisplacementInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D6N", mSmallDisplacementInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementInterfaceElement3D8N", mSmallDisplacementInterfaceElement3D8N )  
     
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D3N", mSmallDisplacementThermoMechanicElement2D3N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementThermoMechanicElement2D4N", mSmallDisplacementThermoMechanicElement2D4N )
