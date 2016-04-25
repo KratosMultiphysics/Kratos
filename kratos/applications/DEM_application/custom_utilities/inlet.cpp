@@ -273,7 +273,7 @@ namespace Kratos {
 
             if (r_modelpart.GetProcessInfo()[TIME] < mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME]) continue;
             
-            int mesh_size_elements = mesh_it->NumberOfElements();
+            const int mesh_size_elements = mesh_it->NumberOfElements();
             
             ModelPart::ElementsContainerType::ContainerType all_elements = mesh_it->ElementsArray();
                         
@@ -286,13 +286,17 @@ namespace Kratos {
                 mLayerRemoved[mesh_number] = true;
                 continue;
             }                        
-                        
+
+            int total_mesh_size_accross_mpi_processes = mesh_size_elements; //temporary value until reduction is done
+            r_modelpart.GetCommunicator().SumAll(total_mesh_size_accross_mpi_processes);
+            const double this_mpi_process_portion_of_inlet_mesh = (double) mesh_size_elements / (double) total_mesh_size_accross_mpi_processes;
             double num_part_surface_time = mInletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES];
-            double delta_t = current_time - mLastInjectionTimes[mesh_number - 1]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
+            num_part_surface_time *= this_mpi_process_portion_of_inlet_mesh;
+            const double delta_t = current_time - mLastInjectionTimes[mesh_number - 1]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0; //inlet_surface, this should probably be projected to velocity vector
             
             //calculate number of particles to insert from input data
-            double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[mesh_number - 1];
+            const double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + mPartialParticleToInsert[mesh_number - 1];
             int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
             mPartialParticleToInsert[mesh_number - 1] = double_number_of_particles_to_insert - number_of_particles_to_insert;
             
@@ -341,7 +345,7 @@ namespace Kratos {
                 const double angular_velocity_stop_time = (*mesh_it)[ANGULAR_VELOCITY_STOP_TIME];
                 const double angular_period = (*mesh_it)[ANGULAR_VELOCITY_PERIOD];
                 array_1d<double, 3> angular_velocity_changed;
-                double time = r_modelpart.GetProcessInfo()[TIME];
+                const double time = r_modelpart.GetProcessInfo()[TIME];
                 array_1d<double, 3> new_axes1;
                 array_1d<double, 3> new_axes2;
                 array_1d<double, 3> new_axes3;
