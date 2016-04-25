@@ -18,10 +18,18 @@ oo::class create Solver {
 catch {SolverEntry destroy}
 oo::class create SolverEntry {
     superclass Entity
+    variable listofdefaults
+    variable defaultvalues
     
     constructor {n} {
+        variable listofdefaults
+        variable defaultvalues
         next $n
+        set listofdefaults [list ]
+        set defaultvalues [dict create]
     }
+    method addDefaultSolver {solname} {variable listofdefaults; lappend listofdefaults $solname}
+    method getDefaultSolvers {} {variable listofdefaults; return $listofdefaults}
 }
 }
 
@@ -47,17 +55,14 @@ proc Model::ParseSolverNode { node } {
     
     set sl [::Model::Solver new $name]
     $sl setPublicName [$node getAttribute pn]
-    
     foreach attr [$node attributes] {
         $sl setAttribute $attr [$node getAttribute $attr]
     }
-    
     foreach in [[$node getElementsByTagName inputs] getElementsByTagName parameter] {
         set sl [ParseInputParamNode $sl $in]
     }
     return $sl
 }
-
 
 proc Model::ParseSolverEntry {st sen} {
     set n [$sen @n]
@@ -67,6 +72,13 @@ proc Model::ParseSolverEntry {st sen} {
     $se setPublicName $pn
     foreach f [$sen getElementsByTagName filter] {
         $se addAttribute [$f @field] [$f @value]    
+    }
+    set defnodes [$sen selectNodes "./defaults/solver"]
+    if {$defnodes ne ""} {
+        foreach defnode $defnodes {
+            set defsolname [$defnode @n]
+            $se addDefaultSolver $defsolname
+        }
     }
     $st addSolverEntry $se
     

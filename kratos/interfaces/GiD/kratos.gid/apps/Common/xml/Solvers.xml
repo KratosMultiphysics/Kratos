@@ -19,8 +19,8 @@
         <inputs>
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
-	    <parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
-	    <parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
+			<parameter n="preconditioner_type" pn="Preconditioner" type="combo" values="None,DiagonalPreconditioner,ILU0Preconditioner" v="None" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False" help=""/>
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
@@ -53,11 +53,11 @@
     </solver>
     <solver n="Pastix_Iterative" pn="Pastix Iterative">
         <inputs>
-	    <parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
-	    <parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
-	    <parameter n="ilu_level_of_fill" pn="IluFillLevel" type="combo" values="3,4,5" v="3" help=""/>
-	    <parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
-            <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
+			<parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
+			<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
+			<parameter n="ilu_level_of_fill" pn="IluFillLevel" type="combo" values="3,4,5" v="3" help=""/>
+			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+			<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
 </Solvers>
