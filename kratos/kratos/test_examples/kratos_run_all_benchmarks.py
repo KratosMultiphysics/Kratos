@@ -23,8 +23,8 @@ def Run():
 
     
     ##check geometries
-    import KratosMultiphysics
-    Text += KratosMultiphysics.GeometryTesterUtility().RunTest()
+    #import KratosMultiphysics
+    #Text += KratosMultiphysics.GeometryTesterUtility().RunTest()
     
     
     
