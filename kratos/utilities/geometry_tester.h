@@ -90,7 +90,7 @@ public:
     }
 
     /// Default constructor.
-    std::string RunTest() //std::string& out_error_msg)
+    bool RunTest() //std::string& out_error_msg)
     {
         //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
         //side has a lenght 0f 2.0/3.0
@@ -106,25 +106,25 @@ public:
         GenerateNodes();
 
         bool succesful = true;
-        std::stringstream error_msg;
-        if(TestTriangle2D3N( error_msg ) == false) succesful=false;
-        if(TestTriangle2D6N( error_msg ) == false) succesful=false;
-        if(TestQuadrilateral2D4N( error_msg ) == false) succesful=false;
-        if(TestQuadrilateral2D9N( error_msg ) == false) succesful=false;
 
-        if(TestTetrahedra3D4N( error_msg ) == false) succesful=false;
-        if(TestTetrahedra3D10N( error_msg ) == false) succesful=false;
-        if(TestHexahedra3D8N( error_msg ) == false) succesful=false;
-        if(TestHexahedra3D20N( error_msg ) == false) succesful=false;
-        if(TestHexahedra3D27N( error_msg ) == false) succesful=false;
+        if(TestTriangle2D3N(  ) == false) succesful=false;
+        if(TestTriangle2D6N(  ) == false) succesful=false;
+        if(TestQuadrilateral2D4N(  ) == false) succesful=false;
+        if(TestQuadrilateral2D9N(  ) == false) succesful=false;
 
-        if(TestPrism3D6N( error_msg ) == false) succesful=false;
+        if(TestTetrahedra3D4N(  ) == false) succesful=false;
+        if(TestTetrahedra3D10N(  ) == false) succesful=false;
+        if(TestHexahedra3D8N(  ) == false) succesful=false;
+        if(TestHexahedra3D20N(  ) == false) succesful=false;
+        if(TestHexahedra3D27N(  ) == false) succesful=false;
+
+        if(TestPrism3D6N(  ) == false) succesful=false;
 //        if(TestPrism3D15N( error_msg ) == false) succesful=false;
 
         if(succesful == false)
             std::cout << "*** some errors were detected in the GeometryTester Utility ***" << std::endl;
 
-        return error_msg.str();
+        return succesful;
     }
 
     /// Destructor.
@@ -180,7 +180,7 @@ public:
 
     ///@}
 
-protected:
+
     ///@name Protected static Member Variables
     ///@{
     ModelPart mModelPart;
@@ -216,8 +216,11 @@ protected:
         }
     }
 
-    bool TestTetrahedra3D4N( std::stringstream& error_msg )
+    bool TestTetrahedra3D4N(  )
     {
+        GenerateNodes();
+        
+        std::stringstream error_msg;
         Tetrahedra3D4<Node<3> > geom( mModelPart.pGetNode(4), mModelPart.pGetNode(3), mModelPart.pGetNode(17), mModelPart.pGetNode(19) );
 
         bool succesful = true;
@@ -246,6 +249,9 @@ protected:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_3, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_4, error_msg);
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         error_msg << std::endl;
 
@@ -253,8 +259,12 @@ protected:
 
     }
     
-    bool TestTetrahedra3D10N( std::stringstream& error_msg )
+    bool TestTetrahedra3D10N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
+        
         Tetrahedra3D10<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(7), mModelPart.pGetNode(19),
                                         mModelPart.pGetNode(2), mModelPart.pGetNode(5), mModelPart.pGetNode(4), mModelPart.pGetNode(10),
                                         mModelPart.pGetNode(11), mModelPart.pGetNode(13)
@@ -283,13 +293,19 @@ protected:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
     
-    bool TestTriangle2D3N( std::stringstream& error_msg )
+    bool TestTriangle2D3N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Triangle2D3<Node<3> > geom( mModelPart.pGetNode(4), mModelPart.pGetNode(3), mModelPart.pGetNode(8) );
 
         bool succesful = true;
@@ -320,13 +336,19 @@ protected:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-    bool TestTriangle2D6N( std::stringstream& error_msg )
+    bool TestTriangle2D6N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Triangle2D6<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(7),
                                     mModelPart.pGetNode(2), mModelPart.pGetNode(5), mModelPart.pGetNode(4) );
 
@@ -352,13 +374,19 @@ protected:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-    bool TestQuadrilateral2D4N( std::stringstream& error_msg )
+    bool TestQuadrilateral2D4N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Quadrilateral2D4<Node<3> > geom( mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(7), mModelPart.pGetNode(4));
 
         bool succesful = true;
@@ -383,13 +411,19 @@ protected:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-    bool TestQuadrilateral2D9N( std::stringstream& error_msg )
+    bool TestQuadrilateral2D9N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Quadrilateral2D9<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
                                          mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
                                          mModelPart.pGetNode(9));
@@ -416,13 +450,19 @@ protected:
 //         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-    bool TestHexahedra3D8N( std::stringstream& error_msg )
+    bool TestHexahedra3D8N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Hexahedra3D8<Node<3> > geom( mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(7), mModelPart.pGetNode(4),
                                      mModelPart.pGetNode(11), mModelPart.pGetNode(15), mModelPart.pGetNode(16), mModelPart.pGetNode(13));
 
@@ -449,13 +489,19 @@ protected:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-    bool TestHexahedra3D20N( std::stringstream& error_msg )
+    bool TestHexahedra3D20N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Hexahedra3D20<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
                                       mModelPart.pGetNode(19), mModelPart.pGetNode(21), mModelPart.pGetNode(27), mModelPart.pGetNode(25),
                                       mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
@@ -486,14 +532,20 @@ protected:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
 
-    bool TestHexahedra3D27N( std::stringstream& error_msg )
+    bool TestHexahedra3D27N(   )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Hexahedra3D27<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
                                       mModelPart.pGetNode(19), mModelPart.pGetNode(21), mModelPart.pGetNode(27), mModelPart.pGetNode(25),
                                       mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
@@ -526,13 +578,19 @@ protected:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-    bool TestPrism3D6N( std::stringstream& error_msg )
+    bool TestPrism3D6N(  )
     {
+        GenerateNodes();
+
+        std::stringstream error_msg;
         Prism3D6<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(2), mModelPart.pGetNode(4),
                                  mModelPart.pGetNode(10),mModelPart.pGetNode(11), mModelPart.pGetNode(13)
                                     );
@@ -560,13 +618,17 @@ protected:
         VerifyStrainExactness( geom, GeometryData::GI_GAUSS_5, error_msg);
 
         error_msg << std::endl;
+        
+        if(succesful == false)
+            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
 
         return succesful;
 
     }
 
-//    bool TestPrism3D15N( std::stringstream& error_msg )
-//    {
+//    bool TestPrism3D15N(  )
+//     {
+//         std::stringstream error_msg;
 //          Prism3D15<Node<3> > geom( mModelPart.pGetNode(1),  mModelPart.pGetNode(2),  mModelPart.pGetNode(3),
 //                                    mModelPart.pGetNode(5),  mModelPart.pGetNode(7),  mModelPart.pGetNode(4),
 //                                    mModelPart.pGetNode(10), mModelPart.pGetNode(12), mModelPart.pGetNode(16),
@@ -600,6 +662,8 @@ protected:
 
 //          return succesful;
 //    }
+
+protected:
 
     ///@}
     ///@name Protected  Access
@@ -666,7 +730,7 @@ private:
             //calculating and storing inverse of the jacobian and the parameters needed
             double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
             
-            if( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-14)
+            if( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-13)
             {
                 error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
                 return true;
