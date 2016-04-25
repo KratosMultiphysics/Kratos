@@ -226,7 +226,9 @@ struct ilu0< backend::cuda<real> > {
             const params &prm
             ) const
     {
-        apply(A, rhs, x, tmp, prm);
+        backend::residual(rhs, A, x, tmp);
+        solve(tmp);
+        backend::axpby(prm.damping, tmp, 1, x);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
@@ -236,7 +238,16 @@ struct ilu0< backend::cuda<real> > {
             const params &prm
             ) const
     {
-        apply(A, rhs, x, tmp, prm);
+        backend::residual(rhs, A, x, tmp);
+        solve(tmp);
+        backend::axpby(prm.damping, tmp, 1, x);
+    }
+
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    {
+        backend::copy(rhs, x);
+        solve(x);
     }
 
     private:
@@ -259,15 +270,11 @@ struct ilu0< backend::cuda<real> > {
         mutable thrust::device_vector<char> buf;
 
 
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp, const params &prm
-                ) const
-        {
-            backend::residual(rhs, A, x, tmp);
+        template <class VectorX>
+        void solve(VectorX &x) const {
             value_type alpha = 1;
 
-            // Solve L * y = tmp
+            // Solve L * y = x
             AMGCL_CALL_CUDA(
                     cusparseXcsrsv2_solve(
                         handle, trans_L, n, nnz, &alpha, descr_L.get(),
@@ -275,14 +282,14 @@ struct ilu0< backend::cuda<real> > {
                         thrust::raw_pointer_cast(&ptr[0]),
                         thrust::raw_pointer_cast(&col[0]),
                         info_L.get(),
-                        thrust::raw_pointer_cast(&tmp[0]),
+                        thrust::raw_pointer_cast(&x[0]),
                         thrust::raw_pointer_cast(&y[0]),
                         policy_L,
                         thrust::raw_pointer_cast(&buf[0])
                         )
                     );
 
-            // Solve U * tmp = y
+            // Solve U * x = y
             AMGCL_CALL_CUDA(
                     cusparseXcsrsv2_solve(
                         handle, trans_U, n, nnz, &alpha, descr_U.get(),
@@ -291,13 +298,11 @@ struct ilu0< backend::cuda<real> > {
                         thrust::raw_pointer_cast(&col[0]),
                         info_U.get(),
                         thrust::raw_pointer_cast(&y[0]),
-                        thrust::raw_pointer_cast(&tmp[0]),
+                        thrust::raw_pointer_cast(&x[0]),
                         policy_U,
                         thrust::raw_pointer_cast(&buf[0])
                         )
                     );
-
-            backend::axpby(prm.damping, tmp, 1, x);
         }
 
 

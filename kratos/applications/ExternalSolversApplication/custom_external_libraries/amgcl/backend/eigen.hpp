@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include <boost/type_traits.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <Eigen/Sparse>
+#include <Eigen/SparseCore>
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/solver/skyline_lu.hpp>

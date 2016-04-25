@@ -102,7 +102,8 @@ struct damped_jacobi {
             const params &prm
             ) const
     {
-        apply(A, rhs, x, tmp, prm);
+        backend::residual(rhs, A, x, tmp);
+        backend::vmul(prm.damping, *dia, tmp, math::identity<scalar_type>(), x);
     }
 
     /// Apply post-relaxation
@@ -119,19 +120,15 @@ struct damped_jacobi {
             const params &prm
             ) const
     {
-        apply(A, rhs, x, tmp, prm);
+        backend::residual(rhs, A, x, tmp);
+        backend::vmul(prm.damping, *dia, tmp, math::identity<scalar_type>(), x);
     }
 
-    private:
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-                const params &prm
-                ) const
-        {
-            backend::residual(rhs, A, x, tmp);
-            backend::vmul(prm.damping, *dia, tmp, math::identity<scalar_type>(), x);
-        }
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    {
+        backend::vmul(math::identity<scalar_type>(), *dia, rhs, math::zero<scalar_type>(), x);
+    }
 };
 
 } // namespace relaxation

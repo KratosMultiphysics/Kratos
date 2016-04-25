@@ -32,6 +32,8 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
+#include <boost/container/static_vector.hpp>
+
 #include <amgcl/util.hpp>
 #include <amgcl/backend/detail/matrix_ops.hpp>
 
@@ -70,25 +72,70 @@ struct block_matrix_adapter {
         typedef ptrdiff_t col_type;
         typedef BlockType val_type;
 
-        boost::array<boost::shared_ptr<Base>, BlockSize> base;
+        boost::container::static_vector<Base, BlockSize> base;
 
-        row_iterator(const Matrix &A, col_type row) {
-            for(int i = 0; i < BlockSize; ++i)
-                base[i] = boost::make_shared<Base>(backend::row_begin(A, row * BlockSize + i));
+        bool done;
+        col_type cur_col;
+        val_type cur_val;
+
+        row_iterator(const Matrix &A, col_type row) : done(true) {
+            for(int i = 0; i < BlockSize; ++i) {
+                Base a = backend::row_begin(A, row * BlockSize + i);
+                base.push_back(a);
+
+                if (a) {
+                    col_type col = a.col() / BlockSize;
+                    if (done) {
+                        cur_col = col;
+                        done = false;
+                    } else {
+                        cur_col = std::min<col_type>(cur_col, col);
+                    }
+                }
+            }
+
+            if (done) return;
+
+            // While we are gathering the current value,
+            // base iteratirs are advanced to the next block-column.
+            cur_val = math::zero<val_type>();
+            col_type end = (cur_col + 1) * BlockSize;
+            for(int i = 0; i < BlockSize; ++i) {
+                for(; base[i] && base[i].col() < end; ++base[i]) {
+                    cur_val(i, base[i].col() % BlockSize) = base[i].value();
+                }
+            }
         }
 
         operator bool() const {
-            for(int i = 0; i < BlockSize; ++i)
-                if (*base[i]) return true;
-            return false;
+            return !done;
         }
 
         row_iterator& operator++() {
-            col_type cur_col = col();
+            // Base iterators are already at the next block-column.
+            // We just need to gather the current column and value.
+            done = true;
 
+            col_type end = (cur_col + 1) * BlockSize;
             for(int i = 0; i < BlockSize; ++i) {
-                while (*base[i] && base[i]->col() / BlockSize == cur_col) {
-                    ++(*base[i]);
+                if (base[i]) {
+                    col_type col = base[i].col() / BlockSize;
+                    if (done) {
+                        cur_col = col;
+                        done = false;
+                    } else {
+                        cur_col = std::min<col_type>(cur_col, col);
+                    }
+                }
+            }
+
+            if (done) return *this;
+
+            cur_val = math::zero<val_type>();
+            end = (cur_col + 1) * BlockSize;
+            for(int i = 0; i < BlockSize; ++i) {
+                for(; base[i] && base[i].col() < end; ++base[i]) {
+                    cur_val(i, base[i].col() % BlockSize) = base[i].value();
                 }
             }
 
@@ -96,32 +143,11 @@ struct block_matrix_adapter {
         }
 
         col_type col() const {
-            col_type cur_col = 0;
-            bool first = true;
-            for(int i = 0; i < BlockSize; ++i) {
-                if (*base[i]) {
-                    if (first) {
-                        cur_col = base[i]->col() / BlockSize;
-                        first = false;
-                    } else {
-                        cur_col = std::min<col_type>(cur_col, base[i]->col() / BlockSize);
-                    }
-                }
-            }
             return cur_col;
         }
 
         val_type value() const {
-            col_type cur_col = col();
-            val_type val = math::zero<val_type>();
-
-            for(int i = 0; i < BlockSize; ++i) {
-                for(Base a = *base[i]; a && a.col() / BlockSize == cur_col; ++a) {
-                    val(i,a.col() % BlockSize) = a.value();
-                }
-            }
-
-            return val;
+            return cur_val;
         }
     };
 

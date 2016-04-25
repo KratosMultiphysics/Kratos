@@ -82,6 +82,15 @@ struct gauss_seidel {
             iteration_body(A, rhs, x, i);
     }
 
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params&) const
+    {
+        const size_t n = backend::rows(A);
+        backend::clear(x);
+        for(size_t i = 0; i < n; ++i) iteration_body(A, rhs, x, i);
+        for(size_t i = n; i-- > 0;)   iteration_body(A, rhs, x, i);
+    }
+
     private:
         template <class Matrix, class VectorRHS, class VectorX>
         static void iteration_body(

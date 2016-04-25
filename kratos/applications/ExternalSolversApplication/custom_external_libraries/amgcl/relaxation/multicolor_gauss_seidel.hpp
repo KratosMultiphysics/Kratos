@@ -160,6 +160,14 @@ struct multicolor_gauss_seidel {
         for(int c = num_colors; c --> 0; ) iterate(A, rhs, x, c);
     }
 
+    template <class Matrix, class VecRHS, class VecX>
+    void apply(const Matrix &A, const VecRHS &rhs, VecX &x, const params&) const
+    {
+        backend::clear(x);
+        for(int c = 0; c < num_colors; ++c) iterate(A, rhs, x, c);
+        for(int c = num_colors; c --> 0; )  iterate(A, rhs, x, c);
+    }
+
     private:
         struct order_by {
             const std::vector<int> &ref;

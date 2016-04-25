@@ -190,6 +190,8 @@ struct plain_aggregates {
             }
         }
 
+        precondition(count > 0, "Zero aggregates found.");
+
         // Some of the aggregates could potentially vanish during expansion
         // step (*) above. We need to exclude those and renumber the rest.
         std::vector<ptrdiff_t> cnt(count, 0);

@@ -93,7 +93,9 @@ struct spai0 {
             const params&
             ) const
     {
-        apply(A, rhs, x, tmp);
+        static const scalar_type one = math::identity<scalar_type>();
+        backend::residual(rhs, A, x, tmp);
+        backend::vmul(one, *M, tmp, one, x);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
@@ -103,23 +105,19 @@ struct spai0 {
             const params&
             ) const
     {
-        apply(A, rhs, x, tmp);
+        static const scalar_type one = math::identity<scalar_type>();
+        backend::residual(rhs, A, x, tmp);
+        backend::vmul(one, *M, tmp, one, x);
+    }
+
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply( const Matrix &A, const VectorRHS &rhs, VectorX &x, const params&) const
+    {
+        backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
     private:
         boost::shared_ptr<matrix_diagonal> M;
-
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
-                ) const
-        {
-            static const scalar_type one = math::identity<scalar_type>();
-
-            backend::residual(rhs, A, x, tmp);
-            backend::vmul(one, *M, tmp, one, x);
-        }
-
 };
 
 } // namespace relaxation

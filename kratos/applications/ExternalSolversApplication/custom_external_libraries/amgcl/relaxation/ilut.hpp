@@ -186,7 +186,9 @@ struct ilut {
             const params &prm
             ) const
     {
-        apply_dispatch(A, rhs, x, tmp, prm, serial_backend());
+        backend::residual(rhs, A, x, tmp);
+        solve(tmp, prm, serial_backend());
+        backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
@@ -196,7 +198,16 @@ struct ilut {
             const params &prm
             ) const
     {
-        apply_dispatch(A, rhs, x, tmp, prm, serial_backend());
+        backend::residual(rhs, A, x, tmp);
+        solve(tmp, prm, serial_backend());
+        backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
+    }
+
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    {
+        backend::copy(rhs, x);
+        solve(x, prm, serial_backend());
     }
 
     private:
@@ -365,28 +376,18 @@ struct ilut {
             }
         };
 
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply_dispatch(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-                const params &prm, boost::true_type
-                ) const
+        template <class VectorX>
+        void solve(VectorX &x, const params &prm, boost::true_type) const
         {
-            backend::residual(rhs, A, x, tmp);
-            relaxation::detail::serial_ilu_solve(*L, *U, *D, tmp);
-            backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
+            relaxation::detail::serial_ilu_solve(*L, *U, *D, x);
         }
 
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply_dispatch(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-                const params &prm, boost::false_type
-                ) const
+        template <class VectorX>
+        void solve(VectorX &x, const params &prm, boost::false_type) const
         {
-            backend::residual(rhs, A, x, tmp);
             relaxation::detail::parallel_ilu_solve(
-                    *L, *U, *D, tmp, *t1, *t2, prm.jacobi_iters
+                    *L, *U, *D, x, *t1, *t2, prm.jacobi_iters
                     );
-            backend::axpby(prm.damping, tmp, math::identity<scalar_type>(), x);
         }
 };
 

@@ -139,7 +139,11 @@ class chebyshev {
                 const params&
                 ) const
         {
-            apply(A, rhs, x, tmp);
+            static const scalar_type one  = math::identity<scalar_type>();
+
+            backend::residual(rhs, A, x, tmp);
+            solve(A, tmp, *p);
+            backend::axpby(one, *p, one, x);
         }
 
         /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
@@ -149,31 +153,37 @@ class chebyshev {
                 const params&
                 ) const
         {
-            apply(A, rhs, x, tmp);
+            static const scalar_type one  = math::identity<scalar_type>();
+
+            backend::residual(rhs, A, x, tmp);
+            solve(A, tmp, *p);
+            backend::axpby(one, *p, one, x);
+        }
+
+        /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
+        template <class Matrix, class VectorRHS, class VectorX>
+        void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params&) const
+        {
+            solve(A, rhs, x);
         }
 
     private:
         std::vector<scalar_type> C;
         mutable boost::shared_ptr<vector> p, q;
 
-        template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
-        void apply(
-                const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &res
-                ) const
+        template <class Matrix, class VectorRHS, class VectorX>
+        void solve(const Matrix &A, const VectorRHS &rhs, VectorX &x) const
         {
             static const scalar_type one  = math::identity<scalar_type>();
             static const scalar_type zero = math::zero<scalar_type>();
 
-            backend::residual(rhs, A, x, res);
-            backend::axpby(C[0], res, zero, *p);
+            backend::axpby(C[0], rhs, zero, x);
 
             BOOST_FOREACH(scalar_type c, boost::make_iterator_range(C.begin() + 1, C.end()))
             {
-                backend::spmv(one, A, *p, zero, *q);
-                backend::axpbypcz(c, res, one, *q, zero, *p);
+                backend::spmv(one, A, x, zero, *q);
+                backend::axpbypcz(c, rhs, one, *q, zero, x);
             }
-
-            backend::axpby(one, *p, one, x);
         }
 
         template <class Matrix>

@@ -85,9 +85,7 @@ class as_preconditioner {
 #endif
                 ) const
         {
-            backend::clear(x);
-            S->apply_pre (*A, rhs, x, *tmp, prm);
-            S->apply_post(*A, rhs, x, *tmp, prm);
+            S->apply(*A, rhs, x, prm);
         }
 
         const matrix& system_matrix() const {
