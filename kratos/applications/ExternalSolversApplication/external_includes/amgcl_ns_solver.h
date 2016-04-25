@@ -64,24 +64,24 @@ public:
     {
 
         Parameters default_parameters( R"(
-                                   {
+                                       {
                                        "solver_type" : "AMGCL_NS_Solver",
-                                       "velocity_block_preconditioner" : 
+                                       "krylov_type"                    : "bicgstab",
+                                       "velocity_block_preconditioner" :
                                        {
-                                           "tolerance" : 1e-3,
-                                           "precondioner_type" : "ilu0"
-                                       },
-                                       "pressure_block_preconditioner" : 
+                                       "tolerance" : 1e-3,
+                                       "precondioner_type" : "spai0"
+                                   },
+                                       "pressure_block_preconditioner" :
                                        {
-                                           "tolerance" : 1e-1,
-                                           "precondioner_type" : "ilu0"
-                                       },
+                                       "tolerance" : 1e-2,
+                                       "precondioner_type" : "spai0"
+                                   },
                                        "tolerance" : 1e-9,
-                                       "smoother_type":"ilu0",
                                        "krylov_type": "gmres",
+                                       "gmres_krylov_space_dimension": 50,
                                        "coarsening_type": "aggregation",
-                                       "max_iteration": 100,
-                                       "gmres_krylov_space_dimension": 100,
+                                       "max_iteration": 50,
                                        "verbosity" : 1,
                                        "scaling": false,
                                        "coarse_enough" : 5000
@@ -94,7 +94,7 @@ public:
         std::stringstream msg;
 
         //validate if values are admissible
-         std::set<std::string> available_preconditioners = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
+        std::set<std::string> available_preconditioners = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
 
         //check velocity block settings
         if(available_preconditioners.find(rParameters["velocity_block_preconditioner"]["precondioner_type"].GetString()) == available_preconditioners.end())
@@ -103,8 +103,8 @@ public:
             msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
             KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
         }
-        
-        
+
+
 //         //check outer (Pressure Schur) settings
 //         if(available_solvers.find(rParameters["krylov_type"].GetString()) == available_solvers.end())
 //         {
@@ -124,22 +124,18 @@ public:
         mTol = rParameters["tolerance"].GetDouble();
         mmax_it = rParameters["max_iteration"].GetInt();
         mverbosity=rParameters["verbosity"].GetInt();
-        mgmres_size = rParameters["gmres_krylov_space_dimension"].GetInt();
         mprm.put("solver.type", rParameters["krylov_type"].GetString());
 
-        mprm.put("precond.relaxation.type", rParameters["smoother_type"].GetString());
-        mprm.put("precond.coarsening.type",  rParameters["coarsening_type"].GetString());
-
         mndof = 1; //this will be computed automatically later on
-        mprm.put("solver.M",  mgmres_size);
-        
+        mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
+
         //setting velocity solver options
         mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
         mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["precondioner_type"].GetString());
-        
+
         //setting pressure solver options
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.psolver.precond", rParameters["pressure_block_preconditioner"]["precondioner_type"].GetString());
+        mprm.put("precond.psolver.relax.type", rParameters["pressure_block_preconditioner"]["precondioner_type"].GetString());
     }
 
     /**
@@ -161,42 +157,40 @@ public:
         mprm.put("precond.coarsening.aggr.block_size",mndof);
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
-        
+
         mprm.put("precond.coarse_enough",mcoarse_enough/mndof);
-        
+
         mprm.put("precond.pmask", static_cast<void*>(&mp[0]));
         mprm.put("precond.pmask_size", mp.size());
-        
+
         typedef amgcl::backend::builtin<double> Backend;
 
         typedef amgcl::make_solver<
-            amgcl::runtime::relaxation::as_preconditioner<Backend>,
-            amgcl::runtime::iterative_solver<Backend>
-            > USolver;
+        amgcl::runtime::relaxation::as_preconditioner<Backend>,
+              amgcl::runtime::iterative_solver<Backend>
+              > USolver;
 
         typedef amgcl::make_solver<
-            amgcl::runtime::amg<Backend>,
-            amgcl::runtime::iterative_solver<Backend>
-            > PSolver;
-            
-            
-            
-       size_t n = rA.size1();
+        amgcl::runtime::amg<Backend>,
+              amgcl::runtime::iterative_solver<Backend>
+              > PSolver;
 
+//         size_t n = rA.size1();
+
+        amgcl::make_solver<
+        amgcl::preconditioner::schur_complement<USolver, PSolver>,
+              amgcl::runtime::iterative_solver<Backend>
+              > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
 //         amgcl::make_solver<
 //             amgcl::preconditioner::schur_complement<USolver, PSolver>,
 //             amgcl::runtime::iterative_solver<Backend>
-//             > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
-        amgcl::make_solver<
-            amgcl::preconditioner::schur_complement<USolver, PSolver>,
-            amgcl::runtime::iterative_solver<Backend>
-            > solve(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() ), mprm);
+//             > solve(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() ), mprm);
 
-            
+
         size_t iters;
         double resid;
         boost::tie(iters, resid) = solve(rB, rX);
-        
+
         if(mverbosity > 0)
         {
             std::cout << "Iterations: " << iters << std::endl
@@ -265,48 +259,49 @@ public:
         ModelPart& r_model_part
     )
     {
-        int old_ndof = -1;
-        unsigned int old_node_id = rdof_set.begin()->Id();
-        int ndof=0;
-        
+//         int old_ndof = -1;
+//         unsigned int old_node_id = rdof_set.begin()->Id();
+//         int ndof=0;
+
         if(mp.size() != rA.size1()) mp.resize( rA.size1() );
-         
+
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
         {
             const unsigned int eq_id = it->EquationId();
             if( eq_id < rA.size1() )
             {
-                unsigned int id = it->Id();
-                if(id != old_node_id)
-                {
-                    old_node_id = id;
-                    if(old_ndof == -1) old_ndof = ndof;
-                    else if(old_ndof != ndof) //if it is different than the block size is 1
-                    {
-                        old_ndof = -1;
-                        break;
-                    }
+//                 unsigned int id = it->Id();
+//                 if(id != old_node_id)
+//                 {
+//                     old_node_id = id;
+//                     if(old_ndof == -1) old_ndof = ndof;
+//                     else if(old_ndof != ndof) //if it is different than the block size is 1
+//                     {
+//                         old_ndof = -1;
+//                         break;
+//                     }
+//
+//                     ndof=1;
+//                 }
+//                 else
+//                 {
+//                     ndof++;
+//                 }
 
-                    ndof=1;
-                }
-                else
-                {
-                    ndof++;
-                }
-                
                 mp[eq_id]  = (it->GetVariable().Key() == PRESSURE);
             }
         }
 
-        if(old_ndof == -1)
-            mndof = 1;
-        else
-            mndof = ndof;
+        mndof = 1;
+//         if(old_ndof == -1)
+//             mndof = 1;
+//         else
+//             mndof = ndof;
 
-        if(mverbosity > 0)
-        {
-                KRATOS_WATCH(mndof);
-        }
+//         if(mverbosity > 0)
+//         {
+//                 KRATOS_WATCH(mndof);
+//         }
 
     }
 
@@ -316,8 +311,6 @@ private:
     unsigned int mmax_it;
     int mverbosity;
     int mndof;
-    unsigned int mgmres_size;
-    bool mfallback_to_gmres;
     std::vector< char > mp;
     unsigned int mcoarse_enough;
 
