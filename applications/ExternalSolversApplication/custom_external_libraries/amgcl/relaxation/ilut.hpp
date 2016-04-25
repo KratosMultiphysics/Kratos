@@ -153,7 +153,7 @@ struct ilut {
                 if (a.col() <  i) ++lenL;
                 if (a.col() >= i) ++lenU;
             }
-            tol = prm.tau / (lenL + lenU);
+            tol *= prm.tau / (lenL + lenU);
 
             while(!w.q.empty()) {
                 ptrdiff_t k = w.next_nonzero();

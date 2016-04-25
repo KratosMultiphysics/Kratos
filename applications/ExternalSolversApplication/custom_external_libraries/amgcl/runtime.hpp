@@ -46,15 +46,7 @@ THE SOFTWARE.
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggr_emin.hpp>
 
-#include <amgcl/relaxation/gauss_seidel.hpp>
-#include <amgcl/relaxation/multicolor_gauss_seidel.hpp>
-#include <amgcl/relaxation/ilu0.hpp>
-#include <amgcl/relaxation/parallel_ilu0.hpp>
-#include <amgcl/relaxation/ilut.hpp>
-#include <amgcl/relaxation/damped_jacobi.hpp>
-#include <amgcl/relaxation/spai0.hpp>
-#include <amgcl/relaxation/spai1.hpp>
-#include <amgcl/relaxation/chebyshev.hpp>
+#include <amgcl/relaxation/runtime.hpp>
 
 #include <amgcl/solver/cg.hpp>
 #include <amgcl/solver/bicgstab.hpp>
@@ -112,77 +104,6 @@ inline std::istream& operator>>(std::istream &in, type &c)
 }
 
 } // namespace coarsening
-
-/// Relaxation schemes.
-namespace relaxation {
-enum type {
-    gauss_seidel,               ///< Gauss-Seidel smoothing
-    multicolor_gauss_seidel,    ///< Multicolor Gauss-seidel
-    ilu0,                       ///< Incoplete LU with zero fill-in
-    parallel_ilu0,              ///< Parallel version of ILU(0)
-    ilut,                       ///< Incomplete LU with thresholding
-    damped_jacobi,              ///< Damped Jacobi
-    spai0,                      ///< Sparse approximate inverse of 0th order
-    spai1,                      ///< Sparse approximate inverse of 1st order
-    chebyshev                   ///< Chebyshev relaxation
-};
-
-inline std::ostream& operator<<(std::ostream &os, type r)
-{
-    switch (r) {
-        case gauss_seidel:
-            return os << "gauss_seidel";
-        case multicolor_gauss_seidel:
-            return os << "multicolor_gauss_seidel";
-        case ilu0:
-            return os << "ilu0";
-        case parallel_ilu0:
-            return os << "parallel_ilu0";
-        case ilut:
-            return os << "ilut";
-        case damped_jacobi:
-            return os << "damped_jacobi";
-        case spai0:
-            return os << "spai0";
-        case spai1:
-            return os << "spai1";
-        case chebyshev:
-            return os << "chebyshev";
-        default:
-            return os << "???";
-    }
-}
-
-inline std::istream& operator>>(std::istream &in, type &r)
-{
-    std::string val;
-    in >> val;
-
-    if (val == "multicolor_gauss_seidel")
-        r = multicolor_gauss_seidel;
-    else if (val == "gauss_seidel")
-        r = gauss_seidel;
-    else if (val == "ilu0")
-        r = ilu0;
-    else if (val == "parallel_ilu0")
-        r = parallel_ilu0;
-    else if (val == "ilut")
-        r = ilut;
-    else if (val == "damped_jacobi")
-        r = damped_jacobi;
-    else if (val == "spai0")
-        r = spai0;
-    else if (val == "spai1")
-        r = spai1;
-    else if (val == "chebyshev")
-        r = chebyshev;
-    else
-        throw std::invalid_argument("Invalid relaxation value");
-
-    return in;
-}
-
-} // namespace relaxation
 
 namespace detail {
 

@@ -101,7 +101,7 @@ struct block_matrix_adapter {
             cur_val = math::zero<val_type>();
             col_type end = (cur_col + 1) * BlockSize;
             for(int i = 0; i < BlockSize; ++i) {
-                for(; base[i] && base[i].col() < end; ++base[i]) {
+                for(; base[i] && static_cast<ptrdiff_t>(base[i].col()) < end; ++base[i]) {
                     cur_val(i, base[i].col() % BlockSize) = base[i].value();
                 }
             }
@@ -134,7 +134,7 @@ struct block_matrix_adapter {
             cur_val = math::zero<val_type>();
             end = (cur_col + 1) * BlockSize;
             for(int i = 0; i < BlockSize; ++i) {
-                for(; base[i] && base[i].col() < end; ++base[i]) {
+                for(; base[i] && static_cast<ptrdiff_t>(base[i].col()) < end; ++base[i]) {
                     cur_val(i, base[i].col() % BlockSize) = base[i].value();
                 }
             }

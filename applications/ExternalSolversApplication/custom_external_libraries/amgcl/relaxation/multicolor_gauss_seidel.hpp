@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include <boost/graph/sequential_vertex_coloring.hpp>
 #include <boost/range/algorithm.hpp>
 #include <boost/range/numeric.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/util.hpp>
