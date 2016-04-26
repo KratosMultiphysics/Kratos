@@ -43,19 +43,31 @@ class NavierStokesSolver_FractionalStep:
             "compute_reactions": false,
             "divergence_clearance_steps": 0,
             "reform_dofs_at_each_iteration": false,
-            "pressure_linear_solver_settings": {
-                    "solver_type": "Super LU",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "verbosity": 1
+            "pressure_linear_solver_settings":  {
+                "solver_type"                    : "AMGCL",
+                "max_iteration"                  : 200,
+                "tolerance"                      : 1e-6,
+                "provide_coordinates"            : false,
+                "smoother_type"                  : "damped_jacobi",
+                "krylov_type"                    : "cg",
+                "gmres_krylov_space_dimension"   : 100,
+                "use_block_matrices_if_possible" : false,
+                "coarsening_type"                : "aggregation",
+                "scaling"                        : true,
+                "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                    "solver_type": "Super LU",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "verbosity": 1
+                "solver_type"                    : "AMGCL",
+                "max_iteration"                  : 200,
+                "tolerance"                      : 1e-6,
+                "provide_coordinates"            : false,
+                "smoother_type"                  : "ilu0",
+                "krylov_type"                    : "bicgstab",
+                "gmres_krylov_space_dimension"   : 100,
+                "use_block_matrices_if_possible" : false,
+                "coarsening_type"                : "aggregation",
+                "scaling"                        : true,
+                "verbosity"                      : 0
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[""]
