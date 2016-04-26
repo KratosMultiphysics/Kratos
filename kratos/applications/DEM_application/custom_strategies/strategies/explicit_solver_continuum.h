@@ -647,7 +647,7 @@ void CalculateMaxSearchDistance() {
         if(thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
     }
 
-    r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
+    //r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
 
     KRATOS_CATCH("")
 }
