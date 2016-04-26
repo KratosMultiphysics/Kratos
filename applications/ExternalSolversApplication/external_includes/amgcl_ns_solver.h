@@ -68,15 +68,15 @@ public:
                                        "solver_type" : "AMGCL_NS_Solver",
                                        "krylov_type"                    : "bicgstab",
                                        "velocity_block_preconditioner" :
-                                       {
-                                       "tolerance" : 1e-3,
-                                       "precondioner_type" : "spai0"
-                                   },
-                                       "pressure_block_preconditioner" :
-                                       {
-                                       "tolerance" : 1e-2,
-                                       "precondioner_type" : "spai0"
-                                   },
+                                            {
+                                            "tolerance" : 1e-3,
+                                            "precondioner_type" : "spai0"
+                                        },
+                                        "pressure_block_preconditioner" :
+                                            {
+                                            "tolerance" : 1e-2,
+                                            "precondioner_type" : "spai0"
+                                        },
                                        "tolerance" : 1e-9,
                                        "krylov_type": "gmres",
                                        "gmres_krylov_space_dimension": 50,
@@ -224,7 +224,7 @@ public:
      */
     void  PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "AMGCL solver finished.";
+        rOStream << "AMGCL NS Solver finished.";
     }
 
     /**
