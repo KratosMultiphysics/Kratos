@@ -700,7 +700,7 @@ class DEMFEMProcedures(object):
                             self.total_force_y += force_node_y
                             self.total_force_z += force_node_z
 
-    def PrintPoisson(self, time, model_part, DEM_parameters):
+    def PrintPoisson(self, model_part, DEM_parameters):
         
         if (DEM_parameters.Dimension == 3):
             PostUtilities().ComputePoisson(model_part)
