@@ -277,12 +277,12 @@ class VertexMorphingMethod:
 
                 # Check if maximum iterations were reached
                 if(opt_itr==self.config.max_opt_iterations):
-                    print("\n> Maximal iterations of supoptimization problem reached!")
+                    print("\n> Maximal iterations of optimization problem reached!")
                     break
 
                 # Check for relative tolerance
                 if(abs(delta_f_relative)<self.config.relative_tolerance_objective):
-                    print("\n> Optimization subproblem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,".")
+                    print("\n> Optimization problem converged within a relative objective tolerance of ",self.config.relative_tolerance_objective,".")
                     break
 
                 # # Check if value of objective increases
@@ -638,7 +638,7 @@ class VertexMorphingMethod:
 
                 # Check if maximum iterations were reached
                 if(opt_itr==self.config.max_opt_iterations):
-                    print("\n> Maximal iterations of supoptimization problem reached!")
+                    print("\n> Maximal iterations of optimization problem reached!")
                     break
 
             # Update design
