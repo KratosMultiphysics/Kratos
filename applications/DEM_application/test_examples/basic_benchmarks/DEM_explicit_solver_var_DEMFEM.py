@@ -43,7 +43,7 @@ HorizontalFixVel                 = "ON"
 # Solution Strategy
 
 IntegrationScheme                = "Taylor_Scheme"
-AutoReductionOfTimeStepOption    = "OFF"
+AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 1e-5
 FinalTime                        = 2.0
