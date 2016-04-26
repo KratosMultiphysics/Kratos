@@ -1353,7 +1353,7 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
     else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
 
-    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);
+    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);   //obsolete
     else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
 
     if (r_process_info[STRESS_STRAIN_OPTION])    this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
@@ -1373,6 +1373,25 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
         mSymmStressTensor = NULL;
     }
 }
+
+
+
+double SphericParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double max_sqr_period = 0.0;
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+         double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
+         if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
+    }
+
+    return max_sqr_period;
+
+    KRATOS_CATCH("")
+}
+
+
+
 
 double SphericParticle::GetInitialDeltaWithFEM(int index) //only available in continuum_particle
 {

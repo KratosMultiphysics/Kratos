@@ -303,13 +303,30 @@ namespace Kratos {
 
             if (i < mContinuumInitialNeighborsSize) {
                 int failure_id = mIniNeighbourFailureId[i];
-                mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info, LocalElasticContactForce, LocalDeltDisp, kn_el, kt_el,
-                                                                                    contact_sigma, contact_tau, failure_criterion_state, equiv_young, indentation,
-                                                                                    calculation_area, acumulated_damage, this, neighbour_iterator, i,
-                                                                                    r_process_info[TIME_STEPS], sliding, search_control, search_control_vector);
-
-                mContinuumConstitutiveLawArray[i]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, this, neighbour_iterator, kn_el, kt_el);
-                mContinuumConstitutiveLawArray[i]->CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding, failure_id);
+                mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
+                                                                   LocalElasticContactForce,
+                                                                   LocalDeltDisp,
+                                                                   kn_el,
+                                                                   kt_el,
+                                                                   contact_sigma,
+                                                                   contact_tau,
+                                                                   failure_criterion_state,
+                                                                   equiv_young,
+                                                                   indentation,
+                                                                   calculation_area,
+                                                                   acumulated_damage,
+                                                                   this,
+                                                                   neighbour_iterator,
+                                                                   i,
+                                                                   r_process_info[TIME_STEPS],
+                                                                   sliding,
+                                                                   search_control,
+                                                                   search_control_vector,
+                                                                   equiv_visco_damp_coeff_normal,
+                                                                   equiv_visco_damp_coeff_tangential,
+                                                                   LocalRelVel,
+                                                                   ViscoDampingLocalContactForce,
+                                                                   failure_id);
 
             } else if (indentation > 0.0) { 
                 double cohesive_force =  0.0;                
@@ -495,6 +512,32 @@ namespace Kratos {
         return max_local_search;
         KRATOS_CATCH("")
     }
+
+
+
+    double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
+        KRATOS_TRY
+
+        double max_sqr_period = 0.0;
+
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+            SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            double sqr_period = mContinuumConstitutiveLawArray[i]->LocalPeriod(i, this, r_continuum_ini_neighbour);
+            if (sqr_period > max_sqr_period) { (max_sqr_period = sqr_period); }
+        }
+        for (unsigned int i = mContinuumInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
+
+            double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
+            if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
+        }
+
+        return max_sqr_period;
+
+        KRATOS_CATCH("")
+    }
+
+
+
 
 
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {

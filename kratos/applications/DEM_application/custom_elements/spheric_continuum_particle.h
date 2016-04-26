@@ -51,6 +51,7 @@ namespace Kratos
         
         //virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 
+        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);      
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 

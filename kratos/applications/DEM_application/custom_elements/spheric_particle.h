@@ -71,6 +71,7 @@ virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info);
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
+virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
 virtual void ComputeConditionRelativeData(DEMWall* const wall,
                                             double LocalCoordSystem[3][3],
