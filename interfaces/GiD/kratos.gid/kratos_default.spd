@@ -467,7 +467,28 @@
 	  gid_groups_conds::actualize_conditions_window
 	  ]]>
 	</proc>
-	  
+	  <proc n='DirectorVectorNonZero' args='args'>
+	  <![CDATA[
+	  set kw [lindex $args 0]
+	  set update 0
+		foreach condgroupnode [$domNode getElementsByTagName group] {
+		  set valid 0
+		  foreach dirnode [$condgroupnode getElementsByTagName value] {
+			if {[string first $kw [get_domnode_attribute $dirnode n]] eq 0 } {
+			  if { [get_domnode_attribute $dirnode v] != 0 } {set valid 1; break}
+			}
+		  }
+		  if {!$valid} {
+			$domNode removeChild $condgroupnode
+			set update 1
+		  }
+		}
+		if {$update} {
+		W "Director vector can't be null"
+		gid_groups_conds::actualize_conditions_window
+		}
+	  ]]>
+	</proc>
 	<dynamicnode command="injectProcs" args=""/>
   </procs>
   <translations>

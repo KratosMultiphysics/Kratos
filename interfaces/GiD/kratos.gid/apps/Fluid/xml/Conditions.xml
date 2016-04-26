@@ -112,4 +112,28 @@
     <outputs>
     </outputs>
   </ConditionItem>
+  <ConditionItem n="VelocityConstraints2D" pn="Custom velocity constraints" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="2" SkinConditions="False" ElementType="Point,Line,Surface,Volume" ProcessName="ApplyConstraintVelocityProcess" help="">
+    <TopologyFeatures>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
+  <ConditionItem n="VelocityConstraints3D" pn="Custom velocity constraints" ImplementedInFile=".cpp"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="3" LocalSpaceDimension="3" SkinConditions="False" ElementType="Point,Line,Surface,Volume" ProcessName="ApplyConstraintVelocityProcess" help="">
+    <TopologyFeatures>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	</DegreesOfFreedom>
+    <inputs>
+    </inputs>
+    <outputs>
+    </outputs>
+  </ConditionItem>
 </ConditionList>

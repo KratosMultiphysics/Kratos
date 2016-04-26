@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ProcessList>
   <Process n="ApplyInletProcess" pn="Vector value" implemented_in_file="apply_constant_inlet_process"
-		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication">
+		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication" check="DirectorVectorNonZero direction">
     <inputs>
-      <parameter n="direction" pn="Velocity" type="vector" fixity="Imposed" v="1.0,0.0,0.0"  />
-      <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="Velocity" units="m/s" />
+      <parameter n="direction" pn="Direction" type="vector" v="1.0,0.0,0.0"  />
+      <parameter n="factor" pn="Modulus" type="double" v="1.0" unit_magnitude="Velocity" units="m/s" />
     </inputs>
   </Process>
   <Process n="ApplyOutletProcess" pn="Scalar value" implemented_in_file="apply_outlet_process"
@@ -27,8 +27,8 @@
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="factor" pn="Factor" type="double"  v="1.0" unit_magnitude="0" units="0"/>
-      <parameter n="value" pn="Value" type="vector" v="0.0,-9.81,0.0" />
+      <parameter n="factor" pn="Modulus" type="double"  v="1.0" unit_magnitude="0" units="0"/>
+      <parameter n="value" pn="Direction" type="vector" v="0.0,-9.81,0.0" />
     </inputs>
   </Process>
   <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" ImplementedInFile="process_factory"
@@ -36,6 +36,13 @@
 		help="This process ">
     <inputs>
       <parameter n="value" pn="Value" type="double" unit_magnitude="0" units="0"/>
+    </inputs>
+  </Process>
+  
+    <Process n="ApplyConstraintVelocityProcess" pn="Constraint velocity" ImplementedInFile="process_factory"
+		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication" help="This process ">
+    <inputs>
+      <parameter n="value" pn="Velocity" type="vector" fixity="Imposed" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s"/>
     </inputs>
   </Process>
 </ProcessList>

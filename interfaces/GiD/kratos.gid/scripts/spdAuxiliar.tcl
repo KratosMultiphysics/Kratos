@@ -612,11 +612,13 @@ proc spdAux::injectConditions { basenode } {
         set pn [$ld getPublicName]
         set help [$ld getHelp]
         set etype [join [string tolower [$ld getAttribute ElementType]] ,]
-        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$etype\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[ConditionState\]\">"
         set inputs [$ld getInputs]
         set unitsc [$ld getAttribute "units"]
         set umc [$ld getAttribute "unit_magnitude"]
         set process [::Model::GetProcess [$ld getProcessName]]
+        set check [$process getAttribute "check"]
+        #W "$pn $check"
+        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$etype\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[ConditionState\]\" update_proc=\"$check\">"
         foreach processinput [$process getInputs] {lappend inputs $processinput}
         foreach {inName in} $inputs {
             set inPn [$in getPublicName]
