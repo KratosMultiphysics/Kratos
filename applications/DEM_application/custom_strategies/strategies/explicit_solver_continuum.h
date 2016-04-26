@@ -135,7 +135,7 @@ namespace Kratos
             }
 
             // 3. Search Neighbors with tolerance (after first repartition process)
-            BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 0.0);
+            BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], 1.0);
             SearchNeighbours();
 
             if (BaseType::GetDeltaOption() == 2) {
@@ -263,7 +263,7 @@ namespace Kratos
                     this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
 
-                    BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE], r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
+                    BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
                     SearchNeighbours(); //the amplification factor has been modified after the first search.
 
                     this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
@@ -347,7 +347,7 @@ namespace Kratos
         //Here we are going to create contact elements when we are on a target particle and we see a neighbor whose id is higher than ours.
         //We create also a pointer from the node to the element, after creating it.
         //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
-        //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
+        //We proceed in this way because we want to have the pointers to contact elements in a list in the same order as the initial elements order.
 
         const int number_of_particles = (int)mListOfSphericContinuumParticles.size();
         int used_bonds_counter = 0;
@@ -540,7 +540,7 @@ namespace Kratos
                 break;
             }
             added_search_distance *= in_coordination_number/out_coordination_number;
-            BaseType::SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 0.0);
+            BaseType::SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
             SearchNeighbours(); //r_process_info[SEARCH_TOLERANCE] will be used inside this function, and it's the variable we are updating in this while
             out_coordination_number = ComputeCoordinationNumber();
         }//while
@@ -646,24 +646,23 @@ namespace Kratos
         #pragma omp parallel
         {
             #pragma omp for
-            for (int i = 0; i < number_of_particles; i++){
+            for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info);
                 mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws();
             }
 
             #pragma omp for
-            for (int i = 0; i < number_of_particles; i++){
+            for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericContinuumParticles[i]->SearchSkinParticles(r_process_info);
             }
 
             #pragma omp for
-            for (int i = 0; i < number_of_particles; i++){
+            for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
             }
         }
 
         KRATOS_CATCH("")
-
     }
 
 
