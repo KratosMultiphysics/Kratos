@@ -74,7 +74,6 @@ namespace Kratos
             double inv_distance = 1.0 / distance;  
             mConductiveHeatFlux += - mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
         }       //for each neighbor
-        if(r_process_info[TIME_STEPS]<2){KRATOS_WATCH(mConductiveHeatFlux) };
 //        if (GetGeometry()[0].Coordinates()[1] > 0.29){   //0.15
 //        mConductiveHeatFlux    = 1e-3;
 //            }
