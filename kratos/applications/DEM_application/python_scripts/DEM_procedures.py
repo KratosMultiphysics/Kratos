@@ -262,6 +262,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+            model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
 
         # Nano Particle
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
@@ -699,6 +700,14 @@ class DEMFEMProcedures(object):
                             self.total_force_y += force_node_y
                             self.total_force_z += force_node_z
 
+    def PrintPoisson(self, time, model_part, DEM_parameters):
+        
+        if (DEM_parameters.Dimension == 3):
+            PostUtilities().ComputePoisson(model_part)
+        else:
+            PostUtilities().ComputePoisson2D(model_part)
+        
+    
     def PrintGraph(self, time):
 
         if self.DEM_parameters.TestType == "None":
@@ -1078,29 +1087,30 @@ class DEMIo(object):
 
 
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
-          if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
-            #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
+            if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
+                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, POISSON_VALUE,         self.spheres_variables)
+                #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
 
     def AddArlequinVariables(self):
-        self.PushPrintVar( 1, DISTANCE, self.global_variables)
-        self.PushPrintVar( 1, BORDER, self.global_variables)
-        self.PushPrintVar( 1, SOLUTION, self.global_variables)
-        self.PushPrintVar( 1, ARLEQUIN_DUMMY_1, self.global_variables)
-        self.PushPrintVar( 1, ARLEQUIN_DUMMY_2, self.global_variables)
-        self.PushPrintVar( 1, ARLEQUIN_DUMMY_3, self.global_variables)
-        self.PushPrintVar( 1, ALPHA_ARLEQUIN, self.global_variables)
-        self.PushPrintVar( 1, NODAL_MASS, self.global_variables)
-        self.PushPrintVar( 1, TOTAL_FORCES, self.global_variables)
+        self.PushPrintVar(1, DISTANCE, self.global_variables)
+        self.PushPrintVar(1, BORDER, self.global_variables)
+        self.PushPrintVar(1, SOLUTION, self.global_variables)
+        self.PushPrintVar(1, ARLEQUIN_DUMMY_1, self.global_variables)
+        self.PushPrintVar(1, ARLEQUIN_DUMMY_2, self.global_variables)
+        self.PushPrintVar(1, ARLEQUIN_DUMMY_3, self.global_variables)
+        self.PushPrintVar(1, ALPHA_ARLEQUIN, self.global_variables)
+        self.PushPrintVar(1, NODAL_MASS, self.global_variables)
+        self.PushPrintVar(1, TOTAL_FORCES, self.global_variables)
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
