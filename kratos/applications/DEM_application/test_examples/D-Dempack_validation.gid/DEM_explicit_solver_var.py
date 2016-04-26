@@ -45,7 +45,7 @@ HorizontalFixVel                 = "ON"
 # Solution Strategy
 
 IntegrationScheme                = "Forward_Euler"
-AutoReductionOfTimeStepOption    = "OFF"
+AutomaticTimestep                = "OFF"
 DeltaTimeSafetyFactor            = 1.0
 MaxTimeStep                      = 5e-5
 FinalTime                        = 15.0
