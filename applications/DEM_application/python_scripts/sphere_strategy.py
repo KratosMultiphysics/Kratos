@@ -12,14 +12,22 @@ class ExplicitStrategy:
         # Initialization of member variables
         # SIMULATION FLAGS
         self.Parameters              = Param
+        
         if not (hasattr(Param, "StressStrainOption")):
             self.stress_strain_option = 0
         else:
             self.stress_strain_option = self.Var_Translator(Param.StressStrainOption)
+        
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
         else:
             self.critical_time_option = self.Var_Translator(Param.AutomaticTimestep)
+        
+        if not hasattr(Param, "PostPoissonRatio"):
+            self.poisson_ratio_option = 0
+        else:
+            self.poisson_ratio_option = self.Var_Translator(Param.PostPoissonRatio)    
+                   
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
         self.bounding_box_option     = self.Var_Translator(Param.BoundingBoxOption)
