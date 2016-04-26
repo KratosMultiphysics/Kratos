@@ -319,7 +319,7 @@ namespace Kratos {
                 sliding = true;
             }
         }
-    KRATOS_CATCH("")      
+        KRATOS_CATCH("")      
     }
 
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDamping(double LocalRelVel[3],
@@ -335,15 +335,14 @@ namespace Kratos {
 
         KRATOS_TRY  
 
-                ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
+        ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
 
+        if (sliding == false) { //only applied when no sliding to help to the regularized friction law or the spring convergence
+            ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+            ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+        }
 
-            if (sliding == false) { //only applied when no sliding to help to the regularized friction law or the spring convergence
-                ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-                ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-            }
-
-    KRATOS_CATCH("")      
+        KRATOS_CATCH("")      
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -357,7 +356,7 @@ namespace Kratos {
         double aux_norm_to_tang = 0.0;
         const double my_mass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-//        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
+        //     const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
         const double mCoefficientOfRestitution = element1->GetProperties()[COEFFICIENT_OF_RESTITUTION];
 
         equiv_visco_damp_coeff_normal = (1-mCoefficientOfRestitution) * 2.0 * sqrt(kn_el / (my_mass + other_real_mass)) * (sqrt(my_mass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
