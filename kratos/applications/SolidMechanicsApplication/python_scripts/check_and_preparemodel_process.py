@@ -41,11 +41,3 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 solid_computational_model_part.Conditions.append(cond)  
                 
         print(solid_computational_model_part)
-        
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            #verify that the skin is correct (no gaps and overlaps)
-            KratosMultiphysics.CheckSkinProcess(solid_computational_model_part, KratosMultiphysics.Flags()).Execute()
-
-        #~ #verify the orientation of the skin
-        #~ throw_errors = False
-        #~ KratosMultiphysics.TetrahedralMeshOrientationCheck(solid_computational_model_part,throw_errors).Execute()
