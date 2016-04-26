@@ -32,6 +32,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
+#include "solid_mechanics_application_variables.h"
 #include "pfem_base_application_variables.h"
 
 namespace Kratos
@@ -43,6 +44,11 @@ namespace Kratos
   ///@name Kratos Globals
   ///@{
 
+  // some post process variables + stress invariants
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_FLUID_DYNAMICS_APPLICATION, double, M_MODULUS )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_FLUID_DYNAMICS_APPLICATION, int, PATCH_INDEX )
+
+  //Define Variables
   //Define Variables
 
   ///@}

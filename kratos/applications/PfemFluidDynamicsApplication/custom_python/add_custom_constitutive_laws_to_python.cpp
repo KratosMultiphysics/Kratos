@@ -49,6 +49,8 @@ namespace Kratos
 
     using namespace boost::python;
 
+    typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
+
     void  AddCustomConstitutiveLawsToPython()
     {
 

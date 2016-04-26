@@ -4,6 +4,8 @@ message("**** configuring KratosPfemFluidDynamicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
+
 
 if(${INCLUDE_TRIANGLE} MATCHES ON)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
@@ -24,6 +26,18 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
+   
+	##constitutive laws
+    	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hypoelastic_3D_law.cpp
+    	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hypoelastic_plastic_3D_law.cpp
+    	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hypoelastic_plane_strain_2D_law.cpp
+
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_fluid_element.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
 
 )
 
@@ -31,7 +45,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemFluidDynamicsApplication SHARED ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore)
-target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosPfemBaseApplication)
+target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemBaseApplication)
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
 

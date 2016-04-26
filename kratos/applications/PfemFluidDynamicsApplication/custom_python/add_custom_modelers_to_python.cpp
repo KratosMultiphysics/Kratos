@@ -20,21 +20,16 @@
 
 // Meshers
 
-// Bounding Boxes
-
-
 namespace Kratos
 {
 
 namespace Python
 {
 
-
-  void  AddCustomModelersToPython()
+ void  AddCustomModelersToPython()
   {
 
-    using namespace boost::python;
-     
+      
   }
 
 }  // namespace Python.

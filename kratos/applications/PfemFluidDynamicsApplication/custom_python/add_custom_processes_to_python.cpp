@@ -29,14 +29,13 @@ namespace Kratos
   namespace Python
   {
 
-  	
     void  AddCustomProcessesToPython()
     {
 
       using namespace boost::python;
       typedef Process                                         ProcessBaseType;
-
-    }
+    }	
+ 
  
   }  // namespace Python.
 
