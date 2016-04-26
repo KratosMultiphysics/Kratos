@@ -1,6 +1,6 @@
 /* 
  * File:   DEM_application_variables.h
- * Author: latorre
+ * Author: Salva Latorre
  *
  * Created on October 9, 2014, 10:54 AM
  */
@@ -14,7 +14,6 @@
 
 namespace Kratos
 {
-
 
 #define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
 #define DEM_COPY_SECOND_TO_FIRST_4(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2]; a[3]  = b[3];
@@ -105,6 +104,8 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, EXCENTRICITY)
   KRATOS_DEFINE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
   KRATOS_DEFINE_VARIABLE(double, FABRIC_COEFFICIENT)
+  KRATOS_DEFINE_VARIABLE(double, POISSON_VALUE)
+
 
   // *************** Nano-particle only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, CATION_CONCENTRATION)
