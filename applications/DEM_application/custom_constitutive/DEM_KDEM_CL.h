@@ -34,8 +34,8 @@ namespace Kratos {
                 double &equiv_visco_damp_coeff_tangential,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
-                double kn_el,
-                double kt_el);
+                const double kn_el,
+                const double kt_el);
 
         double LocalMaxSearchDistance(const int i,
                                       SphericContinuumParticle* element1,
@@ -43,23 +43,28 @@ namespace Kratos {
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                const double kn_el,
-                double kt_el,
-                double& contact_sigma,
-                double& contact_tau,
-                double& failure_criterion_state,
-                double equiv_young,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps,
-                bool& sliding,
-                int search_control,
-                vector<int>& search_control_vector);
+                             double LocalDeltDisp[3],
+                             const double kn_el,
+                             const double kt_el,
+                             double& contact_sigma,
+                             double& contact_tau,
+                             double& failure_criterion_state,
+                             double equiv_young,
+                             double indentation,
+                             double calculation_area,
+                             double& acumulated_damage,
+                             SphericContinuumParticle* element1,
+                             SphericContinuumParticle* element2,
+                             int i_neighbour_count,
+                             int time_steps,
+                             bool& sliding,
+                             int search_control,
+                             vector<int>& search_control_vector,
+                             double &equiv_visco_damp_coeff_normal,
+                             double &equiv_visco_damp_coeff_tangential,
+                             double LocalRelVel[3],
+                             double ViscoDampingLocalContactForce[3],
+                             int failure_id);
 
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
@@ -74,9 +79,11 @@ namespace Kratos {
                 int time_steps);
 
 
+
+
         void CalculateTangentialForces(double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
-                double kt_el,
+                const double kt_el,
                 double& contact_sigma,
                 double& contact_tau,
                 double indentation,
@@ -95,7 +102,7 @@ namespace Kratos {
                                    double indentation,
                                    double equiv_visco_damp_coeff_normal,
                                    double equiv_visco_damp_coeff_tangential,
-                                   bool sliding,
+                                   bool& sliding,
                                    int failure_id);
         
 
