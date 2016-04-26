@@ -359,6 +359,9 @@ while (time < DEM_parameters.FinalTime):
     time_to_print = time - time_old_print
 
     if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
+        
+        if (False): # TODO: Here DEM_parameters.PrintPoissonOption should be evaluated
+            DEMFEMProcedures.PrintPoisson(time, spheres_model_part, DEM_parameters)
 
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
