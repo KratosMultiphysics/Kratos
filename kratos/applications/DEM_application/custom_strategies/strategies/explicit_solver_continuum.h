@@ -166,6 +166,16 @@ namespace Kratos
             if (r_process_info[CASE_OPTION] != 0) {
                 SetInitialDemContacts();
                 CalculateMeanContactArea();
+                CalculateMaxSearchDistance();
+
+            }   
+            KRATOS_WATCH(r_process_info[DELTA_TIME])
+
+            if (r_process_info[CRITICAL_TIME_OPTION]) {
+                //InitialTimeStepCalculation();   //obsolete call
+                BaseType::CalculateMaxTimeStep();
+                KRATOS_WATCH(r_process_info[CRITICAL_TIME_OPTION])
+
             }
 
             ComputeNewNeighboursHistoricalData();
@@ -614,6 +624,37 @@ namespace Kratos
         VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
     }
+       
+
+void CalculateMaxSearchDistance() {
+
+    KRATOS_TRY
+
+    ModelPart& r_model_part = GetModelPart();
+    ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+    bool has_mpi = false;
+    Check_MPI(has_mpi);
+
+    std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(),0.0);
+    const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
+
+    #pragma omp parallel for
+    for (int i = 0; i < number_of_particles; i++) {
+        double max_sphere = mListOfSphericContinuumParticles[i]->CalculateMaxSearchDistance(has_mpi, r_process_info);
+        if ( max_sphere > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sphere;
+    }
+
+    double maximum_across_threads = 0.0;
+    for(int i=0; i<OpenMPUtils::GetNumThreads(); i++){
+        if(thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
+    }
+
+    r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
+
+    KRATOS_CATCH("")
+}
+
 
 
     void CalculateMeanContactArea() {
