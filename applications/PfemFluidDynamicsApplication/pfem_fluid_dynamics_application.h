@@ -30,16 +30,37 @@
 // Project includes
 
 // Core applications
+#include "solid_mechanics_application.h"
 #include "pfem_base_application.h"
 
 //conditions
 
 //elements
+#include "custom_elements/two_step_updated_lagrangian_V_P_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h" 
+#include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
+#include "custom_constitutive/hypoelastic_3D_law.hpp"
+#include "custom_constitutive/hypoelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/hypoelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plastic_plane_stress_2D_law.hpp"
+
+#include "custom_conditions/wall_condition.h"
+/* #include "custom_conditions/two_step_werner_wengle_wall_condition.h" */
+/* #include "custom_conditions/two_step_generalized_wall_condition.h" */
+/* #include "custom_conditions/wall_condition_discontinuous.h" */
+/* #include "custom_conditions/monolithic_wall_condition.h" */
+/* #include "custom_conditions/two_step_periodic_condition.h" */
+
+#include "geometries/triangle_3d_3.h"
+#include "geometries/line_2d.h"
 
 // yield Criteria
 
@@ -59,8 +80,6 @@ namespace Kratos
 
   ///@name Kratos Globals
   ///@{ 
-
-  //Define Variables
 
   ///@} 
   ///@name Type Definitions
@@ -212,9 +231,26 @@ namespace Kratos
     ///@} 
     ///@name Member Variables 
     ///@{ 
+    //updated lagrangian
+    /// 2D two step element for fluid
+    const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2D;
+    /// 3D two step element for fluid
+    const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3D;
+    /// 2D two step element for solid
+    const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2D;
+    /// 3D two step element for solid
+    const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3D;
+   /// 2D two step element for solid
+    const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D;
+    /// 3D two step element for solid
+    const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D;
 
+    /// Exact 2D slip condition using rotated coordinates (fractional step version)
+    const  WallCondition<2,2> mWallCondition2D;
+    /// Exact 3D slip condition using rotated coordinates (fractional step version)
+    const  WallCondition<3,3> mWallCondition3D;
 
-    ///@} 
+     ///@} 
     ///@name Private Operators
     ///@{ 
 

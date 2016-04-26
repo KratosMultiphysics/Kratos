@@ -32,8 +32,6 @@
 #include "custom_python/add_custom_conditions_to_python.h"
 
 
-
-
 namespace Kratos
 {
 
