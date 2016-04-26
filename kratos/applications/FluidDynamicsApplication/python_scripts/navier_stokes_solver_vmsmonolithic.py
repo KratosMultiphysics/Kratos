@@ -45,12 +45,24 @@ class NavierStokesSolver_VMSMonolithic:
             "absolute_velocity_tolerance": 1e-7,
             "relative_pressure_tolerance": 1e-5,
             "absolute_pressure_tolerance": 1e-7,
-            "linear_solver_settings": {
-                    "solver_type": "Super LU",
-                    "max_iteration": 500,
-                    "tolerance": 1e-9,
-                    "scaling": false,
-                    "verbosity": 1
+            "linear_solver_settings"        : {
+                "solver_type" : "AMGCL_NS_Solver",
+                "krylov_type" : "bicgstab",
+                "velocity_block_preconditioner" : {
+                    "tolerance" : 1e-3,
+                    "precondioner_type" : "spai0"
+                },
+                "pressure_block_preconditioner" : {
+                    "tolerance" : 1e-2,
+                    "precondioner_type" : "spai0"
+                },
+                "tolerance" : 1e-6,
+                "krylov_type": "bicgstab",
+                "gmres_krylov_space_dimension": 50,
+                "max_iteration": 50,
+                "verbosity" : 0,
+                "scaling": true,
+                "coarse_enough" : 5000
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
