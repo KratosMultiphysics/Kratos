@@ -33,7 +33,7 @@ namespace Kratos {
     }
 
     void DEM_ExponentialHC::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_ExponentialHC to properties " << pProp->Id() << std::endl;
+        std::cout << "Assigning DEM_ExponentialHC to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
