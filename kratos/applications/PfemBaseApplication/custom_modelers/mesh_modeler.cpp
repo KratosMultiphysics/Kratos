@@ -308,8 +308,9 @@ namespace Kratos
     
     // VARIABLES SMOOTHING, transfer to nodes
     if(mpMeshingVariables->Options.Is(ModelerUtilities::VARIABLES_SMOOTHING)){
-      if( mpMeshingVariables->TransferVariablesSetFlag )
+      if( mpMeshingVariables->TransferVariablesSetFlag ){
 	mpDataTransferUtilities->TransferElementalValuesToNodes(mpMeshingVariables->TransferVariables,rModelPart,MeshId);
+      }
     }
     
     if(Meshes[MeshId].Is( ModelerUtilities::REMESH )){
@@ -411,7 +412,8 @@ namespace Kratos
 	  if( mpMeshingVariables->TransferVariables.VariablesSetFlag ){
 	    //Smoothing performed only in critical elements (usually based on PLASTIC_STRAIN variable)
 	    mpDataTransferUtilities->TransferNodalValuesToElements(mpMeshingVariables->TransferVariables,mpMeshingVariables->Refine->GetThresholdVariable(),mpMeshingVariables->Refine->ReferenceThreshold,rModelPart,MeshId);
-
+	    
+	    //std::cout<<" Transfer on critical elements "<<*mpMeshingVariables->TransferVariables.DoubleVariables[0]<<" "<<mpMeshingVariables->Refine->GetThresholdVariable()<<std::endl;
 		   
 	    //Smoothing performed only in critical elements (based on Set Dissipation Variable)
 	    //mpDataTransferUtilities->TransferNodalValuesToElements(DETERMINANT_F,mpMeshingVariables->Refine->GetThresholdVariable(),mpMeshingVariables->Refine->ReferenceThreshold,rModelPart,MeshId);

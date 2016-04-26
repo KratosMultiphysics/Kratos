@@ -391,7 +391,7 @@ namespace Kratos
 		    
 	    //std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<std::endl;
 
-	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
+	    double alpha = 0.25; //[0,1] //smoothing level of the Jacobian	      
 
 	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
@@ -577,7 +577,7 @@ namespace Kratos
 
 	    //std::cout<<" [ Data Transfer NODE to ELEMENT ] : based on critical values of "<<rCriticalVariable<<std::endl;
 
-	    double alpha = 0.5; //[0,1] //smoothing level of the Jacobian	      
+	    double alpha = 0.25; //[0,1] //smoothing level of the Jacobian	      
 
 	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
@@ -594,7 +594,9 @@ namespace Kratos
 	      {
 	     
 	    	(ie)->GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
+
 		computed_value = ComputedValues[0];
+
 		for(unsigned int j=1; j<integration_points_number; j++)
 		  {
 		    computed_value += ComputedValues[j];
@@ -663,6 +665,7 @@ namespace Kratos
 			  for( unsigned int k=0 ; k<rGeometry.size(); k++)
 			    {
 			      NodesDoubleVariableArray[j] += N [k] * rGeometry[k].FastGetSolutionStepValue(*(rTransferVariables.DoubleVariables[i]));
+			      //std::cout<<" Node var ["<<k<<"] "<<rGeometry[k].FastGetSolutionStepValue(*(rTransferVariables.DoubleVariables[i]))<<std::endl;
 			    }
 			
 			  NodesDoubleVariableArray[j] *= (alpha);
@@ -670,7 +673,8 @@ namespace Kratos
 						
 			}
 		    
-	    
+		      //std::cout<<" transfer ["<<ie->Id()<<"] "<<NodesDoubleVariableArray[0]<<" element "<<ElementDoubleVariableArray[0]<<std::endl;
+
 		      (ie)->SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
 		    }
@@ -833,6 +837,31 @@ namespace Kratos
 	    	  double ElementArea  = 0;
 		  std::fill( NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0);
 		  
+		  //Initialize variables
+		  
+		  //double
+		  std::fill( NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0);
+		  
+
+		  //Array1D
+		  for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
+		    {			  
+		      NodesArray1DVariableArray[i].clear();
+		    }
+
+		  //Vector
+		  for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
+		    {			  
+		      NodesVectorVariableArray[i] = ZeroVector();
+		    }
+
+		  //Matrix
+		  for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
+		    {			  
+		      NodesMatrixVariableArray[i] = ZeroMatrix();
+		    }
+
+
 	    	  for(unsigned int ne=0; ne < neighb_elems.size(); ne++)
 	    	    {		    
 
@@ -845,28 +874,21 @@ namespace Kratos
 			{			  
 			  //elemental value
 			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);   
-			  NodesDoubleVariableArray[i] = ElementDoubleVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
+			  for(unsigned int j=0; j<integration_points_number; j++)
 			    {
-			      NodesDoubleVariableArray[i] += ElementDoubleVariableArray[j];
-			    }
-			  
-			  NodesDoubleVariableArray[i] *= ElementArea/double(integration_points_number);
+			      NodesDoubleVariableArray[i] += ElementDoubleVariableArray[j] * ElementArea/double(integration_points_number);
+			    }			  	 
 			}
-
 
 		      //Array1D
 		      for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); i++)
 			{			  
 			  //elemental value
 			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
-			  NodesArray1DVariableArray[i] = ElementArray1DVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
+			  for(unsigned int j=0; j<integration_points_number; j++)
 			    {
-			      NodesArray1DVariableArray[i] += ElementArray1DVariableArray[j];
+			      NodesArray1DVariableArray[i] += ElementArray1DVariableArray[j] * ElementArea/double(integration_points_number);
 			    }
-			  
-			  NodesArray1DVariableArray[i] *= ElementArea/double(integration_points_number);
 			}
 
 		      //Vector
@@ -874,13 +896,10 @@ namespace Kratos
 			{			  
 			  //elemental value
 			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
-			  NodesVectorVariableArray[i] = ElementVectorVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
+			  for(unsigned int j=0; j<integration_points_number; j++)
 			    {
-			      NodesVectorVariableArray[i] += ElementVectorVariableArray[j];
+			      NodesVectorVariableArray[i] += ElementVectorVariableArray[j] * ElementArea/double(integration_points_number);
 			    }
-			  
-			  NodesVectorVariableArray[i] *= ElementArea/double(integration_points_number);
 			}
 
 		      //Matrix
@@ -888,13 +907,10 @@ namespace Kratos
 			{			  
 			  //elemental value
 			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
-			  NodesMatrixVariableArray[i] = ElementMatrixVariableArray[0];
-			  for(unsigned int j=1; j<integration_points_number; j++)
+			  for(unsigned int j=0; j<integration_points_number; j++)
 			    {
-			      NodesMatrixVariableArray[i] += ElementMatrixVariableArray[j];
+			      NodesMatrixVariableArray[i] += ElementMatrixVariableArray[j] * ElementArea/double(integration_points_number);
 			    }
-			  
-			  NodesMatrixVariableArray[i] *= ElementArea/double(integration_points_number);
 			}
 
 	    	    }
@@ -905,6 +921,7 @@ namespace Kratos
 		      {			  
 			NodesDoubleVariableArray[i] /= Area;
 
+			//std::cout<<" node ["<<in->Id()<<"] "<<NodesDoubleVariableArray[i]<<" Area "<<Area<<std::endl;
 			if( (in)->SolutionStepsDataHas(*(rTransferVariables.DoubleVariables[i]))){
 			  (in)->FastGetSolutionStepValue(*(rTransferVariables.DoubleVariables[i])) = NodesDoubleVariableArray[i];
 			}
