@@ -83,16 +83,6 @@ void LineLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariable
   ///calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
   rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-
-  //Initialize Line Variables
-  rVariables.Tangent1.resize(3,false);
-  rVariables.Tangent2.resize(3,false);
-  rVariables.Normal.resize(3,false);
-  rVariables.Tangent1 = ZeroVector(3);
-  rVariables.Tangent2 = ZeroVector(3);
-  rVariables.Normal   = ZeroVector(3);
-    
-
 }
 
 //*************************COMPUTE DELTA POSITION*************************************

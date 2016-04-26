@@ -219,6 +219,9 @@ private:
     
       ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
       
+      double max_value = 0;
+      double critical_value = mrRefine.ReferenceThreshold; 
+
       int counter = 0;
       //set label refine in elements that must be refined due to dissipation
       for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin(mMeshId);
@@ -233,8 +236,11 @@ private:
 	  //variable_value = Value[0] * iii->GetGeometry().Area();
 	  variable_value = Value[0] * iii->GetGeometry().DomainSize(); //Area() or Volume()
 
-	  double critical_value = mrRefine.ReferenceThreshold; // * iii->GetGeometry().DomainSize(); //Area() Volume()
+
 	
+	  if( variable_value > max_value )
+	    max_value = variable_value;
+ 
 	  // if(variable_value>0)
 	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRefine.GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
 	 
@@ -252,6 +258,15 @@ private:
 		    
 	}
     
+      if( mEchoLevel >= 1 ){	
+	if( max_value < critical_value )
+	  std::cout<<" Threshold Value not REACHED ::  max_value  "<< max_value<<std::endl;
+
+	if( counter > 0 )
+	  std::cout<<" Threshold reached "<<counter<<" times "<<std::endl;
+      }
+      
+
       if( mEchoLevel >= 1 )
 	std::cout<<"   Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
 

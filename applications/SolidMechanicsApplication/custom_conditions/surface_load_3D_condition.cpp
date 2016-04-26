@@ -75,17 +75,8 @@ void SurfaceLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVaria
 
   ForceLoadCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
   
-  //Initialize Surface Variables
-  rVariables.Tangent1.resize(3,false);
-  rVariables.Tangent2.resize(3,false);
-  rVariables.Normal.resize(3,false);
-  rVariables.Tangent1 = ZeroVector(3);
-  rVariables.Tangent2 = ZeroVector(3);
-  rVariables.Normal   = ZeroVector(3);
-
   //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
   rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
-
 
   //Calculate Delta Position
   rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);

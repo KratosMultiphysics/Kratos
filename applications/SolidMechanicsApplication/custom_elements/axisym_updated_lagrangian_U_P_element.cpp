@@ -234,30 +234,10 @@ void AxisymUpdatedLagrangianUPElement::Initialize()
 void AxisymUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-
-    rVariables.detF  = 1;
-
-    rVariables.detF0 = 1;
-
-    rVariables.detFT = 1;
-
-    rVariables.detJ = 1;
-
-    rVariables.B.resize( 4 , number_of_nodes * 2 );
-
-    rVariables.F.resize( 3, 3 );
-
-    rVariables.F0.resize( 3, 3 );
-
-    rVariables.FT.resize( 3, 3 );
-
-    rVariables.ConstitutiveMatrix.resize( 4, 4 );
-
-    rVariables.StrainVector.resize( 4 );
-
-    rVariables.StressVector.resize( 4 );
-
-    rVariables.DN_DX.resize( number_of_nodes, 2 );
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int voigt_size      = 4;
+    
+    rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
     //set variables including all integration points values
 

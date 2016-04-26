@@ -391,7 +391,7 @@ namespace Kratos
 		    
 	    //std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<std::endl;
 
-	    double alpha = 0.25; //[0,1] //smoothing level of the Jacobian	      
+	    double alpha = 0.5; //[0,1] //smoothing level of the Jacobian	      
 
 	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
@@ -577,7 +577,7 @@ namespace Kratos
 
 	    //std::cout<<" [ Data Transfer NODE to ELEMENT ] : based on critical values of "<<rCriticalVariable<<std::endl;
 
-	    double alpha = 0.25; //[0,1] //smoothing level of the Jacobian	      
+	    double alpha = 0.5; //[0,1] //smoothing level of the Jacobian	      
 
 	    Geometry<Node<3> >& rGeom = rModelPart.ElementsBegin(MeshId)->GetGeometry();
 	    GeometryData::IntegrationMethod IntegrationMethod =  rGeom.GetDefaultIntegrationMethod();
