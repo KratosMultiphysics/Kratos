@@ -85,12 +85,6 @@ namespace Kratos
 		array_1d<double, 3>& r_contact_force,
 		const unsigned int i_neighbour_count);
 
-	void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-		array_1d<double, 3 > & rContactForce,
-		array_1d<double, 3>& rInitialRotaMoment,
-		ProcessInfo& r_process_info,
-		const double dt,
-		const bool multi_stage_RHS);
 
 
 	double sintering_displ;
