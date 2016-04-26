@@ -21,7 +21,7 @@ namespace Kratos {
     }
 
     void DEM_D_JKR_Cohesive_Law::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_D_JKR_Cohesive_Law to properties " << pProp->Id() << std::endl;
+        std::cout << "Assigning DEM_D_JKR_Cohesive_Law to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
