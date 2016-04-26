@@ -16,7 +16,7 @@ class ExplicitStrategy:
             self.stress_strain_option = 0
         else:
             self.stress_strain_option = self.Var_Translator(Param.StressStrainOption)
-        self.critical_time_option    = self.Var_Translator(Param.AutoReductionOfTimeStepOption)
+        self.critical_time_option    = self.Var_Translator(Param.AutomaticTimestep)
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
         self.bounding_box_option     = self.Var_Translator(Param.BoundingBoxOption)
