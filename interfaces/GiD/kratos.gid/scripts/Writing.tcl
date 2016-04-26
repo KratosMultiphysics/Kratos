@@ -573,7 +573,7 @@ proc write::GetDefaultOutputDict {} {
     dict set resultDict node_output           [getValue Results NodeOutput]
     dict set resultDict skin_output           [getValue Results SkinOutput]
     
-    dict set resultDict plane_output [GetEmptyList]
+    dict set resultDict plane_output [GetCutPlanesList]
     
     #dict set outputDict write_results "PreMeshing"
     #dict set outputDict plot_graphs false
@@ -592,9 +592,29 @@ proc write::GetDefaultOutputDict {} {
     return $outputDict
 }
 proc write::GetEmptyList { } {
-    # This is a gypsy code
+    # This is a gipsy code
     set a [list ]
     return $a
+}
+proc write::GetCutPlanesList { } {
+    set doc $gid_groups_conds::doc
+    set root [$doc documentElement]
+
+    set list_of_planes [list ]
+    
+    set xp1 "[spdAux::getRoute Results]/container\[@n='CutPlanes'\]/blockdata"
+    set planes [$root selectNodes $xp1]
+    
+    foreach plane $planes {
+        set pdict [dict create]
+        set points [split [get_domnode_attribute [$plane firstChild] v] ","]
+        set normals [split [get_domnode_attribute [$plane lastChild ] v] ","]
+        dict set pdict point $points
+        dict set pdict normal $normals
+        lappend list_of_planes $pdict
+        unset pdict 
+    }
+    return $list_of_planes
 }
 
 proc write::GetDataType {value} {

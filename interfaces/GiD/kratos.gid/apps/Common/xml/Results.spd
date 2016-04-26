@@ -19,6 +19,12 @@
         <value n="GiDWriteConditionsFlag" pn="Write conditions" v="WriteConditions" values="WriteConditions,WriteElementsOnly,WriteConditionsOnly" dict="WriteConditions,Write conditions,WriteElementsOnly,Write elements only,WriteConditionsOnly,Write conditions only" help="Write the conditions or only element to the GiD result file"/>
         <value n="GiDMultiFileFlag" pn="Result file" v="SingleFile" values="SingleFile,MultipleFiles" help="Write one GiD result file or multiple files"/>
         <value n="EchoLevel" pn="Echo Level" v="0" values="0,1,2,3" help="Verbosity on screen output during process. \n0 -> Low verbosity \n3 -> High verbosity"/>
-    </container>    
+    </container>
+    <container n="CutPlanes" pn="Cut planes"  icon="material16">
+        <blockdata n='CutPlane' name='CutPlane' editable_name="unique" sequence='1'>
+            <value n="point" pn="Point" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="0"/>
+            <value n="normal" pn="Normal" fieldtype="vector" dimensions="3" format="%.6g" v="0.0,0.0,0.0" pick_point="0"/>
+        </blockdata>
+    </container>
 </container>
     
