@@ -82,10 +82,10 @@ def Coefficient(order, n, j):
 
 def Daitche(order, times, f):
     sqrt_of_h = math.sqrt(times[-1] - times[-2])    
-    n = len(times)
+    n = len(times) - 1
     total = 0.0
     
-    for j in range(0 , n):
+    for j in range(0 , n + 1):
         coefficient = Coefficient(order, n, j)
         total += coefficient * f(times[-j - 1])
     
@@ -94,7 +94,7 @@ def Daitche(order, times, f):
 
 t = 1.0
 f = math.sin
-n_div = [10, 40, 160, 640, 2560]
+n_div = [1, 2, 4, 8, 16, 32, 64]
 errors_naive = []
 errors_1 = []
 errors_2 = []
