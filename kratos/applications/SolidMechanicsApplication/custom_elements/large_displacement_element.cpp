@@ -574,36 +574,9 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
 
-    unsigned int voigtsize  = 3;
-    if( dimension == 3 )
-    {
-        voigtsize  = 6;
-    }
-
-    rVariables.detF  = 1;
-
-    rVariables.detF0 = 1;
-
-    rVariables.detFT = 1;
-
-    rVariables.detJ = 1;
-
-    rVariables.B.resize( voigtsize , number_of_nodes * dimension );
-
-    rVariables.F.resize( dimension, dimension );
-
-    rVariables.F0.resize( dimension, dimension );
-
-    rVariables.FT.resize( dimension, dimension );
-
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
-
-    rVariables.StrainVector.resize( voigtsize );
-
-    rVariables.StressVector.resize( voigtsize );
-
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
+    rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
     //set variables including all integration points values
 
@@ -690,7 +663,8 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //auxiliary terms
-    Vector VolumeForce;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Vector VolumeForce = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -1853,10 +1827,14 @@ Vector& LargeDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, Ge
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVolumeForce = ZeroVector(dimension);
+
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
-            rVolumeForce += rVariables.N[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+      if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	for( unsigned int i = 0; i < dimension; i++ )
+	  rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i] ;
+      }
     }
 
     double VolumeChange = 0;
@@ -2165,8 +2143,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
                 rOutput[PointNumber].resize( Variables.StressVector.size(), false );
 
             rOutput[PointNumber] = Variables.StressVector;
-
-
         }
 
     }

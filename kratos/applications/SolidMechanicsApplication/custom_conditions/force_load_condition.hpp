@@ -127,6 +127,35 @@ protected:
             return *pNcontainer;
         };
 
+        void Initialize( const unsigned int& dimension,
+			 const unsigned int& local_dimension,
+			 const unsigned int& number_of_nodes )
+        {
+	  //doubles
+	  //radius
+	  CurrentRadius   = 0;
+	  ReferenceRadius = 0;
+	  //jacobians
+	  DomainSize = 1;
+	  Jacobian   = 1;
+	  Pressure   = 0;
+	  //vectors
+	  N        = ZeroVector(number_of_nodes);
+ 	  Normal   = ZeroVector(dimension);
+	  Tangent1 = ZeroVector(dimension);
+	  Tangent2 = ZeroVector(dimension);
+	  //matrices
+	  DN_De = ZeroMatrix(number_of_nodes, local_dimension);
+	  DeltaPosition = ZeroMatrix(number_of_nodes, dimension);
+	  //others
+	  J.resize(1,false);
+	  j.resize(1,false);
+	  J[0] = ZeroMatrix(1);
+	  j[0] = ZeroMatrix(1);
+	  //pointers
+	  pDN_De = NULL;
+	  pNcontainer = NULL;
+	}
 
     };
 

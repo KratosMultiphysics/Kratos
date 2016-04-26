@@ -79,10 +79,13 @@ PointLoad3DCondition::~PointLoad3DCondition()
 void PointLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+      
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rVariables.DomainSize = 1;
-    rVariables.N = ZeroVector(1);
-    
+    rVariables.Initialize(dimension, local_dimension, number_of_nodes);
+   
     //Only one node:
     rVariables.N[0] = 1;
 

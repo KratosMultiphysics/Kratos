@@ -102,20 +102,10 @@ AxisymSmallDisplacementElement::~AxisymSmallDisplacementElement()
 void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-
-    rVariables.detF  = 1;
-
-    rVariables.B.resize( 4 , number_of_nodes * 2 );
-
-    rVariables.F.resize( 3, 3 );
-
-    rVariables.ConstitutiveMatrix.resize( 4, 4 );
-
-    rVariables.StrainVector.resize( 4 );
-
-    rVariables.StressVector.resize( 4 );
-
-    rVariables.DN_DX.resize( number_of_nodes, 2 );
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int voigt_size      = 4;
+    
+    rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
     //needed parameters for consistency with the general constitutive law: small displacements
     rVariables.detF  = 1;

@@ -142,6 +142,42 @@ protected:
             return *pNcontainer;
         };
 
+        void Initialize( const unsigned int& voigt_size, 
+			 const unsigned int& dimension, 
+			 const unsigned int& number_of_nodes )
+        {
+	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
+	  //doubles
+	  //radius
+	  CurrentRadius = 0;
+	  ReferenceRadius = 0;
+	  //jacobians
+	  detF  = 1;
+	  detF0 = 1;
+	  detFT = 1;
+	  detJ  = 1;
+	  //vectors
+	  StrainVector = ZeroVector(voigt_size);
+          StressVector = ZeroVector(voigt_size);
+	  N = ZeroVector(number_of_nodes);
+	  //matrices
+	  B  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
+	  F  = IdentityMatrix(dimension);
+	  F0 = IdentityMatrix(dimension);
+	  FT = IdentityMatrix(dimension);
+	  DN_DX = ZeroMatrix(number_of_nodes, dimension);
+	  ConstitutiveMatrix = ZeroMatrix(voigt_size, voigt_size);
+	  DeltaPosition = ZeroMatrix(number_of_nodes, dimension);
+	  //others
+	  J.resize(1,false);
+	  j.resize(1,false);
+	  J[0] = ZeroMatrix(1);
+	  j[0] = ZeroMatrix(1);
+	  //pointers
+	  pDN_De = NULL;
+	  pNcontainer = NULL;
+	}
+
 
     };
 

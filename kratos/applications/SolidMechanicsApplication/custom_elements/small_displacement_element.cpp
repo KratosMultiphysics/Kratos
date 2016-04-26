@@ -548,27 +548,11 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
 
-    unsigned int voigtsize  = 3;
-    if( dimension == 3 )
-    {
-        voigtsize  = 6;
-    }
-
-    rVariables.B.resize( voigtsize, number_of_nodes * dimension );
-
-    rVariables.H.resize( dimension, dimension );
-
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
-
-    rVariables.StrainVector.resize( voigtsize );
-
-    rVariables.StressVector.resize( voigtsize );
-
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
+    rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
     //needed parameters for consistency with the general constitutive law: small displacements
-
     rVariables.detF  = 1.0;
     rVariables.F     = identity_matrix<double>(dimension);
 
@@ -654,7 +638,8 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //auxiliary terms
-    Vector VolumeForce;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Vector VolumeForce = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -689,8 +674,6 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
             this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
 
         }
-
-
 
     }
 
@@ -1464,20 +1447,20 @@ Matrix& SmallDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition
 
     return rDeltaPosition;*/
 
-	GeometryType& geom = GetGeometry();
-	const unsigned int number_of_nodes = geom.PointsNumber();
+    GeometryType& geom = GetGeometry();
+    const unsigned int number_of_nodes = geom.PointsNumber();
     unsigned int dimension = geom.WorkingSpaceDimension();
-
+    
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-		const NodeType& iNode = geom[i];
+      {
+	const NodeType& iNode = geom[i];
         rDeltaPosition(i, 0) = iNode.X() - iNode.X0();
-		rDeltaPosition(i, 1) = iNode.Y() - iNode.Y0();
-		if(dimension == 3)
-			rDeltaPosition(i, 2) = iNode.Z() - iNode.Z0();
-    }
+	rDeltaPosition(i, 1) = iNode.Y() - iNode.Y0();
+	if(dimension == 3)
+	  rDeltaPosition(i, 2) = iNode.Z() - iNode.Z0();
+      }
 
     return rDeltaPosition;
 
@@ -1639,8 +1622,10 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
-    rB.clear();
+    if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
+      rB.resize(voigt_size, dimension*number_of_nodes, false );
     
     if( dimension == 2 )
     {
@@ -1743,10 +1728,14 @@ Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, Ge
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVolumeForce = ZeroVector(dimension);
+
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
-            rVolumeForce += rVariables.N[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+      if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	for( unsigned int i = 0; i < dimension; i++ )
+	  rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i] ;
+      }
     }
 
     rVolumeForce *= GetProperties()[DENSITY];
