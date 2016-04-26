@@ -436,10 +436,6 @@ namespace Kratos
 
           r_process_info[DELTA_TIME] = critical_timestep;
 
-
-          KRATOS_WATCH(critical_period)
-          KRATOS_WATCH(r_process_info[DELTA_TIME])
-
           KRATOS_CATCH("")
       }
 

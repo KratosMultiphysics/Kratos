@@ -169,13 +169,10 @@ namespace Kratos
                 CalculateMaxSearchDistance();
 
             }   
-            KRATOS_WATCH(r_process_info[DELTA_TIME])
 
             if (r_process_info[CRITICAL_TIME_OPTION]) {
                 //InitialTimeStepCalculation();   //obsolete call
                 BaseType::CalculateMaxTimeStep();
-                KRATOS_WATCH(r_process_info[CRITICAL_TIME_OPTION])
-
             }
 
             ComputeNewNeighboursHistoricalData();
