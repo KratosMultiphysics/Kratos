@@ -157,6 +157,9 @@ namespace Kratos {
         virtual void CalculateViscoDampingForce(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle * const element1, SphericParticle * const element2);                                                
         virtual void CalculateViscoDampingForceWithFEM(double LocalRelVel[3], double ViscoDampingLocalContactForce[3], SphericParticle* const element, DEMWall* const wall);
         
+        virtual double LocalPeriod(const int i, SphericParticle* element1,SphericParticle* element2);
+
+
     private:
 
         friend class Serializer;

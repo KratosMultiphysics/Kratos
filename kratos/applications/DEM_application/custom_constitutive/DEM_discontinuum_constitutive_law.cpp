@@ -65,6 +65,57 @@ namespace Kratos {
         KRATOS_CATCH("")  
     }    
     
+
+    double DEMDiscontinuumConstitutiveLaw::LocalPeriod(const int i, SphericParticle* element1,
+                                               SphericParticle* element2) {
+
+        // calculation of equivalent young modulus
+        double myYoung = element1->GetYoung();
+        double other_young = element2->GetYoung();
+        double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+
+        const double my_radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        double calculation_area = 0;
+        CalculateContactArea(my_radius, other_radius, calculation_area);
+
+        double radius_sum = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
+        //double initial_delta = element1->GetInitialDelta(i);
+        //double initial_dist = radius_sum - initial_delta;
+
+        // calculation of elastic constants for discontinuum - Linear model
+        //double kn_el = equiv_young * calculation_area / initial_dist;
+
+        const double modified_radius = equiv_radius * 0.31225; // sqrt(alpha * (2.0 - alpha)) = 0.31225
+        double kn = equiv_young * KRATOS_M_PI * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
+
+        //mDensity = element1_props[PARTICLE_DENSITY];
+        //other_density = element2_props[PARTICLE_DENSITY];
+        //double m1 = 4/3 * KRATOS_M_PI * my_radius * my_radius * my_radius * mDensity;
+        //double m2 = 4/3 * KRATOS_M_PI * other_radius * other_radius * other_radius * other_density;
+
+        const double mRealMass = element1->GetMass();
+        const double other_real_mass = element2->GetMass();
+        double equiv_mass = (mRealMass*other_real_mass)/(mRealMass+other_real_mass);
+
+        // calculation of damping gamma
+        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
+        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
+        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
+        double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
+        double sqr_period = kn / equiv_mass - rescaled_damping*rescaled_damping;
+        return sqr_period;
+    }
+
+
+
+
+
+
+
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double ini_delta) {        
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
     }
