@@ -44,8 +44,6 @@ namespace Kratos {
     }
 
 
-
-
     double DEM_Dempack::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1,
                                                SphericContinuumParticle* element2) {
 
@@ -124,8 +122,8 @@ namespace Kratos {
             double &equiv_visco_damp_coeff_tangential,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
-            double kn_el,
-            double kt_el) {
+            const double kn_el,
+            const double kt_el) {
         
         KRATOS_TRY 
         double aux_norm_to_tang = 0.0;               // sqrt(kt_el / kn_el);
@@ -144,7 +142,7 @@ namespace Kratos {
                                       double LocalElasticContactForce[3],
                                       double LocalDeltDisp[3],
                                       const double kn_el,
-                                      double kt_el,
+                                      const double kt_el,
                                       double& contact_sigma,
                                       double& contact_tau,
                                       double& failure_criterion_state,
@@ -158,7 +156,12 @@ namespace Kratos {
                                       int time_steps,
                                       bool& sliding,
                                       int search_control,
-                                      vector<int>& search_control_vector) {
+                                      vector<int>& search_control_vector,
+                                      double &equiv_visco_damp_coeff_normal,
+                                      double &equiv_visco_damp_coeff_tangential,
+                                      double LocalRelVel[3],
+                                      double ViscoDampingLocalContactForce[3],
+                                      int failure_id) {
 
         KRATOS_TRY
 
@@ -187,6 +190,22 @@ namespace Kratos {
                 sliding,
                 search_control,
                 search_control_vector);
+
+        CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
+                                   equiv_visco_damp_coeff_tangential,
+                                   element1,
+                                   element2,
+                                   kn_el,
+                                   kt_el);
+
+        CalculateViscoDamping(LocalRelVel,
+                              ViscoDampingLocalContactForce,
+                              indentation,
+                              equiv_visco_damp_coeff_normal,
+                              equiv_visco_damp_coeff_tangential,
+                              sliding,
+                              failure_id);
+
 
         KRATOS_CATCH("")  
     }
@@ -345,7 +364,7 @@ namespace Kratos {
 
     void DEM_Dempack::CalculateTangentialForces(double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
-            double kt_el,
+            const double kt_el,
             double& contact_sigma,
             double& contact_tau,
             double indentation,

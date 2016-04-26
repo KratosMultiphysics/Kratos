@@ -1,3 +1,4 @@
+
 #if !defined(DEM_CONTINUUM_CONSTITUTIVE_LAW_H_INCLUDED)
 #define  DEM_CONTINUUM_CONSTITUTIVE_LAW_H_INCLUDED
 
@@ -48,7 +49,7 @@ namespace Kratos {
                 double indentation,
                 double equiv_visco_damp_coeff_normal,
                 double equiv_visco_damp_coeff_tangential,
-                bool sliding,
+                bool& sliding,
                 int failure_id);
 
         virtual void CalculateContactArea(double radius,
@@ -86,8 +87,8 @@ namespace Kratos {
                 double &equiv_visco_damp_coeff_tangential,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
-                double kn_el,
-                double kt_el) {
+                const double kn_el,
+                const double kt_el) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
         };
 
@@ -95,7 +96,7 @@ namespace Kratos {
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,
-                double kt_el,
+                const double kt_el,
                 double& contact_sigma,
                 double& contact_tau,
                 double& failure_criterion_state,
@@ -109,10 +110,15 @@ namespace Kratos {
                 int time_steps,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector) {
+                vector<int>& search_control_vector,
+                double &equiv_visco_damp_coeff_normal,
+                double &equiv_visco_damp_coeff_tangential,
+                double LocalRelVel[3],
+                double ViscoDampingLocalContactForce[3],
+                int failure_id) {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateForces) should not be called.","")
         };
-        
+
         virtual void CalculateForcesOfSintering(const ProcessInfo& r_process_info,
 			const double OldLocalElasticContactForce[3],
 			double LocalElasticContactForce[3],
@@ -125,7 +131,6 @@ namespace Kratos {
 			double ViscoDampingLocalContactForce[3]) {
 			KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMContinuumConstitutiveLaw::CalculateForces1) should not be called.", "")
 		};
-
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
@@ -141,7 +146,7 @@ namespace Kratos {
 
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
-                double kt_el,
+                const double kt_el,
                 double& contact_sigma,
                 double& contact_tau,
                 double indentation,
@@ -171,6 +176,10 @@ namespace Kratos {
                                               SphericContinuumParticle* element1,
                                               SphericContinuumParticle* element2);
 
+        virtual double LocalPeriod(const int i,
+                                   SphericContinuumParticle* element1,
+                                   SphericContinuumParticle* element2);
+
     private:
 
         friend class Serializer;
@@ -190,3 +199,4 @@ namespace Kratos {
 
 } /* namespace Kratos.*/
 #endif /* DEM_CONSTITUTIVE_LAW_H_INCLUDED  defined */
+
