@@ -9,12 +9,14 @@ REM OutputFile: "%2\%1.info"
 REM ErrorFile: "%2\%1.err"
 
 
-del "%2\%1.info"
-del "%2\%1.err"
+del "%2\\%1.info"
+del "%2\\%1.err"
 
-move "%2\%1.dat" "%2\%1.mdpa"
-move "%2\%1-1.dat" "%2\ProjectParameters.py"
+move "%2\\%1.dat" "%2\\%1.mdpa"
+move "%2\\%1-1.dat" "%2\\ProjectParameters.py"
 copy "%3\\..\\..\\python_scripts\\main_script.py" "%2\\"
 
+REM WARNING: one should check the following paths before running this file
 
-"C:\\KratosMultiphysics\\runkratos.exe" "%2\\main_script.py" > "%2\%1.info" 2> "%2\%1.err"
+set PATH=C:\\KratosInstall;C:\\KratosInstall\\libs;%PATH%
+"C:\\KratosInstall\\runkratos" "%2\\main_script.py" > "%2\\%1.info" 2> "%2\\%1.err"
