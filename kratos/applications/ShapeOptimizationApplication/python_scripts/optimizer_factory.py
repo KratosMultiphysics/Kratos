@@ -188,8 +188,8 @@ class VertexMorphingMethod:
             row = []
             row.append("itr")
             row.append("\tf")
-            row.append("\t\N{GREEK CAPITAL LETTER DELTA}f_absolute[%]")
-            row.append("\t\N{GREEK CAPITAL LETTER DELTA}f_relative[%]")
+            row.append("\tdf_absolute[%]")
+            row.append("\tdf_relative[%]")
             historyWriter.writerow(row)    
         
         # Define initial design (initial design corresponds to a zero shape update)
@@ -340,9 +340,9 @@ class VertexMorphingMethod:
             row.append("itr\t")
             row.append("\tsub_itr\t")
             row.append("\tl\t")
-            row.append("\t\N{GREEK CAPITAL LETTER DELTA}l_relative[%]\t")
+            row.append("\tdl_relative[%]\t")
             row.append("\tf\t")
-            row.append("\t\N{GREEK CAPITAL LETTER DELTA}f_absolute[%]\t")
+            row.append("\tdf_absolute[%]\t")
             row.append("\tpenalty_fac\t")
             row.append("\tC["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t") 
             row.append("\tlambda["+str(only_C_id)+"]\t")
@@ -524,8 +524,8 @@ class VertexMorphingMethod:
             row = []
             row.append("itr")
             row.append("\tf")
-            row.append("\t\N{GREEK CAPITAL LETTER DELTA}f_absolute[%]")
-            row.append("\t\N{GREEK CAPITAL LETTER DELTA}f_relative[%]")
+            row.append("\tdf_absolute[%]")
+            row.append("\tdf_relative[%]")
             row.append("\tC["+str(only_C_id)+"]: "+str(self.constraints[only_C_id]["type"])+"\t")           
             historyWriter.writerow(row)    
         
