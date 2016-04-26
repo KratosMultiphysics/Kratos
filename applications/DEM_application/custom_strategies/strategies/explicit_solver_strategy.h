@@ -391,7 +391,8 @@ namespace Kratos
           }
 
           if (r_process_info[CRITICAL_TIME_OPTION]) {
-              InitialTimeStepCalculation();
+              //InitialTimeStepCalculation();   //obsolete call
+              CalculateMaxTimeStep();
           }
 
           r_process_info[PARTICLE_INELASTIC_FRICTIONAL_WORK] = 0.0;
@@ -403,6 +404,48 @@ namespace Kratos
 
       KRATOS_CATCH("")
       }// Initialize()
+
+
+      virtual void CalculateMaxTimeStep() {
+
+          KRATOS_TRY
+
+          ModelPart& r_model_part = BaseType::GetModelPart();
+          ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+          bool has_mpi = false;   //check MPI not available in this strategy. refer to continuum strategy
+//          Check_MPI(has_mpi);
+
+          std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(),0.0);
+          const int number_of_particles = (int) mListOfSphericParticles.size();
+
+          #pragma omp parallel for
+          for (int i = 0; i < number_of_particles; i++) {
+              double max_sqr_period = mListOfSphericParticles[i]->CalculateLocalMaxPeriod(has_mpi, r_process_info);
+              if ( max_sqr_period > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sqr_period;
+          }
+
+          double max_across_threads = 0.0;
+          for(int i=0; i<OpenMPUtils::GetNumThreads(); i++){
+              if(thread_maxima[i] > max_across_threads) max_across_threads = thread_maxima[i];
+          }
+
+          double critical_period = sqrt(max_across_threads);
+          double beta = 0.03;
+          double critical_timestep = beta * KRATOS_M_PI / critical_period;
+
+          r_process_info[DELTA_TIME] = critical_timestep;
+
+
+          KRATOS_WATCH(critical_period)
+          KRATOS_WATCH(r_process_info[DELTA_TIME])
+
+          KRATOS_CATCH("")
+      }
+
+
+
+
 
         virtual void InitializeClusters() {
 
@@ -564,7 +607,7 @@ namespace Kratos
 
       }//ForceOperations;
 
-      void InitialTimeStepCalculation()
+      void InitialTimeStepCalculation()   // obsoleta delete
       {
           KRATOS_TRY
 
