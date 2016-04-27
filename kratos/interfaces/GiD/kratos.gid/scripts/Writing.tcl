@@ -611,10 +611,21 @@ proc write::GetCutPlanesList { } {
         set normals [split [get_domnode_attribute [$plane lastChild ] v] ","]
         dict set pdict point $points
         dict set pdict normal $normals
-        lappend list_of_planes $pdict
+        if {![isVectorNull $normals]} {lappend list_of_planes $pdict}
         unset pdict 
     }
     return $list_of_planes
+}
+
+proc write::isVectorNull {vector} {
+    set null 1
+    foreach component $vector {
+        if {$component != 0} {
+            set null 0
+            break
+        }
+    }
+    return $null
 }
 
 proc write::GetDataType {value} {
