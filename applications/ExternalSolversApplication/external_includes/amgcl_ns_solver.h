@@ -70,12 +70,12 @@ public:
                                        "velocity_block_preconditioner" :
                                             {
                                             "tolerance" : 1e-3,
-                                            "precondioner_type" : "spai0"
+                                            "preconditioner_type" : "spai0"
                                         },
                                         "pressure_block_preconditioner" :
                                             {
                                             "tolerance" : 1e-2,
-                                            "precondioner_type" : "spai0"
+                                            "preconditioner_type" : "spai0"
                                         },
                                        "tolerance" : 1e-9,
                                        "krylov_type": "gmres",
@@ -97,9 +97,9 @@ public:
         std::set<std::string> available_preconditioners = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
 
         //check velocity block settings
-        if(available_preconditioners.find(rParameters["velocity_block_preconditioner"]["precondioner_type"].GetString()) == available_preconditioners.end())
+        if(available_preconditioners.find(rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString()) == available_preconditioners.end())
         {
-            msg << "currently prescribed velocity_block_preconditioner precondioner_type : " << rParameters["velocity_block_preconditioner"]["smoother_type"].GetString() << std::endl;
+            msg << "currently prescribed velocity_block_preconditioner preconditioner_type : " << rParameters["velocity_block_preconditioner"]["smoother_type"].GetString() << std::endl;
             msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
             KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
         }
@@ -131,11 +131,11 @@ public:
 
         //setting velocity solver options
         mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["precondioner_type"].GetString());
+        mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["preconditioner"].GetString());
 
         //setting pressure solver options
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.psolver.relax.type", rParameters["pressure_block_preconditioner"]["precondioner_type"].GetString());
+        mprm.put("precond.psolver.relax.type", rParameters["pressure_block_preconditioner"]["preconditioner_type"].GetString());
     }
 
     /**
