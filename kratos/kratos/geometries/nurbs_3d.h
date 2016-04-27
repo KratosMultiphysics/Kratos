@@ -915,23 +915,23 @@ public:
         const int integration_points_number = integration_points.size();
         double XiLocalCoordinates,EtaLocalCoordinates;
         Matrix rResult[integration_points_number][(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1)];
-        Matrix LocalShapeFunctionValues[mPolynomialDegreeP+1][mPolynomialDegreeQ+1];
+        Matrix LocalShapeFunctionsValues[mPolynomialDegreeP+1][mPolynomialDegreeQ+1];
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             //Map from Gaußdomain to Parameterdomain
             XiLocalCoordinates = (mUpperXi - mLowerXi) / 2 * (1+integration_points[pnt].X())+mLowerXi;
             EtaLocalCoordinates = (mUpperEta - mLowerEta) / 2 * (1+integration_points[pnt].Y())+mLowerEta;
             //Initialize Zero Matrix
-            LocalShapeFunctionValues = ZeroMatrix(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
+            LocalShapeFunctionsValues = ZeroMatrix(mPolynomialDegreeP+1,mPolynomialDegreeQ+1);
             //Calculate Shapefunction values at Gaußpoint
-            LocalShapeFunctionValues = ElementGeometryNurbsFunctionsValues(XiLocalCoordinates,EtaLocalCoordinates);
+            LocalShapeFunctionsValues = ElementGeometryNurbsFunctionsValues(XiLocalCoordinates,EtaLocalCoordinates);
 
             //Assemble shapefunctionvalues of Gaußpoints to ONE Matrix -> rResult
             for (int i=0; i<mPolynomialDegreeQ+1; i++)
             {
                 for (int j=0; j<mPolynomialDegreeP+1; j++)
                 {
-                    rResult[pnt][i+j*(mPolynomialDegreeP+1)] = LocalShapeFunctionValues[i][j];
+                    rResult[pnt][i+j*(mPolynomialDegreeP+1)] = LocalShapeFunctionsValues[i][j];
                 }
             }
 
@@ -985,7 +985,7 @@ public:
      *
      * @param rResult a container which takes the calculated gradients
      * @param ThisMethod the given IntegrationMethod
-     * @param ShapeFunctionValues a Matrix which will be filled with all shape functions values
+     * @param ShapeFunctionsValues a Matrix which will be filled with all shape functions values
      *        at all integration points
      * @param determinants_of_jacobian a Vector which will hold all determinants at the integration points
      * @return the gradients of all shape functions with regard to the global coordinates
@@ -1000,7 +1000,7 @@ public:
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult,
                                                                                    Vector& determinants_of_jacobian,
                                                                                    IntegrationMethod ThisMethod,
-                                                                                   Matrix& ShapeFunctionValues) const
+                                                                                   Matrix& ShapeFunctionsValues) const
     {
             KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::ShapeFunctionsIntegrationPointsGradients", "Jacobian is not square" );
         return rResult;
@@ -1012,13 +1012,13 @@ public:
             IntegrationMethod ThisMethod ) const
     {
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        Matrix ShapeFunctionValues;
-        ShapeFunctionValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
-        ShapeFunctionValues = ZeroMatrix(integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
+        Matrix ShapeFunctionsValues;
+        ShapeFunctionsValues.resize( integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
+        ShapeFunctionsValues = ZeroMatrix(integration_points_number,(mPolynomialDegreeP+1)*(mPolynomialDegreeQ+1));
         rResult = ShapeFunctionsIntegrationPointsGradients(rResult,
                                                            determinants_of_jacobian,
                                                            ThisMethod,
-                                                           ShapeFunctionValues);
+                                                           ShapeFunctionsValues);
                 return rResult;
     }
 

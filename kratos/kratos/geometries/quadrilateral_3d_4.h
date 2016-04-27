@@ -770,9 +770,9 @@ public:
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-//         Vector ShapeFunctionValuesInIntegrationPoint = ZeroVector( 4 );
+//         Vector ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 4 );
 //         /*vector<double>*/
-//         ShapeFunctionValuesInIntegrationPoint = row(
+//         ShapeFunctionsValuesInIntegrationPoint = row(
 //                 CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
 //                 IntegrationPointIndex );
 
