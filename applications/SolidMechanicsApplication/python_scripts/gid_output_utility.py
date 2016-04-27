@@ -28,8 +28,8 @@ class GidOutputUtility(object):
         try:
             flag = flag_dict[value]
         except KeyError:
-            msg = """Trying to set GiD IO flag {0} to unkonwn value {1}\n
-                     Acceptable values of {0} are:\n""".format(name, value)
+            msg =   "Trying to set GiD IO flag {0} to unkonwn value {1}\n"
+                    "Acceptable values of {0} are:\n".format(name, value)
             for key in list(flag_dict.keys()):
                 msg.append("  {0}\n".format(str(key)))
             raise KeyError(msg)
