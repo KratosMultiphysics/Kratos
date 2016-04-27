@@ -777,14 +777,14 @@ public:
 
       if (rSize == 3)
         {
-	  StrainVector.resize(3);
+	  StrainVector.resize(3,false);
 	  StrainVector[0] = rStrainTensor(0,0);
 	  StrainVector[1] = rStrainTensor(1,1);
 	  StrainVector[2] = 2.00*rStrainTensor(0,1);
         }
       else if (rSize == 4)
         {
-	  StrainVector.resize(4);
+	  StrainVector.resize(4,false);
 	  StrainVector[0] = rStrainTensor(0,0);
 	  StrainVector[1] = rStrainTensor(1,1);
 	  StrainVector[2] = rStrainTensor(2,2);
@@ -792,7 +792,7 @@ public:
         }
       else if (rSize == 6)
         {
-	  StrainVector.resize(6);
+	  StrainVector.resize(6,false);
 	  StrainVector[0] = rStrainTensor(0,0);
 	  StrainVector[1] = rStrainTensor(1,1);
 	  StrainVector[2] = rStrainTensor(2,2);
@@ -831,14 +831,14 @@ public:
 
       if (rSize==3)
         {
-	  StressVector.resize(3);
+	  StressVector.resize(3,false);
 	  StressVector[0]= rStressTensor(0,0);
 	  StressVector[1]= rStressTensor(1,1);
 	  StressVector[2]= rStressTensor(0,1);
         }
       else if (rSize==4)
         {
-	  StressVector.resize(4);
+	  StressVector.resize(4,false);
 	  StressVector[0]= rStressTensor(0,0);
 	  StressVector[1]= rStressTensor(1,1);
 	  StressVector[2]= rStressTensor(2,2);
@@ -846,7 +846,7 @@ public:
         }
       else if (rSize==6)
         {
-	  StressVector.resize(6);
+	  StressVector.resize(6,false);
 	  StressVector[0]= rStressTensor(0,0);
 	  StressVector[1]= rStressTensor(1,1);
 	  StressVector[2]= rStressTensor(2,2);
@@ -886,20 +886,20 @@ public:
 
       if (rSize==3)
         {
-	  vector.resize(3);
+	  vector.resize(3,false);
 	  vector[0]= rTensor(0,0);
 	  vector[1]= rTensor(1,1);
 	  vector[2]= rTensor(0,1);
         }
       else if (rSize==4)
         {
-	  vector.resize(4);
+	  vector.resize(4,false);
 	  vector[0]= rTensor(0,0);
 	  vector[1]= rTensor(1,1);
 	  vector[2]= rTensor(2,2);
 	  vector[3]= rTensor(0,1);
         }
-      else if (rSize==6)
+      else if (rSize==6,false)
         {
 	  vector.resize(6);
 	  vector[0]= rTensor(0,0);
