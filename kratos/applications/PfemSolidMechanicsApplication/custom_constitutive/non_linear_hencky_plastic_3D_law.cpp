@@ -113,7 +113,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
@@ -157,7 +157,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
 
  
     //5.-Calculate Total Kirchhoff stress
-    Matrix StressMatrix = ZeroMatrix(3);    
+    Matrix StressMatrix = ZeroMatrix(3,3);    
     Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -211,7 +211,7 @@ Matrix& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<Matrix>& rTh
 
       Matrix StressMatrix;
       Matrix ElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
-      Matrix DeformationGradientF   = ZeroMatrix(3);
+      Matrix DeformationGradientF   = ZeroMatrix(3,3);
 
       for (unsigned int i = 0; i < 3; ++i)
          DeformationGradientF(i,i) = 1.0;
@@ -258,7 +258,7 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
    {
          Matrix StressMatrix;
          Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
-         Matrix DeformationGradientF = ZeroMatrix(3);
+         Matrix DeformationGradientF = ZeroMatrix(3,3);
          for (unsigned int i = 0; i < 3; ++i)
 	   DeformationGradientF(i,i) = 1.0;
  
@@ -357,7 +357,7 @@ void NonLinearHenckyElasticPlastic3DLaw::SetValue(const Variable<Vector>& rThisV
    if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS) {
       // SETS THE VALUE OF THE ELASTIC LEFT CAUCHY GREEN FROM A KIRCHHOFF STRESS VECTOR
 
-      Matrix StressMat = ZeroMatrix(3);
+      Matrix StressMat = ZeroMatrix(3,3);
       for (int i = 0; i < 3; ++i)
          StressMat(i,i) = rValue(i);
 
@@ -393,7 +393,7 @@ void NonLinearHenckyElasticPlastic3DLaw::SetValue(const Variable<Vector>& rThisV
       ElasticHenckyStrain = prod( InverseElastic, EigenStress);
 
       
-      mElasticLeftCauchyGreen = ZeroMatrix(3);
+      mElasticLeftCauchyGreen = ZeroMatrix(3,3);
       for (unsigned int i = 0; i < 3; ++i) {
          mElasticLeftCauchyGreen(i,i) = std::exp(2.0*ElasticHenckyStrain(i));
       }
@@ -404,7 +404,7 @@ void NonLinearHenckyElasticPlastic3DLaw::SetValue(const Variable<Vector>& rThisV
    }
    else if ( rThisVariable == ELASTIC_LEFT_CAUCHY_GREEN_VECTOR)
    {
-      Matrix ElasticMatrix = ZeroMatrix(3);
+      Matrix ElasticMatrix = ZeroMatrix(3,3);
       for (int i = 0; i < 3; i++)
          ElasticMatrix(i,i) = rValue(i);
       ElasticMatrix(0,1) = rValue(3);

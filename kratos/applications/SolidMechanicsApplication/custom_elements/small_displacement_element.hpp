@@ -158,7 +158,7 @@ protected:
 	  N = ZeroVector(number_of_nodes);
 	  //matrices
 	  B  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  H  = ZeroMatrix(dimension);
+	  H  = ZeroMatrix(dimension, dimension);
 	  F  = IdentityMatrix(dimension);
 	  F0 = IdentityMatrix(dimension);
 	  DN_DX = ZeroMatrix(number_of_nodes, dimension);
@@ -167,8 +167,8 @@ protected:
 	  //others
 	  J.resize(1,false);
 	  j.resize(1,false);
-	  J[0] = ZeroMatrix(1);
-	  j[0] = ZeroMatrix(1);
+	  J[0] = ZeroMatrix(1,1);
+	  j[0] = ZeroMatrix(1,1);
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;

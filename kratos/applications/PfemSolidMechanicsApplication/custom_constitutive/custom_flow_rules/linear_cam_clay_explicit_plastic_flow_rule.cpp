@@ -154,14 +154,14 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
     ShearModulus = 23.50*50.0;
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
 
-    Matrix FourthOrderIdentity = ZeroMatrix(6);
+    Matrix FourthOrderIdentity = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
        FourthOrderIdentity(i,i) = 1.0;
 
     for (unsigned int i = 3; i<6; ++i)
       FourthOrderIdentity(i,i) = 0.5;
 
-    Matrix IdentityCross = ZeroMatrix(6);
+    Matrix IdentityCross = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
             IdentityCross(i,j) = 1.0;

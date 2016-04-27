@@ -516,7 +516,7 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       Vector b = ZeroVector(dimension);
       double WaterDensity = 0.0;
       b(dimension-1) = -WaterDensity;
@@ -683,8 +683,8 @@ namespace Kratos
          Pressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE ) * rVariables.N[i];
 
 
-      Matrix FourthOrderIdentity = ZeroMatrix(4);
-      Matrix MatrixProduct = ZeroMatrix(4);
+      Matrix FourthOrderIdentity = ZeroMatrix(4,4);
+      Matrix MatrixProduct = ZeroMatrix(4,4);
       for (unsigned int i = 0; i < 3 ; ++i) {
          FourthOrderIdentity(i,i) = 1.0;
          for (unsigned int j = 0; j < 3; ++j) {
@@ -783,7 +783,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = Permeability;
 
@@ -850,7 +850,7 @@ namespace Kratos
       double Permeability; double WaterBulk; double DeltaTime;
 
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = Permeability;
 

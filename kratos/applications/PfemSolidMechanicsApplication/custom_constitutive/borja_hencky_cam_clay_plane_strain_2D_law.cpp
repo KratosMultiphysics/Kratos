@@ -175,8 +175,8 @@ namespace Kratos
          double DeviatoricNorm2 = 0.0, ShearModulus;
          Vector Y = ZeroVector(3);
 
-         Matrix TangentMatrix = ZeroMatrix(3);
-         Matrix InverseTangent = ZeroMatrix(3);
+         Matrix TangentMatrix = ZeroMatrix(3,3);
+         Matrix InverseTangent = ZeroMatrix(3,3);
          Vector Residual = ZeroVector(3);
          Vector dGuess = Residual;
          double error, detI; 

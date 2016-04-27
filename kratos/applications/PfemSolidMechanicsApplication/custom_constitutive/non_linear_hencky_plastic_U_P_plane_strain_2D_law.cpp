@@ -98,7 +98,7 @@ void NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::CalculateAlmansiStrain( co
 
 Matrix NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDimension(const Matrix& rElastoPlasticTangentMatrix)
 {
-     Matrix Result = ZeroMatrix(3);
+     Matrix Result = ZeroMatrix(3,3);
 
      Result(0, 0) = rElastoPlasticTangentMatrix(0, 0);
      Result(0, 1) = rElastoPlasticTangentMatrix(0, 1);

@@ -259,7 +259,7 @@ namespace Kratos
 
     if( rVariables.Options.Is(ACTIVE)){
 
-      MatrixType Kuug = ZeroMatrix(dimension);
+      MatrixType Kuug = ZeroMatrix(dimension,dimension);
 
       noalias(Kuug) = rVariables.Penalty.Normal * rIntegrationWeight  * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
 
@@ -276,7 +276,7 @@ namespace Kratos
     }
     else{
 
-      rLeftHandSideMatrix= ZeroMatrix(dimension*2);   
+      rLeftHandSideMatrix= ZeroMatrix(dimension*2,dimension*2);   
 
     }
  
@@ -304,7 +304,7 @@ namespace Kratos
        if( fabs(TangentForceModulus) >= 1e-25 ){
        
 
-	 MatrixType Kuug = ZeroMatrix(dimension);
+	 MatrixType Kuug = ZeroMatrix(dimension,dimension);
 
 	 if ( mTangentialVariables.Slip ) {
 	   //simpler expression:

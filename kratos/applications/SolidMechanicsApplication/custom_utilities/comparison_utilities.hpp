@@ -81,7 +81,7 @@ public:
 
         Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-	Matrix StressTensor = ZeroMatrix(3); //3D stress tensor
+	Matrix StressTensor = ZeroMatrix(3,3); //3D stress tensor
 	for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
 	  {
 	    for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
@@ -112,7 +112,7 @@ public:
 	  
         Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-	Matrix StressTensor = ZeroMatrix(3); //3D stress tensor
+	Matrix StressTensor = ZeroMatrix(3,3); //3D stress tensor
 	for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
 	  {
 	    for(unsigned int j=0; j<LocalStressTensor.size2(); j++)

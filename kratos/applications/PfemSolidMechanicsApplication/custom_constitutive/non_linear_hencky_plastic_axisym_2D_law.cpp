@@ -95,7 +95,7 @@ void NonLinearHenckyElasticPlasticAxisym2DLaw::CalculateAlmansiStrain( const Mat
 
 Matrix NonLinearHenckyElasticPlasticAxisym2DLaw::SetConstitutiveMatrixToAppropiateDimension(const Matrix& rElastoPlasticTangentMatrix)
 {
-     Matrix Result = ZeroMatrix(4);
+     Matrix Result = ZeroMatrix(4,4);
 
 
      for (unsigned int i = 0; i < 4; ++i)  {

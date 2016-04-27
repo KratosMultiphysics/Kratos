@@ -557,7 +557,7 @@ public:
 	std::cout<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
 
       Vector e = ZeroVector(3);
-      V = ZeroMatrix(3);
+      V = ZeroMatrix(3,3);
 
       for (int i = 0; i < 3; i++) {
 	for (int j = 0; j < 3; j++) {
@@ -902,7 +902,7 @@ public:
      */
     static inline MatrixType IdentityMatrix( SizeType size )
     {
-        MatrixType A = ZeroMatrix( size );
+        MatrixType A = ZeroMatrix( size, size );
         for( unsigned int i=0; i<size ; i++ )
         {
             A(i,i) = 1.0;

@@ -364,7 +364,7 @@ namespace Kratos
       // I HAVE TO DO SOMETHING WITH THE GENERAL VARIABLES * DETFT ETC
       LocalSystemComponents UPLocalSystem; 
       unsigned int MatSize = number_of_nodes * ( dimension+1);
-      MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize) ;
+      MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize,MatSize);
 
       UPLocalSystem.SetLeftHandSideMatrix( LocalLeftHandSideMatrix);
 
@@ -570,7 +570,7 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       Vector b = ZeroVector(dimension);
       double WaterDensity = GetProperties()[DENSITY_WATER];
       b(dimension-1) = -10.0*WaterDensity;
@@ -787,7 +787,7 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
 
@@ -898,7 +898,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = Permeability;
 
@@ -978,7 +978,7 @@ namespace Kratos
       double Permeability; double WaterBulk; double DeltaTime;
 
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = Permeability;
 
@@ -1058,7 +1058,7 @@ namespace Kratos
          return;
       }
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
 

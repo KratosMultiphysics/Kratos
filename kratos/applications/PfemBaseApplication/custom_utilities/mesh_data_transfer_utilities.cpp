@@ -494,7 +494,7 @@ namespace Kratos
 
 		    for(unsigned int j=0; j<integration_points_number; j++)
 		      {
-			NodesVectorVariableArray[j] = ZeroVector();
+			NodesVectorVariableArray[j] = ZeroVector(ElementVectorVariableArray[j].size());
 		      }
 
 		    for(unsigned int j=0; j<integration_points_number; j++)
@@ -526,9 +526,10 @@ namespace Kratos
 		    //elemental value
 		    (ie)->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 
+		    
 		    for(unsigned int j=0; j<integration_points_number; j++)
 		      {
-			NodesMatrixVariableArray[j] = ZeroMatrix();
+			NodesMatrixVariableArray[j] = ZeroMatrix(ElementMatrixVariableArray[j].size1(),ElementMatrixVariableArray[j].size2());
 		      }
 
 
@@ -719,7 +720,7 @@ namespace Kratos
 
 		      for(unsigned int j=0; j<integration_points_number; j++)
 			{
-			  NodesVectorVariableArray[j] = ZeroVector();
+			  NodesVectorVariableArray[j] = ZeroVector(ElementVectorVariableArray[j].size());
 			}
 
 		      for(unsigned int j=0; j<integration_points_number; j++)
@@ -753,7 +754,7 @@ namespace Kratos
 
 		      for(unsigned int j=0; j<integration_points_number; j++)
 			{
-			  NodesMatrixVariableArray[j] = ZeroMatrix();
+			  NodesMatrixVariableArray[j] = ZeroMatrix(ElementMatrixVariableArray[j].size1(),ElementMatrixVariableArray[j].size2());
 			}
 
 		      for(unsigned int j=0; j<integration_points_number; j++)
@@ -849,16 +850,19 @@ namespace Kratos
 		      NodesArray1DVariableArray[i].clear();
 		    }
 
+
 		  //Vector
 		  for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); i++)
 		    {			  
-		      NodesVectorVariableArray[i] = ZeroVector();
+		      (rModelPart.Elements(MeshId).begin())->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+		      NodesVectorVariableArray[i] = ZeroVector(ElementVectorVariableArray[i].size());
 		    }
 
 		  //Matrix
 		  for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); i++)
-		    {			  
-		      NodesMatrixVariableArray[i] = ZeroMatrix();
+		    {	
+		      (rModelPart.Elements(MeshId).begin())->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);		  
+		      NodesMatrixVariableArray[i] = ZeroMatrix(ElementMatrixVariableArray[i].size1(),ElementMatrixVariableArray[i].size2());
 		    }
 
 

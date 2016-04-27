@@ -146,7 +146,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
 
     //2.-Calculate Total PK2 stress
     
-    Matrix LinearElasticMatrix = ZeroMatrix(StressVector.size());
+    Matrix LinearElasticMatrix = ZeroMatrix(StressVector.size(), StressVector.size());
     
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
@@ -225,7 +225,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     //2.-Calculate Total Kirchhoff stress
     
-    Matrix LinearElasticMatrix = ZeroMatrix(StressVector.size());
+    Matrix LinearElasticMatrix = ZeroMatrix(StressVector.size(),StressVector.size());
     
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
@@ -329,7 +329,7 @@ void LinearElasticPlastic3DLaw::CalculateTangentConstitutiveMatrix( Matrix& rCon
                                                                     FlowRule::RadialReturnVariables& rReturnMappingVariables )
 {
     double Alpha = 1.0;
-    Matrix TangentConstitutiveMatrix = ZeroMatrix(rConstitutiveMatrix.size1());
+    Matrix TangentConstitutiveMatrix = ZeroMatrix(rConstitutiveMatrix.size1(), rConstitutiveMatrix.size2());
     
     mpFlowRule->ComputeElastoPlasticTangentMatrix(rReturnMappingVariables, rLinearElasticMatrix, Alpha, TangentConstitutiveMatrix);
     

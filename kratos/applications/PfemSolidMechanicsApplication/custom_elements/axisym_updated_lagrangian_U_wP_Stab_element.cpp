@@ -194,7 +194,7 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
 
@@ -287,7 +287,7 @@ namespace Kratos
          return;
       }
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
 

@@ -617,7 +617,7 @@ namespace Kratos
 
       unsigned int voigtsize = 4;
 
-      Matrix DeviatoricTensor = ZeroMatrix(voigtsize);
+      Matrix DeviatoricTensor = ZeroMatrix(voigtsize,voigtsize);
       Vector Identity = ZeroVector(voigtsize);
 
       for (unsigned int i = 0; i < voigtsize ; ++i) {
@@ -638,7 +638,7 @@ namespace Kratos
          std::cout << " CONS 0 " << rVariables.ConstitutiveMatrix << std::endl;
          std::cout << " CONS 1 " << ConstitutiveMatrix << std::endl;
       }
-      Matrix AuxMatrix = ZeroMatrix(voigtsize);
+      Matrix AuxMatrix = ZeroMatrix(voigtsize,voigtsize);
 
       for (unsigned int i = 0; i < voigtsize; i++) {
          for (unsigned int j = 0; j < voigtsize; j++) {
@@ -1041,7 +1041,7 @@ namespace Kratos
       ProcessInfo SomeProcessInfo;
       this->GetValueOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
       Matrix EECCInverseBig = EECCInverseDefGrad[0];
-      Matrix EECCDefGradInverse = ZeroMatrix(3);
+      Matrix EECCDefGradInverse = ZeroMatrix(3,3);
 
       for (unsigned int i = 0; i < 3; i++) {
          for (unsigned int j = 0; j < 3; j++) {

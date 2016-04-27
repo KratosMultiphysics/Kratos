@@ -281,7 +281,7 @@ void HypoElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rV
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
@@ -363,7 +363,7 @@ void HypoElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rV
  
     //5.-Calculate Total Kirchhoff stress
     SplitStressVector.Isochoric  = ZeroVector(voigtsize);
-    Matrix IsochoricStressMatrix = ZeroMatrix(3);
+    Matrix IsochoricStressMatrix = ZeroMatrix(3,3);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       this->CalculatePlasticIsochoricStress( ElasticVariables, ReturnMappingVariables, StressMeasure_Kirchhoff, IsochoricStressMatrix, SplitStressVector.Isochoric );
@@ -373,7 +373,7 @@ void HypoElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rV
 
         SplitStressVector.Volumetric = ZeroVector(voigtsize);
 
-        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+        ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
         this->CalculateVolumetricStress ( ElasticVariables, SplitStressVector.Volumetric );
 
@@ -409,7 +409,7 @@ void HypoElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rV
         SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
 	SplitConstitutiveMatrix.Plastic    = ConstitutiveMatrix;
 
-        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+        ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
 	this->CalculateIsochoricConstitutiveMatrix  ( ElasticVariables, ReturnMappingVariables.TrialIsoStressMatrix, SplitConstitutiveMatrix.Isochoric );
 	  
@@ -443,7 +443,7 @@ void HypoElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rV
       mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
       mElasticLeftCauchyGreen  = ( IsochoricStressMatrix * ( 1.0 / ElasticVariables.LameMu ) );
-      mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.IdentityMatrix;
+      mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.Identity;
     
     }
 
@@ -472,7 +472,7 @@ void HypoElasticPlastic3DLaw::CalculatePlasticIsochoricStress( MaterialResponseV
         //rElasticVariables.CauchyGreenMatrix is InverseRightCauchyGreen
 
         //2.-Isochoric part of the 2nd Piola Kirchhoff Stress Matrix
-        rIsoStressMatrix  = (rElasticVariables.IdentityMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.CauchyGreenMatrix );
+        rIsoStressMatrix  = (rElasticVariables.Identity - (rElasticVariables.traceCG/3.0)*rElasticVariables.CauchyGreenMatrix );
         rIsoStressMatrix *= rElasticVariables.LameMu;
 
         //std::cout<<" PK2 "<<std::endl;
@@ -484,7 +484,7 @@ void HypoElasticPlastic3DLaw::CalculatePlasticIsochoricStress( MaterialResponseV
         //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen
 
         //2.-Isochoric part of the Kirchhoff Stress Matrix
-        rIsoStressMatrix  = (rElasticVariables.CauchyGreenMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.IdentityMatrix );
+        rIsoStressMatrix  = (rElasticVariables.CauchyGreenMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.Identity );
         rIsoStressMatrix *= rElasticVariables.LameMu;
 
         //std::cout<<" Kirchooff "<<IsoStressMatrix<<std::endl;

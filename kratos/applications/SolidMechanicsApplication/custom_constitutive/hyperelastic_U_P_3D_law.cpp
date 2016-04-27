@@ -92,7 +92,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
@@ -237,7 +237,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
     ElasticVariables.SetElementGeometry(DomainGeometry);
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
@@ -303,7 +303,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
         SplitStressVector.Volumetric = ZeroVector(voigtsize);
 
-        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+        ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
         this->CalculateVolumetricStress ( ElasticVariables, SplitStressVector.Volumetric );
 
@@ -333,7 +333,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
         SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
         SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
 
-        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+        ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
 	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
 

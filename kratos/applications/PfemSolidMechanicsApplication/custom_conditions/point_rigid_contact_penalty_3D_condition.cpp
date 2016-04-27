@@ -380,7 +380,7 @@ namespace Kratos
                // YOU KNOW
                //rLeftHandSideMatrix -= mTangentialVariables.Sign* rIntegrationWeight * ( rVariables.TangentMatrix.Normal * rVariables.Penalty.Normal * custom_outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal)  - rVariables.TangentMatrix.Tangent * mTangentialVariables.Neighb_distance * custom_outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Tangent)  );
                const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-               Matrix  TangentMatrix = ZeroMatrix(dimension);
+               Matrix  TangentMatrix = ZeroMatrix(dimension,dimension);
 
                TangentMatrix = rVariables.TangentMatrix.Normal * ( rVariables.Penalty.Normal / mTangentialVariables.Neighb_distance) * custom_outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ;
                TangentMatrix += rVariables.TangentMatrix.Tangent * custom_outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Tangent);

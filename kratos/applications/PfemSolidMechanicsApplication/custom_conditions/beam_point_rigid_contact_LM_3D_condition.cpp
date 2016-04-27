@@ -473,7 +473,8 @@ namespace Kratos
     
     if( rVariables.Options.Is(ACTIVE)){
       
-      MatrixType Kuug = ZeroMatrix(dimension*2+1);
+      unsigned int size = dimension*2+1;
+      MatrixType Kuug = ZeroMatrix(size,size);
 
       for( unsigned int i = 0; i<dimension+1; i++ )
 	{
@@ -502,10 +503,11 @@ namespace Kratos
     }
     else{
 
-      rLeftHandSideMatrix= ZeroMatrix(dimension * 2 + 1);   
+      unsigned int size = dimension*2+1;
+      rLeftHandSideMatrix= ZeroMatrix(size,size);   
 
       //to avoid system with a zero row and column
-      MatrixType Kuug = ZeroMatrix(dimension * 2 + 1);
+      MatrixType Kuug = ZeroMatrix(size,size);
 
       Kuug(dimension*2,dimension*2) = 1;
 

@@ -112,7 +112,7 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 // {
 	
 // 	//1.-Identity build
-// 	Matrix IdentityMatrix  = identity_matrix<double> (3);
+// 	Matrix Identity  = identity_matrix<double> (3);
 
 // 	//2.-Auxiliar matrices
 // 	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );

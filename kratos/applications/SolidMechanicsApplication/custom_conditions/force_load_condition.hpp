@@ -150,8 +150,8 @@ protected:
 	  //others
 	  J.resize(1,false);
 	  j.resize(1,false);
-	  J[0] = ZeroMatrix(1);
-	  j[0] = ZeroMatrix(1);
+	  J[0] = ZeroMatrix(1,1);
+	  j[0] = ZeroMatrix(1,1);
 	  //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;
