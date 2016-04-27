@@ -131,7 +131,7 @@ public:
 
         //setting velocity solver options
         mprm.put("precond.usolver.solver.tol", rParameters["velocity_block_preconditioner"]["tolerance"].GetDouble());
-        mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["preconditioner"].GetString());
+        mprm.put("precond.usolver.precond", rParameters["velocity_block_preconditioner"]["preconditioner_type"].GetString());
 
         //setting pressure solver options
         mprm.put("precond.psolver.solver.tol", rParameters["pressure_block_preconditioner"]["tolerance"].GetDouble());
