@@ -12,11 +12,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/updated_lagrangian_U_J_P_element.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-
 #include "pfem_solid_mechanics_application_variables.h"
 
 //
