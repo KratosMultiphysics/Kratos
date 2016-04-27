@@ -106,7 +106,7 @@ list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOf
             
 #print list of constructed processes
 if(echo_level>1):
-    for process in constructed_processes:
+    for process in list_of_processes:
         print(process)
 
 #TODO: decide which is the correct place to initialize the processes 
