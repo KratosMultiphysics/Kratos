@@ -12,19 +12,13 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/updated_lagrangian_U_J_element.hpp"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
-
 #include "pfem_solid_mechanics_application_variables.h"
+//#include "includes/define.h"
+//#include "utilities/math_utils.h"
+//#include "includes/constitutive_law.h"
 
-// MIRAR POR ENCIMA DE IMPLEMENTAR UNA FORMULACION U-J, de esta forma cuando llamo a la constitutiva pongo Fbarra de los desplazamientos y el jacobiano de J.
-// Como a la parte constitutiva solo paso punteros (i no matrices y otras cosas) se vuelve un poco asín
-//
-// THE RESIDUALS ARE OK
-// TO DO: Improve the tangent matrices (I think now they are correct).
-// VALE, PER MI QUE TOT ESTÀ MÉS O MENYS BÉ.
+
 
 namespace Kratos
 {
@@ -403,6 +397,90 @@ namespace Kratos
          }
 
       }
+      else if ( rVariable == SIMILAR_BULK_MODULUS)
+      {
+         GeneralVariables Variables; 
+         this->InitializeGeneralVariables( Variables, rCurrentProcessInfo);
+         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+         //set constitutive law flags:
+         Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+         unsigned int PointNumber = 0;
+
+         //compute element kinematics B, F, DN_DX ...
+         this->CalculateKinematics(Variables,PointNumber);
+
+         //to take in account previous step writing
+         if( mFinalizedStep ){
+            this->GetHistoricalVariables(Variables,PointNumber);
+         }		
+
+         //set general variables to constitutivelaw parameters
+         this->SetGeneralVariables(Variables,Values,PointNumber);
+
+         // OBS, now changing Variables I change Values because they are pointers ( I hope);
+         double ElementalDetFT = Variables.detFT;
+         Matrix ElementalFT = Variables.FT;
+
+         // AND NOW IN THE OTHER WAY
+         Matrix m; double d; 
+         ComputeConstitutiveVariables( Variables, m, d);
+
+         Variables.FT = m;
+         Variables.detFT = d; 
+         Values.SetDeformationGradientF( Variables.FT);
+         Values.SetDeterminantF( Variables.detFT );
+
+
+         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+         Vector StressRef = Variables.StressVector;
+
+         Matrix FNew = ZeroMatrix(3);
+         Matrix Pertur = ZeroMatrix(3);
+         double delta = -1e-6;
+         for (unsigned int i = 0; i < Variables.FT.size1(); i++) {
+            for (unsigned int j = 0; j < Variables.FT.size2(); j++) {
+               FNew(i,j) = Variables.FT(i,j);
+            }
+         }
+         if ( Variables.FT.size1() == 2) {
+            FNew(2,2) = 1.0; // vale, és axisim, però estic aquí, ja ens coneixem
+         }
+
+         for (unsigned int i = 0; i < 3; i++) {
+            Pertur(i,i) = (1.0 + delta); 
+         }
+
+         FNew = prod( Pertur, FNew);
+
+         Variables.FT = FNew;
+         Variables.detFT = MathUtils<double>::Det( Variables.FT);
+         Values.SetDeformationGradientF( Variables.FT);
+         Values.SetDeterminantF( Variables.detFT );
+
+
+         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+         Vector StressSecond = Variables.StressVector;
+
+         double thisValue = 0.0;
+         for (unsigned int i = 0; i < 3; i++)
+            thisValue += ( StressSecond(i) - StressRef(i) );
+         thisValue /= -9.0*delta; 
+
+         if ( rValues.size() != integration_points_number )
+            rValues.resize( integration_points_number );
+
+         rValues[PointNumber] = -thisValue;   
+      
+      
+      }
+      else if ( rVariable == SIMILAR_SHEAR_MODULUS )
+      {
+      }
       else{
 
          LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
@@ -603,6 +681,38 @@ namespace Kratos
          }
 
       }
+      else if ( rVariable == TOTAL_CAUCHY_STRESS) {
+
+         CalculateOnIntegrationPoints( EQ_CAUCHY_STRESS, rOutput, rCurrentProcessInfo);
+
+         if ( GetGeometry()[0].HasDofFor( WATER_PRESSURE) ) 
+         {
+            const unsigned int number_of_nodes = GetGeometry().size();
+            //create and initialize element variables:
+            GeneralVariables Variables;
+            this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+            //reading integration points
+            for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+            {
+               //compute element kinematics B, F, DN_DX ...
+               this->CalculateKinematics(Variables,PointNumber);
+
+               double WaterPressure = 0;
+               for (unsigned int i = 0; i < number_of_nodes; i++)
+               {
+                  WaterPressure += GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE) * Variables.N[i];
+               }
+
+               for (unsigned int i = 0; i < 3; i++)
+                  rOutput[PointNumber](i,i) += WaterPressure; 
+
+
+
+            }
+         }
+
+      }
       else {
          LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
       }
@@ -622,6 +732,11 @@ namespace Kratos
          {
             rOutput[PointNumber] = mDeterminantF0[PointNumber];
          }
+      
+      }
+      else if ( rVariable == SIMILAR_BULK_MODULUS ) 
+      {
+         std::cout << " cpp hates me " <<std::endl;
       }
       else {
          LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
@@ -644,6 +759,9 @@ namespace Kratos
    {
       if ( rVariable == EQ_CAUCHY_STRESS) {
          CalculateOnIntegrationPoints(rVariable, rValue, rCurrentProcessInfo);
+      }
+      else if ( rVariable == TOTAL_CAUCHY_STRESS) {
+         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
       }
       else if ( rVariable == CAUCHY_STRESS_VECTOR ) {
          CalculateOnIntegrationPoints( EQ_CAUCHY_STRESS, rValue, rCurrentProcessInfo);
@@ -1170,7 +1288,7 @@ namespace Kratos
                consistent=2.0*AlphaStabilization;
 
             double& Jacobian= GetGeometry()[j].FastGetSolutionStepValue(JACOBIAN);
-            rRightHandSideVector[indexp] += consistent * Jacobian * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+            rRightHandSideVector[indexp] += consistent * Jacobian * rIntegrationWeight / (rVariables.detFT);
 
             // std::cout<<" Pressure "<<Pressure<<std::endl;
          }
@@ -1249,7 +1367,7 @@ namespace Kratos
 
       Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) ); 
 
-      // MatrixType Kh=rLeftHandSideMatrix;
+      MatrixType Kh=rLeftHandSideMatrix;
 
       unsigned int indexi = 0;
       unsigned int indexj  = 0;
@@ -1271,7 +1389,8 @@ namespace Kratos
       }
 
       // std::cout<<std::endl;
-      // std::cout<<" Kmat "<<rLeftHandSideMatrix-Kh<<std::endl;
+      //if ( this->Id() < 10) 
+      //   std::cout<<" Kmat "<<rLeftHandSideMatrix-Kh<<std::endl;
 
       KRATOS_CATCH( "" )
    }
@@ -1308,7 +1427,7 @@ namespace Kratos
 
       for ( unsigned int i = 0; i < voigtsize; i++)
       {
-         ConstitutiveMatrix(i,0) += ( 2/dimension - 1.0 ) * rVariables.StressVector(i); 
+         ConstitutiveMatrix(i,0) += ( 2.0/dimension_double - 1.0 ) * rVariables.StressVector(i); 
       }
 
       double ElementJacobian = 0;
@@ -1658,15 +1777,15 @@ namespace Kratos
 
 
       //PostProcess. Increment of Displacement
-       Vector desp = ZeroVector(3);
-         const unsigned int number_of_points = GetGeometry().PointsNumber();
-         for (unsigned int i = 0; i < number_of_points; ++i)  {
+      Vector desp = ZeroVector(3);
+      const unsigned int number_of_points = GetGeometry().PointsNumber();
+      for (unsigned int i = 0; i < number_of_points; ++i)  {
          desp = ZeroVector(3);
          desp += GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
          desp -= GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT, 1);
          if ( GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT_INCR) )
-         GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_INCR) = desp;
-         } 
+            GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_INCR) = desp;
+      } 
 
       mFinalizedStep = true;
 
@@ -1814,15 +1933,15 @@ namespace Kratos
 
       rFT *=  pow( rDetFT/ rVariables.detFT, 1.0/double(dimension) );
       /*if ( this->Id() == 1) {
-         std::cout << " IN THIS FUNCTION " << std::endl;
-         std::cout << " FT " << rFT << std::endl;
-         std::cout << " detFT " << rDetFT << std::endl;
-         std::cout << " " << std::endl;
-         std::cout << " VAARIAABLES " << std::endl;
-         std::cout << " FT " << rVariables.FT << std::endl;
-         std::cout << " DetFT " << rVariables.detFT << std::endl;
-         std::cout << std::endl;
-      }*/
+        std::cout << " IN THIS FUNCTION " << std::endl;
+        std::cout << " FT " << rFT << std::endl;
+        std::cout << " detFT " << rDetFT << std::endl;
+        std::cout << " " << std::endl;
+        std::cout << " VAARIAABLES " << std::endl;
+        std::cout << " FT " << rVariables.FT << std::endl;
+        std::cout << " DetFT " << rVariables.detFT << std::endl;
+        std::cout << std::endl;
+        }*/
 
       // COMPUTE THE EFFECT OF THE INTERPOLATION, LETS SEE
       std::vector< Matrix > EECCInverseDefGrad;
@@ -1844,7 +1963,7 @@ namespace Kratos
       unsigned int step = 1;
       if ( mFinalizedStep ==  true) 
          step = 0;
-         for ( unsigned int i = 0; i < number_of_nodes; i++)
+      for ( unsigned int i = 0; i < number_of_nodes; i++)
          detF0 += GetGeometry()[i].GetSolutionStepValue( JACOBIAN, step ) * rVariables.N[i];
 
       Matrix F0 = rVariables.F0;
