@@ -889,6 +889,9 @@ namespace Kratos
             const array_1d<double,3>& coords = it->second;
             rModelPart.CreateNewNode(node_id,coords[0],coords[1],coords[2]);
         }
+	
+	std::cout << number_of_nodes_read << " nodes read]" << std::endl;
+
         if(rModelPart.Nodes().size() != number_of_nodes_read)
             std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
 
