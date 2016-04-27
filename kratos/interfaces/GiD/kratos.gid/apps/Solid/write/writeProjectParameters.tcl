@@ -24,18 +24,17 @@ proc Solid::write::writeParametersEvent { } {
     }
     set solutiontype [write::getValue SLSoluType]
     # Time Parameters
-    set echo_level [write::getValue Results EchoLevel]
     if {$solutiontype eq "Static"} {
         
     } elseif {$solutiontype eq "Dynamic"} {
         dict set problemDataDict time_step [write::getValue SLTimeParameters DeltaTime]
         dict set problemDataDict start_time [write::getValue SLTimeParameters StartTime]
         dict set problemDataDict end_time [write::getValue SLTimeParameters EndTime]
-        dict set problemDataDict echo_level $echo_level
-        
-        # Add section to document
-        dict set projectParametersDict problem_data $problemDataDict
     }
+    set echo_level [write::getValue Results EchoLevel]
+    dict set problemDataDict echo_level $echo_level
+    # Add section to document
+    dict set projectParametersDict problem_data $problemDataDict
     
     # Solution strategy
     set solverSettingsDict [dict create]
