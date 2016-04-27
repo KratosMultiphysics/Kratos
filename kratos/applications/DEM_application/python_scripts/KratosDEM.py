@@ -38,7 +38,11 @@ if (DEM_parameters.ElementType == "SphericPartDEMElement3D" or DEM_parameters.El
 elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
     import continuum_sphere_strategy as SolverStrategy
 elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
-    import thermal_continuum_sphere_strategy as SolverStrategy    
+    import thermal_continuum_sphere_strategy as SolverStrategy
+elif (DEM_parameters.ElementType == "ThermalSphericPartDEMElement3D"):
+    import thermal_sphere_strategy as SolverStrategy  
+elif (DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
+    import thermal_continuum_sphere_strategy as SolverStrategy     
 else:
     KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
         
