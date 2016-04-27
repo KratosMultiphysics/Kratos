@@ -42,6 +42,7 @@ namespace Kratos {
                                       SphericContinuumParticle* element2);
 
         void CalculateForces(const ProcessInfo& r_process_info,
+                             double OldLocalElasticContactForce[3],
                              double LocalElasticContactForce[3],
                              double LocalDeltDisp[3],
                              const double kn_el,
@@ -64,7 +65,7 @@ namespace Kratos {
                              double &equiv_visco_damp_coeff_tangential,
                              double LocalRelVel[3],
                              double ViscoDampingLocalContactForce[3],
-                             int failure_id);
+                             int failure_id) override;
 
 
         void CalculateNormalForces(double LocalElasticContactForce[3],

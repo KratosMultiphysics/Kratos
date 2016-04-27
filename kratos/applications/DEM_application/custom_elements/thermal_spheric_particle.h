@@ -36,57 +36,61 @@ namespace Kratos
     {
     public:
       
-      /// Pointer definition of ThermalSphericParticle
-      KRATOS_CLASS_POINTER_DEFINITION(ThermalSphericParticle);
-      
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;
-      typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-      
-      typedef Node <3> NodeType;
-      typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-      typedef std::size_t IndexType;
-      typedef Geometry<Node < 3 > > GeometryType;
-      typedef Properties PropertiesType;
-      
-      using TBaseElement::GetGeometry;
-      using TBaseElement::GetProperties;
-      using TBaseElement::mNeighbourElements;
-      using TBaseElement::GetRadius;
-      using TBaseElement::SetRadius;
-      using TBaseElement::GetMass;
-      using TBaseElement::GetValue;
-      using TBaseElement::SetValue;
+        /// Pointer definition of ThermalSphericParticle
+        KRATOS_CLASS_POINTER_DEFINITION(ThermalSphericParticle);
 
-      /// Default constructor. 
-      ThermalSphericParticle():TBaseElement(){};
-      ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):TBaseElement(NewId, pGeometry){};
-      ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){};
-      ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){};
+        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
-        return Element::Pointer(new ThermalSphericParticle<TBaseElement>(NewId, GetGeometry().Create(ThisNodes), pProperties));
-      };
-                   
-      /// Destructor.
-      virtual ~ThermalSphericParticle(){};
-       
-    
-      double& GetTemperature();   
-	  double& GetPreviousTemperature();
-      void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
-      void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
-      void CalculateRightHandSide(ProcessInfo& r_current_process_info,
-                                  double dt, 
-                                  const array_1d<double,3>& gravity,
-                                  int search_control);  
-      void FinalizeSolutionStep(ProcessInfo& r_process_info); 
-      void UpdateTemperature(const ProcessInfo& r_process_info); 
-	  void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
-	  void UpdateTemperatureDependentRadii(const ProcessInfo& r_process_info, ThermalSphericParticle<SphericContinuumParticle>* element1,
-		  ThermalSphericParticle<SphericContinuumParticle>* element2);
-	  void UpdateNormalRelativeVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalRelVel, ThermalSphericParticle<SphericContinuumParticle>* element1, 
-		  ThermalSphericParticle<SphericContinuumParticle>* element2);
+        typedef Node <3> NodeType;
+        typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+        typedef std::size_t IndexType;
+        typedef Geometry<Node < 3 > > GeometryType;
+        typedef Properties PropertiesType;
+
+        using TBaseElement::GetGeometry;
+        using TBaseElement::GetProperties;
+        using TBaseElement::mNeighbourElements;
+        using TBaseElement::GetRadius;
+        using TBaseElement::SetRadius;
+        using TBaseElement::GetMass;
+        using TBaseElement::GetValue;
+        using TBaseElement::SetValue;
+
+        /// Default constructor. 
+        ThermalSphericParticle():TBaseElement(){};
+        ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):TBaseElement(NewId, pGeometry){};
+        ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){};
+        ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){};
+
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
+          return Element::Pointer(new ThermalSphericParticle<TBaseElement>(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        };
+
+        /// Destructor.
+        virtual ~ThermalSphericParticle(){};
+
+
+        double& GetTemperature();   
+            double& GetPreviousTemperature();
+        void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
+        void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
+        void CalculateRightHandSide(ProcessInfo& r_current_process_info,
+                                    double dt, 
+                                    const array_1d<double,3>& gravity,
+                                    int search_control);  
+        void FinalizeSolutionStep(ProcessInfo& r_process_info); 
+        void UpdateTemperature(const ProcessInfo& r_process_info); 
+        void RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
+                                                                            double DeltDisp[3],
+                                                                            double RelVel[3],
+                                                                            double OldLocalCoordSystem[3][3],
+                                                                            double LocalCoordSystem[3][3], 
+                                                                            SphericParticle* neighbour_iterator);
+        void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
+        void UpdateTemperatureDependentRadii(const ProcessInfo& r_process_info, ThermalSphericParticle<TBaseElement>* element2);
+        void UpdateNormalRelativeVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2);
           
     
       /// Turn back information as a string.

@@ -32,6 +32,15 @@ namespace Kratos {
 	}
 
 ////////////////////// CALCULATE SINTERING NORMAL FORCE ///////////////////////////////
+        
+        void DEM_sintering_continuum::GetContactArea(const double radius, 
+                                                        const double other_radius, 
+                                                        const std::vector<double> & vector_of_initial_areas, 
+                                                        const int neighbour_position, 
+                                                        double& calculation_area) {}
+        
+        void DEM_sintering_continuum::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
+                                             double equiv_poisson, double calculation_area) {}
 
 	void DEM_sintering_continuum::CalculateSinteringForces(const ProcessInfo& r_process_info,
 		const double OldLocalElasticContactForce[3],
@@ -215,53 +224,96 @@ namespace Kratos {
 
 		equiv_visco_damp_coeff_normal = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
 	}
+        
+        //MA
+        void DEM_sintering_continuum::CalculateForces(const ProcessInfo& r_process_info,
+                                                    double OldLocalElasticContactForce[3],
+                                                    double LocalElasticContactForce[3],
+                                                    double LocalDeltDisp[3],
+                                                    const double kn_el,
+                                                    const double kt_el,
+                                                    double& contact_sigma,
+                                                    double& contact_tau,
+                                                    double& failure_criterion_state,
+                                                    double equiv_young,
+                                                    double indentation,
+                                                    double calculation_area,
+                                                    double& acumulated_damage,
+                                                    SphericContinuumParticle* element1,
+                                                    SphericContinuumParticle* element2,
+                                                    int i_neighbour_count,
+                                                    int time_steps,
+                                                    bool& sliding,
+                                                    int search_control,
+                                                    vector<int>& search_control_vector,
+                                                    double &equiv_visco_damp_coeff_normal,
+                                                    double &equiv_visco_damp_coeff_tangential,
+                                                    double LocalRelVel[3],
+                                                    double ViscoDampingLocalContactForce[3],
+                                                    int failure_id) {
+                
+        KRATOS_TRY
+        
+        SinteringSphericContinuumParticle* p_sintering_element1 = dynamic_cast<SinteringSphericContinuumParticle*>(element1);
+        p_sintering_element1->mSinteringDisplacement = p_sintering_element1->mOldNeighbourSinteringDisplacement[i_neighbour_count];
+        
+        if (element1->Is(DEMFlags::IS_SINTERING)) {
+            CalculateForcesOfSintering(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalRelVel[2], indentation, 
+					p_sintering_element1->mSinteringDisplacement, p_sintering_element1->mSinteringDrivingForce, 
+                                        element1, element2, ViscoDampingLocalContactForce);
+            p_sintering_element1->mActualNeighbourSinteringDisplacement.push_back(p_sintering_element1->mSinteringDisplacement);  // adding the sintering displacements to vector (only for sintering period (continuum CL)
+        }
+        else {
+            
+            CalculateNormalForcesAfterSintering(LocalElasticContactForce,
+                                                p_sintering_element1->mSinteringDisplacement,
+                                                indentation,
+                                                calculation_area,
+                                                element1,
+                                                element2,
+                                                i_neighbour_count);
 
-	void DEM_sintering_continuum::CalculateForces(const ProcessInfo& r_process_info, // After sintering, Hertzian Continuum CL
-		double LocalElasticContactForce[3],
-		double LocalDeltDisp[3],
-		const double kn_el,
-		double kt_el,
-		double& contact_sigma,
-		double& contact_tau,
-		double& failure_criterion_state,
-		double sintering_displ,
-		double indentation,
-		double calculation_area,
-		double& acumulated_damage,
-		SphericContinuumParticle* element1,
-		SphericContinuumParticle* element2,
-		int i_neighbour_count,
-		int time_steps,
-		bool& sliding,
-		int search_control,
-		vector<int>& search_control_vector) {
-
-		KRATOS_TRY
-			CalculateNormalForcesAfterSintering(LocalElasticContactForce,
-				sintering_displ,
-				indentation,
-				calculation_area,
-				element1,
-				element2,
-				i_neighbour_count);
-
-		CalculateTangentialForces(LocalElasticContactForce,
-			LocalDeltDisp,
-			kt_el,
-			contact_sigma,
-			contact_tau,
-			indentation,
-			calculation_area,
-			failure_criterion_state,
-			element1,
-			element2,
-			i_neighbour_count,
-			sliding,
-			search_control,
-			search_control_vector);
-
-		KRATOS_CATCH("")
-	}
+            CalculateTangentialForces(LocalElasticContactForce,
+                                    LocalDeltDisp,
+                                    kt_el,
+                                    contact_sigma,
+                                    contact_tau,
+                                    indentation,
+                                    calculation_area,
+                                    failure_criterion_state,
+                                    element1,
+                                    element2,
+                                    i_neighbour_count,
+                                    sliding,
+                                    search_control,
+                                    search_control_vector);
+            /*DEM_KDEM::CalculateForces(r_process_info, 
+                                        LocalElasticContactForce, 
+                                        LocalDeltDisp, 
+                                        kn_el, 
+                                        kt_el, 
+                                        contact_sigma, 
+                                        contact_tau, 
+                                        failure_criterion_state,
+                                        equiv_young,  
+                                        indentation,
+                                        calculation_area, 
+                                        acumulated_damage, 
+                                        element1, 
+                                        element2, 
+                                        i_neighbour_count, 
+                                        time_steps, 
+                                        sliding, 
+                                        search_control, 
+                                        search_control_vector);*/
+                                    
+            //DEM_KDEM::mContinuumConstitutiveLawArray[i]->CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, this, neighbour_iterator, kn_el, kt_el);
+            //DEM_KDEM::mContinuumConstitutiveLawArray[i]->CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, penetration, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding, failure_id);
+        }
+                        
+        
+    KRATOS_CATCH("")      
+    }	
 
 	void DEM_sintering_continuum::CalculateNormalForcesAfterSintering(double LocalElasticContactForce[3], // HERTZIAN CL
 		double sintering_displ,
@@ -330,6 +382,20 @@ namespace Kratos {
 		kn = 2.0 * equiv_young * sqrt_equiv_radius * sqrt_indentation_with_sintering_displ;
 		//mKt = 4.0 * equiv_shear * mKn / equiv_young;
 	}
+        
+        void DEM_sintering_continuum::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                    SphericContinuumParticle* neighbor,
+                                                    double equiv_young,
+                                                    double distance,
+                                                    double calculation_area,
+                                                    double LocalCoordSystem[3][3],
+                                                    double ElasticLocalRotationalMoment[3],
+                                                    double ViscoLocalRotationalMoment[3]) {
+            
+            if (element->Is(DEMFlags::IS_SINTERING)) return;
+            
+            DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
+        }
 
 
 } // namespace Kratos

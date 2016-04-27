@@ -241,8 +241,8 @@ namespace Kratos {
             double myYoung = GetYoung();
             double myPoisson = GetPoisson();
 
-            double kn_el;
-            double kt_el;            
+			double kn_el = 0.0;
+			double kt_el = 0.0;
             double DeltDisp[3] = {0.0};
             double RelVel[3] = {0.0};
             double LocalCoordSystem[3][3]    = {{0.0}, {0.0}, {0.0}};
@@ -265,15 +265,17 @@ namespace Kratos {
             double calculation_area = 0.0;
             
             if (i < mContinuumInitialNeighborsSize) {
-                mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, mContIniNeighArea, i, calculation_area);
+                mContinuumConstitutiveLawArray[i]->GetContactArea(GetRadius(), other_radius, mContIniNeighArea, i, calculation_area); //some Constitutive Laws get a value, some others calculate the value.
                 mContinuumConstitutiveLawArray[i]->CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
             } 
              
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                DisplacementDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             }
+            
+            RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
 
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
@@ -304,6 +306,7 @@ namespace Kratos {
             if (i < mContinuumInitialNeighborsSize) {
                 int failure_id = mIniNeighbourFailureId[i];
                 mContinuumConstitutiveLawArray[i]->CalculateForces(r_process_info,
+                                                                   OldLocalElasticContactForce,
                                                                    LocalElasticContactForce,
                                                                    LocalDeltDisp,
                                                                    kn_el,
@@ -341,9 +344,12 @@ namespace Kratos {
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR) && (i < mContinuumInitialNeighborsSize)) { // We leave apart the discontinuum neighbors (the same for the walls). The neighbor would not be able to do the same if we activate it. 
                 mContinuumConstitutiveLawArray[i]->AddPoissonContribution(equiv_poisson, LocalCoordSystem, LocalElasticContactForce[2], calculation_area, mSymmStressTensor, this, neighbour_iterator);
             }
+            
+            array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
+            ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                                  GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, rElasticForce, rContactForce, i);
+                                  GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, other_ball_to_ball_forces, rElasticForce, rContactForce, i); //TODO: replace the 0.0 with an actual cohesive force for discontinuum neighbours
             
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS) {
@@ -354,7 +360,8 @@ namespace Kratos {
                 if (i < mContinuumInitialNeighborsSize && mIniNeighbourFailureId[i] == 0) {       
                     mContinuumConstitutiveLawArray[i]->ComputeParticleRotationalMoments(this, neighbour_iterator, equiv_young, distance, calculation_area,
                                                                                             LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
-                }
+                }                                
+                
                 AddUpMomentsAndProject(LocalCoordSystem, ElasticLocalRotationalMoment, ViscoLocalRotationalMoment);
             }                                                    
             
