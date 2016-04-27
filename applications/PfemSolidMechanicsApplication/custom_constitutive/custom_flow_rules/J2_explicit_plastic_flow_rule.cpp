@@ -82,7 +82,7 @@ void J2ExplicitFlowRule::CalculateKirchhoffStressVector(const Vector& rHenckyStr
 void J2ExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix)
 {
 
-      Matrix Aux = ZeroMatrix(6);
+      Matrix Aux = ZeroMatrix(6,6);
       rElasticMatrix = Aux;
 
       double Young      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
@@ -118,13 +118,13 @@ void J2ExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHenckyS
 void J2ExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative)
 {
     rFirstDerivative = ZeroVector(1);
-    rSecondDerivative = ZeroMatrix(1);
+    rSecondDerivative = ZeroMatrix(1,1);
     return;  // program things only once
      double YieldStress = mpYieldCriterion->GetHardeningLaw().GetProperties()[YIELD_STRESS]
 ;
 
 
-     rSecondDerivative = ZeroMatrix(6);
+     rSecondDerivative = ZeroMatrix(6,6);
 
      double MeanStress  = 0.0;
      for (unsigned int i = 0; i < 3; ++i)

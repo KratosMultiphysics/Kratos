@@ -438,7 +438,7 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialRe
        std::cout << "Leaving drift correction WITHOUT converging " << rDrift << std::endl;
        std::cout << " StressVector " << rStressVector << std::endl;
        // COMPTUING THE LODE ANGLE TO SEE WHAT HAPPENS
-       Matrix SM = ZeroMatrix(3);
+       Matrix SM = ZeroMatrix(3,3);
 
        SM = MathUtils<double>::StressVectorToTensor( rStressVector);
 
@@ -515,7 +515,7 @@ Vector NonAssociativeExplicitPlasticFlowRule::ConvertCauchyGreenTensorToHenckySt
     Vector EigenValues;
     SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues);
     
-    Matrix Aux = ZeroMatrix(3);
+    Matrix Aux = ZeroMatrix(3,3);
     for (unsigned int i = 0; i < 3; ++i)
         Aux(i,i) = (std::log(EigenValues(i)))/2.0;
 
@@ -539,7 +539,7 @@ Matrix NonAssociativeExplicitPlasticFlowRule::ConvertHenckyStrainToCauchyGreenTe
  
      SolidMechanicsMathUtilities<double>::EigenVectors(HenckyStrainMatrix, EigenVectors, EigenValues);
 
-     Matrix Aux = ZeroMatrix(3);
+     Matrix Aux = ZeroMatrix(3,3);
 
     for (unsigned int i = 0; i < 3; ++i)
         Aux(i,i) = std::exp(2.0*EigenValues(i));
@@ -548,7 +548,7 @@ Matrix NonAssociativeExplicitPlasticFlowRule::ConvertHenckyStrainToCauchyGreenTe
     Aux = prod(trans(EigenVectors), Aux);
 
     // COMPROVACION
-/*    Matrix A = ZeroMatrix(3);
+/*    Matrix A = ZeroMatrix(3,3);
     for (unsigned int i = 0; i < 3; ++ i ) 
         A(i,i) = EigenValues(i);
 
@@ -601,12 +601,10 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeSubstepIncrementalDeformation
     Matrix DeformationGradientReference;
     Matrix DeformationGradientFinal;
 
-    Matrix IdentityMatrix = ZeroMatrix(3);
-    for (unsigned int i = 0; i < 3; ++i)
-         IdentityMatrix(i,i) = 1.0;   
+    Matrix Identity = IdentityMatrix(3,3);
  
-    DeformationGradientReference = rReferenceConfiguration*rIncrementalDeformationGradient  + (1.0 - rReferenceConfiguration)*IdentityMatrix;
-    DeformationGradientFinal     =     rFinalConfiguration*rIncrementalDeformationGradient  + (1.0 -     rFinalConfiguration)*IdentityMatrix;
+    DeformationGradientReference = rReferenceConfiguration*rIncrementalDeformationGradient  + (1.0 - rReferenceConfiguration)*Identity;
+    DeformationGradientFinal     =     rFinalConfiguration*rIncrementalDeformationGradient  + (1.0 -     rFinalConfiguration)*Identity;
 
     double Det; 
     MathUtils<double>::InvertMatrix(DeformationGradientReference, rSubstepIncrementalDeformationGradient, Det);
@@ -1004,14 +1002,14 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(co
         Vector EigenValues;
 
 
-   /*     B = ZeroMatrix(3);
+   /*     B = ZeroMatrix(3,3);
         for (int ii = 0; ii < 3; ++ii){
           B(ii,ii) = 1.0;
         } */
 
         SolidMechanicsMathUtilities<double>::EigenVectors( B , EigenVectors, EigenValues);
 
-        Matrix b = ZeroMatrix(3);
+        Matrix b = ZeroMatrix(3,3);
         for (unsigned int i = 0; i < 3; ++i)
            b(i,i ) = 1.0/(2.0* EigenValues(i) );
         b = prod( b, trans(EigenVectors));
@@ -1020,9 +1018,9 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(co
         std::cout << "    b  " << b << std::endl;
         std::cout << "    I " << prod( b, B ) << std::endl; */
 
-        Matrix ThisMat = ZeroMatrix(6);
-        Matrix ThisMat1 = ZeroMatrix(6);
-        Matrix E = ZeroMatrix(3);
+        Matrix ThisMat = ZeroMatrix(6,6);
+        Matrix ThisMat1 = ZeroMatrix(6,6);
+        Matrix E = ZeroMatrix(3,3);
         for (unsigned int kk = 0; kk < 3; ++kk)
           E(kk,kk) = 1.0;
 
@@ -1114,7 +1112,7 @@ Matrix NonAssociativeExplicitPlasticFlowRule::MyCrossProduct(const Matrix& rM, c
     A = prod(rM, A);
     B = prod(trans(B), rM); 
 
-    Matrix Result = ZeroMatrix(6);
+    Matrix Result = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<6; ++i) {
         for ( unsigned int j = 0; j<6; ++j) {
             Result(i,j) = A(i)*B(j);

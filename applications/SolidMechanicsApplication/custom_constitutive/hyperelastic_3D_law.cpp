@@ -208,7 +208,7 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
   //0.- Initialize parameters
   MaterialResponseVariables ElasticVariables;
-  ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+  ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
   //1.- Lame constants
   const double& YoungModulus        = MaterialProperties[YOUNG_MODULUS];
@@ -329,7 +329,7 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = identity_matrix<double> ( 3 );
 
     //1.- Lame constants
     const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
@@ -377,7 +377,7 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     //8.-Calculate Constitutive Matrix related to Total Kirchhoff stress
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+        ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
         this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
     }
 
@@ -493,7 +493,7 @@ void HyperElastic3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauch
     rStrainVector[4] = rRightCauchyGreen( 1, 2 ); // yz
     rStrainVector[5] = rRightCauchyGreen( 0, 2 ); // xz
 
-    // Matrix StrainMatrix = ZeroMatrix(3);
+    // Matrix StrainMatrix = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rRightCauchyGreen, rStrainMatrix );
     // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
@@ -535,7 +535,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
     rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
 
   
-    // Matrix StrainMatrix = ZeroMatrix(3);
+    // Matrix StrainMatrix = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rLeftCauchyGreen, rStrainMatrix );
     // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
              
@@ -691,7 +691,7 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
 
         //2.-2nd Piola Kirchhoff Stress Matrix
         StressMatrix  = rElasticVariables.LameLambda * Factor * rElasticVariables.CauchyGreenMatrix;
-        StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.IdentityMatrix - rElasticVariables.CauchyGreenMatrix );
+        StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.Identity - rElasticVariables.CauchyGreenMatrix );
 
     }
 
@@ -700,9 +700,9 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
         //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen B
 
         //2.-Kirchhoff Stress Matrix
-        StressMatrix  = rElasticVariables.LameLambda * Factor * rElasticVariables.IdentityMatrix;
+        StressMatrix  = rElasticVariables.LameLambda * Factor * rElasticVariables.Identity;
 
-        StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.CauchyGreenMatrix - rElasticVariables.IdentityMatrix );
+        StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.CauchyGreenMatrix - rElasticVariables.Identity );
 
    }
 
@@ -730,7 +730,7 @@ void HyperElastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariable
         //rElasticVariables.CauchyGreenMatrix is InverseRightCauchyGreen
 
         //2.-Incompressible part of the 2nd Piola Kirchhoff Stress Matrix
-        IsoStressMatrix  = (rElasticVariables.IdentityMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.CauchyGreenMatrix );
+        IsoStressMatrix  = (rElasticVariables.Identity - (rElasticVariables.traceCG/3.0)*rElasticVariables.CauchyGreenMatrix );
         IsoStressMatrix *= rElasticVariables.LameMu*pow(rElasticVariables.DeterminantF,(-2.0/3.0));
 
         //std::cout<<" PK2 "<<std::endl;
@@ -742,7 +742,7 @@ void HyperElastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariable
         //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen
 
         //2.-Incompressible part of the Kirchhoff Stress Matrix
-        IsoStressMatrix  = (rElasticVariables.CauchyGreenMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.IdentityMatrix );
+        IsoStressMatrix  = (rElasticVariables.CauchyGreenMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.Identity );
         IsoStressMatrix *= rElasticVariables.LameMu*pow(rElasticVariables.DeterminantF,(-2.0/3.0));
 
         //std::cout<<" Kirchooff "<<std::endl;

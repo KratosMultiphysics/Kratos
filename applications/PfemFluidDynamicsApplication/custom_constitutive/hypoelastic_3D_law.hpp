@@ -49,7 +49,7 @@ protected:
         double traceCG;               //LeftCauchyGreen or RightCauchyGreen
         Matrix CauchyGreenMatrix;     //LeftCauchyGreen or InverseRightCauchyGreen
         Matrix DeformationGradientF;  //Deformation Gradient Tensor in 3D
-        Matrix IdentityMatrix;
+        Matrix Identity;
 
         //element properties
         const Vector*        mpShapeFunctionsValues;

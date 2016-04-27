@@ -83,7 +83,7 @@ void TrescaExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& 
 {
      //double YieldStress = mpYieldCriterion->GetHardeningLaw().GetProperties()[YIELD_STRESS];
      rFirstDerivative = ZeroVector(1);
-     rSecondDerivative = ZeroMatrix(1);
+     rSecondDerivative = ZeroMatrix(1,1);
      return;
 
 }

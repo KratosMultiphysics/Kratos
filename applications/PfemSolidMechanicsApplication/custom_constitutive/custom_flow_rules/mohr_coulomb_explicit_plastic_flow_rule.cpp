@@ -74,8 +74,8 @@ void MohrCoulombExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vec
 {
      //double YieldStress = mpYieldCriterion->GetHardeningLaw().GetProperties()[YIELD_STRESS];
  
-   rFirstDerivative = ZeroVector(1);
-   rSecondDerivative = ZeroMatrix(1);
+   rFirstDerivative  = ZeroVector(1);
+   rSecondDerivative = ZeroMatrix(1,1);
 
    //double Cohesion = this->GetHardeningLaw().GetProperties()[COHESION];
    double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];

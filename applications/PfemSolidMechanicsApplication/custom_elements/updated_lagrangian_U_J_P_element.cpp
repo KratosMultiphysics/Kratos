@@ -891,7 +891,7 @@ namespace Kratos
       Matrix ConstitutiveMatrix = rVariables.ConstitutiveMatrix;
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-      Matrix ConstMatrixSmall= ZeroMatrix( rElementVariables.voigtsize) ;
+      Matrix ConstMatrixSmall= ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize) ;
 
       // Definition of Smallt Cons Matrix
       if ( rElementVariables.voigtsize == 6) {
@@ -924,11 +924,11 @@ namespace Kratos
 
       // 3. Some Geometric-like terms ( obs, copied from the other side);
       Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector);
-      Matrix Identity = ZeroMatrix(3);
+      Matrix Identity = ZeroMatrix(3,3);
       for (unsigned int i = 0; i < dimension; i++)
          Identity(i,i) = 1.0;
 
-      Matrix MoreTerms = ZeroMatrix( 6);
+      Matrix MoreTerms = ZeroMatrix(6,6);
       for ( unsigned int k = 0; k < dimension; k++) {
          for (unsigned int l = 0; l < dimension; l++) {
             for (unsigned int p = 0; p < dimension ; p++) {
@@ -988,7 +988,7 @@ namespace Kratos
       }
 
       // 4. Put it in the BIG MATRIX ( add out of plane terms) and add the ExtraTerms ( "geometric-like") 
-      Matrix ConstMatrixBig = ZeroMatrix(6);
+      Matrix ConstMatrixBig = ZeroMatrix(6,6);
       if ( rElementVariables.voigtsize == 6) {
          ConstMatrixBig = ConstMatrixSmall + MoreTerms; 
       } 
@@ -1032,7 +1032,7 @@ namespace Kratos
       }
 
       //5. Multiply it by the Deviatoric Beta Matrix 
-      Matrix DeviatoricBeta = ZeroMatrix(6);
+      Matrix DeviatoricBeta = ZeroMatrix(6,6);
       for (unsigned int i = 0; i < 6; i++) 
          DeviatoricBeta(i,i) = 1.0;
       for (unsigned int i = 0; i < 3; i++) {
@@ -1127,8 +1127,8 @@ namespace Kratos
 
 
 
-      Matrix ThisMatrix = ZeroMatrix(6);
-      Matrix ThisMatrixSize = ZeroMatrix( rElementVariables.voigtsize);
+      Matrix ThisMatrix = ZeroMatrix(6,6);
+      Matrix ThisMatrixSize = ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize);
 
       ///// MALAMENT. ES LA TENSIÓ GUAY; NO UNA QUALSEVOL. SAPS??
       // MIRA AL PAPER.
@@ -1137,7 +1137,7 @@ namespace Kratos
       for (unsigned int i = 0; i < 3; i++)
          StressTensor(i,i) += (  rElementVariables.NodalMeanStress - rElementVariables.ElementalMeanStress);
 
-      Matrix Identity = ZeroMatrix(3);
+      Matrix Identity = ZeroMatrix(3,3);
       for (unsigned int i = 0; i < dimension; i++)
          Identity(i,i) = 1.0;
 
@@ -1325,11 +1325,11 @@ namespace Kratos
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       const unsigned int number_of_nodes = GetGeometry().size();
 
-      Matrix IdentityMatrix = ZeroMatrix(6, 1);
+      Matrix Identity = ZeroMatrix(6, 1);
       for (unsigned int i = 0; i < dimension; i++)
-         IdentityMatrix(i, 0) = 1.0;
+         Identity(i, 0) = 1.0;
 
-      ConstitutiveMatrix = prod(ConstitutiveMatrix, IdentityMatrix);
+      ConstitutiveMatrix = prod(ConstitutiveMatrix, Identity);
       ConstitutiveMatrix *= rElementVariables.Alpha; 
 
       // Add (2alpha - 1) * SV
@@ -1346,14 +1346,14 @@ namespace Kratos
 
       if ( this->Id() < 0) {
          std::cout << " THIS CONST MATRIX " << ConstitutiveMatrix << std::endl;
-         std::cout << " IDENTITY " << IdentityMatrix << std::endl;
+         std::cout << " IDENTITY " << Identity << std::endl;
       }
 
       // add the out of plane matrix 
       if ( rElementVariables.voigtsize < 6) { // ie. Plane Strain
          ConstitutiveMatrix(2, 0) -= rVariables.StressVector(2); 
          for (unsigned int i = 0; i < 2; i++)
-            ConstitutiveMatrix(2,0) += rElementVariables.Alpha * rVariables.ConstitutiveMatrix(2, i) * IdentityMatrix(i,0); 
+            ConstitutiveMatrix(2,0) += rElementVariables.Alpha * rVariables.ConstitutiveMatrix(2, i) * Identity(i,0); 
       }
 
       ConstitutiveMatrix /= rElementVariables.NodalJacobian; 
@@ -1362,7 +1362,7 @@ namespace Kratos
          std::cout << " AFTER OUT OF PLANE " << ConstitutiveMatrix << std::endl;
       }
       // MULTIPLY BY THE BETA DEVIATORIC
-      Matrix BetaDeviatoric = ZeroMatrix(6);
+      Matrix BetaDeviatoric = ZeroMatrix(6,6);
       for (unsigned int i = 0; i < 6; i++)
          BetaDeviatoric(i,i) = 1.0;
       for (unsigned int i = 0; i < 3; i++) {
@@ -1617,7 +1617,7 @@ namespace Kratos
 
       // 1. Definition of some tensors
       // 1.a Compress ConstitutiveMatrix
-      Matrix ConstMatrix = ZeroMatrix( rElementVariables.voigtsize);
+      Matrix ConstMatrix = ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize);
 
       if ( rElementVariables.voigtsize == 6)
       {
@@ -1639,9 +1639,9 @@ namespace Kratos
       }
 
       // 1.b Definition of Identity and deviatoric 
-      Matrix IdentityMatrix = ZeroMatrix( 1, rElementVariables.voigtsize );
+      Matrix Identity = ZeroMatrix( 1, rElementVariables.voigtsize );
       for (unsigned int i = 0; i < dimension; i++) {
-         IdentityMatrix(0, i) = 1.0;
+         Identity(0, i) = 1.0;
       }
 
       Matrix AlphaDeviatoricMatrix = ZeroMatrix(rElementVariables.voigtsize);
@@ -1656,7 +1656,7 @@ namespace Kratos
 
 
       // EVERTHING HERE.
-      ConstMatrix = prod( IdentityMatrix, ConstMatrix);
+      ConstMatrix = prod( Identity, ConstMatrix);
       ConstMatrix = prod( ConstMatrix, AlphaDeviatoricMatrix);
 
 

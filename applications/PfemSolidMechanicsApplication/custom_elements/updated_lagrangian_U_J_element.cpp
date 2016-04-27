@@ -439,8 +439,8 @@ namespace Kratos
          mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
          Vector StressRef = Variables.StressVector;
 
-         Matrix FNew = ZeroMatrix(3);
-         Matrix Pertur = ZeroMatrix(3);
+         Matrix FNew = ZeroMatrix(3,3);
+         Matrix Pertur = ZeroMatrix(3,3);
          double delta = -1e-6;
          for (unsigned int i = 0; i < Variables.FT.size1(); i++) {
             for (unsigned int j = 0; j < Variables.FT.size2(); j++) {
@@ -1327,7 +1327,7 @@ namespace Kratos
       if (dimension == 3) 
          voigtsize = 6;
 
-      Matrix DeviatoricTensor = ZeroMatrix(voigtsize);
+      Matrix DeviatoricTensor = ZeroMatrix(voigtsize,voigtsize);
       Vector Identity = ZeroVector(voigtsize);
       for (unsigned int i = 0; i < voigtsize ; ++i) {
          DeviatoricTensor(i,i) = 1.0;
@@ -1347,7 +1347,7 @@ namespace Kratos
          std::cout << " CONS 0 " << rVariables.ConstitutiveMatrix << std::endl;
          std::cout << " CONS 1 " << ConstitutiveMatrix << std::endl;
       }
-      Matrix AuxMatrix = ZeroMatrix(voigtsize);
+      Matrix AuxMatrix = ZeroMatrix(voigtsize,voigtsize);
 
       for (unsigned int i = 0; i < voigtsize; i++) {
          for (unsigned int j = 0; j < voigtsize; j++) {
@@ -1415,11 +1415,8 @@ namespace Kratos
       if (dimension == 3) 
          voigtsize = 6;
 
-      Matrix Identity = ZeroMatrix( voigtsize, 1);
+      Matrix Identity = IdentityMatrix(voigtsize);
 
-      for (unsigned int i = 0; i < dimension; i++) {
-         Identity(i,0) = 1.0;
-      }
 
       ConstitutiveMatrix = prod( ConstitutiveMatrix, (Identity) );
       ConstitutiveMatrix /= dimension_double;
@@ -1948,7 +1945,7 @@ namespace Kratos
       ProcessInfo SomeProcessInfo;
       this->GetValueOnIntegrationPoints( INVERSE_DEFORMATION_GRADIENT, EECCInverseDefGrad, SomeProcessInfo);
       Matrix EECCInverseBig = EECCInverseDefGrad[0];
-      Matrix EECCDefGradInverse = ZeroMatrix(dimension);
+      Matrix EECCDefGradInverse = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; i++) {
          for (unsigned int j = 0; j < dimension; j++) {
             EECCDefGradInverse(i,j) = EECCInverseBig(i,j);

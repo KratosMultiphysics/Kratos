@@ -521,7 +521,7 @@ namespace Kratos
       // I HAVE TO DO SOMETHING WITH THE GENERAL VARIABLES * DETFT ETC
       LocalSystemComponents UJLocalSystem; 
       unsigned int MatSize = number_of_nodes * ( dimension+1);
-      MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize) ;
+      MatrixType  LocalLeftHandSideMatrix = ZeroMatrix(MatSize,MatSize) ;
 
       UJLocalSystem.SetLeftHandSideMatrix( LocalLeftHandSideMatrix);
 
@@ -833,7 +833,7 @@ namespace Kratos
       Matrix K;
       Matrix TotalF = prod( rVariables.F, rVariables.F0);
       //this->GetPermeabilityTensor( Permeability, TotalF, K);
-      K = ZeroMatrix(dimension);
+      K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; i++)
          K(i,i) = Permeability;
 
@@ -940,7 +940,7 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
 
@@ -1134,7 +1134,7 @@ namespace Kratos
 
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
-      Matrix SmallMatrix = ZeroMatrix( number_of_nodes);
+      Matrix SmallMatrix = ZeroMatrix(number_of_nodes,number_of_nodes);
 
       double ElementalNodalJacobian = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -1201,11 +1201,11 @@ namespace Kratos
       Matrix K;
       Matrix TotalF = prod( rVariables.F, rVariables.F0);
       //this->GetPermeabilityTensor( Permeability, TotalF, K);
-      K = ZeroMatrix(dimension);
+      K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; i++)
          K(i,i) = Permeability;
 
-      Matrix SmallMatrix = ZeroMatrix( number_of_nodes);
+      Matrix SmallMatrix = ZeroMatrix(number_of_nodes,number_of_nodes);
 
       for (unsigned int m = 0; m < number_of_nodes; m++) {   
          for (unsigned int n = 0; n < number_of_nodes; n++) {   
@@ -1282,7 +1282,7 @@ namespace Kratos
          return;
       }
 
-      Matrix K = ZeroMatrix(dimension);
+      Matrix K = ZeroMatrix(dimension,dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
 

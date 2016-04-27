@@ -343,7 +343,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    Matrix InvJ = ZeroMatrix(2);
+    Matrix InvJ = ZeroMatrix(2,2);
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;  
@@ -364,7 +364,7 @@ void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
-    Matrix Invj = ZeroMatrix(2);
+    Matrix Invj = ZeroMatrix(2,2);
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]

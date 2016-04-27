@@ -179,7 +179,7 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 {
 
 
-    Matrix FourthOrderIdentity = ZeroMatrix(6);
+    Matrix FourthOrderIdentity = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
        FourthOrderIdentity(i,i) = 1.0;
 
@@ -187,7 +187,7 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
        FourthOrderIdentity(i,i) = 0.50;
 // VOIGT NOTATION AND NOT KELVIN
 
-    Matrix IdentityCross = ZeroMatrix(6);
+    Matrix IdentityCross = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
             IdentityCross(i,j) = 1.0;
@@ -278,13 +278,13 @@ void CamClayExplicitFlowRule::CalculatePlasticPotentialDerivatives( const Vector
 {
 
     rFirstDerivative = ZeroVector(1);
-    rSecondDerivative = ZeroMatrix(1);
+    rSecondDerivative = ZeroMatrix(1,1);
     return;
     double M = mpYieldCriterion->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE] ; 
 
     M = M * M;
 
-    rSecondDerivative = ZeroMatrix(6);
+    rSecondDerivative = ZeroMatrix(6,6);
 
     for (unsigned int i = 0; i< 3; i++) {
        for (unsigned int j = 0; j < 3; ++j)  {

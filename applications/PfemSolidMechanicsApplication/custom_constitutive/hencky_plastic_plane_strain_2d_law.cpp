@@ -113,7 +113,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
 void HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDimension(Matrix&  rPrincipalTangentMatrix)
 {
 
-    Matrix AuxiliarMatrix = ZeroMatrix(3);
+    Matrix AuxiliarMatrix = ZeroMatrix(3,3);
 
     AuxiliarMatrix(0,0) = rPrincipalTangentMatrix(0,0);
     AuxiliarMatrix(0,1) = rPrincipalTangentMatrix(0,1);
@@ -138,18 +138,18 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
 					   FlowRule::RadialReturnVariables& rReturnMappingVariables, 
 					   Vector& rMainStrain)
 {
-    Matrix Auxiliar = ZeroMatrix(3);
+    Matrix Auxiliar = ZeroMatrix(3,3);
     Auxiliar(0,0) = rCauchyGreenMatrix(0,0);
     Auxiliar(1,1) = rCauchyGreenMatrix(1,1);
     Auxiliar(0,1) = rCauchyGreenMatrix(0,1);
     Auxiliar(1,0) = rCauchyGreenMatrix(1,0);
     Auxiliar(2,2) = 1.0; 
-    Matrix AuxEigenVectors = ZeroMatrix(3);
+    Matrix AuxEigenVectors = ZeroMatrix(3,3);
     Vector AuxEigenValues  = ZeroVector(3);
     SolidMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
 
     
-    rReturnMappingVariables.EigenVectors = ZeroMatrix(3);
+    rReturnMappingVariables.EigenVectors = ZeroMatrix(3,3);
     rReturnMappingVariables.EigenVectors(0,0) = AuxEigenVectors(0,0);
     rReturnMappingVariables.EigenVectors(1,0) = AuxEigenVectors(1,0);
     rReturnMappingVariables.EigenVectors(1,1) = AuxEigenVectors(1,1);

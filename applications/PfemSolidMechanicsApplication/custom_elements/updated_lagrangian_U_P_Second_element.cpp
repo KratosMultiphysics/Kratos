@@ -584,7 +584,7 @@ namespace Kratos
 
 
       Matrix ECConstitutiveMatrix = rVariables.ConstitutiveMatrix;
-      Matrix ConstitutiveMatrix = ZeroMatrix(rElementVariables.voigtsize); 
+      Matrix ConstitutiveMatrix = ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize); 
 
       ECConstitutiveMatrix = prod( rElementVariables.DeviatoricTensor, ECConstitutiveMatrix);
 
@@ -1170,7 +1170,7 @@ namespace Kratos
          rElementGeneralVariables.StressVector(2) = AuxStress(3);
       }
 
-      rElementGeneralVariables.DeviatoricTensor = ZeroMatrix(6);
+      rElementGeneralVariables.DeviatoricTensor = ZeroMatrix(6,6);
       for (unsigned int i = 0; i < 6; i++)
          rElementGeneralVariables.DeviatoricTensor(i,i) = 1;
 

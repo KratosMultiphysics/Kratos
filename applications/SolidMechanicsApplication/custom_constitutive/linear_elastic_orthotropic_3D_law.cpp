@@ -109,7 +109,7 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
       }
       else {
 
-	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size(), StrainVector.size() );
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
       }
@@ -182,7 +182,7 @@ void LinearElasticOrthotropic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
       }
       else {
 	
-	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
+	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() ,StrainVector.size() );
 	
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
       

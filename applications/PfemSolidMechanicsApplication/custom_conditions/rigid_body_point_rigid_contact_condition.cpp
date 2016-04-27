@@ -481,7 +481,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
     rVariables.CentroidDistance = norm_2(rVariables.CentroidPosition);
 
 
-    rVariables.SkewSymDistance = ZeroMatrix(3);
+    rVariables.SkewSymDistance = ZeroMatrix(3,3);
 
     //compute the skewsymmmetric tensor of the distance
     this->VectorToSkewSymmetricTensor(rVariables.CentroidPosition, rVariables.SkewSymDistance);
@@ -820,7 +820,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
     if( rVariables.Options.Is(ACTIVE)){
 
       //Force
-      Matrix ForceMatrix  = ZeroMatrix(3);
+      Matrix ForceMatrix  = ZeroMatrix(3,3);
 
       noalias(ForceMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
       
@@ -835,7 +835,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
 	      
 
       //Moment
-      Matrix MomentMatrix = ZeroMatrix(3);
+      Matrix MomentMatrix = ZeroMatrix(3,3);
       
       MomentMatrix = prod(ForceMatrix,rVariables.SkewSymDistance);
       
@@ -888,7 +888,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
 
 
   //Force
-  Matrix ForceMatrix  = ZeroMatrix(3);
+  Matrix ForceMatrix  = ZeroMatrix(3,3);
 
 
   if( fabs(TangentForceModulus) >= 1e-25 ){
@@ -926,7 +926,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
   // std::cout<<" KuuT "<<ForceMatrix<<std::endl;
 
   //Moment
-  Matrix MomentMatrix = ZeroMatrix(3);
+  Matrix MomentMatrix = ZeroMatrix(3,3);
       
   MomentMatrix = prod(ForceMatrix,rVariables.SkewSymDistance);
       
@@ -1244,7 +1244,7 @@ void RigidBodyPointRigidContactCondition::VectorToSkewSymmetricTensor( const Vec
     if( rSkewSymmetricTensor.size1() != 3 )
       rSkewSymmetricTensor.resize(3, 3, false);
     
-    rSkewSymmetricTensor = ZeroMatrix(3);
+    rSkewSymmetricTensor = ZeroMatrix(3,3);
 
     rSkewSymmetricTensor( 0, 1 ) = -rVector[2];
     rSkewSymmetricTensor( 0, 2 ) =  rVector[1];

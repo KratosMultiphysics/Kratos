@@ -443,7 +443,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     GeometryType::JacobiansType J;
     J.resize(1,false);
-    J[0]= ZeroMatrix(1);
+    J[0]= ZeroMatrix(1,1);
     J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -451,7 +451,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	//a.-compute element kinematics
 
 	//calculating the inverse of the jacobian for this integration point[d£/dx_n]
-	Matrix InvJ = ZeroMatrix(dimension);
+	Matrix InvJ = ZeroMatrix(dimension, dimension);
 	double detJ = 0;
 	MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
 
@@ -995,7 +995,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
  
       GeometryType::JacobiansType J;
       J.resize(1,false);
-      J[0]= ZeroMatrix(1);
+      J[0]= ZeroMatrix(1,1);
       J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points
@@ -1004,7 +1004,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  //a.-compute element kinematics
 
 	  //calculating the inverse of the jacobian for this integration point[d£/dx_n]
-	  Matrix InvJ = ZeroMatrix(dimension);
+	  Matrix InvJ = ZeroMatrix(dimension,dimension);
 	  double detJ = 0;
 	  MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
 	  
@@ -1078,7 +1078,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       GeometryType::JacobiansType J;
       J.resize(1,false);
-      J[0]= ZeroMatrix(1);
+      J[0]= ZeroMatrix(1,1);
       J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
       //loop integration points
@@ -1088,7 +1088,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  //a.-compute element kinematics
 
 	  //calculating the inverse of the jacobian for this integration point[d£/dx_n]
-	  Matrix InvJ = ZeroMatrix(dimension);
+	  Matrix InvJ = ZeroMatrix(dimension, dimension);
 	  double detJ = 0;
 	  MathUtils<double>::InvertMatrix( J[ PointNumber], InvJ, detJ);
 

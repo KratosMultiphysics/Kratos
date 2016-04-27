@@ -114,7 +114,7 @@ void HenckyElasticPlasticAxisym2DLaw::CalculateAlmansiStrain( const Matrix & rLe
 void HenckyElasticPlasticAxisym2DLaw::SetConstitutiveMatrixToAppropiateDimension(Matrix&  rPrincipalTangentMatrix)
 {
 
-   Matrix Auxiliar = ZeroMatrix(4);
+   Matrix Auxiliar = ZeroMatrix(4,4);
  
    for (unsigned int i = 0; i < 4; ++i) {
         for (unsigned int j = 0; j < 4; ++j) {

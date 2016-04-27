@@ -114,7 +114,7 @@ void MatsuokaNakaiFlowRule::CalculateInvariantsAndDerivatives(const Vector & rSt
 	Inv.I3D(1) =  rStressVector(2)*rStressVector(0);
 	Inv.I3D(2) =  rStressVector(0)*rStressVector(1);
 
-	Inv.I2DD = ZeroMatrix(3);
+	Inv.I2DD = ZeroMatrix(3,3);
 	for (int i = 0; i<3; ++i)
 	{
 		for (int j = 0; j<3; ++j)
@@ -126,7 +126,7 @@ void MatsuokaNakaiFlowRule::CalculateInvariantsAndDerivatives(const Vector & rSt
 		}
 	}
 		
-	Inv.I3DD = ZeroMatrix(3);
+	Inv.I3DD = ZeroMatrix(3,3);
 	Inv.I3DD(0,0) = 0.0;
 	Inv.I3DD(0,1) = rStressVector(2);
 	Inv.I3DD(0,2) = rStressVector(1);

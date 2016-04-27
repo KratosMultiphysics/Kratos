@@ -141,7 +141,7 @@ namespace Kratos
    {
 
       unsigned int thisSize = rF.size1();
-      rPermeabilityTensor = ZeroMatrix( thisSize);
+      rPermeabilityTensor = ZeroMatrix(rF.size1(),rF.size2());
       for (unsigned int i = 0; i < thisSize; ++i)
       {
          rPermeabilityTensor(i,i) = rPermeability;
@@ -159,7 +159,7 @@ namespace Kratos
    {
 
       unsigned int thisSize = rF.size1();
-      Matrix Identity = ZeroMatrix(thisSize);
+      Matrix Identity = ZeroMatrix(rF.size1(),rF.size2());
       for (unsigned int h = 0; h < thisSize; h++)
          Identity(h,h) = 1.0;
 

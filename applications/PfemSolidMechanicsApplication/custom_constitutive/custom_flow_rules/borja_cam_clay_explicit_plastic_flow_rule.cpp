@@ -157,7 +157,7 @@ namespace Kratos
    void BorjaCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix )
    {
 
-      Matrix FourthOrderIdentity = ZeroMatrix(6);
+      Matrix FourthOrderIdentity = ZeroMatrix(6,6);
       for (unsigned int i = 0; i<3; ++i)
          FourthOrderIdentity(i,i) = 1.0;
 
@@ -165,7 +165,7 @@ namespace Kratos
          FourthOrderIdentity(i,i) = 0.50;
       // VOIGT NOTATION AND NOT KELVIN
 
-      Matrix IdentityCross = ZeroMatrix(6);
+      Matrix IdentityCross = ZeroMatrix(6,6);
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
             IdentityCross(i,j) = 1.0;
@@ -262,7 +262,7 @@ namespace Kratos
    {
 
       rFirstDerivative = ZeroVector(1);
-      rSecondDerivative = ZeroMatrix(1);
+      rSecondDerivative = ZeroMatrix(1,1);
       double M = mpYieldCriterion->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE] ;
       double Friction = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
 
@@ -298,7 +298,7 @@ namespace Kratos
       C2Vector /= 2.0* J2InvSQ; 
 
       // C2Matrix
-      Matrix C2Matrix = ZeroMatrix(6);
+      Matrix C2Matrix = ZeroMatrix(6,6);
       for (unsigned int i = 0; i < 6; i++) {
          for (unsigned int j = 0; j < 6; j++) {
             double times = 0.5;

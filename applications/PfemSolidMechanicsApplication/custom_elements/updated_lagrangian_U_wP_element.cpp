@@ -571,7 +571,7 @@ namespace Kratos
 
          double GaussPointPressure = 0.0;
          unsigned int ThisDimension = rValue[0].size1(); 
-         Matrix Eye = ZeroMatrix(ThisDimension);
+         Matrix Eye = ZeroMatrix(rValue[0].size1(),rValue[0].size2());
 
          for (unsigned int i = 0; i < ThisDimension; ++i)
             Eye(i,i) = 1.0;
@@ -1154,8 +1154,8 @@ namespace Kratos
       if (dimension == 3) 
          voigtsize = 6;
 
-      Matrix FourthOrderIdentity = ZeroMatrix(voigtsize);
-      Matrix MatrixProduct = ZeroMatrix(voigtsize);
+      Matrix FourthOrderIdentity = ZeroMatrix(voigtsize,voigtsize);
+      Matrix MatrixProduct = ZeroMatrix(voigtsize,voigtsize);
       for (unsigned int i = 0; i < dimension ; ++i) {
          FourthOrderIdentity(i,i) = 1.0;
          for (unsigned int j = 0; j < dimension; ++j) {
@@ -1322,9 +1322,9 @@ namespace Kratos
       unsigned int indexp = dimension;
 
       // try to compute Grad( u^n+1 - u^n)
-      Matrix Velocity_DX = ZeroMatrix(dimension);
+      Matrix Velocity_DX = ZeroMatrix(dimension,dimension);
       Vector Pressure_DX = ZeroVector(dimension);
-      Matrix Identity = ZeroMatrix(dimension);
+      Matrix Identity = IdentityMatrix(dimension);
 
       /// COMPUTE SOME GRADIENTS TO THE WaterPressure and Velocity
       // since there is only one gauss point there is no need to put the grad(u) and thinks like that as u_i grad(N),... etc.
@@ -1343,11 +1343,6 @@ namespace Kratos
             }
             Pressure_DX(j) += WaterPressure * rVariables.DN_DX(k,j);
          }
-      }
-
-      for (unsigned int k = 0; k < dimension; k++)
-      { 
-         Identity(k,k) = 1.0;
       }
 
 
@@ -1460,7 +1455,7 @@ namespace Kratos
    {
 
       unsigned int thisSize = rF.size1();
-      rPermeabilityTensor = ZeroMatrix( thisSize);
+      rPermeabilityTensor = ZeroMatrix(rF.size1(),rF.size2());
       for (unsigned int i = 0; i < thisSize; ++i)
       {
          rPermeabilityTensor(i,i) = rPermeability;
@@ -1479,7 +1474,7 @@ namespace Kratos
       return 0.0;
 
       unsigned int thisSize = rF.size1();
-      Matrix Identity = ZeroMatrix(thisSize);
+      Matrix Identity = ZeroMatrix(rF.size1(),rF.size2());
       for (unsigned int h = 0; h < thisSize; h++)
          Identity(h,h) = 1.0;
 

@@ -70,7 +70,7 @@ namespace Kratos
       std::vector<double> MatrixOfPlastic( Mesh2.numberoftriangles, 0);
       std::vector<Matrix> MatrixOfStress;
       for ( int elem = 0; elem < Mesh2.numberoftriangles; elem++)
-         MatrixOfStress.push_back( ZeroMatrix(3));
+         MatrixOfStress.push_back( ZeroMatrix(3,3));
 
       ///// VERY IMPORTANT: Complete cauchy stress tensor is the complete kirchoff stress!!!!!!!!!!
       ElementsContainerType::iterator firstelemMesh1 = rTemporal_elements.begin();
@@ -181,7 +181,7 @@ namespace Kratos
    double MeshDataTransferUtilities::ComputeElementArea( const struct triangulateio& rMesh, const int& elem)
    {
       // First I have to get the nodes and the coordinates....
-      Matrix Coords = ZeroMatrix(3);
+      Matrix Coords = ZeroMatrix(3,3);
       int nod;
       for (unsigned int i = 0; i < 3; i++)
       {
@@ -522,7 +522,8 @@ namespace Kratos
 
 
       // 1. Generate A List of Unique Nodes
-      Matrix Nodes = ZeroMatrix( rMesh1.numberofpoints + rMesh2.numberofpoints);
+      int size =  rMesh1.numberofpoints + rMesh2.numberofpoints;
+      Matrix Nodes = ZeroMatrix(size,size);
       for (int i = 0; i != rMesh1.numberofpoints; i++) {
          Nodes(i,0) = rMesh1.pointlist[2*i];
          Nodes(i,1) = rMesh1.pointlist[2*i+1];
@@ -560,7 +561,8 @@ namespace Kratos
       }
 
       // 2. Generate A List of Unique Edges ...
-      //Matrix Edges = ZeroMatrix( rMesh1.numberofsegments + rMesh2.numberofsegments);
+      //size = rMesh1.numberofsegments + rMesh2.numberofsegments;
+      //Matrix Edges = ZeroMatrix(size,size);
       std::vector<std::vector<int > > Edges;
 
       int nEdges = rMesh1.numberofsegments;
