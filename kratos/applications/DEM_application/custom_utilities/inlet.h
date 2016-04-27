@@ -12,10 +12,10 @@
 
 // External includes
 // Project includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 // Project includes
-//#include "includes/define.h"
+#include "includes/define.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "geometries/geometry.h"
@@ -24,13 +24,11 @@
 #include "utilities/indexed_object.h"
 #include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
-//#include "custom_utilities/create_and_destroy.h"
-
 #include "includes/condition.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "../applications/DEM_application/custom_utilities/properties_proxies.h"
+
 
 namespace Kratos {
 

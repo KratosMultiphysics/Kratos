@@ -12,7 +12,7 @@
 #include "custom_elements/Particle_Contact_Element.h"
 
 #include "includes/variables.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -23,8 +23,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"

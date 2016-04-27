@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Project includes
-#include "DEM_application.h"
+//#include "DEM_application.h"
 #include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "../custom_elements/spheric_particle.h"
 

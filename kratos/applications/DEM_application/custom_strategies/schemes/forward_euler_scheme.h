@@ -15,7 +15,7 @@
 #include "dem_integration_scheme.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 namespace Kratos {
 

@@ -19,6 +19,7 @@
 
 // Project includes
 #include "dem_fem_utilities.h"
+#include "custom_conditions/RigidFace.h"
 
 namespace Kratos
 {

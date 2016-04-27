@@ -19,6 +19,7 @@
 #include "DEM_application_variables.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
+#include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos {
 

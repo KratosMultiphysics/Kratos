@@ -2,8 +2,6 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-
-
 #if !defined(KRATOS_CYLINDER_PARTICLE_H_INCLUDED )
 #define  KRATOS_CYLINDER_PARTICLE_H_INCLUDED
 
@@ -13,15 +11,13 @@
 #include <string>
 #include <iostream>
 
-
-// External includes
-
-
 // Project includes
 #include "includes/define.h"
 #include "discrete_element.h"
 #include "spheric_particle.h"
-
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+//#include "DEM_application.h"
 
 
 namespace Kratos

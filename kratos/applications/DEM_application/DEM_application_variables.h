@@ -11,6 +11,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/dem_variables.h"
+#include "includes/condition.h"
 
 namespace Kratos
 {

@@ -4,8 +4,8 @@
 
 // Project includes
 #include "custom_conditions/SolidFace.h"
-#include "DEM_application.h"
-
+#include "custom_elements/spheric_particle.h"
+#include "custom_conditions/dem_wall.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos {

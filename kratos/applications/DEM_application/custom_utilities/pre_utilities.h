@@ -4,7 +4,7 @@
 // Project includes
 #include "utilities/timer.h"
 #include "includes/variables.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 /* System includes */
 #include <limits>

@@ -18,7 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "utilities/timer.h"
 
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 /* Search */
 #include "spatial_containers/spatial_search.h"

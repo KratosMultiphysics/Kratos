@@ -6,14 +6,14 @@
 #define  KRATOS_SOLIDFACE3D_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/variables.h"
+//#include "includes/variables.h"
 #include "dem_wall.h"
 
 namespace Kratos

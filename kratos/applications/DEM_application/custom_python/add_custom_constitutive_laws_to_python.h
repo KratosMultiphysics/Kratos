@@ -12,7 +12,7 @@
 #include "includes/define.h"  
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 namespace Kratos
 {

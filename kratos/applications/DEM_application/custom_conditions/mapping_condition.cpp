@@ -4,7 +4,7 @@
 
 // Project includes
 #include "custom_conditions/mapping_condition.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 #include "custom_utilities/GeometryFunctions.h"
 

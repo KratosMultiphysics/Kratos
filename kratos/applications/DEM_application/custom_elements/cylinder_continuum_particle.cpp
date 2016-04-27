@@ -2,21 +2,7 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-
-// System includes
-#include <string>
-#include <iostream>
-
-// External includes
-
-
-// Project includes
 #include "cylinder_continuum_particle.h"
-#include "custom_utilities/GeometryFunctions.h"
-#include "custom_utilities/AuxiliaryFunctions.h"
-#include "DEM_application.h"
-
-
 
 namespace Kratos
 {
