@@ -356,7 +356,7 @@ class GiDOutputProcess(Process):
 
         if self.cut_io is not None:
 
-            list_file = open(list_file_name,"w")
+            list_file = open(name_base+name_ext,"w")
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
