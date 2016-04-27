@@ -75,9 +75,7 @@ namespace Kratos
     mAxisymUpdatedLagrangianUwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
    
     mCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mCompositeCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-    mCompositeCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),    
     mWallCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mWallCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -208,9 +206,6 @@ namespace Kratos
 
     KRATOS_REGISTER_CONDITION( "Condition2D2N", mCondition2D2N )
     KRATOS_REGISTER_CONDITION( "Condition3D3N", mCondition3D3N )
-
-    KRATOS_REGISTER_CONDITION( "CompositeCondition2D2N", mCompositeCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "CompositeCondition3D3N", mCompositeCondition3D3N )
    
     KRATOS_REGISTER_CONDITION( "WallCondition2D2N", mWallCondition2D2N )
     KRATOS_REGISTER_CONDITION( "WallCondition3D3N", mWallCondition3D3N )
