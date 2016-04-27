@@ -38,7 +38,9 @@ namespace Kratos
   //Create Variables
 
 
-  KratosPfemBaseApplication::KratosPfemBaseApplication()    
+  KratosPfemBaseApplication::KratosPfemBaseApplication():
+    mCompositeCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mCompositeCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )    
   {}
   
   void KratosPfemBaseApplication::Register()
@@ -71,6 +73,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( MEAN_ERROR )
 
     //Register Conditions
+    KRATOS_REGISTER_CONDITION( "CompositeCondition2D2N", mCompositeCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "CompositeCondition3D3N", mCompositeCondition3D3N )
+
 
 
   }

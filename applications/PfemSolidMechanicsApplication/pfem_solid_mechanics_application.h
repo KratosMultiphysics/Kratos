@@ -33,7 +33,6 @@
 #include "pfem_base_application.h"
 
 //conditions
-#include "custom_conditions/composite_condition.hpp"
 #include "custom_conditions/wall_condition.hpp"
 
 #include "custom_conditions/contact_domain_condition.hpp"
@@ -283,9 +282,6 @@ namespace Kratos
 
     const Condition mCondition2D2N;
     const Condition mCondition3D3N;
-
-    const CompositeCondition mCompositeCondition2D2N;
-    const CompositeCondition mCompositeCondition3D3N;
 
     const WallCondition mWallCondition2D2N;
     const WallCondition mWallCondition3D3N;

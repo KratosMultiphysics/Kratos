@@ -29,6 +29,9 @@
 
 // Core applications
 
+//conditions
+#include "custom_conditions/composite_condition.hpp"
+
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
@@ -195,6 +198,9 @@ namespace Kratos
     ///@name Member Variables 
     ///@{ 
 
+
+    const CompositeCondition mCompositeCondition2D2N;
+    const CompositeCondition mCompositeCondition3D3N;
 
     ///@} 
     ///@name Private Operators
