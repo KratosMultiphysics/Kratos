@@ -1,27 +1,25 @@
 #ifndef POST_UTILITIES_H
 #define POST_UTILITIES_H
 
-#include "utilities/timer.h"
-#include "custom_utilities/create_and_destroy.h"
-#include "custom_utilities/GeometryFunctions.h"
-#include "custom_elements/Particle_Contact_Element.h"
-#include "includes/variables.h"
-#include "DEM_application.h"
-
 #include <limits>
 #include <iostream>
 #include <iomanip>
 #include <cmath>
 
+#include "utilities/timer.h"
+#include "includes/define.h"
+#include "includes/variables.h"
+#include "custom_utilities/create_and_destroy.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_elements/Particle_Contact_Element.h"
+//#include "DEM_application.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
-#include "includes/define.h"
+//#include "boost/smart_ptr.hpp"
 #include "utilities/openmp_utils.h"
-
 
 namespace Kratos {
     

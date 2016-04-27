@@ -4,8 +4,7 @@
 
 // Project includes
 #include "custom_conditions/RigidEdge.h"
-#include "DEM_application.h"
-
+#include "custom_elements/spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos

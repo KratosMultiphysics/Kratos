@@ -6,10 +6,17 @@
 #include <string>
 #include <iostream>
 
-#include "DEM_application.h"
+//#include "DEM_application.h"
 #include "inlet.h"
+#include "create_and_destroy.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/cluster3D.h"
+#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "dem_fem_utilities.h"
 #include "GeometryFunctions.h"
+
 
 namespace Kratos {
     

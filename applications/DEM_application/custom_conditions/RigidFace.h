@@ -6,7 +6,7 @@
 #define  KRATOS_RIGIDFACE3D_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"

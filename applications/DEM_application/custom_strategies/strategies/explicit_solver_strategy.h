@@ -17,7 +17,7 @@
 #include "custom_elements/Particle_Contact_Element.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -32,7 +32,7 @@
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"

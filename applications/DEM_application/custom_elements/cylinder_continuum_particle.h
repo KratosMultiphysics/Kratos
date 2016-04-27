@@ -8,16 +8,17 @@
 // System includes
 #include <string>
 #include <iostream>
-
 // Project includes
 #include "includes/define.h"
-#include "discrete_element.h"
+//#include "discrete_element.h"
+//#include "DEM_application.h"
 #include "spheric_continuum_particle.h"
-
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 
 namespace Kratos
 {
-  
+ 
   class CylinderContinuumParticle: public SphericContinuumParticle
     {
     public:

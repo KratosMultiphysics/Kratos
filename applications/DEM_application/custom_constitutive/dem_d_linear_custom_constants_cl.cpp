@@ -2,6 +2,7 @@
 // Date: April 2016
 
 #include "dem_d_linear_custom_constants_cl.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 

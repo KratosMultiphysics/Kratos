@@ -15,9 +15,10 @@
 #include <cmath>
 
 // External includes 
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 // Project includes
+#include "includes/condition.h"
 #include "includes/define.h"
 #include "includes/node.h"
 #include "geometries/geometry.h"
@@ -26,8 +27,6 @@
 #include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
 #include "custom_utilities/create_and_destroy.h"
-
-#include "includes/condition.h"
 #include "custom_elements/cluster3D.h"
 
 namespace Kratos

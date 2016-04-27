@@ -2,6 +2,7 @@
 //Date: January 2016
 
 #include "DEM_D_Bentonite_Colloid_CL.h"
+#include "custom_elements/spheric_particle.h"
 
 double ToThePower(double base, unsigned int n)
 {

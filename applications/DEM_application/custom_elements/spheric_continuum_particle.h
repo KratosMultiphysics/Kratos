@@ -6,15 +6,32 @@
 #define  KRATOS_SPHERIC_CONTINUUM_PARTICLE_H_INCLUDED
 
 // System includes
+// System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
+#include <iomanip> // to improve std::cout precision
 
 // Project includes
 #include "includes/define.h"
 #include "spheric_particle.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+//#include "DEM_application.h"
+#include "utilities/openmp_utils.h"
+#include "utilities/timer.h"
 #include "Particle_Contact_Element.h"
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "containers/vector_component_adaptor.h"
+
+#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
+
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
 
 namespace Kratos
 {

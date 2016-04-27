@@ -18,7 +18,7 @@
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/discrete_particle_configure.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 
 namespace Kratos

@@ -7,7 +7,7 @@
 #include <string>
 #include <iostream>
 
-#include "DEM_application.h"
+//#include "DEM_application.h"
 #include "includes/define.h"
 #include "DEM_D_Hertz_viscous_Coulomb_CL.h"
 

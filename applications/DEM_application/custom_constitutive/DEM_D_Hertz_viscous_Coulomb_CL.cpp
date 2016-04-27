@@ -2,6 +2,7 @@
 // Date: October 2015
 
 #include "DEM_D_Hertz_viscous_Coulomb_CL.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 

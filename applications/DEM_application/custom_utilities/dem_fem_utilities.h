@@ -1,29 +1,24 @@
 #ifndef DEM_FEM_UTILITIES_H
 #define DEM_FEM_UTILITIES_H
 
-// /* External includes */
-
 // System includes
 
-// Project includes
-#include "utilities/timer.h"
-#include "includes/variables.h"
-#include "DEM_application.h"
-
-/* System includes */
 #include <limits>
 #include <iostream>
 #include <iomanip>
+
+// Project includes
+#include "includes/define.h"
+#include "includes/variables.h"
+#include "utilities/openmp_utils.h"
+#include "GeometryFunctions.h"
+#include "utilities/timer.h"
+//#include "DEM_application.h"
 
 /* External includes */
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-/* Project includes */
-#include "includes/define.h"
-#include "utilities/openmp_utils.h"
-#include "GeometryFunctions.h"
 
 namespace Kratos
 {
