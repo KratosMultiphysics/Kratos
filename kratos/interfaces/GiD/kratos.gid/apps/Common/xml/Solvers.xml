@@ -41,9 +41,9 @@
             <parameter n="max_iteration" pn="Max iterations" type="integer" v="500" help=""/>
             <parameter n="tolerance" pn="Tolerance" type="integer"  v="1e-9" help=""/>
             <parameter n="provide_coordinates" pn="Provide coordinates" type="bool" v="False"/>
-            <parameter n="smoother_type" pn="Smoother type" type="combo" values="ILU0, DAMPED_JACOBI, SPAI, GAUSS_SEIDEL" pvalues="ILU0, Damped jacobi, SPAI, Gauss Seidel" v="ILU0" help=""/>
-            <parameter n="krylov_type" pn="Krylov type" type="combo" values="GMRES,BICGSTAB,CG" v="GMRES" help=""/>
-            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="AGGREGATION,RUGE_STUBEN, SA, SA_EMIN" pvalues="Aggregation,Ruge stuben,SA,SA_Emin" v="AGGREGATION" help=""/>
+            <parameter n="smoother_type" pn="Smoother type" type="combo" values="ilu0,damped_jacobi,spai0,gauss_seidel,chebyshev" pvalues="ILU0,Damped Jacobi,SPAI0,Gauss Seidel,Chebyshev" v="ilu0" help=""/>
+            <parameter n="krylov_type" pn="Krylov type" type="combo" values="gmres,bicgstab,cg,bicgstabl,bicgstab_with_gmres_fallback" v="gmres" pvalues="GMRES,BICGSTAB,CG,BICGSTABL,BICGSTAB with GMRES fallback" help=""/>
+            <parameter n="coarsening_type" pn="Coarsening type" type="combo" values="aggregation,ruge_stuben,smoothed_aggregation,smoothed_aggr_emin" pvalues="Aggregation,Ruge-Stuben,Smoothed Aggregation,Smoothed Aggregation Emin" v="aggregation" help=""/>
             <parameter n="scaling" pn="Scaling" type="bool" v="False" help="" />
             <parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
@@ -57,11 +57,11 @@
     </solver>
     <solver n="Pastix_Iterative" pn="Pastix Iterative">
         <inputs>
-			<parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
-			<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
-			<parameter n="ilu_level_of_fill" pn="IluFillLevel" type="combo" values="3,4,5" v="3" help=""/>
-			<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
-			<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
+		<parameter n="is_symmetric" pn="Symmetric" type="bool" v="True"  help=""/>
+		<parameter n="gmres_krylov_space_dimension" pn="krylovDimension" type="integer" v="100" help=""/>
+		<parameter n="ilu_level_of_fill" pn="IluFillLevel" type="combo" values="3,4,5" v="3" help=""/>
+		<parameter n="scaling" pn="Scaling" type="bool" v="False"  help=""/>
+		<parameter n="verbosity" pn="Verbosity" type="combo" values="0,1,2,3" v="0" help=""/>
         </inputs>
     </solver>
 </Solvers>
