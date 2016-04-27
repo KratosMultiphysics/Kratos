@@ -692,9 +692,9 @@ public:
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 15 );
+        vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 15 );
         /*vector<double>*/
-        ShapeFunctionValuesInIntegrationPoint =
+        ShapeFunctionsValuesInIntegrationPoint =
             row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
