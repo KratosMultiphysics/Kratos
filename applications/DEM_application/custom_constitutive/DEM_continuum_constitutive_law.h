@@ -93,6 +93,7 @@ namespace Kratos {
         };
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
+                double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalDeltDisp[3],
                 const double kn_el,
@@ -119,18 +120,6 @@ namespace Kratos {
             KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateForces) should not be called.","")
         };
 
-        virtual void CalculateForcesOfSintering(const ProcessInfo& r_process_info,
-			const double OldLocalElasticContactForce[3],
-			double LocalElasticContactForce[3],
-			const double rel_vel,
-			const double indentation,
-			double& sintering_displ,
-			double& sinter_driv_force,
-			SphericContinuumParticle* element1,
-			SphericContinuumParticle* element2,
-			double ViscoDampingLocalContactForce[3]) {
-			KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMContinuumConstitutiveLaw::CalculateForces1) should not be called.", "")
-		};
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,

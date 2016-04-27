@@ -32,8 +32,8 @@ namespace Kratos
 	void SinteringSphericContinuumParticle::Initialize(const ProcessInfo& r_process_info) {
 	
 		ThermalSphericParticle<SphericContinuumParticle>::Initialize(r_process_info);
-		sintering_displ = 0;
-		sinter_driv_force = 0;
+		mSinteringDisplacement = 0;
+		mSinteringDrivingForce = 0;
 	}
 
 	void SinteringSphericContinuumParticle::UpdatingNeighboursVector(ProcessInfo& r_process_info)
@@ -138,38 +138,16 @@ namespace Kratos
 				return;// Discontiuum CL (before sintering) or Continuum CL (after sintering)
 			}
 		}
-	};
-
-	void SinteringSphericContinuumParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
-		double LocalCoordSystem[3][3],
-		double LocalContactForce[3],
-		double LocalElasticContactForce[3],
-		double GlobalContactForce[3],
-		double GlobalElasticContactForce[3],
-		double ViscoDampingLocalContactForce[3],
-		const double cohesive_force,
-		double sinter_driv_force,
-		array_1d<double, 3>& r_elastic_force,
-		array_1d<double, 3>& r_contact_force,
-		const unsigned int i_neighbour_count)
-	{
-		for (unsigned int index = 0; index < 3; index++) {
-			LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
-		}
-		LocalContactForce[2] -= cohesive_force;  /// ????
-		LocalContactForce[2] = LocalContactForce[2] - sinter_driv_force;
-
-		GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-		GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
-
-		// Saving contact forces (We need to, since tangential elastic force is history-dependent)
-		DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
-			DEM_COPY_SECOND_TO_FIRST_3(mNeighbourTotalContactForces[i_neighbour_count], GlobalContactForce)
-			DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
-			DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
-			DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
 	}
+        
+        void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces){
+            other_ball_to_ball_forces[2] = -this->mSinteringDrivingForce;
+        }
 
+	
+        double SinteringSphericContinuumParticle::GetInitialDelta(int index) {
+            return 0.0;                 
+        }
 
 	 
 }  // namespace Kratos.

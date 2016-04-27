@@ -165,12 +165,11 @@ namespace Kratos
 	}
 
 	template< class TBaseElement >
-	void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadii(const ProcessInfo& r_process_info, ThermalSphericParticle<SphericContinuumParticle>* element1,
-		ThermalSphericParticle<SphericContinuumParticle>* element2)
+	void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadii(const ProcessInfo& r_process_info, ThermalSphericParticle<TBaseElement>* element2)
 	{
-		double temperature = element1->GetTemperature();
+		double temperature = GetTemperature();
 		double other_temperature = element2->GetTemperature();
-		double my_radius = element1->GetRadius();
+		double my_radius = GetRadius();
 	    double other_radius = element2->GetRadius();
 		double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
 		const int RT = 293; // initial temperature // is there already a variable for RT?
@@ -178,14 +177,13 @@ namespace Kratos
 		double relative_temp_2 = other_temperature - RT; // temp in Kelvin
 		double updated_radius = my_radius * (1 + thermal_alpha*relative_temp_1);
 		double updated_other_radius = other_radius * (1 + thermal_alpha*relative_temp_2);
-		element1->SetRadius(updated_radius);
+		SetRadius(updated_radius);
 		element2->SetRadius(updated_other_radius);
 		//KRATOS_WATCH(GetRadius());
 	}
 
 	template< class TBaseElement >
-	void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalRelVel, ThermalSphericParticle<SphericContinuumParticle>* element1,
-		ThermalSphericParticle<SphericContinuumParticle>* element2)
+	void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2)
 	{
 		double temperature = GetTemperature();
 		double other_temperature = element2->GetTemperature();
@@ -195,7 +193,7 @@ namespace Kratos
 		double relative_temp_1 = temperature - RT; // temp in Kelvin
 		double relative_temp_2 = other_temperature - RT; // temp in Kelvin
 
-		double my_radius = element1->GetRadius();
+		double my_radius = GetRadius();
 		double other_radius = element2->GetRadius();
 		double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
 
@@ -209,6 +207,25 @@ namespace Kratos
 		thermalRelVel = thermalRelVel + updated_other_radius * thermal_alpha * temperature_increment_elem2 / dt;
 		SetValue(TEMPERATURE_OLD_IT, temperature);
 	}
+        
+        template< class TBaseElement >
+        void ThermalSphericParticle<TBaseElement>::RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
+                                                                                                                double DeltDisp[3], //IN GLOBAL AXES
+                                                                                                                double RelVel[3], //IN GLOBAL AXES
+                                                                                                                double OldLocalCoordSystem[3][3],
+                                                                                                                double LocalCoordSystem[3][3], 
+                                                                                                                SphericParticle* neighbour_iterator) {
+            
+            double thermalRelVel = 0;
+            //UpdateTemperatureDependentRadii(r_process_info, neighbour_iterator);
+            ThermalSphericParticle<TBaseElement>* thermal_neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(neighbour_iterator);
+            UpdateNormalRelativeVelocityDueToThermalExpansion(r_process_info, thermalRelVel, thermal_neighbour_iterator);
+            
+            double LocalRelVel[3]          = {0.0};
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
+            LocalRelVel[2] -= thermalRelVel;
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);                
+        }
 
     template class ThermalSphericParticle<SphericParticle>; //Explicit Instantiation
     template class ThermalSphericParticle<SphericContinuumParticle>; //Explicit Instantiation

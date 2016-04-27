@@ -98,7 +98,7 @@ namespace Kratos
                                                    array_1d<double, 3>& InitialRotaMoment, 
                                                    ProcessInfo& r_process_info, 
                                                    const double dt,
-                                                   const bool multi_stage_RHS);         
+                                                   const bool multi_stage_RHS) final;         
 
         virtual void AddContributionToRepresentativeVolume(const double distance,
                                                     const double radius_sum,

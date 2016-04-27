@@ -64,31 +64,21 @@ namespace Kratos
 	/// Destructor.
 	virtual ~SinteringSphericContinuumParticle() {};
 
-	void Initialize(const ProcessInfo& r_process_info);
+	void Initialize(const ProcessInfo& r_process_info)  override;
 
 	void UpdatingNeighboursVector(ProcessInfo& r_process_info);
 
 	void SetInitialSinteringSphereContacts(ProcessInfo& r_process_info);
 
-	void InitializeForceComputation(ProcessInfo& r_process_info);
+	void InitializeForceComputation(ProcessInfo& r_process_info)  override;
 
-	void AddUpForcesAndProject(double OldCoordSystem[3][3],
-		double LocalCoordSystem[3][3],
-		double LocalContactForce[3],
-		double LocalElasticContactForce[3],
-		double GlobalContactForce[3],
-		double GlobalElasticContactForce[3],
-		double ViscoDampingLocalContactForce[3],
-		const double cohesive_force,
-		double sinter_driv_force,
-		array_1d<double, 3>& r_elastic_force,
-		array_1d<double, 3>& r_contact_force,
-		const unsigned int i_neighbour_count);
+        void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) override;
+        
+        double GetInitialDelta(int index)  override;
 
 
-
-	double sintering_displ;
-	double sinter_driv_force;
+	double mSinteringDisplacement;
+	double mSinteringDrivingForce;
 	std::vector<double> mOldNeighbourSinteringDisplacement; // initialization of a container of sintering displ - old
 	std::vector<double> mActualNeighbourSinteringDisplacement; // initialization of a container of sintering displ - actual
 	};
