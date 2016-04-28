@@ -17,7 +17,7 @@ class SolverSettings:
     max_iteration = 15
     linear_solver = "Iterative"
     direct_solver = "Super_LU"
-    iterative_solver = "AMGCL"
+    iterative_solver = "BICGSTAB"
     compute_reactions = False
 
 
