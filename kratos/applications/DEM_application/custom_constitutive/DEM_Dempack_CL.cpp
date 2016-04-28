@@ -45,7 +45,8 @@ namespace Kratos {
     }
 
 
-    double DEM_Dempack::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1,
+    double DEM_Dempack::LocalMaxSearchDistance(const int i,
+                                               SphericContinuumParticle* element1,
                                                SphericContinuumParticle* element2) {
 
         Properties& element1_props = element1->GetProperties();
@@ -60,12 +61,9 @@ namespace Kratos {
 
         const double my_radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
-        double calculation_area = 0;
-        // calculation area  DEM_Dempack::CalculateContactArea(double radius, double other_radius, double& calculation_area)
+
+        double calculation_area = 0; 
         CalculateContactArea(my_radius, other_radius, calculation_area);
-//        double rmin = my_radius;
-//        if (other_radius < my_radius) rmin = other_radius;
-//        calculation_area = KRATOS_M_PI * rmin*rmin;
 
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
@@ -84,33 +82,18 @@ namespace Kratos {
 
         const double Ntstr_el = mTensionLimit * calculation_area;
         double u1 = Ntstr_el / kn_el;
+        if (u1 > 2*radius_sum) {u1 = 2*radius_sum;}   // avoid error in special cases with too high tensile
         double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
         return u2;
-
-//        int max_Id = 1;
-//        std::vector<int> thread_maximums(OpenMPUtils::GetNumThreads(),1);
-
-//        #pragma omp parallel for
-//        for(int i=0; i<(int)r_modelpart.GetCommunicator().LocalMesh().Nodes().size(); i++){
-//            ModelPart::NodesContainerType::iterator node_it = r_modelpart.GetCommunicator().LocalMesh().NodesBegin() + i;
-//            if ((int) (node_it->Id()) > thread_maximums[OpenMPUtils::ThisThread()]) thread_maximums[OpenMPUtils::ThisThread()] = node_it->Id();
-//        }
-
-//        for(int i=0; i<OpenMPUtils::GetNumThreads(); i++){
-//            if(thread_maximums[i] > max_Id) max_Id = thread_maximums[i];
-//        }
-
-//        r_modelpart.GetCommunicator().MaxAll(max_Id);
-//        return max_Id;
 
     }
 
     void DEM_Dempack::CalculateElasticConstants(double &kn_el,
-            double &kt_el,
-            double initial_dist,
-            double equiv_young,
-            double equiv_poisson,
-            double calculation_area) {
+                                                double &kt_el,
+                                                double initial_dist,
+                                                double equiv_young,
+                                                double equiv_poisson,
+                                                double calculation_area) {
         
         KRATOS_TRY 
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
@@ -120,11 +103,11 @@ namespace Kratos {
     }
 
     void DEM_Dempack::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-            double &equiv_visco_damp_coeff_tangential,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            const double kn_el,
-            const double kt_el) {
+                                                double &equiv_visco_damp_coeff_tangential,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                const double kn_el,
+                                                const double kt_el) {
         
         KRATOS_TRY 
         double aux_norm_to_tang = 0.0;               // sqrt(kt_el / kn_el);
@@ -207,7 +190,6 @@ namespace Kratos {
                               equiv_visco_damp_coeff_tangential,
                               sliding,
                               failure_id);
-
 
         KRATOS_CATCH("")  
     }
@@ -334,16 +316,16 @@ namespace Kratos {
                             }
                         }
                     }
-                } //si tenim precàrrega en compressió.              
-            } //Per sota del màxim.
-        }//Compression
-        else { //tension      
+                }       //si tenim precàrrega en compressió.
+            }           //Per sota del màxim.
+        }               //Compression
+        else {          //tension
             fn = kn_el * indentation;
             double u1 = Ntstr_el / kn_el;
             double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
 
-            if (fabs(indentation) > u2) { // FULL DAMAGE 
-                failure_type = 4; //tension failure
+            if (fabs(indentation) > u2) {   // FULL DAMAGE
+                failure_type = 4;           //tension failure
                 acumulated_damage = 1.0;
                 fn = 0.0;
             } else {
