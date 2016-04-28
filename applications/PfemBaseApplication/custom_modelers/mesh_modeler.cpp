@@ -272,7 +272,8 @@ namespace Kratos
     // if(!out_buffer_active)
     //   std::cout.rdbuf(buffer);
         
-    mpModelerUtilities->CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius, MeshId);
+    if(mpMeshingVariables->Options.Is( ModelerUtilities::REFINE ))
+      mpModelerUtilities->CheckCriticalRadius(rModelPart, mpMeshingVariables->Refine->CriticalRadius, MeshId);
 		
     // if(!out_buffer_active){
     //   buffer = std::cout.rdbuf();

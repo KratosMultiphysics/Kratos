@@ -35,6 +35,9 @@ class SolvingInfoUtility(object):
         self.execute_save  = False
         self.restart_id    = 0
 
+        self.execute_meshing = False
+        self.meshing_id      = 0
+
         self.write_performed = False
         self.number_of_result_files = 0;
 
@@ -43,6 +46,9 @@ class SolvingInfoUtility(object):
 
         self.convergence_warning = False
         self.number_of_non_converged_steps = 0;
+
+        self.meshing_performed = False
+        self.number_of_meshing_calls = 0
        
     #
     def set_convergence_criterion(self, convergence_criterion):
@@ -86,6 +92,15 @@ class SolvingInfoUtility(object):
         self.restart_id   = restart_id
         self.number_of_restart_files += 1
         self.restart_performed = True
+
+    #
+    def set_meshing_info(self, execute_meshing, meshing_id):
+        self.execute_meshing = execute_meshing
+        self.meshing_id   = meshing_id
+        self.number_of_meshing_calls += 1
+        self.meshing_performed = True
+
+
     #
     def print_solving_info(self):
 
@@ -147,6 +162,9 @@ class SolvingInfoUtility(object):
             
         if( self.restart_performed ):
             total_info = total_info+"|RESTART-FILES="+str(self.number_of_restart_files)                
+
+        if( self.meshing_performed ):
+            total_info = total_info+"|MESHING-CALLS="+str(self.number_of_meshing_calls)
 
         total_info = total_info+" ]"
 

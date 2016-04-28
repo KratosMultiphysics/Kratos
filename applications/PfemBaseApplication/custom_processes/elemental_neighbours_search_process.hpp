@@ -439,7 +439,7 @@ namespace Kratos
             }
         }
 
-      std::cout<<" Search NEIGHBOURS "<<std::endl;
+      //std::cout<<" Search NEIGHBOURS "<<std::endl;
 
       NodesContainerType& rNodes = mrModelPart.Nodes(MeshId);
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
