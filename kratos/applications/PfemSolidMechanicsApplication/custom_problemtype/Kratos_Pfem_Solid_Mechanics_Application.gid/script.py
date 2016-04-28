@@ -467,6 +467,7 @@ while(current_time < ending_time):
   execute_meshing = mesh_generation.perform_time_operation(current_time)
   if(execute_meshing):
     modeler.RemeshDomains();
+    solving_info.set_meshing_info(execute_meshing,modeler.GetMeshingStep())
 
   # contact search
   execute_contact_search = contact_search.perform_time_operation(current_time)

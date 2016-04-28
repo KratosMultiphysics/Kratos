@@ -57,6 +57,9 @@ class ModelerUtility:
         self.contact_transfer_done = False             
 
     #
+    def GetMeshingStep(self):
+        return self.counter
+    #
     def Initialize(self):
 
         self.remesh_executed = False
@@ -518,7 +521,7 @@ class ModelerUtility:
             if(self.contact_search):
                 self.ContactTransfer()
 
-            if( self.echo_level >= 0 ):
+            if( self.echo_level > 0 ):
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
 
             meshing_options = Flags()

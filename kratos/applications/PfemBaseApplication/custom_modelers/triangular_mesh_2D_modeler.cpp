@@ -1262,8 +1262,11 @@ namespace Kratos
     //5) Laplacian Smoothing
 
     //Check Mesh Info to perform smoothing:
-    rMeshingVariables.Info->CheckGeometricalSmoothing();
-
+    if( rMeshingVariables.Options.Is(ModelerUtilities::REFINE) )
+      rMeshingVariables.Info->CheckGeometricalSmoothing();
+    else
+      rMeshingVariables.Info->GeometricalSmoothingRequired = true;
+      
     //if(rMeshingVariables.smoothing && rMeshingVariables.remesh && rMeshingVariables.Info->GeometricalSmoothingRequired ){
     if( rMeshingVariables.Options.Is(ModelerUtilities::MESH_SMOOTHING) && rMeshingVariables.Info->GeometricalSmoothingRequired ){
       LaplacianSmoothing  MeshGeometricSmoothing(rModelPart);

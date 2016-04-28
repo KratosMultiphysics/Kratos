@@ -160,7 +160,7 @@ namespace Kratos
   
       double convergence_tol =0.001;
       double smoothing_factor=0.1;
-      double smoothing_iters =3;
+      double smoothing_iters =3;//4
       double iters=0;
 
       bool simple = true; //weight = 1;
@@ -307,8 +307,10 @@ namespace Kratos
 	  
       }
 
-      if(iters==smoothing_iters && !converged)
-	std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+      if(iters==smoothing_iters && !converged){
+	if( GetEchoLevel() > 0 )
+	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+      }
 
       bool transfer=true; //transfer active or inactive
 
@@ -498,7 +500,7 @@ namespace Kratos
 
       double convergence_tol =0.001;
       double smoothing_factor=0.1;
-      double smoothing_iters =3;
+      double smoothing_iters =3;//4
       double iters=0;
 
       bool simple = true; //weight = 1;
@@ -645,10 +647,10 @@ namespace Kratos
 
       }
 
-      if(iters==smoothing_iters && !converged)
-	std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
-
-
+      if(iters==smoothing_iters && !converged){
+	if( GetEchoLevel() > 0 )
+	  std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
+      }
 
       //*******************************************************************
       //MOVE NODES: BOUNDARY SMOOTHING
@@ -1332,7 +1334,7 @@ namespace Kratos
 	 
       double convergence_tol =0.001;
       double smoothing_factor=0.1; //0.1
-      double smoothing_iters =4; //3
+      double smoothing_iters =4; //3,4
       double iters=0;
 
       bool simple = true; //weight = 1;  
@@ -1447,8 +1449,10 @@ namespace Kratos
 
       }
 
-      if(iters==smoothing_iters && !converged)
-	std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
+      if(iters==smoothing_iters && !converged){
+	if( GetEchoLevel() > 0 )
+	  std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved (iters:"<<iters<<")"<<std::endl;
+      }
 
 
     }
