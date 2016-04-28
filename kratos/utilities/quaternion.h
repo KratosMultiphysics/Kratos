@@ -112,6 +112,9 @@ namespace Kratos
 		}
 
 		///@}
+                
+                /// Destructor.
+                virtual ~Quaternion();
 		
 	public:
 		
@@ -521,6 +524,14 @@ namespace Kratos
 		}
 		
 		///@}
+                virtual void PrintInfo(std::ostream& rOStream) const {
+                    rOStream << Info();
+                }
+
+                /// Print object's data.
+                virtual void PrintData(std::ostream& rOStream) const {
+                    rOStream << std::endl << this->mX <<"  " << this->mY << "  " << this->mZ << "  " <<this->mW<< std::endl;                                
+                }
 		
 	private:
 
@@ -553,9 +564,13 @@ namespace Kratos
 			rSerializer.load("Y", mY);
 			rSerializer.load("Z", mZ);
 			rSerializer.load("W", mW);
-		}
-
-		///@}
+		}		
+                
+                virtual std::string Info() const {
+                    std::stringstream buffer;
+                    buffer << "Quaternion " ;
+                    return buffer.str();
+                }                                
 		
 	};
 
@@ -575,8 +590,22 @@ namespace Kratos
 			a.w() * b.y() + a.y() * b.w() + a.z() * b.x() - a.x() * b.z(),
 			a.w() * b.z() + a.z() * b.w() + a.x() * b.y() - a.y() * b.x()
 		);
-	}
+	}    
+        
+        
+        template<class T>
+        inline std::istream& operator >> (std::istream& rIStream, Quaternion<T>& rThis);
 
+        template<class T>
+        inline std::ostream& operator << (std::ostream& rOStream, const Quaternion<T>& rThis)
+        {
+            rThis.PrintInfo(rOStream);
+            rOStream << " : ";
+            rThis.PrintData(rOStream);
+
+            return rOStream;
+        }
+        
 } // namespace Kratos
 
 #endif // QUATERNION_H_INCLUDED
