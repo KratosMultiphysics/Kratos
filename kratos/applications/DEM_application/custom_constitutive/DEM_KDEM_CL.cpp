@@ -83,8 +83,8 @@ namespace Kratos {
 
 
     double DEM_KDEM::LocalMaxSearchDistance(const int i,
-                                          SphericContinuumParticle* element1,
-                                          SphericContinuumParticle* element2) {
+                                            SphericContinuumParticle* element1,
+                                            SphericContinuumParticle* element2) {
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -116,6 +116,7 @@ namespace Kratos {
 
         const double Ntstr_el = mTensionLimit * calculation_area;
         double u1 = Ntstr_el / kn_el;
+        if (u1 > 2*radius_sum) {u1 = 2*radius_sum;}   // avoid error in special cases with too high tensile
         return u1;
 
     }
