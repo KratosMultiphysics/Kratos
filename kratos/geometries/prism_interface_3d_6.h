@@ -935,6 +935,30 @@ public:
         return 0;
     }
 
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
+
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    {
+      if(rResult.size() != 6) rResult.resize(6,false);
+      rResult[0] =  1.0 -( rCoordinates[0] + rCoordinates[1] + rCoordinates[2] - ( rCoordinates[0]*rCoordinates[2] ) - ( rCoordinates[1]*rCoordinates[2] ) );
+      rResult[1] =  rCoordinates[0] - ( rCoordinates[0]*rCoordinates[2] );
+      rResult[2] =  rCoordinates[1] - ( rCoordinates[1]*rCoordinates[2] );
+      rResult[3] =  rCoordinates[2] - ( rCoordinates[0]*rCoordinates[2] ) - ( rCoordinates[1]*rCoordinates[2] );
+      rResult[4] =  rCoordinates[0]*rCoordinates[2];
+      rResult[5] =  rCoordinates[1]*rCoordinates[2];
+        
+        return rResult;
+    }
+
     /**
      * TODO: implemented but not yet tested
      */
