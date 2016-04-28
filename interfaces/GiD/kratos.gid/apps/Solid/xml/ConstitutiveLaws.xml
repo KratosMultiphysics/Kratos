@@ -29,7 +29,6 @@
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" />
             <parameter n="POISSON_RATIO" pn="Poisson Ratio"/>
-            <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
         </inputs>
         <outputs>
             
@@ -277,7 +276,6 @@
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
             <parameter n="STRENGTH_RATIO" pn="Strength Ratio"/>
             <parameter n="FRACTURE_ENERGY" pn="Fracture Energy"/>
-            <parameter n="THICKNESS" pn="Thickness"  v="1.0" unit_magnitude="L" units="m"   />
         </inputs>
         <outputs>
             <parameter n="DAMAGE_VARIABLE" pn="Damage Variable"/>
