@@ -114,7 +114,7 @@ namespace Kratos
 		///@}
                 
                 /// Destructor.
-                virtual ~Quaternion();
+                virtual ~Quaternion(){};
 		
 	public:
 		
