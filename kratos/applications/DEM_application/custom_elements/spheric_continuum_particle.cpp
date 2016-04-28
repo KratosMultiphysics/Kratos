@@ -474,36 +474,23 @@ namespace Kratos {
         KRATOS_CATCH("")        
     }
 
-
     double SphericContinuumParticle::CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info) {
         KRATOS_TRY
 
         double max_local_search = 0.0;
 
-
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             double search_dist = mContinuumConstitutiveLawArray[i]->LocalMaxSearchDistance(i, this, r_continuum_ini_neighbour);
             if (search_dist > max_local_search) { (max_local_search = search_dist); }
-
-//            SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-//            if (r_continuum_ini_neighbour == NULL) continue; //The initial neighbor was deleted at some point in time!!
-//            if(this->Id() > r_continuum_ini_neighbour->Id()) continue; //The Sphere with lower Id will do the job only
-//            int index_of_the_neighbour_that_is_me = -1;
-//            for (unsigned int j = 0; j <  r_continuum_ini_neighbour->mContinuumInitialNeighborsSize; j++){
-//                if(this == r_continuum_ini_neighbour->mNeighbourElements[j]) index_of_the_neighbour_that_is_me = (int) j;
-//            }
-        }//loop neigh.
-
+        }
         return max_local_search;
         KRATOS_CATCH("")
     }
 
 
-
     double SphericContinuumParticle::CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) {
         KRATOS_TRY
-
         double max_sqr_period = 0.0;
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
@@ -516,15 +503,9 @@ namespace Kratos {
             double sqr_period_discontinuum = mDiscontinuumConstitutiveLaw->LocalPeriod(i, this, mNeighbourElements[i]);
             if (sqr_period_discontinuum > max_sqr_period) { (max_sqr_period = sqr_period_discontinuum); }
         }
-
         return max_sqr_period;
-
         KRATOS_CATCH("")
     }
-
-
-
-
 
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {
         KRATOS_TRY
