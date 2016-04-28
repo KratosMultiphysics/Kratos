@@ -290,6 +290,7 @@ namespace Kratos {
         double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
+        spheric_p_particle->SetSearchRadiusWithFem(radius);
         double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
         spheric_p_particle->SetMass(mass);
 
@@ -376,6 +377,7 @@ namespace Kratos {
 
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
+        spheric_p_particle->SetSearchRadiusWithFem(radius);
         spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->SetMass(cluster_mass);
         spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());        
@@ -413,6 +415,7 @@ Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClu
 
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetSearchRadius(radius);
+        spheric_p_particle->SetSearchRadiusWithFem(radius);
         spheric_p_particle->SetFastProperties(p_fast_properties);
         spheric_p_particle->SetMass(spheric_p_particle->GetDensity() * spheric_p_particle->CalculateVolume());
         spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo()); //Sets rotation flag
