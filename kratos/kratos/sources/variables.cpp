@@ -470,8 +470,14 @@ namespace Kratos
   //------------------------------------------------------------------------------//
 
   KratosApplication::KratosApplication() :
-    mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ),
-    mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
+    mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ), 
+    mCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ), 
+    mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3  ) ) ) ), // Note: Could be interesting to change the name to mCondition3D3N
+    mCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
+    mCondition3D6N( 0,Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
+    mCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) ),
     mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2  ) ) ) ),
     mPeriodicConditionEdge(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4  ) ) ) ),
     mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8  ) ) ) ),
@@ -930,9 +936,15 @@ namespace Kratos
       Serializer::Register( "Node3D", Node<3>() );
       Serializer::Register( "DofDouble", Dof<double>() );
 
-      //Register specific conditions ( must be completed : conditions defined in kratos_appliction.h)
-      KRATOS_REGISTER_CONDITION( "Condition3D", mCondition3D )
-      KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D )
+      //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
+      KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D );
+      KRATOS_REGISTER_CONDITION( "Condition2D2N", mCondition2D2N );
+      KRATOS_REGISTER_CONDITION( "Condition3D", mCondition3D ); // Note: The name could be changed to Condition3D3N
+      KRATOS_REGISTER_CONDITION( "Condition3D2N", mCondition3D2N );
+      KRATOS_REGISTER_CONDITION( "Condition3D6N", mCondition3D6N );
+      KRATOS_REGISTER_CONDITION( "Condition3D4N", mCondition3D4N );
+      KRATOS_REGISTER_CONDITION( "Condition3D8N", mCondition3D8N );
+      KRATOS_REGISTER_CONDITION( "Condition3D9N", mCondition3D9N );
       KRATOS_REGISTER_CONDITION( "PeriodicCondition", mPeriodicCondition )
       KRATOS_REGISTER_CONDITION( "PeriodicConditionEdge", mPeriodicConditionEdge )
       KRATOS_REGISTER_CONDITION( "PeriodicConditionCorner", mPeriodicConditionCorner )
