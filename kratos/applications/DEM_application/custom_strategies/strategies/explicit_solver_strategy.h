@@ -272,7 +272,7 @@ namespace Kratos
           rClustersr_process_info[ROTATION_OPTION]     = r_process_info[ROTATION_OPTION];
           rClustersr_process_info[DELTA_TIME]          = r_process_info[DELTA_TIME];
           rClustersr_process_info[VIRTUAL_MASS_OPTION] = r_process_info[VIRTUAL_MASS_OPTION];
-          rClustersr_process_info[TRIHEDRON_OPTION]    = r_process_info[TRIHEDRON_OPTION];
+//           rClustersr_process_info[TRIHEDRON_OPTION]    = r_process_info[TRIHEDRON_OPTION];
           rClustersr_process_info[NODAL_MASS_COEFF]    = r_process_info[NODAL_MASS_COEFF];
       }
 
