@@ -18,7 +18,7 @@
 #include "includes/constitutive_law.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/comparison_utilities.hpp"//from SolidMechanics
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

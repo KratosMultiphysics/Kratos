@@ -222,8 +222,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            
-            rOutput[GPoint] = ElementUtilities::CalculateVonMises(StressVector);
+
+            ComparisonUtilities EquivalentStress;
+            rOutput[GPoint] = EquivalentStress.CalculateVonMises(StressVector);
         }
     }
     
