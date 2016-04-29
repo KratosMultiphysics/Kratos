@@ -899,7 +899,7 @@ public:
 	  vector[2]= rTensor(2,2);
 	  vector[3]= rTensor(0,1);
         }
-      else if (rSize==6,false)
+      else if (rSize==6)
         {
 	  vector.resize(6);
 	  vector[0]= rTensor(0,0);
