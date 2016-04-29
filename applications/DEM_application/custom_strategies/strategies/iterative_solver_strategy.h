@@ -15,17 +15,13 @@
 namespace Kratos
 {
 
-  template<
-  class TSparseSpace,
-  class TDenseSpace,
-  class TLinearSolver>
-  class IterativeSolverStrategy: public ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+  class IterativeSolverStrategy: public ExplicitSolverStrategy
   {
       public:
       ///@name Type Definitions
       ///@{
 
-      typedef ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>   BaseType;
+      typedef ExplicitSolverStrategy  BaseType;
 
       typedef typename BaseType::NodesArrayType                             NodesArrayType;
       typedef typename BaseType::ElementsArrayType                          ElementsArrayType;
@@ -55,7 +51,7 @@ namespace Kratos
                              typename DEM_FEM_Search::Pointer p_dem_fem_search,
                              typename DEMIntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch)
-      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
+      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch)
       {
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
       }

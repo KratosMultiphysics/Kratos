@@ -13,6 +13,7 @@
 #include "includes/dem_variables.h"
 #include "includes/condition.h"
 #include "utilities/quaternion.h"
+#include "custom_utilities/cluster_information.h"
 
 namespace Kratos
 {
@@ -63,7 +64,10 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, LOCAL_RESOLUTION_METHOD)
   KRATOS_DEFINE_VARIABLE(int, COMPUTE_FEM_RESULTS_OPTION)
   KRATOS_DEFINE_VARIABLE(int, BREAKABLE_CLUSTER)
+  KRATOS_DEFINE_VARIABLE(ClusterInformation, CLUSTER_INFORMATION)
+  KRATOS_DEFINE_VARIABLE(std::string, CLUSTER_FILE_NAME)
   
+    
   KRATOS_DEFINE_VARIABLE(double, INITIAL_VELOCITY_X_VALUE)
   KRATOS_DEFINE_VARIABLE(double, INITIAL_VELOCITY_Y_VALUE)
   KRATOS_DEFINE_VARIABLE(double, INITIAL_VELOCITY_Z_VALUE)

@@ -71,6 +71,7 @@ namespace Kratos
         virtual void CreateContinuumConstitutiveLaws();
    
         double GetSqrtOfRealMass();
+        virtual double SlowGetDensity();
 
 
         virtual std::string Info() const

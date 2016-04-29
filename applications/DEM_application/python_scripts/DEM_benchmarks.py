@@ -42,7 +42,7 @@ elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_paramet
 elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
     import thermal_continuum_sphere_strategy as SolverStrategy
 else:
-    KRATOSprint('Error: Strategy unavailable. Select a different scheme element')
+    KRATOSprint('Error: Strategy unavailable. Select a different scheme element')    
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
@@ -97,8 +97,6 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         # Prepare modelparts
         spheres_model_part    = ModelPart("SpheresPart")
         rigid_face_model_part = ModelPart("RigidFace_Part")
-        mixed_model_part      = ModelPart("Mixed_Part")
-        mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
         cluster_model_part    = ModelPart("Cluster_Part")
         DEM_inlet_model_part  = ModelPart("DEMInletPart")
         mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -224,9 +222,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
         demio.SetMultifileLists(multifiles)
         os.chdir(post_path)
-        demio.InitializeMesh(mixed_model_part,
-                             mixed_spheres_and_clusters_model_part,
-                             spheres_model_part,
+        demio.InitializeMesh(spheres_model_part,
                              rigid_face_model_part,
                              cluster_model_part,
                              contact_model_part,
@@ -409,7 +405,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
                 if (DEM_parameters.ContactMeshOption == "ON"):
                     solver.PrepareContactElementsForPrinting()
 
-                demio.PrintResults(mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+                demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
 
                 os.chdir(main_path)
 
@@ -456,3 +452,11 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
 
 DBC.delete_archives() #.......Removing some unuseful files 
 
+# Freeing up memory
+objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
+                      cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
+
+if (DEM_parameters.dem_inlet_option):
+    objects_to_destroy.append(DEM_inlet)
+
+del objects_to_destroy[:]

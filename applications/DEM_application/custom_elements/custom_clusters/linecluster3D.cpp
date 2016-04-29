@@ -6,12 +6,9 @@
 //
 //
 
-
 // System includes
 #include <string>
 #include <iostream>
-
-// External includes
 
 // Project includes
 #include "linecluster3D.h"
@@ -23,32 +20,23 @@
 
 namespace Kratos {
         
-    // using namespace GeometryFunctions;
-
-    LineCluster3D::LineCluster3D() : Cluster3D()  {}
-            
+    LineCluster3D::LineCluster3D() : Cluster3D()  {}            
       
     LineCluster3D::LineCluster3D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Cluster3D(NewId, pGeometry) {}
-      
+    : Cluster3D(NewId, pGeometry) {}      
       
     LineCluster3D::LineCluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Cluster3D(NewId, pGeometry, pProperties) {}
-
       
     LineCluster3D::LineCluster3D(IndexType NewId, NodesArrayType const& ThisNodes)
     : Cluster3D(NewId, ThisNodes) {}
-
       
-    Element::Pointer LineCluster3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
-          
-        return Cluster3D::Pointer(new LineCluster3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        
+    Element::Pointer LineCluster3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
+        return Cluster3D::Pointer(new LineCluster3D(NewId, GetGeometry().Create(ThisNodes), pProperties));        
     }      
 
     // Destructor
-    LineCluster3D::~LineCluster3D() {}
-      
+    LineCluster3D::~LineCluster3D() {}      
     
     void LineCluster3D::CustomInitialize(ProcessInfo& r_process_info) {
         
@@ -96,72 +84,5 @@ namespace Kratos {
          
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);     
   
-    }     
-    
-      
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) {}
-  
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::InitializeSolutionStep(ProcessInfo& r_process_info) {
-        
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-        
-    }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::FinalizeSolutionStep(ProcessInfo& r_process_info) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-    
-    void LineCluster3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {
-          
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-
-    }// Calculate
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_process_info) {}
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void LineCluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& r_process_info){}
-    void LineCluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& r_process_info){}
-    double LineCluster3D::SlowGetDensity()                                        { return GetProperties()[PARTICLE_DENSITY];}
-
+    }               
 }  // namespace Kratos.
-

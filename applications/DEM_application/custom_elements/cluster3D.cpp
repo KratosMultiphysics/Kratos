@@ -293,6 +293,8 @@ namespace Kratos {
         } 
     }
     
+    double Cluster3D::SlowGetDensity() { return GetProperties()[PARTICLE_DENSITY];}
+    
     void Cluster3D::SetInitialNeighbours(const double search_tolerance) {
         if(!mListOfSphericParticles.size() ) return;
         for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
