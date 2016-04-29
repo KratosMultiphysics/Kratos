@@ -44,6 +44,7 @@ namespace Kratos {
             r_model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT); 
             r_model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE); 
             r_model_part.AddNodalSolutionStepVariable(EULER_ANGLES); 
+            r_model_part.AddNodalSolutionStepVariable(ORIENTATION);
             r_model_part.AddNodalSolutionStepVariable(DELTA_ROTATION);   
         }
     }
@@ -187,7 +188,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = model_part.GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
         vector<unsigned int> node_partition;
-        bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
+//         bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
         double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
         bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double moment_reduction_factor = 1.0;
@@ -209,9 +210,7 @@ namespace Kratos {
             array_1d<double, 3 >& torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
             array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
             array_1d<double, 3 >& delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
-            double Orientation_real;
-            array_1d<double, 3 > Orientation_imag;                    
-
+                      
             bool Fix_Ang_vel[3] = {false, false, false};
 
             Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
@@ -223,44 +222,26 @@ namespace Kratos {
 
             UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-            if (if_trihedron_option) {
-                double theta[3] = {0.0};
-
-                theta[0] = rotated_angle[0] * 0.5;
-                theta[1] = rotated_angle[1] * 0.5;
-                theta[2] = rotated_angle[2] * 0.5;
-
-                double thetaMag = DEM_MODULUS_3(theta);
-                if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON) { //Taylor: low angle                      
-                    Orientation_real = 1 + thetaMag * thetaMag / 2;
-                    Orientation_imag[0] = theta[0] * (1 - thetaMag * thetaMag / 6);
-                    Orientation_imag[1] = theta[1] * (1 - thetaMag * thetaMag / 6);
-                    Orientation_imag[2] = theta[2] * (1 - thetaMag * thetaMag / 6);
-                } else {
-                    Orientation_real = cos(thetaMag);
-                    Orientation_imag[0] = (theta[0] / thetaMag) * sin(thetaMag);
-                    Orientation_imag[1] = (theta[1] / thetaMag) * sin(thetaMag);
-                    Orientation_imag[2] = (theta[2] / thetaMag) * sin(thetaMag);
-                }
-
-                array_1d<double, 3>& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-
-                double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
-
-                if (test > 0.49999999) { // singularity at north pole                     
-                    EulerAngles[0] = 2 * atan2(Orientation_imag[0], Orientation_real);
-                    EulerAngles[1] = KRATOS_M_PI;
-                    EulerAngles[2] = 0.0;
-                } else if (test < -0.49999999) { // singularity at south pole                                       
-                    EulerAngles[0] = -2 * atan2(Orientation_imag[0], Orientation_real);
-                    EulerAngles[1] = -KRATOS_M_PI;
-                    EulerAngles[2] = 0.0;
-                } else {
-                    EulerAngles[0] = atan2(2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2], 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1]);
-                    EulerAngles[1] = asin(2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0]);
-                    EulerAngles[2] = -atan2(2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1], 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2]);
-                }
-            }// Trihedron Option                  
+//             if (if_trihedron_option && i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+//                 array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
+// 
+//                 Quaternion<double> Orientation = Quaternion<double>::Identity();
+//                         
+//                 array_1d<double, 3 > theta = rotated_angle;
+//                 DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+// 
+//                 double thetaMag = DEM_MODULUS_3(theta);
+//                 if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
+//                     double aux = (1 - thetaMag * thetaMag / 6);
+//                     Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+//                 }
+//                 else {
+//                     double aux = sin(thetaMag)/thetaMag;
+//                     Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+//                 }
+//                 Orientation.normalize();
+//                 Orientation.ToEulerAngles(EulerAngles);
+//             }// Trihedron Option
         }//for Node                  
 
         KRATOS_CATCH(" ")
@@ -302,8 +283,6 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            double rotation_matrix[3][3];
-
             #pragma omp for
             for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
                 ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
@@ -317,21 +296,18 @@ namespace Kratos {
                     array_1d<double, 3 > & angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
                     array_1d<double, 3 > & torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
                     array_1d<double, 3 > & rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                    array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
+                    Quaternion<double > & Orientation = i.FastGetSolutionStepValue(ORIENTATION);
                     array_1d<double, 3 > & delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
-
-                    GeometryFunctions::GetRotationMatrix(EulerAngles, rotation_matrix);
 
                     array_1d<double, 3 > local_angular_velocity, local_angular_acceleration, local_torque, angular_acceleration;
 
                     //Angular velocity and torques are saved in the local framework:
-                    GeometryFunctions::VectorGlobal2Local(rotation_matrix, torque, local_torque);
-                    GeometryFunctions::VectorGlobal2Local(rotation_matrix, angular_velocity, local_angular_velocity);
-
+                    GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
+                    GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
                     CalculateLocalAngularAccelerationByEulerEquations(i,local_angular_velocity,moments_of_inertia,local_torque, moment_reduction_factor,local_angular_acceleration);                        
 
                     //Angular acceleration is saved in the Global framework:
-                    GeometryFunctions::VectorLocal2Global(rotation_matrix, local_angular_acceleration, angular_acceleration);
+                    GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
 
                     bool Fix_Ang_vel[3] = {false, false, false};
 
@@ -341,27 +317,29 @@ namespace Kratos {
 
                     UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
-                    double ang = DEM_MODULUS_3(delta_rotation);
-                    if (ang) {
+                   double ang = DEM_MODULUS_3(delta_rotation);
+                   if (ang) {
+                       array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
+                       Quaternion<double> delta_orientation = Quaternion<double>::Identity();
+                        
+                       array_1d<double, 3 > theta = delta_rotation;
+                       DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
 
-                        array_1d<double, 3 > e1, e2;
+                       double thetaMag = DEM_MODULUS_3(theta);
+                       if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
+                           double aux = (1 - thetaMag * thetaMag / 6);
+                           delta_orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                       }
+                       else {
+                           double aux = sin(thetaMag)/thetaMag;
+                           delta_orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                       }
 
-                        e1[0] = rotation_matrix[0][0]; e1[1] = rotation_matrix[0][1]; e1[2] = rotation_matrix[0][2];
-                        e2[0] = rotation_matrix[1][0]; e2[1] = rotation_matrix[1][1]; e2[2] = rotation_matrix[1][2];
-
-                        array_1d<double, 3 > new_axes1, new_axes2, new_axes3, axis;
-
-                        noalias(axis) = delta_rotation / ang;
-
-                        GeometryFunctions::RotateRightHandedBasisAroundAxis(e1, e2, axis, ang, new_axes1, new_axes2, new_axes3);
-
-                        rotation_matrix[0][0] = new_axes1[0]; rotation_matrix[0][1] = new_axes1[1]; rotation_matrix[0][2] = new_axes1[2]; 
-                        rotation_matrix[1][0] = new_axes2[0]; rotation_matrix[1][1] = new_axes2[1]; rotation_matrix[1][2] = new_axes2[2]; 
-                        rotation_matrix[2][0] = new_axes3[0]; rotation_matrix[2][1] = new_axes3[1]; rotation_matrix[2][2] = new_axes3[2];
-
-                        GeometryFunctions::GetEulerAngles(rotation_matrix, EulerAngles);
+                       delta_orientation.normalize();
+                       Orientation = delta_orientation * Orientation;
+                       Orientation.ToEulerAngles(EulerAngles); 
                     } //if ang                                                                                                    
-                    cluster_element.UpdatePositionOfSpheres(rotation_matrix);
+                    cluster_element.UpdatePositionOfSpheres();
                 } //for Elements
             } //for number of threads
         } //End of parallel region
