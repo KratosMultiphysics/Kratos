@@ -1,0 +1,119 @@
+import math 
+import cmath
+import mpmath
+import matplotlib.pyplot as plt
+from bigfloat import *
+import numpy as np
+
+
+class K_B:
+    def __init__(self):
+        pass
+    def f(self, t):
+        return t ** (- 0.5)
+    
+    def df(self, t):
+        return - 0.5 * t ** (- 1.5)
+
+class K_component:
+    def __init__(self, ti, ai):
+        self.alpha = sqrt(exp(1) / ti)
+        self.beta = - 1. / (2 * ti)
+        self.a = ai
+        
+    def f(self, t):
+        a = self.alpha
+        b = self.beta
+        return a * exp(b * t)
+    
+    def df(self, t):
+        a = self.alpha
+        b = self.beta
+        return b * a * exp(b * t)
+
+class K_sum:
+    def __init__(self, tis, ais):
+        self.tis = tis
+        self.Ks = [K_component(tis[i], ais[i]) for i in range(len(tis))]
+        self.m = len(tis)
+        
+    def f(self, t):    
+        Ks = self.Ks
+        tis = self.tis
+        m = self.m 
+        return sum([Ks[i].a * Ks[i].f(t) for i in range(m)])
+    
+    def df(self, t):
+        Ks = self.Ks
+        tis = self.tis
+        m = self.m 
+        return sum([Ks[i].a * Ks[i].df(t) for i in range(m)])
+
+class F:
+    def __init__(self, tis):
+        self.tis = tis
+        self.sqrt_pi = sqrt(math.pi)
+    
+    def Define(self, ais):
+        self.K = K_sum(self.tis, ais)
+        self.K_1 = self.K.f(1)
+        
+    def dF(self, i):
+        K = self.K
+        K_1 = self.K_1
+        sqrt_pi = self.sqrt_pi        
+        Ki = K.Ks[i]
+        Ki_1 = Ki.f(1)
+        alpha_i = Ki.alpha        
+        beta_i = Ki.beta        
+        sqrt_minus_betai = sqrt(- beta_i)
+        t_Ki_prime_K_prime = 2 * beta_i * Ki_1 * sum([Kk.a * Kk.f(1.) * Kk.beta * (1. - Kk.beta - beta_i) / (Kk.beta + beta_i) ** 2 for Kk in K.Ks])
+        
+        return - 2 * (1 - K_1) * Ki_1 + alpha_i * beta_i * sqrt_pi * erfc(sqrt_minus_betai) / sqrt_minus_betai + t_Ki_prime_K_prime
+    
+    def d2F(self, i, j):
+        K = self.K
+        Ki = K.Ks[i]
+        Kj = K.Ks[j]
+        Ki_1 = Ki.f(1)
+        Kj_1 = Kj.f(1)
+        beta_i = Ki.beta        
+        beta_j = Kj.beta        
+        gammaij = beta_i * beta_j * (1. - beta_j - beta_i) / (beta_j + beta_i) ** 2 * Ki_1 * Kj_1
+        
+        return 2 * (Kj_1 * Ki_1 + gammaij)
+
+
+def FillUpMatrices(F, a):
+    F.Define(a)
+    m = len(a)
+    grad = np.array([F.dF(i) for i in range(m)])
+    
+    H = np.zeros((m, m))
+    for i in range(m):
+        for j in range(m):
+            H[i,j] = F.d2F(i, j)
+    #print(grad)
+    #print(H)
+    return grad, np.linalg.inv(H)       
+    
+
+tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+a0 = [0.2 for ti in tis]
+tol = 1e-9
+max_iter = 10
+still_changes = True
+a = np.array(a0)
+a_old = np.array(a0) 
+iteration = 0
+F = F(tis)
+
+while still_changes and iteration < max_iter:
+    iteration += 1
+    grad, H_inv = FillUpMatrices(F, a)
+    print(a)
+    a -= H_inv.dot(grad)    
+    still_changes = np.linalg.norm(a - a_old) > tol
+    a_old[:] = a[:]
+print("a coefficients: ", a)
+print("still changing: ", still_changes)

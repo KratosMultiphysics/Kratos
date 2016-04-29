@@ -23,12 +23,15 @@ def ApproximateQuadrature(times, f):
     return acc_sum
 
 def Alpha(n, j):
-    if 0 < j and j < n:
-        return 4. / 3 * ((j - 1) ** 1.5 + (j + 1) ** 1.5 - 2 * j ** 1.5)
-    elif j == 0:
-        return 4. / 3
-    else:
-        return 4. / 3 * ((n - 1) ** 1.5 - n ** 1.5 + 1.5 * math.sqrt(n))
+    with precision(300):
+        four_thirds = BigFloat(4.) / BigFloat(3.)
+        exponent = BigFloat(1.5)
+        if 0 < j and j < n:
+            return four_thirds * ((j - 1) ** exponent + (j + 1) ** exponent - 2 * j ** exponent)
+        elif j == 0:
+            return four_thirds
+        else:
+            return four_thirds * ((n - 1) ** exponent - n ** exponent + exponent * sqrt(n))
 
 def Beta(n, j):
     sqrt_2 = math.sqrt(2)
@@ -37,8 +40,8 @@ def Beta(n, j):
     
     if n >= 4:
         if 2 < j and j < n - 1:
-            return 8. / 15 * (  (j + 2) ** 2.5 - 3 * (j + 1) ** 2.5 + 3 * j ** 2.5 - (j - 1) ** 2.5) +\
-                    2. / 3 * (- (j + 2) ** 1.5 + 3 * (j + 1) ** 1.5 - 3 * j ** 1.5 + (j - 1) ** 1.5)
+            return 8. / 15 * (  (j + 2) ** 2.5 - 3 * (j + 1) ** 2.5 + 3 * j ** 2.5 - (j - 1) ** 2.5)\
+                   + 2. / 3 * (- (j + 2) ** 1.5 + 3 * (j + 1) ** 1.5 - 3 * j ** 1.5 + (j - 1) ** 1.5)
         elif j == 0:
             return 4. / 5 * sqrt_2
         elif j == 1:
@@ -46,8 +49,8 @@ def Beta(n, j):
         elif j == 2:
             return 176. / 15 - 42. / 5 * sqrt_3 + 12. / 5 * sqrt_2
         elif j == n - 1:
-            return 8. / 15 * (- 2 * n ** 2.5 + 3 * (n - 1) ** 2.5 - (n - 2) ** 2.5) +\
-                    2. / 3 * (  4 * n ** 1.5 - 3 * (n - 1) ** 1.5 + (n - 2) ** 1.5)
+            return 8. / 15 * (- 2 * n ** 2.5 + 3 * (n - 1) ** 2.5 - (n - 2) ** 2.5)\
+                  + 2. / 3 * (  4 * n ** 1.5 - 3 * (n - 1) ** 1.5 + (n - 2) ** 1.5)
         else:
             return 8. / 15 * (n ** 2.5 - (n - 1) ** 2.5) + 2. / 3 * (- 3 * n ** 1.5 + (n - 1) ** 1.5) + 2 * sqrt_n
         
@@ -208,6 +211,25 @@ def Daitche(order, times, f):
     
     return sqrt_of_h * total
 
+def Hinsberg(m, times, f):
+    import optimization as op
+    t_win = 0.5
+    recent_times = [time for time in times if time < t_win]
+    old_times =    [time for time in times if time >= t_win]
+    F_win = Daitche(1, times, f)
+    
+    F_tail = 
+
+def Bombardelli(times, f):
+    with precision(200):
+        q = - 0.5
+        t = 1.0
+        a = 0.0
+        N = len(times)
+        coeff = gamma(0.5) / gamma(- q) * ((t - a) / N) ** (- q)
+        values = [gamma(k - q) / gamma(k + 1) * f(t - (k * (t - a)) / N) for k in range(N)]
+        return coeff * sum(values)
+
 def SubstituteRichardsons(approx_successive_values, k, order, level = - 1):
     with precision(200):
         one = BigFloat(1)
@@ -225,12 +247,43 @@ def SubstituteRichardsons(approx_successive_values, k, order, level = - 1):
             
             for i in range(n):
                 new_richardsons.append((k ** order * richardsons[i + 1] - richardsons[i]) / (one*(k ** order - 1)))
-            print(richardsons)
+                
             richardsons = [value for value in new_richardsons]        
             
             for i in range(n):
                 approx_successive_values[- i - 1] = richardsons[- i - 1]
             order += 1
+            
+def SubstituteEmpiricalRichardsons(approx_successive_values, k, order, level = - 1):
+    with precision(200):
+        one = BigFloat(1)
+        n = len(approx_successive_values)
+        if level > n or level < 0:
+            max_n = n
+        else:
+            max_n = level
+        
+        richardsons = [value for value in approx_successive_values]
+        while max_n:
+            max_n -= 1
+            n -= 1
+            new_richardsons = []
+
+            for i in range(n):
+                approx_order = order
+                
+                if i > 0:
+                    eiminus1 = abs((richardsons[i] - richardsons[i-1]) / (one*richardsons[i]))
+                    ei = abs((richardsons[i+1] - richardsons[i]) / (one*richardsons[i+1]))
+                    approx_order = max(log(eiminus1 / (one*ei)) / log(one*k), order)
+                
+                new_richardsons.append((k ** approx_order * richardsons[i + 1] - richardsons[i]) / (one*(k ** approx_order - 1)))
+
+            richardsons = [value for value in new_richardsons]        
+            
+            for i in range(n):
+                approx_successive_values[- i - 1] = richardsons[- i - 1]
+            order += 1            
 
 def SubstituteShanks(approx_sequence):
     with precision(200):
@@ -246,7 +299,7 @@ def SubstituteShanks(approx_sequence):
 t = 1.0
 f = math.sin
 n_discretizations = 6
-min_exp = 2
+min_exp = 1
 k = 2
 n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
 print("Sizes: ", n_div)
@@ -255,10 +308,12 @@ approx_values_naive = []
 approx_values_1 = []
 approx_values_2 = []
 approx_values_3 = []
+approx_values_bomb = []
 errors_naive = []
 errors_1 = []
 errors_2 = []
 errors_3 = []
+errors_bomb = []
 
 for n_divisions in n_div:
     h = t / n_divisions 
@@ -270,66 +325,101 @@ for n_divisions in n_div:
     approx_value_1 = Daitche(1, times, f)
     approx_value_2 = Daitche(2, times, f)
     approx_value_3 = Daitche(3, times, f)
+    approx_value_bomb = Bombardelli(times, f)
     approx_values_naive.append(approx_value_naive)
     approx_values_1.append(approx_value_1)
     approx_values_2.append(approx_value_2)
     approx_values_3.append(approx_value_3)
+    approx_values_bomb.append(approx_value_bomb)
     errors_naive.append(abs((approx_value_naive - exact_value) / exact_value))
     errors_1.append(abs((approx_value_1 - exact_value) / exact_value))
     errors_2.append(abs((approx_value_2 - exact_value) / exact_value))
     errors_3.append(abs((approx_value_3 - exact_value) / exact_value))
+    errors_bomb.append(abs((approx_value_bomb - exact_value) / exact_value))
 
 approx_values_naive_rich = [value for value in approx_values_naive] 
 approx_values_1_rich = [value for value in approx_values_1] 
 approx_values_2_rich = [value for value in approx_values_2] 
-approx_values_3_rich = [value for value in approx_values_3] 
+approx_values_3_rich = [value for value in approx_values_3]
+approx_values_bomb_rich = [value for value in approx_values_bomb]
+approx_values_naive_rich_emp = [value for value in approx_values_naive] 
+approx_values_1_rich_emp = [value for value in approx_values_1] 
+approx_values_2_rich_emp = [value for value in approx_values_2] 
+approx_values_3_rich_emp = [value for value in approx_values_3]
+approx_values_bomb_rich_emp = [value for value in approx_values_bomb] 
+
 #approx_values_naive_rich[-1] = mpmath.richardson(approx_values_naive_rich)[0]
 #approx_values_1_rich[-1] = mpmath.richardson(approx_values_1_rich)[0]
 #approx_values_2_rich[-1] = mpmath.richardson(approx_values_2_rich)[0]
 #approx_values_3_rich[-1] = mpmath.richardson(approx_values_3_rich)[0]
-SubstituteRichardsons(approx_values_naive_rich, k, 0.5, 1)
+SubstituteRichardsons(approx_values_naive_rich, k, 0.5)
 SubstituteRichardsons(approx_values_1_rich, k, 2)
 SubstituteRichardsons(approx_values_2_rich, k, 3)
 SubstituteRichardsons(approx_values_3_rich, k, 4)
+SubstituteRichardsons(approx_values_bomb_rich, k, 1)
+SubstituteEmpiricalRichardsons(approx_values_naive_rich_emp, k, 0.5)
+SubstituteEmpiricalRichardsons(approx_values_1_rich_emp, k, 2)
+SubstituteEmpiricalRichardsons(approx_values_2_rich_emp, k, 3)
+SubstituteEmpiricalRichardsons(approx_values_3_rich_emp, k, 4)
+SubstituteEmpiricalRichardsons(approx_values_bomb_rich_emp, k, 1)
 approx_values_naive_shank = [value for value in approx_values_naive]
 approx_values_1_shank = [value for value in approx_values_1] 
 approx_values_2_shank = [value for value in approx_values_2] 
-approx_values_3_shank = [value for value in approx_values_3] 
+approx_values_3_shank = [value for value in approx_values_3]
+approx_values_bomb_shank = [value for value in approx_values_bomb] 
 SubstituteShanks(approx_values_naive_shank)
 SubstituteShanks(approx_values_1_shank)
 SubstituteShanks(approx_values_2_shank)
 SubstituteShanks(approx_values_3_shank)
+SubstituteShanks(approx_values_bomb_shank)
 errors_naive_rich = [abs((approx_values_naive_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_1_rich = [abs((approx_values_1_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_2_rich = [abs((approx_values_2_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_3_rich = [abs((approx_values_3_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_bomb_rich = [abs((approx_values_bomb_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_naive_rich_emp = [abs((approx_values_naive_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_1_rich_emp = [abs((approx_values_1_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_2_rich_emp = [abs((approx_values_2_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_3_rich_emp = [abs((approx_values_3_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_bomb_rich_emp = [abs((approx_values_bomb_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_naive_shank = [abs((approx_values_naive_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_1_shank = [abs((approx_values_1_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_2_shank = [abs((approx_values_2_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_3_shank = [abs((approx_values_3_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_bomb_shank = [abs((approx_values_bomb_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 theoretical_slope_naive = []
 theoretical_slope_naive = [errors_naive[0] * 0.5 ** math.sqrt(i) for i in range(len(n_div))]
 theoretical_slope_1 = [errors_1[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
 theoretical_slope_2 = [errors_2[0] * 0.5 ** (3 * i) for i in range(len(n_div))]
 theoretical_slope_3 = [errors_3[0] * 0.5 ** (4 * i) for i in range(len(n_div))]
+theoretical_slope_bomb = [errors_bomb[0] * 0.5 ** i for i in range(len(n_div))]
 
 
 plt.plot(n_div, errors_naive, color='r')
 plt.plot(n_div, errors_1, color='b')
 plt.plot(n_div, errors_2, color='g')
 plt.plot(n_div, errors_3, color='k')
+plt.plot(n_div, errors_bomb, color='c')
 plt.plot(n_div, errors_naive_rich, color='r', linestyle = '--')
 plt.plot(n_div, errors_1_rich, color='b', linestyle = '--')
 plt.plot(n_div, errors_2_rich, color='g', linestyle = '--')
 plt.plot(n_div, errors_3_rich, color='k', linestyle = '--')
-plt.plot(n_div, errors_naive_shank, color='r', linestyle = '-.')
-plt.plot(n_div, errors_1_shank, color='b', linestyle = '-.')
-plt.plot(n_div, errors_2_shank, color='g', linestyle = '-.')
-plt.plot(n_div, errors_3_shank, color='k', linestyle = '-.')
+plt.plot(n_div, errors_bomb_rich, color='c', linestyle = '--')
+plt.plot(n_div, errors_naive_rich_emp, color='r', linestyle = '-.')
+plt.plot(n_div, errors_1_rich_emp, color='b', linestyle = '-.')
+plt.plot(n_div, errors_2_rich_emp, color='g', linestyle = '-.')
+plt.plot(n_div, errors_3_rich_emp, color='k', linestyle = '-.')
+plt.plot(n_div, errors_bomb_rich_emp, color='c', linestyle = '-.')
+#plt.plot(n_div, errors_naive_shank, color='r', linestyle = '-.')
+#plt.plot(n_div, errors_1_shank, color='b', linestyle = '-.')
+#plt.plot(n_div, errors_2_shank, color='g', linestyle = '-.')
+#plt.plot(n_div, errors_3_shank, color='k', linestyle = '-.')
+#plt.plot(n_div, errors_bomb_shank, color='c', linestyle = '-.')
 plt.plot(n_div, theoretical_slope_naive, color='r', linestyle = ':')
 plt.plot(n_div, theoretical_slope_1, color='b', linestyle = ':')
 plt.plot(n_div, theoretical_slope_2, color='g', linestyle = ':')
 plt.plot(n_div, theoretical_slope_3, color='k', linestyle = ':')
+plt.plot(n_div, theoretical_slope_bomb, color='c', linestyle = ':')
 plt.loglog()
 #plt.show()
 #print("Naive: ", ApproximateQuadrature(times, f))
@@ -337,4 +427,42 @@ plt.loglog()
 #print("Second Order Daitche: ", Daitche(2, times, f))
 #print("Third Order Daitche: ", Daitche(3, times, f))
 #plt.plot(times, values)
+final_time = 0.01
+h = 0.001
+order = 1
+optimal_a =  1 / (2 * (order + 1))
+best_a = optimal_a
+best_i = 0
+best_error = 999999999999999
+optimal_error = 0
+n_exponents = 20
+max_a = 3 * optimal_a
+delta_a = max_a / n_exponents
+def Id(x):
+    return 1.
+best_times = []
+
+#for i in range(n_exponents):
+    #a = delta_a * i
+    #times = [h * i ** (a) for i in range(int(final_time / h))]
+    #norm = sum(times)
+    #times = [sum(times[:i]) / norm for i in range(len(times) + 1)]
+    #new_error = ApproximateQuadrature(times, f) - exact_values[-1]
+    #print(a)
+    #print(new_error)
+    #if best_error > new_error:
+        #best_error = new_error
+        #best_i = i
+        #best_a = a
+        #best_times = times
+    #if int(a) == int(optimal_a):
+        #optimal_error = new_error
+        #optimal_times = times
+#print("best a", best_a)
+#print("optimal a ", optimal_a)
+#print("best error", best_error)
+#print("optimal_error", optimal_error)
+#print("best times", best_times)
+#print("optimal times", optimal_times)
+#plt.plot(best_times, optimal_times)
 plt.show()
