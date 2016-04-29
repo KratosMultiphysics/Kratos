@@ -42,7 +42,7 @@
     <Process n="ApplyConstraintVelocityProcess" pn="Constraint velocity" ImplementedInFile="apply_custom_velocity_constraints"
 		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication" help="This process applies ">
     <inputs>
-      <parameter n="value" pn="Velocity" type="vector" fixity="Imposed" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s"/>
+      <parameter n="value" pn="Velocity" type="vector" fixity="Imposed" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s" />
     </inputs>
   </Process>
 </ProcessList>

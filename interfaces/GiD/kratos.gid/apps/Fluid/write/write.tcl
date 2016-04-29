@@ -84,14 +84,17 @@ proc Fluid::write::writeBoundaryConditions { } {
         set condid [[$group parent] @n]
         set groupid [get_domnode_attribute $group n]
         set cond [::Model::getCondition $condid]
-        
-        lassign [dict get $dict_group_intervals $groupid] ini fin
-        set FluidConditions($groupid,initial) $ini
-        set FluidConditions($groupid,final) $fin
-        set bc 0
-        if {[$cond getAttribute SkinConditions]} {set bc 1}
-        set FluidConditions($groupid,SkinCondition) $bc
-        #W "ARRAY [array get FluidConditions]"
+        if {[$cond getAttribute SkinConditions]} {
+            lassign [dict get $dict_group_intervals $groupid] ini fin
+            set FluidConditions($groupid,initial) $ini
+            set FluidConditions($groupid,final) $fin
+            set FluidConditions($groupid,SkinCondition) 1
+            #W "ARRAY [array get FluidConditions]"
+        } else {
+            set FluidConditions($groupid,initial) -1
+            set FluidConditions($groupid,final) -1
+            set FluidConditions($groupid,SkinCondition) 0
+        }
     }
 }
 
@@ -114,10 +117,15 @@ proc Fluid::write::writeConditionsMesh { } {
     #W "Conditions $xp1 [$root selectNodes $xp1]"
     foreach group [$root selectNodes $xp1] {
         set groupid [$group @n]
+        set condid [[$group parent] @n]
         set ini $FluidConditions($groupid,initial)
         set end $FluidConditions($groupid,final)
         #W "$groupid $ini $end"
-        ::write::writeGroupMesh [[$group parent] @n] $groupid "Conditions" [list $ini $end]
+        if {$ini == -1} {
+            ::write::writeGroupMesh $condid $groupid "Nodes"           
+        } else {
+            ::write::writeGroupMesh $condid $groupid "Conditions" [list $ini $end]
+        }
     }
 }
 
