@@ -41,7 +41,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, COORDINATION_NUMBER)
     KRATOS_CREATE_VARIABLE(vector<int>, SEARCH_CONTROL_VECTOR)
     KRATOS_CREATE_VARIABLE(int, CLEAN_INDENT_OPTION)
-    KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
+//     KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
     KRATOS_CREATE_VARIABLE(int, ROLLING_FRICTION_OPTION)
     KRATOS_CREATE_VARIABLE(int, NEIGH_INITIALIZED)
     KRATOS_CREATE_VARIABLE(int, TRIAXIAL_TEST_OPTION)
@@ -153,9 +153,7 @@ namespace Kratos
         // KINEMATICS
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_ROTATION_ANGLE)
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(EULER_ANGLES)
-        KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL)
         KRATOS_CREATE_VARIABLE(Quaternion<double>, ORIENTATION)
-        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
         KRATOS_CREATE_VARIABLE(double, VELOCITY_START_TIME)
@@ -327,9 +325,9 @@ namespace Kratos
     mBallast2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBallast3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBallast4Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),        
     mBallast5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBallast6Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),        
     mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBeadCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3))))
@@ -372,7 +370,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(COORDINATION_NUMBER)
         KRATOS_REGISTER_VARIABLE(SEARCH_CONTROL_VECTOR)
         KRATOS_REGISTER_VARIABLE(CLEAN_INDENT_OPTION)
-        KRATOS_REGISTER_VARIABLE(TRIHEDRON_OPTION)
+//         KRATOS_REGISTER_VARIABLE(TRIHEDRON_OPTION)
         KRATOS_REGISTER_VARIABLE(NEIGH_INITIALIZED)
         KRATOS_REGISTER_VARIABLE(TRIAXIAL_TEST_OPTION)
         KRATOS_REGISTER_VARIABLE(FIX_VELOCITIES_FLAG)
@@ -486,9 +484,7 @@ namespace Kratos
 
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_ROTATION_ANGLE)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EULER_ANGLES)
-        KRATOS_REGISTER_VARIABLE(ORIENTATION_REAL)
         KRATOS_REGISTER_VARIABLE(ORIENTATION)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
         KRATOS_REGISTER_VARIABLE(VELOCITY_START_TIME)
@@ -652,10 +648,10 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("Ballast1Cluster3D", mBallast1Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast2Cluster3D", mBallast2Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast3Cluster3D", mBallast3Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Ballast4Cluster3D", mBallast4Cluster3D)
-        KRATOS_REGISTER_ELEMENT("CapsuleCluster3D", mCapsuleCluster3D)        
+        KRATOS_REGISTER_ELEMENT("Ballast4Cluster3D", mBallast4Cluster3D)      
         KRATOS_REGISTER_ELEMENT("Ballast5Cluster3D", mBallast5Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast6Cluster3D", mBallast6Cluster3D)
+        KRATOS_REGISTER_ELEMENT("CapsuleCluster3D", mCapsuleCluster3D)
         KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
         KRATOS_REGISTER_ELEMENT("BeadCluster3D", mBeadCluster3D)
         KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
