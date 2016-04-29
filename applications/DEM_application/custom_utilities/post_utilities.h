@@ -240,6 +240,41 @@ namespace Kratos {
 
         } //ComputePoisson2D
         
+        void ComputeEulerAngles(ModelPart rModelPart) {
+
+            typedef ModelPart::NodesContainerType NodesArrayType;
+            NodesArrayType& pNodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
+
+            #pragma omp parallel for
+            for (int k = 0; k < (int) pNodes.size(); k++) {
+                
+                ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
+                Node < 3 > & i = *i_iterator;
+                
+                array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                      
+                if (!i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                    array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
+
+                    Quaternion<double> Orientation = Quaternion<double>::Identity();
+                        
+                    array_1d<double, 3 > theta = rotated_angle;
+                    DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+                    double thetaMag = DEM_MODULUS_3(theta);
+                    if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
+                    double aux = (1 - thetaMag * thetaMag / 6);
+                    Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                }
+                else {
+                    double aux = sin(thetaMag)/thetaMag;
+                    Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                }
+                Orientation.normalize();
+                Orientation.ToEulerAngles(EulerAngles);
+            }// BELONGS_TO_A_CLUSTER
+            }//for Node      
+        } //ComputeEulerAngles
         
         double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& r_process_info) {
 

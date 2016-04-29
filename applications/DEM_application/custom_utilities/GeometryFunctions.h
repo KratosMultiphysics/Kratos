@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include "utilities/openmp_utils.h"
+#include "utilities/quaternion.h"
 #include "includes/model_part.h"
 #include "DEM_application_variables.h"
 
@@ -664,29 +665,21 @@ namespace Kratos {
         }
     }
 
-    /////////****Quaternions****///////////////
-
-    static inline void Align(double normal[3], double quart_imag[3], double quart_angle, double quart_axis[3])
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////******Quaternions******////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+         
+    static inline void QuaternionVectorLocal2Global(const Quaternion<double>& Q, const array_1d<double, 3>& LocalVector, array_1d<double, 3>& GlobalVector)
     {
-        double temp[3] = {0.0};
-
-        temp[0] = normal[0] + quart_imag[0];
-        temp[1] = normal[1] + quart_imag[1];
-        temp[2] = normal[2] + quart_imag[2];
-
-        normalize(temp);
-
-        double normal_norm_inv = 1.0 / sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
-
-        quart_angle = DotProduct(normal, temp) * normal_norm_inv;
-
-        CrossProduct(normal, temp, quart_axis);
-
-        quart_axis[0] = quart_axis[0] * normal_norm_inv;
-        quart_axis[1] = quart_axis[1] * normal_norm_inv;
-        quart_axis[2] = quart_axis[2] * normal_norm_inv;
+        Q.RotateVector3(LocalVector, GlobalVector);
     }
-
+         
+    static inline void QuaternionVectorGlobal2Local(const Quaternion<double>& Q, const array_1d<double, 3>& GlobalVector, array_1d<double, 3>& LocalVector)
+    {
+        Quaternion<double> Q_conj = Q.conjugate();
+        Q_conj.RotateVector3(GlobalVector, LocalVector);
+    }
+    
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////******EULER ANGLES from 2 vectors******/////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
