@@ -855,6 +855,7 @@ namespace Kratos
 	std::string word;
 
 	SizeType number_of_nodes_read = 0;
+        const unsigned int old_size = rModelPart.Nodes().size();
 
         typedef std::map< unsigned int, array_1d<double,3> > map_type;
         map_type read_coordinates;
@@ -891,9 +892,8 @@ namespace Kratos
         }
 	
 	std::cout << number_of_nodes_read << " nodes read]" << std::endl;
-
-        if(rModelPart.Nodes().size() != number_of_nodes_read)
-            std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
+	if(rModelPart.Nodes().size() - old_size != number_of_nodes_read)
+            std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() - old_size<< " non repeated nodes" << std::endl;        
 
         KRATOS_CATCH("")
     }
