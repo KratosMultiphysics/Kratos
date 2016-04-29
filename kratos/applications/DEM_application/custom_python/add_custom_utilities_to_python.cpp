@@ -140,6 +140,7 @@ void  AddCustomUtilitiesToPython() {
         .def("IntegrationOfForces", &PostUtilities::IntegrationOfForces)
         .def("ComputePoisson", &PostUtilities::ComputePoisson)
         .def("ComputePoisson2D", &PostUtilities::ComputePoisson2D)
+        .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
         ;
      
      class_<DEMFEMUtilities, boost::noncopyable >
