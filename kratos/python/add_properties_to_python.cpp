@@ -48,6 +48,14 @@ using namespace boost::python;
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 
+
+template< class TContainerType, class TVariableType > 
+bool HasHelperFunction(TContainerType& el, const TVariableType& rVar)
+{
+    return el.Has(rVar);
+}
+
+
 template< class TContainerType, class TVariableType > void SetValueHelperFunction1(
     TContainerType& el,
     const TVariableType& rVar,
@@ -85,48 +93,57 @@ typename Properties::TableType& GetTableHelperFunction1( TContainerType& el,
 void  AddPropertiesToPython()
 {
     class_<Properties, Properties::Pointer, bases<Properties::BaseType > >("Properties", init<int>())
-    .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 6> > >)
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
+    .def("Has", HasHelperFunction< Properties, Variable< array_1d<double, 6> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
 	
-    .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 3> > >)
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
+    .def("Has", HasHelperFunction< Properties, Variable< array_1d<double, 3> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Vector > >)
+    .def("Has", HasHelperFunction< Properties, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< Vector > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Matrix > >)
+    .def("Has", HasHelperFunction< Properties, Variable< Matrix > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< Matrix > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< Matrix > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< std::string > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Properties, Variable< std::string > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< std::string > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< bool > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< bool > >)
+    .def("Has", HasHelperFunction< Properties, Variable< bool > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< bool > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< int > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< int > >)
+    .def("Has", HasHelperFunction< Properties, Variable< int > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< int > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< int > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< double > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< double > >)
+    .def("Has", HasHelperFunction< Properties, Variable< double > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< double > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< double > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
+    .def("Has", HasHelperFunction< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
 
