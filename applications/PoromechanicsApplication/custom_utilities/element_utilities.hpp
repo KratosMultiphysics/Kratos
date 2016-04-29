@@ -9,10 +9,10 @@
 #define  KRATOS_ELEMENT_UTILITIES
 
 // System includes
-#include <cmath>
+//#include <cmath>
 
 // Project includes
-#include "utilities/math_utils.h"
+//#include "utilities/math_utils.h"
 #include "includes/element.h"
 
 // Application includes
@@ -471,37 +471,6 @@ public:
             rVolumeAccelerationVector[index++] = BodyAccelerationAux[1];
             rVolumeAccelerationVector[index++] = BodyAccelerationAux[2];
         }
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    static inline double CalculateVonMises(const Vector& StressVector)
-    {
-        KRATOS_TRY
-
-        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
-
-        Matrix StressTensor = ZeroMatrix(3); //3D stress tensor
-        for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
-        {
-            for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
-            {
-                StressTensor(i,j) = LocalStressTensor(i,j);
-            }
-        }
-
-        double SigmaEquivalent = 0.5 * ( (StressTensor(0,0)-StressTensor(1,1))*(StressTensor(0,0)-StressTensor(1,1)) +
-                                         (StressTensor(1,1)-StressTensor(2,2))*(StressTensor(1,1)-StressTensor(2,2)) +
-                                         (StressTensor(2,2)-StressTensor(0,0))*(StressTensor(2,2)-StressTensor(0,0)) +
-                                         6.0*( StressTensor(0,1)*StressTensor(0,1)+StressTensor(1,2)*StressTensor(1,2)+StressTensor(2,0)*StressTensor(2,0) ) );
-
-        if( SigmaEquivalent < 0.0 ) SigmaEquivalent = 0.0;
-
-        SigmaEquivalent = sqrt(SigmaEquivalent);
-
-        return SigmaEquivalent;
-
-        KRATOS_CATCH( "" )
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

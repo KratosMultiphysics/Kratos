@@ -707,7 +707,8 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-            rOutput[PointNumber] =  ElementUtilities::CalculateVonMises(Variables.StressVector);
+            ComparisonUtilities EquivalentStress;
+            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
         }
     }
     else

@@ -12,6 +12,7 @@
 #include "includes/serializer.h"
 
 // Application includes
+#include "custom_utilities/comparison_utilities.hpp"//from SolidMechanics
 #include "custom_elements/U_Pw_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "poromechanics_application_variables.h"
