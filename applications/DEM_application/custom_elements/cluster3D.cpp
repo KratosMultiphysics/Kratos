@@ -115,19 +115,18 @@ namespace Kratos {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
           
-        const array_1d<double, 3>& euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
-        
+        const array_1d<double, 3>& EulerAngles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
+        Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
+        Orientation = Quaternion<double>::FromEulerAngles(EulerAngles);
+
         const double mass = central_node.FastGetSolutionStepValue(NODAL_MASS);
         array_1d<double, 3> coordinates_of_sphere;
         array_1d<double, 3> global_relative_coordinates;
         double radius_of_sphere;
-        
-        double rotation_matrix[3][3];
-        GeometryFunctions::GetRotationMatrix(euler_angles, rotation_matrix);
                 
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
-            
-            GeometryFunctions::VectorLocal2Global(rotation_matrix, mListOfCoordinates[i], global_relative_coordinates);
+
+            GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[i], global_relative_coordinates);
             coordinates_of_sphere[0]= central_node.Coordinates()[0] + global_relative_coordinates[0];
             coordinates_of_sphere[1]= central_node.Coordinates()[1] + global_relative_coordinates[1];
             coordinates_of_sphere[2]= central_node.Coordinates()[2] + global_relative_coordinates[2];    
@@ -179,14 +178,11 @@ namespace Kratos {
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3> global_relative_coordinates;
-        array_1d<double, 3 > & EulerAngles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
-        double rotation_matrix[3][3];
-        
-        GeometryFunctions::GetRotationMatrix(EulerAngles, rotation_matrix);
+        Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
             
-            GeometryFunctions::VectorLocal2Global(rotation_matrix, mListOfCoordinates[i], global_relative_coordinates);
+            GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[i], global_relative_coordinates);
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
             array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
             array_1d<double, 3>& delta_displacement = sphere_node.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -199,7 +195,7 @@ namespace Kratos {
     }
     
     
-    void Cluster3D::UpdatePositionOfSpheres(const double RotationMatrix[3][3]) {
+    void Cluster3D::UpdatePositionOfSpheres() {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3> global_relative_coordinates;      
@@ -207,12 +203,14 @@ namespace Kratos {
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& cluster_angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3>& cluster_delta_rotation = central_node.FastGetSolutionStepValue(DELTA_ROTATION);
+        array_1d<double, 3>& cluster_euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
+        Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         
         array_1d<double, 3> previous_position;        
         
         for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
             
-            GeometryFunctions::VectorLocal2Global(RotationMatrix, mListOfCoordinates[i], global_relative_coordinates);
+            GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[i], global_relative_coordinates);
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
             array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
             array_1d<double, 3>& delta_displacement = sphere_node.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -227,6 +225,7 @@ namespace Kratos {
             noalias(velocity) = cluster_velocity + linear_vel_due_to_rotation;                                    
             noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY)) = cluster_angular_velocity;
             noalias(sphere_node.FastGetSolutionStepValue(DELTA_ROTATION)) = cluster_delta_rotation;
+            noalias(sphere_node.FastGetSolutionStepValue(EULER_ANGLES)) = cluster_euler_angles;
         }                        
     }
     
