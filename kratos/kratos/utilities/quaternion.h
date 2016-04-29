@@ -249,6 +249,31 @@ namespace Kratos
 			R(2, 1) = 2.0 * ( mZ*mY + mW*mX );
 			R(2, 2) = 2.0 * ( mW*mW + mZ*mZ - 0.5 );
 		}
+		
+		/**
+		Constructs the Euler Angles from this Quaternion.
+		Euler Angles expresed in Z(-X)Z sequence as in GiD
+		@param EA the output rotation matrix
+		*/
+		inline void ToEulerAngles(array_1d<double, 3>& EA)const
+		{
+			double test = mW * mW - mX * mX - mY * mY + mZ * mZ;                    
+			if (test > (1.0 - 1.0e-6)) { // singularity at north pole                     
+				EA[0] = -atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
+				EA[1] = 0.0;
+				EA[2] = 0.0;
+			}
+			else if (test < (-1.0 +  1.0e-6)) { // singularity at south pole
+				EA[0] = atan2 (2 * mZ * mW, (mW * mW - mZ * mZ));
+				EA[1] = KRATOS_M_PI;
+				EA[2] = 0.0;
+			}
+			else {                    
+				EA[0] = atan2((mX * mZ + mY * mW), -(mY * mZ - mX * mW));
+				EA[1] = -acos (test);
+				EA[2] = atan2((mX * mZ - mY * mW), (mY * mZ + mX * mW));
+			}
+		}
 
 		/**
 		Extracts the Rotation Vector from this Quaternion
@@ -523,6 +548,27 @@ namespace Kratos
 			return Q;
 		}
 		
+		/**
+		Returns a Quaternion from Euler Angles.
+		Euler Angles expresed in Z(-X)Z sequence as in GiD
+		@param EA the source rotation Euler Angles
+		@return a Quaternion from a Euler Angles
+		*/
+		static inline Quaternion FromEulerAngles(const array_1d<double, 3> & EA)
+		{
+			Quaternion Q;
+			double c2 = cos(-EA[1]/2); double c1p3 = cos((EA[0]+EA[2])/2); double c1m3 = cos((EA[0]-EA[2])/2);
+			double s2 = sin(-EA[1]/2); double s1p3 = sin((EA[0]+EA[2])/2); double s1m3 = sin((EA[0]-EA[2])/2);
+			
+			Q = Quaternion(	
+					c2 * c1p3,
+					s2 * c1m3,
+					s2 * s1m3,
+					c2 * s1p3);        
+			Q.normalize();
+			return Q;
+		}
+                
 		///@}
                 virtual void PrintInfo(std::ostream& rOStream) const {
                     rOStream << Info();
