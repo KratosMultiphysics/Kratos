@@ -108,7 +108,6 @@ namespace Kratos
 	{
 		double temperature = GetTemperature();
 		double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
-		//UpdateTemperatureDependentRadius(r_process_info);
 		
 
 		if (temperature > sintering_start_temp)

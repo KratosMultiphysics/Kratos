@@ -71,9 +71,8 @@ namespace Kratos
         /// Destructor.
         virtual ~ThermalSphericParticle(){};
 
-
+		void InitializeSolutionStep(ProcessInfo& r_process_info);
         double& GetTemperature();   
-            double& GetPreviousTemperature();
         void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
         void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
         void CalculateRightHandSide(ProcessInfo& r_current_process_info,
@@ -82,15 +81,14 @@ namespace Kratos
                                     int search_control);  
         void FinalizeSolutionStep(ProcessInfo& r_process_info); 
         void UpdateTemperature(const ProcessInfo& r_process_info); 
-        void RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
+        void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
                                                                             double DeltDisp[3],
                                                                             double RelVel[3],
                                                                             double OldLocalCoordSystem[3][3],
                                                                             double LocalCoordSystem[3][3], 
                                                                             SphericParticle* neighbour_iterator);
         void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
-        void UpdateTemperatureDependentRadii(const ProcessInfo& r_process_info, ThermalSphericParticle<TBaseElement>* element2);
-        void UpdateNormalRelativeVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2);
+        void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2);
           
     
       /// Turn back information as a string.
@@ -118,6 +116,7 @@ namespace Kratos
         double mThermalConductivity;
         double mSpecificHeat;   
 		double mPrevTemperature;
+		double temp_old;
     
 
     private:

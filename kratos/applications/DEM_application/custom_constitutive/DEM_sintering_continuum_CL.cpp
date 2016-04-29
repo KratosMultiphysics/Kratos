@@ -120,7 +120,6 @@ namespace Kratos {
 			//KRATOS_WATCH(sintering_displ);
 			damping_force = equiv_visco_damp_coeff_normal * (rel_vel - sinter_vel);
 			//KRATOS_WATCH(equiv_visco_damp_coeff_normal);
-			//KRATOS_WATCH(rel_vel);
 			//KRATOS_WATCH(sinter_vel);
 			//KRATOS_WATCH(damping_force);
 			//KRATOS_WATCH(damping_force);
@@ -258,6 +257,8 @@ namespace Kratos {
         
         SinteringSphericContinuumParticle* p_sintering_element1 = dynamic_cast<SinteringSphericContinuumParticle*>(element1);
         p_sintering_element1->mSinteringDisplacement = p_sintering_element1->mOldNeighbourSinteringDisplacement[i_neighbour_count];
+		//KRATOS_WATCH(p_sintering_element1->mSinteringDisplacement);
+		//KRATOS_WATCH(indentation);
         
         if (element1->Is(DEMFlags::IS_SINTERING)) {
             CalculateForcesOfSintering(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalRelVel[2], indentation, 
@@ -382,7 +383,6 @@ namespace Kratos {
 		const double sqrt_equiv_radius = sqrt(equiv_radius);
 		const double sqrt_indentation_with_sintering_displ = sqrt(abs(indentation - sintering_displ));
 		kn = 2.0 * equiv_young * sqrt_equiv_radius * sqrt_indentation_with_sintering_displ;
-		//mKt = 4.0 * equiv_shear * mKn / equiv_young;
 	}
         
         void DEM_sintering_continuum::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
