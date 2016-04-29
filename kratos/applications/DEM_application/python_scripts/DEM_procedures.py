@@ -177,6 +177,10 @@ class PostUtils(object):
                 f.write(tmp)
                 f.flush()
 
+    def PrintEulerAngles(self, model_part):
+        
+        PostUtilities().ComputeEulerAngles(model_part)
+
 
 class Procedures(object):
 
@@ -1006,16 +1010,16 @@ class DEMIo(object):
     def __init__(self, DEM_parameters):
         # Printing variables
         self.DEM_parameters = DEM_parameters
-        self.global_variables               = []
-        self.spheres_variables              = []
-        self.spheres_and_clusters_variables = []
+        self.global_variables                          = []
+        self.spheres_and_clusters_variables            = []
         self.spheres_and_clusters_local_axis_variables = []
-        self.sphere_local_axis_variables    = []
-        self.fem_boundary_variables         = []
-        self.mapping_variables              = []
-        self.cluster_variables              = []
-        self.contact_variables              = []
-        self.multifilelists                 = []
+        self.spheres_variables                         = []
+        self.spheres_local_axis_variables              = []
+        self.fem_boundary_variables                    = []
+        self.mapping_variables                         = []
+        self.clusters_variables                        = []
+        self.contact_variables                         = []
+        self.multifilelists                            = []
 
         # Reading Post options from DEM_parameters
         self.PostDisplacement             = getattr(self.DEM_parameters, "PostDisplacement", 0)
@@ -1298,7 +1302,7 @@ class DEMIo(object):
     def PrintingSpheresVariables(self, export_model_part, time):
         for variable in self.spheres_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-        for variable in self.sphere_local_axis_variables:
+        for variable in self.spheres_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
 
     def PrintingFEMBoundaryVariables(self, export_model_part, time):
@@ -1306,7 +1310,7 @@ class DEMIo(object):
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
     def PrintingClusterVariables(self, export_model_part, time):
-        for variable in self.cluster_variables:
+        for variable in self.clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
     def PrintingContactElementsVariables(self, export_model_part, time):

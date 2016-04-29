@@ -366,6 +366,9 @@ while (time < DEM_parameters.FinalTime):
         
         if solver.poisson_ratio_option:
             DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters)
+            
+        if DEM_parameters.PostEulerAngles:
+            post_utils.PrintEulerAngles(spheres_model_part)
 
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
