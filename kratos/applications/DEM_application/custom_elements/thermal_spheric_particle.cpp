@@ -200,7 +200,7 @@ namespace Kratos
 			UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbour_iterator);
             
             double LocalRelVel[3]          = {0.0};
-			double LocalDeltDisp[3] = { 0.0 };
+	    //double LocalDeltDisp[3] = { 0.0 };
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
 			
 			LocalRelVel[2] -= thermalRelVel;

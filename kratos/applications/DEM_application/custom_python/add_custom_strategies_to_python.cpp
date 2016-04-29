@@ -109,10 +109,6 @@ namespace Kratos
                     ("OMP_DEMSearch", init<double, double, double>())
                     ;
 
-          typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
-          typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
-          typedef IterativeSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > IterativeSolverStrategy;
-
           class_< ExplicitSolverSettings, boost::noncopyable >
           (
             "ExplicitSolverSettings", init<>() )
@@ -123,34 +119,35 @@ namespace Kratos
           .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
           ;
 
-          class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
+          class_< ExplicitSolverStrategy,  boost::noncopyable>
           (
           "ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                  .def("Initialize", &ExplicitSolverStrategyType::Initialize)
-                  .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
-                  .def("PrepareElementsForPrinting", &ExplicitSolverStrategyType::PrepareElementsForPrinting)
-                  .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategyType::ResetPrescribedMotionFlagsRespectingImposedDofs)
+                  .def("Solve", &ExplicitSolverStrategy::Solve)
+                  .def("Initialize", &ExplicitSolverStrategy::Initialize)
+                  .def("InitialTimeStepCalculation", &ExplicitSolverStrategy::InitialTimeStepCalculation)
+                  .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
+                  .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
           ;
 
-          class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          class_< ContinuumExplicitSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
           "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
-                  .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)
+                  .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting)
           ;
 
-          class_< IterativeSolverStrategy, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          class_< IterativeSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
           "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 
           ;
 
-          class_< VerletVelocitySolverStrategy<ExplicitSolverStrategyType>, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          class_< VerletVelocitySolverStrategy<ExplicitSolverStrategy>, bases< ExplicitSolverStrategy >,  boost::noncopyable>
           (
           "VerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 
           ;
 
-          class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategyType>, bases< ContinuumExplicitSolverStrategyType >,  boost::noncopyable>
+          class_< VerletVelocitySolverStrategy<ContinuumExplicitSolverStrategy>, bases< ContinuumExplicitSolverStrategy >,  boost::noncopyable>
           (
           "ContinuumVerletVelocitySolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, DEMIntegrationScheme::Pointer, SpatialSearch::Pointer>())
 

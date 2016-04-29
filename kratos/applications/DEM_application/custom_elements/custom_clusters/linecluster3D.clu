@@ -1,0 +1,32 @@
+//
+//   Cluster Name:        "linecluster3D"
+//   Author:              Miguel Angel Celigueta - Salva Latorre
+//   Date:                $Date: 2016-4-28
+//
+
+Name
+linecluster3D
+
+Begin centers_and_radii        
+-0.45   0.0   0.0   0.1
+-0.35   0.0   0.0   0.1
+-0.25   0.0   0.0   0.1
+-0.15   0.0   0.0   0.1
+-0.05   0.0   0.0   0.1
+ 0.05   0.0   0.0   0.1
+ 0.15   0.0   0.0   0.1
+ 0.25   0.0   0.0   0.1
+ 0.35   0.0   0.0   0.1
+ 0.45   0.0   0.0   0.1
+End centers_and_radii
+     
+Size
+1.1
+
+Volume
+0.0345575
+
+Inertia per unit density
+0.0001727875  
+0.00357094166
+0.00357094166

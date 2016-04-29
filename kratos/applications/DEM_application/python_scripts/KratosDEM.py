@@ -46,10 +46,6 @@ elif (DEM_parameters.ElementType == "SinteringSphericConPartDEMElement3D"):
 else:
     KRATOSprint('Error: Strategy unavailable. Select a different scheme-element')
         
-def CleaningUpOperations(objects_to_destroy):
-    for object in objects_to_destroy:
-        del object
-        
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
@@ -72,8 +68,6 @@ procedures.PreProcessModel(DEM_parameters)
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
-mixed_model_part      = ModelPart("Mixed_Part")
-mixed_spheres_and_clusters_model_part = ModelPart("MixedSpheresAndClustersPart")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -190,9 +184,7 @@ multifiles = (
 demio.SetMultifileLists(multifiles)
 os.chdir(post_path)
 
-demio.InitializeMesh(mixed_model_part,
-                     mixed_spheres_and_clusters_model_part,
-                     spheres_model_part,
+demio.InitializeMesh(spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
                      contact_model_part,
@@ -228,6 +220,7 @@ max_Id = max(max_FEM_node_Id, max_node_Id, max_elem_Id, max_cluster_node_Id)
 creator_destructor.SetMaxNodeId(max_Id)    
 
 #Strategy Initialization
+os.chdir(main_path)
 solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes
 
 if (DEM_parameters.ContactMeshOption =="ON"):
@@ -389,7 +382,7 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(mixed_model_part, mixed_spheres_and_clusters_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+        demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
         os.chdir(main_path)
         
         if nodeplotter:
@@ -426,11 +419,10 @@ KRATOSprint(report.FinalReport(timer))
 
 # Freeing up memory
 objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
-                      mixed_model_part, mixed_spheres_and_clusters_model_part, cluster_model_part, rigid_face_model_part,
-                      spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
+                      cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
 
 if (DEM_parameters.dem_inlet_option):
     objects_to_destroy.append(DEM_inlet)
 
-CleaningUpOperations(objects_to_destroy)
-
+for obj in objects_to_destroy:
+    del obj

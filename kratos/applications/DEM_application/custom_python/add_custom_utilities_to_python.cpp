@@ -129,7 +129,8 @@ void  AddCustomUtilitiesToPython() {
       class_<PreUtilities, boost::noncopyable >
         ("PreUtilities", init<ModelPart&>())
         .def("MeasureTopHeigh", Aux_MeasureTopHeight)        
-        .def("MeasureBotHeigh", Aux_MeasureBotHeight) 
+        .def("MeasureBotHeigh", Aux_MeasureBotHeight)
+        .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
         ;
 
      class_<PostUtilities, boost::noncopyable >

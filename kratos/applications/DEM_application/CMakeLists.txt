@@ -7,6 +7,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 ## generate variables with the sources
 set( KRATOS_DEM_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_strategy.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/explicit_solver_continuum.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
@@ -15,7 +17,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nanoparticle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_continuum_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Particle_Contact_Element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
@@ -53,7 +55,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp        
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/verlet_velocity_scheme.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp        
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_2D_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack_torque_CL.cpp

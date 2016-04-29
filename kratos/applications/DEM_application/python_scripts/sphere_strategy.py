@@ -4,6 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import math
 import time
+import cluster_file_reader
 
 class ExplicitStrategy:
 
@@ -374,3 +375,11 @@ class ExplicitStrategy:
 
         if write_gamma == True:
             properties[DAMPING_GAMMA] = gamma
+            
+        if properties.Has(CLUSTER_FILE_NAME):
+            cluster_file_name = properties[CLUSTER_FILE_NAME]
+            [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+            pre_utils = PreUtilities(self.spheres_model_part)
+            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, properties)
+            print(properties)
+            
