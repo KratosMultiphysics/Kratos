@@ -18,6 +18,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos {
 
