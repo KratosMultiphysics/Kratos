@@ -253,8 +253,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
 
         # LOCAL AXIS
-        if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
-            model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+        #if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1): #TODO: RESTORE THIS IF
+        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
         if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
