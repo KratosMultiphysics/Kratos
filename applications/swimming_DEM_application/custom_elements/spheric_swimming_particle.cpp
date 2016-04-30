@@ -927,9 +927,9 @@ template< class TBaseElement >
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::CustomInitialize()
+void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info)
 {
-    TBaseElement::CustomInitialize();
+    TBaseElement::Initialize(r_process_info);
     mHasDragForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(DRAG_FORCE);
     mHasHydroMomentNodalVar      = GetGeometry()[0].SolutionStepsDataHas(HYDRODYNAMIC_MOMENT);
     mHasVirtualMassForceNodalVar = GetGeometry()[0].SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
