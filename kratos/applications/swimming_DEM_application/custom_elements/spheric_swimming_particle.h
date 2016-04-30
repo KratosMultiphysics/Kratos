@@ -161,7 +161,7 @@ namespace Kratos
         void ApplyDragPorosityModification(double& drag_coeff);
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);
         double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
-        void CustomInitialize();
+        void Initialize(const ProcessInfo& r_process_info);
         ///@name Static Member Variables
       ///@{
 
