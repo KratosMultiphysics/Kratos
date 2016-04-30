@@ -3,8 +3,11 @@
 namespace Kratos
 {
 // GaussPointItem Methods
-void GaussPointItem::Project(Condition::Pointer pOriginCond,
-                             array_1d<double,2>& Coords, double& Dist)
+void GaussPointItem::Project(
+        Condition::Pointer pOriginCond,
+        array_1d<double,2>& Coords,
+        double& Dist
+        )
 {
     // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
     // and d is the distance along n from the point to its projection in the condition
@@ -44,7 +47,13 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
 
 }
 
-void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar, double& Value)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::GetProjectedValue(
+        const Variable<double> & rOriginVar,
+        double& Value
+        )
 {
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
@@ -63,7 +72,13 @@ void GaussPointItem::GetProjectedValue(const Variable<double> & rOriginVar, doub
     }
 }
 
-void GaussPointItem::GetProjectedValue(const Variable<array_1d<double,3> >& rOriginVar, array_1d<double,3>& Value)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::GetProjectedValue(
+        const Variable<array_1d<double,3> >& rOriginVar,
+        array_1d<double,3>& Value
+        )
 {
 
     if (mProjStatus == 1) // Get Interpolated value from origin condition
@@ -84,9 +99,14 @@ void GaussPointItem::GetProjectedValue(const Variable<array_1d<double,3> >& rOri
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 // Mapper Methods
-AdvancedNMPointsMapper::AdvancedNMPointsMapper(const ModelPart& rOriginModelPart,
-        ModelPart& rDestinationModelPart):
+AdvancedNMPointsMapper::AdvancedNMPointsMapper(
+        const ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart
+        ):
 
     mrOriginModelPart(rOriginModelPart),
     mrDestinationModelPart(rDestinationModelPart),
@@ -142,6 +162,9 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(const ModelPart& rOriginModelPart
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
 {
@@ -238,8 +261,14 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
     }
 }
 
-void AdvancedNMPointsMapper::CalcNormalAndArea(Condition::Pointer Cond,
-        array_1d<double,3> & Normal, double & Area)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvancedNMPointsMapper::CalcNormalAndArea(
+        Condition::Pointer Cond,
+        array_1d<double,3> & Normal,
+        double & Area
+        )
 {
     array_1d<double,3> v1,v2;
 
@@ -282,6 +311,9 @@ void AdvancedNMPointsMapper::TriangleCenterAndRadius(const Condition::Pointer Co
     Radius = sqrt(Radius);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AdvancedNMPointsMapper::SetProjectionToCond(GaussPointItem& GaussPoint,
         Condition::Pointer pCandidateCond)
 {
@@ -310,6 +342,9 @@ void AdvancedNMPointsMapper::SetProjectionToCond(GaussPointItem& GaussPoint,
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AdvancedNMPointsMapper::SetProjectionToNode(GaussPointItem& GaussPoint,
         Node<3>::Pointer pCandidateNode, double& Dist)
 {
@@ -332,8 +367,14 @@ void AdvancedNMPointsMapper::SetProjectionToNode(GaussPointItem& GaussPoint,
     }
 }
 
-void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar, Variable<double> & rDestVar,
-                                       const int MaxIter, const double TolIter)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvancedNMPointsMapper::ScalarMap(
+        const Variable<double> & rOriginVar,
+        Variable<double> & rDestVar,
+        const int MaxIter, const double TolIter
+        )
 {
     // Define some variables that will be used in the iteration
     MatrixVar MCons; // Elemental Consistent Mass Matrix = Aelem/12 * MCons
@@ -464,8 +505,14 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar, Vari
     } // End of Iteration
 } // End of Map (scalar version)
 
-void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOriginVar, Variable<array_1d<double,3> >& rDestVar,
-                                       const int MaxIter, const double TolIter)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvancedNMPointsMapper::VectorMap(
+        const Variable<array_1d<double,3> >& rOriginVar,
+        Variable<array_1d<double,3> >& rDestVar,
+        const int MaxIter, const double TolIter
+        )
 {
     array_1d<double,3> ZeroVect;
     ZeroVect[0] = ZeroVect[1] = ZeroVect[2] = 0.0;
@@ -601,6 +648,9 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
         else if ( (k+1) == MaxIter) std::cout << "WARNING: VectorMap did not converge in " << k+1 << " iterations." << std::endl;
     } // End of Iteration
 } // End of Map (vector version)
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void AdvancedNMPointsMapper::DistanceCheck() // Test function, stores the distance between a Gauss Point and its projection
 {

@@ -1,8 +1,9 @@
 /*
  * File:   InterfacePreprocess.h
  * Author: jcotela
- *
+ * Co-Author: VMataix
  * Created on 19 January 2010, 11:44
+ * Last update on 29 April 2016, 16:54
  */
 
 #if !defined(KRATOS_INTERFACE_PREPROCESS_MAPPER_H_INCLUDED )
@@ -12,29 +13,69 @@
 
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
+//#include "geometries/quadrilateral_3d_4.h" // TODO: Add in the future -> Can be replaced with the triangles
+#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 #include "includes/define.h"
 #include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
 
+/** \brief InterfacePreprocess Methods
+ * Creates Model Parts containing the interface, to be used by AdvancedNMPointsMapper
+ */
 class InterfacePreprocess
 {
-    // Creates Model Parts containing the interface, to be used by AdvancedNMPointsMapper
+
 public:
 
-    void GenerateInterfacePart(const ModelPart& rOriginPart, ModelPart& InterfacePart)
-    // Generate a new ModelPart containing only the interface
-    // It will contain only triangular conditions, regardless of what was used while meshing
+    /**
+     * It prints the nodes and conditions in the interface, gives an error otherwise there are not
+     * @param NodesCounter: Number of nodes in the interface
+     * @return CondCounter: Number of conditions in the interface
+     */
+
+    void PrintNodesAndConditions(
+            const int NodesCounter,
+            const int CondCounter
+            )
     {
-        KRATOS_TRY
+        std::cout << "    " << NodesCounter << " nodes ";
+        std::cout << "and " << CondCounter <<  " conditions found." << std::endl;
+
+        // Check that we actually found something
+        if( NodesCounter == 0)
+        {
+            KRATOS_THROW_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0.","");
+        }
+        if( CondCounter == 0)
+        {
+            KRATOS_THROW_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Generate a new ModelPart containing only the interface. It will contain only linear conditions (just for the 2D cases)
+     * @param rOriginPart: The original model part
+     * @return InterfacePart: The interface model part
+     */
+
+    void GenerateLineInterfacePart(
+            const ModelPart& rOriginPart,
+            ModelPart& InterfacePart
+            )
+    {
+        KRATOS_TRY;
+
+        const unsigned int dimension = rOriginPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
 
         // Store pointers to all interface nodes
         unsigned int NodesCounter = 0;
-        for (
-            ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin();
-            node_it != rOriginPart.NodesEnd();
-            node_it++)
+        for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
         {
             if (node_it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
             {
@@ -42,16 +83,68 @@ public:
                 NodesCounter ++;
             }
         }
-        std::cout << "    " << NodesCounter << " nodes ";
+
+        // Generate linear Conditions from original interface conditions
+        ModelPart::ConditionsContainerType aux;
+        unsigned int CondCounter = 0;
+
+        for (ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin(); cond_it != rOriginPart.ConditionsEnd(); cond_it++)
+        {
+            if (
+                ((*cond_it).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
+                ((*cond_it).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
+            {
+                aux.push_back( *(cond_it.base()) );
+                CondCounter ++;
+            }
+        }
+
+        PrintNodesAndConditions(NodesCounter, CondCounter);
+
+        if (dimension == 2) // By default, but someone can be interested in project values to a BEAM for example
+        {
+            GenerateLine2DConditions(aux, InterfacePart.Conditions());
+        }
+        else
+        {
+            GenerateLine3DConditions(aux, InterfacePart.Conditions());
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Generate a new ModelPart containing only the interface. It will contain only triangular conditions, regardless of what was used while meshing
+     * @param rOriginPart: The original model part
+     * @return InterfacePart: The interface model part
+     */
+
+    void GenerateTriangleInterfacePart(
+            const ModelPart& rOriginPart,
+            ModelPart& InterfacePart
+            )
+    {
+        KRATOS_TRY;
+
+        // Store pointers to all interface nodes
+        unsigned int NodesCounter = 0;
+        for (ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin(); node_it != rOriginPart.NodesEnd(); node_it++)
+        {
+            if (node_it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+            {
+                InterfacePart.Nodes().push_back( *(node_it.base()) );
+                NodesCounter ++;
+            }
+        }
 
         // Generate triangular Conditions from original interface conditions
         ModelPart::ConditionsContainerType aux;
         unsigned int CondCounter = 0;
 
-        for (
-            ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin();
-            cond_it != rOriginPart.ConditionsEnd();
-            cond_it++)
+        for (ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin(); cond_it != rOriginPart.ConditionsEnd(); cond_it++)
         {
             if (
                 ((*cond_it).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
@@ -63,35 +156,90 @@ public:
             }
         }
 
-        std::cout << "and " << CondCounter << " conditions found." << std::endl;
+        PrintNodesAndConditions(NodesCounter, CondCounter);
 
-        // Check that we actually found something
-        if( NodesCounter == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0.","");
-        if( CondCounter == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
+        GenerateTriangularConditions(aux, InterfacePart.Conditions());
 
-        GenerateTriangularConditions(aux,InterfacePart.Conditions());
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
 
     }
 
-    void GenerateTriangularConditions(const ModelPart::ConditionsContainerType& rOriginConds,
-                                      ModelPart::ConditionsContainerType& rTriConds)
-    // Create a set of linear trinagular conditions from a generic condition set
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Create a set of 2D lines conditions from a generic condition set
+     * @param rOriginConds: The original conditions
+     * @return rLinConds: The linear conditions created
+     */
+
+    void GenerateLine2DConditions(
+            const ModelPart::ConditionsContainerType& rOriginConds,
+            ModelPart::ConditionsContainerType& rLinConds
+            )
     {
         // Define a condition to use as reference for all new triangle conditions
-        const Condition& rCondition = KratosComponents<Condition>::Get("Face3D3N"); /*"Condition3D"*/
+        const Condition& rCondition = KratosComponents<Condition>::Get("Condition2D2N");
+
+        // Required information for new conditions: Id, geometry and properties
+        Condition::IndexType LinId = 1; // Id
+
+        // Loop over origin conditions and create a set of triangular ones
+        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        {
+            rLinConds.push_back( rCondition.Create(LinId++, it->GetGeometry(), it->pGetProperties()));
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Create a set of 3D lines conditions from a generic condition set
+     * @param rOriginConds: The original conditions
+     * @return rLinConds: The linear conditions created
+     */
+
+    void GenerateLine3DConditions(
+            const ModelPart::ConditionsContainerType& rOriginConds,
+            ModelPart::ConditionsContainerType& rLinConds
+            )
+    {
+        // Define a condition to use as reference for all new triangle conditions
+        const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D2N");
+
+        // Required information for new conditions: Id, geometry and properties
+        Condition::IndexType LinId = 1; // Id
+
+        // Loop over origin conditions and create a set of triangular ones
+        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
+        {
+            rLinConds.push_back( rCondition.Create(LinId++, it->GetGeometry(), it->pGetProperties()));
+        }
+    }
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    /**
+     * Create a set of linear triangular conditions from a generic condition set
+     * @param rOriginConds: The original conditions
+     * @return rTriConds: The triangular conditions created
+     */
+
+    void GenerateTriangularConditions(
+            const ModelPart::ConditionsContainerType& rOriginConds,
+            ModelPart::ConditionsContainerType& rTriConds
+            )
+    {
+        // Define a condition to use as reference for all new triangle conditions
+        const Condition& rCondition = KratosComponents<Condition>::Get("Condition3D"); /* Face3D3N */
 
         // Required information for new conditions: Id, geometry and properties
         Condition::IndexType TriId = 1; // Id
 
         // Loop over origin conditions and create a set of triangular ones
-        for (
-            ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin();
-            it != rOriginConds.end();
-            it++)
+        for (ModelPart::ConditionsContainerType::const_iterator it = rOriginConds.begin(); it != rOriginConds.end(); it++)
         {
 
             if (it->GetGeometry().PointsNumber() == 3)
@@ -100,8 +248,6 @@ public:
             }
             else if (it->GetGeometry().PointsNumber() == 4)
             {
-//                    Triangle3D3< Node < 3 > >::Pointer Tri1(new Triangle3D3< Node<3> >(it->GetGeometry()[0], it->GetGeometry()[1], it->GetGeometry()[2]));
-//                    Triangle3D3< Node < 3 > >::Pointer Tri2(new Triangle3D3< Node<3> >(it->GetGeometry()[2], it->GetGeometry()[3], it->GetGeometry()[0]));
                 Triangle3D3< Node<3> > Tri1(it->GetGeometry()(0), it->GetGeometry()(1), it->GetGeometry()(2));
                 Triangle3D3< Node<3> > Tri2(it->GetGeometry()(2), it->GetGeometry()(3), it->GetGeometry()(0));
 

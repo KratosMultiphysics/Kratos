@@ -13,7 +13,8 @@ sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
 from KratosMultiphysics import *
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FSIApplication import *
 
@@ -22,6 +23,39 @@ from KratosMultiphysics.FSIApplication import *
 
 import benchmarking
 
+linear_solver = "Direct"
+direct_solver = "Super_LU"
+iterative_solver = "AMGCL"
+
+class SolidSolverConfiguration:
+    solver_type = "mechanical_solver"
+    echo_level  = 1
+    domain_size = 3 
+    
+    time_integration_method = "Implicit"
+    explicit_integration_scheme = "CentralDifferences"
+    time_step_prediction_level  = 0
+
+    LineSearch =  False
+    Implex =  False
+    ComputeReactions = False 
+    ComputeContactForces = False 
+    scheme_type = "DynamicSolver"
+    convergence_criterion = "Residual_criteria" 
+    displacement_relative_tolerance = 1.0E-4
+    displacement_absolute_tolerance =1.0E-4
+    residual_relative_tolerance =  1.0E-4
+    residual_absolute_tolerance =  1.0E-4
+    max_iteration = 100
+    if linear_solver == "Direct":
+        class linear_solver_config:
+            solver_type = direct_solver
+            scaling = False
+    else:
+        class linear_solver_config:
+            solver_type = iterative_solver
+            max_iteration = 100
+            tolerance = 1.0E-4
 
 def BenchmarkCheck(o_model_part, d_model_part):
     # Find some nodes in both meshes and compare their vaules
@@ -117,18 +151,44 @@ destination_model_part = ModelPart("fluid_part")
 # importing the solvers needed
 import fractional_step_solver
 import NonConformant_OneSideMap
-import structural_solver_dynamic
+SolverSettings= SolidSolverConfiguration
+solver_module=__import__(SolverSettings.solver_type)
+for node in origin_model_part.Nodes:
+    # adding dofs
+    node.AddDof(DISPLACEMENT_X, REACTION_X);
+    node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+    node.AddDof(DISPLACEMENT_Z, REACTION_Z);
 
+# setting the domain size for the problem to be solved
+domain_size=SolverSettings.domain_size
+
+# importing variables
 fractional_step_solver.AddVariables(destination_model_part)
 NonConformant_OneSideMap.AddVariables(destination_model_part, origin_model_part)
-structural_solver_dynamic.AddVariables(origin_model_part)
+solver_module.AddVariables(origin_model_part, SolverSettings)
+
+# Creating the solid solver, set the constitutive law
+import constitutive_law_python_utility as constitutive_law_utils
+constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(origin_model_part, domain_size);
+constitutive_law.Initialize();
+
+# setting up the buffer size: SHOULD BE DONE AFTER READING!!!
+buffer_size = 3
+origin_model_part.SetBufferSize(buffer_size)
+
+# importing the solver files
+mechanical_solver = solver_module.CreateSolver(origin_model_part, SolverSettings)
+
+mechanical_solver.Initialize()
+(mechanical_solver).SetEchoLevel(SolverSettings.echo_level);
+mechanical_solver.Initialize()
 
 # introducing input file name
 input_file = mesh_only_var.problem_name
 destination_mesh = "destination2"
 
 # reading the original part
-gid_mode = GiDPostMode.GiD_PostBinary
+gid_mode = GiDPostMode.GiD_PostAscii
 # gid_mode = GiDPostMode.GiD_PostAscii
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
@@ -142,6 +202,9 @@ print("***** Origin mesh read *****")
 model_part_io_destination = ModelPartIO(destination_mesh)
 model_part_io_destination.ReadModelPart(destination_model_part)
 print("***** Destination mesh read *****")
+
+origin_model_part.ProcessInfo[DOMAIN_SIZE] = domain_size
+destination_model_part.ProcessInfo[DOMAIN_SIZE] = domain_size
 
 # Assign a variable pressure to the mesh and mark nodes as interface
 for node in origin_model_part.Nodes:
@@ -169,9 +232,7 @@ gid_io.FinalizeResults()
 
 print("Attempting transfer")
 # Transfer pressure to destination mesh
-mapper = NonConformant_OneSideMap.\
-    NonConformant_OneSideMap(destination_model_part, origin_model_part,
-                             1.0, 15)
+mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_part, origin_model_part, 1.0, 15)
 print("***** mapper created *****")
 
 mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE)
