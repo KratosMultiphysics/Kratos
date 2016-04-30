@@ -137,7 +137,7 @@ namespace Kratos {
             array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);    
             double DistPToB = 0.0;
             int ContactType = -1;
-            array_1d<double, 4> Weight = ZeroVector(4);                
+            array_1d<double, 4>& Weight = this->mContactConditionWeights[i];               
         
             ComputeConditionRelativeData(rFemNeighbours[i], LocalCoordSystem, DistPToB, Weight, wall_delta_disp_at_contact_point, wall_velocity_at_contact_point, ContactType);
           
