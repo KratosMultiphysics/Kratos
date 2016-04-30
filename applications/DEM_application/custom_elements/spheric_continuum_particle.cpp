@@ -561,7 +561,8 @@ namespace Kratos {
         KRATOS_CATCH("")
     }//Calculate
 
-    void SphericContinuumParticle::CustomInitialize() {
+    void SphericContinuumParticle::CustomInitialize() { //TODO: remove custominitialize. Use standard Initialize instead.
+        SphericParticle::CustomInitialize();
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
