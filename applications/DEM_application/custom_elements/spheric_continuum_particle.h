@@ -60,8 +60,8 @@ namespace Kratos
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
-        void FinalizeSolutionStep(ProcessInfo& r_process_info);     
-        void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
+        void FinalizeSolutionStep(ProcessInfo& r_process_info) override;     
+        void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
         void ReorderAndRecoverInitialPositionsAndFilter(std::vector<SphericParticle*>& mTempNeighbourElements);
         void ReorderFEMneighbours();
@@ -106,10 +106,9 @@ namespace Kratos
     protected:
 
         SphericContinuumParticle();
-        
-        virtual void CustomInitialize();
-
-        virtual double GetInitialDeltaWithFEM(int index);              
+                
+        virtual void Initialize(const ProcessInfo& r_process_info) override;
+        virtual double GetInitialDeltaWithFEM(int index) override;              
         virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                    array_1d<double, 3>& rContactForce, 
                                                    array_1d<double, 3>& InitialRotaMoment, 

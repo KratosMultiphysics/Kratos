@@ -223,7 +223,7 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotation(const do
                     const array_1d<double, 3> &angl_vel,
                     SphericParticle* neighbour_iterator);
 
-virtual void RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
+virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
                                                                             double DeltDisp[3], //IN GLOBAL AXES
                                                                             double RelVel[3], //IN GLOBAL AXES
                                                                             double OldLocalCoordSystem[3][3],
@@ -245,8 +245,6 @@ virtual void ComputeMoments(double normalLocalElasticContactForce,
                       SphericParticle* neighbour_iterator,
                       double indentation,
                       bool wall=false) final;
-
-virtual void CustomInitialize();
 
 virtual double GetInitialDeltaWithFEM(int index);
 

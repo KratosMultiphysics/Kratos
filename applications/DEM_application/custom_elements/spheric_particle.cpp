@@ -112,7 +112,7 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     if (node.GetDof(ANGULAR_VELOCITY_Z).IsFixed()) {node.Set(DEMFlags::FIXED_ANG_VEL_Z,true);}
     else                                           {node.Set(DEMFlags::FIXED_ANG_VEL_Z,false);}
 
-    CustomInitialize();
+    mBoundDeltaDisp = 0.0;
 
     CreateDiscontinuumConstitutiveLaws(r_process_info);
     KRATOS_CATCH( "" )
@@ -760,7 +760,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
             RelativeDisplacementAndVelocityOfContactPointDueToRotation(indentation, DeltDisp, RelVel, LocalCoordSystem, other_radius, dt, ang_velocity, ineighbour);
         }
         
-        RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, ineighbour);
+        RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, ineighbour);
 
         double LocalContactForce[3]             = {0.0};
         double GlobalContactForce[3]            = {0.0};
@@ -1258,10 +1258,6 @@ void SphericParticle::PrepareForPrinting(ProcessInfo& r_process_info){
     }
 }
 
-void SphericParticle::CustomInitialize() {
-  mBoundDeltaDisp = 0.0;
- }
-
 void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force,
                                               array_1d<double, 3>& externally_applied_moment,
                                               const ProcessInfo& r_process_info,
@@ -1512,12 +1508,12 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, mNeighbourElasticContactForcesFinal)
 }
 
-void SphericParticle::RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
-                                                                            double DeltDisp[3], //IN GLOBAL AXES
-                                                                            double RelVel[3], //IN GLOBAL AXES
-                                                                            double OldLocalCoordSystem[3][3],
-                                                                            double LocalCoordSystem[3][3], 
-                                                                            SphericParticle* neighbour_iterator){}
+void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
+                                                                                    double DeltDisp[3], //IN GLOBAL AXES
+                                                                                    double RelVel[3], //IN GLOBAL AXES
+                                                                                    double OldLocalCoordSystem[3][3],
+                                                                                    double LocalCoordSystem[3][3], 
+                                                                                    SphericParticle* neighbour_iterator){}
 
 
 void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info){}

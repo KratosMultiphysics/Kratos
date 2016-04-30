@@ -29,8 +29,8 @@ namespace Kratos
 {      
     
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::CustomInitialize(){   
-        TBaseElement::CustomInitialize();
+    void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info){
+        TBaseElement::Initialize(r_process_info);
          // We can put here UpdateTemperatureDependentRadius()
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
         mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY]; 
@@ -40,12 +40,12 @@ namespace Kratos
 		GetTemperature() = temp_old; // initial temperature in the first time step
     }
 
-	template< class TBaseElement >
-	void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(ProcessInfo& r_process_info)
-	{
-		TBaseElement::InitializeSolutionStep(r_process_info);
-		UpdateTemperatureDependentRadius(r_process_info);
-	}
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(ProcessInfo& r_process_info)
+    {
+            TBaseElement::InitializeSolutionStep(r_process_info);
+            UpdateTemperatureDependentRadius(r_process_info);
+    }
     
     template< class TBaseElement >
     double& ThermalSphericParticle<TBaseElement>::GetTemperature(){return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);}

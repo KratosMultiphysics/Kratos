@@ -56,8 +56,8 @@ public:
     virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "NanoParticle";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-    void CustomInitialize();
+    virtual void PrintData(std::ostream& rOStream) const {}    
+    void Initialize(const ProcessInfo& r_process_info);
 
     void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                  array_1d<double, 3>& additionally_applied_moment,
