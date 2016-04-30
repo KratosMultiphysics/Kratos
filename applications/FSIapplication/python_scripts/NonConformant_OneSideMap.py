@@ -23,7 +23,7 @@ def AddVariables(fluid_model_part, structure_model_part):
     structure_model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     structure_model_part.AddNodalSolutionStepVariable(NORMAL)
 
-    print("variables for the mesh solver added correctly")
+    print("Variables for the mesh solver added correctly")
 
 
 class NonConformant_OneSideMap:
@@ -33,9 +33,9 @@ class NonConformant_OneSideMap:
 
         # Error check
         if fluid_model_part.NumberOfConditions(0) < 1:
-            raise ValueError("No conditions found in the fluid model part, please check that the interface is meshed using Condition3D")
+            raise ValueError("No conditions found in the fluid model part, please check that the interface is meshed using Condition2D/Condition3D")
         if structure_model_part.NumberOfConditions(0) < 1:
-            raise ValueError("No conditions found in the structure model part, please check that the interface is meshed using Face3D3N")
+            raise ValueError("No conditions found in the structure model part, please check that the interface is meshed using Condition2D/Condition3D")
 
         search_radius_factor = search_radius_factor
         self.it_max = it_max
@@ -44,11 +44,24 @@ class NonConformant_OneSideMap:
         self.Preprocess = InterfacePreprocess()
         self.fl_interface = ModelPart("fluid_interface")
         self.str_interface = ModelPart("structure_interface")
+        
+        domain_size_fl = fluid_model_part.ProcessInfo[DOMAIN_SIZE]
+        domain_size_str = structure_model_part.ProcessInfo[DOMAIN_SIZE]
+        
+        if (domain_size_fl != domain_size_fl):
+          raise ValueError("Domain sizes from two model parts are not compatible")
 
         print("Identifying fluid interface")
-        self.Preprocess.GenerateInterfacePart(fluid_model_part, self.fl_interface)
+        if (domain_size_fl == 3):
+          self.Preprocess.GenerateTriangleInterfacePart(fluid_model_part, self.fl_interface)
+        else:
+          self.Preprocess.GenerateLineInterfacePart(fluid_model_part, self.fl_interface)
+
         print("Identifying structure interface")
-        self.Preprocess.GenerateInterfacePart(structure_model_part, self.str_interface)
+        if (domain_size_fl == 3):
+          self.Preprocess.GenerateTriangleInterfacePart(structure_model_part, self.str_interface)
+        else:
+          self.Preprocess.GenerateLineInterfacePart(structure_model_part, self.str_interface)
         print("Interface identified")
 
         self.FluidToStructureMapper = AdvancedNMPointsMapper\

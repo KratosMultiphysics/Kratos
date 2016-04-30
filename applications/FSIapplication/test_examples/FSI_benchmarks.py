@@ -41,7 +41,25 @@ def Run():
     # non-conformant mesh test
 
     Text += "meshtest: "
-    os.chdir("meshtest.gid")
+    os.chdir("meshtest3D.gid")
+    sys.path.append(os.getcwd())
+
+    print("Running mesh.py...")
+    successful,Msg = benchmarking.RunBenchmark("mesh.py", "mesh_ref.txt")
+
+    if(successful==True):
+        Text += "OK\n"
+        print("non-conformant mesh example successful")
+    else:
+        Text += "FAILED\n"
+        Text += Msg
+        Text += "\n\n"
+        print("non-conformant mesh example FAILED")
+
+    os.chdir("..")
+    
+    Text += "meshtest: "
+    os.chdir("meshtest2D.gid")
     sys.path.append(os.getcwd())
 
     print("Running mesh.py...")

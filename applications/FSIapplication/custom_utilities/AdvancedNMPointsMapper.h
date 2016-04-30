@@ -3,6 +3,7 @@
  * Author: jcotela
  *
  * Created on 19 January 2010, 10:20
+ * Last update on 30 April 2016, 10:20
  */
 
 #if !defined(KRATOS_ADVANCED_NM_POINTS_MAPPER_H_INCLUDED )
@@ -14,8 +15,8 @@
 #include "fsi_application.h"
 #include "includes/model_part.h"
 #include "containers/array_1d.h"
-#include "spatial_containers/spatial_containers.h" //kd-tree
-#include "utilities/math_utils.h" // Cross Product
+#include "spatial_containers/spatial_containers.h" // kd-tree
+#include "utilities/math_utils.h"                  // Cross Product
 
 namespace Kratos
 {
@@ -36,7 +37,11 @@ public:
         mNormal[0] = mNormal[1] = mNormal[2] = 0.0;
     }
 
-    GaussPointItem(array_1d<double,3> Coords, double Area, array_1d<double,3> Normal):
+    GaussPointItem(
+            array_1d<double, 3> Coords,
+            double Area,
+            array_1d<double, 3> Normal
+            ):
         Point<3>(Coords),
         mArea(Area),
         mNormal(Normal),
@@ -77,8 +82,11 @@ public:
         return mpOriginCond;   // TEST FUNCTION
     }
 
-    void SetProjection(Condition::WeakPointer Cond,
-                       array_1d<double,2> Coords, double Dist)
+    void SetProjection(
+            Condition::WeakPointer Cond,
+            array_1d<double,2> Coords,
+            double Dist
+            )
     {
         mpOriginCond = Cond;
         mOriginCoords = Coords;
@@ -86,7 +94,10 @@ public:
         mProjStatus = 1;
     }
 
-    void SetProjection(Node<3>::WeakPointer pNode,const double SqDist)
+    void SetProjection(
+            Node<3>::WeakPointer pNode,
+            const double SqDist
+            )
     {
         mpOriginNode = pNode;
         mDist = SqDist;
@@ -95,11 +106,21 @@ public:
         mOriginCoords[1] = 0;
     }
 
-    void Project(Condition::Pointer pOriginCond,
-                 array_1d<double,2> & Coords, double & Dist);
+    void Project(
+            Condition::Pointer pOriginCond,
+            array_1d<double,2> & Coords,
+            double & Dist
+            );
 
-    void GetProjectedValue(const Variable<double> & rOriginVar, double& Value); //Scalar variables
-    void GetProjectedValue(const Variable< array_1d<double,3> > & rOriginVar, array_1d<double,3>& Value); //Vector variables
+    void GetProjectedValue(
+            const Variable<double> & rOriginVar,
+            double& Value
+            ); //Scalar variables
+
+    void GetProjectedValue(
+            const Variable< array_1d<double,3> > & rOriginVar,
+            array_1d<double,3>& Value
+            ); //Vector variables
 
 private:
     double mArea;
@@ -138,27 +159,53 @@ public:
     // Use an InterfacePreprocess object to create such a model part from a regular one:
     // InterfaceMapper = InterfacePreprocess()
     // InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
-    AdvancedNMPointsMapper(const ModelPart & rOriginModelPart,ModelPart & rDestinationModelPart);
+    AdvancedNMPointsMapper(
+            const ModelPart & rOriginModelPart,
+            ModelPart & rDestinationModelPart
+            );
 
     // Class Destructor
     //~AdvancedNMPointsMapper();
 
-    void ScalarMap(const Variable<double> & rOriginVar, Variable<double> & rDestVar,
-                   const int MaxIter, const double TolIter); // Scalar Version
-    void VectorMap(const Variable< array_1d<double,3> > & rOriginVar,Variable< array_1d<double,3> > & rDestVar,
-                   const int MaxIter,const double TolIter); // Vector Version
+    void ScalarMap(
+            const Variable<double> & rOriginVar,
+            Variable<double> & rDestVar,
+            const int MaxIter,
+            const double TolIter
+            ); // Scalar Version
+
+    void VectorMap(
+            const Variable< array_1d<double,3> > & rOriginVar,
+            Variable< array_1d<double,3> > & rDestVar,
+            const int MaxIter,
+            const double TolIter
+            ); // Vector Version
 
     void FindNeighbours(double SearchRadiusFactor);
 
 private:
-    void CalcNormalAndArea(Condition::Pointer pCond, array_1d<double,3>& Normal,
-                           double& Area);
-    void TriangleCenterAndRadius(const Condition::Pointer pCond,
-                                 Point<3>& Center, double& Radius);
-    void SetProjectionToCond(GaussPointItem& GaussPoint, Condition::Pointer pCandidateCond); // Desired outcome
+    void CalcNormalAndArea(
+            Condition::Pointer pCond,
+            array_1d<double,3>& Normal,
+            double& Area
+            );
 
-    void SetProjectionToNode(GaussPointItem& GaussPoint,
-                             Node<3>::Pointer pCandidateNode, double& Dist); // Alternative when no condition is available
+    void TriangleCenterAndRadius(
+            const Condition::Pointer pCond,
+            Point<3>& Center,
+            double& Radius
+            );
+
+    void SetProjectionToCond(
+            GaussPointItem& GaussPoint,
+            Condition::Pointer pCandidateCond
+            ); // Desired outcome
+
+    void SetProjectionToNode(
+            GaussPointItem& GaussPoint,
+            Node<3>::Pointer pCandidateNode,
+            double& Dist
+            ); // Alternative when no condition is available
 
     const ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;

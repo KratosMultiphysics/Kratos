@@ -48,7 +48,8 @@ void  AddMappersToPython()
     ;
 
     class_<InterfacePreprocess>("InterfacePreprocess", init<>())
-    .def("GenerateInterfacePart",&InterfacePreprocess::GenerateInterfacePart)
+    .def("GenerateTriangleInterfacePart",&InterfacePreprocess::GenerateTriangleInterfacePart)
+    .def("GenerateLineInterfacePart",&InterfacePreprocess::GenerateLineInterfacePart)
     ;
 }
 
