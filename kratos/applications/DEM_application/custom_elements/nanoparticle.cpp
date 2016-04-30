@@ -11,7 +11,9 @@
 #include "nanoparticle.h"
 
 namespace Kratos {
-void NanoParticle::CustomInitialize() {
+    
+void NanoParticle::Initialize(const ProcessInfo& r_process_info) {   
+    SphericParticle::Initialize(r_process_info);
     double added_mass_coefficient = 1.0;
     SetMass(added_mass_coefficient * GetDensity() * CalculateVolume());
 }

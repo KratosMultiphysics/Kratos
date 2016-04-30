@@ -70,23 +70,24 @@ namespace Kratos
 
         /// Destructor.
         virtual ~ThermalSphericParticle(){};
-
-		void InitializeSolutionStep(ProcessInfo& r_process_info);
+        
+        void Initialize(const ProcessInfo& r_process_info) override;
+        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
         double& GetTemperature();   
         void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
         void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
         void CalculateRightHandSide(ProcessInfo& r_current_process_info,
                                     double dt, 
                                     const array_1d<double,3>& gravity,
-                                    int search_control);  
-        void FinalizeSolutionStep(ProcessInfo& r_process_info); 
+                                    int search_control) override;  
+        void FinalizeSolutionStep(ProcessInfo& r_process_info) override; 
         void UpdateTemperature(const ProcessInfo& r_process_info); 
         void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info,
                                                                             double DeltDisp[3],
                                                                             double RelVel[3],
                                                                             double OldLocalCoordSystem[3][3],
                                                                             double LocalCoordSystem[3][3], 
-                                                                            SphericParticle* neighbour_iterator);
+                                                                            SphericParticle* neighbour_iterator) override;
         void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
         void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2);
           
@@ -105,10 +106,7 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
       
-    protected:
-       
-       virtual void CustomInitialize();	
-              
+    protected:                    
        //thermal sphere neighbor information
         
         double mTemperature;

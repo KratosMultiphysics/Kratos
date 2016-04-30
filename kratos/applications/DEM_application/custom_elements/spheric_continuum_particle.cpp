@@ -254,7 +254,7 @@ namespace Kratos {
                 RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             }
             
-            RelativeDisplacementAndRotationOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
+            RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, OldLocalCoordSystem, LocalCoordSystem, neighbour_iterator);
 
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
@@ -561,8 +561,8 @@ namespace Kratos {
         KRATOS_CATCH("")
     }//Calculate
 
-    void SphericContinuumParticle::CustomInitialize() { //TODO: remove custominitialize. Use standard Initialize instead.
-        SphericParticle::CustomInitialize();
+    void SphericContinuumParticle::Initialize(const ProcessInfo& r_process_info){
+        SphericParticle::Initialize(r_process_info);
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
         this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
