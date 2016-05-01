@@ -20,45 +20,122 @@ namespace Kratos
 void GaussPointItem::Project(
         Condition::Pointer pOriginCond,
         array_1d<double,2>& Coords,
-        double& Dist
+        double& Dist,
+        const int dimension
         )
 {
-    // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
-    // and d is the distance along n from the point to its projection in the condition
-    // | DestX-x3 |   | x1-x3 x2-x3 nx |   | Chi |
-    // | DestY-y3 | = | y1-y3 y2-y3 ny | . | Eta |
-    // | DestZ-z3 |   | z1-z3 z2-z3 nz |   |  d  |
+    if (dimension == 2)
+    {
+        array_1d<double,3> Point_to_project = ZeroVector(3);
+        Point_to_project[0] = this->Coordinate(1);
+        Point_to_project[1] = this->Coordinate(2);
 
-    Matrix ChangeMatrix(3,3);
-    Matrix InvChange(3,3);
-    double det;
+        array_1d<double,3> Coor1 = ZeroVector(3);
+        Coor1[0] = pOriginCond->GetGeometry()[0].X();
+        Coor1[1] = pOriginCond->GetGeometry()[0].Y();
 
-    array_1d<double,3> RHS, Res;
+        array_1d<double,3> Coor2 = ZeroVector(3);
+        Coor2[0] = pOriginCond->GetGeometry()[1].X();
+        Coor2[1] = pOriginCond->GetGeometry()[1].Y();
 
-    RHS[0] = this->Coordinate(1) - pOriginCond->GetGeometry()[2].X();
-    RHS[1] = this->Coordinate(2) - pOriginCond->GetGeometry()[2].Y();
-    RHS[2] = this->Coordinate(3) - pOriginCond->GetGeometry()[2].Z();
+        array_1d<double,3> Point_projected;
 
-    ChangeMatrix(0,0) = pOriginCond->GetGeometry()[0].X() - pOriginCond->GetGeometry()[2].X();
-    ChangeMatrix(1,0) = pOriginCond->GetGeometry()[0].Y() - pOriginCond->GetGeometry()[2].Y();
-    ChangeMatrix(2,0) = pOriginCond->GetGeometry()[0].Z() - pOriginCond->GetGeometry()[2].Z();
+        ProjectLine2D(Point_to_project, Coor1, Coor2, Point_projected);
 
-    ChangeMatrix(0,1) = pOriginCond->GetGeometry()[1].X() - pOriginCond->GetGeometry()[2].X();
-    ChangeMatrix(1,1) = pOriginCond->GetGeometry()[1].Y() - pOriginCond->GetGeometry()[2].Y();
-    ChangeMatrix(2,1) = pOriginCond->GetGeometry()[1].Z() - pOriginCond->GetGeometry()[2].Z();
+        LineShapeFunction2D(Point_projected, Coor1, Coor2, Coords);
 
-    ChangeMatrix(0,2) = mNormal[0];
-    ChangeMatrix(1,2) = mNormal[1];
-    ChangeMatrix(2,2) = mNormal[2];
+        double aux_dist = std::sqrt(std::pow(Point_to_project[0] - Point_to_project[0], 2.00) + std::pow(Point_to_project[1] - Point_to_project[1], 2.00));
 
-    MathUtils<double>::InvertMatrix3(ChangeMatrix,InvChange,det);
-    noalias(Res) = prod(InvChange, RHS);
+        // Keep distance positive, regardless of normal orientation
+        Dist = (aux_dist < 0)? -aux_dist : aux_dist;
+    }
+    else
+    {
+        // xi,yi,zi are Nodal Coordinates, n is the destination condition's unit normal
+        // and d is the distance along n from the point to its projection in the condition
+        // | DestX-x3 |   | x1-x3 x2-x3 nx |   | Chi |
+        // | DestY-y3 | = | y1-y3 y2-y3 ny | . | Eta |
+        // | DestZ-z3 |   | z1-z3 z2-z3 nz |   |  d  |
 
-    Coords[0] = Res[0];
-    Coords[1] = Res[1];
-    // Keep distance positive, regardless of normal orientation
-    Dist = (Res[2]<0)? -Res[2] : Res[2] ;
+        Matrix ChangeMatrix(3,3);
+        Matrix InvChange(3,3);
+        double det;
 
+        array_1d<double,3> RHS, Res;
+
+        RHS[0] = this->Coordinate(1) - pOriginCond->GetGeometry()[2].X();
+        RHS[1] = this->Coordinate(2) - pOriginCond->GetGeometry()[2].Y();
+        RHS[2] = this->Coordinate(3) - pOriginCond->GetGeometry()[2].Z();
+
+        ChangeMatrix(0,0) = pOriginCond->GetGeometry()[0].X() - pOriginCond->GetGeometry()[2].X();
+        ChangeMatrix(1,0) = pOriginCond->GetGeometry()[0].Y() - pOriginCond->GetGeometry()[2].Y();
+        ChangeMatrix(2,0) = pOriginCond->GetGeometry()[0].Z() - pOriginCond->GetGeometry()[2].Z();
+
+        ChangeMatrix(0,1) = pOriginCond->GetGeometry()[1].X() - pOriginCond->GetGeometry()[2].X();
+        ChangeMatrix(1,1) = pOriginCond->GetGeometry()[1].Y() - pOriginCond->GetGeometry()[2].Y();
+        ChangeMatrix(2,1) = pOriginCond->GetGeometry()[1].Z() - pOriginCond->GetGeometry()[2].Z();
+
+        ChangeMatrix(0,2) = mNormal[0];
+        ChangeMatrix(1,2) = mNormal[1];
+        ChangeMatrix(2,2) = mNormal[2];
+
+        MathUtils<double>::InvertMatrix3(ChangeMatrix,InvChange,det);
+        noalias(Res) = prod(InvChange, RHS);
+
+        Coords[0] = Res[0];
+        Coords[1] = Res[1];
+        // Keep distance positive, regardless of normal orientation
+        Dist = (Res[2] < 0)? -Res[2] : Res[2] ;
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::ProjectLine2D(
+        const array_1d<double,3> & Point_to_project,
+        const array_1d<double,3> & Coor1,
+        const array_1d<double,3> & Coor2,
+        array_1d<double,3> & Point_projected
+        )
+{
+    // Assuming X-Y plane
+    double aux_div = 1e-12; // To avoid division by zero
+    double a = (Coor2[1] - Coor1[1])/((Coor2[0] - Coor1[0]) + aux_div);
+    double b = Coor1[1] - a * Coor1[0];
+    Point_projected[0] = (Point_to_project[1] + Point_to_project[0]/(a + aux_div)-b)/(a + 1.0/(a + aux_div));
+    Point_projected[1] = a * Point_projected[0] + b;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GaussPointItem::LineShapeFunction2D(
+        const array_1d<double,3> & Point_to_inter,
+        const array_1d<double,3> & Coor1,
+        const array_1d<double,3> & Coor2,
+        array_1d<double,2> & ShapeFunction
+        )
+{
+    // Assuming X-Y plane
+    double aux_div = 1e-12; // To avoid division by zero
+    double L  = std::sqrt(std::pow(Coor2[0]          - Coor1[0], 2.00) + std::pow(Coor2[1]          - Coor1[1], 2.00)) + aux_div;
+    double l1 = std::sqrt(std::pow(Point_to_inter[0] - Coor1[0], 2.00) + std::pow(Point_to_inter[1] - Coor1[1], 2.00));
+//    double l2 = std::sqrt(std::pow(Point_to_inter[0] - Coor2[0], 2.00) + std::pow(Point_to_inter[1] - Coor2[1], 2.00));
+
+    ShapeFunction[0] = (L - l1)/L;
+    ShapeFunction[1] = 1.0 - ShapeFunction[0];
+//    ShapeFunction[1] = (L - l2)/L;
+
+//    if (ShapeFunction[0] < 0.0 && ShapeFunction[0] > 1.0)
+//    {
+//        ShapeFunction[0] = 0.0;
+//    }
+//    if (ShapeFunction[1] < 0.0 && ShapeFunction[1] > 1.0)
+//    {
+//        ShapeFunction[1] = 0.0;
+//    }
 }
 
 /***********************************************************************************/
@@ -66,18 +143,35 @@ void GaussPointItem::Project(
 
 void GaussPointItem::GetProjectedValue(
         const Variable<double> & rOriginVar,
-        double& Value
+        double& Value,
+        const int dimension
         )
 {
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
-        Value = ( (mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar) * mOriginCoords[0]
-                + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar) * mOriginCoords[1]
-                + (mpOriginCond.lock())->GetGeometry()[2].FastGetSolutionStepValue(rOriginVar) * (1.0 - mOriginCoords[0] - mOriginCoords[1]) );
+        if (dimension == 2)
+        {
+            Value =  (mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar) * mOriginCoords[0]
+                   + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar) * mOriginCoords[1];
+        }
+        else
+        {
+            Value = ( (mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar) * mOriginCoords[0]
+                    + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar) * mOriginCoords[1]
+                    + (mpOriginCond.lock())->GetGeometry()[2].FastGetSolutionStepValue(rOriginVar) * (1.0 - mOriginCoords[0] - mOriginCoords[1]) );
+        }
     }
     else if (mProjStatus == 2)   // Get Value from origin node
     {
-        Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        if (dimension == 2)
+        {
+//            Value = 0.0;
+            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        }
+        else
+        {
+            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        }
     }
     else   // mProjStatus == 0: Return 0
     {
@@ -90,20 +184,42 @@ void GaussPointItem::GetProjectedValue(
 
 void GaussPointItem::GetProjectedValue(
         const Variable<array_1d<double,3> >& rOriginVar,
-        array_1d<double,3>& Value
+        array_1d<double,3>& Value,
+        const int dimension
         )
 {
 
     if (mProjStatus == 1) // Get Interpolated value from origin condition
     {
-        for (unsigned int i = 0; i < 3; i++)
-            Value[i] = ((mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar)[i] * mOriginCoords[0]
-                      + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar)[i] * mOriginCoords[1]
-                      + (mpOriginCond.lock())->GetGeometry()[2].FastGetSolutionStepValue(rOriginVar)[i] * (1.0 - mOriginCoords[0] - mOriginCoords[1]) );
+        if (dimension == 2)
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                Value[i] = (mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar)[i] * mOriginCoords[0]
+                         + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar)[i] * mOriginCoords[1];
+            }
+        }
+        else
+        {
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                Value[i] = ((mpOriginCond.lock())->GetGeometry()[0].FastGetSolutionStepValue(rOriginVar)[i] * mOriginCoords[0]
+                          + (mpOriginCond.lock())->GetGeometry()[1].FastGetSolutionStepValue(rOriginVar)[i] * mOriginCoords[1]
+                          + (mpOriginCond.lock())->GetGeometry()[2].FastGetSolutionStepValue(rOriginVar)[i] * (1.0 - mOriginCoords[0] - mOriginCoords[1]) );
+            }
+        }
     }
     else if (mProjStatus == 2)   // Get Value from origin node
     {
-        Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        if (dimension == 2)
+        {
+//            Value = ZeroVector(3);
+            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        }
+        else
+        {
+            Value = (mpOriginNode.lock())->FastGetSolutionStepValue(rOriginVar);
+        }
     }
     else   // mProjStatus == 0: Return 0
     {
@@ -135,18 +251,20 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
     {
 
         boost::numeric::ublas::bounded_matrix<double,2,3> Nodes;
-        boost::numeric::ublas::bounded_matrix<double,1,3> GaussPoints;
-        boost::numeric::ublas::bounded_matrix<double,1,2> GPPos;
+        boost::numeric::ublas::bounded_matrix<double,2,3> GaussPoints;
+        boost::numeric::ublas::bounded_matrix<double,2,2> GPPos;
 
-        GPPos(0,0) = 0.5;
-        GPPos(0,1) = 0.5;
+        GPPos(0, 0) = 1.0;
+        GPPos(0, 1) = 0.0;
+        GPPos(1, 0) = 0.0;
+        GPPos(1, 1) = 1.0;
 
         for (
             ModelPart::ConditionsContainerType::iterator cond_it = rDestinationModelPart.ConditionsBegin();
             cond_it != rDestinationModelPart.ConditionsEnd();
             cond_it++)
         {
-            CalcNormalAndArea(*cond_it.base(),Normal,Area, 2);
+            CalcNormalAndArea(*cond_it.base(), Normal, Area,  dimension);
 
             for(unsigned int i = 0; i < 2; i++)
             {
@@ -158,13 +276,13 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
 
             noalias(GaussPoints) = prod(GPPos, Nodes);
 
-            for(unsigned int k = 0; k < 1; k++)
+            for(unsigned int k = 0; k < 2; k++)
             {
                 for(unsigned int l = 0; l < 3; l++)
                 {
                     GPCoord[l] = GaussPoints(k,l);
                 }
-                GaussPointItem::Pointer pGP = GaussPointItem::Pointer(new GaussPointItem(GPCoord,Area,Normal) );
+                GaussPointItem::Pointer pGP = GaussPointItem::Pointer(new GaussPointItem(GPCoord, Area, Normal));
                 mGaussPointList.push_back( pGP );
             }
         }
@@ -196,7 +314,7 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(
             cond_it != rDestinationModelPart.ConditionsEnd();
             cond_it++)
         {
-            CalcNormalAndArea(*cond_it.base(),Normal,Area, 3);
+            CalcNormalAndArea(*cond_it.base(), Normal, Area, dimension);
 
             for(unsigned int i = 0; i < 3; i++)
             {
@@ -274,7 +392,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
 
         for(unsigned int i = 0; i < Found; i++)
         {
-            SetProjectionToCond(*Results[i], *cond_it.base());
+            SetProjectionToCond(*Results[i], *cond_it.base(), dimension);
         }
     }
 
@@ -335,53 +453,6 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
         }
 
         std::cout << "   ... " << counter << " Gauss Points without a reference value remain." << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void AdvancedNMPointsMapper::ProjectLine2D(
-        const array_1d<double,3> & Point_to_project,
-        const array_1d<double,3> & Coor1,
-        const array_1d<double,3> & Coor2,
-        array_1d<double,3> & Point_projected
-        )
-{
-    // Assuming X-Y plane
-    double aux_div = 1e-12; // To avoid division by zero
-    double a = (Coor2[1] - Coor1[1])/((Coor2[0] - Coor1[0]) + aux_div);
-    double b = Coor1[1] - a * Coor1[0];
-    Point_projected[0] = (Point_to_project[1] + Point_to_project[0]/(a + aux_div)-b)/(a + 1.0/(a + aux_div));
-    Point_projected[1] = a * Point_projected[0] + b;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void AdvancedNMPointsMapper::GaussLobattoLine2D(
-        const array_1d<double,3> & Point_to_inter,
-        const array_1d<double,3> & Coor1,
-        const array_1d<double,3> & Coor2,
-        array_1d<double,2> & ShapeFunction
-        )
-{
-    // Assuming X-Y plane
-    double aux_div = 1e-12; // To avoid division by zero
-    double L  = std::sqrt(std::pow(Coor2[0]          - Coor1[0], 2.00) + std::pow(Coor2[1]          - Coor1[1], 2.00)) + aux_div;
-    double l1 = std::sqrt(std::pow(Point_to_inter[0] - Coor1[0], 2.00) + std::pow(Point_to_inter[1] - Coor1[1], 2.00));
-    double l2 = std::sqrt(std::pow(Point_to_inter[0] - Coor2[0], 2.00) + std::pow(Point_to_inter[1] - Coor2[1], 2.00));
-
-    ShapeFunction[0] = (L - l1)/L;
-    ShapeFunction[1] = (L - l2)/L;
-
-    if (ShapeFunction[0] < 0.0 && ShapeFunction[0] > 1.0)
-    {
-        ShapeFunction[0] = 0.0;
-    }
-    if (ShapeFunction[1] < 0.0 && ShapeFunction[1] > 1.0)
-    {
-        ShapeFunction[1] = 0.0;
     }
 }
 
@@ -491,32 +562,59 @@ void AdvancedNMPointsMapper::TriangleCenterAndRadius(
 
 void AdvancedNMPointsMapper::SetProjectionToCond(
         GaussPointItem& GaussPoint,
-        Condition::Pointer pCandidateCond
+        Condition::Pointer pCandidateCond,
+        const int dimension
         )
 {
     array_1d<double,2> LocalCoords;
     double Dist;
-    GaussPoint.Project(pCandidateCond, LocalCoords, Dist);
+    GaussPoint.Project(pCandidateCond, LocalCoords, Dist, dimension);
 
-    // Point belongs to Condition
-    if (LocalCoords[0] >= 0.0 && LocalCoords[1] >= 0.0 &&
-        (1.0 - LocalCoords[0] - LocalCoords[1]) >= 0.0)
+    if (dimension == 2)
     {
-        int Status = 0;
-        GaussPoint.GetProjStatus(Status);
-
-        if ( Status != 1) // No good projection found (yet)
+        // Point belongs to Condition
+        if (LocalCoords[0] >= 0.0 && LocalCoords[0] <= 1.0)
         {
-            GaussPoint.SetProjection(pCandidateCond,LocalCoords,Dist);
-        }
-        else // A good projection was found in a previous iteration
-        {
-            double CurrentDist = 0.0;
-            GaussPoint.GetDist(CurrentDist);
+            int Status = 0;
+            GaussPoint.GetProjStatus(Status);
 
-            if (Dist < CurrentDist)
+            if ( Status != 1) // No good projection found (yet)
             {
-                GaussPoint.SetProjection(pCandidateCond,LocalCoords,Dist);
+                GaussPoint.SetProjection(pCandidateCond, LocalCoords, Dist);
+            }
+            else // A good projection was found in a previous iteration
+            {
+                double CurrentDist = 0.0;
+                GaussPoint.GetDist(CurrentDist);
+
+                if (Dist < CurrentDist)
+                {
+                    GaussPoint.SetProjection(pCandidateCond, LocalCoords, Dist);
+                }
+            }
+        }
+    }
+    else
+    {
+        // Point belongs to Condition
+        if (LocalCoords[0] >= 0.0 && LocalCoords[1] >= 0.0 && (1.0 - LocalCoords[0] - LocalCoords[1]) >= 0.0)
+        {
+            int Status = 0;
+            GaussPoint.GetProjStatus(Status);
+
+            if ( Status != 1) // No good projection found (yet)
+            {
+                GaussPoint.SetProjection(pCandidateCond ,LocalCoords, Dist);
+            }
+            else // A good projection was found in a previous iteration
+            {
+                double CurrentDist = 0.0;
+                GaussPoint.GetDist(CurrentDist);
+
+                if (Dist < CurrentDist)
+                {
+                    GaussPoint.SetProjection(pCandidateCond, LocalCoords, Dist);
+                }
             }
         }
     }
@@ -573,15 +671,31 @@ void AdvancedNMPointsMapper::ScalarMap(
 
     if (dimension == 2) // 2D case
     {
-        KRATOS_THROW_ERROR( std::logic_error, "2D case not implemented yet!!!", "" );
-        // Note: Use the normal to project and the shape functions to get the values
+        int GPi = 0;
+        std::vector< double > GPValues; // The Gauss points are coincidents with the nodes
+        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
+                cond_it != mrDestinationModelPart.ConditionsEnd();
+                cond_it++)
+        {
+            double GPValue;
 
-//        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
-//                cond_it != mrDestinationModelPart.ConditionsEnd();
-//                cond_it++)
-//        {
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValue, dimension);
+                GPValues.push_back(GPValue);
+            }
 
-//        }
+            GPi += 2; // 1 Condition = 2 Gauss Points
+        }
+
+        GPi = 0;
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            node_it->FastGetSolutionStepValue(rDestVar) += GPValues[GPi];
+            GPi += 1;
+        }
     }
     else // 3D case
     {
@@ -626,10 +740,10 @@ void AdvancedNMPointsMapper::ScalarMap(
             for (unsigned int i = 0; i < 3; i++)
             {
                 cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
-                mGaussPointList[GPi+i]->GetProjectedValue(rOriginVar,GPValues[i]);
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i], dimension);
             }
 
-            noalias(NodalValues) = (CondArea/24.0) * prod(MInterp,GPValues);
+            noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
 
             boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
@@ -648,8 +762,8 @@ void AdvancedNMPointsMapper::ScalarMap(
                 node_it->GetValue(AUX) = 0.0;
             }
 
-            array_1d<double,3> LocalRHS;
-            array_1d<double,3> LastSolution;
+            array_1d<double, 3> LocalRHS;
+            array_1d<double, 3> LastSolution;
             int IV_iter = 0;
 
             for (ModelPart::ConditionsContainerType::iterator cond_it = mrDestinationModelPart.ConditionsBegin();
@@ -665,7 +779,7 @@ void AdvancedNMPointsMapper::ScalarMap(
                 double CondArea = 0.0;
                 mGaussPointList[3 * IV_iter]->GetArea(CondArea);
 
-                noalias(LocalRHS) = *pInterpValues[IV_iter] - (CondArea/12.0) * prod(MCons,LastSolution);
+                noalias(LocalRHS) = *pInterpValues[IV_iter] - (CondArea/12.0) * prod(MCons, LastSolution);
                 // We are taking advantage of 1 Condition = 3 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
 
                 for (unsigned int j = 0; j < 3 ; j++)
@@ -687,12 +801,12 @@ void AdvancedNMPointsMapper::ScalarMap(
                     node_it++)
             {
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
-                //node_it->FastGetSolutionStepValue(NODAL_MAUX)=NodeArea; // TEST: store nodal area so GiD can paint it later
+                //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
                 double dVal = node_it->GetValue(AUX)/NodeArea;
                 node_it->FastGetSolutionStepValue(rDestVar) += dVal;
 
                 // Variables for convergence check
-                dValNorm += dVal*dVal;
+                dValNorm += std::pow(dVal, 2.00);
                 ValNorm  += pow(node_it->FastGetSolutionStepValue(rDestVar), 2);
                 NodeNum++;
             }
@@ -703,7 +817,7 @@ void AdvancedNMPointsMapper::ScalarMap(
             {
                 RelativeError = dValNorm / ValNorm;
             }
-            if( (ValNorm/NodeNum < 0.00001 * TolIter*TolIter) || (RelativeError < TolIter*TolIter) )
+            if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
                 std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
@@ -741,14 +855,31 @@ void AdvancedNMPointsMapper::VectorMap(
 
     if (dimension == 2) // 2D case
     {
-        KRATOS_THROW_ERROR( std::logic_error, "2D case not implemented yet!!!", "" );
-        // Note: Use the normal to project and the shape functions to get the values
-//        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
-//                cond_it != mrDestinationModelPart.ConditionsEnd();
-//                cond_it++)
-//        {
+        int GPi = 0;
+        std::vector< array_1d<double,3> > GPValues; // The Gauss points are coincidents with the nodes
+        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
+                cond_it != mrDestinationModelPart.ConditionsEnd();
+                cond_it++)
+        {
+            array_1d<double,3> GPValue;
 
-//        }
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValue, dimension);
+                GPValues.push_back(GPValue);
+            }
+
+            GPi += 2; // 1 Condition = 2 Gauss Points
+        }
+
+        GPi = 0;
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            node_it->FastGetSolutionStepValue(rDestVar) += GPValues[GPi];
+            GPi += 1;
+        }
     }
     else // 3D case
     {
@@ -775,21 +906,21 @@ void AdvancedNMPointsMapper::VectorMap(
 
             array_1d<double,3> TempValues = ZeroVect;
 
-            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues);
+            mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, dimension);
 
             for (unsigned int i = 0; i < 3; i++)
             {
                 GPValues[i] = TempValues[i];
             }
 
-            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues);
+            mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, dimension);
 
             for (unsigned int i = 0; i < 3; i++)
             {
                 GPValues[3 + i] = TempValues[i];
             }
 
-            mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues);
+            mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues, dimension);
 
             for (unsigned int i = 0; i < 3; i++)
             {
