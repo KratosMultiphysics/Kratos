@@ -49,7 +49,7 @@ class K_sum:
         m = self.m 
         return sum([Ks[i].a * Ks[i].df(t) for i in range(m)])
 
-class F:
+class Functional:
     def __init__(self, tis):
         self.tis = tis
         self.sqrt_pi = sqrt(math.pi)
@@ -97,7 +97,25 @@ def FillUpMatrices(F, a):
     #print(H)
     return grad, np.linalg.inv(H)       
     
+def GetExponentialsCoefficients(functional, a0):
+    tol = 1e-9
+    max_iter = 10
+    a = np.array(a0)
+    a_old = np.array(a0) 
+    
+    still_changes = True
+    iteration = 0
 
+    while still_changes and iteration < max_iter:
+        iteration += 1
+        grad, H_inv = FillUpMatrices(functional, a)
+        a -= H_inv.dot(grad)    
+        still_changes = np.linalg.norm(a - a_old) > tol
+        a_old[:] = a[:]
+        
+    a0[:] = a[:]
+    
+    
 tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
 a0 = [0.2 for ti in tis]
 tol = 1e-9
@@ -106,12 +124,11 @@ still_changes = True
 a = np.array(a0)
 a_old = np.array(a0) 
 iteration = 0
-F = F(tis)
+F = Functional(tis)
 
 while still_changes and iteration < max_iter:
     iteration += 1
     grad, H_inv = FillUpMatrices(F, a)
-    print(a)
     a -= H_inv.dot(grad)    
     still_changes = np.linalg.norm(a - a_old) > tol
     a_old[:] = a[:]
