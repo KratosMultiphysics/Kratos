@@ -167,8 +167,8 @@ public:
         mpOriginNode = pNode;
         mDist = SqDist;
         mProjStatus = 2;
-        mOriginCoords[0] = 0;
-        mOriginCoords[1] = 0;
+        mOriginCoords[0] = 0.0;
+        mOriginCoords[1] = 0.0;
     }
 
     /**
@@ -178,29 +178,62 @@ public:
     void Project(
             Condition::Pointer pOriginCond,
             array_1d<double,2> & Coords,
-            double & Dist
+            double & Dist,
+            const int dimension
+            );
+
+    /**
+     * It does a very primitive projection in 2D (assuming X-Y plane)
+     * @param Point_to_project: The coordinates of the point to be projected
+     * @param Coor1/2: The coordinates of the points that define the line where project
+     * @return Point_projected: The coordiantes of the point projected in the line
+     */
+
+    void ProjectLine2D(
+            const array_1d<double,3> & Point_to_project,
+            const array_1d<double,3> & Coor1,
+            const array_1d<double,3> & Coor2,
+            array_1d<double,3> & Point_projected
+            );
+
+    /**
+     * It does a very primitive interpolation beetween the nodes conforming the line
+     * @param Point_to_project: The coordinates of the point to be interpolated
+     * @param Coor1/2: The coordinates of the points that define the line where project
+     * @return ShapeFunction: The shape function
+     */
+
+    void LineShapeFunction2D(
+            const array_1d<double,3> & Point_to_inter,
+            const array_1d<double,3> & Coor1,
+            const array_1d<double,3> & Coor2,
+            array_1d<double,2> & ShapeFunction
             );
 
     /**
      * It gets the projected value for scalar variables
      * @param rOriginVar: The variable (scalar) in the original condition
      * @return Value: The projected value (scalar)
+     * @param dimension: 2D/3D case
      */
 
     void GetProjectedValue(
             const Variable<double> & rOriginVar,
-            double& Value
+            double& Value,
+            const int dimension
             );
 
     /**
      * It gets the projected value for vector variables
      * @param rOriginVar: The variable (vector) in the original condition
      * @return Value: The projected value (vector)
+     * @param dimension: 2D/3D case
      */
 
     void GetProjectedValue(
             const Variable< array_1d<double,3> > & rOriginVar,
-            array_1d<double,3>& Value
+            array_1d<double,3>& Value,
+            const int dimension
             );
 
 private:
@@ -406,34 +439,6 @@ private:
     ///@{
 
     /**
-     * It does a very primitive projection in 2D (assuming X-Y plane)
-     * @param Point_to_project: The coordinates of the point to be projected
-     * @param Coor1/2: The coordinates of the points that define the line where project
-     * @return Point_projected: The coordiantes of the point projected in the line
-     */
-
-    void ProjectLine2D(
-            const array_1d<double,3> & Point_to_project,
-            const array_1d<double,3> & Coor1,
-            const array_1d<double,3> & Coor2,
-            array_1d<double,3> & Point_projected
-            );
-
-    /**
-     * It does a very primitive interpolation beetween the nodes conforming the line
-     * @param Point_to_project: The coordinates of the point to be interpolated
-     * @param Coor1/2: The coordinates of the points that define the line where project
-     * @return ShapeFunction: A simple shape functions
-     */
-
-    void GaussLobattoLine2D(
-            const array_1d<double,3> & Point_to_inter,
-            const array_1d<double,3> & Coor1,
-            const array_1d<double,3> & Coor2,
-            array_1d<double,2> & ShapeFunction
-            );
-
-    /**
      * It calculates the normal and area of a condition
      * @param pCond: The pointer to the condition
      * @return Normal: The normal of the condition
@@ -475,19 +480,21 @@ private:
             );
 
     /**
-     * It sets the projectioon of a Gauss node to a condition
+     * Desired outcome: It sets the projectioon of a Gauss node to a condition
      * @param GaussPoint: The origin Gauss Point
      * @return pCandidateCond: The candidate condition
      * @param Dist: The distance between the node and the Gauss Point
+     * @param dimension: 2D/3D case
      */
 
     void SetProjectionToCond(
             GaussPointItem& GaussPoint,
-            Condition::Pointer pCandidateCond
-            ); // Desired outcome
+            Condition::Pointer pCandidateCond,
+            const int dimension
+            );
 
     /**
-     * It sets the projection of a Gauss point to a node
+     * Alternative when no condition is available: It sets the projection of a Gauss point to a node
      * @param GaussPoint: The origin Gauss Point
      * @return pCandidateNode: The candidate node
      * @param Dist: The distance between the node and the Gauss Point
@@ -497,7 +504,7 @@ private:
             GaussPointItem& GaussPoint,
             Node<3>::Pointer pCandidateNode,
             const double& Dist
-            ); // Alternative when no condition is available
+            );
 
     /**
      *  Test function, stores the distance between a Gauss Point and its projection
