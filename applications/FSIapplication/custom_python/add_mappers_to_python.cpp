@@ -17,7 +17,7 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_mappers_to_python.h"
-#include "custom_utilities/AdvancedNMPointsMapper.h"
+#include "custom_utilities/AdvancedNMPointsMapper.hpp"
 #include "custom_utilities/InterfacePreprocess.h"
 
 #include "custom_utilities/shared_points_mapper.h"
