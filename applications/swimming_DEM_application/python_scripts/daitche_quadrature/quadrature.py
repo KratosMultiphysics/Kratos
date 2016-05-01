@@ -4,8 +4,10 @@ import mpmath
 import matplotlib.pyplot as plt
 from bigfloat import *
 
-def ExactIntegrationOfSinusKernel(t):
-    return 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(-0.5, t))
+def ExactIntegrationOfSinusKernel(t, t0 = 0):
+    up_to_t  = 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(-0.5, t))
+    up_to_t0 = 0.5 * math.pi * math.sqrt(t0) * (mpmath.angerj(0.5, t0) - mpmath.angerj(-0.5, t0))
+    return up_to_t - up_to_t0
        
 
 def ApproximateQuadrature(times, f):
@@ -31,6 +33,7 @@ def Alpha(n, j):
         elif j == 0:
             return four_thirds
         else:
+            print(j)
             return four_thirds * ((n - 1) ** exponent - n ** exponent + exponent * sqrt(n))
 
 def Beta(n, j):
@@ -201,9 +204,11 @@ def Coefficient(order, n, j):
         return Gamma(n, j)
 
 def Daitche(order, times, f):
+    t = times[- 1]
+    t0 = times[0]
     sqrt_of_h = math.sqrt(times[-1] - times[-2])    
     n = len(times) - 1
-    total = 0.0
+    total = 0.0   
     
     for j in range(0 , n + 1):
         coefficient = Coefficient(order, n, j)
@@ -211,24 +216,89 @@ def Daitche(order, times, f):
     
     return sqrt_of_h * total
 
-def Hinsberg(m, times, f):
-    import optimization as op
-    t_win = 0.5
-    recent_times = [time for time in times if time < t_win]
-    old_times =    [time for time in times if time >= t_win]
-    F_win = Daitche(1, times, f)
-    
-    F_tail = 
+def Phi(t):
+    if t > 1e-10:
+        answer = (exp(t) - 1) / t
+    else:
+        answer = 1 + 0.5 * t + 1. / 6 * t ** 2
+    return answer
 
-def Bombardelli(times, f):
+def Hinsberg(m, times, f):
+    if len(times) < 4:
+        return Bombardelli(times, f, 2)
+    else:
+        import hinsberg_optimization as op
+        t_win = 0.3 * times[- 1]
+        for i in range(len(times)):
+            if times[i] >= t_win:
+                break
+        old_times = [time * t_win / times[-1] for time in times]
+        recent_times = [t_win + time * (times[-1] - times[0] - t_win) / (times[-1] - times[0]) for time in times]
+        
+        F_win = Bombardelli(recent_times, f, 2)
+        tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+        #tis = [0.1, 0.3, 0.5, 0.7, 0.8, 1.0, 2.0]        
+        a0 = [0.2 for ti in tis]
+        functional = op.Functional(tis)
+        op.GetExponentialsCoefficients(functional, a0)
+        F_tail = 0.
+        contributions = [0.0 for coefficient in a0]
+
+        for i in range(len(a0)):
+            ti = tis[i]
+            for k in range(2, len(old_times)):
+                delta_t = old_times[k] - old_times[k - 1]                
+                normalized_dt = delta_t / (2 * ti)
+                normalized_t = old_times[k - 1] / (2 * ti)
+                fn = f(old_times[k - 1])
+                fn_plus_1 = f(old_times[k])
+                Fdi = 2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp(- normalized_dt) * (Phi(normalized_dt) - 1.))
+            
+                if len(old_times) > 1:
+                    Fre = exp(- normalized_dt) * contributions[i]
+                else:
+                    Fre = 0.
+                contributions[i] = Fdi + Fre
+                
+            F_tail += a0[i] * contributions[i]
+        print("times",times)
+        print("old_times", old_times)
+        print("recent_times",recent_times)   
+        print("exact over the whole history", ExactIntegrationOfSinusKernel(times[-1], times[0]))
+        print("Daitche(1, times, f)", Daitche(1, times, f))        
+        print("exact over recent times", ExactIntegrationOfSinusKernel(recent_times[-1], recent_times[0]))
+        print("Daitche(1, recent_times, f)", Daitche(1, recent_times, f))
+        print("Bombardelli(recent_times, f)", Bombardelli(recent_times, f, 2))            
+        print("Daitche - OldDaitche", Daitche(1, times, f) -  Daitche(1, old_times, f))            
+        print("Bombardelli - OldBombardelli", Bombardelli(times, f) - Bombardelli(old_times, f))                    
+        print("exact over old times", ExactIntegrationOfSinusKernel(old_times[-1], old_times[0]))    
+        print(F_tail)   
+        print("F_win + F_tail", F_win + F_tail)
+        para
+        return F_win + F_tail
+
+def Bombardelli(times, f, order = 1):
     with precision(200):
         q = - 0.5
-        t = 1.0
-        a = 0.0
-        N = len(times)
-        coeff = gamma(0.5) / gamma(- q) * ((t - a) / N) ** (- q)
-        values = [gamma(k - q) / gamma(k + 1) * f(t - (k * (t - a)) / N) for k in range(N)]
-        return coeff * sum(values)
+        t = times[- 1]
+        a = times[0]
+        N = len(times) - 1
+        h = (t - a) / N
+        initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
+        #initial_approx_deriv = cos(a)
+        constant_initial_correction = t ** (- q) / gamma(1 - q) * f(a)
+        linear_initial_correction = t ** (1 - q) / gamma(2 - q) * initial_approx_deriv
+        linear_correction_option = 1
+
+        if order == 1:
+            coeff = h ** (- q)
+            values = [gamma(k - q) / gamma(k + 1) * (f(t - k * h) - f(a)) for k in range(N)]
+            initial_value_correction = constant_initial_correction
+        else:
+            coeff = h ** (- q) * gamma(- q)
+            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]
+            initial_value_correction =  gamma(- q) * (constant_initial_correction + linear_correction_option * linear_initial_correction)
+        return coeff * sum(values) + initial_value_correction
 
 def SubstituteRichardsons(approx_successive_values, k, order, level = - 1):
     with precision(200):
@@ -299,9 +369,11 @@ def SubstituteShanks(approx_sequence):
 t = 1.0
 f = math.sin
 n_discretizations = 6
-min_exp = 1
+min_exp = 2
 k = 2
 n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
+m = 10
+
 print("Sizes: ", n_div)
 exact_values = []
 approx_values_naive = []
@@ -309,15 +381,18 @@ approx_values_1 = []
 approx_values_2 = []
 approx_values_3 = []
 approx_values_bomb = []
+approx_values_hins = []
 errors_naive = []
 errors_1 = []
 errors_2 = []
 errors_3 = []
 errors_bomb = []
+errors_hins = []
 
 for n_divisions in n_div:
     h = t / n_divisions 
-    times = [h * delta for delta in range(n_divisions + 1)]
+    times = [h * delta for delta in range(n_divisions)]
+    times.append(t)
     values = [float(ExactIntegrationOfSinusKernel(t)) for t in times]
     exact_value = values[-1]
     exact_values.append(exact_value)
@@ -325,28 +400,33 @@ for n_divisions in n_div:
     approx_value_1 = Daitche(1, times, f)
     approx_value_2 = Daitche(2, times, f)
     approx_value_3 = Daitche(3, times, f)
-    approx_value_bomb = Bombardelli(times, f)
+    approx_value_bomb = Bombardelli(times, f, 2)
+    approx_value_hins = Hinsberg(m, times, f)    
     approx_values_naive.append(approx_value_naive)
     approx_values_1.append(approx_value_1)
     approx_values_2.append(approx_value_2)
     approx_values_3.append(approx_value_3)
     approx_values_bomb.append(approx_value_bomb)
+    approx_values_hins.append(approx_value_hins)    
     errors_naive.append(abs((approx_value_naive - exact_value) / exact_value))
     errors_1.append(abs((approx_value_1 - exact_value) / exact_value))
     errors_2.append(abs((approx_value_2 - exact_value) / exact_value))
     errors_3.append(abs((approx_value_3 - exact_value) / exact_value))
     errors_bomb.append(abs((approx_value_bomb - exact_value) / exact_value))
+    errors_hins.append(abs((approx_value_hins - exact_value) / exact_value))    
 
 approx_values_naive_rich = [value for value in approx_values_naive] 
 approx_values_1_rich = [value for value in approx_values_1] 
 approx_values_2_rich = [value for value in approx_values_2] 
 approx_values_3_rich = [value for value in approx_values_3]
 approx_values_bomb_rich = [value for value in approx_values_bomb]
+approx_values_hins_rich = [value for value in approx_values_hins]
 approx_values_naive_rich_emp = [value for value in approx_values_naive] 
 approx_values_1_rich_emp = [value for value in approx_values_1] 
 approx_values_2_rich_emp = [value for value in approx_values_2] 
 approx_values_3_rich_emp = [value for value in approx_values_3]
-approx_values_bomb_rich_emp = [value for value in approx_values_bomb] 
+approx_values_bomb_rich_emp = [value for value in approx_values_bomb]
+approx_values_hins_rich_emp = [value for value in approx_values_hins] 
 
 #approx_values_naive_rich[-1] = mpmath.richardson(approx_values_naive_rich)[0]
 #approx_values_1_rich[-1] = mpmath.richardson(approx_values_1_rich)[0]
@@ -356,43 +436,51 @@ SubstituteRichardsons(approx_values_naive_rich, k, 0.5)
 SubstituteRichardsons(approx_values_1_rich, k, 2)
 SubstituteRichardsons(approx_values_2_rich, k, 3)
 SubstituteRichardsons(approx_values_3_rich, k, 4)
-SubstituteRichardsons(approx_values_bomb_rich, k, 1)
+SubstituteRichardsons(approx_values_bomb_rich, k, 2)
+SubstituteRichardsons(approx_values_hins_rich, k, 1)
 SubstituteEmpiricalRichardsons(approx_values_naive_rich_emp, k, 0.5)
 SubstituteEmpiricalRichardsons(approx_values_1_rich_emp, k, 2)
 SubstituteEmpiricalRichardsons(approx_values_2_rich_emp, k, 3)
 SubstituteEmpiricalRichardsons(approx_values_3_rich_emp, k, 4)
-SubstituteEmpiricalRichardsons(approx_values_bomb_rich_emp, k, 1)
+SubstituteEmpiricalRichardsons(approx_values_bomb_rich_emp, k, 2)
+SubstituteEmpiricalRichardsons(approx_values_hins_rich_emp, k, 1)
 approx_values_naive_shank = [value for value in approx_values_naive]
 approx_values_1_shank = [value for value in approx_values_1] 
 approx_values_2_shank = [value for value in approx_values_2] 
 approx_values_3_shank = [value for value in approx_values_3]
-approx_values_bomb_shank = [value for value in approx_values_bomb] 
+approx_values_bomb_shank = [value for value in approx_values_bomb]
+approx_values_hins_shank = [value for value in approx_values_hins] 
 SubstituteShanks(approx_values_naive_shank)
 SubstituteShanks(approx_values_1_shank)
 SubstituteShanks(approx_values_2_shank)
 SubstituteShanks(approx_values_3_shank)
 SubstituteShanks(approx_values_bomb_shank)
+SubstituteShanks(approx_values_hins_shank)
 errors_naive_rich = [abs((approx_values_naive_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_1_rich = [abs((approx_values_1_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_2_rich = [abs((approx_values_2_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_3_rich = [abs((approx_values_3_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_bomb_rich = [abs((approx_values_bomb_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_hins_rich = [abs((approx_values_hins_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_naive_rich_emp = [abs((approx_values_naive_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_1_rich_emp = [abs((approx_values_1_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_2_rich_emp = [abs((approx_values_2_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_3_rich_emp = [abs((approx_values_3_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_bomb_rich_emp = [abs((approx_values_bomb_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_hins_rich_emp = [abs((approx_values_hins_rich_emp[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_naive_shank = [abs((approx_values_naive_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_1_shank = [abs((approx_values_1_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_2_shank = [abs((approx_values_2_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_3_shank = [abs((approx_values_3_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_bomb_shank = [abs((approx_values_bomb_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
+errors_hins_shank = [abs((approx_values_hins_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 theoretical_slope_naive = []
 theoretical_slope_naive = [errors_naive[0] * 0.5 ** math.sqrt(i) for i in range(len(n_div))]
 theoretical_slope_1 = [errors_1[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
 theoretical_slope_2 = [errors_2[0] * 0.5 ** (3 * i) for i in range(len(n_div))]
 theoretical_slope_3 = [errors_3[0] * 0.5 ** (4 * i) for i in range(len(n_div))]
-theoretical_slope_bomb = [errors_bomb[0] * 0.5 ** i for i in range(len(n_div))]
+theoretical_slope_bomb = [errors_bomb[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
+theoretical_slope_hins = [errors_hins[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
 
 
 plt.plot(n_div, errors_naive, color='r')
@@ -400,26 +488,31 @@ plt.plot(n_div, errors_1, color='b')
 plt.plot(n_div, errors_2, color='g')
 plt.plot(n_div, errors_3, color='k')
 plt.plot(n_div, errors_bomb, color='c')
+plt.plot(n_div, errors_hins, color='m')
 plt.plot(n_div, errors_naive_rich, color='r', linestyle = '--')
 plt.plot(n_div, errors_1_rich, color='b', linestyle = '--')
 plt.plot(n_div, errors_2_rich, color='g', linestyle = '--')
 plt.plot(n_div, errors_3_rich, color='k', linestyle = '--')
 plt.plot(n_div, errors_bomb_rich, color='c', linestyle = '--')
+plt.plot(n_div, errors_hins_rich, color='m', linestyle = '--')
 plt.plot(n_div, errors_naive_rich_emp, color='r', linestyle = '-.')
 plt.plot(n_div, errors_1_rich_emp, color='b', linestyle = '-.')
 plt.plot(n_div, errors_2_rich_emp, color='g', linestyle = '-.')
 plt.plot(n_div, errors_3_rich_emp, color='k', linestyle = '-.')
 plt.plot(n_div, errors_bomb_rich_emp, color='c', linestyle = '-.')
+#plt.plot(n_div, errors_hins_rich_emp, color='m', linestyle = '-.')
 #plt.plot(n_div, errors_naive_shank, color='r', linestyle = '-.')
 #plt.plot(n_div, errors_1_shank, color='b', linestyle = '-.')
 #plt.plot(n_div, errors_2_shank, color='g', linestyle = '-.')
 #plt.plot(n_div, errors_3_shank, color='k', linestyle = '-.')
 #plt.plot(n_div, errors_bomb_shank, color='c', linestyle = '-.')
+plt.plot(n_div, errors_hins_shank, color='m', linestyle = '-.')
 plt.plot(n_div, theoretical_slope_naive, color='r', linestyle = ':')
 plt.plot(n_div, theoretical_slope_1, color='b', linestyle = ':')
 plt.plot(n_div, theoretical_slope_2, color='g', linestyle = ':')
 plt.plot(n_div, theoretical_slope_3, color='k', linestyle = ':')
 plt.plot(n_div, theoretical_slope_bomb, color='c', linestyle = ':')
+plt.plot(n_div, theoretical_slope_hins, color='m', linestyle = ':')
 plt.loglog()
 #plt.show()
 #print("Naive: ", ApproximateQuadrature(times, f))
@@ -427,7 +520,7 @@ plt.loglog()
 #print("Second Order Daitche: ", Daitche(2, times, f))
 #print("Third Order Daitche: ", Daitche(3, times, f))
 #plt.plot(times, values)
-final_time = 0.01
+final_time = 1.0
 h = 0.001
 order = 1
 optimal_a =  1 / (2 * (order + 1))
