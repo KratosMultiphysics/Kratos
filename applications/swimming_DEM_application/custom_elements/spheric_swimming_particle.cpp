@@ -21,7 +21,7 @@
 #include "spheric_swimming_particle.h"
 #include "../applications/DEM_application/custom_utilities/GeometryFunctions.h"
 #include "../applications/DEM_application/custom_utilities/AuxiliaryFunctions.h"
-#include "DEM_application.h"
+//#include "DEM_application.h"
 
 #define SWIMMING_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
 #define SWIMMING_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];

@@ -18,7 +18,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "swimming_DEM_application.h"
-#include "../DEM_application/DEM_application.h"
+//#include "../DEM_application/DEM_application.h"
 
 
 
