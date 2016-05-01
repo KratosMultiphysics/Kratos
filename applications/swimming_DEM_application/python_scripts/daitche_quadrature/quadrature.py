@@ -225,19 +225,20 @@ def Phi(t):
 
 def Hinsberg(m, times, f):
     if len(times) < 4:
-        return Bombardelli(times, f, 2)
+        return Bombardelli(times, f, 1)
     else:
         import hinsberg_optimization as op
         t_win = 0.3 * times[- 1]
         for i in range(len(times)):
             if times[i] >= t_win:
                 break
-        old_times = [time * t_win / times[-1] for time in times]
-        recent_times = [t_win + time * (times[-1] - times[0] - t_win) / (times[-1] - times[0]) for time in times]
-        
-        F_win = Bombardelli(recent_times, f, 2)
+        old_times = [time * times[i] / times[-1] for time in times]
+        recent_times = [times[i] + time * (times[-1] - times[0] - times[i]) / (times[-1] - times[0]) for time in times]
+        print(recent_times)
+        F_win = Bombardelli(recent_times, f, 1)
+        print("RECENT", F_win)
         tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
-        #tis = [0.1, 0.3, 0.5, 0.7, 0.8, 1.0, 2.0]        
+        tis = [0.1, 0.3, 0.5, 0.7, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 20, 190, 500, 1000, 5000, 50000]        
         a0 = [0.2 for ti in tis]
         functional = op.Functional(tis)
         op.GetExponentialsCoefficients(functional, a0)
@@ -271,10 +272,11 @@ def Hinsberg(m, times, f):
         print("Bombardelli(recent_times, f)", Bombardelli(recent_times, f, 2))            
         print("Daitche - OldDaitche", Daitche(1, times, f) -  Daitche(1, old_times, f))            
         print("Bombardelli - OldBombardelli", Bombardelli(times, f) - Bombardelli(old_times, f))                    
-        print("exact over old times", ExactIntegrationOfSinusKernel(old_times[-1], old_times[0]))    
+        print("exact over old times", ExactIntegrationOfSinusKernel(old_times[-1], old_times[0]))
+        print(F_win)
         print(F_tail)   
         print("F_win + F_tail", F_win + F_tail)
-        para
+        #para
         return F_win + F_tail
 
 def Bombardelli(times, f, order = 1):
@@ -373,6 +375,7 @@ min_exp = 2
 k = 2
 n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
 m = 10
+order_bomb = 2
 
 print("Sizes: ", n_div)
 exact_values = []
@@ -400,7 +403,7 @@ for n_divisions in n_div:
     approx_value_1 = Daitche(1, times, f)
     approx_value_2 = Daitche(2, times, f)
     approx_value_3 = Daitche(3, times, f)
-    approx_value_bomb = Bombardelli(times, f, 2)
+    approx_value_bomb = Bombardelli(times, f, order_bomb)
     approx_value_hins = Hinsberg(m, times, f)    
     approx_values_naive.append(approx_value_naive)
     approx_values_1.append(approx_value_1)
@@ -436,7 +439,7 @@ SubstituteRichardsons(approx_values_naive_rich, k, 0.5)
 SubstituteRichardsons(approx_values_1_rich, k, 2)
 SubstituteRichardsons(approx_values_2_rich, k, 3)
 SubstituteRichardsons(approx_values_3_rich, k, 4)
-SubstituteRichardsons(approx_values_bomb_rich, k, 2)
+SubstituteRichardsons(approx_values_bomb_rich, k, order_bomb)
 SubstituteRichardsons(approx_values_hins_rich, k, 1)
 SubstituteEmpiricalRichardsons(approx_values_naive_rich_emp, k, 0.5)
 SubstituteEmpiricalRichardsons(approx_values_1_rich_emp, k, 2)
@@ -479,7 +482,7 @@ theoretical_slope_naive = [errors_naive[0] * 0.5 ** math.sqrt(i) for i in range(
 theoretical_slope_1 = [errors_1[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
 theoretical_slope_2 = [errors_2[0] * 0.5 ** (3 * i) for i in range(len(n_div))]
 theoretical_slope_3 = [errors_3[0] * 0.5 ** (4 * i) for i in range(len(n_div))]
-theoretical_slope_bomb = [errors_bomb[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
+theoretical_slope_bomb = [errors_bomb[0] * 0.5 ** (order_bomb * i) for i in range(len(n_div))]
 theoretical_slope_hins = [errors_hins[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
 
 
