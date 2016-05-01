@@ -21,7 +21,7 @@
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/sphere_3d_1.h"
-#include "../DEM_application/DEM_application.h"
+//#include "../DEM_application/DEM_application.h"
 #include "../FluidDynamicsApplication/fluid_dynamics_application.h"
 
 namespace Kratos
