@@ -169,6 +169,7 @@ void  AddProcessesToPython()
             .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, double, std::size_t, Flags>())
             .def(init<ModelPart&, const Variable<int>&, int, std::size_t, Flags>())
             .def(init<ModelPart&, const Variable<bool>&, bool, std::size_t, Flags>())
+            .def("ExecuteInitialize", &ApplyConstantScalarValueProcess::ExecuteInitialize)
             .def_readonly("VARIABLE_IS_FIXED", &ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)
     ; 
 

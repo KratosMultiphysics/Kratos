@@ -95,7 +95,10 @@ public:
         }
         else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
         {
-            if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Get( mvariable_name ) ) == false )
+            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+            
+            if( model_part.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
             
             mdouble_value = rParameters["value"].GetDouble();
@@ -156,10 +159,12 @@ public:
         
         if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
                       
+        mvariable_name = rVariable.Name();     
+        
         if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable.GetSourceVariable() ) == false )
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
 
-        mvariable_name = rVariable.Name();       
+          
         
         KRATOS_CATCH("")
     }
@@ -254,6 +259,10 @@ public:
         else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
         {
             InternalApplyValueWithoutFixing<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
+        }
+        else
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "not able to fix the variable. Attempting to fix variable:",mvariable_name);
         }
         
         KRATOS_CATCH("")
@@ -350,19 +359,21 @@ private:
     void InternalApplyValue(TVarType& rVar, const bool to_be_fixed, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-        
+
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh(mmesh_id).NodesBegin();
 //             ModelPart::NodesContainerType::iterator it_end = mr_model_part.GetMesh(mmesh_id).NodesEnd();
             
-             #pragma omp parallel for
+             #pragma omp parallel for firstprivate(nnodes)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
                 if(to_be_fixed)
+                {
                     it->Fix(rVar); 
+                }
     
                 it->FastGetSolutionStepValue(rVar) = value;
             }
