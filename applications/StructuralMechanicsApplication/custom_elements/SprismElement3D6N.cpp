@@ -75,23 +75,23 @@ SprismElement3D6N::SprismElement3D6N(IndexType NewId, GeometryType::Pointer pGeo
     {
         if (GetProperties()[NINT_TRANS] == 2)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
         }
         else if (GetProperties()[NINT_TRANS] == 3)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
         }
         else if (GetProperties()[NINT_TRANS] == 5)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
         }
         else if (GetProperties()[NINT_TRANS] == 7)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
         }
         else if (GetProperties()[NINT_TRANS] == 11)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
         }
         else
         {

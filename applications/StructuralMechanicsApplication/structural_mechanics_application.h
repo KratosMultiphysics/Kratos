@@ -38,12 +38,14 @@
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* CONDITIONS */
+// Beam moment condition
 #include "custom_conditions/point_moment_3D_condition.hpp"
+// Mortar conditions
 #include "custom_conditions/mortar_contact_2D_condition.hpp"
 #include "custom_conditions/mortar_contact_3D_condition.hpp"
 
 /* UTILITIES */
-//cross sections
+// Cross sections
 #include "custom_utilities/shell_cross_section.hpp"
 
 namespace Kratos
@@ -51,12 +53,6 @@ namespace Kratos
 
 ///@name Kratos Globals
 ///@{
-
-// Variables definition
-//	KRATOS_DEFINE_VARIABLE(double, AUX_MESH_VAR )
-//	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
-//	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-
 
 ///@}
 ///@name Type Definitions
@@ -75,8 +71,10 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * This application features Elements, Conditions, Constitutive laws and Utilities
+ * for structural analysis problems
+ */
 class KratosStructuralMechanicsApplication : public KratosApplication
 {
 public:
@@ -229,7 +227,9 @@ private:
     const SprismElement3D6N mSprismElement3D6N;
 
     /* CONDITIONS*/
-    const PointMoment3DCondition mPointMomentCondition3D1N;
+    // Beam moment condition
+    const PointMoment3DCondition   mPointMomentCondition3D1N;
+    // Mortar conditions
     const MortarContact2DCondition mMortarContactCondition2D2N;
     const MortarContact3DCondition mMortarContactCondition3D3N;
     const MortarContact3DCondition mMortarContactCondition3D4N;

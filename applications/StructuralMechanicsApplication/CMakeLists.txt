@@ -19,17 +19,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
-        ## SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_sources/simple_integration_rules.cpp
-    
-        ## GEOMETRIES
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_geometries/simple_prism_3d_6.hpp
-	
         ## UTILITIES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
-        
-        ## INTEGRATION
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_integration/simple_prism_gauss_legendre_integration_points.hpp 
         
         ## ELEMENTS
         # Adding the beam element
