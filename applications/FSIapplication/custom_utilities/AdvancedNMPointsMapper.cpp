@@ -57,27 +57,27 @@ void GaussPointItem::Project(
         // | DestY-y3 | = | y1-y3 y2-y3 ny | . | Eta |
         // | DestZ-z3 |   | z1-z3 z2-z3 nz |   |  d  |
 
-        Matrix ChangeMatrix(3,3);
-        Matrix InvChange(3,3);
+        Matrix ChangeMatrix(3, 3, false);
+        Matrix InvChange(3, 3, false);
         double det;
 
-        array_1d<double,3> RHS, Res;
+        array_1d<double, 3> RHS, Res;
 
         RHS[0] = this->Coordinate(1) - pOriginCond->GetGeometry()[2].X();
         RHS[1] = this->Coordinate(2) - pOriginCond->GetGeometry()[2].Y();
         RHS[2] = this->Coordinate(3) - pOriginCond->GetGeometry()[2].Z();
 
-        ChangeMatrix(0,0) = pOriginCond->GetGeometry()[0].X() - pOriginCond->GetGeometry()[2].X();
-        ChangeMatrix(1,0) = pOriginCond->GetGeometry()[0].Y() - pOriginCond->GetGeometry()[2].Y();
-        ChangeMatrix(2,0) = pOriginCond->GetGeometry()[0].Z() - pOriginCond->GetGeometry()[2].Z();
+        ChangeMatrix(0, 0) = pOriginCond->GetGeometry()[0].X() - pOriginCond->GetGeometry()[2].X();
+        ChangeMatrix(1, 0) = pOriginCond->GetGeometry()[0].Y() - pOriginCond->GetGeometry()[2].Y();
+        ChangeMatrix(2, 0) = pOriginCond->GetGeometry()[0].Z() - pOriginCond->GetGeometry()[2].Z();
 
-        ChangeMatrix(0,1) = pOriginCond->GetGeometry()[1].X() - pOriginCond->GetGeometry()[2].X();
-        ChangeMatrix(1,1) = pOriginCond->GetGeometry()[1].Y() - pOriginCond->GetGeometry()[2].Y();
-        ChangeMatrix(2,1) = pOriginCond->GetGeometry()[1].Z() - pOriginCond->GetGeometry()[2].Z();
+        ChangeMatrix(0, 1) = pOriginCond->GetGeometry()[1].X() - pOriginCond->GetGeometry()[2].X();
+        ChangeMatrix(1, 1) = pOriginCond->GetGeometry()[1].Y() - pOriginCond->GetGeometry()[2].Y();
+        ChangeMatrix(2, 1) = pOriginCond->GetGeometry()[1].Z() - pOriginCond->GetGeometry()[2].Z();
 
-        ChangeMatrix(0,2) = mNormal[0];
-        ChangeMatrix(1,2) = mNormal[1];
-        ChangeMatrix(2,2) = mNormal[2];
+        ChangeMatrix(0, 2) = mNormal[0];
+        ChangeMatrix(1, 2) = mNormal[1];
+        ChangeMatrix(2, 2) = mNormal[2];
 
         MathUtils<double>::InvertMatrix3(ChangeMatrix,InvChange,det);
         noalias(Res) = prod(InvChange, RHS);
