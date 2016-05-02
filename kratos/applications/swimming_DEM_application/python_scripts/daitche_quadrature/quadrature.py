@@ -4,10 +4,24 @@ import mpmath
 import matplotlib.pyplot as plt
 from bigfloat import *
 
-def ExactIntegrationOfSinusKernel(t, t0 = 0):
-    up_to_t  = 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(-0.5, t))
-    up_to_t0 = 0.5 * math.pi * math.sqrt(t0) * (mpmath.angerj(0.5, t0) - mpmath.angerj(-0.5, t0))
-    return up_to_t - up_to_t0
+def ExactIntegrationOfSinusKernel(t, a = None, b = None):
+    with precision(300):
+        if a == None and b == None:
+            return 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(-0.5, t))
+        if a == None and b != None:
+            a = t
+        elif b == None:
+            b = 0.
+        mpmath.mp.dps = 50
+        mpmath.mp.pretty = True
+        pi = mpmath.mp.pi
+        pi = +pi
+        fcos = mpmath.fresnelc
+        fsin = mpmath.fresnels
+        
+        arg_a = mpmath.sqrt(2 * (t - a) / pi)
+        arg_b = mpmath.sqrt(2 * (t - b) / mpmath.mp.pi) 
+        return mpmath.sqrt(2 * mpmath.mp.pi) * ((fsin(arg_b) - fsin(arg_a)) * mpmath.cos(t) + (fcos(arg_a) - fcos(arg_b)) * mpmath.sin(t))
        
 
 def ApproximateQuadrature(times, f):
@@ -33,7 +47,6 @@ def Alpha(n, j):
         elif j == 0:
             return four_thirds
         else:
-            print(j)
             return four_thirds * ((n - 1) ** exponent - n ** exponent + exponent * sqrt(n))
 
 def Beta(n, j):
@@ -228,15 +241,16 @@ def Hinsberg(m, times, f):
         return Bombardelli(times, f, 1)
     else:
         import hinsberg_optimization as op
-        t_win = 0.3 * times[- 1]
+        t_win = 0.4 * times[- 1]
         for i in range(len(times)):
             if times[i] >= t_win:
                 break
         old_times = [time * times[i] / times[-1] for time in times]
         recent_times = [times[i] + time * (times[-1] - times[0] - times[i]) / (times[-1] - times[0]) for time in times]
         print(recent_times)
-        F_win = Bombardelli(recent_times, f, 1)
-        print("RECENT", F_win)
+        F_win = Daitche(1, recent_times, f)
+        F_win2 = Daitche(2, recent_times, f)
+        F_win3 = Daitche(3, recent_times, f) 
         tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
         tis = [0.1, 0.3, 0.5, 0.7, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 20, 190, 500, 1000, 5000, 50000]        
         a0 = [0.2 for ti in tis]
@@ -262,19 +276,23 @@ def Hinsberg(m, times, f):
                 contributions[i] = Fdi + Fre
                 
             F_tail += a0[i] * contributions[i]
+        final_time = times[- 1]
+        t_win = recent_times[0]
         print("times",times)
         print("old_times", old_times)
         print("recent_times",recent_times)   
-        print("exact over the whole history", ExactIntegrationOfSinusKernel(times[-1], times[0]))
+        print("exact over the whole history", ExactIntegrationOfSinusKernel(final_time))
         print("Daitche(1, times, f)", Daitche(1, times, f))        
-        print("exact over recent times", ExactIntegrationOfSinusKernel(recent_times[-1], recent_times[0]))
+        print("exact over recent times", ExactIntegrationOfSinusKernel(final_time, final_time, t_win))
         print("Daitche(1, recent_times, f)", Daitche(1, recent_times, f))
         print("Bombardelli(recent_times, f)", Bombardelli(recent_times, f, 2))            
         print("Daitche - OldDaitche", Daitche(1, times, f) -  Daitche(1, old_times, f))            
         print("Bombardelli - OldBombardelli", Bombardelli(times, f) - Bombardelli(old_times, f))                    
-        print("exact over old times", ExactIntegrationOfSinusKernel(old_times[-1], old_times[0]))
-        print(F_win)
-        print(F_tail)   
+        print("exact over old times", ExactIntegrationOfSinusKernel(final_time, 0., t_win))
+        print(F_tail)
+        print(F_win)        
+        print(F_win2) 
+        print(F_win3) 
         print("F_win + F_tail", F_win + F_tail)
         #para
         return F_win + F_tail
@@ -284,13 +302,16 @@ def Bombardelli(times, f, order = 1):
         q = - 0.5
         t = times[- 1]
         a = times[0]
+        if a == 0.5:
+            print("TIMES", times)
         N = len(times) - 1
         h = (t - a) / N
-        initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
-        #initial_approx_deriv = cos(a)
-        constant_initial_correction = t ** (- q) / gamma(1 - q) * f(a)
-        linear_initial_correction = t ** (1 - q) / gamma(2 - q) * initial_approx_deriv
-        linear_correction_option = 1
+        #initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
+        initial_approx_deriv = cos(a)
+        constant_initial_correction = 2 * sqrt(t - a) * f(a)#t ** (- q) / gamma(1 - q) * f(a)
+        linear_initial_correction = 2. / 3 * sqrt(t - a) * (a + 2 * t) * initial_approx_deriv 
+        #linear_initial_correction = t ** (1 - q) / gamma(2 - q) * initial_approx_deriv
+        linear_correction_option = 0
 
         if order == 1:
             coeff = h ** (- q)
@@ -298,7 +319,7 @@ def Bombardelli(times, f, order = 1):
             initial_value_correction = constant_initial_correction
         else:
             coeff = h ** (- q) * gamma(- q)
-            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]
+            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h - a) * initial_approx_deriv) for k in range(N)]
             initial_value_correction =  gamma(- q) * (constant_initial_correction + linear_correction_option * linear_initial_correction)
         return coeff * sum(values) + initial_value_correction
 
@@ -478,7 +499,7 @@ errors_3_shank = [abs((approx_values_3_shank[i] - exact_values[i]) / exact_value
 errors_bomb_shank = [abs((approx_values_bomb_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_hins_shank = [abs((approx_values_hins_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 theoretical_slope_naive = []
-theoretical_slope_naive = [errors_naive[0] * 0.5 ** math.sqrt(i) for i in range(len(n_div))]
+theoretical_slope_naive = [errors_naive[0] * 0.5 ** (i / 2) for i in range(len(n_div))]
 theoretical_slope_1 = [errors_1[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
 theoretical_slope_2 = [errors_2[0] * 0.5 ** (3 * i) for i in range(len(n_div))]
 theoretical_slope_3 = [errors_3[0] * 0.5 ** (4 * i) for i in range(len(n_div))]
@@ -498,11 +519,11 @@ plt.plot(n_div, errors_2_rich, color='g', linestyle = '--')
 plt.plot(n_div, errors_3_rich, color='k', linestyle = '--')
 plt.plot(n_div, errors_bomb_rich, color='c', linestyle = '--')
 plt.plot(n_div, errors_hins_rich, color='m', linestyle = '--')
-plt.plot(n_div, errors_naive_rich_emp, color='r', linestyle = '-.')
-plt.plot(n_div, errors_1_rich_emp, color='b', linestyle = '-.')
-plt.plot(n_div, errors_2_rich_emp, color='g', linestyle = '-.')
-plt.plot(n_div, errors_3_rich_emp, color='k', linestyle = '-.')
-plt.plot(n_div, errors_bomb_rich_emp, color='c', linestyle = '-.')
+#plt.plot(n_div, errors_naive_rich_emp, color='r', linestyle = '-.')
+#plt.plot(n_div, errors_1_rich_emp, color='b', linestyle = '-.')
+#plt.plot(n_div, errors_2_rich_emp, color='g', linestyle = '-.')
+#plt.plot(n_div, errors_3_rich_emp, color='k', linestyle = '-.')
+#plt.plot(n_div, errors_bomb_rich_emp, color='c', linestyle = '-.')
 #plt.plot(n_div, errors_hins_rich_emp, color='m', linestyle = '-.')
 #plt.plot(n_div, errors_naive_shank, color='r', linestyle = '-.')
 #plt.plot(n_div, errors_1_shank, color='b', linestyle = '-.')
@@ -523,20 +544,20 @@ plt.loglog()
 #print("Second Order Daitche: ", Daitche(2, times, f))
 #print("Third Order Daitche: ", Daitche(3, times, f))
 #plt.plot(times, values)
-final_time = 1.0
-h = 0.001
-order = 1
-optimal_a =  1 / (2 * (order + 1))
-best_a = optimal_a
-best_i = 0
-best_error = 999999999999999
-optimal_error = 0
-n_exponents = 20
-max_a = 3 * optimal_a
-delta_a = max_a / n_exponents
-def Id(x):
-    return 1.
-best_times = []
+#final_time = 1.0
+#h = 0.001
+#order = 1
+#optimal_a =  1 / (2 * (order + 1))
+#best_a = optimal_a
+#best_i = 0
+#best_error = 999999999999999
+#optimal_error = 0
+#n_exponents = 20
+#max_a = 3 * optimal_a
+#delta_a = max_a / n_exponents
+#def Id(x):
+    #return 1.
+#best_times = []
 
 #for i in range(n_exponents):
     #a = delta_a * i
