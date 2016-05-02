@@ -10,26 +10,20 @@
     
     <!-- list of options to be filled -->
     <parameter_list>
-      <parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  
-		 help="Activate/deactivate rotation degrees of freedom"/> 
-      <parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"
-		 help="Activate/deactivate pressure degrees of freedom"/> 
-      <parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" 
-		 help=""/> 
-      <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true"
-		 help=""/> 
-      <parameter n="line_search" pn="Line search" type="bool" v="false" values="false,true"
-		 help="Switch on/off line search"/> 
-      <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"
-		 help=""/> 
-      <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"
-		 help=""/> 
-      <parameter n="block_builder" pn="Block builder" type="bool" v="false" values="false,true"
-		 help=""/> 
-      <parameter n="component_wise" pn="Component wise" type="bool" v="false" values="false,true"
-		 help=""/> 
-      <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"
-		 help=""/> 
+      <!--<parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true" help="Activate/deactivate rotation degrees of freedom"/> -->
+      <!--<parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true" help="Activate/deactivate pressure degrees of freedom"/> -->
+      <!--<parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" help=""/> -->
+      <!--<parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true" help=""/> -->
+      <parameter n="line_search" pn="Line search" type="bool" v="false" values="false,true" help="Switch on/off line search"/> 
+<!--      <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false" help=""/> -->
+<!--      <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"-->
+<!--		 help=""/> -->
+<!--      <parameter n="block_builder" pn="Block builder" type="bool" v="false" values="false,true"-->
+<!--		 help=""/> -->
+<!--      <parameter n="component_wise" pn="Component wise" type="bool" v="false" values="false,true"-->
+<!--		 help=""/> -->
+<!--      <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"-->
+<!--		 help=""/> -->
       <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="Residual_criterion" 
          values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
          pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
@@ -94,22 +88,22 @@
     
     <!-- list of options to be filled -->
     <parameter_list> 
-            <parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  
-                help="Activate/deactivate rotation degrees of freedom"/> 
-            <parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"
-                help="Activate/deactivate pressure degrees of freedom"/>
-            <parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" 
-                help=""/>
-            <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true" 
-                help=""/> 
-            <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"
-                help=""/> 
-            <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"
-                help=""/> 
+            <!--<parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  -->
+            <!--    help="Activate/deactivate rotation degrees of freedom"/> -->
+            <!--<parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"-->
+            <!--    help="Activate/deactivate pressure degrees of freedom"/>-->
+            <!--<parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" -->
+            <!--    help=""/>-->
+            <!--<parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true" -->
+            <!--    help=""/> -->
+            <!--<parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"-->
+            <!--    help=""/> -->
+            <!--<parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"-->
+            <!--    help=""/> -->
             <parameter n="max_delta_time" pn="Maximum delta time" type="double" v="1.0e-5" 
                 help="Maximum delta time allowed"/>            
-            <parameter n="fraction_delta_time" pn="Fraction delta time" type="double" v="0.9" 
-                help=""/>            
+            <!--<parameter n="fraction_delta_time" pn="Fraction delta time" type="double" v="0.9" -->
+            <!--    help=""/>-->
             <parameter n="time_step_prediction_level" pn="Time step prediction level" type="double" v="0" values="0,1,2" 
                 help="Prediction level possibilities [0,1,2]"/>      
             <parameter n="rayleigh_damping" pn="Rayleigh damping" type="bool" v="false" values="false,true" 
@@ -149,26 +143,26 @@
     
     <!-- list of options to be filled -->
     <parameter_list> 
-        <parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  
-            help="Activate/deactivate rotation degrees of freedom"/> 
-        <parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"
-            help="Activate/deactivate pressure degrees of freedom"/> 
-        <parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" 
-            help=""/> 
-        <parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true"
-            help=""/> 
+        <!--<parameter n="rotation_dofs" pn="Rotation DOFs" type="bool" v="false" values="false,true"  -->
+        <!--    help="Activate/deactivate rotation degrees of freedom"/> -->
+        <!--<parameter n="pressure_dofs" pn="Pressure DOFs" type="bool" v="false" values="false,true"-->
+        <!--    help="Activate/deactivate pressure degrees of freedom"/> -->
+        <!--<parameter n="stabilization_factor" pn="Stabilization factor" type="double" v="1.0" -->
+        <!--    help=""/> -->
+        <!--<parameter n="reform_dofs_at_each_iteration" pn="Reform DOFs at each iteration" type="bool" v="false"  values="false,true"-->
+        <!--    help=""/> -->
         <parameter n="line_search" pn="Line search" type="bool" v="false" values="false,true"
             help="Switch on/off line search"/> 
-        <parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"
-            help=""/> 
-        <parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"
-            help=""/> 
-        <parameter n="block_builder" pn="Block builder" type="bool" v="false" values="false,true"
-            help=""/> 
-        <parameter n="component_wise" pn="Component wise" type="bool" v="false" values="false,true"
-            help=""/> 
-        <parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"
-            help=""/> 
+        <!--<parameter n="compute_reactions" pn="Compute reactions" type="bool" v="true" values="true,false"-->
+        <!--    help=""/> -->
+        <!--<parameter n="compute_contact_forces" pn="Compute contact forces" type="bool" v="false" values="false,true"-->
+        <!--    help=""/> -->
+        <!--<parameter n="block_builder" pn="Block builder" type="bool" v="false" values="false,true"-->
+        <!--    help=""/> -->
+        <!--<parameter n="component_wise" pn="Component wise" type="bool" v="false" values="false,true"-->
+        <!--    help=""/> -->
+        <!--<parameter n="move_mesh_flag" pn="Move mesh" type="bool" v="true" values="false,true"-->
+        <!--    help=""/> -->
         <parameter n="convergence_criterion" pn="Convergence criterion" type="combo" v="Residual_criterion" 
          values ="Residual_criterion,Displacement_criterion,And_criterion,Or_criterion" 
          pvalues ="Residual criterion,Displacement criterion,And criterion,Or criterion" 
