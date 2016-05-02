@@ -725,7 +725,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
             set in_type [$in_obj getType]
             if {$in_type eq "vector"} {
                 #W "input [$in_obj getName] fix: [$in_obj getFixity]"
-                if {[$in_obj getFixity] ne "" && [$in_obj getFixity]} {
+                if {[$in_obj getFixity] eq "Imposed"} {
                     set is_fixed_x [expr True]
                     set is_fixed_y [expr True]
                     set is_fixed_z [expr True]
