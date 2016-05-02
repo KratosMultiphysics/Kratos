@@ -27,18 +27,14 @@
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/sintering_spheric_continuum_particle.h"
-#include "custom_elements/custom_clusters/linecluster3D.h"
 #include "custom_elements/custom_clusters/cubecluster3D.h"
 #include "custom_elements/custom_clusters/pillcluster3D.h"
 #include "custom_elements/custom_clusters/ellipsoidcluster3D.h"
-#include "custom_elements/custom_clusters/ringcluster3D.h"
 #include "custom_elements/custom_clusters/cuboidcluster3D.h"
 #include "custom_elements/custom_clusters/cornkernelcluster3D.h"
 #include "custom_elements/custom_clusters/corn3cluster3D.h"
-#include "custom_elements/custom_clusters/soybeancluster3D.h"
 #include "custom_elements/custom_clusters/rock1cluster3D.h"
 #include "custom_elements/custom_clusters/rock2cluster3D.h"
-#include "custom_elements/custom_clusters/wheat5cluster3D.h"
 #include "custom_elements/custom_clusters/ballast1cluster3D.h"
 #include "custom_elements/custom_clusters/ballast2cluster3D.h"
 #include "custom_elements/custom_clusters/ballast3cluster3D.h"
@@ -113,7 +109,7 @@ private:
     const SphericContinuumParticle mSphericContinuumParticle3D; 
     const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;  
     const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;  
-	const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
+    const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
     const ParticleContactElement mParticleContactElement;
     const VariablesList mVariablesList;
     const SolidFace3D  mSolidFace3D3N;
@@ -122,18 +118,14 @@ private:
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
     const Cluster3D  mCluster3D;
-    const LineCluster3D  mLineCluster3D;
     const CubeCluster3D  mCubeCluster3D;
     const PillCluster3D  mPillCluster3D;
     const EllipsoidCluster3D  mEllipsoidCluster3D;
-    const RingCluster3D  mRingCluster3D;
     const CuboidCluster3D  mCuboidCluster3D;
     const CornKernelCluster3D  mCornKernelCluster3D;
     const Corn3Cluster3D  mCorn3Cluster3D;
-    const SoyBeanCluster3D  mSoyBeanCluster3D;
     const Rock1Cluster3D  mRock1Cluster3D;
     const Rock2Cluster3D  mRock2Cluster3D;
-    const Wheat5Cluster3D  mWheat5Cluster3D;
     const Ballast1Cluster3D  mBallast1Cluster3D;
     const Ballast2Cluster3D  mBallast2Cluster3D;
     const Ballast3Cluster3D  mBallast3Cluster3D;

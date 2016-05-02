@@ -1,9 +1,8 @@
-/*
- * File:   cluster_information.h
- * Author: gcasas
- *
- * 
- */
+//
+// File:   cluster_information.h
+// Author: Miguel Angel Celigueta maceli@cimne.upc.edu
+//
+
 
 #if !defined(CLUSTER_INFORMATION_H)
 #define  CLUSTER_INFORMATION_H
@@ -21,6 +20,7 @@ public:
     double mVolume;
     std::vector<double> mListOfRadii;
     std::vector<array_1d<double,3> > mListOfCoordinates;
+    array_1d<double,3> mInertias;
     
     virtual ~ClusterInformation() {};
     

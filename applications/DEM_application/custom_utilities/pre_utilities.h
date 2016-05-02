@@ -52,6 +52,7 @@ class PreUtilities
                                             boost::python::list& list_of_radii, 
                                             double size, 
                                             double volume, 
+                                            boost::python::list& inertias, 
                                             Properties::Pointer& p_properties) {
           
           ClusterInformation cl_info;
@@ -72,6 +73,9 @@ class PreUtilities
           //TODO: check the sizes (should be the same)
           cl_info.mSize = size;
           cl_info.mVolume = volume;
+          cl_info.mInertias[0] = boost::python::extract<double>(inertias[0]);
+          cl_info.mInertias[1] = boost::python::extract<double>(inertias[1]);
+          cl_info.mInertias[2] = boost::python::extract<double>(inertias[2]);
           
           p_properties->SetValue(CLUSTER_INFORMATION, cl_info);
           
