@@ -164,16 +164,19 @@ proc Fluid::write::CheckClosedVolume {} {
     set listgroups [list ]
     foreach group [$root selectNodes $xp1] {
         set groupid [$group @n]
-        set surfaces [GiD_EntitiesGroups get $groupid surfaces]
-        foreach surf $surfaces {
-            set linesraw [GiD_Geometry get surface $surf]
-            set nlines [lindex $linesraw 2]
-            set linespairs [lrange $linesraw 9 [expr 8 + $nlines]]
-            foreach pair $linespairs {
-                set lid [lindex $pair 0]
-                incr usedsurfaceslines($lid)
+        set conditionName [[$group parent] @n]
+        set cond [::Model::getCondition $conditionName]
+        if {[$cond getAttribute "SkinConditions"] eq "True"} {
+            set surfaces [GiD_EntitiesGroups get $groupid surfaces]
+            foreach surf $surfaces {
+                set linesraw [GiD_Geometry get surface $surf]
+                set nlines [lindex $linesraw 2]
+                set linespairs [lrange $linesraw 9 [expr 8 + $nlines]]
+                foreach pair $linespairs {
+                    set lid [lindex $pair 0]
+                    incr usedsurfaceslines($lid)
+                }
             }
-            
         }
     }
     foreach lid [array names usedsurfaceslines] {
