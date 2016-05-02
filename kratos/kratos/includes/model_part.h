@@ -42,7 +42,7 @@
 #include "containers/pointer_hash_map_set.h"
 #include "utilities/logger.h"
 #include "includes/model_part.h"
-
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -349,6 +349,23 @@ public:
 	/** Remove given node from current mesh with ThisIndex in parents and children.
 	*/
 	void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
+        
+        /** erases all nodes identified by "identifier_flag" by removing the pointer. 
+         * Pointers are erased from this level downwards
+         * nodes will be automatically destructured 
+         * when no pointer is left to them
+         */
+        void RemoveNodes(Flags identifier_flag = TO_ERASE);
+        
+        /** erases all nodes identified by "identifier_flag" by removing the pointer. 
+         * Pointers will be erase from all levels
+         * nodes will be automatically destructured 
+         * when no pointer is left to them
+         */
+        void RemoveNodesFromAllLevels(Flags identifier_flag = TO_ERASE);
+        
+        /** this function gives back the "root" model part, that is the model_part that has no father */
+        ModelPart& GetRootModelPart();
 
     NodeIterator NodesBegin(IndexType ThisIndex = 0)
     {
