@@ -118,11 +118,13 @@ public:
     }
 
     virtual void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
-                             SizeType const& MaxNumberOfResults )
+                             SizeType const& MaxNumberOfResults ) // This corresponds with a AABB bounding-box
     {
         // must be implemented in derived classes.
         return;
     }
+
+    // Note: Add OBB bounding-box and K-DOP bounding-box
 
     static IteratorType& NullIterator()
     {

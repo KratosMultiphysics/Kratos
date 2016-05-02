@@ -350,8 +350,10 @@ protected:
     const Condition  mCondition;
     const Condition  mCondition2D;
     const Condition  mCondition2D2N;
+    const Condition  mCondition2D3N;
     const Condition  mCondition3D;
     const Condition  mCondition3D2N;
+    const Condition  mCondition3D3N;
     const Condition  mCondition3D6N;
     const Condition  mCondition3D4N;
     const Condition  mCondition3D8N;
