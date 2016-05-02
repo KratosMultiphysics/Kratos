@@ -696,6 +696,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
     set groups [$root selectNodes $xp1]    
     foreach group $groups {
         set groupName [$group @n]
+        #W "GROUP $groupName"
         set cid [[$group parent] @n]
         set groupId [::write::getMeshId $cid $groupName]
         set condId [[$group parent] @n]
@@ -723,26 +724,29 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         foreach {inputName in_obj} $process_parameters {
             set in_type [$in_obj getType]
             if {$in_type eq "vector"} {
-                set is_fixed_x [expr False]
-                set is_fixed_y [expr False]
-                set is_fixed_z [expr False]
-                if {[$group find n FixX] ne ""} {
-                    set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
+                #W "input [$in_obj getName] fix: [$in_obj getFixity]"
+                if {[$in_obj getFixity] ne "" && [$in_obj getFixity]} {
+                    set is_fixed_x [expr True]
+                    set is_fixed_y [expr True]
+                    set is_fixed_z [expr True]
+                    if {[$group find n FixX] ne ""} {
+                        set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
+                    }
+                    if {[$group find n FixY] ne ""} {
+                        set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
+                    }
+                    if {[$group find n FixZ] ne ""} {
+                        set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
+                    }
+                    dict set paramDict is_fixed_x $is_fixed_x
+                    dict set paramDict is_fixed_y $is_fixed_y
+                    dict set paramDict is_fixed_z $is_fixed_z    
                 }
-                if {[$group find n FixY] ne ""} {
-                    set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
-                }
-                if {[$group find n FixZ] ne ""} {
-                    set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
-                }
+                
                 set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
                 set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
                 set ValZ [expr 0.0]
                 catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
-                
-                dict set paramDict is_fixed_x $is_fixed_x
-                dict set paramDict is_fixed_y $is_fixed_y
-                dict set paramDict is_fixed_z $is_fixed_z
                 dict set paramDict $inputName [list $ValX $ValY $ValZ]
             } elseif {$in_type eq "double"} {
                 set value [get_domnode_attribute [$group find n $inputName] v] 
