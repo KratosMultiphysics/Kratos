@@ -1,32 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="procs" pn="procs" includeContainer="No">
 
-	
-<proc n='CheckNodalConditionState' args='args'>
-<![CDATA[
-# Overwritten the base function to add Solution Type restrictions
-  set parts_un [apps::getCurrentUniqueName Parts]
-  if {[spdAux::getRoute $parts_un] ne ""} {
-	  set conditionId [$domNode @n]
-	  set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
-	  set elemnames [list ]
-	  foreach elem $elems { lappend elemnames [$elem @v]}
-	  set elemnames [lsort -unique $elemnames]
-	  
-	  set soltype_un [apps::getCurrentUniqueName SoluType]
-	  set solutionType [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $soltype_un]] v]
-	  set params [list analysis_type $solutionType]
-	  if {[::Model::CheckElementsCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
-  } {return "normal"}
-]]>
-</proc>
-		  <proc n='ChangeSpatialDimension' args='args'>
-	  <![CDATA[
-	  set appSpatialDimmension [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute PFEM_dimensions]] v]
-	  [$domNode selectNodes [spdAux::getRoute nDim]] setAttribute v $appSpatialDimmension
-	  ]]>
-	</proc>
-        
+	<proc n='GetMeshingDomains' args='args'>
+      <![CDATA[
+        set basepath [spdAux::getRoute "PFEM_meshing_domains"]
+        set values [list ]
+        foreach meshing_domain [[$domNode selectNodes $basepath] childNodes] {
+            W [$meshing_domain asXML]
+            lappend values [get_domnode_attribute $meshing_domain name]
+        }
+        if {[get_domnode_attribute $domNode v] eq ""} {
+            $domNode setAttribute v [lindex $values 0]
+        }
+        return [join $values ,]
+     ]]>
+    </proc>
+    
+    
         <proc n='give_meshing_domains_list' args='args'>
       <![CDATA[
       set optional {
