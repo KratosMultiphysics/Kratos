@@ -55,6 +55,7 @@ cmake ..  									                                                    \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
 -DPFEM_SOLID_MECHANICS_APPLICATION=OFF 					                                \
 -DINSTALL_EMBEDDED_PYTHON=ON                                                    \
+-DSHAPE_OPTIMIZATION_APPLICATION=OFF \
 
 #decomment this to have it verbose
 # make VERBOSE=1 -j4
