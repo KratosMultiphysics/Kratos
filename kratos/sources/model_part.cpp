@@ -430,7 +430,57 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 		RemoveNode(pThisNode, ThisIndex);
 	}
+	
+	void ModelPart::RemoveNodes(Flags identifier_flag)
+        {
+            // This method is optimized to free the memory 
+            //loop over all the meshes
+            ModelPart::MeshesContainerType& meshes = this->GetMeshes();
+            for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
+            {
+                //count the nodes to be erase
+                const unsigned int nnodes = i_mesh->Nodes().size();
+                unsigned int erase_count = 0;
+                #pragma omp parallel for firstprivate(nnodes) reduction(+:erase_count)
+                for(int i=0; i<static_cast<int>(nnodes); ++i)
+                {
+                    ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
+                    
+                    if( i_node->IsNot(identifier_flag) )
+                        erase_count++;
+                }
+                
+                ModelPart::NodesContainerType temp_nodes_container;
+                temp_nodes_container.reserve(i_mesh->Nodes().size() - erase_count);
 
+                temp_nodes_container.swap(i_mesh->Nodes());
+
+                for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
+                {
+                    if( i_node->IsNot(identifier_flag) )
+                        (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
+                }
+            }
+
+            //now recursively remove the nodes in the submodelparts
+            for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+                i_sub_model_part->RemoveNodes(identifier_flag);
+        }
+
+        void ModelPart::RemoveNodesFromAllLevels(Flags identifier_flag)
+        {
+            ModelPart& root_model_part = GetRootModelPart();
+            root_model_part.RemoveNodes(identifier_flag);
+        }
+        
+        ModelPart& ModelPart::GetRootModelPart()
+        {
+            if (IsSubModelPart())
+                return *this;
+            else
+                return mpParentModelPart->GetRootModelPart();;
+        }
+        
 	void ModelPart::SetNodalSolutionStepVariablesList()
 	{
 		if (IsSubModelPart())
