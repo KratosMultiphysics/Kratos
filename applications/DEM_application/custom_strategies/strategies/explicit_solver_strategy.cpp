@@ -279,8 +279,8 @@ namespace Kratos {
 
             SearchNeighbours();
 
-            this->template RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-            this->template RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+            RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
             RepairPointersToNormalProperties(mListOfSphericParticles);
             RepairPointersToNormalProperties(mListOfGhostSphericParticles);
             RebuildPropertiesProxyPointers(mListOfSphericParticles);
