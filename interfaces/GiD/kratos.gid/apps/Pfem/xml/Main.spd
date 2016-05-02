@@ -33,6 +33,7 @@
                     <dependencies node="../value" actualize="1"/>
                 </value>
                 <value n="Velocity" pn="Velocity" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} Yes]"/>
+                <value n="MeshingDomain" pn="Meshing domain" v="" values="[GetMeshingDomains]" state="normal"/>
                 <value n="Mass" pn="Mass" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
                 <value n="CenterOfGravityX" pn="center of gravity X" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
                 <value n="CenterOfGravityY" pn="center of gravity Y" v="0.0" state="[getStateFromXPathValue {string(../value[@n='ImposedMotion']/@v)} No]"/>
@@ -51,11 +52,11 @@
                         <edit_command n="Edit materials" pn="Edit materials" icon="material16" proc='edit_database_list'/>
                         <dependencies node="../value" actualize="1"/>
                 </value>
-                <value n="MeshingDomain" pn="Meshing domain" editable='0' help="Choose a meshing domain from the database"
-                         values_tree='[give_meshing_domains_list]' value="Remesh Only 1" actualize_tree="1" state="normal">
-                        <edit_command n="Edit mesh domains" pn="Edit mesh domains" icon="material16" proc='edit_mesh_domains_database_list'/>
-                        <dependencies node="../value" actualize="1"/>
-                </value>1
+                <!--<value n="MeshingDomain" pn="Meshing domain" editable='0' help="Choose a meshing domain from the database"-->
+                <!--         values_tree='[give_meshing_domains_list]' value="Remesh Only 1" actualize_tree="1" state="normal">-->
+                <!--        <edit_command n="Edit mesh domains" pn="Edit mesh domains" icon="material16" proc='edit_mesh_domains_database_list'/>-->
+                <!--        <dependencies node="../value" actualize="1"/>-->
+                <!--</value>-->
             </condition>
         </container>
         <condition n="Fluids2D" pn="Fluids" ov="surface" ovm="Triangle,Quadrilateral" help="" open="0" state="[checkStateByUniqueName PFEM_dimensions 2D PFEM_dimensions 2Da]">
