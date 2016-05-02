@@ -363,9 +363,9 @@ public:
             // Create new geometry
             Geometry<Node < 3 > >::Pointer pInterfaceGeom;
 
-            Node < 3 >& point1 = mr_interface_part.Nodes()[node1_ID];
-            Node < 3 >& point2 = mr_interface_part.Nodes()[node2_ID];
-            Node < 3 >& point3 = mr_interface_part.Nodes()[node3_ID];
+            Node < 3 >::Pointer point1 = mr_interface_part.Nodes()(node1_ID);
+            Node < 3 >::Pointer point2 = mr_interface_part.Nodes()(node2_ID);
+            Node < 3 >::Pointer point3 = mr_interface_part.Nodes()(node3_ID);
 
             //Node < 3 > ::Pointer pnode1 = Node < 3 > ::Pointer(new Node<3>(node1_ID, point1[0], point1[1], point1[2] ));
             //Node < 3 > ::Pointer pnode2 = Node < 3 > ::Pointer(new Node<3>(node2_ID, point2[0], point2[1], point2[2] ));
