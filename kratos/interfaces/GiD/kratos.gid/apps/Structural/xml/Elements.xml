@@ -68,7 +68,7 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
     <outputs>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
@@ -107,7 +107,7 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness"  unit_magnitude="L" units="m"  />
+      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
     <outputs>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
@@ -143,7 +143,7 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
     <outputs>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
@@ -179,7 +179,7 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
     <outputs>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
@@ -217,7 +217,7 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
     <outputs>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
@@ -253,7 +253,7 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" unit_magnitude="L" units="m"  />
+      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
     <outputs>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
