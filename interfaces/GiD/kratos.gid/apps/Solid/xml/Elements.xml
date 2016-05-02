@@ -27,9 +27,11 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess" analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"  analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
-      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"  analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess" analysis_type="Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION" result="Yes">
+		<!--<parameter n="Interval" pn="Time function" v="Full" values="Full,Initial" analysis_type="Dynamic"/>-->
+	  </NodalCondition>
+      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess" analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
+      <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""  result="No"/>
     </NodalConditions>
 
     <inputs>      
@@ -37,9 +39,7 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"/>
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor"  />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -75,9 +75,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -116,9 +116,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -159,9 +159,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -199,9 +199,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -239,9 +239,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -277,9 +277,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -317,9 +317,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -342,8 +342,8 @@
 
     <!--define list of NodalConditions-->
     <NodalConditions>
-      <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction="REACTION"/>
-      <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" 	  	analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
+      <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"     		analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
+      <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" 	  	analysis_type = "Static,Dynamic"  unit_magnitude="P"  units="Pa" reaction=""/>
       <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s"  reaction=""/>
       <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"      analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
@@ -352,9 +352,7 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
@@ -380,7 +378,7 @@
     <!--define list of NodalConditions-->
     <NodalConditions>
       <NodalCondition n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess"     analysis_type = "Static,Dynamic"  unit_magnitude="L" units="m" reaction="REACTION"/>
-      <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction="PRESSURE_REACTION"/>
+      <NodalCondition n="PRESSURE"     pn="Pressure"     ProcessName="ApplyConstantScalarValueProcess" analysis_type = "Static"  unit_magnitude="P"  units="Pa" reaction=""/>
       <NodalCondition n="VELOCITY"     pn="Velocity"     ProcessName="ApplyConstantVectorValueProcess"     analysis_type = "Dynamic" unit_magnitude="Velocity" units="m/s" reaction=""/>
       <NodalCondition n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess"     analysis_type = "Dynamic" unit_magnitude="Acceleration" units="m/s^2" reaction=""/>
     </NodalConditions>
@@ -388,9 +386,9 @@
     </inputs>
     <outputs>
       <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi strain tensor"  />
+      
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-      <parameter n="PK2_STRESS_TENSOR" pn="Second Piola-Kirchhoff stress tensor"  />
+      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
     </outputs>
   </ElementItem>
