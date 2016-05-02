@@ -1,0 +1,27 @@
+//
+//   Cluster Name:        "wheat5cluster3D"
+//   Author:              Miguel Angel Celigueta - Salva Latorre
+//   Date:                $Date: 2016-4-28
+//
+
+Name
+wheat5cluster3D
+
+Begin centers_and_radii  
+ 0.0  0.0  0.0 1.715
+ 1.0  0.0  0.0 1.595
+-1.0  0.0  0.0 1.595
+ 1.83 0.0  0.0 1.252
+-1.83 0.0  0.0 1.252
+End centers_and_radii
+
+Size
+6.164
+
+Volume
+30.6783119968
+
+Inertia per unit density
+38.4819542194
+77.7733557009
+80.1625826392          
