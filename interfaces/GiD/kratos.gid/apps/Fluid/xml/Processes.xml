@@ -23,7 +23,7 @@
     <inputs>
     </inputs>
   </Process>
-    <Process n="ApplyConstantVectorValueProcess" pn="Vector value" ImplementedInFile="process_factory"
+    <Process n="ApplyConstantVectorValueProcess" pn="Vector value" implemented_in_file="process_factory"
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
@@ -31,7 +31,7 @@
       <parameter n="value" pn="Direction" type="vector" v="0.0,-9.81,0.0" />
     </inputs>
   </Process>
-  <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" ImplementedInFile="process_factory"
+  <Process n="ApplyConstantScalarValueProcess" pn="Scalar value" implemented_in_file="process_factory"
 		implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
@@ -39,7 +39,7 @@
     </inputs>
   </Process>
   
-    <Process n="ApplyConstraintVelocityProcess" pn="Constraint velocity" ImplementedInFile="apply_custom_velocity_constraints"
+    <Process n="ApplyConstraintVelocityProcess" pn="Constraint velocity" implemented_in_file="apply_custom_velocity_constraints"
 		implemented_in_module="KratosMultiphysics.FluidDynamicsApplication" help="This process applies ">
     <inputs>
       <parameter n="value" pn="Velocity" type="vector" fixity="Imposed" v="0.0,0.0,0.0" unit_magnitude="Velocity" units="m/s" />
