@@ -380,6 +380,6 @@ class ExplicitStrategy:
             cluster_file_name = properties[CLUSTER_FILE_NAME]
             [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
             pre_utils = PreUtilities(self.spheres_model_part)
-            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, properties)
+            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
             print(properties)
             

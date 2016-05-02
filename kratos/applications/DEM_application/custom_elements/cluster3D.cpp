@@ -88,7 +88,45 @@ namespace Kratos {
     }
     
     
-    void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {}
+    void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
+        
+        const double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
+        const ClusterInformation& cl_info = GetProperties()[CLUSTER_INFORMATION];
+        //std::string& name = cl_info.mName;
+        const double reference_size = cl_info.mSize;
+        const double reference_volume = cl_info.mVolume;
+        const std::vector<double>& reference_list_of_radii = cl_info.mListOfRadii;
+        const std::vector<array_1d<double,3> >& reference_list_of_coordinates = cl_info.mListOfCoordinates;
+        const array_1d<double,3>& reference_inertias = cl_info.mInertias;
+        
+        const unsigned int number_of_spheres = reference_list_of_radii.size();
+        
+        mListOfRadii.resize(number_of_spheres);
+        mListOfCoordinates.resize(number_of_spheres);
+        mListOfSphericParticles.resize(number_of_spheres);
+        
+        const double scaling_factor = cl / reference_size;
+        
+        for(int i=0; i<(int)number_of_spheres; i++){
+            mListOfRadii[i] = scaling_factor * reference_list_of_radii[i];
+            mListOfCoordinates[i][0] = scaling_factor * reference_list_of_coordinates[i][0];
+            mListOfCoordinates[i][1] = scaling_factor * reference_list_of_coordinates[i][1];
+            mListOfCoordinates[i][2] = scaling_factor * reference_list_of_coordinates[i][2];
+        }
+                        
+        const double particle_density = this->SlowGetDensity();         
+        const double cluster_volume = reference_volume * scaling_factor*scaling_factor*scaling_factor;        
+        const double cluster_mass = particle_density * cluster_volume;
+        
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        
+        const double squared_scaling_factor_times_density = scaling_factor * scaling_factor * particle_density;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * squared_scaling_factor_times_density;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * squared_scaling_factor_times_density;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * squared_scaling_factor_times_density;
+         
+        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
+    }
     
     
     void Cluster3D::SetOrientation(const array_1d<double, 3>& euler_angles) {        

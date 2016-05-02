@@ -312,18 +312,14 @@ namespace Kratos
     mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mLineCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCubeCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mRingCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCuboidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCornKernelCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCorn3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mSoyBeanCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mRock1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mRock2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))), 
-    mWheat5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBallast1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBallast2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBallast3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -638,18 +634,14 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
 
         KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
-        KRATOS_REGISTER_ELEMENT("LineCluster3D", mLineCluster3D)
         KRATOS_REGISTER_ELEMENT("CubeCluster3D", mCubeCluster3D)
         KRATOS_REGISTER_ELEMENT("PillCluster3D", mPillCluster3D)
         KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)
-        KRATOS_REGISTER_ELEMENT("RingCluster3D", mRingCluster3D)
         KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
         KRATOS_REGISTER_ELEMENT("CornKernelCluster3D", mCornKernelCluster3D)
         KRATOS_REGISTER_ELEMENT("Corn3Cluster3D", mCorn3Cluster3D)     
-        KRATOS_REGISTER_ELEMENT("SoyBeanCluster3D", mSoyBeanCluster3D)
         KRATOS_REGISTER_ELEMENT("Rock1Cluster3D", mRock1Cluster3D)
         KRATOS_REGISTER_ELEMENT("Rock2Cluster3D", mRock2Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Wheat5Cluster3D", mWheat5Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast1Cluster3D", mBallast1Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast2Cluster3D", mBallast2Cluster3D)
         KRATOS_REGISTER_ELEMENT("Ballast3Cluster3D", mBallast3Cluster3D)

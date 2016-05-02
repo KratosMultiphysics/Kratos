@@ -22,7 +22,6 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/linecluster3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidEdge.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/SolidFace.cpp
@@ -33,14 +32,11 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cubecluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/pillcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ringcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cuboidcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cornkernelcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/corn3cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/soybeancluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/rock1cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/rock2cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/wheat5cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast1cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast2cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast3cluster3D.cpp
