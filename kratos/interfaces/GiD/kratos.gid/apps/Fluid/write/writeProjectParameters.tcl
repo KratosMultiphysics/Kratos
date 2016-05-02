@@ -64,11 +64,10 @@ proc Fluid::write::getGravityProcessDict {} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set xp1 [spdAux::getRoute "FLGravity"]
-    set value [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='GravityValue'\]"] v]
-    set cx [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='Cx'\]"] v]
-    set cy [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='Cy'\]"] v]
-    set cz [get_domnode_attribute [$root selectNodes "$xp1/value\[@n='Cz'\]"] v]
+    set value [write::getValue FLGravity GravityValue] 
+    set cx [write::getValue FLGravity Cx]
+    set cy [write::getValue FLGravity Cy]
+    set cz [write::getValue FLGravity Cz]
     #W "Gravity $value on \[$cx , $cy , $cz\]"
     set pdict [dict create]
     dict set pdict "implemented_in_file" "apply_gravity_process"

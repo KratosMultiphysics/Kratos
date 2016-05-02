@@ -32,10 +32,6 @@
               <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
 		<defaults>
-		  <solver n="Default">
-			<!--Not ready yet-->
-			<!--<parameter n="verbosity" v="3"/>-->
-		  </solver>
 		</defaults>
       </linearSolverItem>
 	  
@@ -43,10 +39,6 @@
         <filterFeatures>
         </filterFeatures>
 		<defaults>
-		  <solver n="Default">
-			<!--Not ready yet-->
-			<!--<parameter n="verbosity" v="3"/>-->
-		  </solver>
 		</defaults>
       </linearSolverItem> 
     </linearSolvers>
@@ -96,10 +88,6 @@
               <filter field="solver_type" value="Iterative"/>    -->
         </filterFeatures>
 		<defaults>
-		  <solver n="Default">
-			<!--Not ready yet-->
-			<!--<parameter n="verbosity" v="3"/>-->
-		  </solver>
 		</defaults>
       </linearSolverItem>     
     </linearSolvers>
