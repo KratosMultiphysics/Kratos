@@ -24,7 +24,6 @@
 #include "includes/variables.h"
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/projection.h"
 
 namespace Kratos
 {
@@ -180,11 +179,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * Energy variable for loads
-     */
-    double mEnergy; 
-
+  
     ///@}
     ///@name Protected Operators
     ///@{

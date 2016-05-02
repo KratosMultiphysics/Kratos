@@ -135,8 +135,8 @@ public:
 
         // Set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
-        mInit                   = false;
+        mInitializeWasPerformed    = false;
+        mInit                      = false;
 
         // Tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -613,7 +613,7 @@ public:
                 //KRATOS_WATCH(den)
                 //KRATOS_WATCH(mlambda)
 
-                res        = 100.00 * std::fabs(num/(mlambda* std::sqrt(den)));
+                res        = 100.00 * std::abs(num/(mlambda* std::sqrt(den)));
                 if (this->GetEchoLevel() > 1)
                 {
                     std::cout << " Convergence reached for e = " << res << "  Required Convergence = " << toler << std::endl;
@@ -638,7 +638,7 @@ public:
                 }
 
                 num        = std::sqrt(TSparseSpace::Dot(h,h));
-                res        = 100.00 * std::fabs(num/(mlambda * std::sqrt(den)));
+                res        = 100.00 * std::abs(num/(mlambda * std::sqrt(den)));
                 if (this->GetEchoLevel() > 1)
                 {
                     std::cout << " Convergence reached for h = " << res << "  Required Convergence = " << toler << std::endl;
@@ -649,7 +649,7 @@ public:
                     local_converged_h = true;
                 }
 
-                if(std::fabs(lambda_old_iter) < 1E-10)
+                if(std::abs(lambda_old_iter) < 1E-10)
                 {
                     fact = 1.00;
                 }
@@ -657,7 +657,7 @@ public:
                 {
                     fact = lambda_old_iter;
                 }
-                lambda_error    = std::fabs(100.00 * (mlambda - lambda_old_iter)/(fact + 1E-20));
+                lambda_error    = std::abs(100.00 * (mlambda - lambda_old_iter)/(fact + 1E-20));
                 local_converged_l = (lambda_error < toler_l) ?  true : false;
                 if (this->GetEchoLevel() > 1)
                 {
@@ -1032,7 +1032,7 @@ public:
         else
         {
             std::cout << "WARNING: No real roots was found " << std::endl;
-            std::cout << "Introductiong a pseudo-line search to avoid complex roots " << std::endl;
+            std::cout << "Introducting a pseudo-line search to avoid complex roots " << std::endl;
             if (this->GetEchoLevel() > 1)
             {
                 std::cout << "Calculating eta" << std::endl;
@@ -1382,8 +1382,8 @@ private:
         RealType b_prima = 0.00;
         RealType c_prima = 0.00;
         RealType disc    = 0.00;
-        std::vector<RealType> SOL;
-        SOL.resize(2, false);
+        std::vector<RealType> solution;
+        solution.resize(2, false);
 
         TSystemVectorType& Sigma_q     = *pSigma_q;
         TSystemVectorType& Sigma_h     = *pSigma_h;
@@ -1429,46 +1429,46 @@ private:
         if (disc >= 0.00)
         {
             imag = false;
-            StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a_prima,b_prima,c_prima,SOL);
+            StructuralMechanicsMathUtilities::Solve_Second_Order_Equation(a_prima, b_prima, c_prima, solution);
 
-            if(SOL[0] < 0.00)
+            if(solution[0] < 0.00)
             {
-                SOL[0] = 0.00;
+                solution[0] = 0.00;
             }
 
-            if(SOL[1] < 0.00)
+            if(solution[1] < 0.00)
             {
-                SOL[1] = 0.00;
+                solution[1] = 0.00;
             }
 
-            //KRATOS_WATCH(SOL);
+            //KRATOS_WATCH(solution);
             //KRATOS_WATCH(a_prima);
             //KRATOS_WATCH(b_prima);
             //KRATOS_WATCH(c_prima);
 
-            if (SOL[0] > SOL[1])
+            if (solution[0] > solution[1])
             {
-                RealType a =   SOL[1];
-                SOL[1]     =   SOL[0];
-                SOL[0]     =   a;
+                RealType a =   solution[1];
+                solution[1]     =   solution[0];
+                solution[0]     =   a;
             }
 
-            RealType shi  = 0.05 * fabs((SOL[1] - SOL[0]));
-            if (SOL[1] < 1.00)
+            RealType shi  = 0.05 * std::abs((solution[1] - solution[0]));
+            if (solution[1] < 1.00)
             {
-                meta  = SOL[1] - shi;
+                meta  = solution[1] - shi;
             }
-            else if ((1 > (-b_prima/a_prima)) && (SOL[1] > 1.00))
+            else if ((1.00 > (-b_prima/a_prima)) && (solution[1] > 1.00))
             {
-                meta  = SOL[1] + shi;
+                meta  = solution[1] + shi;
             }
-            else if ((1 < (-b_prima/a_prima)) && (SOL[0] < 1.00))
+            else if ((1.00 < (-b_prima/a_prima)) && (solution[0] < 1.00))
             {
-                meta  = SOL[0] -shi;
+                meta  = solution[0] -shi;
             }
             else
             {
-                meta  = SOL[0] + shi;
+                meta  = solution[0] + shi;
             }
         }
         else

@@ -41,7 +41,7 @@
 
 #include "utilities/split_prism.hpp"
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_geometries/simple_prism_3d_6.hpp"
+#include "geometries/prism_3d_6.h"
 #include "processes/node_erase_process.h"
 
 namespace Kratos
@@ -541,7 +541,7 @@ public:
                     unsigned int i4 = aux[t[base + 4]];
                     unsigned int i5 = aux[t[base + 5]];
 
-                    SimplePrism3D6<Node < 3 > > geom(
+                    Prism3D6<Node < 3 > > geom(
                         this_model_part.Nodes()(i0),
                         this_model_part.Nodes()(i1),
                         this_model_part.Nodes()(i2),

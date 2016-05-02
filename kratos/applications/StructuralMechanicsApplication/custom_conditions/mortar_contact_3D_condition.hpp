@@ -24,7 +24,6 @@
 #include "includes/variables.h"
 #include "includes/condition.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/projection.h"
 
 namespace Kratos
 {
@@ -94,6 +93,7 @@ public:
     /**
      * Called at the beginning of each iteration
      */
+    
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -103,6 +103,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
+    
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
     /**
@@ -113,6 +114,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
+    
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
    /**
@@ -122,6 +124,7 @@ public:
     * @param rRightHandSideVectors: container for the desired RHS output
     * @param rRHSVariables: parameter describing the expected RHSs
     */
+   
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
    /**
@@ -129,6 +132,7 @@ public:
     * @return rResult: The result vector with the ID's of the DOF
     * @param rCurrentProcessInfo: the current process info instance
     */
+   
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -136,11 +140,13 @@ public:
      * @return rConditionalDofList
      * @param rCurrentProcessInfo: the current process info instance
      */
+    
     void GetDofList(DofsVectorType& rConditionalDofList,ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Get on rVariable a double Value
      */
+    
     void GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
 				      std::vector<double>& rValues, 
 				      const ProcessInfo& rCurrentProcessInfo );
@@ -148,6 +154,7 @@ public:
     /**
      * Calculate a double Variable
      */
+    
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
 				      std::vector<double>& rOutput, 
 				      const ProcessInfo& rCurrentProcessInfo);

@@ -25,12 +25,16 @@
 #include "includes/constitutive_law.h"
 
 #include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
-#include "custom_geometries/simple_prism_3d_6.hpp"
+#include "geometries/prism_3d_6.h"
 
 namespace Kratos
 {
@@ -47,12 +51,12 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     // Adding the membrane element
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     // Adding the SPRISM element
-    mSprismElement3D6N( 0, Element::GeometryType::Pointer( new SimplePrism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
+    mSprismElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
     /* CONDITIONS */
     // Beam's point moment condition
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     // Contact mortar conditions
-    mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mMortarContactCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mMortarContactCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) )
 {}
@@ -65,7 +69,6 @@ void KratosStructuralMechanicsApplication::Register()
     std::cout << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |               " << std::endl;
     std::cout << "                  | |   |    |   | (    |   |   | |   (   | |               " << std::endl;
     std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
-
 
 
     // Geometrical
@@ -154,14 +157,10 @@ void KratosStructuralMechanicsApplication::Register()
     // Register the conditions
     // Beam's point moment condition
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
-    // Mortar contcat condition
-    KRATOS_REGISTER_CONDITION( "mMortarContactCondition2D2N", mMortarContactCondition2D2N );
-    KRATOS_REGISTER_CONDITION( "mMortarContactCondition3D3N", mMortarContactCondition3D3N );
-    KRATOS_REGISTER_CONDITION( "mMortarContactCondition3D4N", mMortarContactCondition3D4N );
-
-    // This is necessary to use the serializer with the SPRISM
-    SimplePrism3D6<Node<3> > SimplePrism3D6Prototype( Element::GeometryType::PointsArrayType( 6 ) );
-    Serializer::Register( "SimplePrism3D6", SimplePrism3D6Prototype );
+    // Mortar contact condition
+    KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "MortarContactCondition3D3N", mMortarContactCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "MortarContactCondition3D4N", mMortarContactCondition3D4N );
 }
 
 }  // namespace Kratos.

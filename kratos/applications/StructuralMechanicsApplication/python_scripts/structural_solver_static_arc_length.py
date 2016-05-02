@@ -42,10 +42,24 @@ def IncreaseDisplacement(forcing_nodes_list, disp):
         node.SetSolutionStepValue(DISPLACEMENT_Y, 0, disp[1])
         node.SetSolutionStepValue(DISPLACEMENT_Z, 0, disp[2])
         
-def ChangeCondition(model_part):
+def ChangeCondition(model_part, echo_level):
+    force_x = 0.0
+    force_y = 0.0
+    force_z = 0.0
     for node in model_part.Nodes:
         new_load = node.GetSolutionStepValue(POINT_LOAD) * model_part.ProcessInfo[LAMBDA];
+        force_x += new_load[0]
+        force_y += new_load[1]
+        force_z += new_load[2]
         node.SetSolutionStepValue(POINT_LOAD, 0, new_load)
+    
+    if (echo_level > 0):
+        print("*********************** ")
+        print("The total load applied: ")
+        print("POINT_LOAD_X: ", force_x)
+        print("POINT_LOAD_Y: ", force_y)
+        print("POINT_LOAD_Z: ", force_z)
+        print("*********************** ")
 
 def AddDofs(model_part, config=None):
     for node in model_part.Nodes:
@@ -123,7 +137,8 @@ class StaticArcLengthStructuralSolver:
         (self.solver).Solve()
         
         print("LAMBDA: ", self.model_part.ProcessInfo[LAMBDA])
-        ChangeCondition(self.model_part)
+        ChangeCondition(self.model_part, self.echo_level)
+        
     #
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
@@ -164,11 +179,6 @@ class StaticArcLengthStructuralSolver:
             Displacement = MixedElementConvergeCriteria(D_RT, D_AT)
             Residual = ResidualCriteria(R_RT, R_AT)
             self.mechanical_convergence_criterion = AndCriteria(Residual, Displacement)
-        
-    #
-    def ChangeCondition(self, model_part, lamda):
-        for cond in model_part.Conditions:
-            print(cond)
             
 def CreateSolver(model_part, config):
     structural_solver = StaticArcLengthStructuralSolver(model_part, config.domain_size)
