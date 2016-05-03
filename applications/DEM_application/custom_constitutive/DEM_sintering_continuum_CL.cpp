@@ -381,7 +381,7 @@ namespace Kratos {
 
 		//Normal and Tangent elastic constants
 		const double sqrt_equiv_radius = sqrt(equiv_radius);
-		const double sqrt_indentation_with_sintering_displ = sqrt(abs(indentation - sintering_displ));
+		const double sqrt_indentation_with_sintering_displ = sqrt(std::abs(indentation - sintering_displ));
 		kn = 2.0 * equiv_young * sqrt_equiv_radius * sqrt_indentation_with_sintering_displ;
 	}
         

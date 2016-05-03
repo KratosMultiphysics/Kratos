@@ -16,30 +16,30 @@ namespace Kratos {
         DEM_KDEM() {
         }    
 
-        void Initialize();
+        void Initialize() override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM() {
         }
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        void CalculateContactArea(double radius, double other_radius, double& calculation_area);
-        double CalculateContactArea(double radius, double other_radius, std::vector<double>& v);
-        void GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area);
-        void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
+        void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
+        double CalculateContactArea(double radius, double other_radius, std::vector<double>& v) override;
+        void GetContactArea(const double radius, const double other_radius, const std::vector<double> & vector_of_initial_areas, const int neighbour_position, double& calculation_area) override;
+        void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
 
         void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 const double kn_el,
-                const double kt_el);
+                const double kt_el) override;
 
         double LocalMaxSearchDistance(const int i,
                                       SphericContinuumParticle* element1,
-                                      SphericContinuumParticle* element2);
+                                      SphericContinuumParticle* element2) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                              double OldLocalElasticContactForce[3],
@@ -77,7 +77,7 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps);
+                int time_steps) override;
 
 
 
@@ -95,7 +95,7 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector);
+                vector<int>& search_control_vector) override;
         
         
         void CalculateViscoDamping(double LocalRelVel[3],
@@ -104,7 +104,7 @@ namespace Kratos {
                                    double equiv_visco_damp_coeff_normal,
                                    double equiv_visco_damp_coeff_tangential,
                                    bool& sliding,
-                                   int failure_id);
+                                   int failure_id) override;
         
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -114,23 +114,23 @@ namespace Kratos {
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
                                                       double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3]);
+                                                      double ViscoLocalRotationalMoment[3]) override;
         
         void AddPoissonContribution(const double equiv_poisson, 
                                     double LocalCoordSystem[3][3], 
                                     double& normal_force, 
-                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2);
+                                    double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override{
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override{
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

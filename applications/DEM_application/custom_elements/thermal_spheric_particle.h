@@ -64,7 +64,7 @@ namespace Kratos
         ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){};
         ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){};
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {          
           return Element::Pointer(new ThermalSphericParticle<TBaseElement>(NewId, GetGeometry().Create(ThisNodes), pProperties));
         };
 
@@ -93,7 +93,7 @@ namespace Kratos
           
     
       /// Turn back information as a string.
-      virtual std::string Info() const
+      virtual std::string Info() const override
       {
         std::stringstream buffer;
         buffer << "ThermalSphericParticle" ;
@@ -101,10 +101,10 @@ namespace Kratos
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ThermalSphericParticle";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ThermalSphericParticle";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override {}
       
     protected:                    
        //thermal sphere neighbor information
@@ -121,13 +121,13 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      virtual void save(Serializer& rSerializer) const override
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
 
       }
 
-      virtual void load(Serializer& rSerializer)
+      virtual void load(Serializer& rSerializer) override
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
 

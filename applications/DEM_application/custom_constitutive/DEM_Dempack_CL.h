@@ -28,27 +28,27 @@ namespace Kratos {
         double mHistoryShearFlag;
 
 
-        virtual void Initialize();
+        virtual void Initialize() override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
         ~DEM_Dempack() {
         }
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area);
-        virtual void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
+        virtual void CalculateContactArea(double radius, double other_radius, double &calculation_area) override;
+        virtual void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area) override;
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                 double &equiv_visco_damp_coeff_tangential,
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 const double kn_el,
-                const double kt_el);
+                const double kt_el) override;
 
         virtual double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1,
-                                              SphericContinuumParticle* element2);
+                                              SphericContinuumParticle* element2) override;
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
                 double OldLocalElasticContactForce[3],
@@ -85,7 +85,7 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps);
+                int time_steps) override;
 
 
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
@@ -101,7 +101,7 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector);
+                vector<int>& search_control_vector) override;
         
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,
@@ -110,18 +110,18 @@ namespace Kratos {
                                                       double calculation_area,
                                                       double LocalCoordSystem[3][3],
                                                       double ElasticLocalRotationalMoment[3],
-                                                      double ViscoLocalRotationalMoment[3]);
+                                                      double ViscoLocalRotationalMoment[3]) override;
 
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override{
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override{
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
