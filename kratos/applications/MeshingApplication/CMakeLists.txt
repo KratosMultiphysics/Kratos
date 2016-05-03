@@ -12,6 +12,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetge
 # include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/util )
 # include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/malla )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication ) 
 
 #include pragmatic libraries if so selected
 if(PRAGMATIC_ACTIVATED MATCHES ON)
@@ -35,6 +36,7 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
 )
 
 ###############################################################

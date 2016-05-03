@@ -1,0 +1,581 @@
+/*
+ * File:   local_refine_mesh.hpp
+ * Author: VMataix
+ * Co-author: 
+ *
+ * Created on 2 May 2016, 10:20
+ * Last update on 2 May 2016, 10:20
+ */
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "local_refine_geometry_mesh.hpp"
+
+namespace Kratos
+{
+  void Local_Refine_Geometry_Mesh::Local_Refine_Mesh(
+            bool refine_on_reference,
+            bool interpolate_internal_variables
+    )
+    {
+        KRATOS_TRY;
+
+        if (refine_on_reference == true)
+        {
+            if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)))
+            {
+                KRATOS_THROW_ERROR(std::logic_error, "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true", "");
+            }
+        }
+
+        compressed_matrix<int> Coord;                                              // The matrix that stores all the index of the geometry
+        boost::numeric::ublas::vector<int> List_New_Nodes;                         // The news nodes
+        boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;           // Edges where are the news nodes
+        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node; // The coordinate of the new nodes
+
+        PointerVector< Element > New_Elements;
+	
+        if (refine_on_reference == true)
+        {
+            for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+            {
+                it->X() = it->X0();
+                it->Y() = it->Y0();
+                it->Z() = it->Z0();
+            }
+        }
+
+        /* Calling all the functions necessaries to refine the mesh */
+        CSR_Row_Matrix(mr_model_part, Coord);
+        Search_Edge_To_Be_Refined(mr_model_part, Coord);
+        Create_List_Of_New_Nodes(mr_model_part, Coord, List_New_Nodes, Position_Node);
+        Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, Position_Node, List_New_Nodes);
+        Erase_Old_Element_And_Create_New_Element(mr_model_part, Coord, New_Elements, interpolate_internal_variables);
+        Erase_Old_Conditions_And_Create_New(mr_model_part, Coord);
+        Renumering_Elements_And_Nodes(mr_model_part, New_Elements);
+
+        if (refine_on_reference == true)
+        {
+            for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+            {
+                const array_1d<double, 3 > & disp = it->FastGetSolutionStepValue(DISPLACEMENT);
+                it->X() = it->X0() + disp[0];
+                it->Y() = it->Y0() + disp[1];
+                it->Z() = it->Z0() + disp[2];
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::CSR_Row_Matrix(
+            ModelPart& this_model_part,
+            compressed_matrix<int>& Coord
+    )
+    {
+        KRATOS_TRY;
+	
+        NodesArrayType& pNodes = this_model_part.Nodes();
+        NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+        NodesArrayType::iterator it_end   = pNodes.ptr_end();
+
+        Coord.resize(pNodes.size(), pNodes.size(), false);
+
+        for(NodesArrayType::iterator i = it_begin; i!=it_end; i++)
+        {
+            int index_i = i->Id() - 1; // WARNING: MESH MUST BE IN ORDER
+            WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
+
+            std::vector<unsigned int> aux(neighb_nodes.size());
+            unsigned int active = 0;
+            for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin(); inode != neighb_nodes.end(); inode++)
+            {
+                int index_j = inode->Id() - 1;
+                if (index_j > index_i)
+                {
+                    aux[active] = index_j;
+                    active++;
+                }
+            }
+
+            std::sort(aux.begin(), aux.begin() + active);
+            for (unsigned int k = 0; k < active; k++)
+            {
+                Coord.push_back(index_i, aux[k], -1);
+            }
+        }
+        
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Search_Edge_To_Be_Refined(
+            ModelPart& this_model_part,
+            compressed_matrix<int>& Coord
+    )
+    {
+        KRATOS_TRY;
+	
+        ElementsArrayType& rElements = this_model_part.Elements();
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+        ElementsArrayType::iterator it_end   = rElements.ptr_end();
+
+        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+        {
+            if (it->GetValue(SPLIT_ELEMENT) == true)
+            {
+                Element::GeometryType& geom = it->GetGeometry(); // Nodes of the element
+                for (unsigned int i = 0; i < geom.size(); i++)
+                {
+                    int index_i = geom[i].Id() - 1;
+                    for (unsigned int j = 0; j < geom.size(); j++)
+                    {
+                        int index_j = geom[j].Id() - 1;
+                        if (index_j > index_i)
+                        {
+                            Coord(index_i, index_j) = -2;
+                        }
+                    }
+                }
+            }
+        }
+        
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Create_List_Of_New_Nodes(
+            ModelPart& this_model_part,
+            compressed_matrix<int>& Coord,
+            boost::numeric::ublas::vector<int> &List_New_Nodes,
+            boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node
+    )
+    {
+        KRATOS_TRY;
+	
+        unsigned int number_of_new_nodes = 0;
+
+        NodesArrayType& pNodes = this_model_part.Nodes();
+
+        typedef compressed_matrix<int>::iterator1 i1_t;
+        typedef compressed_matrix<int>::iterator2 i2_t;
+
+        for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
+        {
+            for (i2_t i2 = i1.begin(); i2 != i1.end(); ++i2)
+            {
+                if (Coord(i2.index1(), i2.index2()) == -2)
+                {
+                    number_of_new_nodes++;
+                }
+            }
+        }
+
+        // New ID of the nodes
+        List_New_Nodes.resize(number_of_new_nodes, false);
+        int total_node = pNodes.size();
+        for (unsigned int i = 0; i < number_of_new_nodes; i++)
+        {
+            List_New_Nodes[i] = total_node + i + 1;
+        }
+
+        // Setting edges -2 to the new id of the new node
+        Position_Node.resize(number_of_new_nodes, false);
+        unsigned int index = 0;
+        for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1)
+        {
+            for (i2_t i2 = i1.begin(); i2 != i1.end(); ++i2)
+            {
+                if (Coord(i2.index1(), i2.index2()) == -2)
+                {
+                    Coord(i2.index1(), i2.index2()) = List_New_Nodes[index];
+                    Position_Node[index][0] = i2.index1() + 1;
+                    Position_Node[index][1] = i2.index2() + 1;
+                    index++;
+                }
+            }
+        }
+        
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Calculate_Coordinate_And_Insert_New_Nodes(
+            ModelPart& this_model_part,
+            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
+            const boost::numeric::ublas::vector<int> &List_New_Nodes
+    )
+    {
+	KRATOS_TRY;
+	
+        array_1d<double, 3 > Coord_Node_1;
+        array_1d<double, 3 > Coord_Node_2;
+        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
+        Coordinate_New_Node.resize(Position_Node.size(), false);
+        unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
+        Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
+
+        for (unsigned int i = 0; i < Position_Node.size(); i++)
+        {
+            /* Calculating the coordinate of the news nodes */
+            const int& node_i = Position_Node[i][0];
+            const int& node_j = Position_Node[i][1];
+	    
+            ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
+            std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
+            noalias(Coord_Node_1) = it_node1->Coordinates();
+	    
+            ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
+            std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
+            noalias(Coord_Node_2) = it_node2->Coordinates();
+	    
+            noalias(Coordinate_New_Node[i]) = 0.50 * (Coord_Node_1 + Coord_Node_2);
+            
+            /* Inserting the news node in the model part */
+            Node < 3 >::Pointer pnode = Node < 3 >::Pointer(new Node < 3 >(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
+            pnode->SetSolutionStepVariablesList( this_model_part.NodesBegin()->pGetVariablesList() );
+            pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
+
+            it_node1 = this_model_part.NodesBegin() + pos1;
+            it_node2 = this_model_part.NodesBegin() + pos2;
+
+            pnode->GetValue(FATHER_NODES).resize(0);
+            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
+            pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node2.base()));
+
+            pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
+            pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());
+            pnode->Z0() = 0.5 * (it_node1->Z0() + it_node2->Z0());
+
+            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            {
+                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+		
+                if (it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
+                {
+                    (p_new_dof)->FixDof();
+                }
+                else
+                {
+                    (p_new_dof)->FreeDof();
+                }
+            }
+
+            // Interpolating the data
+            unsigned int buffer_size = pnode->GetBufferSize();
+            for (unsigned int step = 0; step < buffer_size; step++)
+            {
+                double* new_step_data = pnode->SolutionStepData().Data(step);
+                double* step_data1 = it_node1->SolutionStepData().Data(step);
+                double* step_data2 = it_node2->SolutionStepData().Data(step);
+		
+                // Copying this data in the position of the vector we are interested in
+                for (unsigned int j = 0; j < step_data_size; j++)
+                {
+                    new_step_data[j] = 0.5 * (step_data1[j] + step_data2[j]);
+                }
+            }
+
+            this_model_part.Nodes().push_back(pnode);
+        }
+        
+        this_model_part.Nodes().Sort();
+	
+	KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Calculate_Coordinate_Center_Node_And_Insert_New_Nodes(ModelPart& this_model_part)
+    {
+      KRATOS_TRY;
+    
+      KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function of Local_Refine_Geometry_Mesh for Calculate_Coordinate_Center_Node_And_Insert_New_Nodes", "" );
+    
+      KRATOS_CATCH( "" );
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Erase_Old_Element_And_Create_New_Element(
+            ModelPart& this_model_part,
+            const compressed_matrix<int>& Coord,
+            PointerVector< Element >& New_Elements,
+            bool interpolate_internal_variables
+									     )
+    {
+      KRATOS_TRY;
+    
+      KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function of Local_Refine_Geometry_Mesh for Erase_Old_Element_And_Create_New_Element", "" );
+    
+      KRATOS_CATCH( "" );
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Erase_Old_Conditions_And_Create_New(
+            ModelPart& this_model_part,
+            const compressed_matrix<int>& Coord
+	 )
+    {
+        KRATOS_TRY;
+	
+        PointerVector< Condition > New_Conditions;
+
+        ConditionsArrayType& rConditions = this_model_part.Conditions();
+
+        if (rConditions.size() > 0)
+        {
+            ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
+            ConditionsArrayType::iterator it_end   = rConditions.ptr_end();
+            unsigned int to_be_deleted = 0;
+            unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
+
+            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+	    
+	    const unsigned int dimension = it_begin->GetGeometry().WorkingSpaceDimension();
+
+            unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
+	    
+	    if (dimension == 2)
+	    {
+	      for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
+	      {
+
+		  Condition::GeometryType& geom = it->GetGeometry();
+
+		  if (geom.size() == 2)
+		  {
+		      int index_0 = geom[0].Id() - 1;
+		      int index_1 = geom[1].Id() - 1;
+		      int new_id;
+
+		      if (index_0 > index_1)
+		      {
+			  new_id = Coord(index_1, index_0);
+		      }
+		      else
+		      {
+			  new_id = Coord(index_0, index_1);
+		      }
+
+		      if (new_id > 0) // We need to create a new condition
+		      {
+			  to_be_deleted++;
+			  Line2D2<Node < 3 > > newgeom1(
+			      this_model_part.Nodes()(geom[0].Id()),
+			      this_model_part.Nodes()(new_id)
+			  );
+
+			  Line2D2<Node < 3 > > newgeom2(
+			      this_model_part.Nodes()(new_id),
+			      this_model_part.Nodes()(geom[1].Id())
+			  );
+
+			  Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+			  Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+
+			  pcond1->Data() = it->Data();
+			  pcond2->Data() = it->Data();
+
+			  New_Conditions.push_back(pcond1);
+			  New_Conditions.push_back(pcond2);
+
+			  it->SetId(large_id);
+			  large_id++;
+		      }
+		  }
+	      }
+	    }
+	    else
+	    {
+	      for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
+	      {
+
+		  Condition::GeometryType& geom = it->GetGeometry();
+
+		  if (geom.size() == 2)
+		  {
+		      int index_0 = geom[0].Id() - 1;
+		      int index_1 = geom[1].Id() - 1;
+		      int new_id;
+
+		      if (index_0 > index_1)
+		      {
+			  new_id = Coord(index_1, index_0);
+		      }
+		      else
+		      {
+			  new_id = Coord(index_0, index_1);
+		      }
+
+		      if (new_id > 0) // We need to create a new condition
+		      {
+			  to_be_deleted++;
+			  Line3D2<Node < 3 > > newgeom1(
+			      this_model_part.Nodes()(geom[0].Id()),
+			      this_model_part.Nodes()(new_id)
+			  );
+
+			  Line3D2<Node < 3 > > newgeom2(
+			      this_model_part.Nodes()(new_id),
+			      this_model_part.Nodes()(geom[1].Id())
+			  );
+
+			  Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+			  Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+
+			  pcond1->Data() = it->Data();
+			  pcond2->Data() = it->Data();
+
+			  New_Conditions.push_back(pcond1);
+			  New_Conditions.push_back(pcond2);
+
+			  it->SetId(large_id);
+			  large_id++;
+		      }
+		  }
+	      }
+	    }
+
+            /* All of the elements to be erased are at the end */
+            this_model_part.Conditions().Sort();
+
+            /* Remove all of the "old" elements */
+            this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
+
+            unsigned int total_size = this_model_part.Conditions().size() + New_Conditions.size();
+            this_model_part.Conditions().reserve(total_size);
+
+            /* Adding news elements to the model part */
+            for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
+            {
+                it_new->Initialize();
+                it_new->InitializeSolutionStep(rCurrentProcessInfo);
+                it_new->FinalizeSolutionStep(rCurrentProcessInfo);
+                this_model_part.Conditions().push_back(*(it_new.base()));
+            }
+
+            /* Renumber */
+            unsigned int my_index = 1;
+            for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
+            {
+                it->SetId(my_index++);
+            }
+
+        }
+
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Calculate_Edges(
+            Element::GeometryType& geom,
+            const compressed_matrix<int>& Coord,
+            int* edge_ids,
+            array_1d<int, 12 > & aux
+            )
+    {
+      KRATOS_TRY;
+    
+      KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function of Local_Refine_Geometry_Mesh for Calculate_Edges", "" );
+    
+      KRATOS_CATCH( "" );
+    
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::Renumering_Elements_And_Nodes(
+            ModelPart& this_model_part,
+            PointerVector< Element >& New_Elements
+    )
+    {
+        KRATOS_TRY;
+	
+        unsigned int id_node = 1;
+        unsigned int id_elem = 1;
+        NodesArrayType& pNodes = this_model_part.Nodes();
+        NodesArrayType::iterator i_begin = pNodes.ptr_begin();
+        NodesArrayType::iterator i_end   = pNodes.ptr_end();
+
+        for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
+        {
+            if (i->Id() != id_node)
+            {
+                i->SetId(id_node);
+            }
+            id_node++;
+        }
+
+        ElementsArrayType& rElements = this_model_part.Elements();
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+        ElementsArrayType::iterator it_end   = rElements.ptr_end();
+
+        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+        {
+            if (it->Id() != id_elem)
+            {
+                it->SetId(id_elem);
+            }
+            id_elem++;
+        }
+        
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    inline void Local_Refine_Geometry_Mesh::CreatePartition(
+      unsigned int number_of_threads, 
+      const int number_of_rows, 
+      vector<unsigned int>& partitions
+    )
+    {
+        partitions.resize(number_of_threads + 1, false);
+        int partition_size = number_of_rows / number_of_threads;
+        partitions[0] = 0;
+        partitions[number_of_threads] = number_of_rows;
+        for (unsigned int i = 1; i < number_of_threads; i++)
+        {
+            partitions[i] = partitions[i - 1] + partition_size;
+        }
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    void Local_Refine_Geometry_Mesh::InterpolateInteralVariables(
+            const int& number_elem,
+            const Element::Pointer father_elem,
+            Element::Pointer child_elem,
+            ProcessInfo& rCurrentProcessInfo
+            )
+    {
+        // NOTE: Right now there is not an interpolation at all, it just copying the values
+        std::vector<Vector> values;
+        father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+    }
+
+} // Namespace Kratos.

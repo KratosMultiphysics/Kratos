@@ -1,0 +1,316 @@
+/*
+ * File:   local_refine_mesh.hpp
+ * Author: VMataix
+ * Co-author: 
+ *
+ * Created on 2 May 2016, 10:20
+ * Last update on 2 May 2016, 10:20
+ */
+
+#if !defined(KRATOS_LOCAL_REFINE_GEOMETRY_MESH)
+#define  KRATOS_LOCAL_REFINE_GEOMETRY_MESH
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+// NOTE: Before compute the remeshing it is necessary to compute the neighbours
+
+// System includes
+#include <string>
+#include <iostream>
+#include <stdlib.h>
+#include <cmath>
+#include <algorithm>
+
+// Extrenal includes
+
+// Project includes 
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/node.h"
+#include "includes/dof.h"
+#include "includes/variables.h"
+#include "includes/deprecated_variables.h"
+#include "includes/constitutive_law.h"
+#include "geometries/geometry.h"
+#include "geometries/geometry_data.h"
+#include "containers/data_value_container.h"
+#include "includes/mesh.h"
+#include "utilities/math_utils.h"
+#include "processes/node_erase_process.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
+
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
+class Local_Refine_Geometry_Mesh
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+    typedef ModelPart::NodesContainerType NodesArrayType;
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
+    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
+    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef Node < 3 > PointType;
+    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef std::vector<PointType::Pointer> PointVector;
+    typedef PointVector::iterator PointIterator;
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
+    
+    /// Default constructors
+    Local_Refine_Geometry_Mesh(ModelPart& model_part) : mr_model_part(model_part)
+    {
+
+    }
+    
+    /// Destructor
+    ~Local_Refine_Geometry_Mesh()
+    {
+      
+    }
+    
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
+    /**
+    * Refine the mesh locally, call all the commands necessaries to compute the remeshing
+    * @param refine_on_reference: Boolean that defines if refine or not the mesh according to the reference
+    * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
+    */
+    
+    void Local_Refine_Mesh(
+            bool refine_on_reference,
+            bool interpolate_internal_variables);
+ 
+    /**
+    * This function initialises the matrix Cord
+    * @return Coord: The matrix that stores all the index of the geometry
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    virtual void CSR_Row_Matrix(
+            ModelPart& this_model_part,
+            compressed_matrix<int>& Coord
+			       );
+    
+    /**
+    * This functions looks for potential edges that could be refined
+    * @return Coord: The matrix that stores all the index of the geometry
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    virtual void Search_Edge_To_Be_Refined(
+            ModelPart& this_model_part,
+            compressed_matrix<int>& Coord
+					  );
+
+    /**
+    * It creates the list of new nodes
+    * @return this_model_part: The model part of the model (it is the input too)
+    * @return Coord: The matrix that stores all the index of the geometry
+    * @return List_New_Nodes: List that contents the index of the new nodes to be created
+    * @return Position_Node: The vector that contents the position in the edge of the new nodes
+    */
+    
+    virtual void Create_List_Of_New_Nodes(
+            ModelPart& this_model_part,
+            compressed_matrix<int>& Coord,
+            boost::numeric::ublas::vector<int> &List_New_Nodes,
+            boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node
+					 );
+    
+    /**
+    * Computes the coordinates of the new nodes in the center of the edges
+    * Insert the news nodes in the model part and interpolate the variables
+    * @param List_New_Nodes: List that contents the index of the new nodes to be created
+    * @param Position_Node: The vector that contents the position in the edge of the new nodes
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    virtual void Calculate_Coordinate_And_Insert_New_Nodes(
+            ModelPart& this_model_part,
+            const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
+            const boost::numeric::ublas::vector<int> &List_New_Nodes
+							  );
+    
+    /**
+    * Computes the coordinate of the baricenter node of the element (mean of the faces's baricenter)
+    * Insert the news nodes in the center of elements and interopolate the variables.
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+
+    virtual void Calculate_Coordinate_Center_Node_And_Insert_New_Nodes(ModelPart& this_model_part);
+
+    /**
+    * It erases the old elements and it creates the new ones
+    * @param Coord: The coordinates of the element
+    * @param New_Elements: The new elements created
+    * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    virtual void Erase_Old_Element_And_Create_New_Element(
+            ModelPart& this_model_part,
+            const compressed_matrix<int>& Coord,
+            PointerVector< Element >& New_Elements,
+            bool interpolate_internal_variables
+							       );
+    
+    /**
+    * Remove the old conditions and creates new ones
+    * @param Coord: The coordinates of the nodes of the geometry
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    virtual void Erase_Old_Conditions_And_Create_New(
+            ModelPart& this_model_part,
+            const compressed_matrix<int>& Coord
+    );
+    
+    /**
+    * It calculates the new edges of the new elements
+    * first it calculates the new edges correspondign to the lower face (as a triangle),
+    * later it added to the upper face
+    * @param geom: The prism element geometry
+    * @param edge_ids: The ids of the edges
+    * @return aux: The vector that includes the index of the new edges
+    */
+    
+    virtual void Calculate_Edges(
+            Element::GeometryType& geom,
+            const compressed_matrix<int>& Coord,
+            int* edge_ids,
+            array_1d<int, 12 > & aux
+            );
+    
+    /**
+    * This process renumerates the elements and nodes  
+    * @param New_Elements: Pointers to the new elements created
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    virtual void Renumering_Elements_And_Nodes(
+            ModelPart& this_model_part,
+            PointerVector< Element >& New_Elements
+					      );
+
+    /**
+    * It creates a partition of the process between the different threads
+    * @param number_of_threads: Number the threads considered in the computation
+    * @param number_of_rows: 
+    * @return partitions: The vector that contents the partitions corresponding to each thread
+    */
+    
+    inline void CreatePartition(
+      unsigned int number_of_threads, 
+      const int number_of_rows, 
+      vector<unsigned int>& partitions
+    );
+    
+    /**
+    * Interpolates the internal variables
+    * @param number_elem: Number of elements
+    * @param father_elem: Father element (the original one)
+    * @param child_elem: Child element (the new ones created)
+    * @param rCurrentProcessInfo: The model part process info
+    */
+    
+    virtual void InterpolateInteralVariables(
+            const int& number_elem,
+            const Element::Pointer father_elem,
+            Element::Pointer child_elem,
+            ProcessInfo& rCurrentProcessInfo
+            );
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+   
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+   
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+    
+private:
+    ///@name Private static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+  
+    ModelPart& mr_model_part;
+   
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+    ///@}
+ 
+};
+
+} // namespace Kratos.
+
+#endif // KRATOS_LOCAL_REFINE_GEOMETRY_MESH  defined 
