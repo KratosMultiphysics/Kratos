@@ -533,13 +533,14 @@ namespace Kratos {
 
                 Condition::GeometryType& geom = it->GetGeometry();
                 double Element_Area = geom.Area();
+                
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element;
                 p_wall->CalculateNormal(Normal_to_Element);
                 const unsigned int& dim = geom.WorkingSpaceDimension();
-
+               
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
                     //we are studying a certain condition here
                     index = i * dim; //*2;
@@ -964,10 +965,11 @@ namespace Kratos {
             }//loop over temporal neighbours
 
             //swap
-            temporal_neigh.swap(neighbour_rigid_faces);
+            
+            temporal_neigh.swap(neighbour_rigid_faces);           
             temporal_contact_weights.swap(neighbour_weights);
             temporal_contact_types.swap(neighbor_contact_types);
-
+            
             this->GetRigidFaceResults()[i].clear();
             this->GetRigidFaceResultsDistances()[i].clear();
         }//for particles
