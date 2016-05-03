@@ -21,6 +21,7 @@
 #include "../custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
+
 namespace Kratos
 {
 
@@ -73,15 +74,18 @@ virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
 
-virtual void ComputeConditionRelativeData(DEMWall* const wall,
+virtual void ComputeConditionRelativeData(int rigid_neighbour_index,
+                                          DEMWall* const wall,
                                             double LocalCoordSystem[3][3],
                                             double& DistPToB,
-                                            array_1d<double, 4> Weight,
+                                            array_1d<double, 4>& Weight,
                                             array_1d<double, 3>& wall_delta_disp_at_contact_point,
                                             array_1d<double, 3>& wall_velocity_at_contact_point,
                                             int& ContactType
                                             );
-virtual void RenewContactPoint( array_1d<double, 3>& node_coordinates,int i_neigh, double Normal[3],double DistPToB);
+
+virtual void RenewData();
+virtual void SendForcesToFEM();
 int   GetClusterId();
 void  SetClusterId(const int Id);
 
@@ -135,7 +139,7 @@ double SlowGetDensity();
 double SlowGetParticleCohesion();
 int    SlowGetParticleMaterial();
 
-double GetBoundDeltaDisp();
+double GetBoundDeltaDispSq();
 
 /// Turn back information as a string.
 virtual std::string Info() const
@@ -310,7 +314,7 @@ double mSearchRadiusWithFem;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
-double mBoundDeltaDisp;
+double mBoundDeltaDispSq;
 
 private:
 
