@@ -138,65 +138,7 @@ namespace Kratos
             
 	};
         
-        
-        void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
-         
-        std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
-        std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
-        std::vector<int> DiscontinuumInitialNeighborsIds;
-        std::vector<double> DiscontinuumInitialNeighborsDeltas;
-        mIniNeighbourFailureId.clear(); // We will have to build this vector, we still don't know its size, it applies only to continuum particles
-        size_t continuum_ini_size    = 0;
-        size_t discontinuum_ini_size = 0;
-        unsigned int neighbours_size = mNeighbourElements.size();
-        mIniNeighbourIds.resize(neighbours_size);
-        mIniNeighbourDelta.resize(neighbours_size);
-
-        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-            
-            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-
-            double distance = DEM_MODULUS_3(other_to_me_vect);
-            double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
-            double initial_delta = radius_sum - distance;
-            int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
-            
-            if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
-                
-                mIniNeighbourIds[continuum_ini_size]   = neighbour_iterator->Id();
-                mIniNeighbourDelta[continuum_ini_size] = initial_delta;
-                mIniNeighbourFailureId.push_back(0);
-                ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
-                continuum_ini_size++;
-
-            } else {
-                
-                DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
-                DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
-                DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
-                discontinuum_ini_size++;
-            }            
-        }
-
-        mContinuumInitialNeighborsSize = continuum_ini_size;
-        mInitialNeighborsSize = neighbours_size;
-        
-        for (unsigned int j = 0; j < continuum_ini_size; j++) {
-            mNeighbourElements[j] = ContinuumInitialNeighborsElements[j];
-        }
-            
-        for (unsigned int k = 0; k < discontinuum_ini_size; k++) {
-            
-            mIniNeighbourIds[continuum_ini_size + k]   = DiscontinuumInitialNeighborsIds[k];
-            mIniNeighbourDelta[continuum_ini_size + k] = DiscontinuumInitialNeighborsDeltas[k];
-            mNeighbourElements[continuum_ini_size + k] = DiscontinuumInitialNeighborsElements[k];
-        }
-    }//SetInitialSphereContacts 
-        
-        
-
+               
 	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(ProcessInfo& r_process_info)
 	{
 		std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
