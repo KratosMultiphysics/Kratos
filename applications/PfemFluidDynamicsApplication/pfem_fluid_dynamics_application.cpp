@@ -112,16 +112,16 @@ namespace Kratos
 //   KRATOS_CREATE_VARIABLE(int, PATCH_INDEX )
 
 
-  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():   
-    mTwoStepUpdatedLagrangianVPElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTwoStepUpdatedLagrangianVPSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTwoStepUpdatedLagrangianVPFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2) ) ) ),
-    mWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3) ) ) )
-  {}
+  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication()//:   
+    // mTwoStepUpdatedLagrangianVPElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    // mTwoStepUpdatedLagrangianVPElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // mTwoStepUpdatedLagrangianVPSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    // mTwoStepUpdatedLagrangianVPSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // mTwoStepUpdatedLagrangianVPFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    // mTwoStepUpdatedLagrangianVPFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+  {
+    std::cout << "Riccardo " << std::endl;
+}
   
   void KratosPfemFluidDynamicsApplication::Register()
   {
@@ -152,9 +152,6 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3D",mTwoStepUpdatedLagrangianVPFluidElement3D);
 
     //Register Conditions
-    KRATOS_REGISTER_CONDITION("WallCondition2D",mWallCondition2D);
-    KRATOS_REGISTER_CONDITION("WallCondition3D",mWallCondition3D);
-
 
     //Register Constitutive Laws
 

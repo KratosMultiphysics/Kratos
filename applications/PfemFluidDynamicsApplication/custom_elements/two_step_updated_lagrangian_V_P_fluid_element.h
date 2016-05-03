@@ -213,6 +213,8 @@ namespace Kratos
 	  return Element::Pointer(new TwoStepUpdatedLagrangianVPFluidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
 	}
 
+      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+
       virtual void Initialize();
 
       /// Initializes the element and all geometric information required for the problem.
