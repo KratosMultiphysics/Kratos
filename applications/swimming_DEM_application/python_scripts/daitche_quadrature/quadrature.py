@@ -4,6 +4,10 @@ import mpmath
 import matplotlib.pyplot as plt
 from bigfloat import *
 
+# *****************************************************************************************************************************************************************************************
+# EXACT EVALUATIONS
+# *****************************************************************************************************************************************************************************************
+
 def ExactIntegrationOfSinus(t, a = None, b = None):
     with precision(300):
         if a == None and b == None:
@@ -27,6 +31,12 @@ def ExactIntegrationOfSinusWithExponentialKernel(t, ti, alpha = None, beta = Non
     b = - 0.5  / ti
     return a / (b ** 2 + 1) * (exp(b * (t - alpha)) * (b * sin(alpha) + cos(alpha)) - exp(b * (t - beta)) * (b * sin(beta) + cos(beta)))
 
+# *****************************************************************************************************************************************************************************************
+# QUADRATURES
+# *****************************************************************************************************************************************************************************************
+
+# ApproximateQuadrature BEGINS
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def ApproximateQuadrature(times, f):
     values = [0.0 for t in times]
     acc_sum = 2 * math.sqrt(times[-1] - times[-2]) * f(times[-1])
@@ -40,17 +50,22 @@ def ApproximateQuadrature(times, f):
         acc_sum += 0.5 * delta_t * (f(times[i]) + f(times[i - 1])) / math.sqrt(times[-1] - times[i])
         
     return acc_sum
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ApproximateQuadrature ENDS
+
+# Daitche BEGINS
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def Alpha(n, j):
-    with precision(300):
-        four_thirds = BigFloat(4.) / BigFloat(3.)
-        exponent = BigFloat(1.5)
-        if 0 < j and j < n:
-            return four_thirds * ((j - 1) ** exponent + (j + 1) ** exponent - 2 * j ** exponent)
-        elif j == 0:
-            return four_thirds
-        else:
-            return four_thirds * ((n - 1) ** exponent - n ** exponent + exponent * sqrt(n))
+    four_thirds = 4. / 3
+    exponent = 1.5
+        
+    if 0 < j and j < n:
+        return four_thirds * ((j - 1) ** exponent + (j + 1) ** exponent - 2 * j ** exponent)
+    elif j == 0:
+        return four_thirds
+    else:
+        return four_thirds * ((n - 1) ** exponent - n ** exponent + exponent * sqrt(n))
 
 def Beta(n, j):
     sqrt_2 = math.sqrt(2)
@@ -100,68 +115,29 @@ def Gamma(n, j):
         sqrt_6 = sqrt(6) 
         sqrt_n = sqrt(n) 
         one = BigFloat(1)
-        if n >= 7:
-            #if 3 < j and j < n - 3:
-                #answer = 16. / 105 * (    (j + 2) ** 3.5     + (j - 2) ** 3.5 - 4 * (j + 1) ** 3.5 - 4 * (j - 1) ** 3.5 + 6 * j ** 3.5)\
-                            #+ 2. / 9 * (4 * (j + 1) ** 1.5 + 4 * (j - 1) ** 1.5     - (j + 2) ** 1.5     - (j - 2) ** 1.5 - 6 * j ** 1.5)
-                #return float(answer)
-            #elif j == 0:
-                #answer = 244. / 315 * sqrt_2
-                #return float(answer)
-            #elif j == 1:
-                #answer = 362. / 105 * sqrt_3 - 976. / 315 * sqrt_2
-                #return float(answer)            
-            #elif j == 2:
-                #answer = 5584. / 315 - 1448. / 105 * sqrt_3 + 488. / 105 * sqrt_2
-                #return float(answer)                        
-            #elif j == 3:
-                #answer = 1130. / 63 * sqrt_5 - 22336. / 315 + 724. / 35 * sqrt_3 - 976. / 315 * sqrt_2   
-                #return float(answer)                        
-            #elif j == n - 3:
-                #answer = 16. / 105 * (n ** 3.5 - 4 * (n - 2) ** 3.5     + 6 * (n - 3) ** 3.5      - 4 * (n - 4) ** 3.5          + (n - 5) ** 3.5)\
-                        #- 8. / 15 * n ** 2.5 + 4. / 9 * n ** 1.5 + 8. / 9 * (n - 2) ** 1.5 - 4. / 3 * (n - 3) ** 1.5 + 8. / 9 * (n - 4) ** 1.5 - 2. / 9 * (n - 5) ** 1.5 
-                #return float(answer)                            
-            #elif j == n - 2:
-                #answer = 16. / 105 * ((n - 4) ** 3.5 - 4 * (n - 3) ** 3.5      + 6 * (n - 2) ** 3.5            - 3 * n ** 3.5)\
-                            #+ 32. / 15 * n ** 2.5       - 2 * n ** 1.5 - 4. / 3 * (n - 2) ** 1.5 + 8. / 9 * (n - 3) ** 1.5 - 2. / 9 * (n - 4) ** 1.5
-                #return float(answer)                                 
-            #elif j == n - 1:
-                #answer = 16. / 105 * (3 * n ** 3.5 - 4 * (n - 2) ** 3.5 + (n - 3) ** 3.5) - 8. / 3 * n ** 2.5 + 4 * n ** 1.5 + 8. / 9 * (n - 2) ** 1.5 - 2. / 9 * (n - 3) ** 1.5
-                #return float(answer)                        
-            #else:
-                #answer = 16. / 105 * ((n - 2) ** 3.5 - n ** 3.5) + 16. / 15 * n ** 2.5 - 22. / 9 * n ** 1.5 - 2. / 9 * (n - 2) ** 1.5 + 2 * sqrt_n
-                #return float(answer)     
+        
+        if n >= 7:  
             if 3 < j and j < n - 3:
-                answer = 16. / (one*105) * (    (j + 2) ** (one*3.5)     + (j - 2) ** (one*3.5) - 4 * (j + 1) ** (one*3.5) - 4 * (j - 1) ** (one*3.5) + 6 * j ** (one*3.5))\
-                            + 2. / (one*9) * (4 * (j + 1) ** (one*1.5) + 4 * (j - 1) ** (one*1.5)     - (j + 2) ** (one*1.5)     - (j - 2) ** (one*1.5) - 6 * j ** (one*1.5))
-                return answer        
+                return 16. / (one * 105) * (      (j + 2) ** (one * 3.5)     + (j - 2) ** (one * 3.5) - 4 * (j + 1) ** (one * 3.5) - 4 * (j - 1) ** (one * 3.5) + 6 * j ** (one * 3.5))\
+                            + 2. / (one * 9) * (4 * (j + 1) ** (one * 1.5) + 4 * (j - 1) ** (one * 1.5)     - (j + 2) ** (one * 1.5)     - (j - 2) ** (one * 1.5) - 6 * j ** (one * 1.5))
             elif j == 0:
-                answer = 244. / (one*315) * sqrt_2
-                return float(answer)
+                return 244. / (one * 315) * sqrt_2
             elif j == 1:
-                answer = 362. / (one*105) * sqrt_3 - 976. / (one*315) * sqrt_2
-                return float(answer)            
+                return 362. / (one * 105) * sqrt_3 - 976. / (one * 315) * sqrt_2
             elif j == 2:
-                answer = 5584. / (one*315) - 1448. / (one*105) * sqrt_3 + 488. / (one*105) * sqrt_2
-                return float(answer)                        
+                return 5584. / (one * 315) - 1448. / (one * 105) * sqrt_3 + 488. / (one * 105) * sqrt_2
             elif j == 3:
-                answer = 1130. / (one*63) * sqrt_5 - 22336. / (one*315) + 724. / (one*35) * sqrt_3 - 976. / (one*315) * sqrt_2   
-                return float(answer)                        
+                return 1130. / (one * 63) * sqrt_5 - 22336. / (one * 315) + 724. / (one * 35) * sqrt_3 - 976. / (one * 315) * sqrt_2   
             elif j == n - 3:
-                answer = 16. / (one*105) * (n ** (one*3.5) - 4 * (n - 2) ** (one*3.5)     + 6 * (n - 3) ** (one*3.5)      - 4 * (n - 4) ** (one*3.5)          + (n - 5) ** (one*3.5))\
-                        - 8. / (one*15) * n ** (one*2.5) + 4. / (one*9) * n ** (one*1.5) + 8. / (one*9) * (n - 2) ** (one*1.5) - 4. / (one*3) * (n - 3) ** (one*1.5) + 8. / (one*9) * (n - 4) ** (one*1.5) - 2. / (one*9) * (n - 5) ** (one*1.5) 
-                return float(answer)                            
+                return 16. / (one * 105) * (n ** (one * 3.5) - 4 * (n - 2) ** (one * 3.5)     + 6 * (n - 3) ** (one * 3.5)      - 4 * (n - 4) ** (one * 3.5)          + (n - 5) ** (one * 3.5))\
+                        - 8. / (one * 15) * n ** (one * 2.5) + 4. / (one * 9) * n ** (one * 1.5) + 8. / (one * 9) * (n - 2) ** (one * 1.5) - 4. / (one * 3) * (n - 3) ** (one * 1.5) + 8. / (one * 9) * (n - 4) ** (one * 1.5) - 2. / (one * 9) * (n - 5) ** (one * 1.5) 
             elif j == n - 2:
-                answer = 16. / (one*105) * ((n - 4) ** (one*3.5) - 4 * (n - 3) ** (one*3.5)      + 6 * (n - 2) ** (one*3.5)            - 3 * n ** (one*3.5))\
-                            + 32. / (one*15) * n ** (one*2.5)       - 2 * n ** (one*1.5) - 4. / (one*3) * (n - 2) ** (one*1.5) + 8. / (one*9) * (n - 3) ** (one*1.5) - 2. / (one*9) * (n - 4) ** (one*1.5)
-                return float(answer)                                 
+                return 16. / (one * 105) * ((n - 4) ** (one * 3.5) - 4 * (n - 3) ** (one * 3.5)      + 6 * (n - 2) ** (one * 3.5)            - 3 * n ** (one * 3.5))\
+                            + 32. / (one * 15) * n ** (one * 2.5)       - 2 * n ** (one * 1.5) - 4. / (one * 3) * (n - 2) ** (one * 1.5) + 8. / (one * 9) * (n - 3) ** (one * 1.5) - 2. / (one * 9) * (n - 4) ** (one * 1.5)
             elif j == n - 1:
-                answer = 16. / (one*105) * (3 * n ** (one*3.5) - 4 * (n - 2) ** (one*3.5) + (n - 3) ** (one*3.5)) - 8. / (one*3) * n ** (one*2.5) + 4 * n ** (one*1.5) + 8. / (one*9) * (n - 2) ** (one*1.5) - 2. / (one*9) * (n - 3) ** (one*1.5)
-                return float(answer)                        
+                return 16. / (one * 105) * (3 * n ** (one * 3.5) - 4 * (n - 2) ** (one * 3.5) + (n - 3) ** (one * 3.5)) - 8. / (one * 3) * n ** (one * 2.5) + 4 * n ** (one * 1.5) + 8. / (one * 9) * (n - 2) ** (one * 1.5) - 2. / (one * 9) * (n - 3) ** (one * 1.5)
             else:
-                answer = 16. / (one*105) * ((n - 2) ** (one*3.5) - n ** (one*3.5)) + 16. / (one*15) * n ** (one*2.5) - 22. / (one*9) * n ** (one*1.5) - 2. / (one*9) * (n - 2) ** (one*1.5) + 2 * sqrt_n
-                return float(answer)                        
-            
+                return 16. / (one * 105) * ((n - 2) ** (one * 3.5) - n ** (one * 3.5)) + 16. / (one * 15) * n ** (one * 2.5) - 22. / (one * 9) * n ** (one * 1.5) - 2. / (one * 9) * (n - 2) ** (one * 1.5) + 2 * sqrt_n
         elif n == 3:
             if j == 0:
                 return 68. / 105 * sqrt_3
@@ -231,57 +207,80 @@ def Daitche(order, times, f):
         total += coefficient * f(times[-j - 1])
     
     return sqrt_of_h * total
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Daitche ENDS
+
+# Hinsberg BEGINS
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def Phi(t):
     if abs(t) > 1e-7:
-        answer = (exp(t) - 1) / t
+        answer = (exp(t) - 1.) / t
     else:
-        answer = 1 + 0.5 * t + 1. / 6 * t ** 2
+        answer = 1. + 0.5 * t + 1. / 6 * t ** 2
     return answer
 
-def Hinsberg(m, times, f):
-    if len(times) < 4:
-        return Bombardelli(times, f, 1)
+def Hinsberg(m, t_win, times, f):
+    verify_interpolation = False
+    cheat = False
+    cheat_a_little = True
+    print_debug_info = False
+    
+    if len(times) < 4: # no tail left
+        return Daitche(times, f, 1)
     else:
         import hinsberg_optimization as op
+        initial_time = times[0]
         final_time = times[- 1]
-
-        t_win = 0.4 * final_time
+        interval = final_time - initial_time
+        
+        # Partitioning time vector in two  ------------------------------
+               
         for i in range(len(times)):
-            if times[i] >= t_win:
+            if times[i] >= final_time - t_win:
                 break
-        old_times = [time * times[i] / times[-1] for time in times]
-        recent_times = [times[i] + time * (times[-1] - times[0] - times[i]) / (times[-1] - times[0]) for time in times]
-        print(recent_times)
-        F_win = Daitche(2, recent_times, f)
-        #F_win2 = Daitche(2, recent_times, f)
-        #F_win3 = Daitche(3, recent_times, f) 
+            
+        t_middle = times[i]    
+        old_times = [time * t_middle / interval for time in times]        
+        recent_times = [t_middle + time * (interval - t_middle) / interval for time in times]
+        
+        # Calculating window integral  ------------------------------
+        
+        F_win = Daitche(1, recent_times, f)
+        
+        # Calculating Tail Integral ------------------------------
+        
+        # Building exponentials interpolation of the kernel
+        
         tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
         a0 = [0.2 for ti in tis]
         functional = op.Functional(tis)
         op.GetExponentialsCoefficients(functional, a0)
         F_tail = float(ExactIntegrationOfSinus(final_time, 0.0, old_times[1]))
-        print("START",F_tail)
         Fis = [0.0 for coefficient in a0]
         
-        #plot_times = [i * 0.01 for i in range(500)]
-        #approx_values = []
-        #exact_values = []
-        #for time in plot_times:
-            #approximation_value = 0.0
-            #for i in range(len(a0)):
-                #ti = tis[i]
-                #a = sqrt(exp(1) / ti)
-                #b = - 0.5  / ti
-                #approximation_value += a0[i] * a * exp(b * time)
-            #approx_values.append(approximation_value)
-            #exact_values.append(1 / sqrt(time))
+        # Verifying interpolation by exponentials
         
-        #plt.plot(plot_times, approx_values)
-        #plt.plot(plot_times, exact_values)
-
-        #plt.axis('equal')
-        #plt.show()
+        if verify_interpolation:
+            plot_times = [i * 0.01 for i in range(500)]
+            approx_values = []
+            exact_values = []
+            for time in plot_times:
+                approximation_value = 0.0
+                for i in range(len(a0)):
+                    ti = tis[i]
+                    a = sqrt(exp(1) / ti)
+                    b = - 0.5  / ti
+                    approximation_value += a0[i] * a * exp(b * time)
+                approx_values.append(approximation_value)
+                exact_values.append(1 / sqrt(time))
+            
+            plt.plot(plot_times, approx_values)
+            plt.plot(plot_times, exact_values)
+            plt.axis('equal')
+            plt.show()
+        
+        # For each interpoland, calculate its integral contribution step by step
         
         for i in range(len(a0)):
             ti = tis[i]
@@ -292,39 +291,50 @@ def Hinsberg(m, times, f):
                 fn = f(old_times[k - 1])
                 fn_plus_1 = f(old_times[k])
                 exp_dt = exp(- normalized_dt)
-                Fdi = ExactIntegrationOfSinusWithExponentialKernel(final_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k]) #2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp_dt * (Phi(normalized_dt) - 1.)) #
+                Fdi = 2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp_dt * (Phi(normalized_dt) - 1.)) #
+                if cheat_a_little: # calculate exact contribution and not approximation given by Hinsberg
+                    Fdi = ExactIntegrationOfSinusWithExponentialKernel(final_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k])
                 Fre = exp_dt * Fis[i]
                 Fis[i] = float(Fdi) + Fre
                 
             F_tail += a0[i] * Fis[i]
-            print("FIRST MOD", F_tail)
-
-        #F_tail = 0.0
-        #for i in range(len(a0)):
-            #ti = tis[i]
-            #F_tail += a0[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, 0., old_times[-1])
-
-        t_win = recent_times[0]
-        #print("times", times)
-        #print("old_times", old_times)
-        #print("recent_times", recent_times)   
-        print("EXACT tail", ExactIntegrationOfSinus(final_time, 0., t_win))        
-        print("EXACT recent", ExactIntegrationOfSinus(final_time, t_win, final_time))         
-        print("EXACT whole", ExactIntegrationOfSinus(final_time))        
-        print("WHOLE", Daitche(1, times, f))  
-        print("RECENT", F_win)                
-        print("TAIL", F_tail)
-        print("F_win + F_tail", F_win + F_tail)
-        #para
+            
+        # Cheating, calculating the exact interpoland's integral all at once (and not step by step) ------------------------------
+        
+        if cheat:
+            F_tail = 0.0
+            for i in range(len(a0)):
+                ti = tis[i]
+                F_tail += a0[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, 0., old_times[-1])
+        
+        
+        # Printing debug info ------------------------------
+        
+        if print_debug_info:
+            print("times", times)
+            print("old_times", old_times)
+            print("recent_times", recent_times)   
+            print("EXACT tail", ExactIntegrationOfSinus(final_time, 0., t_win))        
+            print("EXACT recent", ExactIntegrationOfSinus(final_time, t_win, final_time))         
+            print("EXACT whole", ExactIntegrationOfSinus(final_time))        
+            print("WHOLE", Daitche(1, times, f))  
+            print("RECENT", F_win)                
+            print("TAIL", F_tail)
+            print("F_win + F_tail", F_win + F_tail)
+            sys.exit
         return F_win + F_tail
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Hinsberg ENDS
+
+# Bombardelli BEGINS
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def Bombardelli(times, f, order = 1):
     with precision(200):
         q = - 0.5
         t = times[- 1]
         a = times[0]
-        if a == 0.5:
-            print("TIMES", times)
         N = len(times) - 1
         h = (t - a) / N
         #initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
@@ -342,7 +352,15 @@ def Bombardelli(times, f, order = 1):
             coeff = h ** (- q) * gamma(- q)
             values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h - a) * initial_approx_deriv) for k in range(N)]
             initial_value_correction =  gamma(- q) * (constant_initial_correction + linear_correction_option * linear_initial_correction)
+            
         return coeff * sum(values) + initial_value_correction
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Bombardelli ENDS
+
+# *****************************************************************************************************************************************************************************************
+# CONVERGENCE ACCELERATION
+# *****************************************************************************************************************************************************************************************
 
 def SubstituteRichardsons(approx_successive_values, k, order, level = - 1):
     with precision(200):
@@ -354,13 +372,14 @@ def SubstituteRichardsons(approx_successive_values, k, order, level = - 1):
             max_n = level
         
         richardsons = [value for value in approx_successive_values]
+        
         while max_n:
             max_n -= 1
             n -= 1
             new_richardsons = []
             
             for i in range(n):
-                new_richardsons.append((k ** order * richardsons[i + 1] - richardsons[i]) / (one*(k ** order - 1)))
+                new_richardsons.append((k ** order * richardsons[i + 1] - richardsons[i]) / (one * (k ** order - 1)))
                 
             richardsons = [value for value in new_richardsons]        
             
@@ -387,11 +406,11 @@ def SubstituteEmpiricalRichardsons(approx_successive_values, k, order, level = -
                 approx_order = order
                 
                 if i > 0:
-                    eiminus1 = abs((richardsons[i] - richardsons[i-1]) / (one*richardsons[i]))
-                    ei = abs((richardsons[i+1] - richardsons[i]) / (one*richardsons[i+1]))
-                    approx_order = max(log(eiminus1 / (one*ei)) / log(one*k), order)
+                    eiminus1 = abs((richardsons[i] - richardsons[i - 1]) / (one * richardsons[i]))
+                    ei = abs((richardsons[i + 1] - richardsons[i]) / (one * richardsons[i + 1]))
+                    approx_order = max(log(eiminus1 / (one * ei)) / log(one * k), order)
                 
-                new_richardsons.append((k ** approx_order * richardsons[i + 1] - richardsons[i]) / (one*(k ** approx_order - 1)))
+                new_richardsons.append((k ** approx_order * richardsons[i + 1] - richardsons[i]) / (one * (k ** approx_order - 1)))
 
             richardsons = [value for value in new_richardsons]        
             
@@ -403,23 +422,32 @@ def SubstituteShanks(approx_sequence):
     with precision(200):
         one = BigFloat(1)
         my_list = approx_sequence
-        shanks = [(my_list[i + 1] * my_list[i - 1] - my_list[i] ** 2) / (one*(my_list[i + 1] - 2 * my_list[i] + my_list[i - 1])) for i in range(1, len(my_list) - 1)]
+        shanks = [(my_list[i + 1] * my_list[i - 1] - my_list[i] ** 2) / (one * (my_list[i + 1] - 2 * my_list[i] + my_list[i - 1])) for i in range(1, len(my_list) - 1)]
         
         while len(shanks) > 2:        
             for i in range(len(shanks)):
                 my_list[- i - 1] = shanks[- i - 1]
-            temp_shanks = [(shanks[i + 1] * shanks[i - 1] - shanks[i] ** 2) / (one*(shanks[i + 1] - 2 * shanks[i] + shanks[i - 1])) for i in range(1, len(shanks) - 1)]
+            temp_shanks = [(shanks[i + 1] * shanks[i - 1] - shanks[i] ** 2) / (one * (shanks[i + 1] - 2 * shanks[i] + shanks[i - 1])) for i in range(1, len(shanks) - 1)]
             shanks = temp_shanks
-t = 5.0
-f = math.sin
+
+#****************************************************************************************************************************************************************************************
+# MAIN
+#****************************************************************************************************************************************************************************************
+
+# Paramters ----------------------------
+
+final_time = 5.0
 n_discretizations = 6
 min_exp = 2
 k = 2
-n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
 m = 10
 order_bomb = 2
-
+f = math.sin
+n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
 print("Sizes: ", n_div)
+
+# Containers ----------------------------
+
 exact_values = []
 approx_values_naive = []
 approx_values_1 = []
@@ -434,11 +462,12 @@ errors_3 = []
 errors_bomb = []
 errors_hins = []
 
+# Evaluations ----------------------------
+
 for n_divisions in n_div:
-    h = t / n_divisions 
+    h = final_time / n_divisions 
     times = [h * delta for delta in range(n_divisions)]
-    times.append(t)
-    #values = [float(ExactIntegrationOfSinus(t)) for t in times]
+    times.append(final_time)
     exact_value = float(ExactIntegrationOfSinus(times[-1]))
     exact_values.append(exact_value)
     approx_value_naive = ApproximateQuadrature(times, f)
@@ -446,7 +475,7 @@ for n_divisions in n_div:
     approx_value_2 = Daitche(2, times, f)
     approx_value_3 = Daitche(3, times, f)
     approx_value_bomb = Bombardelli(times, f, order_bomb)
-    approx_value_hins = Hinsberg(m, times, f)    
+    approx_value_hins = Hinsberg(m, 0.6 * final_time, times, f)    
     approx_values_naive.append(approx_value_naive)
     approx_values_1.append(approx_value_1)
     approx_values_2.append(approx_value_2)
@@ -459,6 +488,8 @@ for n_divisions in n_div:
     errors_3.append(abs((approx_value_3 - exact_value) / exact_value))
     errors_bomb.append(abs((approx_value_bomb - exact_value) / exact_value))
     errors_hins.append(abs((approx_value_hins - exact_value) / exact_value))    
+
+# Convergence acceleration ----------------------------
 
 approx_values_naive_rich = [value for value in approx_values_naive] 
 approx_values_1_rich = [value for value in approx_values_1] 
@@ -501,6 +532,9 @@ SubstituteShanks(approx_values_2_shank)
 SubstituteShanks(approx_values_3_shank)
 SubstituteShanks(approx_values_bomb_shank)
 SubstituteShanks(approx_values_hins_shank)
+
+# Computing errors ----------------------------
+
 errors_naive_rich = [abs((approx_values_naive_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_1_rich = [abs((approx_values_1_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_2_rich = [abs((approx_values_2_rich[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
@@ -520,13 +554,14 @@ errors_3_shank = [abs((approx_values_3_shank[i] - exact_values[i]) / exact_value
 errors_bomb_shank = [abs((approx_values_bomb_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 errors_hins_shank = [abs((approx_values_hins_shank[i] - exact_values[i]) / exact_values[i]) for i in range(len(exact_values))]
 theoretical_slope_naive = []
-theoretical_slope_naive = [errors_naive[0] * 0.5 ** (i / 2) for i in range(len(n_div))]
-theoretical_slope_1 = [errors_1[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
-theoretical_slope_2 = [errors_2[0] * 0.5 ** (3 * i) for i in range(len(n_div))]
-theoretical_slope_3 = [errors_3[0] * 0.5 ** (4 * i) for i in range(len(n_div))]
-theoretical_slope_bomb = [errors_bomb[0] * 0.5 ** (order_bomb * i) for i in range(len(n_div))]
-theoretical_slope_hins = [errors_hins[0] * 0.5 ** (2 * i) for i in range(len(n_div))]
+theoretical_slope_naive = [errors_naive[0] * 0.5 ** (i / 2)          for i in range(len(n_div))]
+theoretical_slope_1 =     [errors_1[0]     * 0.5 ** (2 * i)          for i in range(len(n_div))]
+theoretical_slope_2 =     [errors_2[0]     * 0.5 ** (3 * i)          for i in range(len(n_div))]
+theoretical_slope_3 =     [errors_3[0]     * 0.5 ** (4 * i)          for i in range(len(n_div))]
+theoretical_slope_bomb =  [errors_bomb[0]  * 0.5 ** (order_bomb * i) for i in range(len(n_div))]
+theoretical_slope_hins =  [errors_hins[0]  * 0.5 ** (2 * i)          for i in range(len(n_div))]
 
+# Plotting ----------------------------
 
 plt.plot(n_div, errors_naive, color='r')
 plt.plot(n_div, errors_1, color='b')
@@ -559,48 +594,4 @@ plt.plot(n_div, theoretical_slope_3, color='k', linestyle = ':')
 plt.plot(n_div, theoretical_slope_bomb, color='c', linestyle = ':')
 plt.plot(n_div, theoretical_slope_hins, color='m', linestyle = ':')
 plt.loglog()
-#plt.show()
-#print("Naive: ", ApproximateQuadrature(times, f))
-#print("First Order Daitche: ", Daitche(1, times, f))
-#print("Second Order Daitche: ", Daitche(2, times, f))
-#print("Third Order Daitche: ", Daitche(3, times, f))
-#plt.plot(times, values)
-#final_time = 1.0
-#h = 0.001
-#order = 1
-#optimal_a =  1 / (2 * (order + 1))
-#best_a = optimal_a
-#best_i = 0
-#best_error = 999999999999999
-#optimal_error = 0
-#n_exponents = 20
-#max_a = 3 * optimal_a
-#delta_a = max_a / n_exponents
-#def Id(x):
-    #return 1.
-#best_times = []
-
-#for i in range(n_exponents):
-    #a = delta_a * i
-    #times = [h * i ** (a) for i in range(int(final_time / h))]
-    #norm = sum(times)
-    #times = [sum(times[:i]) / norm for i in range(len(times) + 1)]
-    #new_error = ApproximateQuadrature(times, f) - exact_values[-1]
-    #print(a)
-    #print(new_error)
-    #if best_error > new_error:
-        #best_error = new_error
-        #best_i = i
-        #best_a = a
-        #best_times = times
-    #if int(a) == int(optimal_a):
-        #optimal_error = new_error
-        #optimal_times = times
-#print("best a", best_a)
-#print("optimal a ", optimal_a)
-#print("best error", best_error)
-#print("optimal_error", optimal_error)
-#print("best times", best_times)
-#print("optimal times", optimal_times)
-#plt.plot(best_times, optimal_times)
 plt.show()

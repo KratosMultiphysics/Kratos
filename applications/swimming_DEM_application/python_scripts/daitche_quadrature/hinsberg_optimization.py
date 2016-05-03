@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from bigfloat import *
 import numpy as np
 
-
 class K_B:
     def __init__(self):
         pass
@@ -83,18 +82,17 @@ class Functional:
         
         return 2 * (Kj_1 * Ki_1 + gammaij)
 
-
 def FillUpMatrices(F, a):
     F.Define(a)
     m = len(a)
     grad = np.array([F.dF(i) for i in range(m)])
     
     H = np.zeros((m, m))
+    
     for i in range(m):
         for j in range(m):
             H[i,j] = F.d2F(i, j)
-    #print(grad)
-    #print(H)
+
     return grad, np.linalg.inv(H)       
     
 def GetExponentialsCoefficients(functional, a0):
@@ -115,7 +113,9 @@ def GetExponentialsCoefficients(functional, a0):
         
     a0[:] = a[:]
     
-    
+# MAIN
+#****************************************************************************************************************************************************************************************
+
 tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
 a0 = [0.2 for ti in tis]
 tol = 1e-9
