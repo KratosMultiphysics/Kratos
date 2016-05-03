@@ -1045,7 +1045,7 @@ namespace Kratos
 
     //perform the meshing
     try {
-      triangulate (meshing_options,&in,&out,&vorout);
+      triangulate(meshing_options,&in,&out,&vorout);
     }
 
     catch( int error_code ){

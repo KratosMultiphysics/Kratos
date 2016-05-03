@@ -45,6 +45,10 @@ namespace Kratos
       
       //registering variables in python ( if must to be seen from python )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( RIGID_WALL )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEAN_ERROR )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( OFFSET )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHRINK_FACTOR )
+
     }
   
   
