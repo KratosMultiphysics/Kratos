@@ -30,7 +30,7 @@ namespace Kratos {
         rClusters_process_info[ROTATION_OPTION] = r_process_info[ROTATION_OPTION];
         rClusters_process_info[DELTA_TIME] = r_process_info[DELTA_TIME];
         rClusters_process_info[VIRTUAL_MASS_OPTION] = r_process_info[VIRTUAL_MASS_OPTION];
-        //rClusters_process_info[TRIHEDRON_OPTION] = r_process_info[TRIHEDRON_OPTION];
+        rClusters_process_info[TRIHEDRON_OPTION] = r_process_info[TRIHEDRON_OPTION];
         rClusters_process_info[NODAL_MASS_COEFF] = r_process_info[NODAL_MASS_COEFF];
         KRATOS_CATCH("")
     }

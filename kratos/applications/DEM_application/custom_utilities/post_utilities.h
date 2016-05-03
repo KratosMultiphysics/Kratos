@@ -242,6 +242,9 @@ namespace Kratos {
         
         void ComputeEulerAngles(ModelPart rModelPart) {
 
+            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+            bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
+            
             typedef ModelPart::NodesContainerType NodesArrayType;
             NodesArrayType& pNodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
 
@@ -252,8 +255,8 @@ namespace Kratos {
                 Node < 3 > & i = *i_iterator;
                 
                 array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                      
-                if (!i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+
+                if (if_trihedron_option && !i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                     array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
 
                     Quaternion<double> Orientation = Quaternion<double>::Identity();
@@ -263,16 +266,16 @@ namespace Kratos {
 
                     double thetaMag = DEM_MODULUS_3(theta);
                     if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
-                    double aux = (1 - thetaMag * thetaMag / 6);
-                    Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                }
-                else {
-                    double aux = sin(thetaMag)/thetaMag;
-                    Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                }
-                Orientation.normalize();
-                Orientation.ToEulerAngles(EulerAngles);
-            }// BELONGS_TO_A_CLUSTER
+                        double aux = (1 - thetaMag * thetaMag / 6);
+                        Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                    }
+                    else {
+                        double aux = sin(thetaMag)/thetaMag;
+                        Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                    }
+                    Orientation.normalize();
+                    Orientation.ToEulerAngles(EulerAngles);
+                }// if_trihedron_option && BELONGS_TO_A_CLUSTER
             }//for Node      
         } //ComputeEulerAngles
         

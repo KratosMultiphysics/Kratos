@@ -178,7 +178,6 @@ class PostUtils(object):
                 f.flush()
 
     def PrintEulerAngles(self, model_part):
-        
         PostUtilities().ComputeEulerAngles(model_part)
 
 
@@ -253,8 +252,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
 
         # LOCAL AXIS
-        #if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1): #TODO: RESTORE THIS IF
-        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+        if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
+            model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
         if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
@@ -1074,7 +1073,6 @@ class DEMIo(object):
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,          self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,           self.spheres_and_clusters_variables)
-            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.spheres_and_clusters_local_axis_variables)
 
     def AddSpheresVariables(self):
         self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
@@ -1087,6 +1085,8 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
+        if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
+            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.spheres_local_axis_variables)
 
         # NANO
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":

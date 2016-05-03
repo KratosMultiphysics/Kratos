@@ -29,7 +29,7 @@ class ExplicitStrategy:
         else:
             self.poisson_ratio_option = self.Var_Translator(Param.PostPoissonRatio)    
                    
-        #self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
+        self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
         self.bounding_box_option     = self.Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities_flag     = 0        
@@ -157,7 +157,7 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
-        #self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
+        self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.spheres_model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
