@@ -1,5 +1,5 @@
 /*
- * File:   local_prism_refine_mesh.hpp
+ * File:   local_refine_prism_mesh.hpp
  * Author: VMataix
  * Co-author: 
  *
@@ -19,6 +19,7 @@
 // System includes
 
 /* Project includes */
+#include "geometries/line_3d_2.h"
 #include "geometries/prism_3d_6.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
 #include "utilities/split_prism.hpp"
@@ -191,7 +192,7 @@ public:
         int number_elem = 0;
         int splitted_edges = 0;
         int nint = 0;
-        array_1d<int, 12 > aux;
+        std::vector<int> aux;
 
         ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
@@ -278,6 +279,115 @@ public:
     /***********************************************************************************/
     
     /**
+    * Remove the old conditions and creates new ones
+    * @param Coord: The coordinates of the nodes of the geometry
+    * @return this_model_part: The model part of the model (it is the input too)
+    */
+    
+    void Erase_Old_Conditions_And_Create_New(
+	ModelPart& this_model_part,
+	const compressed_matrix<int>& Coord
+	 )
+    {
+        KRATOS_TRY;
+	
+        PointerVector< Condition > New_Conditions;
+
+        ConditionsArrayType& rConditions = this_model_part.Conditions();
+
+        if (rConditions.size() > 0)
+        {
+            ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
+            ConditionsArrayType::iterator it_end   = rConditions.ptr_end();
+            unsigned int to_be_deleted = 0;
+            unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
+
+            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+
+            unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
+	    
+	    for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
+	    {
+                Condition::GeometryType& geom = it->GetGeometry();
+		
+                if (geom.size() == 2)
+                {
+                    int index_0 = geom[0].Id() - 1;
+                    int index_1 = geom[1].Id() - 1;
+                    int new_id;
+
+                    if (index_0 > index_1)
+		    {
+                        new_id = Coord(index_1, index_0);
+		    }
+                    else
+		    {
+                        new_id = Coord(index_0, index_1);
+		    }
+
+                    if (new_id > 0) // We need to create a new condition
+                    {
+                        to_be_deleted++;
+
+			Line3D2<Node < 3 > > newgeom1(
+			    this_model_part.Nodes()(geom[0].Id()),
+			    this_model_part.Nodes()(new_id)
+			);
+
+			Line3D2<Node < 3 > > newgeom2(
+			    this_model_part.Nodes()(new_id),
+			    this_model_part.Nodes()(geom[1].Id())
+			);
+
+			Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+			Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+
+			pcond1->Data() = it->Data();
+			pcond2->Data() = it->Data();
+
+			New_Conditions.push_back(pcond1);
+			New_Conditions.push_back(pcond2);
+
+                        it->SetId(large_id);
+                        large_id++;
+                    }
+                }
+            }
+
+            /* All of the elements to be erased are at the end */
+            this_model_part.Conditions().Sort();
+
+            /* Remove all of the "old" elements */
+            this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
+
+            unsigned int total_size = this_model_part.Conditions().size() + New_Conditions.size();
+            this_model_part.Conditions().reserve(total_size);
+
+            /* Adding news elements to the model part */
+            for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
+            {
+                it_new->Initialize();
+                it_new->InitializeSolutionStep(rCurrentProcessInfo);
+                it_new->FinalizeSolutionStep(rCurrentProcessInfo);
+                this_model_part.Conditions().push_back(*(it_new.base()));
+            }
+
+            /* Renumber */
+            unsigned int my_index = 1;
+            for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
+            {
+                it->SetId(my_index++);
+            }
+
+        }
+
+        KRATOS_CATCH("");
+    }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+    
+    /**
     * It calculates the new edges of the new prisms, 
     * first it calculates the new edges correspondign to the lower face (as a triangle),
     * later it added to the upper face
@@ -290,9 +400,11 @@ public:
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
             int* edge_ids,
-            array_1d<int, 12 > & aux
+            std::vector<int> & aux
             )
     {
+        aux.resize(12, false);
+        
         // Lower face
         int index_0 = geom[0].Id() - 1;
         int index_1 = geom[1].Id() - 1;

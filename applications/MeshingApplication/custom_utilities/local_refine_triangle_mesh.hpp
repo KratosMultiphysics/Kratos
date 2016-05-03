@@ -1,5 +1,5 @@
 /*
- * File:   local_refine_sprism_mesh.hpp
+ * File:   local_refine_triangle_mesh.hpp
  * Author: VMataix
  * Co-author: 
  *
@@ -7,8 +7,8 @@
  * Last update on 3 May 2016, 10:20
  */
 
-#if !defined(KRATOS_LOCAL_REFINE_SPRISM_MESH)
-#define  KRATOS_LOCAL_REFINE_SPRISM_MESH
+#if !defined(KRATOS_LOCAL_REFINE_TRIANGLE_MESH)
+#define  KRATOS_LOCAL_REFINE_TRIANGLE_MESH
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -19,11 +19,12 @@
 // System includes
 
 /* Project includes */
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
-#include "geometries/prism_3d_6.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
-#include "utilities/split_prism.hpp"
-#include "custom_utilities/sprism_neighbours.hpp"
+#include "utilities/split_triangle.c"
 
 namespace Kratos
 {
@@ -41,7 +42,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Local_Refine_SPrism_Mesh : public Local_Refine_Geometry_Mesh
+class Local_Refine_Triangle_Mesh : public Local_Refine_Geometry_Mesh
 {
 public:
 
@@ -52,13 +53,13 @@ public:
     ///@{
 
     /// Default constructors
-    Local_Refine_SPrism_Mesh(ModelPart& model_part) : Local_Refine_Geometry_Mesh(model_part)
+    Local_Refine_Triangle_Mesh(ModelPart& model_part) : Local_Refine_Geometry_Mesh(model_part)
     {
 
     }
 
     /// Destructor
-    ~Local_Refine_SPrism_Mesh()
+    ~Local_Refine_Triangle_Mesh()
     {
       
     }
@@ -79,19 +80,10 @@ public:
 
     void Calculate_Coordinate_Center_Node_And_Insert_New_Nodes(ModelPart& this_model_part)
     {
-        // Lower face
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
         array_1d<double, 3 > Coord_Node_3;
-	
-        // Upper face
-        array_1d<double, 3 > Coord_Node_4;
-        array_1d<double, 3 > Coord_Node_5;
-        array_1d<double, 3 > Coord_Node_6;
-	
-        // Center
         array_1d<double, 3 > Coordinate_center_node;
-	
         std::vector<int> node_center;
         NodesArrayType& pNodes = this_model_part.Nodes();
         int Id_Center = pNodes.size() + 1;
@@ -104,61 +96,48 @@ public:
             noalias(Coord_Node_1) = geom[0].Coordinates();
             noalias(Coord_Node_2) = geom[1].Coordinates();
             noalias(Coord_Node_3) = geom[2].Coordinates();
-            noalias(Coord_Node_4) = geom[3].Coordinates();
-            noalias(Coord_Node_5) = geom[4].Coordinates();
-            noalias(Coord_Node_6) = geom[5].Coordinates();
 
             unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
             Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
-            noalias(Coordinate_center_node) = 0.16666666666666666 * (Coord_Node_1 + Coord_Node_2 + Coord_Node_3 +
-                                                                     Coord_Node_4 + Coord_Node_5 + Coord_Node_6);
+            noalias(Coordinate_center_node) = 0.33333333333333333 * (Coord_Node_1 + Coord_Node_2 + Coord_Node_3);
 
-            /* Inserting the new node in the model part */
+            // Inserting the news node in the model part
             Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(Id_Center, Coordinate_center_node[0], Coordinate_center_node[1], Coordinate_center_node[2]);
             pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
-            pnode->X0() = 0.16666666666666666 * (geom[0].X0() + geom[1].X0() + geom[2].X0() + geom[3].X0() + geom[4].X0() + geom[5].X0());
-            pnode->Y0() = 0.16666666666666666 * (geom[0].Y0() + geom[1].Y0() + geom[2].Y0() + geom[3].Y0() + geom[4].Y0() + geom[5].Y0());
-            pnode->Z0() = 0.16666666666666666 * (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0() + geom[4].Z0() + geom[5].Z0());
-            
+            pnode->X0() = 0.33333333333333333 * (geom[0].X0() + geom[1].X0() + geom[2].X0());
+            pnode->Y0() = 0.33333333333333333 * (geom[0].Y0() + geom[1].Y0() + geom[2].Y0());
+            pnode->Z0() = 0.33333333333333333 * (geom[0].Z0() + geom[1].Z0() + geom[2].Z0());
+
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
                 Node < 3 > ::DofType& rDof = *iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()) == true && geom[3].IsFixed(iii->GetVariable()) == true 
-                 && geom[4].IsFixed(iii->GetVariable()) == true && geom[5].IsFixed(iii->GetVariable()) == true)
-                {
+                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()))
                     (p_new_dof)->FixDof();
-                }
                 else
                 {
                     (p_new_dof)->FreeDof();
                 }
+
             }
 
-            /* Intepolating the data */
+            ///* intepolating the data
             unsigned int buffer_size = pnode->GetBufferSize();
             for (unsigned int step = 0; step < buffer_size; step++)
             {
                 double* new_step_data = pnode->SolutionStepData().Data(step);
-		
-                // Lower face
                 double* step_data1 = geom[0].SolutionStepData().Data(step);
                 double* step_data2 = geom[1].SolutionStepData().Data(step);
                 double* step_data3 = geom[2].SolutionStepData().Data(step);
 		
-                // Upper face
-                double* step_data4 = geom[3].SolutionStepData().Data(step);
-                double* step_data5 = geom[4].SolutionStepData().Data(step);
-                double* step_data6 = geom[5].SolutionStepData().Data(step);
-		
                 // Copying this data in the position of the vector we are interested in
                 for (unsigned int j = 0; j < step_data_size; j++)
                 {
-                    new_step_data[j] = 0.16666666666666666 * (step_data1[j] + step_data2[j] + step_data3[j] +
-                                                              step_data4[j] + step_data5[j] + step_data6[j]);
+                    new_step_data[j] = 0.333333333333333333 * (step_data1[j] + step_data2[j] + step_data3[j]);
                 }
             }
+            
             node_center.push_back(Id_Center);
             Id_Center++;
         }
@@ -185,34 +164,38 @@ public:
         ElementsArrayType& rElements = this_model_part.Elements();
         ElementsArrayType::iterator it_begin = rElements.ptr_begin();
         ElementsArrayType::iterator it_end = rElements.ptr_end();
+        Element const rReferenceElement;
         unsigned int to_be_deleted = 0;
         unsigned int large_id = (rElements.end() - 1)->Id() * 10;
         bool create_element = false;
-        int edge_ids[6];
-        int t[24];
+        int edge_ids[3];
+        int t[12];
         int number_elem = 0;
         int splitted_edges = 0;
         int nint = 0;
         std::vector<int> aux;
 
         ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
-
-        std::cout << "****************** REFINING MESH ******************" << std::endl;
+	
+	std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
+	
+        PointerVector< Element > Old_Elements;
 
         unsigned int current_id = (rElements.end() - 1)->Id() + 1;
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
-            for (unsigned int i = 0; i < 24; i++)
+            for (unsigned int i = 0; i < 12; i++)
             {
                 t[i] = -1;
             }
-            
             Element::GeometryType& geom = it->GetGeometry();
             Calculate_Edges(geom, Coord, edge_ids, aux);
 
+            const unsigned int dimension = geom.WorkingSpaceDimension();
+
             // It creates the new conectivities
-            create_element = Split_Prism(edge_ids, t, &number_elem, &splitted_edges, &nint);
+            create_element = Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
 
             // It creates the new elements
             if (create_element == true)
@@ -220,42 +203,69 @@ public:
                 to_be_deleted++;
                 for (int i = 0; i < number_elem; i++)
                 {
-                    unsigned int base = i * 6;
+
+                    unsigned int base = i * 3;
                     unsigned int i0 = aux[t[base]];
                     unsigned int i1 = aux[t[base + 1]];
                     unsigned int i2 = aux[t[base + 2]];
-                    unsigned int i3 = aux[t[base + 3]];
-                    unsigned int i4 = aux[t[base + 4]];
-                    unsigned int i5 = aux[t[base + 5]];
 
-                    Prism3D6<Node < 3 > > geom(
-                        this_model_part.Nodes()(i0),
-                        this_model_part.Nodes()(i1),
-                        this_model_part.Nodes()(i2),
-                        this_model_part.Nodes()(i3),
-                        this_model_part.Nodes()(i4),
-                        this_model_part.Nodes()(i5)
-                    );
-
-                    Element::Pointer p_element;
-                    p_element = it->Create(current_id, geom, it->pGetProperties());
-
-                    // Setting the internal variables in the child elem
-                    if (interpolate_internal_variables == true)
+                    if (dimension == 2)
                     {
-                        InterpolateInteralVariables(number_elem, *it.base(), p_element, rCurrentProcessInfo);
-                    }
+                        Triangle2D3<Node < 3 > > geom(
+                            this_model_part.Nodes()(i0),
+                            this_model_part.Nodes()(i1),
+                            this_model_part.Nodes()(i2)
+                        );
 
-                    // Transfer elemental variables
-                    p_element->Data() = it->Data();
-                    p_element->GetValue(SPLIT_ELEMENT) = false;
-                    New_Elements.push_back(p_element);
+                        Element::Pointer p_element;
+                        p_element = it->Create(current_id, geom, it->pGetProperties());
+                        p_element->Initialize();
+                        p_element->InitializeSolutionStep(rCurrentProcessInfo);
+                        p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+
+                        // Setting the internal variables in the child elem
+                        if (interpolate_internal_variables == true)
+			{
+                            InterpolateInteralVariables(number_elem, *it.base(), p_element, rCurrentProcessInfo);
+			}
+
+                        // Transfer elemental variables
+                        p_element->Data() = it->Data();
+                        //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
+                        p_element->GetValue(SPLIT_ELEMENT) = false;
+                        //p_element->SetValue(REFINEMENT_LEVEL, 1);
+                        New_Elements.push_back(p_element);
+                    }
+                    else
+                    {
+                        Triangle3D3<Node < 3 > > geom(
+                            this_model_part.Nodes()(i0),
+                            this_model_part.Nodes()(i1),
+                            this_model_part.Nodes()(i2)
+                        );
+
+                        Element::Pointer p_element;
+                        p_element = it->Create(current_id, geom, it->pGetProperties());
+                        p_element->Initialize();
+                        p_element->InitializeSolutionStep(rCurrentProcessInfo);
+                        p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+
+                        // Setting the internal variables in the child elem
+                        if (interpolate_internal_variables == true)
+                            InterpolateInteralVariables(number_elem, *it.base(), p_element, rCurrentProcessInfo);
+
+                        // Transfer elemental variables
+                        p_element->Data() = it->Data();
+                        p_element->GetValue(SPLIT_ELEMENT) = false;
+                        New_Elements.push_back(p_element);
+                    }
 
                     current_id++;
                 }
                 it->SetId(large_id);
                 large_id++;
             }
+
         }
 
         /* Adding news elements to the model part */
@@ -269,20 +279,6 @@ public:
 
         /* Now remove all of the "old" elements */
         rElements.erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
-
-        SprismNeighbours sprism_neighbour_search(this_model_part);
-        sprism_neighbour_search.ClearNeighbours();
-        sprism_neighbour_search.Execute();
-
-        it_begin = rElements.ptr_begin();
-        it_end   = rElements.ptr_end();
-
-        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-        {
-            it->Initialize();
-            it->InitializeSolutionStep(rCurrentProcessInfo);
-            it->FinalizeSolutionStep(rCurrentProcessInfo);
-        }
 
         std::cout << "NEW NUMBER ELEMENTS: " << rElements.size() << std::endl;
     }
@@ -315,6 +311,8 @@ public:
             unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
 
             ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+	    
+	    const unsigned int dimension = it_begin->GetGeometry().WorkingSpaceDimension();
 
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
 	    
@@ -340,25 +338,48 @@ public:
                     if (new_id > 0) // We need to create a new condition
                     {
                         to_be_deleted++;
+                        if (dimension == 2)
+                        {
+                            Line2D2<Node < 3 > > newgeom1(
+                                this_model_part.Nodes()(geom[0].Id()),
+                                this_model_part.Nodes()(new_id)
+                            );
 
-			Line3D2<Node < 3 > > newgeom1(
-			    this_model_part.Nodes()(geom[0].Id()),
-			    this_model_part.Nodes()(new_id)
-			);
+                            Line2D2<Node < 3 > > newgeom2(
+                                this_model_part.Nodes()(new_id),
+                                this_model_part.Nodes()(geom[1].Id())
+                            );
 
-			Line3D2<Node < 3 > > newgeom2(
-			    this_model_part.Nodes()(new_id),
-			    this_model_part.Nodes()(geom[1].Id())
-			);
+                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
 
-			Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
-			Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+                            pcond1->Data() = it->Data();
+                            pcond2->Data() = it->Data();
 
-			pcond1->Data() = it->Data();
-			pcond2->Data() = it->Data();
+                            New_Conditions.push_back(pcond1);
+                            New_Conditions.push_back(pcond2);
+                        }
+                        else
+                        {
+                            Line3D2<Node < 3 > > newgeom1(
+                                this_model_part.Nodes()(geom[0].Id()),
+                                this_model_part.Nodes()(new_id)
+                            );
 
-			New_Conditions.push_back(pcond1);
-			New_Conditions.push_back(pcond2);
+                            Line3D2<Node < 3 > > newgeom2(
+                                this_model_part.Nodes()(new_id),
+                                this_model_part.Nodes()(geom[1].Id())
+                            );
+
+                            Condition::Pointer pcond1 = it->Create(current_id++, newgeom1, it->pGetProperties());
+                            Condition::Pointer pcond2 = it->Create(current_id++, newgeom2, it->pGetProperties());
+
+                            pcond1->Data() = it->Data();
+                            pcond2->Data() = it->Data();
+
+                            New_Conditions.push_back(pcond1);
+                            New_Conditions.push_back(pcond2);
+                        }
 
                         it->SetId(large_id);
                         large_id++;
@@ -400,10 +421,10 @@ public:
     /***********************************************************************************/
     
     /**
-    * It calculates the new edges of the new prisms, 
+    * It calculates the new edges of the new triangles, 
     * first it calculates the new edges correspondign to the lower face (as a triangle),
     * later it added to the upper face
-    * @param geom: The prism element geometry
+    * @param geom: The triangle element geometry
     * @param edge_ids: The ids of the edges
     * @return aux: The vector that includes the index of the new edges
     */
@@ -415,121 +436,95 @@ public:
             std::vector<int> & aux
             )
     {
-        aux.resize(12, false);
-	
-        // Lower face
+        aux.resize(6, false);
+        
         int index_0 = geom[0].Id() - 1;
         int index_1 = geom[1].Id() - 1;
         int index_2 = geom[2].Id() - 1;
-	
+
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();
         aux[2] = geom[2].Id();
-	
-        // Upper face
-        int index_3 = geom[3].Id() - 1;
-        int index_4 = geom[4].Id() - 1;
-        int index_5 = geom[5].Id() - 1;
 
-        aux[3] = geom[3].Id();
-        aux[4] = geom[4].Id();
-        aux[5] = geom[5].Id();
-	
-        // First node of the triangle face
         if (index_0 > index_1)
-        {
-            aux[6] = Coord(index_1, index_0);
-            aux[9] = Coord(index_4, index_3);
-        }
+	{
+            aux[3] = Coord(index_1, index_0);
+	}
         else
-        {
-            aux[6] = Coord(index_0, index_1);
-            aux[9] = Coord(index_3, index_4);
-        }
+	{
+            aux[3] = Coord(index_0, index_1);
+	}
 
-        // Second node of the triangle face
+
         if (index_1 > index_2)
-        {
-            aux[7]  = Coord(index_2, index_1);
-            aux[10] = Coord(index_5, index_4);
-        }
+	{
+            aux[4] = Coord(index_2, index_1);
+	}
         else
-        {
-            aux[7]  = Coord(index_1, index_2);
-            aux[10] = Coord(index_4, index_5);
-        }
+	{
+            aux[4] = Coord(index_1, index_2);
+	}
 
-	// Third node of the triangle face
+
         if (index_2 > index_0)
-        {
-            aux[8]  = Coord(index_0, index_2);
-            aux[11] = Coord(index_3, index_5);
-        }
+	{
+            aux[5] = Coord(index_0, index_2);
+	}
         else
-        {
-            aux[8]  = Coord(index_2, index_0);
-            aux[11] = Coord(index_5, index_3);
-        }
+	{
+            aux[5] = Coord(index_2, index_0);
+	}
 
         // Edge 01
-        if (aux[6] < 0)
-        {
+        if (aux[3] < 0)
+	{
             if (index_0 > index_1)
-            {
-                edge_ids[0] = 0;
-                edge_ids[3] = 6;
-            }
-            else
-            {
-                edge_ids[0] = 1;
-                edge_ids[3] = 7;
-            }
-        }
+	    {
+	      edge_ids[0] = 0;
+	    }
+            else 
+	    {
+	      edge_ids[0] = 1;
+	    }
+	}
         else
-        {
+	{
             edge_ids[0] = 3;
-            edge_ids[3] = 9;
-        }
+	}
 
         // Edge 12
-        if (aux[7] < 0)
-        {
+        if (aux[4] < 0)
+	{
             if (index_1 > index_2)
-            {
-                edge_ids[1] = 1;
-                edge_ids[4] = 7;
-            }
-            else
-            {
-                edge_ids[1] = 2;
-                edge_ids[4] = 8;
-            }
-        }
+	    {
+	      edge_ids[1] = 1;
+	    }
+            else 
+	    {
+	      edge_ids[1] = 2;
+	    }
+	}
         else
-        {
+	{
             edge_ids[1] = 4;
-            edge_ids[4] = 10;
-        }
+	}
 
         // Edge 20
-        if (aux[8] < 0)
-        {
-            if (index_2 > index_0)
-            {
-                edge_ids[2] = 2;
-                edge_ids[5] = 8;
-            }
-            else
-            {
-                edge_ids[2] = 0;
-                edge_ids[5] = 6;
-            }
-        }
+        if (aux[5] < 0)
+	{
+            if (index_2 > index_0) 
+	    {
+	      edge_ids[2] = 2;
+	    }
+            else 
+	    {
+	      edge_ids[2] = 0;
+	    }
+	}
         else
-        {
+	{
             edge_ids[2] = 5;
-            edge_ids[5] = 11;
-        }
+	}
     }
 
 protected:
@@ -594,6 +589,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LOCAL_REFINE_SPRISM_MESH  defined 
-
-
+#endif // KRATOS_LOCAL_REFINE_TRIANGLE_MESH  defined 
