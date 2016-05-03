@@ -24,7 +24,8 @@
 //#include "custom_utilities/GenerateModelPartUtilities.h"
 
 #include "custom_utilities/local_triangle_refine_mesh.h"
-#include "custom_utilities/local_prism_refine_mesh.hpp"
+#include "custom_utilities/local_refine_prism_mesh.hpp"
+#include "custom_utilities/local_refine_sprism_mesh.hpp"
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
 #include "custom_utilities/tetgen_volume_mesher.h"
 #include "custom_utilities/cutting_app.h"
@@ -112,6 +113,11 @@ void AddCustomUtilitiesToPython()
     class_<Local_Refine_Prism_Mesh, boost::noncopyable >
     ("LocalRefinePrismMesh", init<ModelPart&>())
     .def("LocalRefineMesh", &Local_Refine_Prism_Mesh::Local_Refine_Mesh)
+    ;
+
+    class_<Local_Refine_SPrism_Mesh, boost::noncopyable >
+    ("LocalRefineSPrismMesh", init<ModelPart&>())
+    .def("LocalRefineMesh", &Local_Refine_SPrism_Mesh::Local_Refine_Mesh)
     ;
 
     class_<Local_Refine_Tetrahedra_Mesh, boost::noncopyable >
