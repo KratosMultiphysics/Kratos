@@ -210,6 +210,9 @@ namespace Kratos
 	  return Element::Pointer(new TwoStepUpdatedLagrangianVPElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         }
 
+
+      virtual Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+
       virtual void Initialize(){};
 
       /// Initializes the element and all geometric information required for the problem.

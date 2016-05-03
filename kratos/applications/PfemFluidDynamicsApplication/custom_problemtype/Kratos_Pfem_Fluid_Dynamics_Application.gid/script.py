@@ -40,7 +40,7 @@ import fluid_pfem_gid_output_utility           as gid_utils
 import fluid_pfem_conditions_python_utility    as condition_utils
 import list_files_python_utility         as files_utils
 
-import fluid_modeler_python_utility            as modeler_utils
+import pfem_fluid_modeler_python_utility            as modeler_utils
 import fluid_rigid_wall_python_utility         as wall_utils
 import graph_plot_python_utility         as plot_utils
 

@@ -22,12 +22,57 @@ namespace Kratos {
    * public TwoStepUpdatedLagrangianVPElement<TDim> functions
    */
 
+  template< unsigned int TDim >
+  Element::Pointer TwoStepUpdatedLagrangianVPElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  {
+
+    PropertiesType::Pointer pProperties;
+    TwoStepUpdatedLagrangianVPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pProperties );
+
+
+    // //-----------//
+
+    // NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+    // if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+    //   {
+    // 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+    // 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+    // 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+    //   }
+    
+
+    // for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+    //   {
+    // 	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+    //   }
+
+
+    // //-----------//
+
+
+    // if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
+    //   NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
+
+    // for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
+    // {
+    //     NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
+    // }
+
+    // NewElement.mDeterminantF0 = mDeterminantF0;
+
+        
+    // return Element::Pointer( new TwoStepUpdatedLagrangianVPElement(NewElement) );
+    return Element::Pointer( new TwoStepUpdatedLagrangianVPElement(NewId, GetGeometry().Create( rThisNodes ), pProperties) );
+  }
+
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 								     VectorType& rRightHandSideVector,
 								     ProcessInfo& rCurrentProcessInfo)
-  {
+  { 
     KRATOS_TRY;
 
     switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )

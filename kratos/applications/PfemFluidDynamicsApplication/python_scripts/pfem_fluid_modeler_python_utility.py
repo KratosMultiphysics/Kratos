@@ -27,7 +27,7 @@ class ModelerUtility:
         self.mesh_modelers = []
 
         # mesh modeler parameters
-        self.alpha_shape        = 2.4
+        self.alpha_shape        = 1.9
         self.h_factor           = 0.5
         self.avoid_tip_elements = False
         self.offset_factor      = 0
@@ -64,6 +64,8 @@ class ModelerUtility:
 
     #
     def SearchNeighbours(self):
+
+        print("::[Modeler_Utility]:: Search Neighbours ")
 
         self.SearchNodeNeighbours()
         self.SearchElementNeighbours()
@@ -305,14 +307,15 @@ class ModelerUtility:
                 
             self.MeshingParameters.SetReferenceElement(parameters["MeshElement"])
             self.MeshingParameters.SetReferenceCondition("CompositeCondition2D2N")
+            #self.MeshingParameters.SetReferenceCondition("WallCondition2D")
                 
 
             #Pre Meshing Processes
             remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
-            refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level)
-            mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
+            #refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016
+            #mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
 
             #Post Meshing Processes
             rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
@@ -356,14 +359,19 @@ class ModelerUtility:
 
         if(self.remesh_domains):
 
-            if( self.echo_level > 0 ):
+            if( self.echo_level >= 0 ):
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
+
+            meshing_options = Flags()
+            self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
+
+            self.model_meshing.ExecuteInitialize()
 
             id = 0
             for mesher in self.mesh_modelers:
 
                 mesh_id = self.mesh_ids[id]
-
+                
                 mesher.InitializeMeshModeler(self.model_part,mesh_id)
 
                 mesher.GenerateMesh(self.model_part,mesh_id);
@@ -374,7 +382,34 @@ class ModelerUtility:
 
                 id+=1
 
+            self.model_meshing.ExecuteFinalize()
+          
             self.counter += 1 
+
+
+   # def RemeshDomains(self):
+
+   #     if(self.remesh_domains):
+
+   #         if( self.echo_level > 0 ):
+    #            print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
+#
+   #         id = 0
+  #          for mesher in self.mesh_modelers:
+
+    #            mesh_id = self.mesh_ids[id]
+
+     #           mesher.InitializeMeshModeler(self.model_part,mesh_id)
+
+    #            mesher.GenerateMesh(self.model_part,mesh_id);
+
+    #            mesher.FinalizeMeshModeler(self.model_part,mesh_id)
+
+    #            self.remesh_executed = True
+
+    #            id+=1
+
+   #         self.counter += 1 
 
 
     #
