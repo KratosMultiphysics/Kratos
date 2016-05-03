@@ -53,7 +53,7 @@ public:
         PropertiesType::Pointer pProperties ) const;
 
     void Initialize();
-    void CalculateRightHandSide(
+    virtual void CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& r_process_info );
 		
