@@ -39,8 +39,6 @@
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
 #include "processes/node_erase_process.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
 
 namespace Kratos
 {
@@ -159,14 +157,6 @@ public:
             const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
             const boost::numeric::ublas::vector<int> &List_New_Nodes
 							  );
-    
-    /**
-    * Computes the coordinate of the baricenter node of the element (mean of the faces's baricenter)
-    * Insert the news nodes in the center of elements and interopolate the variables.
-    * @return this_model_part: The model part of the model (it is the input too)
-    */
-
-    virtual void Calculate_Coordinate_Center_Node_And_Insert_New_Nodes(ModelPart& this_model_part);
 
     /**
     * It erases the old elements and it creates the new ones
@@ -207,7 +197,7 @@ public:
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
             int* edge_ids,
-            array_1d<int, 12 > & aux
+            std::vector<int> & aux
             );
     
     /**

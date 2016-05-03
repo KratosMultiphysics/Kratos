@@ -23,10 +23,10 @@
 
 //#include "custom_utilities/GenerateModelPartUtilities.h"
 
-#include "custom_utilities/local_triangle_refine_mesh.h"
+#include "custom_utilities/local_refine_triangle_mesh.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
-#include "custom_utilities/local_tetrahedra_refine_mesh.h"
+#include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/tetgen_volume_mesher.h"
 #include "custom_utilities/cutting_app.h"
 #include "custom_utilities/cutting_iso_app.h"
