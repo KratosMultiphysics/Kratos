@@ -157,6 +157,43 @@ void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)
   
 }
 
+void DEMWall::GetRightHadSideVector(std::vector<array_1d <double, 3> >& rRightHandSideVector)
+{
+
+  for(unsigned int a = 0; a< mRightHandSideVector.size(); a++)
+  {
+    for(unsigned int b = 0; b< 3; b++)
+    {
+      rRightHandSideVector[a][b] = mRightHandSideVector[a][b];
+    }
+  }
+  
+}
+
+void DEMWall::SetRightHadSideVector(const std::vector<array_1d <double, 3> >& rRightHandSideVector)
+{
+  for(unsigned int a = 0; a< mRightHandSideVector.size(); a++)
+  {
+    for(unsigned int b = 0; b< 3; b++)
+    {
+      mRightHandSideVector[a][b] = rRightHandSideVector[a][b];
+    }
+  }
+  
+}
+
+void DEMWall::AddToRightHadSideVector(const std::vector<array_1d <double, 3> >& rRightHandSideVector)
+{
+  for(unsigned int a = 0; a< mRightHandSideVector.size(); a++)
+  {
+    for(unsigned int b = 0; b< 3; b++)
+    {
+      mRightHandSideVector[a][b] += rRightHandSideVector[a][b];
+    }
+  }
+  
+}
+
 //***********************************************************************************
 //***********************************************************************************
 
