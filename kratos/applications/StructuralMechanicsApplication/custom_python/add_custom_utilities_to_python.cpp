@@ -19,14 +19,12 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "custom_utilities/projection.h"
-
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/local_sprism_refine_mesh.hpp"
+//#include "custom_utilities/local_sprism_refine_mesh.hpp"
 
 namespace Kratos
 {
@@ -46,10 +44,10 @@ void  AddCustomUtilitiesToPython()
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
     
-    class_<Local_Refine_SPrism_Mesh, boost::noncopyable >
-    ("LocalRefineSPrismMesh", init<ModelPart&>())
-    .def("LocalRefineMesh", &Local_Refine_SPrism_Mesh::Local_Refine_Mesh)
-    ;
+//    class_<Local_Refine_SPrism_Mesh, boost::noncopyable >
+//    ("LocalRefineSPrismMesh", init<ModelPart&>())
+//    .def("LocalRefineMesh", &Local_Refine_SPrism_Mesh::Local_Refine_Mesh)
+//    ;
 }
 
 }  // namespace Python.
