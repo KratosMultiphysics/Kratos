@@ -56,7 +56,7 @@ namespace Kratos
 		SinteringSphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):ThermalSphericParticle<SphericContinuumParticle>(NewId, pGeometry, pProperties){}
 
 
-		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
+		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
 			return Element::Pointer(new SinteringSphericContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
 		}
 		

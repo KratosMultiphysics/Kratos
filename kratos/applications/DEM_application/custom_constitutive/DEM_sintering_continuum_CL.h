@@ -20,14 +20,14 @@ namespace Kratos {
 		DEM_sintering_continuum() {
 		}
 
-		void Initialize();
+		void Initialize() override;
 
-		void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+		void SetConstitutiveLawInProperties(Properties::Pointer pProp) const override;
 
 		~DEM_sintering_continuum() {
 		}
 
-		DEMContinuumConstitutiveLaw::Pointer Clone() const;
+		DEMContinuumConstitutiveLaw::Pointer Clone() const override;
                 
                 void GetContactArea(const double radius, 
                                     const double other_radius, 
@@ -129,12 +129,12 @@ namespace Kratos {
 
 		friend class Serializer;
 
-		virtual void save(Serializer& rSerializer) const {
+		virtual void save(Serializer& rSerializer) const override{
 			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
 				//rSerializer.save("MyMemberName",myMember);
 		}
 
-		virtual void load(Serializer& rSerializer) {
+		virtual void load(Serializer& rSerializer) override{
 			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
 				//rSerializer.load("MyMemberName",myMember);
 		}

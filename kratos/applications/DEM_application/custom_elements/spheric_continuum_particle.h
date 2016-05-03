@@ -51,7 +51,7 @@ namespace Kratos
         SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes);
         SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
       
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
          
         /// Destructor
         virtual ~SphericContinuumParticle();
@@ -68,7 +68,7 @@ namespace Kratos
         
         //virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 
-        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info);
+        virtual double CalculateLocalMaxPeriod(const bool has_mpi, const ProcessInfo& r_process_info) override;
         virtual double CalculateMaxSearchDistance(const bool has_mpi, const ProcessInfo& r_process_info);
         virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info);      
         virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalElasticContactForce[3], 
@@ -78,7 +78,7 @@ namespace Kratos
         virtual double GetInitialDelta(int index);
 
         /// Turn back information as a string
-        virtual std::string Info() const
+        virtual std::string Info() const override
         {
             std::stringstream buffer;
             buffer << "SphericCosntinuumParticle" ;
@@ -86,10 +86,10 @@ namespace Kratos
         }
       
         /// Print information about this object
-        virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SphericContinuumParticle";}
+        virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SphericContinuumParticle";}
 
         /// Print object's data
-        virtual void PrintData(std::ostream& rOStream) const {}
+        virtual void PrintData(std::ostream& rOStream) const override {}
 
         //member variables DEM_CONTINUUM
         int mContinuumGroup;
@@ -130,7 +130,7 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const
+        virtual void save(Serializer& rSerializer) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
             //rSerializer.save("mContinuumGroup",mContinuumGroup);
@@ -138,7 +138,7 @@ namespace Kratos
             //rSerializer.save("mSymmStressTensor",mSymmStressTensor);
         }
 
-        virtual void load(Serializer& rSerializer)
+        virtual void load(Serializer& rSerializer) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
             //rSerializer.load("mContinuumGroup",mContinuumGroup);
