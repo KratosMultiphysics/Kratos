@@ -12,13 +12,14 @@ class ExplicitStrategy:
 
         # Initialization of member variables
         # SIMULATION FLAGS
+
         self.Parameters              = Param
         
         if not (hasattr(Param, "StressStrainOption")):
             self.stress_strain_option = 0
         else:
             self.stress_strain_option = self.Var_Translator(Param.StressStrainOption)
-        
+            
         if not hasattr(Param, "AutomaticTimestep"):
             self.critical_time_option = 0
         else:
@@ -32,13 +33,15 @@ class ExplicitStrategy:
         self.trihedron_option        = self.Var_Translator(Param.PostEulerAngles)
         self.rotation_option         = self.Var_Translator(Param.RotationOption)
         self.bounding_box_option     = self.Var_Translator(Param.BoundingBoxOption)
-        self.fix_velocities_flag     = 0        
+        self.fix_velocities_flag     = 0
         self.Procedures              = procedures
         self.time_integration_scheme = scheme
         self.time_integration_scheme.SetRotationOption(self.rotation_option)
 
         self.clean_init_indentation_option = self.Var_Translator(Param.CleanIndentationsOption)
-        self.contact_mesh_option           = self.Var_Translator(Param.ContactMeshOption)
+        self.contact_mesh_option           = 0
+        if (hasattr(Param, "ContactMeshOption")):
+            self.contact_mesh_option      = self.Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option = self.Var_Translator(Param.AutomaticBoundingBoxOption)
 
         self.delta_option = self.Var_Translator(Param.DeltaOption)
@@ -134,12 +137,12 @@ class ExplicitStrategy:
         if (hasattr(Param, "PeriodicDomainOption")):
             if self.Var_Translator(Param.PeriodicDomainOption):
                 self.search_strategy = OMP_DEMSearch(Param.BoundingBoxMaxX-Param.BoundingBoxMinX, Param.BoundingBoxMaxY-Param.BoundingBoxMinY, Param.BoundingBoxMaxZ-Param.BoundingBoxMinZ)
-    
+
         self.SetContinuumType()
-      
+
     def SetContinuumType(self):
         self.continuum_type = False
-        
+
     def Var_Translator(self, variable):
 
         if (variable == "OFF" or variable == "0" or variable == 0 or variable == "No"):
@@ -250,7 +253,7 @@ class ExplicitStrategy:
     def Solve(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()        
+        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
@@ -258,16 +261,16 @@ class ExplicitStrategy:
         (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
 
-    def FixDOFsManually(self,time):        
+    def FixDOFsManually(self,time):
     #if time>1.0:
         #for node in self.spheres_model_part.Nodes:
             #node.Fix(VELOCITY_X)
             #node.SetSolutionStepValue(VELOCITY_X, 0.0)
         pass
-    
+
     def FixExternalForcesManually(self,time):
         pass
-        
+
     def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
         pass
 
