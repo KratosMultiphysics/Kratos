@@ -1,7 +1,7 @@
 
 def ReadNextLine(f):
     while True:        
-        nextline=f.next()
+        nextline=f.__next__()
         if nextline.startswith("//") == False :
             return nextline.split()
         
@@ -19,7 +19,7 @@ def ReadClusterFile(filename):
             name = data[0]
         if line.startswith("Begin centers_and_radii"):
             while True:
-                nextline=f.next()
+                nextline=f.__next__()
                 if nextline.startswith("//"):
                     continue
                 if nextline.startswith("End centers_and_radii"):
