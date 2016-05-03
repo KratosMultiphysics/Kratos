@@ -36,12 +36,166 @@ namespace Kratos
 		mSinteringDrivingForce = 0;
 	}
 
-	void SinteringSphericContinuumParticle::UpdatingNeighboursVector(ProcessInfo& r_process_info)
+	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info)
 	{
-		//double h = 1;
-		//double h1;double
-		//h1 = GetRadius() + 1;
+            if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
+            
+            const unsigned int initial_number_of_cont_neighbours = mContinuumInitialNeighborsSize;
+            
+            std::vector<SphericParticle*> cont_ini_neighbour_elems;
+            std::vector<int> cont_ini_ids;
+            std::vector<double> cont_ini_deltas;
+            std::vector<int> cont_ini_failure_ids;  
+            std::vector<SphericParticle*> discont_ini_neighbour_elems; 
+            std::vector<int> discont_ini_ids;
+            std::vector<double> discont_ini_deltas;
+            std::vector<SphericParticle*> discont_neighbour_elems;
+                        
+            //Assuming that the neighbours are ordered (first initial continuum, then initial discontinuum, then other discontinuum)
+            for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+                cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
+                cont_ini_ids.push_back(mIniNeighbourIds[i]);
+                cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
+                cont_ini_failure_ids.push_back(mIniNeighbourFailureId[i]);                
+            }            
+
+            //// Discontinuum and initial
+            for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
+                array_1d<double, 3> other_to_me_vect;
+                noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
+                double distance = DEM_MODULUS_3(other_to_me_vect);
+                double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
+                double initial_delta = GetInitialDelta(i);
+                double initial_dist = radius_sum - initial_delta;
+                double indentation = initial_dist - distance;
+                
+                if(indentation>0.0){
+                    cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
+                    cont_ini_ids.push_back(mIniNeighbourIds[i]);
+                    cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
+                    cont_ini_failure_ids.push_back(0);                        
+                } else {
+                    discont_ini_ids.push_back(mNeighbourElements[i]->Id());
+                    discont_ini_deltas.push_back(initial_delta);
+                    discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);                    
+                }            
+            }
+            
+            
+            //The rest (discontinuum not initial)
+            for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
+                array_1d<double, 3> other_to_me_vect;
+                noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
+                double distance = DEM_MODULUS_3(other_to_me_vect);
+                double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
+                double initial_delta = GetInitialDelta(i);
+                double initial_dist = radius_sum - initial_delta;
+                double indentation = initial_dist - distance;
+                
+                if(indentation>0.0){
+                    cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
+                    cont_ini_ids.push_back(mIniNeighbourIds[i]);
+                    cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
+                    cont_ini_failure_ids.push_back(0);                        
+                } else {
+                    discont_neighbour_elems.push_back(mNeighbourElements[i]);                    
+                }            
+            }
+
+            //Adding everything up in single vectors mNeighbourElements, mIniNeighbourIds, mIniNeighbourDelta  
+            mContinuumInitialNeighborsSize = cont_ini_neighbour_elems.size();
+            mInitialNeighborsSize = mContinuumInitialNeighborsSize + discont_ini_neighbour_elems.size();
+            
+            mIniNeighbourIds.resize(mInitialNeighborsSize);
+            mIniNeighbourDelta.resize(mInitialNeighborsSize);
+            mIniNeighbourFailureId.resize(mContinuumInitialNeighborsSize);
+            
+            //Continuum initial
+            for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+                mNeighbourElements[i] = cont_ini_neighbour_elems[i];
+                mIniNeighbourIds[i]   = cont_ini_ids[i];
+                mIniNeighbourDelta[i] = cont_ini_deltas[i]; 
+                mIniNeighbourFailureId[i] = cont_ini_failure_ids[i];
+            }
+
+            mContinuumConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
+
+            for (unsigned int i = initial_number_of_cont_neighbours; i < mContinuumInitialNeighborsSize; i++) {
+                DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
+                mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
+                mContinuumConstitutiveLawArray[i]->Initialize();
+            }
+
+            for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
+                mNeighbourElements[i] = discont_ini_neighbour_elems[i];
+                mIniNeighbourIds[i]   = discont_ini_ids[i];
+                mIniNeighbourDelta[i] = discont_ini_deltas[i];                
+            }
+            
+            for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
+                mNeighbourElements[i] = discont_neighbour_elems[i];                
+            }                            
+            
 	};
+        
+        
+        void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
+         
+        std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
+        std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
+        std::vector<int> DiscontinuumInitialNeighborsIds;
+        std::vector<double> DiscontinuumInitialNeighborsDeltas;
+        mIniNeighbourFailureId.clear(); // We will have to build this vector, we still don't know its size, it applies only to continuum particles
+        size_t continuum_ini_size    = 0;
+        size_t discontinuum_ini_size = 0;
+        unsigned int neighbours_size = mNeighbourElements.size();
+        mIniNeighbourIds.resize(neighbours_size);
+        mIniNeighbourDelta.resize(neighbours_size);
+
+        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            
+            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            array_1d<double, 3> other_to_me_vect;
+            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+
+            double distance = DEM_MODULUS_3(other_to_me_vect);
+            double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
+            double initial_delta = radius_sum - distance;
+            int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
+            
+            if ((r_other_continuum_group  == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
+                
+                mIniNeighbourIds[continuum_ini_size]   = neighbour_iterator->Id();
+                mIniNeighbourDelta[continuum_ini_size] = initial_delta;
+                mIniNeighbourFailureId.push_back(0);
+                ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
+                continuum_ini_size++;
+
+            } else {
+                
+                DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
+                DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);
+                DiscontinuumInitialNeighborsElements.push_back(neighbour_iterator);
+                discontinuum_ini_size++;
+            }            
+        }
+
+        mContinuumInitialNeighborsSize = continuum_ini_size;
+        mInitialNeighborsSize = neighbours_size;
+        
+        for (unsigned int j = 0; j < continuum_ini_size; j++) {
+            mNeighbourElements[j] = ContinuumInitialNeighborsElements[j];
+        }
+            
+        for (unsigned int k = 0; k < discontinuum_ini_size; k++) {
+            
+            mIniNeighbourIds[continuum_ini_size + k]   = DiscontinuumInitialNeighborsIds[k];
+            mIniNeighbourDelta[continuum_ini_size + k] = DiscontinuumInitialNeighborsDeltas[k];
+            mNeighbourElements[continuum_ini_size + k] = DiscontinuumInitialNeighborsElements[k];
+        }
+    }//SetInitialSphereContacts 
+        
+        
 
 	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(ProcessInfo& r_process_info)
 	{
@@ -114,7 +268,7 @@ namespace Kratos
 		{
 			if (this->Is(DEMFlags::IS_SINTERING))
 			{
-				UpdatingNeighboursVector(r_process_info);
+				UpdateContinuumNeighboursVector(r_process_info);
 				mOldNeighbourSinteringDisplacement = mActualNeighbourSinteringDisplacement;
 				mActualNeighbourSinteringDisplacement.clear();
 			}

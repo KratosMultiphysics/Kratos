@@ -111,10 +111,9 @@ namespace Kratos {
     
     void SphericContinuumParticle::CreateContinuumConstitutiveLaws() {
         
-        unsigned int continuous_neighbor_size = mContinuumInitialNeighborsSize;
-        mContinuumConstitutiveLawArray.resize(continuous_neighbor_size);
+        mContinuumConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
-        for (unsigned int i = 0; i < continuous_neighbor_size; i++) {
+        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
             mContinuumConstitutiveLawArray[i]->Initialize();

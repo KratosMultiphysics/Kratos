@@ -66,7 +66,7 @@ namespace Kratos
 
 	void Initialize(const ProcessInfo& r_process_info)  override;
 
-	void UpdatingNeighboursVector(ProcessInfo& r_process_info);
+	void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info);
 
 	void SetInitialSinteringSphereContacts(ProcessInfo& r_process_info);
 
