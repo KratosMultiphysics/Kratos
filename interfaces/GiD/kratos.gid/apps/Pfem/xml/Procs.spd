@@ -6,7 +6,7 @@
         set basepath [spdAux::getRoute "PFEM_meshing_domains"]
         set values [list ]
         foreach meshing_domain [[$domNode selectNodes $basepath] childNodes] {
-            W [$meshing_domain asXML]
+            #W [$meshing_domain asXML]
             lappend values [get_domnode_attribute $meshing_domain name]
         }
         if {[get_domnode_attribute $domNode v] eq ""} {
