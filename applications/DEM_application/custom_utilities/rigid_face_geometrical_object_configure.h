@@ -314,7 +314,6 @@ public:
    {
 
         int new_ID = rObj_2->Id();
-
         std::size_t i_current = Normal_Array.size();
         std::size_t neighbor_size = Normal_Array.size();
 
@@ -336,15 +335,14 @@ public:
            double New_projected_on_old = GeometryFunctions::DotProduct(LocalCoordSystem[2], Old_Normal_Vector);
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
-
+           
            if ( ( (New_projected_distance - Old_dist) / fabs(Old_dist) ) > -1.0e-15 ) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
-              return false;
+             return false;
            }
 
            if ( ( (Old_projected_distance-New_Dist )  / fabs(New_Dist) ) > -1.0e-15 ) { //new has hierarchy over old
 
              int old_ID = Id_Array[i_old_neigh];
-
              if (new_ID == old_ID) {//SUBSTITUTE
                 position = i_old_neigh;
                 substitute = true;
@@ -361,7 +359,6 @@ public:
         std::vector<DEMWall*>& neighbour_rigid_faces = rObj_1->mNeighbourRigidFaces;
 
         if(!substitute) { //if substitute we wont resize or pushback
-
           Distance_Array.resize(neighbor_size+1);
           Weight_Array.resize(neighbor_size+1);
           Normal_Array.resize(neighbor_size+1);
@@ -490,7 +487,7 @@ public:
               else {continue;}
               double distance_point_to_vertex = 0.0;
               local_contact_exists = GeometryFunctions::VertexCheck(Coord[vertex_to_check], Particle_Coord, Radius, local_coord_system, distance_point_to_vertex);
-
+              
               if(local_contact_exists) {
                 ContactType             = 3;
                 Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;
