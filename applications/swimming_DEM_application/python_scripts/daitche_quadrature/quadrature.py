@@ -4,25 +4,28 @@ import mpmath
 import matplotlib.pyplot as plt
 from bigfloat import *
 
-def ExactIntegrationOfSinusKernel(t, a = None, b = None):
+def ExactIntegrationOfSinus(t, a = None, b = None):
     with precision(300):
         if a == None and b == None:
-            return 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(-0.5, t))
-        if a == None and b != None:
-            a = t
+            return 0.5 * math.pi * math.sqrt(t) * (mpmath.angerj(0.5, t) - mpmath.angerj(- 0.5, t))
+        elif a == None and b != None:
+            a = 0
         elif b == None:
-            b = 0.
+            b = t
         mpmath.mp.dps = 50
         mpmath.mp.pretty = True
         pi = mpmath.mp.pi
         pi = +pi
         fcos = mpmath.fresnelc
-        fsin = mpmath.fresnels
-        
+        fsin = mpmath.fresnels        
         arg_a = mpmath.sqrt(2 * (t - a) / pi)
-        arg_b = mpmath.sqrt(2 * (t - b) / mpmath.mp.pi) 
+        arg_b = mpmath.sqrt(2 * (t - b) / pi) 
         return mpmath.sqrt(2 * mpmath.mp.pi) * ((fsin(arg_b) - fsin(arg_a)) * mpmath.cos(t) + (fcos(arg_a) - fcos(arg_b)) * mpmath.sin(t))
-       
+      
+def ExactIntegrationOfSinusWithExponentialKernel(t, ti, alpha = None, beta = None):
+    a = sqrt(exp(1) / ti)
+    b = - 0.5  / ti
+    return a / (b ** 2 + 1) * (exp(b * (t - alpha)) * (b * sin(alpha) + cos(alpha)) - exp(b * (t - beta)) * (b * sin(beta) + cos(beta)))
 
 def ApproximateQuadrature(times, f):
     values = [0.0 for t in times]
@@ -213,7 +216,7 @@ def Coefficient(order, n, j):
         return Alpha(n, j)
     elif order == 2:
         return Beta(n, j)
-    else: 
+    else:         
         return Gamma(n, j)
 
 def Daitche(order, times, f):
@@ -230,7 +233,7 @@ def Daitche(order, times, f):
     return sqrt_of_h * total
 
 def Phi(t):
-    if t > 1e-10:
+    if abs(t) > 1e-7:
         answer = (exp(t) - 1) / t
     else:
         answer = 1 + 0.5 * t + 1. / 6 * t ** 2
@@ -241,58 +244,76 @@ def Hinsberg(m, times, f):
         return Bombardelli(times, f, 1)
     else:
         import hinsberg_optimization as op
-        t_win = 0.4 * times[- 1]
+        final_time = times[- 1]
+
+        t_win = 0.4 * final_time
         for i in range(len(times)):
             if times[i] >= t_win:
                 break
         old_times = [time * times[i] / times[-1] for time in times]
         recent_times = [times[i] + time * (times[-1] - times[0] - times[i]) / (times[-1] - times[0]) for time in times]
         print(recent_times)
-        F_win = Daitche(1, recent_times, f)
-        F_win2 = Daitche(2, recent_times, f)
-        F_win3 = Daitche(3, recent_times, f) 
+        F_win = Daitche(2, recent_times, f)
+        #F_win2 = Daitche(2, recent_times, f)
+        #F_win3 = Daitche(3, recent_times, f) 
         tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
-        tis = [0.1, 0.3, 0.5, 0.7, 0.8, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 20, 190, 500, 1000, 5000, 50000]        
         a0 = [0.2 for ti in tis]
         functional = op.Functional(tis)
         op.GetExponentialsCoefficients(functional, a0)
-        F_tail = 0.
-        contributions = [0.0 for coefficient in a0]
+        F_tail = float(ExactIntegrationOfSinus(final_time, 0.0, old_times[1]))
+        print("START",F_tail)
+        Fis = [0.0 for coefficient in a0]
+        
+        #plot_times = [i * 0.01 for i in range(500)]
+        #approx_values = []
+        #exact_values = []
+        #for time in plot_times:
+            #approximation_value = 0.0
+            #for i in range(len(a0)):
+                #ti = tis[i]
+                #a = sqrt(exp(1) / ti)
+                #b = - 0.5  / ti
+                #approximation_value += a0[i] * a * exp(b * time)
+            #approx_values.append(approximation_value)
+            #exact_values.append(1 / sqrt(time))
+        
+        #plt.plot(plot_times, approx_values)
+        #plt.plot(plot_times, exact_values)
 
+        #plt.axis('equal')
+        #plt.show()
+        
         for i in range(len(a0)):
             ti = tis[i]
-            for k in range(2, len(old_times)):
+            for k in range(1, len(old_times)):
                 delta_t = old_times[k] - old_times[k - 1]                
                 normalized_dt = delta_t / (2 * ti)
                 normalized_t = old_times[k - 1] / (2 * ti)
                 fn = f(old_times[k - 1])
                 fn_plus_1 = f(old_times[k])
-                Fdi = 2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp(- normalized_dt) * (Phi(normalized_dt) - 1.))
-            
-                if len(old_times) > 1:
-                    Fre = exp(- normalized_dt) * contributions[i]
-                else:
-                    Fre = 0.
-                contributions[i] = Fdi + Fre
+                exp_dt = exp(- normalized_dt)
+                Fdi = ExactIntegrationOfSinusWithExponentialKernel(final_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k]) #2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp_dt * (Phi(normalized_dt) - 1.)) #
+                Fre = exp_dt * Fis[i]
+                Fis[i] = float(Fdi) + Fre
                 
-            F_tail += a0[i] * contributions[i]
-        final_time = times[- 1]
+            F_tail += a0[i] * Fis[i]
+            print("FIRST MOD", F_tail)
+
+        #F_tail = 0.0
+        #for i in range(len(a0)):
+            #ti = tis[i]
+            #F_tail += a0[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, 0., old_times[-1])
+
         t_win = recent_times[0]
-        print("times",times)
-        print("old_times", old_times)
-        print("recent_times",recent_times)   
-        print("exact over the whole history", ExactIntegrationOfSinusKernel(final_time))
-        print("Daitche(1, times, f)", Daitche(1, times, f))        
-        print("exact over recent times", ExactIntegrationOfSinusKernel(final_time, final_time, t_win))
-        print("Daitche(1, recent_times, f)", Daitche(1, recent_times, f))
-        print("Bombardelli(recent_times, f)", Bombardelli(recent_times, f, 2))            
-        print("Daitche - OldDaitche", Daitche(1, times, f) -  Daitche(1, old_times, f))            
-        print("Bombardelli - OldBombardelli", Bombardelli(times, f) - Bombardelli(old_times, f))                    
-        print("exact over old times", ExactIntegrationOfSinusKernel(final_time, 0., t_win))
-        print(F_tail)
-        print(F_win)        
-        print(F_win2) 
-        print(F_win3) 
+        #print("times", times)
+        #print("old_times", old_times)
+        #print("recent_times", recent_times)   
+        print("EXACT tail", ExactIntegrationOfSinus(final_time, 0., t_win))        
+        print("EXACT recent", ExactIntegrationOfSinus(final_time, t_win, final_time))         
+        print("EXACT whole", ExactIntegrationOfSinus(final_time))        
+        print("WHOLE", Daitche(1, times, f))  
+        print("RECENT", F_win)                
+        print("TAIL", F_tail)
         print("F_win + F_tail", F_win + F_tail)
         #para
         return F_win + F_tail
@@ -389,7 +410,7 @@ def SubstituteShanks(approx_sequence):
                 my_list[- i - 1] = shanks[- i - 1]
             temp_shanks = [(shanks[i + 1] * shanks[i - 1] - shanks[i] ** 2) / (one*(shanks[i + 1] - 2 * shanks[i] + shanks[i - 1])) for i in range(1, len(shanks) - 1)]
             shanks = temp_shanks
-t = 1.0
+t = 5.0
 f = math.sin
 n_discretizations = 6
 min_exp = 2
@@ -417,8 +438,8 @@ for n_divisions in n_div:
     h = t / n_divisions 
     times = [h * delta for delta in range(n_divisions)]
     times.append(t)
-    values = [float(ExactIntegrationOfSinusKernel(t)) for t in times]
-    exact_value = values[-1]
+    #values = [float(ExactIntegrationOfSinus(t)) for t in times]
+    exact_value = float(ExactIntegrationOfSinus(times[-1]))
     exact_values.append(exact_value)
     approx_value_naive = ApproximateQuadrature(times, f)
     approx_value_1 = Daitche(1, times, f)
