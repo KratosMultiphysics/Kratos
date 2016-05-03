@@ -133,7 +133,7 @@ namespace Kratos {
             }
         }                        
 
-        #pragma omp parallel for shared(delta_t)        
+        #pragma omp parallel for shared(delta_t)
         for (int k = 0; k < (int) pNodes.size(); k++) {
             ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
             Node < 3 > & i = *i_iterator;
@@ -188,7 +188,6 @@ namespace Kratos {
         ProcessInfo& r_process_info = model_part.GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
         vector<unsigned int> node_partition;
-//         bool if_trihedron_option = (bool) r_process_info[TRIHEDRON_OPTION];
         double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
         bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double moment_reduction_factor = 1.0;
@@ -199,7 +198,7 @@ namespace Kratos {
             }
         }      
 
-        #pragma omp parallel for shared(delta_t)        
+        #pragma omp parallel for shared(delta_t)
         for (int k = 0; k < (int) pNodes.size(); k++) {
             ModelPart::NodeIterator i_iterator = pNodes.ptr_begin() + k;
             Node < 3 > & i = *i_iterator;
@@ -221,27 +220,6 @@ namespace Kratos {
             CalculateLocalAngularAcceleration(i, moment_of_inertia, torque, moment_reduction_factor,angular_acceleration);
 
             UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
-
-//             if (if_trihedron_option && i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) {
-//                 array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-// 
-//                 Quaternion<double> Orientation = Quaternion<double>::Identity();
-//                         
-//                 array_1d<double, 3 > theta = rotated_angle;
-//                 DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
-// 
-//                 double thetaMag = DEM_MODULUS_3(theta);
-//                 if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
-//                     double aux = (1 - thetaMag * thetaMag / 6);
-//                     Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-//                 }
-//                 else {
-//                     double aux = sin(thetaMag)/thetaMag;
-//                     Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-//                 }
-//                 Orientation.normalize();
-//                 Orientation.ToEulerAngles(EulerAngles);
-//             }// Trihedron Option
         }//for Node                  
 
         KRATOS_CATCH(" ")
@@ -281,68 +259,66 @@ namespace Kratos {
         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
-                ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
-                ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
+        #pragma omp parallel for shared(delta_t)        
+        for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
+            ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
+            ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
 
-                for (ElementsArrayType::iterator it = i_begin; it != i_end; ++it) {
-                    Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                    Node < 3 > & i = cluster_element.GetGeometry()[0];
+            for (ElementsArrayType::iterator it = i_begin; it != i_end; ++it) {
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                Node < 3 > & i = cluster_element.GetGeometry()[0];
 
-                    array_1d<double, 3 > & moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-                    array_1d<double, 3 > & angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                    array_1d<double, 3 > & torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
-                    array_1d<double, 3 > & rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                    Quaternion<double > & Orientation = i.FastGetSolutionStepValue(ORIENTATION);
-                    array_1d<double, 3 > & delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
+                array_1d<double, 3 > & moments_of_inertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+                array_1d<double, 3 > & angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3 > & torque = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
+                array_1d<double, 3 > & rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                Quaternion<double  > & Orientation = i.FastGetSolutionStepValue(ORIENTATION);
+                array_1d<double, 3 > & delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
 
-                    array_1d<double, 3 > local_angular_velocity, local_angular_acceleration, local_torque, angular_acceleration;
+                array_1d<double, 3 > local_angular_velocity, local_angular_acceleration, local_torque, angular_acceleration;
 
-                    //Angular velocity and torques are saved in the local framework:
-                    GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
-                    GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-                    CalculateLocalAngularAccelerationByEulerEquations(i,local_angular_velocity,moments_of_inertia,local_torque, moment_reduction_factor,local_angular_acceleration);                        
+                //Angular velocity and torques are saved in the local framework:
+                GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
+                GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
+                CalculateLocalAngularAccelerationByEulerEquations(i,local_angular_velocity,moments_of_inertia,local_torque, moment_reduction_factor,local_angular_acceleration);                        
 
-                    //Angular acceleration is saved in the Global framework:
-                    GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
+                //Angular acceleration is saved in the Global framework:
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
 
-                    bool Fix_Ang_vel[3] = {false, false, false};
+                bool Fix_Ang_vel[3] = {false, false, false};
 
-                    Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
-                    Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
-                    Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+                Fix_Ang_vel[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+                Fix_Ang_vel[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+                Fix_Ang_vel[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                    UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
+                UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
-                   double ang = DEM_MODULUS_3(delta_rotation);
-                   if (ang) {
-                       array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-                       Quaternion<double> delta_orientation = Quaternion<double>::Identity();
+                double ang = DEM_MODULUS_3(delta_rotation);
+                if (ang) {
+                    array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
+                    Quaternion<double> delta_orientation = Quaternion<double>::Identity();
                         
-                       array_1d<double, 3 > theta = delta_rotation;
-                       DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+                    array_1d<double, 3 > theta = delta_rotation;
+                    DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
 
-                       double thetaMag = DEM_MODULUS_3(theta);
-                       if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
-                           double aux = (1 - thetaMag * thetaMag / 6);
-                           delta_orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                       }
-                       else {
-                           double aux = sin(thetaMag)/thetaMag;
-                           delta_orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                       }
+                    double thetaMag = DEM_MODULUS_3(theta);
+                    
+                    if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
+                        double aux = (1 - thetaMag * thetaMag / 6);
+                        delta_orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                    }
+                    else {
+                        double aux = sin(thetaMag)/thetaMag;
+                        delta_orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+                    }
 
-                       delta_orientation.normalize();
-                       Orientation = delta_orientation * Orientation;
-                       Orientation.ToEulerAngles(EulerAngles); 
-                    } //if ang                                                                                                    
-                    cluster_element.UpdatePositionOfSpheres();
-                } //for Elements
-            } //for number of threads
-        } //End of parallel region
+                    delta_orientation.normalize();
+                    Orientation = delta_orientation * Orientation;
+                    Orientation.ToEulerAngles(EulerAngles); 
+                } //if ang                                                                                                    
+                cluster_element.UpdatePositionOfSpheres();
+            } //for Elements
+        } //for number of threads
         KRATOS_CATCH(" ")
     }
 }

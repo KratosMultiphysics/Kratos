@@ -30,7 +30,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
-        #self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
+        self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
