@@ -86,8 +86,11 @@ public:
     double GetTgOfFrictionAngle();
     
     std::vector<SphericParticle*> mNeighbourSphericParticles;
-    
-    
+    std::vector<array_1d <double, 3> > mRightHandSideVector;
+
+    virtual void GetRightHadSideVector(std::vector<array_1d <double, 3> >& rRightHandSideVector);
+    virtual void SetRightHadSideVector(const std::vector<array_1d <double, 3> >& rRightHandSideVector);
+    virtual void AddToRightHadSideVector(const std::vector<array_1d <double, 3> >& rRightHandSideVector);
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
