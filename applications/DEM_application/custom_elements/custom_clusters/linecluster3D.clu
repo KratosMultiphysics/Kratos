@@ -26,7 +26,7 @@ Size
 Volume
 0.0345575
 
-Inertia per unit density
-0.0001727875  
-0.00357094166
-0.00357094166
+Inertia per unit mass
+0.005
+0.01
+0.01
