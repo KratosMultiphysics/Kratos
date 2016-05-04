@@ -25,13 +25,13 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  pPropertiesType pProperties;
-  TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+  // pPropertiesType pProperties;
+  TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
 
     // //-----------//
 
-    // NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+     NewElement.mThisIntegrationMethod = GetIntegrationMethod();
 
     // if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
     //   {
@@ -61,7 +61,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
 
     // NewElement.mDeterminantF0 = mDeterminantF0;
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewId,  this->GetGeometry().Create( rThisNodes ), pProperties) );
+  return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewId,  this->GetGeometry().Create( rThisNodes ), this->pGetProperties()) );
    
     // return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewElement) );
 }

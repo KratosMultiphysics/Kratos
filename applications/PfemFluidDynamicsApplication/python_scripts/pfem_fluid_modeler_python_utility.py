@@ -27,7 +27,7 @@ class ModelerUtility:
         self.mesh_modelers = []
 
         # mesh modeler parameters
-        self.alpha_shape        = 1.9
+        self.alpha_shape        = 1.0
         self.h_factor           = 0.5
         self.avoid_tip_elements = False
         self.offset_factor      = 0
