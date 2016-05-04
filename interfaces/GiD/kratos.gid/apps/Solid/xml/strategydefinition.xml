@@ -42,7 +42,7 @@
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" >
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" help="Deffault solver Super LU" >
         <filterFeatures>
 	  <!--<filter field="n" value="BiConjugate"/>
 	      <filter field="symmetric" value="false"/>
@@ -84,7 +84,7 @@
                 ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
                 MinimumKratosVersion="8500"
                 ProductionReady="true"
-                help="">
+                help="Default solver Super LU">
     
     <!-- list of options to be filled -->
     <parameter_list> 
@@ -139,7 +139,7 @@
                 ImplementedInPythonFile="solid_mechanics_static_solver"
                 MinimumKratosVersion="8500"
                 ProductionReady="true"
-                help="">
+                help="Default solver Super LU">
     
     <!-- list of options to be filled -->
     <parameter_list> 
