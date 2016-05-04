@@ -302,7 +302,7 @@ private:
 
 /* For the formulation SPRISM we just consider one integration point in the plane */
 
-class PrismGaussLegendreIntegrationPointsExt1
+class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPointsExt1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsExt1);
@@ -343,7 +343,7 @@ private:
 
 }; // Class PrismGaussLegendreIntegrationPointsExt1
 
-class PrismGaussLegendreIntegrationPointsExt2
+class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPointsExt2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsExt2);
@@ -384,7 +384,7 @@ private:
 
 }; // Class PrismGaussLegendreIntegrationPointsExt2
 
-class PrismGaussLegendreIntegrationPointsExt3
+class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPointsExt3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsExt3);
@@ -427,7 +427,7 @@ private:
 
 }; // Class PrismGaussLegendreIntegrationPointsExt3
 
-class PrismGaussLegendreIntegrationPointsExt4
+class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPointsExt4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsExt4);
@@ -472,7 +472,7 @@ private:
 
 }; // Class PrismGaussLegendreIntegrationPointsExt4
 
-class PrismGaussLegendreIntegrationPointsExt5
+class KRATOS_API(KRATOS_CORE) PrismGaussLegendreIntegrationPointsExt5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismGaussLegendreIntegrationPointsExt5);
