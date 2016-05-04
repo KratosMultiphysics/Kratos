@@ -198,42 +198,67 @@ void SurfaceLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
 
 Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
 {
+
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    //const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     
-    rVectorForce.resize(3,false);
-    rVectorForce = ZeroVector(3);
+    rVectorForce.resize(dimension,false);
+    rVectorForce = ZeroVector(dimension);
     
     //PRESSURE CONDITION:
     rVectorForce = rVariables.Normal;
     rVariables.Pressure = 0.0;
 
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    //defined on condition
+    if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
+      double& NegativeFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	rVariables.Pressure += rVariables.N[i] * NegativeFacePressure;
+    }
+
+    if( this->Has( POSITIVE_FACE_PRESSURE ) ){
+      double& PositiveFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	rVariables.Pressure -= rVariables.N[i] * PositiveFacePressure;
+    }
+
+    //defined on condition nodes
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-      if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) && GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) //temporary, will be checked once at the beginning only
-	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
-      else if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
-	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
-      else if( GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
-	rVariables.Pressure -= rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
-      
+      if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
+	rVariables.Pressure += rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
+      if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
+	rVariables.Pressure -= rVariables.N[i] * ( GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );     
     }
     
     rVectorForce *= rVariables.Pressure;
-
+   
     //FORCE CONDITION:
+    
+    //defined on condition
+    if( this->Has( SURFACE_LOAD ) ){
+      array_1d<double, 3 > & LineLoad = this->GetValue( SURFACE_LOAD );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+	}
+    }
+    
+    //defined on condition nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ) //temporary, will be checked once at the beginning only
-	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ){
+	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+	}
       }
-
 
     //KRATOS_WATCH( rVectorForce )
 
-      
     return rVectorForce;
 
     KRATOS_CATCH( "" )

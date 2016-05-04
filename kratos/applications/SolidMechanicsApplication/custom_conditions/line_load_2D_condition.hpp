@@ -150,12 +150,6 @@ protected:
     virtual void CalculateKinematics(GeneralVariables& rVariables, 
 				     const double& rPointNumber);
 
-    /**
-     * Calculation of the Vector Force of the Condition
-     */
-    virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
-
-
 
     /**
      * Calculation of the Integration Weight
