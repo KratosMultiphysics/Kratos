@@ -198,7 +198,7 @@ namespace Kratos
 		}
 
 	CreateContinuumConstitutiveLaws(); //// Reorder????
-	}//SetInitialSphereContacts    /*
+	}//SetInitialSinteringSphereContacts    
 
 	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)
 	{
