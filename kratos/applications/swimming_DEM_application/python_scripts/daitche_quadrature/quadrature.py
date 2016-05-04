@@ -330,7 +330,15 @@ def Hinsberg(m, t_win, times, f):
 # Bombardelli BEGINS
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def A(alpha, p, f, t, times, c = 1): # A^alpha_{ch,p}f(cx), Baeumer (2015)
+    t = times[- 1]
+    a = times[0]
+    N = len(times) - 1
+    h = (t - a) / N
+    return h ** (- alpha) * sum([gamma(k - alpha) / gamma(k + 1) * f(t - (k - p) * h) for k in range(N)])
+
 def Bombardelli(times, f, order = 1):
+
     with precision(200):
         q = - 0.5
         t = times[- 1]
@@ -343,16 +351,28 @@ def Bombardelli(times, f, order = 1):
         linear_initial_correction =   2 / 3. * sqrt(t - a) * (a + 2 * t) * initial_approx_deriv 
         #linear_initial_correction = t ** (1 - q) / gamma(2 - q) * initial_approx_deriv
         linear_correction_option = 0
-
+        order = 3
         if order == 1:
             coeff = h ** (- q)
             values = [gamma(k - q) / gamma(k + 1) * (f(t - k * h) - f(a)) for k in range(N)]
             initial_value_correction = constant_initial_correction
-        else:
+        elif order == 2:
             coeff = h ** (- q) * gamma(- q)
-            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]
+            #values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]
+            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]            
             initial_value_correction = constant_initial_correction + linear_correction_option * linear_initial_correction
-            
+        elif order == 3:
+            def f_mod(x):
+                return f(x) - f(a)
+            sqrt_var = sqrt(6)
+            b0 = 0.5
+            b1 = 0.5
+            p0 = (- 3 + sqrt_var) / 12
+            p1 = (- 3 - sqrt_var) / 12
+            return b0 * A(q, p0, f, t, times) + b1 * A(q, p1, f, t, times)
+        else:
+            1
+
         return coeff * sum(values) + initial_value_correction
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -436,7 +456,7 @@ def SubstituteShanks(approx_sequence):
 
 # Paramters ----------------------------
 
-final_time = 5.0
+final_time = 3.0
 n_discretizations = 6
 min_exp = 2
 k = 2
@@ -579,7 +599,7 @@ plt.plot(n_div, errors_hins_rich, color='m', linestyle = '--')
 #plt.plot(n_div, errors_1_rich_emp, color='b', linestyle = '-.')
 #plt.plot(n_div, errors_2_rich_emp, color='g', linestyle = '-.')
 #plt.plot(n_div, errors_3_rich_emp, color='k', linestyle = '-.')
-#plt.plot(n_div, errors_bomb_rich_emp, color='c', linestyle = '-.')
+plt.plot(n_div, errors_bomb_rich_emp, color='c', linestyle = '-.')
 #plt.plot(n_div, errors_hins_rich_emp, color='m', linestyle = '-.')
 #plt.plot(n_div, errors_naive_shank, color='r', linestyle = '-.')
 #plt.plot(n_div, errors_1_shank, color='b', linestyle = '-.')
