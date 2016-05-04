@@ -113,9 +113,6 @@ public:
         
         // Normalize the direction
         mdirection /= dim_norm;
-
-        // Otherwise, a unit normal vector will be always imposed
-        mfactor *= dim_norm;
             
         if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
             KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name)
@@ -201,7 +198,7 @@ public:
     /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
     {
-        Execute();
+        Execute();mdirection
     }
 
 
