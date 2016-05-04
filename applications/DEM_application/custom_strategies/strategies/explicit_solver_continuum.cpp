@@ -194,7 +194,6 @@ namespace Kratos {
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary for the loop in SearchNeighbours
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
-
                 BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_TOLERANCE] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
 
@@ -206,7 +205,6 @@ namespace Kratos {
                 if (has_mpi) {
                     BaseType::RepairPointersToNormalProperties(mListOfSphericParticles);
                     BaseType::RepairPointersToNormalProperties(mListOfGhostSphericParticles);
-                    //RebuildListsOfPointersOfEachParticle(); //Serialized member variables which are pointers are lost, so we rebuild them using Id's
                 }
 
                 BaseType::RebuildPropertiesProxyPointers(mListOfSphericParticles);
