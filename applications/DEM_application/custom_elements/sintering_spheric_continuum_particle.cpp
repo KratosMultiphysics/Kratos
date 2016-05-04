@@ -244,5 +244,25 @@ namespace Kratos
             return 0.0;                 
         }
 
+		void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area)
+		{
+			double actual_neck_radius;
+			if (this->Is(DEMFlags::IS_SINTERING))
+			{
+				indentation = -indentation;
+				double geo_a = rmin;
+				double geo_c = rmin;
+				double geo_b = rmin + rmin + indentation; //// ZMIANY
+				double geo_aproj = (geo_a*geo_a + geo_b*geo_b - geo_c*geo_c) / (2 * geo_b);
+				actual_neck_radius = 1.43 * std::sqrt(geo_a*geo_a - geo_aproj*geo_aproj);
+			}
+			else
+			{
+				actual_neck_radius = std::sqrt(rmin*indentation);
+			}
+
+			calculation_area = KRATOS_M_PI * actual_neck_radius * actual_neck_radius;
+		}
+
 	 
 }  // namespace Kratos.

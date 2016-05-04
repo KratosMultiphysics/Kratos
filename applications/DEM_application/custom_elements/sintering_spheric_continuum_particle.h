@@ -76,6 +76,9 @@ namespace Kratos
         
         double GetInitialDelta(int index)  override;
 
+		void ComputeContactArea(const double rmin, double indentation, double& calculation_area) override;
+
+
 
 	double mSinteringDisplacement;
 	double mSinteringDrivingForce;
