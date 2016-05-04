@@ -59,22 +59,25 @@ namespace Kratos
                         
             //Assuming that the neighbours are ordered (first initial continuum, then initial discontinuum, then other discontinuum)
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-                if(mNeighbourElements[i] == NULL) continue;
                 cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                 cont_ini_ids.push_back(mIniNeighbourIds[i]);
                 cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
-                cont_ini_failure_ids.push_back(mIniNeighbourFailureId[i]);                
+                cont_ini_failure_ids.push_back(mIniNeighbourFailureId[i]);  
             }            
 
             //// Discontinuum and initial
             for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
-                if(mNeighbourElements[i] == NULL) continue;
+                if(mNeighbourElements[i] == NULL) {
+                    discont_ini_ids.push_back(mIniNeighbourIds[i]);
+                    discont_ini_deltas.push_back(mIniNeighbourDelta[i]);
+                    discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);   
+                    continue;
+                }
                 array_1d<double, 3> other_to_me_vect;
                 noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
                 double distance = DEM_MODULUS_3(other_to_me_vect);
                 double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
-                double initial_delta = GetInitialDelta(i);
-                double initial_dist = radius_sum - initial_delta;
+                double initial_dist = radius_sum - mIniNeighbourDelta[i];
                 double indentation = initial_dist - distance;
                 
                 if(indentation>0.0 && mNeighbourElements[i]->Is(DEMFlags::IS_SINTERING)){
@@ -83,12 +86,11 @@ namespace Kratos
                     cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
                     cont_ini_failure_ids.push_back(0);                        
                 } else {
-                    discont_ini_ids.push_back(mNeighbourElements[i]->Id());
-                    discont_ini_deltas.push_back(initial_delta);
+                    discont_ini_ids.push_back(mIniNeighbourIds[i]);
+                    discont_ini_deltas.push_back(mIniNeighbourDelta[i]);
                     discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);                    
                 }            
-            }
-            
+            }            
             
             //The rest (discontinuum not initial)
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
@@ -96,9 +98,7 @@ namespace Kratos
                 noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
                 double distance = DEM_MODULUS_3(other_to_me_vect);
                 double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
-                double initial_delta = GetInitialDelta(i);
-                double initial_dist = radius_sum - initial_delta;
-                double indentation = initial_dist - distance;
+                double indentation = radius_sum - distance;
                 
                 if(indentation>0.0){
                     cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
