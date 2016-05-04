@@ -25,45 +25,54 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  // pPropertiesType pProperties;
   TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
+  if ( NewElement.mOldFgrad.size() != this->mOldFgrad.size() )
+    NewElement.mOldFgrad.resize(this->mOldFgrad.size());
 
-    // //-----------//
-
-     NewElement.mThisIntegrationMethod = GetIntegrationMethod();
-
-    // if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
-    //   {
-    // 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
-    // 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-    // 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
-    //   }
-    
-
-    // for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-    //   {
-    // 	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    //   }
+  for(unsigned int i=0; i<this->mOldFgrad.size(); i++)
+    {
+      NewElement.mOldFgrad[i] = this->mOldFgrad[i];
+    }
 
 
-    // //-----------//
+  if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
+    NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
+
+  for(unsigned int i=0; i<this->mCurrentTotalCauchyStress.size(); i++)
+    {
+      NewElement.mCurrentTotalCauchyStress[i] = this->mCurrentTotalCauchyStress[i];
+    }
 
 
-    // if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
-    //   NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
+  if ( NewElement.mCurrentDeviatoricCauchyStress.size() != this->mCurrentDeviatoricCauchyStress.size() )
+    NewElement.mCurrentDeviatoricCauchyStress.resize(this->mCurrentDeviatoricCauchyStress.size());
 
-    // for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
-    // {
-    //     NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
-    // }
+  for(unsigned int i=0; i<this->mCurrentDeviatoricCauchyStress.size(); i++)
+    {
+      NewElement.mCurrentDeviatoricCauchyStress[i] = this->mCurrentDeviatoricCauchyStress[i];
+    }
 
-    // NewElement.mDeterminantF0 = mDeterminantF0;
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewId,  this->GetGeometry().Create( rThisNodes ), this->pGetProperties()) );
-   
-    // return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewElement) );
+  if ( NewElement.mUpdatedTotalCauchyStress.size() != this->mUpdatedTotalCauchyStress.size() )
+    NewElement.mUpdatedTotalCauchyStress.resize(this->mUpdatedTotalCauchyStress.size());
+
+  for(unsigned int i=0; i<this->mUpdatedTotalCauchyStress.size(); i++)
+    {
+      NewElement.mUpdatedTotalCauchyStress[i] = this->mUpdatedTotalCauchyStress[i];
+    }
+
+
+  if ( NewElement.mUpdatedDeviatoricCauchyStress.size() != this->mUpdatedDeviatoricCauchyStress.size() )
+    NewElement.mUpdatedDeviatoricCauchyStress.resize(this->mUpdatedDeviatoricCauchyStress.size());
+
+  for(unsigned int i=0; i<this->mUpdatedDeviatoricCauchyStress.size(); i++)
+    {
+      NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
+    }
+
+  return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewElement) );
+
 }
 
   template< unsigned int TDim >
@@ -79,9 +88,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
     //Resize historic deformation gradient
     if ( this->mOldFgrad.size() != integration_points_number )
       this->mOldFgrad.resize( integration_points_number ); 
-
-    if ( this->mDetFgrad.size() != integration_points_number )
-      this->mDetFgrad.resize( integration_points_number, false );
 
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
@@ -102,7 +108,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
       }
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-        this->mDetFgrad[PointNumber] = 1;
         this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -1805,34 +1810,52 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(Elementa
 
 
 template <  unsigned int TDim> 
-void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables, unsigned int g)
- {
-    unsigned int voigtsize  = 3;
-    if( TDim == 3 )
+void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
+{
+  std::cout<<" i1  ";
+
+  unsigned int voigtsize  = 3;
+  if( TDim == 3 )
     {
-        voigtsize  = 6;
+      voigtsize  = 6;
     }
-    rElementalVariables.voigtsize=voigtsize;
+  rElementalVariables.voigtsize=voigtsize;
 
-    rElementalVariables.DetFgrad=1;
-    rElementalVariables.DetFgradVel=1;
-    rElementalVariables.DeviatoricInvariant=1;
-    rElementalVariables.VolumetricDefRate=1;
-    rElementalVariables.SpatialDefRate.resize(voigtsize);
-    rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
-    rElementalVariables.Fgrad.resize(TDim,TDim);
-    rElementalVariables.InvFgrad.resize(TDim,TDim);
-    rElementalVariables.FgradVel.resize(TDim,TDim);
-    rElementalVariables.InvFgradVel.resize(TDim,TDim);
-    rElementalVariables.SpatialVelocityGrad.resize(TDim,TDim);
+  std::cout<<" i2  ";
+  rElementalVariables.DetFgrad=1.0;
+  std::cout<<" i2a  ";
+  rElementalVariables.DetFgradVel=1.0;
+  std::cout<<" i2b  ";
+  rElementalVariables.DeviatoricInvariant=1.0;
+  std::cout<<" i3  ";
+  rElementalVariables.VolumetricDefRate=1.0;
 
-    rElementalVariables.MeanPressure=0;
-    rElementalVariables.CurrentTotalCauchyStress.resize(voigtsize);
-    rElementalVariables.UpdatedTotalCauchyStress.resize(voigtsize);
-    rElementalVariables.CurrentDeviatoricCauchyStress.resize(voigtsize);
-    rElementalVariables.UpdatedDeviatoricCauchyStress.resize(voigtsize);
 
- }
+  rElementalVariables.SpatialDefRate= ZeroVector(voigtsize);
+  std::cout<<" i4  ";
+  rElementalVariables.MDGreenLagrangeMaterial= ZeroVector(voigtsize);
+
+  rElementalVariables.Fgrad = ZeroMatrix(TDim,TDim);
+  std::cout<<" i5  ";
+  rElementalVariables.InvFgrad= ZeroMatrix(TDim,TDim);
+  std::cout<<" i6  ";
+  rElementalVariables.FgradVel= ZeroMatrix(TDim,TDim);
+  std::cout<<" i7  ";
+  rElementalVariables.InvFgradVel= ZeroMatrix(TDim,TDim);
+  std::cout<<" i8  ";
+  rElementalVariables.SpatialVelocityGrad= ZeroMatrix(TDim,TDim);
+
+  rElementalVariables.MeanPressure=0;
+  std::cout<<" i9  ";
+  rElementalVariables.CurrentTotalCauchyStress= ZeroVector(voigtsize);
+  std::cout<<" i10  ";
+  rElementalVariables.UpdatedTotalCauchyStress=  ZeroVector(voigtsize);
+  std::cout<<" i11  ";
+  rElementalVariables.CurrentDeviatoricCauchyStress=  ZeroVector(voigtsize);
+  std::cout<<" i12 ";
+  rElementalVariables.UpdatedDeviatoricCauchyStress= ZeroVector(voigtsize);
+
+}
 
 
 template < > 

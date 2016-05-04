@@ -25,45 +25,54 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  // pPropertiesType pProperties;
   TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+  
+
+  if ( NewElement.mOldFgrad.size() != this->mOldFgrad.size() )
+    NewElement.mOldFgrad.resize(this->mOldFgrad.size());
+
+  for(unsigned int i=0; i<this->mOldFgrad.size(); i++)
+    {
+      NewElement.mOldFgrad[i] = this->mOldFgrad[i];
+    }
 
 
-    // //-----------//
+  if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
+    NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
 
-    // NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
-
-    // if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
-    //   {
-    // 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
-    // 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-    // 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
-    //   }
-    
-
-    // for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-    //   {
-    // 	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    //   }
+  for(unsigned int i=0; i<this->mCurrentTotalCauchyStress.size(); i++)
+    {
+      NewElement.mCurrentTotalCauchyStress[i] = this->mCurrentTotalCauchyStress[i];
+    }
 
 
-    // //-----------//
+  if ( NewElement.mCurrentDeviatoricCauchyStress.size() != this->mCurrentDeviatoricCauchyStress.size() )
+    NewElement.mCurrentDeviatoricCauchyStress.resize(this->mCurrentDeviatoricCauchyStress.size());
+
+  for(unsigned int i=0; i<this->mCurrentDeviatoricCauchyStress.size(); i++)
+    {
+      NewElement.mCurrentDeviatoricCauchyStress[i] = this->mCurrentDeviatoricCauchyStress[i];
+    }
 
 
-    // if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
-    //   NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
+  if ( NewElement.mUpdatedTotalCauchyStress.size() != this->mUpdatedTotalCauchyStress.size() )
+    NewElement.mUpdatedTotalCauchyStress.resize(this->mUpdatedTotalCauchyStress.size());
 
-    // for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
-    // {
-    //     NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
-    // }
+  for(unsigned int i=0; i<this->mUpdatedTotalCauchyStress.size(); i++)
+    {
+      NewElement.mUpdatedTotalCauchyStress[i] = this->mUpdatedTotalCauchyStress[i];
+    }
 
-    // NewElement.mDeterminantF0 = mDeterminantF0;
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties()) );
+  if ( NewElement.mUpdatedDeviatoricCauchyStress.size() != this->mUpdatedDeviatoricCauchyStress.size() )
+    NewElement.mUpdatedDeviatoricCauchyStress.resize(this->mUpdatedDeviatoricCauchyStress.size());
 
-    // return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewElement) );
+  for(unsigned int i=0; i<this->mUpdatedDeviatoricCauchyStress.size(); i++)
+    {
+      NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
+    }
+
+  return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewElement) );
 }
 
 
@@ -80,9 +89,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     //Resize historic deformation gradient
     if ( this->mOldFgrad.size() != integration_points_number )
       this->mOldFgrad.resize( integration_points_number ); 
- 
-    if ( this->mDetFgrad.size() != integration_points_number )
-      this->mDetFgrad.resize( integration_points_number, false );
 
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
@@ -103,7 +109,6 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
       }
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
-        this->mDetFgrad[PointNumber] = 1;
         this->mOldFgrad[PointNumber] = identity_matrix<double> (dimension);
 	this->mCurrentTotalCauchyStress[PointNumber] = ZeroVector(voigtsize);
 	this->mCurrentDeviatoricCauchyStress[PointNumber] = ZeroVector(voigtsize);
@@ -1883,7 +1888,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(Elementa
 
 
 template <  unsigned int TDim> 
-void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables, unsigned int g)
+void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
  {
     unsigned int voigtsize  = 3;
     if( TDim == 3 )

@@ -57,38 +57,6 @@ namespace Kratos
   template< unsigned int TDim >
     class TwoStepUpdatedLagrangianVPFluidElement : public TwoStepUpdatedLagrangianVPElement<TDim>
     {
-    protected:
-      /* typedef struct */
-      /* { */
-      /* 	unsigned int voigtsize; */
-      /* 	// strain state */
-      /* 	double DetFgrad; */
-      /* 	double DetFgradVel; */
-      /* 	double DeviatoricInvariant; */
-      /* 	double VolumetricDefRate; */
-      /* 	VectorType SpatialDefRate; */
-      /* 	VectorType MDGreenLagrangeMaterial; */
-      /* 	MatrixType Fgrad; */
-      /* 	MatrixType InvFgrad; */
-      /* 	MatrixType FgradVel; */
-      /* 	MatrixType InvFgradVel; */
-      /* 	MatrixType SpatialVelocityGrad; */
-      /* 	// Stress state */
-      /* 	double MeanPressure; */
-      /* 	VectorType CurrentTotalCauchyStress; */
-      /* 	VectorType UpdatedTotalCauchyStress; */
-      /* 	VectorType CurrentDeviatoricCauchyStress; */
-      /* 	VectorType UpdatedDeviatoricCauchyStress; */
-            
-      /* } ElementalVariables; */
-      
-
-      /* std::vector< Matrix > mOldFgrad; */
-      /* std::vector< Vector > mCurrentTotalCauchyStress; */
-      /* std::vector< Vector > mCurrentDeviatoricCauchyStress; */
-      /* std::vector< Vector > mUpdatedTotalCauchyStress; */
-      /* std::vector< Vector > mUpdatedDeviatoricCauchyStress; */
-      /* Vector mDetFgrad; */
 
     public:
       ///@name Type Definitions
@@ -185,6 +153,13 @@ namespace Kratos
       BaseType(NewId, pGeometry, pProperties)
 	{}
 
+
+     /// copy constructor
+
+    TwoStepUpdatedLagrangianVPFluidElement(TwoStepUpdatedLagrangianVPFluidElement const& rOther):
+      BaseType(rOther)
+      {}
+
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPFluidElement()
 	{}
@@ -268,8 +243,7 @@ namespace Kratos
 
       virtual void UpdateCauchyStress(unsigned int g);
 
-      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables, unsigned int g);
-
+      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
       /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
       ///@}
@@ -726,8 +700,8 @@ namespace Kratos
       /// Assignment operator.
       TwoStepUpdatedLagrangianVPFluidElement & operator=(TwoStepUpdatedLagrangianVPFluidElement const& rOther);
 
-      /// Copy constructor.
-      TwoStepUpdatedLagrangianVPFluidElement(TwoStepUpdatedLagrangianVPFluidElement const& rOther);
+      /* /// Copy constructor. */
+      /* TwoStepUpdatedLagrangianVPFluidElement(TwoStepUpdatedLagrangianVPFluidElement const& rOther); */
 
       ///@}
 

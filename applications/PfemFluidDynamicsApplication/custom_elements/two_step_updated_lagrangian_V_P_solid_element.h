@@ -58,39 +58,7 @@ namespace Kratos
   template< unsigned int TDim > 
   class TwoStepUpdatedLagrangianVPSolidElement : public TwoStepUpdatedLagrangianVPElement<TDim>
     {
-    protected:
-      /* typedef struct */
-      /* { */
-      /* 	unsigned int voigtsize; */
-      /* 	// strain state */
-      /* 	double DetFgrad; */
-      /* 	double DetFgradVel; */
-      /* 	double DeviatoricInvariant; */
-      /* 	double VolumetricDefRate; */
-      /* 	VectorType SpatialDefRate; */
-      /* 	VectorType MDGreenLagrangeMaterial; */
-      /* 	MatrixType Fgrad; */
-      /* 	MatrixType InvFgrad; */
-      /* 	MatrixType FgradVel; */
-      /* 	MatrixType InvFgradVel; */
-      /* 	MatrixType SpatialVelocityGrad; */
-      /* 	// Stress state */
-      /* 	double MeanPressure; */
-      /* 	VectorType CurrentTotalCauchyStress; */
-      /* 	VectorType UpdatedTotalCauchyStress; */
-      /* 	VectorType CurrentDeviatoricCauchyStress; */
-      /* 	VectorType UpdatedDeviatoricCauchyStress; */
-            
-      /* } ElementalVariables; */
-      
-
-      /* std::vector< Matrix > mOldFgrad; */
-      /* std::vector< Vector > mCurrentTotalCauchyStress; */
-      /* std::vector< Vector > mCurrentDeviatoricCauchyStress; */
-      /* std::vector< Vector > mUpdatedTotalCauchyStress; */
-      /* std::vector< Vector > mUpdatedDeviatoricCauchyStress; */
-      /* Vector mDetFgrad; */
-
+  
     public:
       ///@name Type Definitions
       ///@{
@@ -185,6 +153,13 @@ namespace Kratos
     TwoStepUpdatedLagrangianVPSolidElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
 	{}
 
+
+   /// copy constructor
+
+    TwoStepUpdatedLagrangianVPSolidElement(TwoStepUpdatedLagrangianVPSolidElement const& rOther):
+      BaseType(rOther)
+      {}
+
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPSolidElement()
 	{}
@@ -269,7 +244,7 @@ namespace Kratos
 
       virtual void UpdateCauchyStress(unsigned int g);
 
-      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables, unsigned int g);
+      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
 
       /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
@@ -726,8 +701,8 @@ namespace Kratos
       /// Assignment operator.
       TwoStepUpdatedLagrangianVPSolidElement & operator=(TwoStepUpdatedLagrangianVPSolidElement const& rOther);
 
-      /// Copy constructor.
-      TwoStepUpdatedLagrangianVPSolidElement(TwoStepUpdatedLagrangianVPSolidElement const& rOther);
+      /* /// Copy constructor. */
+      /* TwoStepUpdatedLagrangianVPSolidElement(TwoStepUpdatedLagrangianVPSolidElement const& rOther); */
 
       ///@}
 

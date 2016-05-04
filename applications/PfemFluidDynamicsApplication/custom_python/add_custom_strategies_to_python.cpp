@@ -23,10 +23,9 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-//#include "custom_strategies/fluid_residual_based_newton_raphson_line_search_implex_strategy.hpp"
 
 #include "custom_strategies/two_step_v_p_strategy.h"
-#include "custom_strategies/temporary_predictorcorrector_velocity_bdf_scheme_turbulent.h"
+// #include "custom_strategies/temporary_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 
 // builder_and_solvers
 #include "custom_strategies/custom_builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
