@@ -102,15 +102,30 @@ Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, General
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    //PRESSURE CONDITION:
-    rVectorForce = ZeroVector(3);
+    rVectorForce.resize(dimension,false);
+    rVectorForce = ZeroVector(dimension);
    
     //FORCE CONDITION:
+    //defined on condition
+    if( this->Has( POINT_LOAD ) ){
+      array_1d<double, 3 > & PointLoad = this->GetValue( POINT_LOAD );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
+	}
+    }
+    
+    //defined on condition nodes      
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ) //temporary, will be checked once at the beginning only
-	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ){
+	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
+	  for( unsigned int k = 0; k < dimension; k++ )
+	    rVectorForce[k] += rVariables.N[i] * PointLoad[k];
+	}
       }
 
     return rVectorForce;

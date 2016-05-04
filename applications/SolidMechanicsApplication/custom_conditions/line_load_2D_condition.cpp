@@ -129,52 +129,6 @@ void LineLoad2DCondition::CalculateKinematics(GeneralVariables& rVariables,
     KRATOS_CATCH( "" )
 }
 
-
-//***********************************************************************************
-//***********************************************************************************
-
-Vector& LineLoad2DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
-    rVectorForce.resize(dimension,false);
-    rVectorForce = ZeroVector(dimension);
-    
-    //PRESSURE CONDITION:
-    rVectorForce = rVariables.Normal;
-    rVariables.Pressure = 0.0;
-
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    {
-      if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) && GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) //temporary, will be checked once at the beginning only
-	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
-      else if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) ) 
-	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) );
-      else if( GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) 
-	rVariables.Pressure -= rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
-      
-    }
-    
-    rVectorForce *= rVariables.Pressure;
-   
-    //FORCE CONDITION:
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-      {
-	if( GetGeometry()[i].SolutionStepsDataHas( LINE_LOAD ) ) //temporary, will be checked once at the beginning only
-	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( LINE_LOAD );
-      }
-
-    //KRATOS_WATCH( rVectorForce )
-
-    return rVectorForce;
-
-    KRATOS_CATCH( "" )
-}
-
-
 //************* COMPUTING  METHODS
 //************************************************************************************
 //************************************************************************************
