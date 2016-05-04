@@ -34,6 +34,7 @@ namespace Kratos
 
         void SinteringSphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
             KRATOS_TRY            
+			ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
             const double temperature = GetTemperature();
             const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
 
@@ -117,6 +118,8 @@ namespace Kratos
             mIniNeighbourIds.resize(mInitialNeighborsSize);
             mIniNeighbourDelta.resize(mInitialNeighborsSize);
             mIniNeighbourFailureId.resize(mContinuumInitialNeighborsSize);
+			mActualNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
+			mOldNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
             
             //Continuum initial
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
@@ -142,7 +145,9 @@ namespace Kratos
             
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
                 mNeighbourElements[i] = discont_neighbour_elems[i];                
-            }                            
+            }
+
+			CreateContinuumConstitutiveLaws();
             KRATOS_CATCH("")
 	};
         
@@ -208,8 +213,10 @@ namespace Kratos
 	CreateContinuumConstitutiveLaws(); //// Reorder????
 	}//SetInitialSinteringSphereContacts    
 
-	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)	{				
-                if (this->Is(DEMFlags::IS_SINTERING)) {
+	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)
+	{
+                if (this->Is(DEMFlags::IS_SINTERING))
+                {
                         UpdateContinuumNeighboursVector(r_process_info);
                         mOldNeighbourSinteringDisplacement = mActualNeighbourSinteringDisplacement;
                         mActualNeighbourSinteringDisplacement.clear();

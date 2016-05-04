@@ -105,7 +105,6 @@ namespace Kratos {
 			double temperature_element2 = element2->GetGeometry()[0].GetSolutionStepValue(TEMPERATURE);
 			double temperature = (temperature_element1 + temperature_element2) / 2;
 			double D_gb = pre_Dgb * std::exp(-enth_activ / (R_const * temperature));
-			//KRATOS_WATCH(D_gb);
 			double D_eff = (D_gb * gb_width * atomic_volume) / (k_const * temperature);
 			//KRATOS_WATCH(D_eff);
 			double visco_coeff = (KRATOS_M_PI * actual_neck_radius*actual_neck_radius*actual_neck_radius*actual_neck_radius) / (8 * D_eff);
@@ -260,14 +259,13 @@ namespace Kratos {
 		//KRATOS_WATCH(p_sintering_element1->mSinteringDisplacement);
 		//KRATOS_WATCH(indentation);
         
-        if (element1->Is(DEMFlags::IS_SINTERING)) {
+        if (element1->Is(DEMFlags::IS_SINTERING) && element2->Is(DEMFlags::IS_SINTERING)) {
             CalculateForcesOfSintering(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalRelVel[2], indentation, 
 					p_sintering_element1->mSinteringDisplacement, p_sintering_element1->mSinteringDrivingForce, 
                                         element1, element2, ViscoDampingLocalContactForce);
             p_sintering_element1->mActualNeighbourSinteringDisplacement.push_back(p_sintering_element1->mSinteringDisplacement);  // adding the sintering displacements to vector (only for sintering period (continuum CL)
         }
         else {
-            
             CalculateNormalForcesAfterSintering(LocalElasticContactForce,
                                                 p_sintering_element1->mSinteringDisplacement,
                                                 indentation,
