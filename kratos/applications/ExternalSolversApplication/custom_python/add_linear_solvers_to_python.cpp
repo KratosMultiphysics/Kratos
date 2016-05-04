@@ -128,7 +128,7 @@ void  AddLinearSolversToPython()
     class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
     .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int, bool>())
-    .def(init<Parameters&>())
+    .def(init<Parameters>())
     ;
     
    typedef AMGCL_NS_Solver<SpaceType,  LocalSpaceType> AMGCL_NS_SolverType;
