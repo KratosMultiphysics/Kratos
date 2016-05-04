@@ -246,7 +246,7 @@ def Hinsberg(m, t_win, times, f):
         
         # Calculating window integral  ------------------------------
         
-        F_win = Daitche(1, recent_times, f)
+        F_win = Bombardelli(recent_times, f, 2)#(1, recent_times, f)
         
         # Calculating Tail Integral ------------------------------
         
@@ -337,10 +337,10 @@ def Bombardelli(times, f, order = 1):
         a = times[0]
         N = len(times) - 1
         h = (t - a) / N
-        #initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
-        initial_approx_deriv = cos(a)
+        initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
+        #initial_approx_deriv = cos(a)
         constant_initial_correction = 2 * sqrt(t - a) * f(a)#t ** (- q) / gamma(1 - q) * f(a)
-        linear_initial_correction = 2. / 3 * sqrt(t - a) * (a + 2 * t) * initial_approx_deriv 
+        linear_initial_correction =   2 / 3. * sqrt(t - a) * (a + 2 * t) * initial_approx_deriv 
         #linear_initial_correction = t ** (1 - q) / gamma(2 - q) * initial_approx_deriv
         linear_correction_option = 0
 
@@ -350,8 +350,8 @@ def Bombardelli(times, f, order = 1):
             initial_value_correction = constant_initial_correction
         else:
             coeff = h ** (- q) * gamma(- q)
-            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h - a) * initial_approx_deriv) for k in range(N)]
-            initial_value_correction =  gamma(- q) * (constant_initial_correction + linear_correction_option * linear_initial_correction)
+            values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]
+            initial_value_correction = constant_initial_correction + linear_correction_option * linear_initial_correction
             
         return coeff * sum(values) + initial_value_correction
 
