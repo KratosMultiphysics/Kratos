@@ -1075,6 +1075,7 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
 
     array_1d<double, 3> inner_point = node_coor_array + normal_to_wall;
 
+    //TODO: generalize for any wall (3 or 4 nodes)
     array_1d<double, 3> relative_vector_0 = inner_point - wall->GetGeometry()[0].Coordinates();
     array_1d<double, 3> relative_vector_1 = inner_point - wall->GetGeometry()[1].Coordinates();
     array_1d<double, 3> relative_vector_2 = inner_point - wall->GetGeometry()[2].Coordinates();
