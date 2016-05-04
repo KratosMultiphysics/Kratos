@@ -65,6 +65,7 @@ namespace Kratos
 	virtual ~SinteringSphericContinuumParticle() {};
 
 	void Initialize(const ProcessInfo& r_process_info)  override;
+        void InitializeSolutionStep(ProcessInfo& r_process_info) override;
 
 	void UpdateContinuumNeighboursVector(ProcessInfo& r_process_info);
 

@@ -1,10 +1,5 @@
-
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Ferran Arrufat $
-//   Date:                $Date: 2016-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
-//
-//
+//Authors: S. Nosewicz (IPPT PAN, Warsaw, Poland) and M.A. Celigueta (CIMNE)
+// Date: April 2015
 
 
 // System includes
@@ -35,6 +30,20 @@ namespace Kratos
 		mSinteringDisplacement = 0;
 		mSinteringDrivingForce = 0;
 	}
+        
+        
+
+        void SinteringSphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
+            KRATOS_TRY
+            
+            const double temperature = GetTemperature();
+            const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
+
+            if (temperature > sintering_start_temp) { this->Set(DEMFlags::IS_SINTERING, true); }
+            else { this->Set(DEMFlags::IS_SINTERING, false); }
+            
+            KRATOS_CATCH("")
+        }
 
 	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info)
 	{
@@ -53,6 +62,7 @@ namespace Kratos
                         
             //Assuming that the neighbours are ordered (first initial continuum, then initial discontinuum, then other discontinuum)
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
+                if(mNeighbourElements[i] == NULL) continue;
                 cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                 cont_ini_ids.push_back(mIniNeighbourIds[i]);
                 cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
@@ -61,6 +71,7 @@ namespace Kratos
 
             //// Discontinuum and initial
             for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
+                if(mNeighbourElements[i] == NULL) continue;
                 array_1d<double, 3> other_to_me_vect;
                 noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - mNeighbourElements[i]->GetGeometry()[0].Coordinates();
                 double distance = DEM_MODULUS_3(other_to_me_vect);
@@ -69,7 +80,7 @@ namespace Kratos
                 double initial_dist = radius_sum - initial_delta;
                 double indentation = initial_dist - distance;
                 
-                if(indentation>0.0){
+                if(indentation>0.0 && mNeighbourElements[i]->Is(DEMFlags::IS_SINTERING)){
                     cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                     cont_ini_ids.push_back(mIniNeighbourIds[i]);
                     cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
@@ -203,36 +214,15 @@ namespace Kratos
 	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)
 	{
 		double temperature = GetTemperature();
-		double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
+		double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];		
 		
-
-		if (temperature > sintering_start_temp)
-		{
-			if (this->Is(DEMFlags::IS_SINTERING))
-			{
-				UpdateContinuumNeighboursVector(r_process_info);
-				mOldNeighbourSinteringDisplacement = mActualNeighbourSinteringDisplacement;
-				mActualNeighbourSinteringDisplacement.clear();
-			}
-			else // first step of sintering procedure (T = TsintStart) during heating
-			{
-				SetInitialSinteringSphereContacts(r_process_info);
-				this->Set(DEMFlags::IS_SINTERING, true);
-			} 
-		}
-		else
-		{
-			if (this->Is(DEMFlags::IS_SINTERING)) // last step of sintering procedure (T = TsintStart) during cooling - transition from sintering model to KDEM
-			{
-				// Maybe we can put here SetInitialSphereContacts method to establish "the neighbours data vectors" in the typical way
-				this->Set(DEMFlags::IS_SINTERING, false);
-				//SetInitialSphereContacts;
-			}
-			else
-			{
-				return;// Discontiuum CL (before sintering) or Continuum CL (after sintering)
-			}
-		}
+                if (this->Is(DEMFlags::IS_SINTERING))
+                {
+                        UpdateContinuumNeighboursVector(r_process_info);
+                        mOldNeighbourSinteringDisplacement = mActualNeighbourSinteringDisplacement;
+                        mActualNeighbourSinteringDisplacement.clear();
+                }
+                
 	}
         
         void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces){
