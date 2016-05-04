@@ -31,16 +31,6 @@
 #include "custom_elements/custom_clusters/pillcluster3D.h"
 #include "custom_elements/custom_clusters/ellipsoidcluster3D.h"
 #include "custom_elements/custom_clusters/cuboidcluster3D.h"
-#include "custom_elements/custom_clusters/cornkernelcluster3D.h"
-#include "custom_elements/custom_clusters/corn3cluster3D.h"
-#include "custom_elements/custom_clusters/rock1cluster3D.h"
-#include "custom_elements/custom_clusters/rock2cluster3D.h"
-#include "custom_elements/custom_clusters/ballast1cluster3D.h"
-#include "custom_elements/custom_clusters/ballast2cluster3D.h"
-#include "custom_elements/custom_clusters/ballast3cluster3D.h"
-#include "custom_elements/custom_clusters/ballast4cluster3D.h"
-#include "custom_elements/custom_clusters/ballast5cluster3D.h"
-#include "custom_elements/custom_clusters/ballast6cluster3D.h"
 #include "custom_elements/custom_clusters/capsulecluster3D.h"
 #include "custom_elements/custom_clusters/singlespherecluster3D.h"
 #include "custom_elements/custom_clusters/beadcluster3D.h"
@@ -122,16 +112,6 @@ private:
     const PillCluster3D  mPillCluster3D;
     const EllipsoidCluster3D  mEllipsoidCluster3D;
     const CuboidCluster3D  mCuboidCluster3D;
-    const CornKernelCluster3D  mCornKernelCluster3D;
-    const Corn3Cluster3D  mCorn3Cluster3D;
-    const Rock1Cluster3D  mRock1Cluster3D;
-    const Rock2Cluster3D  mRock2Cluster3D;
-    const Ballast1Cluster3D  mBallast1Cluster3D;
-    const Ballast2Cluster3D  mBallast2Cluster3D;
-    const Ballast3Cluster3D  mBallast3Cluster3D;
-    const Ballast4Cluster3D  mBallast4Cluster3D;
-    const Ballast5Cluster3D  mBallast5Cluster3D;
-    const Ballast6Cluster3D  mBallast6Cluster3D;
     const CapsuleCluster3D  mCapsuleCluster3D;
     const SingleSphereCluster3D  mSingleSphereCluster3D;
     const BeadCluster3D  mBeadCluster3D;

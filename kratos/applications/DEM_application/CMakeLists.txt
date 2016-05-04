@@ -29,23 +29,13 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cubecluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/pillcluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cuboidcluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cornkernelcluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/corn3cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/rock1cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/rock2cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast1cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast2cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast3cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast4cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast5cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ballast6cluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/capsulecluster3D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/beadcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/capsulecluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cubecluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cuboidcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/pillcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp        
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp        
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/newmark_beta_scheme.cpp        

@@ -316,16 +316,6 @@ namespace Kratos
     mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCuboidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mCornKernelCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mCorn3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mRock1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mRock2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))), 
-    mBallast1Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mBallast2Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mBallast3Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mBallast4Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mBallast5Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mBallast6Cluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),        
     mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBeadCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -638,16 +628,6 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("PillCluster3D", mPillCluster3D)
         KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)
         KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
-        KRATOS_REGISTER_ELEMENT("CornKernelCluster3D", mCornKernelCluster3D)
-        KRATOS_REGISTER_ELEMENT("Corn3Cluster3D", mCorn3Cluster3D)     
-        KRATOS_REGISTER_ELEMENT("Rock1Cluster3D", mRock1Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Rock2Cluster3D", mRock2Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Ballast1Cluster3D", mBallast1Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Ballast2Cluster3D", mBallast2Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Ballast3Cluster3D", mBallast3Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Ballast4Cluster3D", mBallast4Cluster3D)      
-        KRATOS_REGISTER_ELEMENT("Ballast5Cluster3D", mBallast5Cluster3D)
-        KRATOS_REGISTER_ELEMENT("Ballast6Cluster3D", mBallast6Cluster3D)
         KRATOS_REGISTER_ELEMENT("CapsuleCluster3D", mCapsuleCluster3D)
         KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
         KRATOS_REGISTER_ELEMENT("BeadCluster3D", mBeadCluster3D)
