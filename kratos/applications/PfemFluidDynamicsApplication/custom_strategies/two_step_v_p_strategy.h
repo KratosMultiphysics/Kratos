@@ -680,6 +680,7 @@ protected:
 	  //            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
 	  //                 iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
 	  //                (*iExtraSteps)->Execute();
+	  std::cout<<"-------------- s o l v e d ! ------------------"<<std::endl;
 
 	  // Check convergence
 	  Converged = this->CheckFractionalStepConvergence(NormDv);

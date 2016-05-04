@@ -56,13 +56,20 @@ namespace Kratos
    */
 
   template< unsigned int TDim >
-  class TwoStepUpdatedLagrangianVPElement : public Element
+    class TwoStepUpdatedLagrangianVPElement : public Element
     {
   
-
     protected:
 
-        typedef struct
+
+      ///@name Protected static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected member Variables
+      ///@{
+      typedef struct
       {
       	unsigned int voigtsize;
       	// strain state
@@ -86,13 +93,6 @@ namespace Kratos
             
       } ElementalVariables;
   
-
-      std::vector< Matrix > mOldFgrad;
-      std::vector< Vector > mCurrentTotalCauchyStress;
-      std::vector< Vector > mCurrentDeviatoricCauchyStress;
-      std::vector< Vector > mUpdatedTotalCauchyStress;
-      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
-      Vector mDetFgrad;
 
     public:
       ///@name Type Definitions
@@ -183,6 +183,14 @@ namespace Kratos
       Element(NewId, pGeometry, pProperties)
         {}
 
+
+
+      /// copy constructor
+
+    TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther):
+      Element(rOther)
+      {}
+      
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPElement()
         {}
@@ -269,7 +277,11 @@ namespace Kratos
     
       virtual void UpdateCauchyStress(unsigned int g){};
 
-      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables, unsigned int g){};
+      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables){
+	KRATOS_TRY;
+	KRATOS_THROW_ERROR(std::logic_error,"InitializeElementalVariables","");
+	KRATOS_CATCH("");
+      };
 
       void CalculateDeltaPosition (Matrix & rDeltaPosition);
 
@@ -324,8 +336,9 @@ namespace Kratos
 
 
       ///@}
-
     protected:
+
+
       ///@name Protected static Member Variables
       ///@{
 
@@ -334,6 +347,11 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
+      std::vector< Matrix > mOldFgrad;
+      std::vector< Vector > mCurrentTotalCauchyStress;
+      std::vector< Vector > mCurrentDeviatoricCauchyStress;
+      std::vector< Vector > mUpdatedTotalCauchyStress;
+      std::vector< Vector > mUpdatedDeviatoricCauchyStress;
 
       ///@}
       ///@name Protected Operators
@@ -345,12 +363,12 @@ namespace Kratos
       ///@{
 
       void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
-						   VectorType& rRightHandSideVector,
-						   ProcessInfo& rCurrentProcessInfo);
+					   VectorType& rRightHandSideVector,
+					   ProcessInfo& rCurrentProcessInfo);
 
       void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo);
+						 VectorType& rRightHandSideVector,
+						 ProcessInfo& rCurrentProcessInfo);
 
       virtual void ComputeMaterialParameters (double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
@@ -418,32 +436,32 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
       void ComputeMomentumMassTerm(Matrix& rMassMatrix,
-					   const ShapeFunctionsType& rN,
-					   const double Weight);
+				   const ShapeFunctionsType& rN,
+				   const double Weight);
 
       void ComputeLumpedMassMatrix(Matrix& rMassMatrix,
-					   const double Weight);
+				   const double Weight);
 
     
       void AddExternalForces( Vector& rRHSVector,
-				      const double Density,
-				      const array_1d<double,3>& rBodyForce,
-				      const ShapeFunctionsType& rN,
-				      const double Weight);
+			      const double Density,
+			      const array_1d<double,3>& rBodyForce,
+			      const ShapeFunctionsType& rN,
+			      const double Weight);
       
       void AddInternalForces( Vector& rRHSVector,
-				      const ShapeFunctionDerivativesType& rDN_DX,
-				      ElementalVariables& rElementalVariables,
-				      const double Weight);
+			      const ShapeFunctionDerivativesType& rDN_DX,
+			      ElementalVariables& rElementalVariables,
+			      const double Weight);
 
       void AddDynamicForces(Vector& rRHSVector,
-				     const double Weight,
-				     const double TimeStep);
+			    const double Weight,
+			    const double TimeStep);
 
       void AddDeviatoricInternalForces( Vector& rRHSVector,
-						const ShapeFunctionDerivativesType& rDN_DX,
-						ElementalVariables& rElementalVariables,
-						const double Weight);
+					const ShapeFunctionDerivativesType& rDN_DX,
+					ElementalVariables& rElementalVariables,
+					const double Weight);
 
       virtual void AddCompleteTangentTerm(ElementalVariables& rElementalVariables,
 					  MatrixType& rDampingMatrix,
@@ -469,52 +487,52 @@ namespace Kratos
 					unsigned int g){};
 
       void CalcStrainRateUpdated(ElementalVariables & rElementalVariables,
-					 const ProcessInfo& rCurrentProcessInfo,
-					 unsigned int g);
+				 const ProcessInfo& rCurrentProcessInfo,
+				 unsigned int g);
 
       void CalcVelDefGrad(const ShapeFunctionDerivativesType& rDN_DX,
-				  MatrixType &FgradVel,
-				  MatrixType &invFgradVel,
-				  double &FVelJacobian);
+			  MatrixType &FgradVel,
+			  MatrixType &invFgradVel,
+			  double &FVelJacobian);
 
       void CalcFGrad(const ShapeFunctionDerivativesType& rDN_DX,
-			     MatrixType &Fgrad,
-			     MatrixType &invFgrad,
-			     double &FJacobian,
-			     const ProcessInfo& rCurrentProcessInfo);
+		     MatrixType &Fgrad,
+		     MatrixType &invFgrad,
+		     double &FJacobian,
+		     const ProcessInfo& rCurrentProcessInfo);
 
       void CalcVolumetricDefRate(const ShapeFunctionDerivativesType& rDN_DX,
-					 double &volumetricDefRate,
-					 MatrixType &invGradDef);
+				 double &volumetricDefRate,
+				 MatrixType &invGradDef);
 
       void CalcVolDefRateFromSpatialVelGrad(double &volumetricDefRate,
-						    MatrixType &SpatialVelocityGrad);
+					    MatrixType &SpatialVelocityGrad);
 
 
-     void CalcSpatialVelocityGrad(MatrixType &invFgrad,
-					   MatrixType &VelDefgrad,
-					   MatrixType &SpatialVelocityGrad);
+      void CalcSpatialVelocityGrad(MatrixType &invFgrad,
+				   MatrixType &VelDefgrad,
+				   MatrixType &SpatialVelocityGrad);
 
       void CalcMDGreenLagrangeMaterial(MatrixType &Fgrad,
-					       MatrixType &VelDefgrad, 
-					       VectorType &MDGreenLagrangeMaterial);
+				       MatrixType &VelDefgrad, 
+				       VectorType &MDGreenLagrangeMaterial);
 
       void CalcSpatialDefRate(VectorType &MDGreenLagrangeMaterial,
-				      MatrixType &invFgrad,
-				      VectorType &SpatialDefRate);
+			      MatrixType &invFgrad,
+			      VectorType &SpatialDefRate);
 
       void CalcDeviatoricInvariant(VectorType &SpatialDefRate,
-					   double &DeviatoricInvariant);
+				   double &DeviatoricInvariant);
 
       void CheckStrain1(double &VolumetricDefRate,
-				MatrixType &SpatialVelocityGrad);
+			MatrixType &SpatialVelocityGrad);
 
       void CheckStrain2(MatrixType &SpatialVelocityGrad,
-				 MatrixType &Fgrad,
-				 MatrixType &VelDefgrad);
+			MatrixType &Fgrad,
+			MatrixType &VelDefgrad);
 	
       void CheckStrain3(VectorType &SpatialDefRate,
-				MatrixType &SpatialVelocityGrad);
+			MatrixType &SpatialVelocityGrad);
 	
       virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
@@ -546,7 +564,7 @@ namespace Kratos
 						 const ShapeFunctionDerivativesType& rDN_DX,
 						 const SizeType i){};
 
-	/// Write the value of a variable at a point inside the element to a double
+      /// Write the value of a variable at a point inside the element to a double
       /**
        * Evaluate a nodal variable in the point where the form functions take the
        * values given by rShapeFunc and write the result to rResult.
@@ -728,8 +746,8 @@ namespace Kratos
       /// Assignment operator.
       TwoStepUpdatedLagrangianVPElement & operator=(TwoStepUpdatedLagrangianVPElement const& rOther);
 
-      /// Copy constructor.
-      TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther);
+      /* /// Copy constructor. */
+      /* TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther); */
 
       ///@}
 
