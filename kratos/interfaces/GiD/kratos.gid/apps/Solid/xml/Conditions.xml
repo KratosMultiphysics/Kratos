@@ -12,9 +12,10 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs >
+      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>
     </inputs>
     <outputs>
-      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="element.h"
@@ -29,9 +30,10 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>      
     </inputs>
     <outputs>
-      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="apply_point_load_process.py"
@@ -47,9 +49,10 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="POINT_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F" />
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="PointLoad2DAxisym" pn="Load on points axisymmetric" ImplementedInFile="point_load_3D_condition.cpp"
@@ -59,15 +62,16 @@
 	units="N" unit_magnitude="F">
 
     <TopologyFeatures>
-      <item  GeometryType="Point" nodes="1" KratosName="AxisymmPointLoadCondition2D1N"/>
+      <item  GeometryType="Point" nodes="1" KratosName="AxisymPointLoadCondition2D1N"/>
     </TopologyFeatures>
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="POINT_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" units="N" unit_magnitude="F" />
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
@@ -83,12 +87,32 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="POINT_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" />
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
-  
+    <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="line_load_2D_condition.cpp"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Linear" ProcessName="ApplyConstantVectorValueProcess" help="Load on lines, load vector referred to global axes"
+	units="Pa" unit_magnitude="P">
+
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
+      <item  GeometryType="Line" nodes="3" KratosName="LineLoadCondition2D3N"/>
+    </TopologyFeatures>
+	<DegreesOfFreedom>
+	  <dof n="DISPLACEMENT" />
+	</DegreesOfFreedom>
+    <inputs>
+      <parameter n="LINE_LOAD" pn="Load" units="N" unit_magnitude="F" />
+    </inputs>
+    <outputs>
+      <parameter n="FORCE" pn="External Load" v="false"/>
+    </outputs>
+  </ConditionItem>
   <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
@@ -106,9 +130,10 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="SURFACE_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" />
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="line_load_2D_condition.cpp"
@@ -125,9 +150,10 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="POSITIVE_FACE_PRESSURE" pn="Pressure" units="Pa" unit_magnitude="P" help="Normal pressure, oriented pointing against the outer normal"/>      
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" />
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
   <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
@@ -147,27 +173,10 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
+      <parameter n="POSITIVE_FACE_PRESSURE" pn="Pressure" units="Pa" unit_magnitude="P" help="Normal pressure, oriented pointing against the outer normal"/>      
     </inputs>
     <outputs>
-      <parameter n="FORCE" pn="Force" />
-    </outputs>
-  </ConditionItem>
-  <ConditionItem n="PointTorque3D" pn="Torque about points" ImplementedInFile="point_torque_3D_condition.cpp"
-	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Moment on points, moment vector referred to global axes"
-	units="N*m" unit_magnitude="F*L">
-
-    <TopologyFeatures>
-      <item  GeometryType="Point" nodes="1" KratosName="PointTorqueCondition3D1N"/>
-    </TopologyFeatures>
-	<DegreesOfFreedom>
-	  <dof n="ROTATION" />
-	</DegreesOfFreedom>
-    <inputs>
-    </inputs>
-    <outputs>
-      <parameter n="TORQUE" pn="Moment" />
+      <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
   </ConditionItem>
 
