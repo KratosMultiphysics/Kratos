@@ -1205,14 +1205,21 @@ namespace Kratos
       //initial assignation
       for(int in = 0; in<out.numberofpoints; in++)
 	{
-	  array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
-	  if(norm_2(ContactForceNormal)==0 && rModelPart.Nodes(MeshId)[in+1].IsNot(BOUNDARY)){
+	  bool contact_active = false;
+
+	  if( rModelPart.Nodes(MeshId)[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
+	    array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
+	    if(norm_2(ContactForceNormal)==0 )
+	      contact_active = true;
+	  }
+	  
+	  if( contact_active && rModelPart.Nodes(MeshId)[in+1].IsNot(BOUNDARY)){
 	    nodes_ranks[in+1]=5;
 	  }	    
 	  // else if( norm_2(ContactForceNormal)==0 && rModelPart.Nodes(MeshId)[in+1].Is(BOUNDARY)){
 	  //   nodes_ranks[in+1]=1;
 	  // }
-	    
+	  
 	}
 	
 	
@@ -1492,8 +1499,14 @@ namespace Kratos
 
 	      double projection=inner_prod(DeltaDisplacement,Normal);
 
-	      array_1d<double, 3 > & ContactForce = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
-	      if(norm_2(ContactForce)!=0){
+	      bool contact_active = false;
+	      if( rModelPart.Nodes(MeshId)[in+1].SolutionStepsDataHas(CONTACT_FORCE) ){
+		array_1d<double, 3 > & ContactForce = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
+		if(norm_2(ContactForce)!=0)
+		  contact_active = true;
+	      }
+
+	      if(contact_active){
 		initial_nodes_distances[in+1] = (-1)*(movement_factor*contact_factor)*fabs(projection)*Normal;
 	      }
 	      else{

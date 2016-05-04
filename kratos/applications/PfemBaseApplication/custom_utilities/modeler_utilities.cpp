@@ -181,8 +181,8 @@ namespace Kratos
 		
 	    if(i_node->IsNot(BOUNDARY))
 	      {
-		noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
-		noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+		if( i_node->SolutionStepsDataHas(CONTACT_FORCE) )
+		  noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 	      }
 
 
@@ -1244,13 +1244,20 @@ namespace Kratos
      
     for(unsigned int i=0; i<rConditionGeometry.size(); i++){
             
-      array_1d<double, 3 > & ContactForceNormal  = rConditionGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE);
+      bool contact_active = false;
+      if( !rConditionGeometry[0].SolutionStepsDataHas(CONTACT_FORCE) ){
+	array_1d<double, 3 > & ContactForceNormal  = rConditionGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	
+	if(norm_2(ContactForceNormal)>0)
+	  contact_active = true;
+      }
       
-      if(norm_2(ContactForceNormal)>0){
+      if( contact_active ){
 	rSemiActiveContact  = true;
 	rSemiActiveNodes[i] = true;
 	counter++;
       }
+
     }
 
     if(counter == size)
