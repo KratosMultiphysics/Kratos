@@ -479,13 +479,13 @@ class MaterialTest(object):
     for filename in os.listdir("."):
       if filename.startswith(self.parameters.problem_name + "_graph.grf"):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + ".grf")
+          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time).replace(":", "") + ".grf")
       if filename.startswith(self.parameters.problem_name + "_bts.grf"):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.parameters.problem_name + "_bts_" + str(self.initial_time) + ".grf")
+          os.rename(filename+"COPY", self.parameters.problem_name + "_bts_" + str(self.initial_time).replace(":", "") + ".grf")
       if filename.startswith(self.parameters.problem_name + "_graph_VOL.grf"):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_VOL" + str(self.initial_time) + ".grf")
+          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_VOL" + str(self.initial_time).replace(":", "") + ".grf")
 
     if(self.parameters.TestType == "BTS"):
         self.bts_export.close()
