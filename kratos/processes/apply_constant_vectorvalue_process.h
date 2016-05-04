@@ -198,7 +198,7 @@ public:
     /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
     {
-        Execute();mdirection
+        Execute();
     }
 
 
