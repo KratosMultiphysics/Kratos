@@ -423,9 +423,15 @@ private:
        for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(mMeshId); in != mrModelPart.NodesEnd(mMeshId); in++)
 	 {
 	   bool on_contact_tip = false;
-	   array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+	   bool contact_active = false;
+	   
+	   if( in->SolutionStepsDataHas(CONTACT_FORCE) ){
+	     array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+	     if(norm_2(ContactForceNormal)>0)
+	       contact_active = true;
+	   }
 
-	   if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) )
+	   if(contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT) )
 	     on_contact_tip = true;				  
 
 	   if( in->IsNot(NEW_ENTITY) )
@@ -482,9 +488,15 @@ private:
 		       for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
 			 {
 			   bool nn_on_contact_tip = false;
-			   array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
-
-			   if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+			   bool contact_active = false;
+	   
+			   if( (*nn)->SolutionStepsDataHas(CONTACT_FORCE) ){
+			     array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
+			     if(norm_2(ContactForceNormal)>0)
+			       contact_active = true;
+			   }
+			   
+			   if(contact_active || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
 			     nn_on_contact_tip = true;				  
 
 			   //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;

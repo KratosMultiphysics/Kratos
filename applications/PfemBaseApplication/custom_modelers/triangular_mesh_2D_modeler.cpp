@@ -1679,9 +1679,12 @@ namespace Kratos
 
 		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(BOUNDARY)){
 		      count_boundary+=1;
-		      array_1d<double, 3 > & ContactForceNormal = (nodes_begin + out.trianglelist[el*3+pn]-1)->FastGetSolutionStepValue(CONTACT_FORCE);
-		      if( norm_2(ContactForceNormal) )
-			count_contact_boundary+=1;
+
+		      if( (nodes_begin + out.trianglelist[el*3+pn]-1)->SolutionStepsDataHas(CONTACT_FORCE) ){
+			array_1d<double, 3 > & ContactForceNormal = (nodes_begin + out.trianglelist[el*3+pn]-1)->FastGetSolutionStepValue(CONTACT_FORCE);
+			if( norm_2(ContactForceNormal) )
+			  count_contact_boundary+=1;
+		      }
 		    }
 		    
 		  }
@@ -2055,8 +2058,8 @@ namespace Kratos
 	(*it)->Z0() = 0.0;
 
 	//correct contact_normal interpolation
-	noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
-	noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+	if( (*it)->SolutionStepsDataHas(CONTACT_FORCE) )
+	  noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 		    
 	(*it)->SetValue(DOMAIN_LABEL,MeshId);
 
