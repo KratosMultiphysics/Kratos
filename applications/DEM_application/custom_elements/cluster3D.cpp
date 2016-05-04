@@ -271,9 +271,10 @@ namespace Kratos {
     void Cluster3D::CollectForcesAndTorquesFromSpheres() {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
-        array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);        
-        array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
-        center_forces[0] = center_forces[1]= center_forces[2]= center_torque[0]= center_torque[1]= center_torque[2]= 0.0;
+        array_1d<double, 3>& center_forces       = central_node.FastGetSolutionStepValue(TOTAL_FORCES);       
+        array_1d<double, 3>& center_torque       = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+        array_1d<double, 3>& center_rigid_forces = central_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
+        center_forces[0] = center_forces[1]= center_forces[2]= center_torque[0]= center_torque[1]= center_torque[2]= center_rigid_forces[0]= center_rigid_forces[1]= center_rigid_forces[2]= 0.0;
         
         array_1d<double, 3> center_to_sphere_vector;
         array_1d<double, 3> additional_torque;
@@ -283,10 +284,14 @@ namespace Kratos {
             if (mListOfSphericParticles[i]->mNeighbourElements.size()==0 && mListOfSphericParticles[i]->mNeighbourRigidFaces.size()==0) continue; //Assuming the sphere only adds contact forces to the cluster
             
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
-            array_1d<double, 3>& particle_forces = sphere_node.FastGetSolutionStepValue(TOTAL_FORCES);  
+            array_1d<double, 3>& particle_forces       = sphere_node.FastGetSolutionStepValue(TOTAL_FORCES);
+            array_1d<double, 3>& rigid_particle_forces = sphere_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
             center_forces[0] += particle_forces[0];
             center_forces[1] += particle_forces[1];
             center_forces[2] += particle_forces[2];
+            center_rigid_forces[0] += rigid_particle_forces[0];
+            center_rigid_forces[1] += rigid_particle_forces[1];
+            center_rigid_forces[2] += rigid_particle_forces[2];
             
             array_1d<double, 3>& particle_torque = sphere_node.FastGetSolutionStepValue(PARTICLE_MOMENT); 
             center_torque[0] += particle_torque[0];
@@ -316,6 +321,10 @@ namespace Kratos {
 
         const double mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
         noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += mass * gravity;                        
+        const array_1d<double, 3> external_applied_force  = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+        const array_1d<double, 3> external_applied_torque = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += external_applied_force;
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT)) += external_applied_torque;
     }   
     
     void Cluster3D::SetContinuumGroupToBreakableClusterSpheres(const int Id) {
