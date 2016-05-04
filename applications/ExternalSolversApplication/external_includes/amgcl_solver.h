@@ -77,7 +77,7 @@ public:
 
 //only include validation with c++11 since raw_literals do not exist in c++03
 
-    AMGCLSolver(Parameters& rParameters)
+    AMGCLSolver(Parameters rParameters)
     {
 #if __cplusplus >= 201103L
         Parameters default_parameters( R"(
