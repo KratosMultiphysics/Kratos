@@ -25,8 +25,8 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  pPropertiesType pProperties;
-  TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+  // pPropertiesType pProperties;
+  TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
 
     // //-----------//
@@ -61,7 +61,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
     // NewElement.mDeterminantF0 = mDeterminantF0;
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewId, this->GetGeometry().Create( rThisNodes ), pProperties) );
+  return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties()) );
 
     // return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewElement) );
 }

@@ -36,9 +36,9 @@
 //conditions
 
 /* //elements */
-/* #include "custom_elements/two_step_updated_lagrangian_V_P_element.h" */
-/* #include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"  */
-/* #include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h" */
+#include "custom_elements/two_step_updated_lagrangian_V_P_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -232,18 +232,18 @@ namespace Kratos
    /*  ///@name Member Variables  */
    /*  ///@{  */
    /*  //updated lagrangian */
-   /*  /// 2D two step element for fluid */
-   /*  const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2D; */
-   /*  /// 3D two step element for fluid */
-   /*  const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3D; */
+    /// 2D two step element for fluid
+    const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2D;
+    /// 3D two step element for fluid
+    const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3D;
    /*  /// 2D two step element for solid */
-   /*  const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2D; */
-   /*  /// 3D two step element for solid */
-   /*  const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3D; */
-   /* /// 2D two step element for solid */
-   /*  const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D; */
-   /*  /// 3D two step element for solid */
-   /*  const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D; */
+    const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2D;
+    /// 3D two step element for solid
+    const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3D;
+   /// 2D two step element for solid
+    const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D;
+    /// 3D two step element for solid
+    const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D;
 
 
      ///@} 

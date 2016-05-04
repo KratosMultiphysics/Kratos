@@ -23,6 +23,7 @@
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 
 
 namespace Kratos
