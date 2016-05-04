@@ -32,6 +32,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
         # Adding the SPRISM element
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
+        # Adding the nodal concentrated element
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
 
         ## CONDITIONS
         # Beam's moment conditions

@@ -35,6 +35,9 @@
 #include "custom_elements/shell_thin_element_3D3N.hpp"
 
 /* Adding the SPRISM element */
+#include "custom_elements/nodal_concentrated_element.hpp"
+
+/* Adding the nodal concentrated element */
 #include "custom_elements/SprismElement3D6N.hpp"
 
 /* CONDITIONS */
@@ -225,14 +228,22 @@ private:
     
     // Adding the SPRISM element 
     const SprismElement3D6N mSprismElement3D6N;
+    
+    // Adding the SPRISM element 
+    const NodalConcentratedElement mNodalConcentratedElement2D1N;
+    const NodalConcentratedElement mNodalConcentratedElement3D1N;
 
     /* CONDITIONS*/
     // Beam moment condition
     const PointMoment3DCondition   mPointMomentCondition3D1N;
     // Mortar conditions
     const MortarContact2DCondition mMortarContactCondition2D2N;
+    const MortarContact2DCondition mMortarContactCondition2D3N;
     const MortarContact3DCondition mMortarContactCondition3D3N;
+    const MortarContact3DCondition mMortarContactCondition3D6N;
     const MortarContact3DCondition mMortarContactCondition3D4N;
+    const MortarContact3DCondition mMortarContactCondition3D8N;
+    const MortarContact3DCondition mMortarContactCondition3D9N;
 
     ///@}
     ///@name Private Operators
