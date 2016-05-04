@@ -3,10 +3,11 @@
 //
 
 //#include "DEM_application.h"
-#include "dem_integration_scheme.h"
-#include "DEM_application_variables.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_elements/cluster3D.h"
+#include "dem_integration_scheme.h"
+#include "DEM_application_variables.h"
+
 
 namespace Kratos {
 
@@ -302,8 +303,8 @@ namespace Kratos {
                     DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
 
                     double thetaMag = DEM_MODULUS_3(theta);
-                    
-                    if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
+					const double epsilon = std::numeric_limits<double>::epsilon();
+					if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
                         double aux = (1 - thetaMag * thetaMag / 6);
                         delta_orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
                     }

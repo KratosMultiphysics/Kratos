@@ -1,11 +1,6 @@
 #ifndef POST_UTILITIES_H
 #define POST_UTILITIES_H
 
-#include <limits>
-#include <iostream>
-#include <iomanip>
-#include <cmath>
-
 #include "utilities/timer.h"
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -20,6 +15,11 @@
 
 //#include "boost/smart_ptr.hpp"
 #include "utilities/openmp_utils.h"
+
+#include <limits>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 namespace Kratos {
     
@@ -265,7 +265,8 @@ namespace Kratos {
                     DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
 
                     double thetaMag = DEM_MODULUS_3(theta);
-                    if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < __DBL_EPSILON__) { //Taylor: low angle
+					const double epsilon = std::numeric_limits<double>::epsilon();
+					if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
                         double aux = (1 - thetaMag * thetaMag / 6);
                         Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
                     }
