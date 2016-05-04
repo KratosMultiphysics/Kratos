@@ -146,7 +146,6 @@ namespace Kratos
             TBaseElement::FinalizeSolutionStep(r_process_info);
             UpdateTemperature(r_process_info);
 			temp_old = GetTemperature();
-			KRATOS_WATCH(temp_old);
     }
     
     template< class TBaseElement >
