@@ -36,7 +36,7 @@ def ReadClusterFile(filename):
         if line.startswith("Volume"):
             data = ReadNextLine(f)
             volume = float(data[0])
-        if line.startswith("Inertia per unit density"):
+        if line.startswith("Inertia per unit mass"):
             data = ReadNextLine(f)
             IX = float(data[0])
             data = ReadNextLine(f)
