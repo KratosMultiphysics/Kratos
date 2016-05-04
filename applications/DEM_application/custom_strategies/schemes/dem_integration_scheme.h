@@ -7,10 +7,7 @@
 #define KRATOS_DEM_INTEGRATION_SCHEME_H_INCLUDED
 
 
-// System includes
-#include <float.h>
-#include <string>
-#include <iostream> 
+
 
 // External includes 
 
@@ -19,6 +16,11 @@
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "utilities/quaternion.h"
+
+// System includes
+#include <float.h>
+#include <string>
+#include <iostream> 
 
 namespace Kratos {
 
