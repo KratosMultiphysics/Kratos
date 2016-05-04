@@ -121,9 +121,9 @@ namespace Kratos {
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
         
         const double squared_scaling_factor_times_density = scaling_factor * scaling_factor * particle_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * squared_scaling_factor_times_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * squared_scaling_factor_times_density;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * squared_scaling_factor_times_density;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0] * cluster_volume * squared_scaling_factor_times_density;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1] * cluster_volume * squared_scaling_factor_times_density;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2] * cluster_volume * squared_scaling_factor_times_density;
          
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
     }
