@@ -40,8 +40,8 @@ def GeneralModelPartBuild(directory_name,file_name):
   input_file_name = GetFilePath(directory_name + "/" + file_name)
 
   # Reading the fluid part
-  model_part_io_fluid = ModelPartIO(input_file_name)
-  model_part_io_fluid.ReadModelPart(model_part)
+  model_part_io = ModelPartIO(input_file_name)
+  model_part_io.ReadModelPart(model_part)
 
   # Setting up the buffer size
   model_part.SetBufferSize(3)

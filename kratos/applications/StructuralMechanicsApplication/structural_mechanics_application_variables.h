@@ -69,12 +69,13 @@ KRATOS_DEFINE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
 KRATOS_DEFINE_VARIABLE( int,          SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
 KRATOS_DEFINE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
+// Nodal stiffness for the nodal concentrated element
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_STIFFNESS )
+
 // CONDITIONS
 /* Beam conditions */
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
-// Contact conditions
-KRATOS_DEFINE_VARIABLE(bool, MASTER_SLAVE); // A condition to indicate if the node/element is slave or master
 /* Mortar method */
 KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_POINTER_MASTER )  // A pointer to the master surfaces
 KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_POINTER_SLAVE  )  // A pointer to the slave surfaces
