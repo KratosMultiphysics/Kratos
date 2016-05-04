@@ -121,7 +121,7 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
     def _GetSolutionScheme(self, analysis_type, component_wise, compute_contact_forces):
 
         if(analysis_type == "Linear"):
-            mechanical_scheme = SolidMechanicsApplication.ResidualBasedStaticScheme()
+            mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
             
         if(analysis_type == "Non-Linear" ):
             self.settings.AddEmptyValue("damp_factor_m")  
@@ -134,11 +134,11 @@ class StaticMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitMec
                                                                                         self.settings["dynamic_factor"].GetDouble())
             else:
                 if compute_contact_forces:
-                    mechanical_scheme = SolidMechanicsApplication.ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                                                                   self.settings["dynamic_factor"].GetDouble())
+                    raise Exception("TODO: change for one that works with contact change")
+                    #mechanical_scheme = SolidMechanicsApplication.ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
+                                                                                                   #self.settings["dynamic_factor"].GetDouble())
                 else:
-                    mechanical_scheme = SolidMechanicsApplication.ResidualBasedBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                                                            self.settings["dynamic_factor"].GetDouble())
+                    mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                                 
         return mechanical_scheme
         
