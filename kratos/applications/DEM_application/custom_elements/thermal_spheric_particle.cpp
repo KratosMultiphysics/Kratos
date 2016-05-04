@@ -49,6 +49,11 @@ namespace Kratos
     
     template< class TBaseElement >
     double& ThermalSphericParticle<TBaseElement>::GetTemperature(){return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);}
+	template< class TBaseElement >
+	void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area)
+	{
+		calculation_area = KRATOS_M_PI*rmin*rmin;
+	}
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info)
                                                        
@@ -64,23 +69,25 @@ namespace Kratos
 //            }
         
               
-        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-            
-            ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]); 
-            
-            const double &other_radius            = neighbour_iterator->GetRadius();
-            const double &other_temperature       = neighbour_iterator->GetTemperature();
-            
-            double rmin = GetRadius();
-            if(other_radius < GetRadius()) rmin = other_radius;
-            double calculation_area = KRATOS_M_PI*rmin*rmin;
+		for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
 
-            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-            
-            double distance = DEM_MODULUS_3(other_to_me_vect);
-            double inv_distance = 1.0 / distance;  
-            mConductiveHeatFlux += - mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
-        }       //for each neighbor
+			ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
+			const double &other_radius = neighbour_iterator->GetRadius();
+			const double &other_temperature = neighbour_iterator->GetTemperature();
+
+			double rmin = GetRadius();
+			if (other_radius < GetRadius()) rmin = other_radius;
+			double calculation_area = 0;
+			array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+
+			double distance = DEM_MODULUS_3(other_to_me_vect);
+			double inv_distance = 1.0 / distance;
+			double radius_sum = GetRadius() + other_radius;
+			double indentation = radius_sum - distance;
+
+			ComputeContactArea(rmin, indentation, calculation_area);
+			mConductiveHeatFlux += -mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
+		}       //for each neighbor
 //        if (GetGeometry()[0].Coordinates()[1] > 0.29){   //0.15
 //        mConductiveHeatFlux    = 1e-3;
 //            }
@@ -139,6 +146,7 @@ namespace Kratos
             TBaseElement::FinalizeSolutionStep(r_process_info);
             UpdateTemperature(r_process_info);
 			temp_old = GetTemperature();
+			KRATOS_WATCH(temp_old);
     }
     
     template< class TBaseElement >
@@ -200,7 +208,6 @@ namespace Kratos
 			UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbour_iterator);
             
             double LocalRelVel[3]          = {0.0};
-	    //double LocalDeltDisp[3] = { 0.0 };
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
 			
 			LocalRelVel[2] -= thermalRelVel;
