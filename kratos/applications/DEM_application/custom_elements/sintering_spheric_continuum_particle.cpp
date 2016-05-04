@@ -25,28 +25,25 @@
 namespace Kratos
 {
 	void SinteringSphericContinuumParticle::Initialize(const ProcessInfo& r_process_info) {
-	
-		ThermalSphericParticle<SphericContinuumParticle>::Initialize(r_process_info);
-		mSinteringDisplacement = 0;
-		mSinteringDrivingForce = 0;
-	}
-        
-        
+            KRATOS_TRY
+            ThermalSphericParticle<SphericContinuumParticle>::Initialize(r_process_info);
+            mSinteringDisplacement = 0;
+            mSinteringDrivingForce = 0;
+            KRATOS_CATCH("")
+	}                
 
         void SinteringSphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
-            KRATOS_TRY
-            
+            KRATOS_TRY            
             const double temperature = GetTemperature();
             const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
 
-            if (temperature > sintering_start_temp) { this->Set(DEMFlags::IS_SINTERING, true); }
-            else { this->Set(DEMFlags::IS_SINTERING, false); }
-            
+            if (temperature > sintering_start_temp) { this->Set(DEMFlags::IS_SINTERING, true);  }
+            else                                    { this->Set(DEMFlags::IS_SINTERING, false); }            
             KRATOS_CATCH("")
         }
 
-	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info)
-	{
+	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {
+            KRATOS_TRY
             if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
             
             const unsigned int initial_number_of_cont_neighbours = mContinuumInitialNeighborsSize;
@@ -146,7 +143,7 @@ namespace Kratos
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
                 mNeighbourElements[i] = discont_neighbour_elems[i];                
             }                            
-            
+            KRATOS_CATCH("")
 	};
         
                
@@ -211,48 +208,36 @@ namespace Kratos
 	CreateContinuumConstitutiveLaws(); //// Reorder????
 	}//SetInitialSinteringSphereContacts    
 
-	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)
-	{
-		double temperature = GetTemperature();
-		double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];		
-		
-                if (this->Is(DEMFlags::IS_SINTERING))
-                {
+	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)	{				
+                if (this->Is(DEMFlags::IS_SINTERING)) {
                         UpdateContinuumNeighboursVector(r_process_info);
                         mOldNeighbourSinteringDisplacement = mActualNeighbourSinteringDisplacement;
                         mActualNeighbourSinteringDisplacement.clear();
-                }
-                
+                }                
 	}
         
-        void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces){
+        void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {
             other_ball_to_ball_forces[2] = -this->mSinteringDrivingForce;
         }
-
 	
         double SinteringSphericContinuumParticle::GetInitialDelta(int index) {
             return 0.0;                 
         }
 
-		void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area)
-		{
-			double actual_neck_radius;
-			if (this->Is(DEMFlags::IS_SINTERING))
-			{
-				indentation = -indentation;
-				double geo_a = rmin;
-				double geo_c = rmin;
-				double geo_b = rmin + rmin + indentation; //// ZMIANY
-				double geo_aproj = (geo_a*geo_a + geo_b*geo_b - geo_c*geo_c) / (2 * geo_b);
-				actual_neck_radius = 1.43 * std::sqrt(geo_a*geo_a - geo_aproj*geo_aproj);
-			}
-			else
-			{
-				actual_neck_radius = std::sqrt(rmin*indentation);
-			}
+        void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
+                double actual_neck_radius;
+                if (this->Is(DEMFlags::IS_SINTERING)) {
+                        indentation = -indentation;
+                        double geo_a = rmin;
+                        double geo_c = rmin;
+                        double geo_b = rmin + rmin + indentation; //// ZMIANY
+                        double geo_aproj = (geo_a*geo_a + geo_b*geo_b - geo_c*geo_c) / (2 * geo_b);
+                        actual_neck_radius = 1.43 * std::sqrt(geo_a*geo_a - geo_aproj*geo_aproj);
+                }
+                else {
+                        actual_neck_radius = std::sqrt(rmin*indentation);
+                }
 
-			calculation_area = KRATOS_M_PI * actual_neck_radius * actual_neck_radius;
-		}
-
-	 
+                calculation_area = KRATOS_M_PI * actual_neck_radius * actual_neck_radius;
+        }	
 }  // namespace Kratos.
