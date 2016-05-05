@@ -705,13 +705,17 @@ class DEMFEMProcedures(object):
                             self.total_force_y += force_node_y
                             self.total_force_z += force_node_z
 
-    def PrintPoisson(self, model_part, DEM_parameters):
+    def PrintPoisson(self, model_part, DEM_parameters, filename, time):
         
         if (DEM_parameters.Dimension == 3):
-            PostUtilities().ComputePoisson(model_part)
+            poisson = PostUtilities().ComputePoisson(model_part)
         else:
-            PostUtilities().ComputePoisson2D(model_part)
-        
+            poisson = PostUtilities().ComputePoisson2D(model_part)
+            
+        file_open = open(filename, 'a')
+        data = str(time) + "  " + str(poisson) + "\n"
+        file_open.write(data)
+    
     
     def PrintGraph(self, time):
 
