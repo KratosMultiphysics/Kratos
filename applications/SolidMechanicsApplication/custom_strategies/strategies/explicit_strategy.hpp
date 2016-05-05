@@ -24,7 +24,7 @@
 #include "solid_mechanics_application_variables.h"
 
 //default builder and solver
-#include "custom_strategies/custom_builders_and_solvers/explicit_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/explicit_builder_and_solver.hpp"
 
 
 namespace Kratos

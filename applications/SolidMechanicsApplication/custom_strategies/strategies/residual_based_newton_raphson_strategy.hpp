@@ -25,7 +25,7 @@
 #include "includes/kratos_flags.h"
 
 //default builder and solver
-#include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
 
 namespace Kratos
 {
