@@ -5,14 +5,14 @@
 		help="This process ">
     <inputs>
       <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
-      <parameter n="value" pn="Value" type="vector" v="0.0,-9.81,0.0" />
+      <parameter n="value" pn="Direction" type="vector" v="0.0,-9.81,0.0" />
     </inputs>
   </Process>
   <Process n="ApplyConstantScalarValueProcess" pn="Constant calar value" implemented_in_file="process_factory"
         implemented_in_module="KratosMultiphysics"
 		help="This process ">
     <inputs>
-      <parameter n="value" pn="Value" type="double" unit_magnitude="0" units="0"/>
+      <parameter n="value" pn="Direction" type="double" unit_magnitude="0" units="0"/>
     </inputs>
   </Process>
   <Process n="ApplyDisplacementProcess" pn="Displacement process" implemented_in_file="apply_displacement_process"
@@ -28,7 +28,7 @@
 		help="This process applies a nodal punctual load via the apply_constant_vector_value_process in kratos core">
     <inputs>
       <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
-      <parameter n="direction" pn="Value" type="vector" v="0.0,0.0,0.0" />
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
   </Process>
   <Process n="ApplyVolumeAccelerationProcess" pn="Apply volume acceleration" implemented_in_file="apply_volume_acceleration_process"
@@ -36,7 +36,7 @@
 		help="This process applies a volume acceleration node by node via the apply_constant_vector_value_process in kratos core">
     <inputs>
       <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
-      <parameter n="direction" pn="Value" type="vector" v="0.0,0.0,0.0" />
+      <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
   </Process>
   </ProcessList>

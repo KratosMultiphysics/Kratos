@@ -12,7 +12,6 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs >
-      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -29,8 +28,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs>
-      <parameter n="VOLUME_ACCELERATION" pn="Acceleration" units="m/s^2" unit_magnitude="a"/>      
+    <inputs>    
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -49,7 +47,6 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
-      <parameter n="POINT_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -68,7 +65,6 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
-      <parameter n="POINT_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -87,7 +83,6 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
-      <parameter n="POINT_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -107,7 +102,6 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
-      <parameter n="LINE_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -130,7 +124,6 @@
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
     <inputs>
-      <parameter n="SURFACE_LOAD" pn="Load" units="N" unit_magnitude="F" />
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -149,8 +142,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs>
-      <parameter n="POSITIVE_FACE_PRESSURE" pn="Pressure" units="Pa" unit_magnitude="P" help="Normal pressure, oriented pointing against the outer normal"/>      
+    <inputs>     
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -172,8 +164,7 @@
 	<DegreesOfFreedom>
 	  <dof n="DISPLACEMENT" />
 	</DegreesOfFreedom>
-    <inputs>
-      <parameter n="POSITIVE_FACE_PRESSURE" pn="Pressure" units="Pa" unit_magnitude="P" help="Normal pressure, oriented pointing against the outer normal"/>      
+    <inputs> 
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
