@@ -358,7 +358,7 @@ while (time < DEM_parameters.FinalTime):
     if (DEM_parameters.OutputTimeStep - time_to_print < 1e-2 * dt):
         
         if solver.poisson_ratio_option:
-            DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters)
+            DEMFEMProcedures.PrintPoisson(spheres_model_part, DEM_parameters, "Poisson_ratio.txt", time)
             
         if DEM_parameters.PostEulerAngles:
             post_utils.PrintEulerAngles(spheres_model_part)
