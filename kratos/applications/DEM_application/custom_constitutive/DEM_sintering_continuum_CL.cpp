@@ -169,7 +169,7 @@ namespace Kratos {
 			}
 			else
 			{
-				std::system("pause");
+				//std::system("pause");
 			}
 		KRATOS_CATCH("")
 	}
