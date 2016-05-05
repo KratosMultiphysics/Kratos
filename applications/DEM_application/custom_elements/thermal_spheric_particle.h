@@ -114,8 +114,7 @@ namespace Kratos
         double mConductiveHeatFlux;
         double mThermalConductivity;
         double mSpecificHeat;   
-		double mPrevTemperature;
-		double temp_old;
+        double mPreviousTemperature;
     
 
     private:
