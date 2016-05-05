@@ -103,8 +103,8 @@ public:
     static TComponentType const& Get(std::string const& Name)
     {
         typename ComponentsContainerType::iterator i =  msComponents.find(Name);
-        /* 	if(i == msComponents.end()) */
-        /* 	   KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); */
+        if(i == msComponents.end())
+          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); 
         return *(i->second);
     }
 
@@ -518,9 +518,4 @@ template<class TComponentType> void AddKratosComponent(std::string const& Name, 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_COMPONENTS_H_INCLUDED  defined 
-
-
-
-
-
+#endif // KRATOS_KRATOS_COMPONENTS_H_INCLUDED  defined
