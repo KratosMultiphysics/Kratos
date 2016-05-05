@@ -115,22 +115,22 @@ def GetExponentialsCoefficients(functional, a0):
     
 # MAIN
 #****************************************************************************************************************************************************************************************
+if __name__ == "__main__":
+    tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+    a0 = [0.2 for ti in tis]
+    tol = 1e-9
+    max_iter = 10
+    still_changes = True
+    a = np.array(a0)
+    a_old = np.array(a0) 
+    iteration = 0
+    F = Functional(tis)
 
-tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
-a0 = [0.2 for ti in tis]
-tol = 1e-9
-max_iter = 10
-still_changes = True
-a = np.array(a0)
-a_old = np.array(a0) 
-iteration = 0
-F = Functional(tis)
-
-while still_changes and iteration < max_iter:
-    iteration += 1
-    grad, H_inv = FillUpMatrices(F, a)
-    a -= H_inv.dot(grad)    
-    still_changes = np.linalg.norm(a - a_old) > tol
-    a_old[:] = a[:]
-print("a coefficients: ", a)
-print("still changing: ", still_changes)
+    while still_changes and iteration < max_iter:
+        iteration += 1
+        grad, H_inv = FillUpMatrices(F, a)
+        a -= H_inv.dot(grad)    
+        still_changes = np.linalg.norm(a - a_old) > tol
+        a_old[:] = a[:]
+    print("a coefficients: ", a)
+    print("still changing: ", still_changes)
