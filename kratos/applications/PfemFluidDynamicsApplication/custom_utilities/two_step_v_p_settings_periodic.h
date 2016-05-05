@@ -30,7 +30,7 @@
 // Application includes
 #include "custom_processes/spalart_allmaras_turbulence_model.h" 
 #include "custom_utilities/solver_settings.h"
-#include "custom_strategies/custom_builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
+#include "custom_strategies/builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 
 namespace Kratos

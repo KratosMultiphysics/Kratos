@@ -25,7 +25,7 @@
 
 #include "solid_mechanics_application.h"
 #include "pfem_fluid_dynamics_application.h"
-#include "custom_strategies/custom_schemes/residual_based_static_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
 
 namespace Kratos
 {
