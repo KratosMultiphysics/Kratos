@@ -3,6 +3,7 @@
 //   Author:              Miguel Angel Celigueta - Salva Latorre
 //   Date:                $Date: 2016-4-28
 //
+// http://mathworld.wolfram.com/Torus.html
 
 Name
 ringcluster3D
@@ -36,10 +37,9 @@ Size
 Volume
 0.0222064
 
-// http://mathworld.wolfram.com/Torus.html
 Inertia per unit mass
-0.002248398
-0.002248398
-0.004496796
+0.10125
+0.10125
+0.2025
 
 
