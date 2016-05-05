@@ -124,13 +124,13 @@ namespace Kratos {
         KRATOS_TRY
         ProcessInfo& r_process_info = model_part.GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
-        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF];
+        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF]; //TODO: change the name of this variable to FORCE_REDUCTION_FACTOR
         bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
         double force_reduction_factor = 1.0;
         if (virtual_mass_option) {
-            force_reduction_factor = 1.0 - virtual_mass_coeff;
+            force_reduction_factor = virtual_mass_coeff;
             if ((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) {
-                KRATOS_THROW_ERROR(std::runtime_error, "The virtual mass coefficient is either larger than 1 or negative: virtual_mass_coeff= ", virtual_mass_coeff)
+                KRATOS_THROW_ERROR(std::runtime_error, "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= ", virtual_mass_coeff)
             }
         }                        
 
