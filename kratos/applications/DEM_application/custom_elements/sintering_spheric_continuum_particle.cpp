@@ -1,4 +1,4 @@
-//Authors: S. Nosewicz (IPPT PAN, Warsaw, Poland) and M.A. Celigueta (CIMNE)
+//Authors: S. Nosewicz (IPPT PAN, Warsaw, Poland) and M.A. Celigueta (CIMNE, maceli@cimne.upc.edu)
 // Date: April 2015
 
 
@@ -235,9 +235,9 @@ namespace Kratos
             other_ball_to_ball_forces[2] = -this->mSinteringDrivingForce;
         }
 	
-        double SinteringSphericContinuumParticle::GetInitialDelta(int index) {
+        /*double SinteringSphericContinuumParticle::GetInitialDelta(int index) {
             return 0.0;                 
-        }
+        }*/
 
         void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
                 double actual_neck_radius;
