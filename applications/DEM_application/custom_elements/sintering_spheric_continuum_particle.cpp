@@ -118,10 +118,10 @@ namespace Kratos
             mIniNeighbourIds.resize(mInitialNeighborsSize);
             mIniNeighbourDelta.resize(mInitialNeighborsSize);
             mIniNeighbourFailureId.resize(mContinuumInitialNeighborsSize);
-			mActualNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
-			mOldNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
+            mActualNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
+            mOldNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
             
-            //Continuum initial
+            //Continuum 
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
                 mNeighbourElements[i] = cont_ini_neighbour_elems[i];
                 mIniNeighbourIds[i]   = cont_ini_ids[i];
@@ -135,6 +135,9 @@ namespace Kratos
                 DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
                 mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
                 mContinuumConstitutiveLawArray[i]->Initialize();
+                
+                mActualNeighbourSinteringDisplacement[i] = 0.0;
+                mOldNeighbourSinteringDisplacement[i] = 0.0;
             }
 
             for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
@@ -147,7 +150,6 @@ namespace Kratos
                 mNeighbourElements[i] = discont_neighbour_elems[i];                
             }
 
-			CreateContinuumConstitutiveLaws();
             KRATOS_CATCH("")
 	};
         
