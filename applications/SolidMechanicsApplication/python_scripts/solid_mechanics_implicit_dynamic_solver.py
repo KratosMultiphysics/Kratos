@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 
 # Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
     return ImplicitMechanicalSolver(main_model_part, custom_settings)
@@ -24,7 +24,7 @@ class ImplicitMechanicalSolver:
         self.main_model_part = main_model_part    
         
         ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = Parameters("""
         {
             "solver_type": "solid_mechanics_implicit_dynamic_solver",
             "model_import_settings": {
@@ -80,34 +80,34 @@ class ImplicitMechanicalSolver:
     def AddVariables(self):
         
         # Add displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(ACCELERATION)
         # Add reactions for the displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(REACTION)
         # Add nodal force variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)
         # Add specific variables for the problem conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(LINE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
             
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+            self.main_model_part.AddNodalSolutionStepVariable(ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(TORQUE)
+            self.main_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
             # Add specific variables for the problem (pressure dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.PRESSURE_REACTION)
+            self.main_model_part.AddNodalSolutionStepVariable(PRESSURE)
+            self.main_model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION)
                     
         print("::[Mechanical Solver]:: Variables ADDED")
 
@@ -117,11 +117,11 @@ class ImplicitMechanicalSolver:
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             
             # Here it would be the place to import restart data if required
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
             print("    Import input model part.")
             
             # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
-            aux_params = KratosMultiphysics.Parameters("{}")
+            aux_params = Parameters("{}")
             aux_params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
             aux_params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
             
@@ -132,7 +132,7 @@ class ImplicitMechanicalSolver:
             # Constitutive law import
             import constitutive_law_python_utility as constitutive_law_utils
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part, 
-                                                                             self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]);
+                                                                             self.main_model_part.ProcessInfo[DOMAIN_SIZE]);
             constitutive_law.Initialize();
             print("    Constitutive law initialized.")
             
@@ -150,19 +150,19 @@ class ImplicitMechanicalSolver:
 
         for node in self.main_model_part.Nodes:
             # adding dofs
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y);
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z);
+            node.AddDof(DISPLACEMENT_X, REACTION_X);
+            node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+            node.AddDof(DISPLACEMENT_Z, REACTION_Z);
             
         if self.settings["rotation_dofs"].GetBool():
             for node in model_part.Nodes:
-                node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X);
-                node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y);
-                node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z);
+                node.AddDof(ROTATION_X, TORQUE_X);
+                node.AddDof(ROTATION_Y, TORQUE_Y);
+                node.AddDof(ROTATION_Z, TORQUE_Z);
                 
         if self.settings["rotation_dofs"].GetBool():                
             for node in model_part.Nodes:
-                node.AddDof(KratosMultiphysics.PRESSURE, SolidMechanicsApplication.PRESSURE_REACTION);
+                node.AddDof(PRESSURE, PRESSURE_REACTION);
 
         print("::[Mechanical Solver]:: DOF's ADDED")
 
@@ -198,7 +198,7 @@ class ImplicitMechanicalSolver:
                                      self.settings["line_search"].GetBool())
 
         # Set the stabilization factor
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
+        self.main_model_part.ProcessInfo[STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         # Set echo_level
         self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -237,13 +237,13 @@ class ImplicitMechanicalSolver:
     def _GetBuilderAndSolver(self, component_wise, block_builder):
         # Creating the builder and solver
         if(component_wise):
-            builder_and_solver = SolidMechanicsApplication.ComponentWiseBuilderAndSolver(self.linear_solver)
+            builder_and_solver = ComponentWiseBuilderAndSolver(self.linear_solver)
         else:
             if(block_builder):
                 # To keep matrix blocks in builder
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+                builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
+                builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         
         return builder_and_solver
         
@@ -263,24 +263,24 @@ class ImplicitMechanicalSolver:
         
         # Creating the implicit solution scheme:  
         if (scheme_type == "Newmark" or scheme_type == "Bossak"):
-            #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_ALPHA] = 0.0
-            #~ self.main_model_part.ProcessInfo[SolidMechanicsApplication.RAYLEIGH_BETA ] = 0.0
+            #~ self.main_model_part.ProcessInfo[RAYLEIGH_ALPHA] = 0.0
+            #~ self.main_model_part.ProcessInfo[RAYLEIGH_BETA ] = 0.0
           
             if(component_wise):
-                mechanical_scheme = SolidMechanicsApplication.ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
-                                                                                        self.settings["dynamic_factor"].GetDouble())
+                mechanical_scheme = ComponentWiseBossakScheme(self.settings["damp_factor_m"].GetDouble(), 
+                                                              self.settings["dynamic_factor"].GetDouble())
             else:
                 if(compute_contact_forces):
-                    mechanical_scheme = SolidMechanicsApplication.ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(),
-                                                                                                   self.settings["dynamic_factor"].GetDouble())
+                    mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(),
+                                                                         self.settings["dynamic_factor"].GetDouble())
                 else:
-                    mechanical_scheme = SolidMechanicsApplication.ResidualBasedBossakScheme(self.settings["damp_factor_m"].GetDouble(),
-                                                                                            self.settings["dynamic_factor"].GetDouble())
+                    mechanical_scheme = ResidualBasedBossakScheme(self.settings["damp_factor_m"].GetDouble(),
+                                                                  self.settings["dynamic_factor"].GetDouble())
 
         elif(scheme_type == "Relaxation"):
-          #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)  
+          #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
             
-            import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+            import StructuralMechanicsApplication as StructuralMechanicsApplication
             self.settings.AddEmptyValue("damp_factor_f")  
             self.settings.AddEmptyValue("dynamic_factor_m")
             self.settings["damp_factor_f"].SetDouble(-0.3)
@@ -293,7 +293,7 @@ class ImplicitMechanicalSolver:
     
     def _GetConvergenceCriterion(self):
         # Creation of an auxiliar Kratos parameters object to store the convergence settings
-        conv_params = KratosMultiphysics.Parameters("{}")
+        conv_params = Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
@@ -311,34 +311,34 @@ class ImplicitMechanicalSolver:
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
         if(component_wise):
-            self.mechanical_solver = SolidMechanicsApplication.ComponentWiseNewtonRaphsonStrategy(self.compute_model_part, 
-                                                                                                  mechanical_scheme, 
-                                                                                                  self.linear_solver, 
-                                                                                                  mechanical_convergence_criterion, 
-                                                                                                  builder_and_solver, 
-                                                                                                  max_iters, 
-                                                                                                  compute_reactions, 
-                                                                                                  reform_step_dofs, 
-                                                                                                  move_mesh_flag)
+            self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.compute_model_part, 
+                                                                        mechanical_scheme, 
+                                                                        self.linear_solver, 
+                                                                        mechanical_convergence_criterion, 
+                                                                        builder_and_solver, 
+                                                                        max_iters, 
+                                                                        compute_reactions, 
+                                                                        reform_step_dofs, 
+                                                                        move_mesh_flag)
         else:
             if(line_search):
-                self.mechanical_solver = SolidMechanicsApplication.ResidualBasedNewtonRaphsonLineSearchStrategy(self.compute_model_part, 
-                                                                                                                mechanical_scheme, 
-                                                                                                                self.linear_solver, 
-                                                                                                                mechanical_convergence_criterion, 
-                                                                                                                builder_and_solver, 
-                                                                                                                max_iters, 
-                                                                                                                compute_reactions, 
-                                                                                                                reform_step_dofs, 
-                                                                                                                move_mesh_flag)
+                self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.compute_model_part, 
+                                                                                      mechanical_scheme, 
+                                                                                      self.linear_solver, 
+                                                                                      mechanical_convergence_criterion, 
+                                                                                      builder_and_solver, 
+                                                                                      max_iters, 
+                                                                                      compute_reactions, 
+                                                                                      reform_step_dofs, 
+                                                                                      move_mesh_flag)
 
             else:
-                self.mechanical_solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.compute_model_part, 
-                                                                                               mechanical_scheme, 
-                                                                                               self.linear_solver, 
-                                                                                               mechanical_convergence_criterion, 
-                                                                                               builder_and_solver, 
-                                                                                               max_iters, 
-                                                                                               compute_reactions, 
-                                                                                               reform_step_dofs, 
-                                                                                               move_mesh_flag)
+                self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.compute_model_part, 
+                                                                            mechanical_scheme, 
+                                                                            self.linear_solver, 
+                                                                            mechanical_convergence_criterion, 
+                                                                            builder_and_solver, 
+                                                                            max_iters, 
+                                                                            compute_reactions, 
+                                                                            reform_step_dofs, 
+                                                                            move_mesh_flag)
