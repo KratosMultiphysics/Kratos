@@ -27,32 +27,6 @@ namespace Kratos {
 
     SphericContinuumParticle::~SphericContinuumParticle() {}
 
-    
-    void SphericContinuumParticle::SearchSkinParticles(ProcessInfo& r_process_info) {
-    
-        array_1d<double, 3> other_to_me_vect_total = ZeroVector(3);
-        
-        for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            
-            if (mNeighbourElements[i] == NULL) continue;
-            
-            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
-            
-            array_1d<double, 3> other_to_me_vect;
-            noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-
-            GeometryFunctions::normalize(other_to_me_vect);
-                    
-            DEM_ADD_SECOND_TO_FIRST(other_to_me_vect_total, other_to_me_vect)
-        }
-        
-        double other_to_me_vect_total_modulus = DEM_MODULUS_3(other_to_me_vect_total);
-        
-        if ((other_to_me_vect_total_modulus < 0.85) || (mContinuumInitialNeighborsSize > 9)) {
-            this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 0.0;
-        }
-    } // SearchSkinParticles
-    
     void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& r_process_info) {
          
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
@@ -507,23 +481,26 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& r_process_info) {
+        
         KRATOS_TRY
         
-	  if(!mContIniNeighArea.size()) return; //TODO: ugly fix //This means that for this case the areas are not being saved (because the consitutive law is not filling this vector)
+        if (!mContIniNeighArea.size()) return; //TODO: ugly fix //This means that for this case the areas are not being saved (because the constitutive law is not filling this vector)
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {           
+            
             SphericContinuumParticle* r_continuum_ini_neighbour = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);            
             if (r_continuum_ini_neighbour == NULL) continue; //The initial neighbor was deleted at some point in time!!
-            if(this->Id() > r_continuum_ini_neighbour->Id()) continue; //The Sphere with lower Id will do the job only                                   
+            if (this->Id() > r_continuum_ini_neighbour->Id()) continue; //The Sphere with lower Id will do the job only                                   
 
             int index_of_the_neighbour_that_is_me = -1;
-            for (unsigned int j = 0; j <  r_continuum_ini_neighbour->mContinuumInitialNeighborsSize; j++){
-                if(this == r_continuum_ini_neighbour->mNeighbourElements[j]) index_of_the_neighbour_that_is_me = (int) j;
+            for (unsigned int j = 0; j <  r_continuum_ini_neighbour->mContinuumInitialNeighborsSize; j++) {
+                if (this == r_continuum_ini_neighbour->mNeighbourElements[j]) index_of_the_neighbour_that_is_me = (int)j;
             }
             
-            bool neigh_is_skin = (bool) r_continuum_ini_neighbour->mSkinSphere;
+            bool neigh_is_skin = (bool)r_continuum_ini_neighbour->mSkinSphere;
             if ((mSkinSphere && neigh_is_skin) || (!mSkinSphere && !neigh_is_skin)) { //both skin or both inner.
-                double mean_area =  0.5 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
+                double mean_area =  5.0 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
+                //double mean_area =  0.5 * (mContIniNeighArea[i] + r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me]);
                 mContIniNeighArea[i] = mean_area;
                 r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me] = mean_area;                
             }
@@ -533,9 +510,10 @@ namespace Kratos {
             else {
                 mContIniNeighArea[i] = r_continuum_ini_neighbour->mContIniNeighArea[index_of_the_neighbour_that_is_me];
             }            
-        }//loop neigh.
+        } //loop neighbors
 
         return;
+        
         KRATOS_CATCH("")
     }
 
@@ -563,7 +541,6 @@ namespace Kratos {
     void SphericContinuumParticle::Initialize(const ProcessInfo& r_process_info){
         SphericParticle::Initialize(r_process_info);
         mSkinSphere     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
-        this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
         mContinuumGroup = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
     }
     
