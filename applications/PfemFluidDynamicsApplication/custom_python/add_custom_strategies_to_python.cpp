@@ -24,11 +24,11 @@
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 
-#include "custom_strategies/two_step_v_p_strategy.h"
+#include "custom_strategies/strategies/two_step_v_p_strategy.h"
 // #include "custom_strategies/temporary_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 
 // builder_and_solvers
-#include "custom_strategies/custom_builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
+#include "custom_strategies/builders_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -38,7 +38,7 @@
 #include "linear_solvers/linear_solver.h"
 
 //schemes
-//#include "custom_strategies/custom_schemes/fluid_residual_based_U_wP_static_scheme.hpp"
+//#include "custom_strategies/schemes/fluid_residual_based_U_wP_static_scheme.hpp"
 
 namespace Kratos
 {
