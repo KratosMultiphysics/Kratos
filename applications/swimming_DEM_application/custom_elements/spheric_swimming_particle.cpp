@@ -21,7 +21,6 @@
 #include "spheric_swimming_particle.h"
 #include "../applications/DEM_application/custom_utilities/GeometryFunctions.h"
 #include "../applications/DEM_application/custom_utilities/AuxiliaryFunctions.h"
-//#include "DEM_application.h"
 
 #define SWIMMING_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
 #define SWIMMING_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
@@ -41,8 +40,7 @@ namespace Kratos
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                                                     array_1d<double, 3>& additionally_applied_moment,
                                                                     const ProcessInfo& r_current_process_info,
@@ -104,11 +102,10 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
 
     KRATOS_CATCH( "" )
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 // Here nodal values are modified to record DEM forces that we want to print. In Kratos this is an exception since nodal values are meant to be modified only outside the element. Here it was not possible.
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force,
                                                 const array_1d<double, 3>& hydrodynamic_moment,
                                                 const array_1d<double, 3>& buoyancy,
@@ -142,11 +139,9 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
         GetGeometry()[0].FastGetSolutionStepValue(DRAG_COEFFICIENT) = drag_coefficient;
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double, 3>& gravity, const ProcessInfo& r_current_process_info)
 {
     if (mBuoyancyForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null buoyancy
@@ -167,11 +162,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
         }
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info)
 {
     if (mDragForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null drag force
@@ -188,10 +181,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>
         noalias(drag_force) = drag_coeff * mSlipVel;
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
 {
     if (mVirtualMassForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
@@ -201,9 +193,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
 
     else {
         const double volume                     = CalculateVolume();
-        //const double delta_t_inv                = 1 / r_current_process_info[DELTA_TIME];
         const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED);
-        //const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 1));
         const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
         array_1d<double, 3> slip_acc;
 
@@ -235,10 +225,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
     noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
 {
     if (mSaffmanForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null lift force
@@ -278,10 +267,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeSaffmanLiftForce(array_1d<dou
         noalias(lift_force) = lift_coeff * vort_cross_slip_vel; // the direction is given by the vorticity x (- slip_vel) (Jackson, 2000), which is normalized here
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info)
 {
     if (mMagnusForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
@@ -322,10 +310,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(array_1d<doub
         return;
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info)
 {
     if (mHydrodynamicTorqueType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
@@ -359,12 +346,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeHydrodynamicTorque(array_1d<d
     }
 
 }
-
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<double, 3>& brownian_motion_force, const ProcessInfo& r_current_process_info)
 {
     if (mBrownianMotionType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
@@ -391,31 +375,28 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBrownianMotionForce(array_1d<
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeParticleReynoldsNumber(double& reynolds)
 {
     reynolds = 2 * mRadius * mNormOfSlipVel / mKinematicViscosity;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeParticleRotationReynoldsNumber(double norm_of_slip_rot, double& reynolds)
 {
     reynolds = 4 * SWIMMING_POW_2(mRadius) * norm_of_slip_rot / mKinematicViscosity;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number)
 {
     acc_number = SWIMMING_POW_3(mNormOfSlipVel) / fabs(2 * mRadius * SWIMMING_INNER_PRODUCT_3(mSlipVel, slip_acc));
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info)
 {
     if (rVariable == REYNOLDS_NUMBER){
@@ -448,11 +429,9 @@ void SphericSwimmingParticle<TBaseElement>::AdditionalCalculate(const Variable<d
         Output = ComputeDragCoefficient(r_current_process_info);
     }
 }
-
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     double drag_coeff;
@@ -507,20 +486,18 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 
     return drag_coeff;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeStokesDragCoefficient()
 {
     double drag_coeff = 6.0 * KRATOS_M_PI * mKinematicViscosity * mFluidDensity * mRadius;
 
     return drag_coeff;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     KRATOS_TRY
@@ -595,7 +572,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::CalculateNewtonianDragCoefficient(int non_newtonian_option,
                                                                 const double reynolds,
                                                                 double sphericity,
@@ -628,10 +605,9 @@ void SphericSwimmingParticle<TBaseElement>::CalculateNewtonianDragCoefficient(in
         drag_coeff = CalculateDragCoeffFromSphericity(reynolds, sphericity, drag_modifier_type);
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::CalculateDragCoeffFromSphericity(const double reynolds,
                                                                  const double sphericity,
                                                                  const int drag_modifier_type)
@@ -659,10 +635,9 @@ double SphericSwimmingParticle<TBaseElement>::CalculateDragCoeffFromSphericity(c
 
     return cdrag;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::CalculateShahsTerm(double power_law_N,
                                                    double power_law_K,
                                                    double power_law_tol,
@@ -687,10 +662,9 @@ double SphericSwimmingParticle<TBaseElement>::CalculateShahsTerm(double power_la
 
     return terminal_vel;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     KRATOS_TRY
@@ -720,10 +694,9 @@ double SphericSwimmingParticle<TBaseElement>::ComputeGanserDragCoefficient(const
 
     KRATOS_CATCH("")
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(const ProcessInfo& r_current_process_info)
 {
     double coeff = 0.45;
@@ -741,7 +714,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeIshiiDragCoefficient(const 
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNewtonRegimeDragCoefficient()
 {
     double drag_coeff  = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * mFluidDensity * mNormOfSlipVel;
@@ -750,10 +723,9 @@ double SphericSwimmingParticle<TBaseElement>::ComputeNewtonRegimeDragCoefficient
 
     return drag_coeff;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeIntermediateRegimeDragCoefficient()
 {
     double reynolds;
@@ -765,10 +737,9 @@ double SphericSwimmingParticle<TBaseElement>::ComputeIntermediateRegimeDragCoeff
 
     return drag_coeff;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeHaiderDragCoefficient()
 {
     const double sphericity = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
@@ -788,7 +759,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeHaiderDragCoefficient()
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 {
     double drag_coeff;
@@ -816,10 +787,9 @@ double SphericSwimmingParticle<TBaseElement>::ComputeBeetstraDragCoefficient()
 
     return drag_coeff;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
  void SphericSwimmingParticle<TBaseElement>::ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2)
  {
      if (isometric_shape){
@@ -832,10 +802,9 @@ template< class TBaseElement >
 
      k_2 = pow(10.0, 1.8148 * pow(- log10(mSphericity), 0.5743));
  }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ApplyDragPorosityModification(double& drag_coeff)
 {
     if (mPorosityCorrectionType == 0){
@@ -871,10 +840,9 @@ void SphericSwimmingParticle<TBaseElement>::ApplyDragPorosityModification(double
     }
 
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeElSamniLiftCoefficient(const double norm_of_shear_rate,
                                                               const double vorticity_norm,
                                                               const ProcessInfo& r_current_process_info)
@@ -894,10 +862,9 @@ double SphericSwimmingParticle<TBaseElement>::ComputeElSamniLiftCoefficient(cons
         return 0.0;
     }
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
  double SphericSwimmingParticle<TBaseElement>::ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear)
  {
      if (reynolds != 0.0 && reynolds_shear != 0.0 ){
@@ -923,7 +890,6 @@ template< class TBaseElement >
          return 0.0;
      }
  }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template< class TBaseElement >
@@ -937,10 +903,9 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mSphericity                  = GetGeometry()[0].SolutionStepsDataHas(PARTICLE_SPHERICITY);
     mHasDragCoefficientVar       = GetGeometry()[0].SolutionStepsDataHas(DRAG_COEFFICIENT);
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-template< class TBaseElement >
+template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const ProcessInfo& r_process_info)
 {
     TBaseElement::MemberDeclarationFirstStep(r_process_info);
@@ -955,10 +920,8 @@ void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const Pro
     mHydrodynamicTorqueType = r_process_info[HYDRO_TORQUE_TYPE];
     mBrownianMotionType     = 0;
 }
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
-
 template class SphericSwimmingParticle<SphericParticle>; //Explicit Instantiation
 template class SphericSwimmingParticle<NanoParticle>; //Explicit Instantiation
 }  // namespace Kratos.
