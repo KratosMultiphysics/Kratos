@@ -241,7 +241,7 @@ namespace Kratos {
         array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& cluster_angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3>& cluster_delta_rotation = central_node.FastGetSolutionStepValue(DELTA_ROTATION);
-        array_1d<double, 3>& cluster_euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
+        //array_1d<double, 3>& cluster_euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         
         array_1d<double, 3> previous_position;        
@@ -263,7 +263,7 @@ namespace Kratos {
             noalias(velocity) = cluster_velocity + linear_vel_due_to_rotation;                                    
             noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY)) = cluster_angular_velocity;
             noalias(sphere_node.FastGetSolutionStepValue(DELTA_ROTATION)) = cluster_delta_rotation;
-            noalias(sphere_node.FastGetSolutionStepValue(EULER_ANGLES)) = cluster_euler_angles;
+            //noalias(sphere_node.FastGetSolutionStepValue(EULER_ANGLES)) = cluster_euler_angles; //Not necessary because we print the Euler Angles in the center of the cluster
         }                        
     }
     
