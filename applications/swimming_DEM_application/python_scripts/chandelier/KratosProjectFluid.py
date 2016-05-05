@@ -12,7 +12,7 @@ import os
 import sys
 import math
 
-#simulation_start_time = timer.monotonic()
+simulation_start_time = timer.clock()
 
 print(os.getcwd())
 # Kratos
@@ -70,8 +70,8 @@ pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.recover_gradient_option = True
 pp.CFD_DEM.faxen_force_type = True
 pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
+pp.CFD_DEM.material_acceleration_calculation_type = 1
 DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
-
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
@@ -99,6 +99,7 @@ procedures.PreProcessModel(DEM_parameters)
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
 mixed_model_part      = ModelPart("Mixed_Part")
+mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
@@ -297,6 +298,7 @@ demio.SetOutputName(DEM_parameters.problem_name)
 os.chdir(post_path)
 
 demio.InitializeMesh(mixed_model_part,
+                     mixed_spheres_and_clusters_model_part,
                      spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
@@ -490,15 +492,17 @@ if (DEM_parameters.embedded_option):
 
 if (DEM_parameters.dem_inlet_option):    
     max_DEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
+    max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
     max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
-    max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
+    max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id, max_elem_Id)
+    #max_node_Id = max(max_DEM_node_Id, max_FEM_node_Id, max_fluid_node_Id)
 
     creator_destructor.SetMaxNodeId(max_node_Id)                            
         
     # constructing the inlet and initializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
+    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, False)
 
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
@@ -563,7 +567,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
 embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
-pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
+pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
 print_counter                = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter           = swim_proc.Counter(DEM_parameters.debug_tool_cycle, 1, DEM_parameters.print_debug_info_option)
@@ -671,13 +675,18 @@ while (time <= final_time):
                 omega = ch_pp.omega
                 vx = - omega * r * sin
                 vy =   omega * r * cos
+                ax = - x * omega ** 2
+                ay = - y * omega ** 2
                 pressure = ch_pp.rho_f * (ch_pp.g * (0.25 - z) + 0.5 * omega ** 2 * r ** 2)
                 pgrad_x = ch_pp.rho_f * omega ** 2 * x
                 pgrad_y = ch_pp.rho_f * omega ** 2 * y
                 pgrad_z = ch_pp.rho_f * (omega ** 2 * z - ch_pp.g)                                                                 
                 node.SetSolutionStepValue(VELOCITY_X, vx)
                 node.SetSolutionStepValue(VELOCITY_Y, vy)
-                node.SetSolutionStepValue(VELOCITY_Z, 0.0)                  
+                node.SetSolutionStepValue(VELOCITY_Z, 0.0)    
+                node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, ax)
+                node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, ay)
+                node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, 0.0)
                 node.SetSolutionStepValue(PRESSURE, pressure)   
                 #node.SetSolutionStepValue(PRESSURE_GRADIENT_X, pgrad_x)  
                 #node.SetSolutionStepValue(PRESSURE_GRADIENT_Y, pgrad_y)  
@@ -686,14 +695,15 @@ while (time <= final_time):
             if VELOCITY_LAPLACIAN in pp.fluid_vars:
                 print("\nSolving for the Laplacian...")
                 sys.stdout.flush()
+                fractional_step = fluid_model_part.ProcessInfo[FRACTIONAL_STEP]
                 fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 2
 
-                post_process_strategy.Solve()
+                #post_process_strategy.Solve()
 
                 print("\nFinished solving for the Laplacian.")
                 sys.stdout.flush()
-                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = 1
-#Z
+                fluid_model_part.ProcessInfo[FRACTIONAL_STEP] = fractional_step
+                
     # assessing stationarity
 
         if stationarity_counter.Tick():
@@ -725,10 +735,16 @@ while (time <= final_time):
     pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
     if pressure_gradient_counter.Tick():
-        if pp.CFD_DEM.recover_gradient_option:
-            custom_functions_tool.RecoverSuperconvergentPressureGradient(fluid_model_part)
-        else:
-            custom_functions_tool.CalculatePressureGradient(fluid_model_part)
+        if pp.CFD_DEM.gradient_calculation_type == 2:
+            custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
+        elif pp.CFD_DEM.gradient_calculation_type == 1:            
+            custom_functions_tool.CalculatePressureGradient(fluid_model_part)            
+        if pp.CFD_DEM.laplacian_calculation_type == 1:
+            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+        elif pp.CFD_DEM.laplacian_calculation_type == 2:
+            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+        if pp.CFD_DEM.material_acceleration_calculation_type == 1:
+            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)    
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
@@ -771,7 +787,10 @@ while (time <= final_time):
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
-                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)                    
+                    node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)      
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, ax)
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)      
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pgrad_x)             
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pgrad_y)                    
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pgrad_z)    
@@ -845,8 +864,10 @@ while (time <= final_time):
 swimming_DEM_gid_io.finalize_results()
 results_creator.PrintFile()
 print("\n CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
-#simulation_end_time = timer.monotonic()
-#print("(Elapsed time: " + str(simulation_end_time - simulation_start_time) + " s)\n")
+simulation_elapsed_time = timer.clock() - simulation_start_time
+print("Elapsed time: " + "%.5f"%(simulation_elapsed_time) + " s ")
+print("per fluid time step: " + "%.5f"%(simulation_elapsed_time/ step) + " s ")
+print("per DEM time step: " + "%.5f"%(simulation_elapsed_time/ DEM_step) + " s")
 sys.stdout.flush()
 
 for i in drag_file_output_list:
