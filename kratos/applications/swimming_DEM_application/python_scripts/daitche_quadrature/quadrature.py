@@ -3,6 +3,7 @@ import cmath
 import mpmath
 import matplotlib.pyplot as plt
 from bigfloat import *
+import sys
 
 # *****************************************************************************************************************************************************************************************
 # EXACT EVALUATIONS
@@ -195,7 +196,7 @@ def Coefficient(order, n, j):
     else:         
         return Gamma(n, j)
 
-def Daitche(order, times, f):
+def Daitche(times, f, order):
     t = times[- 1]
     t0 = times[0]
     sqrt_of_h = math.sqrt(times[-1] - times[-2])    
@@ -246,16 +247,19 @@ def Hinsberg(m, t_win, times, f):
         
         # Calculating window integral  ------------------------------
         
-        F_win = Bombardelli(recent_times, f, 2)#(1, recent_times, f)
+        #F_win = Bombardelli(recent_times, f, 4)#(1, recent_times, f)
+        F_win = Daitche(recent_times, f, 3)
         
         # Calculating Tail Integral ------------------------------
         
         # Building exponentials interpolation of the kernel
         
-        tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
+        tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]        
         a0 = [0.2 for ti in tis]
         functional = op.Functional(tis)
         op.GetExponentialsCoefficients(functional, a0)
+        print("times of tangency: ", tis)
+        print("a coefficeints: ", a0)
         F_tail = float(ExactIntegrationOfSinus(final_time, 0.0, old_times[1]))
         Fis = [0.0 for coefficient in a0]
         
@@ -317,7 +321,7 @@ def Hinsberg(m, t_win, times, f):
             print("EXACT tail", ExactIntegrationOfSinus(final_time, 0., t_win))        
             print("EXACT recent", ExactIntegrationOfSinus(final_time, t_win, final_time))         
             print("EXACT whole", ExactIntegrationOfSinus(final_time))        
-            print("WHOLE", Daitche(1, times, f))  
+            print("WHOLE", Daitche(times, f, 3))  
             print("RECENT", F_win)                
             print("TAIL", F_tail)
             print("F_win + F_tail", F_win + F_tail)
@@ -330,6 +334,13 @@ def Hinsberg(m, t_win, times, f):
 # Bombardelli BEGINS
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def OmegaTaylorTerms(alpha, bi, pi):
+    first = bi
+    second = bi * (pi - alpha / 2)
+    third = bi * (3 * alpha ** 2 + alpha + 12 * pi ** 2 - 12 * alpha * pi) / 24
+    fourth = bi * (alpha * (15 * alpha ** 3 + 30 * alpha ** 2 + 5 * alpha - 2) + 240 * pi ** 4 - 480 * alpha * pi ** 3 + 120 * alpha * (3 * alpha + 1) * pi ** 2 - 120 * alpha ** 2 * (alpha + 1) * pi) / 5760
+    return first, second, third, fourth
+
 def A(alpha, p, f, t, times, c = 1): # A^alpha_{ch,p}f(cx), Baeumer (2015)
     t = times[- 1]
     a = times[0]
@@ -337,21 +348,32 @@ def A(alpha, p, f, t, times, c = 1): # A^alpha_{ch,p}f(cx), Baeumer (2015)
     h = (t - a) / N
     return h ** (- alpha) * sum([gamma(k - alpha) / gamma(k + 1) * f(t - (k - p) * h) for k in range(N)])
 
-def Bombardelli(times, f, order = 1):
-
+def Bombardelli(times, f_to_integrate, order = 1):
+    
     with precision(200):
+        f_to_integrate
         q = - 0.5
         t = times[- 1]
         a = times[0]
         N = len(times) - 1
         h = (t - a) / N
-        initial_approx_deriv = 0.5 / h * (- f(a + 2 * h) + 4 * f(a + h) - 3 * f(a))          
+        initial_approx_deriv = 0.5 / h * (- f_to_integrate(a + 2 * h) + 4 * f_to_integrate(a + h) - 3 * f_to_integrate(a))          
         #initial_approx_deriv = cos(a)
-        constant_initial_correction = 2 * sqrt(t - a) * f(a)#t ** (- q) / gamma(1 - q) * f(a)
+        constant_initial_correction = 2 * sqrt(t - a) * f_to_integrate(a)#t ** (- q) / gamma(1 - q) * f_to_integrate(a)
         linear_initial_correction =   2 / 3. * sqrt(t - a) * (a + 2 * t) * initial_approx_deriv 
         #linear_initial_correction = t ** (1 - q) / gamma(2 - q) * initial_approx_deriv
+        constannt_correction_option = 1
         linear_correction_option = 0
+        correction = constannt_correction_option * constant_initial_correction + linear_correction_option * linear_initial_correction
         order = 3
+        
+        if constannt_correction_option:
+            def f(x):
+                return f_to_integrate(x) - f_to_integrate(a)
+        
+        else:
+            f = f_to_integrate
+        
         if order == 1:
             coeff = h ** (- q)
             values = [gamma(k - q) / gamma(k + 1) * (f(t - k * h) - f(a)) for k in range(N)]
@@ -360,18 +382,44 @@ def Bombardelli(times, f, order = 1):
             coeff = h ** (- q) * gamma(- q)
             #values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]
             values = [(- 1) ** k * gamma(q + 1) / (gamma(k + 1) * gamma(q - k + 1)) * (f(t - (k  - 0.5 * q) * h) - f(a) - linear_correction_option * (t - (k  - 0.5 * q) * h) * initial_approx_deriv) for k in range(N)]            
-            initial_value_correction = constant_initial_correction + linear_correction_option * linear_initial_correction
+            initial_value_correction = correction
         elif order == 3:
-            def f_mod(x):
-                return f(x) - f(a)
             sqrt_var = sqrt(6)
             b0 = 0.5
             b1 = 0.5
             p0 = (- 3 + sqrt_var) / 12
             p1 = (- 3 - sqrt_var) / 12
-            return b0 * A(q, p0, f, t, times) + b1 * A(q, p1, f, t, times)
+            return b0 * A(q, p0, f, t, times) + b1 * A(q, p1, f, t, times) + correction
         else:
-            1
+            sqrt_var = sqrt(34)
+            b0 = 8. / 15
+            b1 = (119 - 27 * sqrt_var) / 510
+            b2 = (119 + 27 * sqrt_var) / 510
+            p0 = 0.
+            p1 = (- 3 + sqrt_var) / 20
+            p2 = (- 3 - sqrt_var) / 20
+            #s0 = 0; s1 = 0; s2 = 0; s3 = 0
+            #f0, f1, f2, f3 = OmegaTaylorTerms(q, b0, p0)
+            #s0 += f0
+            #s1 += f1
+            #s2 += f2
+            #s3 += f3
+            #f0, f1, f2, f3 = OmegaTaylorTerms(q, b1, p1)
+            #s0 += f0
+            #s1 += f1
+            #s2 += f2
+            #s3 += f3
+            #f0, f1, f2, f3 = OmegaTaylorTerms(q, b2, p2)            
+            #s0 += f0
+            #s1 += f1
+            #s2 += f2
+            #s3 += f3
+
+            #print("first", s0)
+            #print("second", s1)
+            #print("third", s2)
+            #print("fourth", s3)
+            return b0 * A(q, p0, f, t, times) + b1 * A(q, p1, f, t, times) + b2 * A(q, p2, f, t, times) + correction
 
         return coeff * sum(values) + initial_value_correction
 
@@ -456,12 +504,12 @@ def SubstituteShanks(approx_sequence):
 
 # Paramters ----------------------------
 
-final_time = 3.0
+final_time = 1.0
 n_discretizations = 6
 min_exp = 2
 k = 2
 m = 10
-order_bomb = 2
+order_bomb = 4
 f = math.sin
 n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
 print("Sizes: ", n_div)
@@ -491,11 +539,11 @@ for n_divisions in n_div:
     exact_value = float(ExactIntegrationOfSinus(times[-1]))
     exact_values.append(exact_value)
     approx_value_naive = ApproximateQuadrature(times, f)
-    approx_value_1 = Daitche(1, times, f)
-    approx_value_2 = Daitche(2, times, f)
-    approx_value_3 = Daitche(3, times, f)
+    approx_value_1 = Daitche(times, f, 1)
+    approx_value_2 = Daitche(times, f, 2)
+    approx_value_3 = Daitche(times, f, 3)
     approx_value_bomb = Bombardelli(times, f, order_bomb)
-    approx_value_hins = Hinsberg(m, 0.6 * final_time, times, f)    
+    approx_value_hins = Hinsberg(m, 0.01 * final_time, times, f)    
     approx_values_naive.append(approx_value_naive)
     approx_values_1.append(approx_value_1)
     approx_values_2.append(approx_value_2)
