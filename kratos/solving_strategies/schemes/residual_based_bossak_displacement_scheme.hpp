@@ -176,7 +176,7 @@ public:
 	typename DofsArrayType::iterator DofBegin = rDofSet.begin();
 	 
 	#pragma omp parallel for firstprivate(ndof, DofBegin)
-	for(unsigned int i = 0;  i < ndof; i++)
+	for(int i = 0;  i < (int) ndof; i++)
 	{
 	    typename DofsArrayType::iterator itDof = DofBegin + i;
 	    
@@ -196,7 +196,7 @@ public:
 	NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
 	 
 	#pragma omp parallel for firstprivate(nnodes, NodeBegin)
-	for(unsigned int i = 0;  i < nnodes; i++)
+	for(int i = 0;  i < (int) nnodes; i++)
 	{
 	    NodesArrayType::iterator itNode = NodeBegin + i;
 	    
@@ -251,7 +251,7 @@ public:
 	NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
 	
 	#pragma omp parallel for firstprivate(nnodes, NodeBegin)
-	for(unsigned int i = 0;  i< nnodes; i++)
+	for(int i = 0;  i< (int) nnodes; i++)
 	{
 	    NodesArrayType::iterator itNode = NodeBegin + i;
 	    
@@ -352,7 +352,7 @@ public:
 	ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
 	 
 	#pragma omp parallel for firstprivate(nelem, ElemBegin)
-	for(unsigned int i = 0;  i < nelem; i++)
+	for(int i = 0;  i < (int) nelem; i++)
 	{
 	    ElementsArrayType::iterator itElem = ElemBegin + i;
 	    
@@ -388,7 +388,7 @@ public:
 	ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
 	 
 	#pragma omp parallel for firstprivate(ncond, CondBegin)
-	for(unsigned int i = 0;  i < ncond; i++)
+	for(int i = 0;  i < (int) ncond; i++)
 	{
 	    ConditionsArrayType::iterator itCond = CondBegin + i;
 	    
@@ -475,7 +475,7 @@ public:
 	ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
 	 
 	#pragma omp parallel for firstprivate(nelem, ElemBegin)
-	for(unsigned int i = 0;  i < nelem; i++)
+	for(int i = 0;  i < (int) nelem; i++)
 	{
 	    ElementsArrayType::iterator itElem = ElemBegin + i;
 	    
@@ -491,7 +491,7 @@ public:
 	ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
 	 
 	#pragma omp parallel for firstprivate(ncond, CondBegin)
-	for(unsigned int i = 0;  i < ncond; i++)
+	for(int i = 0;  i < (int) ncond; i++)
 	{
 	    ConditionsArrayType::iterator itCond = CondBegin + i;
 	    
