@@ -23,7 +23,7 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
+#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -33,7 +33,7 @@
 #include "linear_solvers/linear_solver.h"
 
 //schemes
-#include "custom_strategies/custom_schemes/residual_based_U_wP_static_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_U_wP_static_scheme.hpp"
 
 namespace Kratos
 {
