@@ -239,7 +239,7 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     # fluid coupling variables
     pp.coupling_fluid_vars = []
-    pp.coupling_fluid_vars += [ACCELERATION]
+    pp.coupling_fluid_vars += [MATERIAL_ACCELERATION]
 
     if pp.CFD_DEM.embedded_option:
        pp.coupling_fluid_vars += [DISTANCE]
