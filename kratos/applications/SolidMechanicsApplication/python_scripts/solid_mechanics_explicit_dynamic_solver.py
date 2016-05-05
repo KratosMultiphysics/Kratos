@@ -1,10 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 
 # Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+CheckForPreviousImport()
 
 # Import the implicit solver (the explicit one is derived from it)
 import solid_mechanics_implicit_dynamic_solver
@@ -27,7 +27,7 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
         #TODO: remove unnecessary fields for the Explicit solver from the defaults
         ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = Parameters("""
         {
             "solver_type": "solid_mechanics_explicit_dynamic_solver",
             "echo_level": 0,
@@ -73,41 +73,41 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
     def AddVariables(self):
         
         # Add displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         # Add dynamic variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(ACCELERATION)
         # Add reactions for the displacements
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(REACTION)
         # Add nodal force variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)
         # Add specific variables for the problem conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(LINE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
 
         if self.settings["time_integration_method"].GetString() == "Explicit":
             # Add specific variables for the explicit time integration scheme
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-            self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.MIDDLE_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+            self.main_model_part.AddNodalSolutionStepVariable(FORCE_RESIDUAL)
+            self.main_model_part.AddNodalSolutionStepVariable(MIDDLE_VELOCITY)
             
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+            self.main_model_part.AddNodalSolutionStepVariable(ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(TORQUE)
+            self.main_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
             
         if self.settings["pressure_dofs"].GetBool():
             # Add specific variables for the problem (pressure dofs)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(SolidMechanicsApplication.PRESSURE_REACTION)
+            self.main_model_part.AddNodalSolutionStepVariable(PRESSURE)
+            self.main_model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION)
                     
         print("::[Mechanical Solver]:: Variables ADDED")
     
@@ -131,7 +131,7 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
                                      self.settings["move_mesh_flag"].GetBool())
 
         # Set the stabilization factor
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
+        self.main_model_part.ProcessInfo[STABILIZATION_FACTOR] = self.settings["stabilization_factor"].GetDouble()
 
         # Set echo_level
         self.mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -146,10 +146,10 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
 
         if self.settings["scheme_type"].GetString() == "CentralDifferences":
 
-            mechanical_scheme = SolidMechanicsApplication.ExplicitCentralDifferencesScheme(max_delta_time, 
-                                                                                           fraction_delta_time, 
-                                                                                           time_step_prediction_level, 
-                                                                                           rayleigh_damping)
+            mechanical_scheme = ExplicitCentralDifferencesScheme(max_delta_time, 
+                                                                 fraction_delta_time, 
+                                                                 time_step_prediction_level, 
+                                                                 rayleigh_damping)
         
         else:
             raise(self.settings["scheme_type"].GetString()," not implemented yet.")
@@ -158,12 +158,12 @@ class ExplicitMechanicalSolver(solid_mechanics_implicit_dynamic_solver.ImplicitM
         
     def _CreateMechanicalSolver(self, mechanical_scheme, compute_reactions, reform_step_dofs, move_mesh_flag):
 
-        self.mechanical_solver = SolidMechanicsApplication.ExplicitStrategy(self.compute_model_part, 
-                                                                            mechanical_scheme, 
-                                                                            self.linear_solver, 
-                                                                            compute_reactions, 
-                                                                            reform_step_dofs, 
-                                                                            move_mesh_flag)
+        self.mechanical_solver = ExplicitStrategy(self.compute_model_part, 
+                                                  mechanical_scheme, 
+                                                  self.linear_solver, 
+                                                  compute_reactions, 
+                                                  reform_step_dofs, 
+                                                  move_mesh_flag)
 
         self.mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step 
 
