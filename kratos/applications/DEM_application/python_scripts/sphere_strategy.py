@@ -115,7 +115,7 @@ class ExplicitStrategy:
         self.virtual_mass_option = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
 
-        if (self.nodal_mass_coeff != 1.00):
+        if (self.nodal_mass_coeff != 1.0):
             self.virtual_mass_option = 1
 
         self.rolling_friction_option = self.Var_Translator(Param.RollingFrictionOption)
