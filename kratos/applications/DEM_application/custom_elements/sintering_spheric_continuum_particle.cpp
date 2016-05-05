@@ -141,13 +141,19 @@ namespace Kratos
             }
 
             for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
-                mNeighbourElements[i] = discont_ini_neighbour_elems[i];
-                mIniNeighbourIds[i]   = discont_ini_ids[i];
-                mIniNeighbourDelta[i] = discont_ini_deltas[i];                
+                mNeighbourElements[i] = discont_ini_neighbour_elems[i-mContinuumInitialNeighborsSize];
+                mIniNeighbourIds[i]   = discont_ini_ids[i-mContinuumInitialNeighborsSize];
+                mIniNeighbourDelta[i] = discont_ini_deltas[i-mContinuumInitialNeighborsSize];  
+		if(discont_ini_neighbour_elems.size() != mInitialNeighborsSize - mContinuumInitialNeighborsSize) {
+		  KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
+		}
             }
             
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
-                mNeighbourElements[i] = discont_neighbour_elems[i];                
+                mNeighbourElements[i] = discont_neighbour_elems[i-mInitialNeighborsSize];   
+		if(discont_neighbour_elems.size() != mNeighbourElements.size() - mInitialNeighborsSize) {
+		  KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
+		}
             }
 
             KRATOS_CATCH("")
