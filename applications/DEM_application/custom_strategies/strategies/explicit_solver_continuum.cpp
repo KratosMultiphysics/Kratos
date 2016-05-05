@@ -369,6 +369,13 @@ namespace Kratos {
                     }
                 }
             }
+
+            //Renumbering the Id's of the bonds to make them unique and consecutive (otherwise the Id's are repeated)
+            #pragma omp for
+            for(int i=0; i<(int)(*mpContact_model_part).Elements().size(); i++) {
+                (*mpContact_model_part).Elements().GetContainer()[i]->SetId(i+1);
+            }
+
         } //#pragma omp parallel
         KRATOS_CATCH("")
     } //CreateContactElements
