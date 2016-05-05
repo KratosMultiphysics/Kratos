@@ -24,7 +24,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //default builder and solver
-#include "custom_strategies/custom_builders_and_solvers/component_wise_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/component_wise_builder_and_solver.hpp"
 
 namespace Kratos
 {

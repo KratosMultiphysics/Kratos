@@ -15,7 +15,7 @@
 /* External includes */
 
 /* Project includes */
-#include "custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
 #include "solid_mechanics_application_variables.h"
 
 namespace Kratos

@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-#include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
 
 namespace Kratos
 {
