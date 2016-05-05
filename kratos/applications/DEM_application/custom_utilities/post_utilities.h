@@ -142,12 +142,13 @@ namespace Kratos {
         }
 
         
-        void ComputePoisson(ModelPart& rModelPart) {
+        double ComputePoisson(ModelPart& rModelPart) {
 
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
-            double total_poisson_value     = 0.0;
+            double total_poisson_value   = 0.0;
             unsigned int number_of_bonds_to_evaluate_poisson = 0;
-
+            
+            // TODO: Add OpenMP code
             for (unsigned int k = 0; k < pElements.size(); k++) {
                 
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -163,41 +164,42 @@ namespace Kratos {
                                        
                 unsigned int number_of_neighbors = p_sphere->mNeighbourElements.size();
 
-                for (unsigned int i = 0; i < number_of_neighbors; i++) 
-                {
+                for (unsigned int i = 0; i < number_of_neighbors; i++) {
+
+                    if (p_sphere->mNeighbourElements[i] == NULL) continue;
                     noalias(other_to_me_vector)         = p_sphere->GetGeometry()[0].Coordinates() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].Coordinates();
                     noalias(initial_other_to_me_vector) = p_sphere->GetGeometry()[0].GetInitialPosition() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].GetInitialPosition();
-                    // TODO: Add OpenMP code
                     double initial_distance_XY = sqrt(initial_other_to_me_vector[0] * initial_other_to_me_vector[0] + initial_other_to_me_vector[1] * initial_other_to_me_vector[1]);
-                    double initial_distance_Z  = fabs(initial_other_to_me_vector[2]);
+                    double initial_distance_Z  = initial_other_to_me_vector[2];
                     if (initial_distance_XY && initial_distance_Z) {
                         epsilon_XY = -1 + sqrt(other_to_me_vector[0] * other_to_me_vector[0] + other_to_me_vector[1] * other_to_me_vector[1]) / initial_distance_XY;
-                        epsilon_Z = -1 + other_to_me_vector[2] / initial_distance_Z;
+                        epsilon_Z  = -1 + fabs(other_to_me_vector[2] / initial_distance_Z);
                     }
                     if (epsilon_Z) {
                         particle_poisson_value -= epsilon_XY / epsilon_Z;
                         number_of_neighbors_to_evaluate_poisson++;
-                        if (p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()) {
+                        //if (p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()) {
                             total_poisson_value -= epsilon_XY / epsilon_Z;
                             number_of_bonds_to_evaluate_poisson++;
-                        }
+                        //}
                     }
                 }
                 if (number_of_neighbors_to_evaluate_poisson) particle_poisson_value /= number_of_neighbors_to_evaluate_poisson;
             }
             
-            total_poisson_value /= number_of_bonds_to_evaluate_poisson;
-            KRATOS_WATCH(total_poisson_value)
+            if (number_of_bonds_to_evaluate_poisson) total_poisson_value /= number_of_bonds_to_evaluate_poisson;
+            return total_poisson_value;
             
         } //ComputePoisson
     
         
-        void ComputePoisson2D(ModelPart& rModelPart) {
+        double ComputePoisson2D(ModelPart& rModelPart) {
 
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
             double total_poisson_value     = 0.0;
             unsigned int number_of_bonds_to_evaluate_poisson = 0;
-          
+            
+            // TODO: Add OpenMP code
             for (unsigned int k = 0; k < pElements.size(); k++) {
                 
                 typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -215,30 +217,32 @@ namespace Kratos {
 
                 for (unsigned int i = 0; i < number_of_neighbors; i++) 
                 {
+                    if (p_sphere->mNeighbourElements[i] == NULL) continue;
                     noalias(other_to_me_vector)         = p_sphere->GetGeometry()[0].Coordinates() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].Coordinates();
                     noalias(initial_other_to_me_vector) = p_sphere->GetGeometry()[0].GetInitialPosition() - p_sphere->mNeighbourElements[i]->GetGeometry()[0].GetInitialPosition();
-                    // TODO: Add OpenMP code
-                    double initial_distance_X = fabs(initial_other_to_me_vector[0]);
-                    double initial_distance_Y = fabs(initial_other_to_me_vector[1]);
+                    double initial_distance_X = initial_other_to_me_vector[0];
+                    double initial_distance_Y = initial_other_to_me_vector[1];
                     if (initial_distance_X && initial_distance_Y) {
-                        epsilon_X = -1 + other_to_me_vector[0] / initial_distance_X;
-                        epsilon_Y = -1 + other_to_me_vector[1] / initial_distance_Y;
+                        epsilon_X = -1 + fabs(other_to_me_vector[0] / initial_distance_X);
+                        epsilon_Y = -1 + fabs(other_to_me_vector[1] / initial_distance_Y);
                     }
                     if (epsilon_Y) {
                         particle_poisson_value -= epsilon_X / epsilon_Y;
                         number_of_neighbors_to_evaluate_poisson++;
-                        if (p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()) {
+                        //if (p_sphere->Id() < p_sphere->mNeighbourElements[i]->Id()) {
                             total_poisson_value -= epsilon_X / epsilon_Y;
                             number_of_bonds_to_evaluate_poisson++;
-                        }
+                        //}
                     }                    
                 }
                 if (number_of_neighbors_to_evaluate_poisson) particle_poisson_value /= number_of_neighbors_to_evaluate_poisson;
             }
             
-            total_poisson_value /= number_of_bonds_to_evaluate_poisson;
+            if (number_of_bonds_to_evaluate_poisson) total_poisson_value /= number_of_bonds_to_evaluate_poisson;
+            return total_poisson_value;
 
         } //ComputePoisson2D
+        
         
         void ComputeEulerAngles(ModelPart rModelPart) {
 
@@ -279,6 +283,7 @@ namespace Kratos {
                 }// if_trihedron_option && BELONGS_TO_A_CLUSTER
             }//for Node      
         } //ComputeEulerAngles
+        
         
         double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& r_process_info) {
 
@@ -364,6 +369,7 @@ namespace Kratos {
             return adimensional_value;
 
         }//QuasiStaticAdimensionalNumber
+        
 
         vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
 
