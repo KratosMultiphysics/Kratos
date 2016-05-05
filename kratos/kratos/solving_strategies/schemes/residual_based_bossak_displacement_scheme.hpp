@@ -69,6 +69,8 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+    typedef ModelPart::NodesContainerType                   NodesArrayType;
+    
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
@@ -164,32 +166,51 @@ public:
 
 	// std::cout << " Update " << std::endl;
 	
+	int NumThreads = OpenMPUtils::GetNumThreads();
+	
         // Update of displacement (by DOF)
-        for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
-        {
-            if (i_dof->IsFree() )
+	OpenMPUtils::PartitionVector DofPartition;
+        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
+	
+	const unsigned int ndof = rDofSet.size();
+	typename DofsArrayType::iterator DofBegin = rDofSet.begin();
+	 
+	#pragma omp parallel for firstprivate(ndof, DofBegin)
+	for(unsigned int i = 0;  i < ndof; i++)
+	{
+	    typename DofsArrayType::iterator itDof = DofBegin + i;
+	    
+	    if (itDof->IsFree() )
             {
-                i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
-            }
+		itDof->GetSolutionStepValue() += Dx[itDof->EquationId()];
+	    }
         }
-
+        
+	array_1d<double, 3 > DeltaDisplacement;
+		
         // Updating time derivatives (nodally for efficiency)
-        array_1d<double, 3 > DeltaDisplacement;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
+        OpenMPUtils::PartitionVector NodePartition;
+        OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
+	
+	const unsigned int nnodes = r_model_part.Nodes().size();
+	NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
+	 
+	#pragma omp parallel for firstprivate(nnodes, NodeBegin)
+	for(unsigned int i = 0;  i < nnodes; i++)
+	{
+	    NodesArrayType::iterator itNode = NodeBegin + i;
+	    
+	    noalias(DeltaDisplacement) = (itNode)->FastGetSolutionStepValue(DISPLACEMENT) - (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-            noalias(DeltaDisplacement) = (i)->FastGetSolutionStepValue(DISPLACEMENT) - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	    array_1d<double, 3 > & CurrentVelocity            = (itNode)->FastGetSolutionStepValue(VELOCITY, 0);
+	    const array_1d<double, 3 > & PreviousVelocity     = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
-            array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+	    array_1d<double, 3 > & CurrentAcceleration        = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
+	    const array_1d<double, 3 > & PreviousAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-            array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
-            array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+	    UpdateVelocity     (CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 
-            UpdateVelocity     (CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
-
-            UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+	    UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
         }
 
         KRATOS_CATCH( "" );
@@ -221,75 +242,94 @@ public:
 
         double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            //Predicting: isplacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
-            //ATTENTION::: the prediction is performed only on free nodes
+	// Updating time derivatives (nodally for efficiency)
+	int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector NodePartition;
+        OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
 
-            array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-            array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+	const unsigned int nnodes = r_model_part.Nodes().size();
+	NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
+	
+	#pragma omp parallel for firstprivate(nnodes, NodeBegin)
+	for(unsigned int i = 0;  i< nnodes; i++)
+	{
+	    NodesArrayType::iterator itNode = NodeBegin + i;
+	    
+	    //Predicting: isplacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
+	    //ATTENTION::: the prediction is performed only on free nodes
 
-            if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
-            {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0];
-            }
-            else
-            {
-                CurrentDisplacement[0]  = PreviousDisplacement[0];
-            }
+	    const array_1d<double, 3 > & PreviousAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+	    const array_1d<double, 3 > & PreviousVelocity     = (itNode)->FastGetSolutionStepValue(VELOCITY,     1);
+	    const array_1d<double, 3 > & PreviousDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+	    array_1d<double, 3 > & CurrentAcceleration        = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
+	    array_1d<double, 3 > & CurrentVelocity            = (itNode)->FastGetSolutionStepValue(VELOCITY,     0);
+	    array_1d<double, 3 > & CurrentDisplacement        = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 
-            if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
-            {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1];
-            }
-            else
-            {
-                CurrentDisplacement[1]  = PreviousDisplacement[1];
-            }
-
-            // For 3D cases
-            if (i->HasDofFor(DISPLACEMENT_Z))
-            {
-                if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
-                {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2];
-                }
-                else
-                {
-                    CurrentDisplacement[2]  = PreviousDisplacement[2];
-                }
-            }
+	    if (itNode -> IsFixed(ACCELERATION_X))
+	    {
+		CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + std::pow(DeltaTime, 2.0) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * PreviousAcceleration[0] + mNewmark.beta * CurrentAcceleration[0]);
+	    }
+	    else if (itNode -> IsFixed(VELOCITY_X))
+	    {
+		CurrentDisplacement[0] = PreviousDisplacement[0] + 0.5 * DeltaTime * (PreviousVelocity[0] + CurrentVelocity[0]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0]; 
+	    }
+	    else if (itNode -> IsFixed(DISPLACEMENT_X) == false)
+	    {
+		CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
+	    }
+	    
+	    if (itNode -> IsFixed(ACCELERATION_Y))
+	    {
+		CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + std::pow(DeltaTime, 2.0) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * PreviousAcceleration[1] + mNewmark.beta * CurrentAcceleration[1]);
+	    }
+	    else if (itNode -> IsFixed(VELOCITY_Y))
+	    {
+		CurrentDisplacement[1] = PreviousDisplacement[1] + 0.5 * DeltaTime * (PreviousVelocity[1] + CurrentVelocity[1]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1] ; 
+	    }
+	    else if (itNode -> IsFixed(DISPLACEMENT_Y) == false)
+	    {
+		CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1];
+	    }
+	    
+	    // For 3D cases
+	    if (itNode -> HasDofFor(DISPLACEMENT_Z))
+	    {
+		if (itNode -> IsFixed(ACCELERATION_Z))
+		{
+		    CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + std::pow(DeltaTime, 2.0) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * PreviousAcceleration[2] + mNewmark.beta * CurrentAcceleration[2]);
+		}
+		else if (itNode -> IsFixed(VELOCITY_Z))
+		{
+		    CurrentDisplacement[2] = PreviousDisplacement[2] + 0.5 * DeltaTime * (PreviousVelocity[2] + CurrentVelocity[2]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[2] ; 
+		}
+		else if (itNode -> IsFixed(DISPLACEMENT_Z) == false)
+		{
+		    CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[2];
+		}
+	    }
 
 	    // std::cout << " DispPre " << PreviousDisplacement << " ID " << i->Id() << std::endl;
 	    // std::cout << " DispCur " << CurrentDisplacement  << " ID " << i->Id() << std::endl;
 		
-            if (i->HasDofFor(PRESSURE))
-            {
-                double& PreviousPressure    = (i)->FastGetSolutionStepValue(PRESSURE, 1);
-                double& CurrentPressure     = (i)->FastGetSolutionStepValue(PRESSURE);
+	    if (itNode->HasDofFor(PRESSURE))
+	    {
+		double& PreviousPressure    = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
+		double& CurrentPressure     = (itNode)->FastGetSolutionStepValue(PRESSURE, 0);
 
-                if ((i->pGetDof(PRESSURE))->IsFixed() == false)
+		if (itNode->IsFixed(PRESSURE) == false)
 		{
-                    CurrentPressure = PreviousPressure;
+		    CurrentPressure = PreviousPressure;
 		}
 
 		// std::cout<<" PressureCur [1] " << CurrentPressure << " PressurePre [1] " << PreviousPressure << " ID " << i->Id() << std::endl;
-            }
+	    }
 
-            // Updating time derivatives ::: Please note that displacements and its time derivatives
-            // Can not be consistently fixed separately
+	    // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
+	    noalias(DeltaDisplacement) = CurrentDisplacement - PreviousDisplacement;
 
-            noalias(DeltaDisplacement) = CurrentDisplacement - PreviousDisplacement;
+	    UpdateVelocity     (CurrentVelocity,     DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
 
-            array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            array_1d<double, 3 > & CurrentVelocity       = (i)->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3 > & CurrentAcceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
-
-            UpdateVelocity     (CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
-
-            UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+	    UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
         }
         
         KRATOS_CATCH( "" );
@@ -307,17 +347,16 @@ public:
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
-
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-            ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin() + ElementPartition[k];
-            ElementsArrayType::iterator ElemEnd = rModelPart.Elements().begin() + ElementPartition[k + 1];
-
-            for (ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)
-            {
-                itElem->Initialize(); //function to initialize the element
-            }
+	
+	const unsigned int nelem = rModelPart.Elements().size();
+	ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+	 
+	#pragma omp parallel for firstprivate(nelem, ElemBegin)
+	for(unsigned int i = 0;  i < nelem; i++)
+	{
+	    ElementsArrayType::iterator itElem = ElemBegin + i;
+	    
+	    itElem->Initialize(); //function to initialize the element
         }
 
         this->mElementsAreInitialized = true;
@@ -345,16 +384,15 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-            ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin() + ConditionPartition[k];
-            ConditionsArrayType::iterator CondEnd = rModelPart.Conditions().begin() + ConditionPartition[k + 1];
-
-            for (ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
-            {
-                itCond->Initialize(); //function to initialize the condition
-            }
+	const unsigned int ncond = rModelPart.Conditions().size();
+	ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+	 
+	#pragma omp parallel for firstprivate(ncond, CondBegin)
+	for(unsigned int i = 0;  i < ncond; i++)
+	{
+	    ConditionsArrayType::iterator itCond = CondBegin + i;
+	    
+	    itCond->Initialize(); //function to initialize the condition
         }
 
         this->mConditionsAreInitialized = true;
@@ -433,17 +471,15 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            ElementsArrayType::iterator ElementsEnd = rElements.begin() + ElementPartition[k + 1];
-
-            for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->FinalizeSolutionStep(CurrentProcessInfo);
-            }
+	const unsigned int nelem = rModelPart.Elements().size();
+	ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
+	 
+	#pragma omp parallel for firstprivate(nelem, ElemBegin)
+	for(unsigned int i = 0;  i < nelem; i++)
+	{
+	    ElementsArrayType::iterator itElem = ElemBegin + i;
+	    
+	    itElem->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
         ConditionsArrayType& rConditions = rModelPart.Conditions();
@@ -451,18 +487,17 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
 
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
-            {
-                itCond->FinalizeSolutionStep(CurrentProcessInfo);
-            }
+	const unsigned int ncond = rModelPart.Conditions().size();
+	ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
+	 
+	#pragma omp parallel for firstprivate(ncond, CondBegin)
+	for(unsigned int i = 0;  i < ncond; i++)
+	{
+	    ConditionsArrayType::iterator itCond = CondBegin + i;
+	    
+	    itCond->FinalizeSolutionStep(CurrentProcessInfo);
         }
+        
         KRATOS_CATCH( "" );
     }
 
@@ -552,17 +587,14 @@ public:
 
         (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
+	(rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+	
         if(mNewmark.static_dynamic !=0)
         {
             (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread],CurrentProcessInfo);
 
             (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
-        }
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
-
-        if(mNewmark.static_dynamic !=0)
-        {
             AddDynamicsToLHS (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
             AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
@@ -641,17 +673,14 @@ public:
         // Basic operations for the element considered
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 	
+	(rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+	
         if(mNewmark.static_dynamic !=0)
         {
             (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
             (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
-        }
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-	
-        if(mNewmark.static_dynamic !=0)
-        {
             AddDynamicsToLHS  (LHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
 
             AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
@@ -686,18 +715,15 @@ public:
         //basic operations for the element considered
         (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
+	(rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+	
         if(mNewmark.static_dynamic !=0)
         {
             (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
             (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
-        }
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
-
-        // Adding the dynamic contributions (static is already included)
-        if(mNewmark.static_dynamic !=0)
-        {
+	    // Adding the dynamic contributions (static is already included)
             AddDynamicsToRHS  (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
         }
 
@@ -1112,5 +1138,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME defined */
-
-
