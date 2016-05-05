@@ -101,10 +101,10 @@ namespace Kratos
                 double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
                 double indentation = radius_sum - distance;
                 
-                if(indentation>0.0){
+                if(indentation>0.0 && mNeighbourElements[i]->Is(DEMFlags::IS_SINTERING)){
                     cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
-                    cont_ini_ids.push_back(mIniNeighbourIds[i]);
-                    cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
+                    cont_ini_ids.push_back(mNeighbourElements[i]->Id());
+                    cont_ini_deltas.push_back(0.0);
                     cont_ini_failure_ids.push_back(0);                        
                 } else {
                     discont_neighbour_elems.push_back(mNeighbourElements[i]);                    
