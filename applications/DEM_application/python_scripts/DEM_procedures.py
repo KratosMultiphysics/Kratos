@@ -1072,12 +1072,13 @@ class DEMIo(object):
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
-        self.PushPrintVar(self.PostAppliedForces,      EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
-        self.PushPrintVar(self.PostAppliedForces,      EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
-        self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
+        self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
+        self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
+        self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
-            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,          self.spheres_and_clusters_variables)
-            self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,           self.spheres_and_clusters_variables)
+            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,        self.spheres_and_clusters_variables)
+            self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
+            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,            self.spheres_and_clusters_local_axis_variables)
 
     def AddSpheresVariables(self):
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
@@ -1088,8 +1089,6 @@ class DEMIo(object):
         #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)  # Debugging
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
-        if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
-            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,              self.spheres_local_axis_variables)
 
         # NANO
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
