@@ -597,11 +597,6 @@ namespace Kratos {
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->SearchSkinParticles(r_process_info);
-            }
-
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericContinuumParticles[i]->ContactAreaWeighting();
             }
         }
