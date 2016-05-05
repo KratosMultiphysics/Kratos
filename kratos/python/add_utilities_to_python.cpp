@@ -46,7 +46,7 @@
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/connectivity_preserve_modeler.h"
-
+#include "utilities/cutting_utility.h"
 
 namespace Kratos
 {
@@ -312,6 +312,13 @@ void AddUtilitiesToPython()
 
     class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
     .def("GenerateModelPart", GenerateModelPart)
+    ;
+
+    class_<CuttingUtility >("CuttingUtility", init< >())
+    .def("GenerateCut", &CuttingUtility::GenerateCut)
+    .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
+    .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
+    .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
     ;
 }
 
