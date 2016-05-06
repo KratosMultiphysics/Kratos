@@ -71,31 +71,20 @@ public:
                 "value" : 1.0
             }  )" );
 
-        //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        //so that an error is thrown if they don't exist
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        // So that an error is thrown if they don't exist
         rParameters["value"];
         rParameters["variable_name"];
         rParameters["model_part_name"];        
         
-        //now validate agains defaults -- this also ensures no type mismatch
+        // Now validate agains defaults -- this also ensures no type mismatch
         
         rParameters.ValidateAndAssignDefaults(default_parameters);
 #endif
         
         mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
-        if (rParameters["is_fixed"].GetBool())
-        {
-            this->Set( VARIABLE_IS_FIXED, true);
-        }
-        else
-        {
-            this->Set( VARIABLE_IS_FIXED, false);
-        }
-
-//        KRATOS_WATCH(rParameters["is_fixed"].GetBool());
-//        KRATOS_WATCH(Is(VARIABLE_IS_FIXED));
-//        KRATOS_WATCH(rParameters["value"].GetDouble());
+        this->Set( VARIABLE_IS_FIXED, rParameters["is_fixed"].GetBool());
 
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
@@ -147,7 +136,7 @@ public:
             }
         }
         
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
     
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
@@ -157,16 +146,21 @@ public:
                               Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
         
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
+        }
                       
         if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable ) == false )
+        {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
+        }
 
         mvariable_name = rVariable.Name();       
         
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
@@ -176,18 +170,21 @@ public:
                               Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(double_value), mint_value(0), mbool_value(false),mmesh_id(mesh_id)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
         
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+        }
                       
         mvariable_name = rVariable.Name();     
         
         if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable.GetSourceVariable() ) == false )
+        {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
+        }
 
-          
-        
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
    
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
@@ -197,18 +194,25 @@ public:
                               Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(int_value), mbool_value(false),mmesh_id(mesh_id)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
         
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
+        }
         if(this->Is(VARIABLE_IS_FIXED)) 
-            KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
+        }
                      
         if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable ) == false )
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
+        {
+                KRATOS_THROW_ERROR(std::runtime_error,"Trying to fix a variable that is not in the model_part - variable name is ",rVariable);
+        }
 
         mvariable_name = rVariable.Name();       
         
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
     
     ApplyConstantScalarValueProcess(ModelPart& model_part, 
@@ -218,18 +222,25 @@ public:
                               Flags options
                                    ) : Process(options) , mr_model_part(model_part),mdouble_value(0.0), mint_value(0), mbool_value(bool_value),mmesh_id(mesh_id)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
         
-        if(this->IsDefined(VARIABLE_IS_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","")
+        if(this->IsDefined(VARIABLE_IS_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if the variable is to be fixed or not (flag VARIABLE_IS_FIXED)","");
+        }
         if(this->Is(VARIABLE_IS_FIXED)) 
-            KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
+        }
                      
         if( model_part.GetNodalSolutionStepVariablesList().Has( rVariable ) == false )
-                KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",rVariable);
+        {
+                KRATOS_THROW_ERROR(std::runtime_error,"Trying to fix a variable that is not in the model_part - variable name is ",rVariable);
+        }
 
         mvariable_name = rVariable.Name();       
         
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     
@@ -260,7 +271,7 @@ public:
     /// right after reading the model and the groups
     virtual void ExecuteInitialize()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);        
 
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
@@ -283,10 +294,10 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::logic_error, "not able to fix the variable. Attempting to fix variable:",mvariable_name);
+            KRATOS_THROW_ERROR(std::logic_error, "Not able to fix the variable. Attempting to fix variable:",mvariable_name);
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the

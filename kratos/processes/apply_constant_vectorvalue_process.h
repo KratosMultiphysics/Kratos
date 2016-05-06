@@ -77,12 +77,24 @@ public:
                 "direction": [1.0, 0.0, 0.0]
             }  )" );
         
-        //some vvalues need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
-        //so that an error is thrown if they don't exist
-        if(parameters["direction"].IsArray() == true && parameters["direction"].size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is not a vector or it does not have size 3. Direction vector currently passed",parameters.PrettyPrintJsonString());
-        if(parameters["factor"].IsNumber() == false)  KRATOS_THROW_ERROR(std::runtime_error,"factor shall be a number. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
-        if(parameters["variable_name"].IsString()  == false)  KRATOS_THROW_ERROR(std::runtime_error,"vairbale_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
-        if(parameters["model_part_name"].IsString() == false)  KRATOS_THROW_ERROR(std::runtime_error,"model_part_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        // So that an error is thrown if they don't exist
+        if(parameters["direction"].IsArray() == true && parameters["direction"].size() != 3)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"direction vector is not a vector or it does not have size 3. Direction vector currently passed",parameters.PrettyPrintJsonString());
+        }
+        if(parameters["factor"].IsNumber() == false)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"factor shall be a number. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+        }
+        if(parameters["variable_name"].IsString()  == false)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"vairbale_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+        }
+        if(parameters["model_part_name"].IsString() == false)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"model_part_name shall be a String. Parameter list in which is included is :", parameters.PrettyPrintJsonString());
+        }
         
         //now validate agains defaults -- this also ensures no type mismatch
         parameters.ValidateAndAssignDefaults(default_parameters);
@@ -100,8 +112,6 @@ public:
         mfactor = parameters["factor"].GetDouble();
 //         mvalue = parameters["value"].GetDouble();
         
-        
-            
         mdirection.resize(3,false);
         mdirection[0] = parameters["direction"][0].GetDouble();
         mdirection[1] = parameters["direction"][1].GetDouble();
@@ -109,39 +119,51 @@ public:
         
         const double dim_norm = norm_2(mdirection);
         if(dim_norm < 1e-20)
-            KRATOS_THROW_ERROR(std::runtime_error," norm of direction given is approximately zero. Please give a direction vector with a non zero norm : current value of direction vector = ",mdirection)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error," Norm of direction given is approximately zero. Please give a direction vector with a non zero norm : current value of direction vector = ",mdirection);
+        }
         
         // Normalize the direction
         mdirection /= dim_norm;
             
         if(KratosComponents< Variable<array_1d<double,3> > >::Has(mvariable_name) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name);
+        }
         Variable<array_1d<double,3> > rVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(mvariable_name);
        
         
         if(mmesh_id >= model_part.NumberOfMeshes())
-            KRATOS_THROW_ERROR(std::runtime_error,"mesh does not exist in model_part: mesh id is --> ",mmesh_id)
-  
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Mesh does not exist in model_part: mesh id is --> ",mmesh_id);
+        }
         
         if( model_part.GetNodalSolutionStepVariablesList().Has(rVariable) == false )
-         {
-             std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
-             KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
-         }
+        {
+            std::string err_msg = std::string("Trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
+            KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
+        }
         
-        if(mdirection.size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
+        if(mdirection.size() != 3)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Direction vector is expected to have size 3. Direction vector currently passed",mdirection);
+        }
             
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_X"))
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_X"));
+        }
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Y")) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Y"))
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Y"));
+        }
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Z"));
+        }
 
-         
-         
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
     
     
@@ -153,36 +175,54 @@ public:
                               Flags options
                                    ) : Process(options) , mr_model_part(model_part), mfactor(factor),mdirection(direction),mmesh_id(mesh_id)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
         
         if(mesh_id >= model_part.NumberOfMeshes())
-            KRATOS_THROW_ERROR(std::runtime_error,"mesh does not exist in model_part: mesh id is --> ",mesh_id)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Mesh does not exist in model_part: mesh id is --> ",mesh_id);
+        }
                     
-        if(this->IsDefined(X_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","")
-        if(this->IsDefined(Y_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","")
-        if(this->IsDefined(Z_COMPONENT_FIXED) == false ) KRATOS_THROW_ERROR(std::runtime_error,"please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","")
+        if(this->IsDefined(X_COMPONENT_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if component x is to be fixed or not  (flag X_COMPONENT_FIXED)","");
+        }
+        if(this->IsDefined(Y_COMPONENT_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if component y is to be fixed or not  (flag Y_COMPONENT_FIXED)","");
+        }
+        if(this->IsDefined(Z_COMPONENT_FIXED) == false )
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Please specify if the variable is to be fixed or not (flag Z_COMPONENT_FIXED)","");
+        }
   
         mvariable_name = rVariable.Name();
         
         if( model_part.GetNodalSolutionStepVariablesList().Has(rVariable) == false )
          {
-             std::string err_msg = std::string("trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
+             std::string err_msg = std::string("Trying to fix a variable that is not in the model_part - variable: ")+mvariable_name;
              KRATOS_THROW_ERROR(std::runtime_error,err_msg,mvariable_name);
          }
         
-        if(direction.size() != 3) KRATOS_THROW_ERROR(std::runtime_error,"direction vector is expected to have size 3. Direction vector currently passed",mdirection)
+        if(direction.size() != 3)
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Direction vector is expected to have size 3. Direction vector currently passed",mdirection);
+        }
             
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_X")) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_X"))
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_X"));
+        }
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Y")) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Y"))
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Y"));
+        }
         if(KratosComponents< component_type >::Has(mvariable_name+std::string("_Z")) == false)
-            KRATOS_THROW_ERROR(std::runtime_error,"not defined the variable ",mvariable_name+std::string("_Z"))
+        {
+            KRATOS_THROW_ERROR(std::runtime_error,"Not defined the variable ",mvariable_name+std::string("_Z"));
+        }
 
-         
-         
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
     
     
@@ -326,7 +366,9 @@ private:
 
             //check if the dofs are there (on the first node)
             if(to_be_fixed && (it_begin->HasDofFor(rVar) == false) )
-                KRATOS_THROW_ERROR(std::runtime_error, " trying to fix a dofs which was not allocated. Variable is --> ",rVar.Name() );
+            {
+                KRATOS_THROW_ERROR(std::runtime_error, " Trying to fix a dofs which was not allocated. Variable is --> ",rVar.Name() );
+            }
             
              #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
@@ -334,15 +376,14 @@ private:
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 
                 if(to_be_fixed)
+                {
                     it->Fix(rVar); 
+                }
     
                 it->FastGetSolutionStepValue(rVar) = value;
             }
         }
     }
-
-
-
 
     ///@}
     ///@name Un accessible methods
