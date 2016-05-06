@@ -253,7 +253,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
 
         # LOCAL AXIS
-        if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
+        if (Var_Translator(self.DEM_parameters.PostEulerAngles)):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
         if ((hasattr(self.DEM_parameters, "StressStrainOption")) and self.DEM_parameters.StressStrainOption):
@@ -1107,17 +1107,17 @@ class DEMIo(object):
 
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
             if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
-                self.PushPrintVar(self.DEM_parameters.PostStressStrainOption, POISSON_VALUE,         self.spheres_variables)
+                self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_XX,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_XY,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_XZ,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_YX,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_YY,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_YZ,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_ZX,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_ZY,         self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRESS_ZZ,         self.spheres_variables)
+                self.PushPrintVar(1, POISSON_VALUE,         self.spheres_variables)
                 #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
 
     def AddArlequinVariables(self):
@@ -1300,8 +1300,8 @@ class DEMIo(object):
                 self.ComputeAndPrintBoundingBox(spheres_model_part, rigid_face_model_part, creator_destructor)
             #self.ComputeAndPrintDEMFEMSearchBinBoundingBox(spheres_model_part, rigid_face_model_part, dem_fem_search)#MSIMSI
 
-            self.gid_io.FinalizeMesh()
-            self.gid_io.InitializeResults(time, self.mixed_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.FinalizeMesh()                
+            self.gid_io.InitializeResults(time, self.mixed_model_part.GetCommunicator().LocalMesh())                        
             #self.gid_io.InitializeResults(time, mixed_spheres_and_clusters_model_part.GetCommunicator().LocalMesh())
 
     def FinalizeMesh(self):
