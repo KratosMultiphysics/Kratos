@@ -136,6 +136,11 @@ namespace Kratos
                 mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
                 mContinuumConstitutiveLawArray[i]->Initialize();
                 
+                mBondElements.push_back(NULL);
+                //std::string ElementName;
+                //ElementName = std::string("ParticleContactElement");
+                //const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);                
+                
                 mActualNeighbourSinteringDisplacement[i] = 0.0;
                 mOldNeighbourSinteringDisplacement[i] = 0.0;
             }
