@@ -71,7 +71,6 @@ rigid_face_model_part = ModelPart("RigidFace_Part")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
-contact_model_part    = ""
 
 # Constructing a utilities objects
 creator_destructor = ParticleCreatorDestructor()
@@ -188,7 +187,7 @@ os.chdir(post_path)
 demio.InitializeMesh(spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
-                     contact_model_part,
+                     solver.contact_model_part,
                      mapping_model_part)
 
 os.chdir(post_path)
@@ -223,9 +222,6 @@ creator_destructor.SetMaxNodeId(max_Id)
 #Strategy Initialization
 os.chdir(main_path)
 solver.Initialize()    # Possible modifications of DELTA_TIME, number of elements and number of nodes
-
-if (DEM_parameters.ContactMeshOption =="ON"):
-    contact_model_part = solver.contact_model_part
   
 #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation  
 #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
@@ -251,7 +247,7 @@ first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
-        (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
+        (coordination_number) = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
         KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
         os.chdir(main_path)
     else:
@@ -383,7 +379,7 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
+        demio.PrintResults(spheres_model_part, rigid_face_model_part, cluster_model_part, solver.contact_model_part, mapping_model_part, creator_destructor, dem_fem_search, time, bounding_box_time_limits)
         os.chdir(main_path)
         
         if nodeplotter:
@@ -393,7 +389,7 @@ while (time < DEM_parameters.FinalTime):
 
     #if((step%500) == 0):
         #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
-            #MaterialTest.OrientationStudy(contact_model_part, step)
+            #MaterialTest.OrientationStudy(solver.contact_model_part, step)
     
     #print("TIME STEP ENDS +++++++++++++++++++++++++++++++++++++++++++++++++")
 ##############################################################################
@@ -420,7 +416,7 @@ KRATOSprint(report.FinalReport(timer))
 
 # Freeing up memory
 objects_to_destroy = [demio, procedures, creator_destructor, dem_fem_search, solver, DEMFEMProcedures, post_utils, 
-                      cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part, contact_model_part]
+                      cluster_model_part, rigid_face_model_part, spheres_model_part, DEM_inlet_model_part, mapping_model_part]
 
 if (DEM_parameters.dem_inlet_option):
     objects_to_destroy.append(DEM_inlet)
