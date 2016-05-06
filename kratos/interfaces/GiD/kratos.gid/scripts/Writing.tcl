@@ -724,7 +724,11 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         foreach {inputName in_obj} $process_parameters {
             set in_type [$in_obj getType]
             catch {
-                dict set paramDict variable_name [concat [$condition getAttribute "variable_name"]]
+                set variable_name [$condition getAttribute variable_name]
+                #~ W $variable_name
+                # "lindex" is a rough solution. Look for a better one.
+                dict set paramDict variable_name [lindex $variable_name 0]
+                
             }
             if {$in_type eq "vector"} {
                 #W "input [$in_obj getName] fix: [$in_obj getFixity]"
