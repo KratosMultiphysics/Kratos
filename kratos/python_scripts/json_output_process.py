@@ -30,18 +30,18 @@ class JsonOutputProcess(Process):
       data = {}
       data["TIME"] = []
       for node in self.sub_model_part.Nodes:
-        break
+        data["NODE_"+str(node.Id)] = {}
 
-      for i in range(self.params["output_variables"].size()):
-        out = self.params["output_variables"][i]
-        variable = KratosGlobals.GetVariable( out.GetString() )
-        val = node.GetSolutionStepValue(variable, 0)
-        if isinstance(val,float):
-            data[out.GetString() ] = []
-        else: # It is a vector
-            data[out.GetString()  + "_X"] = []
-            data[out.GetString()  + "_Y"] = []
-            data[out.GetString()  + "_Z"] = []
+        for i in range(self.params["output_variables"].size()):
+          out = self.params["output_variables"][i]
+          variable = KratosGlobals.GetVariable( out.GetString() )
+          val = node.GetSolutionStepValue(variable, 0)
+          if isinstance(val,float):
+              data["NODE_"+str(node.Id)][out.GetString() ] = []
+          else: # It is a vector
+              data["NODE_"+str(node.Id)][out.GetString()  + "_X"] = []
+              data["NODE_"+str(node.Id)][out.GetString()  + "_Y"] = []
+              data["NODE_"+str(node.Id)][out.GetString()  + "_Z"] = []
         write_external_json(self.output_file_name, data)
             
     def ExecuteInitializeSolutionStep(self):
@@ -50,32 +50,30 @@ class JsonOutputProcess(Process):
     def ExecuteFinalizeSolutionStep(self):
         data =  read_external_json(self.output_file_name)
         
-        for node in self.sub_model_part.Nodes:
-          break
-
         time = self.sub_model_part.ProcessInfo.GetValue(TIME)
         dt = self.sub_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.time_counter += dt
         if self.time_counter > self.frequency:
           self.time_counter = 0.0
           data["TIME"].append(time)
-          for i in range(self.params["output_variables"].size()):
-            out = self.params["output_variables"][i]
-            variable = KratosGlobals.GetVariable( out.GetString() )
-            val = node.GetSolutionStepValue(variable, 0)
-            if isinstance(val,float):
-              value_scalar = True
-            else:
-              value_scalar = False
+          for node in self.sub_model_part.Nodes:
+            for i in range(self.params["output_variables"].size()):
+              out = self.params["output_variables"][i]
+              variable = KratosGlobals.GetVariable( out.GetString() )
+              val = node.GetSolutionStepValue(variable, 0)
+              if isinstance(val,float):
+                value_scalar = True
+              else:
+                value_scalar = False
 
-            for out_node in self.sub_model_part.Nodes:
-              value = node.GetSolutionStepValue(variable, 0)
-              if value_scalar:
-                data[out.GetString() ].append(value)
-              else: # It is a vector
-                data[out.GetString()  + "_X"].append(value[0])
-                data[out.GetString()  + "_Y"].append(value[1])
-                data[out.GetString()  + "_Z"].append(value[2])
+              for out_node in self.sub_model_part.Nodes:
+                value = node.GetSolutionStepValue(variable, 0)
+                if value_scalar:
+                  data["NODE_"+str(node.Id)][out.GetString() ].append(value)
+                else: # It is a vector
+                  data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
+                  data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
+                  data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
               
         write_external_json(self.output_file_name, data)
 
