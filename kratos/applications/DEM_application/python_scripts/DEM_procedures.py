@@ -1015,12 +1015,15 @@ class DEMIo(object):
     def __init__(self, DEM_parameters):
         self.mixed_model_part      = ModelPart("Mixed_Part")
         self.mixed_spheres_and_clusters_model_part = ModelPart("MixedSpheresAndClustersPart")
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
         
         # Printing variables
         self.DEM_parameters = DEM_parameters
         self.global_variables                          = []
         self.spheres_and_clusters_variables            = []
         self.spheres_and_clusters_local_axis_variables = []
+        self.spheres_not_in_cluster_and_clusters_variables = []
+        self.spheres_not_in_cluster_and_clusters_local_axis_variables = []
         self.spheres_variables                         = []
         self.spheres_local_axis_variables              = []
         self.fem_boundary_variables                    = []
@@ -1082,7 +1085,10 @@ class DEMIo(object):
         if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY,        self.spheres_and_clusters_variables)
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,         self.spheres_and_clusters_variables)
-            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,            self.spheres_and_clusters_local_axis_variables)
+            
+    def AddSpheresNotInClusterAndClustersVariables(self):  # variables common to spheres and clusters
+        if (Var_Translator(self.DEM_parameters.RotationOption)):  # xapuza
+            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,            self.spheres_not_in_cluster_and_clusters_local_axis_variables)
 
     def AddSpheresVariables(self):
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
@@ -1143,7 +1149,7 @@ class DEMIo(object):
         #self.PushPrintVar( 1,                                               TOTAL_FORCES, self.mapping_variables)
 
     def AddClusterVariables(self):
-        pass
+        self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
@@ -1233,6 +1239,9 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, cluster_model_part)
+            
+            self.post_utility.AddSpheresNotBelongingToClustersToMixModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, spheres_model_part)
+            self.post_utility.AddModelPartToModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
@@ -1257,6 +1266,8 @@ class DEMIo(object):
             self.mixed_model_part.Nodes.clear()
             self.mixed_spheres_and_clusters_model_part.Elements.clear()
             self.mixed_spheres_and_clusters_model_part.Nodes.clear()
+            self.mixed_spheres_not_in_cluster_and_clusters_model_part.Elements.clear()
+            self.mixed_spheres_not_in_cluster_and_clusters_model_part.Nodes.clear()
 
             self.post_utility.AddModelPartToModelPart(self.mixed_model_part, spheres_model_part)
             if (self.contact_mesh_option == "ON"):
@@ -1267,6 +1278,9 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, spheres_model_part)
             self.post_utility.AddModelPartToModelPart(self.mixed_spheres_and_clusters_model_part, cluster_model_part)
+            
+            self.post_utility.AddSpheresNotBelongingToClustersToMixModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, spheres_model_part)
+            self.post_utility.AddModelPartToModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(time)
             if (self.DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
@@ -1306,6 +1320,12 @@ class DEMIo(object):
         for variable in self.spheres_and_clusters_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
         for variable in self.spheres_and_clusters_local_axis_variables:
+            self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
+            
+    def PrintingSpheresNotInClusterAndClustersVariables(self, export_model_part, time):
+        for variable in self.spheres_not_in_cluster_and_clusters_variables:
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+        for variable in self.spheres_not_in_cluster_and_clusters_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
 
     def PrintingSpheresVariables(self, export_model_part, time):
@@ -1348,6 +1368,7 @@ class DEMIo(object):
 
         self.PrintingGlobalVariables(self.mixed_model_part, time)
         self.PrintingSpheresAndClustersVariables(self.mixed_spheres_and_clusters_model_part, time)
+        self.PrintingSpheresNotInClusterAndClustersVariables(self.mixed_spheres_not_in_cluster_and_clusters_model_part, time)
         self.PrintingSpheresVariables(spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)
@@ -1359,6 +1380,8 @@ class DEMIo(object):
         self.mixed_model_part.Nodes.clear() #to remove the shared pointers that remain and prevent objects from being removed
         self.mixed_spheres_and_clusters_model_part.Elements.clear() #to remove the shared pointers that remain and prevent objects from being removed
         self.mixed_spheres_and_clusters_model_part.Nodes.clear() #to remove the shared pointers that remain and prevent objects from being removed
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part.Elements.clear() #to remove the shared pointers that remain and prevent objects from being removed
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part.Nodes.clear() #to remove the shared pointers that remain and prevent objects from being removed
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()

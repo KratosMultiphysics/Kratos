@@ -137,6 +137,7 @@ void  AddCustomUtilitiesToPython() {
         ("PostUtilities", init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
         .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
+        .def("AddSpheresNotBelongingToClustersToMixModelPart", &PostUtilities::AddSpheresNotBelongingToClustersToMixModelPart)
         .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)
         .def("IntegrationOfForces", &PostUtilities::IntegrationOfForces)
         .def("ComputePoisson", &PostUtilities::ComputePoisson)
