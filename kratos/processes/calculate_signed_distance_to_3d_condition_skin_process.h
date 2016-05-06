@@ -1699,9 +1699,6 @@ private:
 //            if(distances[0]*distances[1] < 0.00 || distances[2]*distances[1] < 0.00)
 //                KRATOS_WATCH_3(distances);
 
-#ifdef _DEBUG
-            std::cout << "colors : " << colors[0] << ", " << colors[1] << ", " << colors[2] << std::endl;
-#endif
             double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
             distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
 
@@ -1791,13 +1788,6 @@ private:
         cell = octree->pGetCell(ray_key);
         ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
         //cell get in pGetCell is the right one.
-#ifdef _DEBUG
-        Octree_Pooyan::key_type min_key[3];
-        cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
-        Octree_Pooyan::key_type tmp;
-        tmp= min_key[direction];
-        assert(ray_key[direction]==tmp);
-#endif
       } else
         cell = NULL;
     }
@@ -1850,13 +1840,6 @@ private:
         cell = octree->pGetCell(ray_key);
         ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
         //cell get in pGetCell is the right one.
-#ifdef _DEBUG
-        Octree_Pooyan::key_type min_key[3];
-        cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
-        Octree_Pooyan::key_type tmp;
-        tmp= min_key[direction];
-        assert(ray_key[direction]==tmp);
-#endif
       } else
         cell = NULL;
     }

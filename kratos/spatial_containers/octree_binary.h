@@ -840,30 +840,7 @@ namespace Kratos {
 
         cell_type * pGetNeighbourCell(const cell_type* p_cell, std::size_t direction) {
           key_type keys[3];
-#ifdef _DEBUG
-          //abel
-          cell_type* ret=NULL;
-          switch (direction){
-          case 0: ret = pGetLeftCell(p_cell);
-            break;
-          case 1: ret = pGetRightCell(p_cell);
-            break;
-          case 2:  ret = pGetBackCell(p_cell);
-            break;
-          case 3:  ret = pGetFrontCell(p_cell);
-            break;
-          case 4:  ret = pGetBottomCell(p_cell);
-            break;
-          case 5: ret = pGetTopCell(p_cell);
-            break;
-          default: assert(0); break;
-          }
-          //return ret;
-          if (p_cell->GetNeighbourKey(direction, keys)) {
-            assert(ret==pGetCell(keys));
-          }
-          else assert(!ret); // no neighbour
-#endif
+
             if (p_cell->GetNeighbourKey(direction, keys)) {
                 return pGetCell(keys);
             }
@@ -1002,24 +979,7 @@ namespace Kratos {
                   break;
                 }
                 range_cell = range_cell->pGetChild(min_x_key, min_y_key, min_z_key);
-
             }
-#ifdef _DEBUG
-            {
-              //abel
-              double cell_min_point[3];
-              double cell_max_point[3];
-
-              range_cell->GetMinPoint(cell_min_point);
-              range_cell->GetMaxPoint(cell_max_point);
-              for(int i = 0 ; i < 3 ; i++)
-              {
-                assert(cell_min_point[i] <= min_coord[i]);
-                assert(cell_max_point[i] >= max_coord[i]);
-              }
-              //assert(configuration_type::IsIntersected(object,tolerance, cell_min_point, cell_max_point);
-            }
-#endif
 
             // Now we have the cell (or leaf) containing the entire range and from now on we have to intersect the object with all childs
             std::vector<cell_type*> cells_stack;
@@ -1113,22 +1073,6 @@ namespace Kratos {
                 range_cell = range_cell->pGetChild(min_x_key, min_y_key, min_z_key);
 
             }
-#ifdef _DEBUG
-            {
-              //abel
-              double cell_min_point[3];
-              double cell_max_point[3];
-
-              range_cell->GetMinPoint(cell_min_point);
-              range_cell->GetMaxPoint(cell_max_point);
-              for(int i = 0 ; i < 3 ; i++)
-              {
-                assert(cell_min_point[i] <= min_coord[i]);
-                assert(cell_max_point[i] >= max_coord[i]);
-              }
-              //assert(configuration_type::IsIntersected(object,tolerance, cell_min_point, cell_max_point);
-            }
-#endif
 
             // Now we have the cell (or leaf) containing the entire range and from now on we have to intersect the object with all childs
             std::vector<cell_type*> cells_stack;
@@ -1231,22 +1175,7 @@ namespace Kratos {
                 range_cell = range_cell->pGetChild(min_x_key, min_y_key, min_z_key);
 
             }
-#ifdef _DEBUG
-            {
-              //abel
-              double cell_min_point[3];
-              double cell_max_point[3];
 
-              range_cell->GetMinPoint(cell_min_point);
-              range_cell->GetMaxPoint(cell_max_point);
-              for(int i = 0 ; i < 3 ; i++)
-              {
-                assert(cell_min_point[i] <= min_coord[i]);
-                assert(cell_max_point[i] >= max_coord[i]);
-              }
-              //assert(configuration_type::IsIntersected(object,tolerance, cell_min_point, cell_max_point);
-            }
-#endif
 
             // Now we have the cell (or leaf) containing the entire range and from now on we have to intersect the object with all childs
             std::vector<cell_type*> cells_stack;
