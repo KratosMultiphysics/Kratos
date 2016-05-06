@@ -84,14 +84,27 @@ public:
         
         mmesh_id = rParameters["mesh_id"].GetInt();
         mvariable_name = rParameters["variable_name"].GetString();
-        this->Set( VARIABLE_IS_FIXED), rParameters["is_fixed"].GetBool();
-        
+        if (rParameters["is_fixed"].GetBool())
+        {
+            this->Set( VARIABLE_IS_FIXED, true);
+        }
+        else
+        {
+            this->Set( VARIABLE_IS_FIXED, false);
+        }
+
+//        KRATOS_WATCH(rParameters["is_fixed"].GetBool());
+//        KRATOS_WATCH(Is(VARIABLE_IS_FIXED));
+//        KRATOS_WATCH(rParameters["value"].GetDouble());
+
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             mdouble_value = rParameters["value"].GetDouble();
             
             if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
+            {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
+            }
         }
         else if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
         {
@@ -99,7 +112,9 @@ public:
             component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
             
             if( model_part.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
+            {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
+            }
             
             mdouble_value = rParameters["value"].GetDouble();
         }
@@ -108,23 +123,29 @@ public:
             mint_value = rParameters["value"].GetInt();
             
             if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<int> >::Get( mvariable_name ) ) == false )
+            {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
+            }
             
             if(this->Is(VARIABLE_IS_FIXED)) 
+            {
                 KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<int>. Only double variables or vector components can be fixed","");
+            }
         }
         else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
         {
             mbool_value = rParameters["value"].GetBool();
             
             if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<bool> >::Get( mvariable_name ) ) == false )
+            {
                 KRATOS_THROW_ERROR(std::runtime_error,"trying to fix a variable that is not in the model_part - variable name is ",mvariable_name);
+            }
             
             if(this->Is(VARIABLE_IS_FIXED)) 
+            {
                 KRATOS_THROW_ERROR(std::runtime_error,"sorry it is not possible to fix variables of type Variable<bool>. Only double variables or vector components can be fixed","");
+            }
         }
-                      
-     
         
         KRATOS_CATCH("")
     }
@@ -241,7 +262,7 @@ public:
     {
         KRATOS_TRY
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);        
-        
+
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             InternalApplyValue<>(KratosComponents< Variable<double> >::Get(mvariable_name) , is_fixed, mdouble_value);
@@ -264,7 +285,7 @@ public:
         {
             KRATOS_THROW_ERROR(std::logic_error, "not able to fix the variable. Attempting to fix variable:",mvariable_name);
         }
-        
+
         KRATOS_CATCH("")
     }
 
