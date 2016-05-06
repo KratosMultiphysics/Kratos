@@ -59,8 +59,38 @@ namespace Kratos {
             }
 
             KRATOS_CATCH("");
-        }    
+        }
+        
+        void AddSpheresNotBelongingToClustersToMixModelPart(ModelPart& rCompleteModelPart, ModelPart& rModelPartToAdd)
+        {
+            ////WATCH OUT! This function respects the existing Id's!
+            KRATOS_TRY;      
 
+            //preallocate the memory needed
+            int tot_size = rCompleteModelPart.Nodes().size();
+            for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
+            {
+                ModelPart::NodeIterator i_iterator = node_it;
+                Node < 3 > & i = *i_iterator;
+                if (i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {tot_size += 1;}
+            }
+            rCompleteModelPart.Nodes().reserve(tot_size);
+            rCompleteModelPart.Elements().reserve(tot_size);
+            for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
+            {
+                ModelPart::NodeIterator i_iterator = node_it;
+                Node < 3 > & i = *i_iterator;
+                if (i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {rCompleteModelPart.Nodes().push_back(*node_it);}
+            }
+
+            for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_begin(); elem_it != rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_end(); elem_it++)
+            {             
+                Node < 3 >& i = (*elem_it)->GetGeometry()[0];
+                if (i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {rCompleteModelPart.Elements().push_back(*elem_it);}
+            }
+
+            KRATOS_CATCH("");
+        }
 
         array_1d<double,3> VelocityTrap(ModelPart& rModelPart, const array_1d<double,3>& low_point, const array_1d<double,3>& high_point) {
 
