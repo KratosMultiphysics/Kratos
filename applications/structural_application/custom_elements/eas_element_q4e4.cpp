@@ -225,7 +225,7 @@ namespace Kratos
 	 * @param output Vector to store the values on the qudrature points, output of the method
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
 	{
 		if ( Output.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
 			Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
@@ -870,29 +870,28 @@ namespace Kratos
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int StrainSize = dim * (dim + 1) / 2;
-
-        std::vector<double> InternalForces(dim);
+        double aux;
         
         for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
         {
             for ( unsigned int i = 0; i < dim; i++ )
             {
-                InternalForces[i] = 0.0;
+                aux = 0.0;
                 for ( unsigned int gamma = 0; gamma < StrainSize; gamma++ )
                 {
-                    InternalForces[i] += B_Operator( gamma, prim * dim + i ) * StressVector( gamma ) * detJ * Weight;
+                    aux += B_Operator( gamma, prim * dim + i ) * StressVector( gamma ) * detJ * Weight;
                 }
                 
-                R( prim * dim + i ) -= InternalForces[i];
+                R( prim * dim + i ) -= aux;
                 
                 if( i == 0 )
-                    GetGeometry()[prim].GetSolutionStepValue( REACTION_X ) += InternalForces[i];
+                    GetGeometry()[prim].GetSolutionStepValue( REACTION_X ) += aux;
                 
                 if( i == 1 )
-                    GetGeometry()[prim].GetSolutionStepValue( REACTION_Y ) += InternalForces[i];
+                    GetGeometry()[prim].GetSolutionStepValue( REACTION_Y ) += aux;
                     
                 if( i == 2 )
-                    GetGeometry()[prim].GetSolutionStepValue( REACTION_Z ) += InternalForces[i];
+                    GetGeometry()[prim].GetSolutionStepValue( REACTION_Z ) += aux;
             }
         }
         

@@ -169,8 +169,7 @@ public:
 
     void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                      std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    void SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
     void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
@@ -178,7 +177,7 @@ public:
 
     void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateOnIntegrationPoints( const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
 
@@ -302,20 +301,20 @@ private:
 
     std::vector< Matrix > mInvJ0;
     Vector mDetJ0;
-    
+
     Matrix mInverseF0operator;
     double mDetJcentre;
 
     bool mIsInitialized;
 
     Matrix mInitialDisp;
-    
+
     Vector mIncompatibleMode;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
-    /** K += weight*Btrans*D*B */
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                        ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
@@ -339,7 +338,7 @@ private:
     //CALCULATE FORCEVECTORS DISPLACEMENT
 
     void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ );
-    
+
     void CalculateAndAdd_ExtForceContribution(const Vector& N, const ProcessInfo& CurrentProcessInfo,
         Vector& BodyForce, VectorType& rRightHandSideVector, double weight, double detJ);
 
@@ -347,16 +346,14 @@ private:
 
     void CalculateStrain( const Matrix& B, const Matrix& Displacements, const Matrix& G, const Vector& IncompatibleMode, Vector& StrainVector );
 
-    Matrix GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
-
     void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
-    
+
     void CalculateGoperator ( Matrix& G_Operator, IndexType IntegrationPointIndex);
-    
+
     void CalculateF0operator ( Matrix& F0_Operator, Matrix& J );
 
     void CalculateIncompatibleMode ( Vector& rIncompatibleMode , const ProcessInfo& rCurrentProcessInfo );
-	    
+
     ///@}
     ///@name Private Operations
     ///@{
