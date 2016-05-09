@@ -1,6 +1,7 @@
 from KratosMultiphysics import *
 import json
 import numpy as np
+from json_utilities import *
 CheckForPreviousImport()
 
 # Import KratosUnittest
@@ -87,13 +88,4 @@ class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
       return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
-
-def read_external_json(file_name):
-  with open(file_name, 'r') as outfile:
-      data = json.load(outfile)
-  return data
-      
-def write_external_json(file_name, data):
-  with open(file_name, 'w') as outfile:
-    json.dump(data, outfile)
 
