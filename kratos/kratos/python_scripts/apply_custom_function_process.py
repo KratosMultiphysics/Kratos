@@ -56,13 +56,9 @@ class ApplyCustomFunctionProcess(Process):
             
         print("finished construction of ApplyCustomFunctionProcess Process")
     
-    
     def function(self, x,y,z,t):
         return eval(self.compiled_function) #this one is MUCH FASTER!
         #return eval(self.function_string)
-      
-            
-
     
     def ExecuteInitializeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[TIME]
@@ -94,22 +90,19 @@ class ApplyCustomFunctionProcess(Process):
                 #here we free all of the nodes in the mesh
                 fix = False
                 self.variable_utils.ApplyFixity(self.variable, fix, self.mesh.Nodes)
-
-    
-    
     
 def Factory(settings, Model):
     params = settings["parameters"]
     
-    if(settings["process_name"] == "ApplyCustomFunctionProcess"):
-        model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
-        mesh_id = params["mesh_id"]
-        variable_name = params["variable_name"] 
-        is_fixed = params["is_fixed"]
+    if(settings["process_name"].GetString() == "ApplyCustomFunctionProcess"):
+        model_part = Model[params["model_part_name"].GetString()]
+        mesh_id = params["mesh_id"].GetInt()
+        variable_name = params["variable_name"].GetString() 
+        is_fixed = params["is_fixed"].GetBool()
         #table_id = params["table_id"]
-        interval = params["interval"]
-        free_outside_of_interval = params["free_outside_of_interval"]
-        function_string = params["f(x,y,z,t)="]
+        interval = [params["interval"][0].GetDouble(), params["interval"][1].GetDouble()]
+        free_outside_of_interval = params["free_outside_of_interval"].GetBool()
+        function_string = params["f(x,y,z,t)="].GetString() 
         
         if(len(interval) != 2):
             raise Exception( "interval size is expected to be two, while we got interval = "+str(interval));
