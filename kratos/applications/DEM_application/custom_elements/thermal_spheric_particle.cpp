@@ -33,11 +33,9 @@ namespace Kratos
         TBaseElement::Initialize(r_process_info);
          // We can put here UpdateTemperatureDependentRadius()
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
-        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY]; 
-        if (GetGeometry()[0].Coordinates()[1] > 10){ GetTemperature() = 200.0; }
-        else{ GetTemperature() = 0.0;}
+        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];         
         mPreviousTemperature = 293;		// initial temperature in the first time step
-        GetTemperature() = mPreviousTemperature; // initial temperature in the first time step
+        SetTemperature(mPreviousTemperature);// initial temperature in the first time step
     }
 
     template< class TBaseElement >
@@ -48,11 +46,16 @@ namespace Kratos
     }
     
     template< class TBaseElement >
-    double& ThermalSphericParticle<TBaseElement>::GetTemperature(){return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);}
-	template< class TBaseElement >
-	void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
-		calculation_area = KRATOS_M_PI*rmin*rmin;
-	}
+    const double& ThermalSphericParticle<TBaseElement>::GetTemperature(){return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);}
+    
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::SetTemperature(const double temperature){GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)=temperature;}
+    
+    
+    template< class TBaseElement >
+    void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
+            calculation_area = KRATOS_M_PI*rmin*rmin;
+    }
                 
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info) {                                                                                                                             
@@ -141,7 +144,7 @@ namespace Kratos
         double dt = r_process_info[DELTA_TIME];
         if (mSpecificHeat>0) {// putting this condition to avoid issue, when mSpecificHeat is equal zero, which cause the wrong temperature_increment calculation        
             double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;
-            GetTemperature() += temperature_increment;
+            SetTemperature(GetTemperature() + temperature_increment);
             GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mConductiveHeatFlux;
         }
     }
@@ -194,7 +197,7 @@ namespace Kratos
         double LocalRelVel[3]          = {0.0};
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
 
-        LocalRelVel[2] -= thermalRelVel;
+        //LocalRelVel[2] -= thermalRelVel;
 
         GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);   
     }
