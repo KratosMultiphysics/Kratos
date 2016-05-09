@@ -73,8 +73,9 @@ namespace Kratos
         
         void Initialize(const ProcessInfo& r_process_info) override;
         void InitializeSolutionStep(ProcessInfo& r_process_info) override;
-        double& GetTemperature();   
-		virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
+        const double& GetTemperature();   
+        void SetTemperature(const double temperature);
+        virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
         void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);   
         void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);  
         void CalculateRightHandSide(ProcessInfo& r_current_process_info,

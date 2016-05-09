@@ -244,7 +244,7 @@ namespace Kratos
             return 0.0;                 
         }*/
 
-        void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
+        void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area) { //TODO: add "thermal" word to this function
                 double actual_neck_radius;
                 if (this->Is(DEMFlags::IS_SINTERING)) {
                         indentation = -indentation;
