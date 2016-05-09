@@ -40,7 +40,7 @@ The OutletProcess has been substituted by the ImposedScalarValueProcess in the c
         implemented_in_module="KratosMultiphysics" help="This process ">
     <inputs>
         <parameter n="factor" pn="Modulus" type="double"  v="1.0" unit_magnitude="0" units="0"/>
-        <parameter n="value" pn="Direction" type="vector" v="0.0,-9.81,0.0" />
+        <parameter n="direction" pn="Direction" type="vector" v="0.0,-9.81,0.0" />
     </inputs>
     </Process>
   
