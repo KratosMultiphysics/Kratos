@@ -157,9 +157,29 @@
 			set elemnames [list ]
 			foreach elem $elems { lappend elemnames [$elem @v]}
 			set elemnames [lsort -unique $elemnames]
-			if {$elemnames eq ""} {return "hiden"}
+			if {$elemnames eq ""} {return "hidden"}
 			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
+	  ]]>
+	</proc>
+	  <proc n='CheckNodalConditionOutputState' args='args'>
+	  <![CDATA[
+		set NC_un [apps::getCurrentUniqueName NodalConditions]
+	    if {[spdAux::getRoute $NC_un] ne ""} {
+			set ncs [$domNode selectNodes "[spdAux::getRoute $NC_un]/condition/group"]
+			set ncslist [list ]
+			foreach nc $ncs { lappend ncslist [[$nc parent] @n]}
+			set ncslist [lsort -unique $ncslist]
+			set conditionId [lindex $args 0]
+			if {$conditionId ni $ncslist} {return "hidden"} {return "normal"}
+			set outputId [$domNode @n]
+			if {[::Model::CheckNodalConditionOutputState $conditionId $outputId]} {return "normal"} else {return "hidden"}
+		} {return "normal"}
+	  ]]>
+	</proc>
+	  <proc n='RefreshTree' args='args'>
+	  <![CDATA[
+		spdAux::RequestRefresh
 	  ]]>
 	</proc>
 

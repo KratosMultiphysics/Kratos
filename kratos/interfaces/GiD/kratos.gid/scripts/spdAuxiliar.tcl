@@ -116,7 +116,9 @@ proc spdAux::activeApp { appid } {
     #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
     gid_groups_conds::open_conditions menu
-    gid_groups_conds::actualize_conditions_window
+    #gid_groups_conds::actualize_conditions_window
+    spdAux::RequestRefresh
+    spdAux::TryRefreshTree
     
 }
 
@@ -562,7 +564,7 @@ proc spdAux::injectNodalConditions { basenode } {
         set pn [$nc getPublicName]
         set help [$nc getHelp]
         set ov  [$nc getOv]
-        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$ov\"  ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\">"
+        set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$ov\"  ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\" update_proc=\"RefreshTree\">"
         set inputs [$nc getInputs]
         set process [::Model::GetProcess [$nc getProcessName]]
         set unitsnc [$nc getAttribute "units"]
@@ -714,11 +716,21 @@ proc spdAux::injectElementOutputs { basenode } {
 proc spdAux::injectNodalConditionsOutputs { basenode } {
     set parts [$basenode parent]
     set nodal_conditions [::Model::getAllNodalConditions]
-    foreach n [dict keys $nodal_conditions] {
-        set nc [dict get $nodal_conditions $n]
+    foreach nc $nodal_conditions {
+        set n [$nc getName]
         set pn [$nc getPublicName]
-        set node "<value n=\"$n\" pn=\"$pn\" v=\"Yes\" values=\"Yes,No\" />"
+        set v [$nc getAttribute v]
+        if {$v eq ""} {set v "Yes"}
+        set node "<value n=\"$n\" pn=\"$pn\" v=\"$v\" values=\"Yes,No\" state=\"\[CheckNodalConditionState\]\"/>"
         catch {$parts appendXML $node}
+        foreach {n1 output} [$nc getOutputs] {
+            set nout [$output getName]
+            set pn [$output getPublicName]
+            set v [$output getAttribute v]
+            if {$v eq ""} {set v "Yes"}
+            set node "<value n=\"$nout\" pn=\"$pn\" v=\"$v\" values=\"Yes,No\" state=\"\[CheckNodalConditionOutputState $n\]\"/>"
+            catch {$parts appendXML $node}
+        }
     }
     $basenode delete
 }

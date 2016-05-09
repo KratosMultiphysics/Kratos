@@ -13,6 +13,6 @@
 						   analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2">
   </NodalConditionItem>
   <NodalConditionItem  n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" VariableName="PRESSURE"
-					   analysis_type = "Static,Dynamic"  unit_magnitude="P"  units="Pa" v="false" reaction="" state="hidden" >
+					   analysis_type = "Static,Dynamic"  unit_magnitude="P"  units="Pa" v="No" state="hidden" >
   </NodalConditionItem>
 </NodalConditionList>

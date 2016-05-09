@@ -174,7 +174,6 @@ proc Model::ParseElemNode { node } {
 }
 proc Model::ParseNodalConditionsNode { node } {
     set name [$node getAttribute n]
-    
     set el [::Model::NodalCondition new $name]
     $el setPublicName [$node getAttribute pn]
     
@@ -182,13 +181,16 @@ proc Model::ParseNodalConditionsNode { node } {
         $el setAttribute $att [split [$node getAttribute $att] ","]
         #W "$att : [$el getAttribute $att]"
     }
-    if {[$node hasAttribute inputs]} {
-        foreach in [[$node getElementsByTagName inputs] childNodes]  {
+    set inputNodes [$node getElementsByTagName inputs]
+    if {$inputNodes ne ""} {
+        foreach in [$inputNodes getElementsByTagName parameter] {
             set el [ParseInputParamNode $el $in]
         }
     }
-    if {[$node hasAttribute outputs]} {
-        foreach out [[$node getElementsByTagName outputs] childNodes] {
+    
+    set outputNodes [$node getElementsByTagName outputs]
+    if {$outputNodes ne ""} {
+        foreach out [$outputNodes getElementsByTagName parameter] {
             set n [$out @n]
             set pn [$out @pn]
             set v false
@@ -323,7 +325,6 @@ proc Model::CheckElementsNodalCondition {conditionId elemnames {restrictions "" 
         #
     } else {
         foreach eid $elemnames {
-            
             set elem [getElement $eid]
             foreach elemNCNode [$elem getNodalConditions] {
                 set elemNC [$elemNCNode getName]
@@ -338,5 +339,22 @@ proc Model::CheckElementsNodalCondition {conditionId elemnames {restrictions "" 
             }
         }
     }
+    
+    return $ret
+}
+proc Model::CheckNodalConditionOutputState {conditionId outputId {restrictions "" }} {
+    set ret 0
+    W "Con $conditionId out $outputId"
+    set nc [getNodalConditionbyId $conditionId]
+    foreach {name output} [$nc getOutputs] {
+        if {$name eq $outputId} {
+            set ret 1
+            foreach {key value} $restrictions {
+                # JG: Revisar bidireccionalidad
+                if {$value ni [$nc getAttribute $key]} {set ret 0;break}
+            }
+        }
+    }
+    
     return $ret
 }
