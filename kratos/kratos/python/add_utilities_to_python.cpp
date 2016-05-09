@@ -118,6 +118,7 @@ void AddUtilitiesToPython()
 
     class_<PythonGenericFunctionUtility>("PythonGenericFunctionUtility", init<Variable<double>& , ModelPart::NodesContainerType& , PyObject*>() )
     .def("ApplyFunction", &PythonGenericFunctionUtility::ApplyFunction)
+    .def("ReturnFunction", &PythonGenericFunctionUtility::ApplyFunction)
     ;
 
 
