@@ -38,9 +38,11 @@ def Factory(settings, Model):
     if(settings["process_name"].GetString() == "ApplyConstantScalarValueProcess"):
         model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
         return ApplyConstantScalarValueProcess(model_part, settings["Parameters"])
+        
     elif(settings["process_name"].GetString() == "ApplyConstantVectorValueProcess"):
         model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
-        return ApplyConstantScalarValueProcess(model_part, settings["Parameters"])
+        return ApplyConstantVectorValueProcess(model_part, settings["Parameters"])
+        
     raise Exception("process name not found ",)
         #params = settings["parameters"]
         #model_part = Model.get(  params.get( "model_part_name", "not found!!" ) , "model part not found" )
