@@ -8,6 +8,7 @@ namespace eval Model {
     variable SolutionStrategies
     variable Elements
     variable Conditions
+    variable NodalConditions
     variable ConstitutiveLaws
     variable Solvers
     variable Processes
@@ -21,6 +22,7 @@ proc Model::Init { } {
     variable SolutionStrategies
     variable Elements
     variable Conditions
+    variable NodalConditions
     variable ConstitutiveLaws
     variable Solvers
     variable Processes
@@ -30,6 +32,7 @@ proc Model::Init { } {
     set SolutionStrategies [list ]
     set Elements [list ]
     set Conditions [list ]
+    set NodalConditions [list ]
     set ConstitutiveLaws [list ]
     set Solvers [list ]
     set Processes [list ]
@@ -70,6 +73,15 @@ proc Model::getConditions { ConditionsFileName } {
     dom parse [tDOM::xmlReadFile [file join $dir xml $ConditionsFileName]] doc
     
     ParseConditions $doc
+}
+proc Model::getNodalConditions { NodalConditionsFileName } {
+    variable NodalConditions
+    variable dir
+    
+    #set Conditions [list ]
+    dom parse [tDOM::xmlReadFile [file join $dir xml $NodalConditionsFileName]] doc
+    #W [$doc asXML]
+    ParseNodalConditions $doc
 }
 
 proc Model::getConstitutiveLaws { ConstitutiveLawsFileName } {

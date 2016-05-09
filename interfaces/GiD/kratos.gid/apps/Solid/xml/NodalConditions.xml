@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem n="DISPLACEMENT" pn="Displacement" ProcessName="ApplyDisplacementProcess" VariableName="DISPLACEMENT"
+					  analysis_type="Static,Dynamic"  unit_magnitude="L" units="m">
+    <outputs>
+      <parameter n="REACTION" pn="Reaction" v="Yes"/>
+    </outputs>
+  </NodalConditionItem>
+  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" VariableName="VELOCITY"
+						analysis_type="Dynamic" unit_magnitude="Velocity" units="m/s">
+  </NodalConditionItem>
+  <NodalConditionItem  n="ACCELERATION" pn="Acceleration" ProcessName="ApplyConstantVectorValueProcess" VariableName="ACCELERATION"
+						   analysis_type="Dynamic" unit_magnitude="Acceleration" units="m/s^2">
+  </NodalConditionItem>
+  <NodalConditionItem  n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" VariableName="PRESSURE"
+					   analysis_type = "Static,Dynamic"  unit_magnitude="P"  units="Pa" v="false" reaction="" state="hidden" >
+  </NodalConditionItem>
+</NodalConditionList>
