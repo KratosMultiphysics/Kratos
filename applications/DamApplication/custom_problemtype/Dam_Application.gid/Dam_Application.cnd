@@ -453,7 +453,7 @@ VALUE: 0.0
 HELP: Coordinate at the reservoir bottom. Units: m
 QUESTION: Specific_Weight
 VALUE: 10000
-HELP: Units in IS: N/m2. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
+HELP: Units in IS: N/m3. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
 QUESTION: Modify_Normal#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
@@ -509,7 +509,7 @@ VALUE: 0.0
 HELP: Base of dam. If the base changes, please, assign it separetly. Units in IS: m
 QUESTION: Specific_Weight
 VALUE: 10000
-HELP: Units in IS: N/m2. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
+HELP: Units in IS: N/m3. If the surface is a boundary and the normal is going outside, a positive value corresponds to a compressive load. If the surface is not a boundary, please check the deformation.
 QUESTION: Modify#CB#(1,0)
 VALUE: 1
 HELP: Set if this imposed value can be modified over time.
