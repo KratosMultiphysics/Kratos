@@ -724,7 +724,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         foreach {inputName in_obj} $process_parameters {
             set in_type [$in_obj getType]
             catch {
-                set variable_name [$condition getAttribute variable_name]
+                set variable_name [$condition getAttribute VariableName]
                 #~ W $variable_name
                 # "lindex" is a rough solution. Look for a better one.
                 dict set paramDict variable_name [lindex $variable_name 0]
