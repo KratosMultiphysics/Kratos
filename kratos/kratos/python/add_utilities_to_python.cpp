@@ -71,6 +71,20 @@ public:
         }
     }
 
+    std::vector <double> ReturnFunction(const double t)
+    {
+        std::vector<double> values;
+        //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
+        for (int k = 0; k< static_cast<int> (mrNodes.size()); k++)
+        {
+            ModelPart::NodesContainerType::iterator i = mrNodes.begin() + k;
+            const double value = CallFunction(i->X(), i->Y(), i->Z(), t);
+            values.push_back(value);
+        }
+        
+        return values;
+    }
+
 
 
 private:
