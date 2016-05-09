@@ -29,6 +29,7 @@ oo::class create Entity {
         set help ""
     }
     
+    #method setAttribute {att val} {variable name; W "$name -> adding $att : $val"; variable attributes; dict set attributes $att $val}
     method setAttribute {att val} {variable attributes; dict set attributes $att $val}
     method getAttribute {att} {
         variable attributes

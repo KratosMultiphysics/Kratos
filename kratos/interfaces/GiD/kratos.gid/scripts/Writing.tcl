@@ -705,7 +705,7 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
         } {
             set condition [::Model::getNodalConditionbyId $condId]
         }
-        
+        #W "Condition = $condition"
         set processName [$condition getProcessName]
         set process [::Model::GetProcess $processName]
         set processDict [dict create]

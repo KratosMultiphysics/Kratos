@@ -158,7 +158,7 @@
 			foreach elem $elems { lappend elemnames [$elem @v]}
 			set elemnames [lsort -unique $elemnames]
 			if {$elemnames eq ""} {return "hiden"}
-			if {[::Model::CheckElementsCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
+			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
 	  ]]>
 	</proc>

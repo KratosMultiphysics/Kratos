@@ -557,8 +557,8 @@ proc spdAux::injectProcesses {basenode} {
 proc spdAux::injectNodalConditions { basenode } {
     set nodalconds [$basenode parent]
     set nodal_conditions [::Model::getAllNodalConditions]
-    foreach n [dict keys $nodal_conditions] {
-        set nc [dict get $nodal_conditions $n]
+    foreach nc $nodal_conditions {
+        set n [$nc getName]
         set pn [$nc getPublicName]
         set help [$nc getHelp]
         set ov  [$nc getOv]
@@ -601,6 +601,7 @@ proc spdAux::injectNodalConditions { basenode } {
         append node "</condition>"
         $nodalconds appendXML $node
     }
+    #W [$nodalconds asXML]
     $basenode delete
 }
 

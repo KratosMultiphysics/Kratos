@@ -6,8 +6,9 @@ proc Solid::xml::Init { } {
      variable dir
      Model::InitVariables dir $Solid::dir
 
-     Model::getSolutionStrategies strategydefinition.xml
+     Model::getSolutionStrategies Strategies.xml
      Model::getElements Elements.xml
+     Model::getNodalConditions NodalConditions.xml
      Model::getConstitutiveLaws ConstitutiveLaws.xml
      Model::getProcesses Processes.xml
      Model::getConditions Conditions.xml

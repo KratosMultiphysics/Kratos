@@ -19,7 +19,7 @@ oo::class create Element {
         variable ConstLawFilters
         
         set TopologyFeatures [list ]
-        set ElementNodalCondition [dict create]
+        set ElementNodalCondition [list ]
         set constLawFilters [dict create]
     }
     
@@ -45,24 +45,32 @@ oo::class create Element {
         return $v
     }
     
-    method addNodalCondition {key nc} {
+    method addNodalCondition {nc_name} {
         variable ElementNodalCondition
-        dict set ElementNodalCondition $key $nc
+        lappend ElementNodalCondition $nc_name
     }
     method getNodalConditions {} {
         variable ElementNodalCondition
-        return $ElementNodalCondition
+        set nclist [list ]
+        foreach nc [::Model::getAllNodalConditions] {
+            if {[$nc getName] in $ElementNodalCondition} {
+                lappend nclist $nc
+            }
+        }
+        return $nclist
     }
     method getNodalCondition {key} {
         variable ElementNodalCondition
         set v ""
         catch {
-            set v [dict get $ElementNodalCondition $key]
+            foreach nc [::Model::getAllNodalConditions] {
+            if {[$nc getName] in $ElementNodalCondition} {
+                return $nc
+            }
+        }
         }
         return $v
     }
-    
-    
     
     method addTopologyFeature {top} {
         variable TopologyFeatures
@@ -118,6 +126,14 @@ proc Model::ParseElements { doc } {
         lappend Elements [ParseElemNode $ElemNode]
     }
 }
+proc Model::ParseNodalConditions { doc } {
+    variable NodalConditions
+    
+    set NCList [$doc getElementsByTagName NodalConditionItem]
+    foreach Node $NCList {
+        lappend NodalConditions [ParseNodalConditionsNode $Node]
+    }
+}
 
 
 proc Model::ParseElemNode { node } {
@@ -151,34 +167,51 @@ proc Model::ParseElemNode { node } {
     }
     foreach ncnode [[$node getElementsByTagName NodalConditions] childNodes]  {
         set n [$ncnode @n]
-        set nc [::Model::NodalCondition new $n]
-        
-        $nc setPublicName [$ncnode getAttribute pn]
-        $nc setReaction [$ncnode @reaction]
-        if {[$ncnode hasAttribute ov]} {$nc setOv [$ncnode @ov]}
-            
-        foreach att [$ncnode attributes] {
-            $nc addAttribute $att [split [$ncnode getAttribute $att] ","]
-        }
-        
-        $nc setProcessName [$ncnode getAttribute ProcessName]
-        
-        $el addNodalCondition $n $nc
+        $el addNodalCondition $n
     }
     
     return $el
 }
+proc Model::ParseNodalConditionsNode { node } {
+    set name [$node getAttribute n]
+    
+    set el [::Model::NodalCondition new $name]
+    $el setPublicName [$node getAttribute pn]
+    
+    foreach att [$node attributes] {
+        $el setAttribute $att [split [$node getAttribute $att] ","]
+        #W "$att : [$el getAttribute $att]"
+    }
+    if {[$node hasAttribute inputs]} {
+        foreach in [[$node getElementsByTagName inputs] childNodes]  {
+            set el [ParseInputParamNode $el $in]
+        }
+    }
+    if {[$node hasAttribute outputs]} {
+        foreach out [[$node getElementsByTagName outputs] childNodes] {
+            set n [$out @n]
+            set pn [$out @pn]
+            set v false
+            catch {set v [$out @v]}
+            set outobj [::Model::Parameter new $n $pn bool $v "" "" "" ]
+            $el addOutputDone $outobj
+        }
+    }
+    $el setProcessName [$node getAttribute ProcessName]
+   
+    return $el
+}
 
 # Se usa?
-proc Model::GetElements {args} { 
-    variable Elements
-    #W "Get elements $args"
-    set cumplen [list ]
-    foreach elem $Elements {
-        if {[$elem cumple $args]} { lappend cumplen $elem}
-    }
-    return $cumplen
-}
+#proc Model::GetElements {args} { 
+#    variable Elements
+#    #W "Get elements $args"
+#    set cumplen [list ]
+#    foreach elem $Elements {
+#        if {[$elem cumple $args]} { lappend cumplen $elem}
+#    }
+#    return $cumplen
+#}
 
 proc Model::getElement {eid} { 
     variable Elements
@@ -237,19 +270,17 @@ proc Model::GetAllElemInputs {} {
 }
 
 proc Model::getAllNodalConditions {} {
-    variable Elements
+    variable NodalConditions
     
-    set dofs [dict create]
-    foreach el $Elements {
-        foreach in [dict keys [$el getNodalConditions]] {
-            dict set dofs $in [$el getNodalCondition $in]
-        }
-    }
-    return $dofs
+    return $NodalConditions
 }
 
-proc Model::getNodalConditionbyId {dofid} {
-    return [dict get [getAllNodalConditions] $dofid]
+proc Model::getNodalConditionbyId {ncid} {
+    set ret ""
+    foreach nc [getAllNodalConditions] {
+        if {[$nc getName] eq $ncid} {set ret $nc; break}
+    }
+    return $ret
 }
 
 
@@ -286,7 +317,7 @@ proc Model::CheckElementOutputState {elemsactive paramName} {
     return $state
 }
 
-proc Model::CheckElementsCondition {conditionId elemnames {restrictions "" }} {
+proc Model::CheckElementsNodalCondition {conditionId elemnames {restrictions "" }} {
     set ret 0
     if {[llength $elemnames] < 1} {
         #
@@ -294,16 +325,17 @@ proc Model::CheckElementsCondition {conditionId elemnames {restrictions "" }} {
         foreach eid $elemnames {
             
             set elem [getElement $eid]
-            set dof [$elem getNodalCondition $conditionId]
-            
-            if {$dof ne ""} {
-                set ret 1
-                foreach {key value} $restrictions {
-                    # JG: Revisar bidireccionalidad
-                    if {$value ni [$dof getAttribute $key]} {set ret 0;break}
+            foreach elemNCNode [$elem getNodalConditions] {
+                set elemNC [$elemNCNode getName]
+                if {$elemNC eq $conditionId} {
+                    set ret 1
+                    foreach {key value} $restrictions {
+                        # JG: Revisar bidireccionalidad
+                        set nc [getNodalConditionbyId $conditionId]
+                        if {$value ni [$nc getAttribute $key]} {set ret 0;break}
+                    }
                 }
             }
-            
         }
     }
     return $ret
