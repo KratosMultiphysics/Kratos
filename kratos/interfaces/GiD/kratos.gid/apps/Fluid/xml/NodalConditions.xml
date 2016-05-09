@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NodalConditionList>
+  <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" VariableName="VELOCITY"
+					  ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s">
+  </NodalConditionItem>
+  <NodalConditionItem n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" VariableName="PRESSURE"
+					  ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa">
+  </NodalConditionItem>
+</NodalConditionList>
