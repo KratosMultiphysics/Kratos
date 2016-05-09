@@ -31,13 +31,17 @@ cmake ..  									                                                    \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 " 					                        \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 " 					                            \
 -DCMAKE_BUILD_TYPE=Release  							                                      \
+-DSOLID_MECHANICS_APPLICATION=ON   					                                    \
+-DFLUID_DYNAMICS_APPLICATION=ON 						                                    \
+-DCONVECTION_DIFFUSION_APPLICATION=ON 						                              \
+-DDEM_APPLICATION=OFF								                                            \
+-DSWIMMING_DEM_APPLICATION=OFF                                                  \
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  						                              \
 -DMESHING_APPLICATION=ON 							                                          \
 -DEXTERNAL_SOLVERS_APPLICATION=ON						                                    \
 -DPFEM_APPLICATION=ON 								                                          \
 -DSTRUCTURAL_APPLICATION=ON 							                                      \
--DCONVECTION_DIFFUSION_APPLICATION=ON 						                              \
--DFLUID_DYNAMICS_APPLICATION=ON 						                                    \
+-DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
 -DALE_APPLICATION=ON 								                                            \
 -DFSI_APPLICATION=ON 								                                            \
 -DOPENCL_APPLICATION=OFF							                                          \
@@ -49,11 +53,6 @@ cmake ..  									                                                    \
 -DPARMETIS_ROOT_DIR="/home/youruser/compiled_libraries/ParMetis-3.1.1"          \
 -DTRILINOS_APPLICATION=OFF							                                        \
 -DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"		          \
--DDEM_APPLICATION=OFF								                                            \
--DSWIMMING_DEM_APPLICATION=OFF                                                  \
--DSOLID_MECHANICS_APPLICATION=ON   					                                    \
--DSTRUCTURAL_MECHANICS_APPLICATION=ON 					                                \
--DPFEM_SOLID_MECHANICS_APPLICATION=OFF 					                                \
 -DINSTALL_EMBEDDED_PYTHON=ON                                                    \
 -DSHAPE_OPTIMIZATION_APPLICATION=OFF \
 
