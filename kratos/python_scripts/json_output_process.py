@@ -1,4 +1,6 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
+from json_utilities import *
 import json
 CheckForPreviousImport()
 
@@ -66,14 +68,13 @@ class JsonOutputProcess(Process):
               else:
                 value_scalar = False
 
-              for out_node in self.sub_model_part.Nodes:
-                value = node.GetSolutionStepValue(variable, 0)
-                if value_scalar:
-                  data["NODE_"+str(node.Id)][out.GetString() ].append(value)
-                else: # It is a vector
-                  data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
-                  data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
-                  data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
+              value = node.GetSolutionStepValue(variable, 0)
+              if value_scalar:
+                data["NODE_"+str(node.Id)][out.GetString() ].append(value)
+              else: # It is a vector
+                data["NODE_"+str(node.Id)][out.GetString()  + "_X"].append(value[0])
+                data["NODE_"+str(node.Id)][out.GetString()  + "_Y"].append(value[1])
+                data["NODE_"+str(node.Id)][out.GetString()  + "_Z"].append(value[2])
               
         write_external_json(self.output_file_name, data)
 
@@ -95,11 +96,4 @@ class JsonOutputProcess(Process):
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
       return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
-def read_external_json(file_name):
-  with open(file_name, 'r') as outfile:
-      data = json.load(outfile)
-  return data
-      
-def write_external_json(file_name, data):
-  with open(file_name, 'w') as outfile:
-    json.dump(data, outfile)
+
