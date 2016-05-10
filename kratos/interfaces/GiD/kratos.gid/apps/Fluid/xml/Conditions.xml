@@ -3,7 +3,7 @@
   <ConditionItem n="Inlet2D" pn="Inlet velocity" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True" VariableName="VELOCITY"
-	ElementType="Line" ProcessName="ApplyInletProcess" help="">
+	ElementType="Line" ProcessName="ApplyInletProcess" help="" units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
@@ -18,7 +18,7 @@
   <ConditionItem n="Inlet3D" pn="Inlet velocity" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True" VariableName="VELOCITY"
-	ElementType="Surface" ProcessName="ApplyInletProcess" help="">
+	ElementType="Surface" ProcessName="ApplyInletProcess" help="" units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
@@ -33,7 +33,7 @@
   <ConditionItem n="Outlet2D" pn="Outlet pressure" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True" VariableName="PRESSURE"
-	ElementType="Line" ProcessName="ImposeScalarValueProcess" help="">
+	ElementType="Line" ProcessName="ImposeScalarValueProcess" help=""  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
@@ -48,7 +48,7 @@
   <ConditionItem n="Outlet3D" pn="Outlet pressure" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True" VariableName="PRESSURE"
-	ElementType="Surface" ProcessName="ImposeScalarValueProcess" help="">
+	ElementType="Surface" ProcessName="ImposeScalarValueProcess" help=""  units="Pa" unit_magnitude="P">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
@@ -122,7 +122,7 @@
   <ConditionItem n="VelocityConstraints2D" pn="Custom velocity constraints" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="2" SkinConditions="False" ElementType="Point,Line,Surface" 
-    ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help="">
+    ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
     </TopologyFeatures>
 	<DegreesOfFreedom>
@@ -136,7 +136,7 @@
   <ConditionItem n="VelocityConstraints3D" pn="Custom velocity constraints" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="3" SkinConditions="False" ElementType="Point,Line,Surface,Volume" 
-    ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help="">
+    ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
     </TopologyFeatures>
 	<DegreesOfFreedom>
