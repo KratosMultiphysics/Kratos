@@ -213,7 +213,7 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
 
     //defined on condition
     if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
-      double& NegativeFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
+      double& NegativeFacePressure = this->GetValue( NEGATIVE_FACE_PRESSURE );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	rVariables.Pressure += rVariables.N[i] * NegativeFacePressure;
     }
@@ -239,11 +239,11 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
     
     //defined on condition
     if( this->Has( SURFACE_LOAD ) ){
-      array_1d<double, 3 > & LineLoad = this->GetValue( SURFACE_LOAD );
+      array_1d<double, 3 > & SurfaceLoad = this->GetValue( SURFACE_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+	    rVectorForce[k] += rVariables.N[i] * SurfaceLoad[k];
 	}
     }
     
@@ -251,9 +251,9 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ){
-	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
+	  array_1d<double, 3 > & SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
-	    rVectorForce[k] += rVariables.N[i] * LineLoad[k];
+	    rVectorForce[k] += rVariables.N[i] * SurfaceLoad[k];
 	}
       }
 

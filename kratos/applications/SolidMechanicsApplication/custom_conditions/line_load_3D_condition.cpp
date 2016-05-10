@@ -171,7 +171,7 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 
     //defined on condition
     if( this->Has( NEGATIVE_FACE_PRESSURE ) ){
-      double& NegativeFacePressure = this->GetValue( POSITIVE_FACE_PRESSURE );
+      double& NegativeFacePressure = this->GetValue( NEGATIVE_FACE_PRESSURE );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	rVariables.Pressure += rVariables.N[i] * NegativeFacePressure;
     }
