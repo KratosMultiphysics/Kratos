@@ -192,7 +192,7 @@
           <parameter_list>
 		  </parameter_list>
 		  <element_filters>
-			 <filter field="ElementType" value="Solid"/>
+			 <!--<filter field="ElementType" value="Solid"/>-->
 		  </element_filters>
 	  </scheme>
 	</schemes>
