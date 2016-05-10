@@ -1,43 +1,37 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
-
-def Factory(settings, Model):
-    if settings["process_name"] == "SPRISM_process":
-        my_process_parameters = settings["parameters"]
-        model_part = Model.get(my_process_parameters.get("model_part_name","MODEL PART WAS NOT FOUND")," TEST ") 
-        
-        return SPRISM_process(model_part)
-
-class SPRISM_process:
-    def __init__(self,model_part):
-      self.model_part =  model_part
-    
-    def ExecuteInitialize(self):
-      sprism_neighbour_search = SprismNeighbours(self.model_part)
-      sprism_neighbour_search.Execute()
       
+def Factory(settings, Model):
+    if(type(settings) != Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    return SPRISMProcess(Model, settings["Parameters"])
+
+class SPRISMProcess(Process, KratosUnittest.TestCase):
+  
+    def __init__(self,model_part,params):
+
+        self.model_part = model_part[params["model_part_name"].GetString()]
+        self.params = params
+        
+    def ExecuteInitialize(self):
+        sprism_neighbour_search = SprismNeighbours(self.model_part)
+        sprism_neighbour_search.Execute()
+    
     def ExecuteBeforeSolutionLoop(self):
-      pass
+        pass
     
     def ExecuteInitializeSolutionStep(self):
-      pass
-    
+        pass
+
     def ExecuteFinalizeSolutionStep(self):
-      pass
-    
+        pass
+              
     def ExecuteBeforeOutputStep(self):
-      pass
-    
+        pass
+
     def ExecuteAfterOutputStep(self):
-      pass
-    
+        pass
+
     def ExecuteFinalize(self):
-      pass
-    
-    def Clear(self):
-      pass
-    
-    def AddNodalVariables(self):
-      self.model_part.AddNodalSolutionStepVariable(ALPHA_EAS)
- 
+        pass
