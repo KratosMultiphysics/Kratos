@@ -566,8 +566,10 @@ proc write::GetDefaultOutputDict {} {
     dict set resultDict gidpost_flags $GiDPostDict
     
     dict set resultDict file_label                 [getValue Results FileLabel]
-    dict set resultDict output_control_type        [getValue Results OutputControlType]
-    dict set resultDict output_frequency           [getValue Results OutputDeltaTime]
+    set outputCT [getValue Results OutputControlType]
+    dict set resultDict output_control_type $outputCT
+    if {$outputCT eq "time"} {set frequency [getValue Results OutputDeltaTime]} {set frequency [getValue Results OutputDeltaStep]}
+    dict set resultDict output_frequency $frequency     
     
     dict set resultDict body_output           [getValue Results BodyOutput]
     dict set resultDict node_output           [getValue Results NodeOutput]
