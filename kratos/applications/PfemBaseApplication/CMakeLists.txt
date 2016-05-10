@@ -90,7 +90,7 @@ endif(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
 
 target_link_libraries(KratosPfemBaseApplication ${LIBS})
 ##target_link_libraries(KratosPfemBaseApplication KratosCore triangle tetgen msuite)
-##target_link_libraries(KratosPfemBaseApplication KratoUnknown arguments specifiedsCore triangle tetgen msuite tetMeshOpt)
+##target_link_libraries(KratosPfemBaseApplication KratosCore triangle tetgen msuite tetMeshOpt)
 
 set_target_properties(KratosPfemBaseApplication PROPERTIES PREFIX "")
 install(TARGETS KratosPfemBaseApplication DESTINATION libs )
