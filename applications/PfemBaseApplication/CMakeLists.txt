@@ -4,6 +4,18 @@ message("**** configuring KratosPfemBaseApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+## Set a default value for triangle and tetmesh in case the user does not set it
+## to avoid problems with the define linkage block. By default we will compile the lib
+if(NOT DEFINED ${INCLUDE_TRIANGLE})
+  set(INCLUDE_TRIANGLE ON)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle/)
+endif(NOT DEFINED ${INCLUDE_TRIANGLE})
+
+if(NOT DEFINED ${INCLUDE_TETGEN})
+  set(INCLUDE_TETGEN ON)
+  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries//tetgen/tetgen1.4.2/)
+endif(NOT DEFINED ${INCLUDE_TETGEN})
+
 if(${INCLUDE_TRIANGLE} MATCHES ON)
   add_definitions( -DINCLUDE_TRIANGLE )
   add_definitions( -DTRILIBRARY )
@@ -38,8 +50,8 @@ endif(${INCLUDE_TETGEN} MATCHES ON)
 
 
 ## generate variables with the sources
-set( KRATOS_PFEM_BASE_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/pfem_base_application.cpp 
+set( KRATOS_PFEM_BASE_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/pfem_base_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_base_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_base_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
@@ -72,13 +84,13 @@ elseif(${INCLUDE_TRIANGLE} MATCHES ON)
     set(LIBS KratosCore external_triangle)
 elseif(${INCLUDE_TETGEN} MATCHES ON)
     set(LIBS KratosCore external_tetgen)
-else()
+else(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
     set(LIBS KratosCore)
-endif()
+endif(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
 
 target_link_libraries(KratosPfemBaseApplication ${LIBS})
 ##target_link_libraries(KratosPfemBaseApplication KratosCore triangle tetgen msuite)
-##target_link_libraries(KratosPfemBaseApplication KratosCore triangle tetgen msuite tetMeshOpt)
+##target_link_libraries(KratosPfemBaseApplication KratoUnknown arguments specifiedsCore triangle tetgen msuite tetMeshOpt)
 
 set_target_properties(KratosPfemBaseApplication PROPERTIES PREFIX "")
 install(TARGETS KratosPfemBaseApplication DESTINATION libs )
@@ -87,12 +99,12 @@ install(TARGETS KratosPfemBaseApplication DESTINATION libs )
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosPfemBaseApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPfemBaseApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

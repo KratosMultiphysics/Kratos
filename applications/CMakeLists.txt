@@ -159,6 +159,7 @@ if(${PFEM_BASE_APPLICATION} MATCHES ON)
 endif(${PFEM_BASE_APPLICATION} MATCHES ON)
 
 if(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(PfemBaseApplication)
   add_subdirectory(PfemSolidMechanicsApplication)
 endif(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
 
