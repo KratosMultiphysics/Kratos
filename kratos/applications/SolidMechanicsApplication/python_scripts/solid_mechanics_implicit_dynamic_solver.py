@@ -156,13 +156,13 @@ class ImplicitMechanicalSolver:
             node.AddDof(DISPLACEMENT_Z, REACTION_Z);
             
         if self.settings["rotation_dofs"].GetBool():
-            for node in model_part.Nodes:
+            for node in self.main_model_part.Nodes:
                 node.AddDof(ROTATION_X, TORQUE_X);
                 node.AddDof(ROTATION_Y, TORQUE_Y);
                 node.AddDof(ROTATION_Z, TORQUE_Z);
                 
-        if self.settings["rotation_dofs"].GetBool():                
-            for node in model_part.Nodes:
+        if self.settings["pressure_dofs"].GetBool():                
+            for node in self.main_model_part.Nodes:
                 node.AddDof(PRESSURE, PRESSURE_REACTION);
 
         print("::[Mechanical Solver]:: DOF's ADDED")
@@ -276,7 +276,7 @@ class ImplicitMechanicalSolver:
                                                                          self.settings["dynamic_factor"].GetDouble())
                 else:
                     mechanical_scheme = ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble(),
-                                                                  self.settings["dynamic_factor"].GetDouble())
+                                                                              self.settings["dynamic_factor"].GetDouble())
 
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
