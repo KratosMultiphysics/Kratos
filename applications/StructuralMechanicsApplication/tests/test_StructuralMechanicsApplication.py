@@ -7,7 +7,10 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from SmallTests import SprismPatchTests as TSprismPatchTests
+from SmallTests import DynamicBossakTests as TDynamicBossakTests
+from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
+from SmallTests import SprismMembranePatchTests as TSprismMembranePatchTests
+from SmallTests import SprismBendingPatchTests as TSprismBendingPatchTests
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -25,8 +28,10 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TSprismPatchTests('test_MembranePatch'))
-    smallSuite.addTest(TSprismPatchTests('test_BendingPatch'))
+    smallSuite.addTest(TDynamicBossakTests('test_Bossak'))
+    smallSuite.addTest(TDynamicNewmarkTests('test_Newmark'))
+    smallSuite.addTest(TSprismMembranePatchTests('test_MembranePatch'))
+    smallSuite.addTest(TSprismBendingPatchTests('test_BendingPatch'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -36,7 +41,10 @@ def AssambleTestSuites():
     allSuite = suites['all']
     allSuite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TSprismPatchTests
+            TDynamicBossakTests,
+            TDynamicNewmarkTests,
+            TSprismMembranePatchTests,
+            TSprismBendingPatchTests
         ])
     )
 
