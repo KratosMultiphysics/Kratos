@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <container n="procs" pn="procs" includeContainer="No">
 
-		 	<proc n='GetSolutionStrategies' args='args'>
+		 		<proc n='GetSolutionStrategies' args='args'>
 	  <![CDATA[
 	  
 		set names ""
@@ -23,7 +23,7 @@
 	  
 	  ]]>
 	</proc>
-	
+		  			
 		  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
 	  # Overwritten the base function to add Solution Type restrictions
@@ -40,8 +40,8 @@
 			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames $params]} {return "normal"} else {return "hidden"}
 		} {return "normal"}
 	  ]]>
-	</proc>
-	
+	</proc>		
+
 	  <proc n='ActiveIfAnyPartState' args='args'>
 	  <![CDATA[
 	  set parts ""
@@ -51,31 +51,6 @@
 		if {$parts ne ""} {return "normal"} else {return "hidden"}
 	  ]]>
 	</proc>
-	  <proc n='SolStratParamState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::SolStratParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='SchemeParamState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::SchemeParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>	   
-	  <proc n='ConstLawOutputState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::CheckConstLawOutputState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  <proc n='ElementOutputState' args='args'>
-	  <![CDATA[
-		set resp [::spdAux::CheckElementOutputState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
-	  ]]>
-	</proc>
-	  
 	  <proc n='getIntervals' args='args'>
 	  <![CDATA[
 		set lista [::spdAux::getIntervals]
@@ -111,8 +86,5 @@
       return [spdAux::chk_loads_function_time $domNode $load_name]
 	  ]]>
     </proc>
-
-
-
 
 </container>
