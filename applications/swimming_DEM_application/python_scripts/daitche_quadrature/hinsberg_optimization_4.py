@@ -112,11 +112,14 @@ class Functional:
         try:
             t_cross = FindZero(f, 2.0) 
             first_bit = - 2 + 2 / sqrt(t_cross) - sum([K_comp.a * (K_comp.df(t_cross) - K_comp.df(1.)) / K_comp.beta for K_comp in K.Ks])
-            second_bit = 2 / sqrt(t_cross) + sum([- K_comp.a * K_comp.df(t_cross) / K_comp.beta for K_comp in K.Ks])
+            second_bit = 2 / sqrt(t_cross) + sum([- K_comp.a * K_comp.df(t_cross) / K_comp.beta for K_comp in K.Ks])            
+            print("\nT_CROSS",t_cross)
+            print("BEFORE",f(t_cross-0.5*t_cross))
+            print("AFT",f(t_cross+0.5*t_cross))
+            print("first bit",first_bit)
+            print("second bit", second_bit)
             return float(first_bit + second_bit)
         except:
-            print("\n here")
-            print(f(2))
             return float(2 + sum([- K_comp.a * K_comp.df(1.) / K_comp.beta for K_comp in K.Ks]))
         
     def dFda(self, i):
