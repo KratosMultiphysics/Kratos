@@ -5,7 +5,7 @@
   <ElementItem n="BeamElement" pn="Small Displacement Beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
-	       help="This element implements a small displacement timoshenko beam structural model"
+	       help="This element implements a small displacement timoshenko beam structural model" RotationDofs="True"
 		   ElementType="Beam" >
 
     <!--here we could add a list of all of the possible geometries-->
@@ -44,7 +44,7 @@
   <ElementItem n="MembraneElement" pn="Membrane Element" ImplementedInFile="membrane_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
-	       help="This element it implements a membrane structural model"
+	       help="This element it implements a membrane structural model" RotationDofs="True"
 		   ElementType="Membrane" >
 
     <!--here we could add a list of all of the possible geometries-->
@@ -80,7 +80,7 @@
   <ElementItem n="ShellElement" pn="Isotropic Shell" ImplementedInFile="isotropic_shell_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
-	       help="This element it implements a DKT element + OPT membrane model"
+	       help="This element it implements a DKT element + OPT membrane model" RotationDofs="True"
 		   ElementType="Shell" >
 
     <!--here we could add a list of all of the possible geometries-->
@@ -116,8 +116,8 @@
   <ElementItem n="ShellThinElement" pn="Thin Shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
-	       help="This element it implements an element for thin shells in a small displacements approach"
-		   ElementType="Shell" >
+	       help="This element it implements an element for thin shells in a small displacements approach" 
+		   ElementType="Shell" RotationDofs="True" >
 
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
@@ -153,7 +153,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element it implements an element for thick shells in a small displacements approach"
-		   ElementType="Shell" >
+		   ElementType="Shell" RotationDofs="True">
 
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
@@ -191,7 +191,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element it implements a corotational element for thin shells in a large displacements approach"
-		   ElementType="Shell" >
+		   ElementType="Shell" RotationDofs="False" >
 
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
@@ -226,7 +226,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element it implements a corotational element for thick shells in a large displacements approach"
-		   ElementType="Shell" >
+		   ElementType="Shell" RotationDofs="False">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Quadrilateral" nodes="4" KratosName="ShellThickElementCorotational3D4N"/>

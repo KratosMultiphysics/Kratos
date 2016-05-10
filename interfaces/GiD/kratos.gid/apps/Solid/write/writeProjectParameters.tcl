@@ -1,5 +1,6 @@
 # Project Parameters
-proc Solid::write::writeParametersEvent { } {
+
+proc Solid::write::getParametersDict { } {
     set projectParametersDict [dict create]
     
     # Problem data
@@ -92,7 +93,11 @@ proc Solid::write::writeParametersEvent { } {
     dict set contraintsDict incremental_displacement false
     dict set projectParametersDict constraints_data $contraintsDict
     
-    write::WriteJSON $projectParametersDict
+    return $projectParametersDict
+}
+
+proc Solid::write::writeParametersEvent { } {
+    write::WriteJSON [getParametersDict]
 }
 
 proc Solid::write::getSubModelPartNames { args } {
