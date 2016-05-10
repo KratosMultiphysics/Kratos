@@ -15,7 +15,6 @@ class aux_object:
         t = self.t
         node.SetSolutionStepValue(self.variable,0, eval(self.compiled_function) )
 
-        
     def freturn(self,node):
         x = node.X
         y = node.Y
