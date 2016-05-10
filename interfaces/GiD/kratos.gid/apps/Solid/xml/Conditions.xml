@@ -94,7 +94,7 @@
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface"  ProcessName="ApplyVectorOnConditionsProcess" help="Load on surfaces, load vector referred to global axes"
-	units="Pa" unit_magnitude="P" VariableName="SURFACE_LOAD">
+	units="N/m^2" unit_magnitude="F/L^2" VariableName="SURFACE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
       <item  GeometryType="Triangle"      nodes="6" KratosName="SurfaceLoadCondition3D6N"/>
