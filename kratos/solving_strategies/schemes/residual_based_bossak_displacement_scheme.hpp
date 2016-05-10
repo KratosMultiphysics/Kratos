@@ -172,11 +172,11 @@ public:
         OpenMPUtils::PartitionVector DofPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
         
-        const unsigned int ndof = rDofSet.size();
+        const int ndof = static_cast<int>(rDofSet.size());
         typename DofsArrayType::iterator DofBegin = rDofSet.begin();
          
         #pragma omp parallel for firstprivate(ndof, DofBegin)
-        for(unsigned int i = 0;  i < ndof; i++)
+        for(int i = 0;  i < ndof; i++)
         {
             typename DofsArrayType::iterator itDof = DofBegin + i;
             
@@ -190,11 +190,11 @@ public:
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
         
-        const unsigned int nnodes = r_model_part.Nodes().size();
+        const int nnodes = static_cast<int>(r_model_part.Nodes().size());
         NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
          
         #pragma omp parallel for firstprivate(nnodes, NodeBegin)
-        for(unsigned int i = 0;  i < nnodes; i++)
+        for(int i = 0;  i < nnodes; i++)
         {
             array_1d<double, 3 > DeltaDisplacement;
              
@@ -245,11 +245,11 @@ public:
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
 
-        const unsigned int nnodes = r_model_part.Nodes().size();
+        const int nnodes = static_cast<int>( r_model_part.Nodes().size() );
         NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
         
         #pragma omp parallel for firstprivate(nnodes, NodeBegin)
-        for(unsigned int i = 0;  i< nnodes; i++)
+        for(int i = 0;  i< nnodes; i++)
         {
             array_1d<double, 3 > DeltaDisplacement;
 
@@ -348,11 +348,11 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
         
-        const unsigned int nelem = rModelPart.Elements().size();
+        const int nelem = static_cast<int>(rModelPart.Elements().size());
         ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
          
-        #pragma omp parallel for 
-        for(unsigned int i = 0;  i < nelem; i++)
+        #pragma omp parallel for firstprivate(nelem)
+        for(int i = 0;  i < nelem; i++)
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
             
@@ -384,11 +384,11 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
-        const unsigned int ncond = rModelPart.Conditions().size();
+        const int ncond = static_cast<int>(rModelPart.Conditions().size());
         ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
          
-        #pragma omp parallel for
-        for(unsigned int i = 0;  i < ncond; i++)
+        #pragma omp parallel for firstprivate(ncond)
+        for(int i = 0;  i < ncond; i++)
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
             
@@ -471,11 +471,11 @@ public:
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
 
-        const unsigned int nelem = rModelPart.Elements().size();
+        const int nelem = static_cast<int>( rModelPart.Elements().size() );
         ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
          
         #pragma omp parallel for
-        for(unsigned int i = 0;  i < nelem; i++)
+        for(int i = 0;  i < nelem; i++)
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
             
@@ -487,11 +487,11 @@ public:
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
 
-        const unsigned int ncond = rModelPart.Conditions().size();
+        const int ncond = static_cast<int>( rModelPart.Conditions().size() );
         ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
          
         #pragma omp parallel for
-        for(unsigned int i = 0;  i < ncond; i++)
+        for(int i = 0;  i < ncond; i++)
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
             
