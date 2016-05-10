@@ -6,6 +6,16 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 
+if(NOT DEFINED ${INCLUDE_TRIANGLE})
+  set(INCLUDE_TRIANGLE ON)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/triangle/)
+endif(NOT DEFINED ${INCLUDE_TRIANGLE})
+
+if(NOT DEFINED ${INCLUDE_TETGEN})
+  set(INCLUDE_TETGEN ON)
+  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries//tetgen/tetgen1.4.2/)
+endif(NOT DEFINED ${INCLUDE_TETGEN})
+
 if(${INCLUDE_TRIANGLE} MATCHES ON)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
@@ -19,7 +29,7 @@ endif(${INCLUDE_TETGEN} MATCHES ON)
 
 
 ## generate variables with the sources
-set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES     
+set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_solid_mechanics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_solid_mechanics_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_solid_mechanics_python_application.cpp
@@ -38,7 +48,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_FIC_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp	
+	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_wP_weight_element.cpp
 
 	##conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
@@ -58,7 +68,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_LM_3D_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_pressure_condition.cpp
 
-        
+
 	##constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.cpp
@@ -114,7 +124,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	##processes
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
-	
+
 	##utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 	##${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_mesh_data_transfer_utilities.cpp
@@ -137,12 +147,12 @@ install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
