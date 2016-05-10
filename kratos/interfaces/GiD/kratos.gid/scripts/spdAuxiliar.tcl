@@ -580,8 +580,8 @@ proc spdAux::injectNodalConditions { basenode } {
             set dv [$in getDv]
             set fix [$in getFixity]
             set help [$in getHelp]
-            #W "$pn fix -> $fix"
             if {$type eq "vector"} {
+                lassign [split $dv ","] v1 v2 v3
                 if {$fix ne 0} {
                     append node "
                         <value n=\"FixX\" pn=\"$fix X\" v=\"1\" values=\"1,0\" help=\"\"/>
@@ -589,9 +589,9 @@ proc spdAux::injectNodalConditions { basenode } {
                         <value n=\"FixZ\" pn=\"$fix Z\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
-                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
@@ -616,8 +616,8 @@ proc spdAux::injectConditions { basenode } {
         set help [$ld getHelp]
         set etype [join [string tolower [$ld getAttribute ElementType]] ,]
         set inputs [$ld getInputs]
-        set unitsc [$ld getAttribute "units"]
-        set umc [$ld getAttribute "unit_magnitude"]
+        set units [$ld getAttribute "units"]
+        set um [$ld getAttribute "unit_magnitude"]
         set process [::Model::GetProcess [$ld getProcessName]]
         set check [$process getAttribute "check"]
         #W "$pn $check"
@@ -625,15 +625,16 @@ proc spdAux::injectConditions { basenode } {
         foreach processinput [$process getInputs] {lappend inputs $processinput}
         foreach {inName in} $inputs {
             set inPn [$in getPublicName]
-            set units [$in getUnits]
-            if {$units eq "0"} {set units $unitsc}
-            set um [$in getUnitMagnitude]
-            if {$um eq "0"} {set um $umc}
+            #set units [$in getUnits]
+            #if {$units eq "0"} {set units $unitsc}
+            #set um [$in getUnitMagnitude]
+            #if {$um eq "0"} {set um $umc}
             set type [$in getType]
             set dv [$in getDv]
             set fix [$in getFixity]
             set help [$in getHelp]
             if {$type eq "vector"} {
+                lassign [split $dv ","] v1 v2 v3
                 if {$fix ne 0} {
                     append node "
                         <value n=\"FixX\" pn=\"X $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
@@ -641,9 +642,9 @@ proc spdAux::injectConditions { basenode } {
                         <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
-                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"0.0\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
