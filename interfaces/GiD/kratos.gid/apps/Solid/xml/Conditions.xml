@@ -89,11 +89,11 @@
     </outputs>
   </ConditionItem>
   
-    <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="line_load_2D_condition.cpp"
+    <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" ProcessName="ApplyConstantVectorValueProcess" help="Load on lines, load vector referred to global axes"
-	units="Pa" unit_magnitude="P">
+	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
+	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
       <item  GeometryType="Line" nodes="3" KratosName="LineLoadCondition2D3N"/>
@@ -108,11 +108,11 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
+  <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="apply_vector_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface"  ProcessName="ApplyConstantVectorValueProcess" help="Load on surfaces, load vector referred to global axes"
-	units="N" unit_magnitude="F">
+	ElementType="Surface"  ProcessName="ApplyVectorOnConditionsProcess" help="Load on surfaces, load vector referred to global axes"
+	units="Pa" unit_magnitude="P" VariableName="SURFACE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
       <item  GeometryType="Triangle"      nodes="6" KratosName="SurfaceLoadCondition3D6N"/>
@@ -130,11 +130,11 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="line_load_2D_condition.cpp"
+  <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="apply_scalar_on_conditions_processs"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Linear" ProcessName="ApplyConstantVectorValueProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
-	units="Pa" unit_magnitude="P">
+	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
+	units="Pa" unit_magnitude="P" VariableName="POSITIVE_FACE_PRESSURE">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
       <item  GeometryType="Line" nodes="3" KratosName="LineLoadCondition2D3N"/>
@@ -149,11 +149,11 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
+  <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="apply_scalar_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Surface" ProcessName="ApplyConstantVectorValueProcess" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal"
-	units="Pa" unit_magnitude="P">
+	ElementType="Surface" ProcessName="ApplyScalarOnConditionsProcess" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal"
+	units="Pa" unit_magnitude="P" VariableName="POSITIVE_FACE_PRESSURE">
     <TopologyFeatures>
       <item  GeometryType="Triangle"      nodes="3" KratosName="SurfaceLoadCondition3D3N"/>
       <item  GeometryType="Triangle"      nodes="6" KratosName="SurfaceLoadCondition3D6N"/>
