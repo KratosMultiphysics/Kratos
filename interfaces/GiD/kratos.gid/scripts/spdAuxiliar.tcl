@@ -567,15 +567,15 @@ proc spdAux::injectNodalConditions { basenode } {
         set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$ov\"  ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\" update_proc=\"RefreshTree\">"
         set inputs [$nc getInputs]
         set process [::Model::GetProcess [$nc getProcessName]]
-        set unitsnc [$nc getAttribute "units"]
-        set umnc [$nc getAttribute "unit_magnitude"]
+        set units [$nc getAttribute "units"]
+        set um [$nc getAttribute "unit_magnitude"]
         foreach processinput [$process getInputs] {lappend inputs $processinput}
         foreach {inName in} $inputs {
             set inPn [$in getPublicName]
-            set units [$in getUnits]
-            if {$units eq "0"} {set units $unitsnc}
-            set um [$in getUnitMagnitude]
-            if {$um eq "0"} {set um $umnc}
+            #set units [$in getUnits]
+            #if {$units eq "0"} {set units $unitsnc}
+            #set um [$in getUnitMagnitude]
+            #if {$um eq "0"} {set um $umnc}
             set type [$in getType]
             set dv [$in getDv]
             set fix [$in getFixity]
