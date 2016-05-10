@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
@@ -274,20 +275,19 @@ class ImplicitMechanicalSolver:
                     mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(),
                                                                          self.settings["dynamic_factor"].GetDouble())
                 else:
-                    mechanical_scheme = ResidualBasedBossakScheme(self.settings["damp_factor_m"].GetDouble(),
+                    mechanical_scheme = ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble(),
                                                                   self.settings["dynamic_factor"].GetDouble())
 
         elif(scheme_type == "Relaxation"):
           #~ self.main_model_part.GetSubModelPart(self.settings["volume_model_part_name"].GetString()).AddNodalSolutionStepVariable(DISPLACEMENT)  
             
-            import StructuralMechanicsApplication as StructuralMechanicsApplication
             self.settings.AddEmptyValue("damp_factor_f")  
             self.settings.AddEmptyValue("dynamic_factor_m")
             self.settings["damp_factor_f"].SetDouble(-0.3)
             self.settings["dynamic_factor_m"].SetDouble(10.0) 
             
-            mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
-                                                                                             self.settings["dynamic_factor_m"].GetDouble())
+            mechanical_scheme = ResidualBasedRelaxationScheme(self.settings["damp_factor_f"].GetDouble(),
+                                                              self.settings["dynamic_factor_m"].GetDouble())
                                 
         return mechanical_scheme
     
@@ -306,7 +306,7 @@ class ImplicitMechanicalSolver:
         # Construction of the class convergence_criterion
         import convergence_criteria_utility
         convergence_criterion = convergence_criteria_utility.convergence_criterion(conv_params)
-            
+        
         return convergence_criterion.mechanical_convergence_criterion
         
     def _CreateMechanicalSolver(self, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag, component_wise, line_search):
