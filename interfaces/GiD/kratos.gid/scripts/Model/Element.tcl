@@ -344,7 +344,7 @@ proc Model::CheckElementsNodalCondition {conditionId elemnames {restrictions "" 
 }
 proc Model::CheckNodalConditionOutputState {conditionId outputId {restrictions "" }} {
     set ret 0
-    W "Con $conditionId out $outputId"
+    #W "Con $conditionId out $outputId"
     set nc [getNodalConditionbyId $conditionId]
     foreach {name output} [$nc getOutputs] {
         if {$name eq $outputId} {
