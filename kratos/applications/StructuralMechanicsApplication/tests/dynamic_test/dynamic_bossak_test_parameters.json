@@ -1,0 +1,128 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "dynamic_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
+        "time_step"       : 0.001,
+        "start_time"      : 0.001,
+        "end_time"        : 1.00,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "solid_mechanics_implicit_dynamic_solver",
+        "echo_level"                         : 0,
+        "solution_type"                      : "Dynamic",
+        "time_integration_method"            : "Implicit",
+        "scheme_type"                        : "Bossak",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "dynamic_test/dynamic_test"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-9,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "gmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
+    },
+    "constraints_process_list" : [
+    {
+        "implemented_in_file"   : "apply_displacement_process",
+        "implemented_in_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ApplyDisplacementProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "is_fixed_x"      : false,
+            "is_fixed_y"      : true,
+            "is_fixed_z"      : true,
+            "variable_name"   : "DISPLACEMENT",
+            "direction"       : [0.1, 0.0, 0.0]
+        }
+    }
+    ],
+    "loads_process_list" : [],
+    "list_other_processes" :[
+    {
+        "implemented_in_file"   : "from_json_check_result_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "input_file_name" : "dynamic_test/dynamic_bossak_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "print_output_process" : [
+    {
+        "implemented_in_file"   : "json_output_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "output_file_name" : "dynamic_test/dynamic_bossak_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "check_json_results_process" : [
+    {
+        "implemented_in_file"   : "from_json_check_result_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "input_file_name" : "dynamic_test/dynamic_bossak_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "check_analytic_results_process" : [
+    {
+        "implemented_in_file"   : "from_analytic_check_result_process",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromAnalyticCheckResultProcess",
+        "Parameters"            : {
+            "variable_name"     : "DISPLACEMENT_X",
+            "mesh_id"           : 0,
+            "f(x,y,z,t)="       : "cos(10.0*t)",
+            "model_part_name"   : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"    : 0.01
+        }
+    }
+    ],    
+    "apply_custom_function_process" : [],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
