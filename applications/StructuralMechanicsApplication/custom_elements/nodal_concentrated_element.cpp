@@ -288,14 +288,14 @@ void NodalConcentratedElement::CalculateLocalSystem( MatrixType& rLeftHandSideMa
     // Nodal concentrated element has not
 
     //3.-Calculate elemental system:
-    array_1d<double, 3 > Nodal_Stiffness = GetGeometry()[0].FastGetSolutionStepValue(NODAL_STIFFNESS);
+    array_1d<double, 3 > Nodal_Stiffness = Element::GetValue(NODAL_STIFFNESS);
     array_1d<double, 3 > Current_Displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
     array_1d<double, 3 > Volume_Acceleration = ZeroVector(3);
     if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
     {
         Volume_Acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
-    double Nodal_Mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+    double Nodal_Mass = Element::GetValue(NODAL_MASS);
     // Compute LHS
     for ( unsigned int j = 0; j < dimension; j++ )
     {
@@ -436,7 +436,7 @@ void NodalConcentratedElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
 
-    double &Nodal_Mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+    double &Nodal_Mass = Element::GetValue(NODAL_MASS);
 
     for ( unsigned int j = 0; j < dimension; j++ )
     {
