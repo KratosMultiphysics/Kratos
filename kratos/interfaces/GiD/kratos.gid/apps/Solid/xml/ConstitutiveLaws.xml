@@ -56,7 +56,7 @@
             
         </outputs>
     </CLaw>
-    <CLaw n="LinearElasticShellLaw" pn="Linear Elastic" dev="False" Type="PlaneStress" behaviour="Elastic" StrainSize="6" 
+    <CLaw n="LinearElasticPlaneStress2DLaw" pn="Linear Elastic" dev="False" Type="PlaneStress" behaviour="Elastic" StrainSize="6" 
 	  help="Linear Elastic Behaviour in 3D for Shells" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="D-R" AllowsAnisotropy="False" >
         <inputs>
 			<parameter n="DENSITY" pn="Density"/>
