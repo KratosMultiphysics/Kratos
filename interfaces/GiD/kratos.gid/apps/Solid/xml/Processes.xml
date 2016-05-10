@@ -16,16 +16,7 @@
       <parameter n="value" pn="Direction" type="double" unit_magnitude="0" units="0"/>
     </inputs>
   </Process>
-  
-  <Process n="ApplyDisplacementProcess" pn="Displacement process" implemented_in_file="apply_displacement_process"
-		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
-		help="This process applies a displacement by components using the apply_constant_scalarvalue_process in kratos core">
-    <inputs>
-      <!--<parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>-->
-      <parameter n="direction" pn="Direction" type="vector" fixity="Imposed" v="0.0,0.0,0.0" />
-    </inputs>
-  </Process>
-      
+
   <Process n="ImposeScalarValueProcess" pn="Impose vector value by components process" implemented_in_file="impose_scalar_value_process"
 		implemented_in_module="KratosMultiphysics" help="This process fixes the given scalar variable">
     <inputs>
@@ -46,8 +37,39 @@
         <parameter n="factor" pn="Modulus" type="double"  v="1.0" unit_magnitude="Velocity" units="m/s"/>
         <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
     </inputs>
-</Process>
+  </Process>
+  
 <!--
+  Processes for conditions
+-->
+  <Process n="ApplyVectorOnConditionsProcess" pn="Apply a vector value over a condition" implemented_in_file="apply_vector_on_conditions_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a vector variable value over a condition" check="DirectorVectorNonZero value"> 
+    <inputs>
+        <parameter n="value" pn="Value" type="vector" v="0.0,0.0,0.0" unit_magnitude="0" units="0" />
+    </inputs>
+  </Process>
+
+  <Process n="ApplyScalarOnConditionsProcess" pn="Apply a scalar value over a condition" implemented_in_file="apply_scalar_on_conditions_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication" help="This process sets a scalar variable value over a condition" > 
+    <inputs>
+        <parameter n="value" pn="Value" type="double" v="0.0" unit_magnitude="0" units="0" />
+    </inputs>
+  </Process>
+  
+  
+<!--
+  Deprecated processes
+-->
+<!--
+  <Process n="ApplyDisplacementProcess" pn="Displacement process" implemented_in_file="apply_displacement_process"
+		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
+		help="This process applies a displacement by components using the apply_constant_scalarvalue_process in kratos core">
+    <inputs>
+      <parameter n="factor" pn="Factor" type="double" v="1.0" unit_magnitude="0" units="0"/>
+      <parameter n="direction" pn="Direction" type="vector" fixity="Imposed" v="0.0,0.0,0.0" />
+    </inputs>
+  </Process>
+
   <Process n="ApplyPointLoadProcess" pn="Apply punctual load" implemented_in_file="apply_point_load_process"
 		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
 		help="This process applies a nodal punctual load via the apply_constant_vector_value_process in kratos core">
@@ -56,6 +78,7 @@
       <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,0.0" />
     </inputs>
   </Process>
+  
   <Process n="ApplyVolumeAccelerationProcess" pn="Apply volume acceleration" implemented_in_file="apply_volume_acceleration_process"
 		implemented_in_module="KratosMultiphysics.SolidMechanicsApplication"
 		help="This process applies a volume acceleration node by node via the apply_constant_vector_value_process in kratos core">
