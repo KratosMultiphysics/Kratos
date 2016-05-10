@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ProcessList>
   <Process n="ApplyConstantVectorValueProcess" pn="Constant vector value" implemented_in_file="process_factory"
-		implemented_in_module="KratosMultiphysics"
+		implemented_in_module="KratosMultiphysics" check="DirectorVectorNonZero direction"
 		help="This process ">
     <inputs>
-      <parameter n="factor" pn="Factor" type="double" v="-9.81"/>
+      <parameter n="factor" pn="Factor" type="double" v="1.0"/>
       <parameter n="direction" pn="Direction" type="vector" v="0.0,0.0,-1.0" />
     </inputs>
   </Process>
