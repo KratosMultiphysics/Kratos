@@ -159,7 +159,11 @@ if(${PFEM_BASE_APPLICATION} MATCHES ON)
 endif(${PFEM_BASE_APPLICATION} MATCHES ON)
 
 if(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
-  add_subdirectory(PfemBaseApplication)
+  if(${PFEM_BASE_APPLICATION} MATCHES ON)
+  else(${PFEM_BASE_APPLICATION} MATCHES ON)
+    message("Dependency not set, including PfemBaseApplication ${PFEM_BASE_APPLICATION}")
+    add_subdirectory(PfemBaseApplication)
+  endif(${PFEM_BASE_APPLICATION} MATCHES ON)
   add_subdirectory(PfemSolidMechanicsApplication)
 endif(${PFEM_SOLID_MECHANICS_APPLICATION} MATCHES ON)
 
