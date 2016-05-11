@@ -28,7 +28,6 @@
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/tetgen_volume_mesher.h"
-#include "custom_utilities/cutting_app.h"
 #include "custom_utilities/cutting_iso_app.h"
 #include "custom_utilities/tetrahedra_reconnect_utility.h"
 #include "utilities/split_tetrahedra.h"
@@ -137,13 +136,6 @@ void AddCustomUtilitiesToPython()
     ;        
     #endif
     
-    class_<Cutting_Application >("Cutting_Application", init< >())
-    .def("GenerateCut", &Cutting_Application::GenerateCut)
-    .def("UpdateCutData", &Cutting_Application ::UpdateCutData)
-    .def("AddSkinConditions", &Cutting_Application ::AddSkinConditions)
-    .def("FindSmallestEdge", &Cutting_Application ::FindSmallestEdge)
-    ;
-
     class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
     .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)

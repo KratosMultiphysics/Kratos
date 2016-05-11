@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 class GiDOutputProcess(Process):
@@ -294,7 +293,7 @@ class GiDOutputProcess(Process):
         '''Set up tools used to produce output in skin and cut planes.'''
 
         self.cut_model_part = ModelPart("CutPart")
-        self.cut_manager = Cutting_Application()
+        self.cut_manager = CuttingUtility()
         self.cut_manager.FindSmallestEdge(self.model_part)
         if self.skin_output:
             self.cut_manager.AddSkinConditions(self.model_part,self.cut_model_part,self.output_surface_index)
