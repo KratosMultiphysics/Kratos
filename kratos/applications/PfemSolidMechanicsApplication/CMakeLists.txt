@@ -3,8 +3,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosPfemSolidMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
@@ -17,10 +17,6 @@ if(NOT DEFINED ${INCLUDE_TETGEN})
   set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
   include_directories( ${TETGEN_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TETGEN})
-
-#include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/triangle )
-#include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/tetgen/tetgen1.4.3 )
-
 
 ## generate variables with the sources
 set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
