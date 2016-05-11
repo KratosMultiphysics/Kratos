@@ -45,7 +45,7 @@ namespace Kratos
     
 */
 
-class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) RefineMeshBoundaryProcess
+class RefineMeshBoundaryProcess
   : public Process
 {
 public:
