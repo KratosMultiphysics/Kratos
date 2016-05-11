@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 
@@ -117,7 +116,7 @@ class GiDOutput(object):
 
         if self.cut_model_part is None:
             self.cut_model_part = ModelPart("CutPart")
-            self.cut_app = Cutting_Application()
+            self.cut_app = CuttingUtility()
             self.cut_app.FindSmallestEdge(model_part)
 
         for cut_data in cut_list:
