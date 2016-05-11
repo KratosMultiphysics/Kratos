@@ -79,7 +79,7 @@ namespace Kratos
   /** Applies a recollocation of the nodes improving the mesh shape
    *  variables are interpolated to the new positions
    */
-  class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) LaplacianSmoothing
+  class LaplacianSmoothing
   {
   public:
 
