@@ -321,12 +321,11 @@ proc spdAux::ViewDoc {} {
     W [$root asXML]
 }
 
-# TODO JG quitar la chapuza de .gid.cen......
 proc spdAux::CheckPartParamValue {node material_name} {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     #W [get_domnode_attribute $node n]
-    if {[$node hasAttribute n]} {
+    if {[$node hasAttribute n] || $material_name ne ""} {
         set id [$node getAttribute n]
         set found 0
         set val 0.0
@@ -364,10 +363,8 @@ proc spdAux::CheckPartParamValue {node material_name} {
             #if {$found} {W "claw $claw_name value $val"}
         }
         #if {!$found} {W "Not found $val"}
-        if {$val eq ""} {set val 0.0}
-        return $val
+        if {$val eq ""} {set val 0.0} {return $val}
     }
-    return "Invalid"
 }
 
 proc spdAux::ConvertAllUniqueNames {oldPrefix newPrefix} {
@@ -565,7 +562,7 @@ proc spdAux::injectNodalConditions { basenode } {
         set help [$nc getHelp]
         set ov  [$nc getOv]
         set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$ov\"  ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[CheckNodalConditionState\]\" update_proc=\"RefreshTree\">"
-        set inputs [$nc getInputs]
+        #set inputs [$nc getInputs]
         set process [::Model::GetProcess [$nc getProcessName]]
         set units [$nc getAttribute "units"]
         set um [$nc getAttribute "unit_magnitude"]
@@ -668,13 +665,14 @@ proc spdAux::injectElementInputs { basenode } {
         set units [$in getUnits]
         set um [$in getUnitMagnitude]
         set help [$in getHelp] 
+        set v [$in getDv]
         #set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"-\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
-        set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"-\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
+        set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"$v\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
         catch {$parts appendXML $node}
         
-        set originxpath "[$parts toXPath]/value\[@n='Material'\]"
-        set relativexpath "../value\[@n='$inName'\]"
-        spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
+        #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
+        #set relativexpath "../value\[@n='$inName'\]"
+        #spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
     }
     $basenode delete
 }
@@ -693,9 +691,9 @@ proc spdAux::injectConstitutiveLawInputs { basenode } {
             set node "<value n=\"$inName\" pn=\"$pn\" state=\"\[PartParamState\]\" v=\"$v\" units=\"$units\" unit_magnitude=\"$um\" help=\"$help\" />"
             catch {$parts appendXML $node}
             
-            set originxpath "[$parts toXPath]/value\[@n='Material'\]"
-            set relativexpath "../value\[@n='$inName'\]"
-            spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
+            #set originxpath "[$parts toXPath]/value\[@n='Material'\]"
+            #set relativexpath "../value\[@n='$inName'\]"
+            #spdAux::insertDependenciesSoft $originxpath $relativexpath $inName v "\[PartParamValue\]"
         }
     }
     $basenode delete
