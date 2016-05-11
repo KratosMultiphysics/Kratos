@@ -47,7 +47,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class ModelerUtilities
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) ModelerUtilities
 {
 public:
   

@@ -64,7 +64,7 @@ namespace Kratos
 
 //TIP ELEMENTS : Elements with all its nodes in boundary
 
-class ChangeTipElementsUtilities
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) ChangeTipElementsUtilities
 {
 public:
     /**@name Type Definitions */

@@ -71,7 +71,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class BuildMeshBoundaryProcess
+  class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) BuildMeshBoundaryProcess
     : public Process
   {
   public:

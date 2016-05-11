@@ -44,7 +44,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class CompositeCondition
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) CompositeCondition
     : public Condition
 {
 public:

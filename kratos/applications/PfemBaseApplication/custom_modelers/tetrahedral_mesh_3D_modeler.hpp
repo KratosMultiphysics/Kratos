@@ -50,7 +50,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class TetrahedralMesh3DModeler
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) TetrahedralMesh3DModeler
   : public MeshModeler
 {
 protected:

@@ -54,7 +54,7 @@ namespace Kratos
 /*@{ */
 
 /// Tool to evaluate the normals on nodes based on the normals of a set of surface conditions
-class BoundaryNormalsCalculationUtilities
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) BoundaryNormalsCalculationUtilities
 {
 public:
 	/**@name Type Definitions */
