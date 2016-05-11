@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
 
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
