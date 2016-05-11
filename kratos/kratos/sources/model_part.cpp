@@ -439,7 +439,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
             for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
             {
                 //count the nodes to be erase
-                const unsigned int nnodes = i_mesh->Nodes().size();
+                unsigned int nnodes = i_mesh->Nodes().size();
                 unsigned int erase_count = 0;
                 #pragma omp parallel for firstprivate(nnodes) reduction(+:erase_count)
                 for(int i=0; i<static_cast<int>(nnodes); ++i)
