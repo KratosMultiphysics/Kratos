@@ -8,21 +8,15 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  include_directories( ${TRIANGLE_INSTALL_DIR} )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries//tetgen/tetgen1.4.2/)
-endif(NOT DEFINED ${INCLUDE_TETGEN})
-
-if(${INCLUDE_TRIANGLE} MATCHES ON)
-  include_directories( ${TRIANGLE_INSTALL_DIR} )
-endif(${INCLUDE_TRIANGLE} MATCHES ON)
-
-if(${INCLUDE_TETGEN} MATCHES ON)
+  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
   include_directories( ${TETGEN_INSTALL_DIR} )
-endif(${INCLUDE_TETGEN} MATCHES ON)
+endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/triangle )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication/custom_external_libraries/tetgen/tetgen1.4.3 )
