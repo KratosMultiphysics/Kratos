@@ -150,7 +150,7 @@ class NavierStokesSolver_FractionalStep:
             #here we read the VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(DENSITY)
-                kin_viscostity = el.Properties.GetValue(VISCOSITY)
+                kin_viscosity = el.Properties.GetValue(VISCOSITY)
                 break
             
             VariableUtils().SetScalarVar(DENSITY, rho, self.main_model_part.Nodes)              # Set density
