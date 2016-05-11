@@ -6,14 +6,17 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemBaseApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 
-
-if(${INCLUDE_TRIANGLE} MATCHES ON)
+if(NOT DEFINED ${INCLUDE_TRIANGLE})
+  set(INCLUDE_TRIANGLE ON)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
   include_directories( ${TRIANGLE_INSTALL_DIR} )
-endif(${INCLUDE_TRIANGLE} MATCHES ON)
+endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
-if(${INCLUDE_TETGEN} MATCHES ON)
+if(NOT DEFINED ${INCLUDE_TETGEN})
+  set(INCLUDE_TETGEN ON)
+  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
   include_directories( ${TETGEN_INSTALL_DIR} )
-endif(${INCLUDE_TETGEN} MATCHES ON)
+endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 ## generate variables with the sources
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES     
