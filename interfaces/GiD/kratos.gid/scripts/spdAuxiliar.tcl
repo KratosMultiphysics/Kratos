@@ -557,6 +557,7 @@ proc spdAux::injectNodalConditions { basenode } {
     set nodalconds [$basenode parent]
     set nodal_conditions [::Model::getAllNodalConditions]
     foreach nc $nodal_conditions {
+        set inputs [list ]
         set n [$nc getName]
         set pn [$nc getPublicName]
         set help [$nc getHelp]
@@ -567,6 +568,7 @@ proc spdAux::injectNodalConditions { basenode } {
         set units [$nc getAttribute "units"]
         set um [$nc getAttribute "unit_magnitude"]
         foreach processinput [$process getInputs] {lappend inputs $processinput}
+        #W "Al inyectar cosas tenemos $inputs"
         foreach {inName in} $inputs {
             set inPn [$in getPublicName]
             #set units [$in getUnits]
@@ -608,6 +610,7 @@ proc spdAux::injectConditions { basenode } {
     set conds [$basenode parent]
     set loads [::Model::getAllConditions]
     foreach n [dict keys $loads] {
+        set inputs [list ]
         set ld [dict get $loads $n]
         set pn [$ld getPublicName]
         set help [$ld getHelp]
