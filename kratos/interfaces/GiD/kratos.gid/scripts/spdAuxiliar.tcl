@@ -586,9 +586,9 @@ proc spdAux::injectNodalConditions { basenode } {
                         <value n=\"FixZ\" pn=\"$fix Z\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
-                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\"/>
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\"/>
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
@@ -639,9 +639,9 @@ proc spdAux::injectConditions { basenode } {
                         <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
-                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\"/>
-                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\" units=\"$units\" unit_magnitude=\"$um\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\" />
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\" />
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\"  state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
