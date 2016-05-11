@@ -141,6 +141,7 @@ proc Model::ParseElemNode { node } {
     
     set el [::Model::Element new $name]
     $el setPublicName [$node getAttribute pn]
+    catch {$el setDv [$node getAttribute v]}
     
     foreach att [$node attributes] {
         $el setAttribute $att [split [$node getAttribute $att] ","]

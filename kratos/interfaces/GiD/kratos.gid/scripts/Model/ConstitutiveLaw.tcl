@@ -47,6 +47,8 @@ proc Model::ParseClawNode { node } {
     $cl setPublicName [$node getAttribute pn]
     $cl setHelp [$node getAttribute help]
     
+    catch {$el setDv [$node getAttribute v]}
+    
     foreach attr [$node attributes] {
         $cl addAttribute $attr [$node getAttribute $attr]
     }

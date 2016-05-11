@@ -4,7 +4,7 @@
   <!--small displacements-->
   <ElementItem n="SmallDisplacementElement2D" pn="Small Displacements" ImplementedInFile="small_displacement_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->

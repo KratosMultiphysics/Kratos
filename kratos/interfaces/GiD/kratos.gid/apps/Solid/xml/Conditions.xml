@@ -8,7 +8,7 @@
     help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
     <TopologyFeatures>
     </TopologyFeatures>
-    <inputs >
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
@@ -22,7 +22,7 @@
     help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
     <TopologyFeatures>
     </TopologyFeatures>
-    <inputs>    
+    <inputs>
     </inputs>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
