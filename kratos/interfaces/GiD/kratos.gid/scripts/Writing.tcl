@@ -58,12 +58,12 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    
+    eval $wevent
     # Delegate in app
-    if { [catch {eval $wevent} fid] } {
-        W "Problem Writing MDPA block:\n$fid\nEnd problems"
-        set errcode 1
-    }
+    #if { [catch {eval $wevent} fid] } {
+    #    W "Problem Writing MDPA block:\n$fid\nEnd problems"
+    #    set errcode 1
+    #}
     catch {CloseFile}
         
     #### Project Parameters Write ####
@@ -159,9 +159,9 @@ proc write::processMaterials {  } {
     
     foreach gNode [$root selectNodes $xp1] {
         set group [$gNode getAttribute n]
-        set valueNode [$gNode selectNodes $xp2]
-        set material_name [get_domnode_attribute $valueNode v] 
-
+        #set valueNode [$gNode selectNodes $xp2]
+        #set material_name [get_domnode_attribute $valueNode v] 
+        set material_name "material $material_number"
         if { ![dict exists $mat_dict $group] } {            
             incr material_number
             set mid $material_number
