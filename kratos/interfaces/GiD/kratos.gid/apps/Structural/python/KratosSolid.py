@@ -28,6 +28,7 @@ def StopTimeMeasuring(time_ip, process, report):
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
 
@@ -144,12 +145,11 @@ gid_output.ExecuteInitialize()
 ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
 solver.Initialize()
 
-## Set results when are written in a single file
-gid_output.ExecuteBeforeSolutionLoop()
-
-
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
+    
+## Set results when are written in a single file
+gid_output.ExecuteBeforeSolutionLoop()
 
 ## Stepping and time settings (get from process info or solving info)
 #delta time
@@ -190,11 +190,11 @@ while(time <= end_time):
     gid_output.ExecuteInitializeSolutionStep()
         
     solver.Solve()
-
-    gid_output.ExecuteFinalizeSolutionStep()
-        
+       
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
+    
+    gid_output.ExecuteFinalizeSolutionStep()
 
     #TODO: decide if it shall be done only when output is processed or not (boundary_conditions_processes ¿?)
     for process in list_of_processes:
@@ -209,11 +209,11 @@ while(time <= end_time):
         process.ExecuteAfterOutputStep()
 
 
-# ending the problem (time integration finished)
-gid_output.ExecuteFinalize()
-
 for process in list_of_processes:
     process.ExecuteFinalize()
+    
+# ending the problem (time integration finished)
+gid_output.ExecuteFinalize()
 
 print("::[KSM Simulation]:: Analysis -END- ")
 print(" ")
