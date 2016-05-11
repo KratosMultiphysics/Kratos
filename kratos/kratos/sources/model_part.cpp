@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -121,7 +121,7 @@ namespace Kratos
 		mBufferSize = rOther.mBufferSize;
 		mpProcessInfo = rOther.mpProcessInfo;
 		mIndices = rOther.mIndices;
-		mMeshes = rOther.mMeshes; 
+		mMeshes = rOther.mMeshes;
 		// I should not set the parent for a model part while it breaks the hierarchy. Pooyan.
 		//mpParentModelPart = rOther.mpParentModelPart;
 		mSubModelParts = rOther.mSubModelParts;
@@ -215,7 +215,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 
 			//ATTENTION: this function does not touch the coordinates of the nodes.
 			//It just resets the database values to the values at the beginning of the time step
-			
+
 			if (IsSubModelPart())
 KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
   //	KRATOS_ERROR << "Calling the OverwriteSolutionStepData method of the sub model part " << Name()
@@ -296,7 +296,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 	ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, double x, double y, double z, double* pThisData, ModelPart::IndexType ThisIndex)
 	{
 		if (IsSubModelPart())
-                    
+
 		{
 			NodeType::Pointer p_new_node = mpParentModelPart->CreateNewNode(Id, x, y, z, pThisData, ThisIndex);
 			GetMesh(ThisIndex).AddNode(p_new_node);
@@ -430,26 +430,26 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		}
 		RemoveNode(pThisNode, ThisIndex);
 	}
-	
+
 	void ModelPart::RemoveNodes(Flags identifier_flag)
         {
-            // This method is optimized to free the memory 
+            // This method is optimized to free the memory
             //loop over all the meshes
             ModelPart::MeshesContainerType& meshes = this->GetMeshes();
             for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
             {
                 //count the nodes to be erase
-                unsigned int nnodes = i_mesh->Nodes().size();
+                const unsigned int nnodes = i_mesh->Nodes().size();
                 unsigned int erase_count = 0;
-                #pragma omp parallel for firstprivate(nnodes) reduction(+:erase_count)
+                #pragma omp parallel for reduction(+:erase_count)
                 for(int i=0; i<static_cast<int>(nnodes); ++i)
                 {
                     ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
-                    
+
                     if( i_node->IsNot(identifier_flag) )
                         erase_count++;
                 }
-                
+
                 ModelPart::NodesContainerType temp_nodes_container;
                 temp_nodes_container.reserve(i_mesh->Nodes().size() - erase_count);
 
@@ -472,7 +472,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
             ModelPart& root_model_part = GetRootModelPart();
             root_model_part.RemoveNodes(identifier_flag);
         }
-        
+
         ModelPart& ModelPart::GetRootModelPart()
         {
             if (IsSubModelPart())
@@ -480,7 +480,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
             else
                 return mpParentModelPart->GetRootModelPart();;
         }
-        
+
 	void ModelPart::SetNodalSolutionStepVariablesList()
 	{
 		if (IsSubModelPart())
@@ -498,7 +498,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 	{
 		if (IsSubModelPart())
 			mpParentModelPart->AddTable(TableId, pNewTable);
-			
+
 		mTables.insert(TableId, pNewTable);
 	}
 
@@ -615,8 +615,8 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 
 	/** Inserts an element in the mesh with ThisIndex.
 	*/
-	ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName, 
-		ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds, 
+	ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
+		ModelPart::IndexType Id, std::vector<ModelPart::IndexType> ElementNodeIds,
 		ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 	{
 		if (IsSubModelPart())
@@ -638,7 +638,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 	/** Inserts an element in the mesh with ThisIndex.
 	*/
 	ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
-		ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, 
+		ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
 		ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 	{
 		if (IsSubModelPart())
@@ -740,7 +740,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 	/** Inserts a condition in the mesh with ThisIndex.
 	*/
 	ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName,
-		ModelPart::IndexType Id, std::vector<IndexType> ConditionNodeIds, 
+		ModelPart::IndexType Id, std::vector<IndexType> ConditionNodeIds,
 		ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 	{
 		Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
@@ -754,8 +754,8 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 
 	/** Inserts a condition in the mesh with ThisIndex.
 	*/
-	ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName, 
-		ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes, 
+	ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName,
+		ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
 		ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 	{
 		if (IsSubModelPart())
@@ -869,7 +869,7 @@ KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part "
 		if (mSubModelParts.find(rThisSubModelPart.Name()) != mSubModelParts.end())
 			// Here a warning would be enough. To be disscussed. Pooyan.
 			KRATOS_ERROR << "There is an already existing sub model part with name \"" << rThisSubModelPart.Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
-			
+
 		if (IsSubModelPart())
 		{
 			mpParentModelPart->AddSubModelPart(rThisSubModelPart);
@@ -919,7 +919,7 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
  KRATOS_THROW_ERROR(std::logic_error, "Calling the method of the sub model part ", Name())
 		  //	KRATOS_ERROR << "Calling the SetBufferSize method of the sub model part " << Name()
 		  //	<< " please call the one of the parent modelpart : " << mpParentModelPart->Name() << std::endl;
- 
+
                 for(SubModelPartIterator i_sub_model_part = mSubModelParts.begin(); i_sub_model_part != mSubModelParts.end(); i_sub_model_part++)
                 {
                     i_sub_model_part->mBufferSize = NewBufferSize;
@@ -1060,5 +1060,3 @@ KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
 
 
 }  // namespace Kratos.
-
-
