@@ -67,6 +67,11 @@ typename TVariableType::Type MyGetValueHelperFunction1( TContainerType& el,
     return el.GetValue(rVar);
 }
 
+ProcessInfo::Pointer ProcessInfoGetPreviousSolutionStepInfo(ProcessInfo & rProcessInfo)
+{
+	return rProcessInfo.pGetPreviousSolutionStepInfo();
+}
+
 //
 void  AddProcessInfoToPython()
 {
@@ -75,6 +80,7 @@ void  AddProcessInfoToPython()
     class_<ProcessInfo, ProcessInfo::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable>("ProcessInfo")
     .def(init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
+	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
 // 				.def("CreateTimeStepInfo",(void (ProcessInfo::*)(std::size_t)) &ProcessInfo::CreateTimeStepInfo)
 // 				.def("CreateTimeStepInfo",&ProcessInfo::CreateTimeStepInfo)
 // 				.def("CloneTimeStepInfo",(void (ProcessInfo::*)(std::size_t) )&ProcessInfo::CloneTimeStepInfo)
