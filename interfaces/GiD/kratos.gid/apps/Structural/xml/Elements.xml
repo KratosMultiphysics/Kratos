@@ -44,7 +44,7 @@
   <ElementItem n="MembraneElement" pn="Membrane Element" ImplementedInFile="membrane_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
-	       help="This element it implements a membrane structural model" RotationDofs="True"
+	       help="This element it implements a membrane structural model" RotationDofs="False"
 		   ElementType="Membrane" >
 
     <!--here we could add a list of all of the possible geometries-->
@@ -55,7 +55,7 @@
     <!-- here we add the block of features which we require from the constitutive law-->
     <ConstitutiveLaw_FilterFeatures>
       <filter field="Type" value="PlaneStress"/>
-      <filter field="Dimension" value="2D"/>
+      <filter field="Dimension" value="3D"/>
       <filter field="StrainSize" value="3"/>
       <filter field="HybridType" value="False"/>
     </ConstitutiveLaw_FilterFeatures>
