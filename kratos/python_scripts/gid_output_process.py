@@ -484,8 +484,10 @@ class GiDOutputProcess(Process):
             for freq,f in self.volume_list_files:
                 if (self.printed_step_count % freq) == 0:
                     f.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
+                    f.flush()
 
         if self.cut_io is not None:
             for freq,f in self.cut_list_files:
                 if (self.printed_step_count % freq) == 0:
                     f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
+                    f.flush()
