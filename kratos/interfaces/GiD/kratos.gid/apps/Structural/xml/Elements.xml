@@ -191,7 +191,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element it implements a corotational element for thin shells in a large displacements approach"
-		   ElementType="Shell" RotationDofs="False" >
+		   ElementType="Shell" RotationDofs="True" >
 
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
@@ -226,7 +226,7 @@
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element it implements a corotational element for thick shells in a large displacements approach"
-		   ElementType="Shell" RotationDofs="False">
+		   ElementType="Shell" RotationDofs="True">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
       <item GeometryType="Quadrilateral" nodes="4" KratosName="ShellThickElementCorotational3D4N"/>
