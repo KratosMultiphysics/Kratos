@@ -49,7 +49,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class SpatialBoundingBox
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) SpatialBoundingBox
 {
 public:
 

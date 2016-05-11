@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ModelVolumeCalculationProcess
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) ModelVolumeCalculationProcess
   : public Process
 {
 public:

@@ -63,7 +63,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class NodalNeighboursSearchProcess
+  class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) NodalNeighboursSearchProcess
     : public Process
   {
   public:

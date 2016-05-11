@@ -43,7 +43,7 @@ namespace Kratos
     if the ThresholdVariable  is larger than a ReferenceThreshold
 */
 
-class RefineMeshElementsOnThresholdProcess
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) RefineMeshElementsOnThresholdProcess
   : public Process
 {
 public:

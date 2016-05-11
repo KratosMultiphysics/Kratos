@@ -50,7 +50,7 @@ namespace Kratos
     If boundary nodes are removed, conditions must be build again (new conditions are build in the current mesh)   
 */
 
-class RemoveMeshNodesProcess
+class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) RemoveMeshNodesProcess
   : public Process
 {
 public:

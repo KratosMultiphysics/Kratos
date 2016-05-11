@@ -57,7 +57,7 @@ namespace Kratos
   /// Short class definition.
   /** Computes mesh error for a given variable. Setting the error to elements or nodes for 2D and 3D
    */
-  class MeshErrorCalculationUtilities
+  class KRATOS_API(PFEM_BASE_MECHANICS_APPLICATION) MeshErrorCalculationUtilities
   {
   public:
 
