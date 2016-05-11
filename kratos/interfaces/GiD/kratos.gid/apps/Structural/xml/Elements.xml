@@ -77,46 +77,10 @@
 
   <!--shell elements-->
   <!--small displacements-->
-  <ElementItem n="ShellElement" pn="Isotropic Shell" ImplementedInFile="isotropic_shell_element.cpp"
-	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
-	       help="This element it implements a DKT element + OPT membrane model" RotationDofs="True"
-		   ElementType="Shell" >
-
-    <!--here we could add a list of all of the possible geometries-->
-    <TopologyFeatures>
-      <item GeometryType="Triangle" nodes="3" KratosName="IsotropicShellElement3D3N"/>
-    </TopologyFeatures>
-    
-    <!-- here we add the block of features which we require from the constitutive law-->
-    <ConstitutiveLaw_FilterFeatures>
-      <filter field="Type" value="PlaneStress"/>
-      <filter field="Dimension" value="3D"/>
-      <filter field="StrainSize" value="6"/>
-      <filter field="HybridType" value="D-R"/>
-    </ConstitutiveLaw_FilterFeatures>
-    
-    <!--define list of NodalConditions-->
-    <NodalConditions>
-      <NodalCondition n="DISPLACEMENT"/>
-      <NodalCondition n="ROTATION"/>
-      <NodalCondition n="VELOCITY"/>
-      <NodalCondition n="ACCELERATION" />
-      <NodalCondition n="ANGULAR_VELOCITY" />
-      <NodalCondition n="ANGULAR_ACCELERATION" />
-    </NodalConditions>
-
-    <inputs>
-      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
-    </inputs>
-    <outputs>
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
-    </outputs>
-  </ElementItem>
   <ElementItem n="ShellThinElement" pn="Thin Shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
-	       help="This element it implements an element for thin shells in a small displacements approach" 
+	       help="This element implements a triangular element for thin shells in a small displacements approach" 
 		   ElementType="Shell" RotationDofs="True" >
 
     <!--here we could add a list of all of the possible geometries-->
@@ -149,10 +113,11 @@
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
     </outputs>
   </ElementItem>
+  
   <ElementItem n="ShellThickElement" pn="Thick Shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
-	       help="This element it implements an element for thick shells in a small displacements approach"
+	       help="This element implements a quadrilateral element for thick shells in a small displacements approach"
 		   ElementType="Shell" RotationDofs="True">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -190,7 +155,7 @@
   <ElementItem n="ShellThinCorotationalElement" pn="Thin Shell Corotational" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
-	       help="This element it implements a corotational element for thin shells in a large displacements approach"
+	       help="This element implements a triangular corotational element for thin shells in a large displacements approach"
 		   ElementType="Shell" RotationDofs="True" >
 
     <!--here we could add a list of all of the possible geometries-->
@@ -225,7 +190,7 @@
   <ElementItem n="ShellThickCorotationalElement" pn="Thick Shell Corotational" ImplementedInFile="shell_thick_element_3D4N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
-	       help="This element it implements a corotational element for thick shells in a large displacements approach"
+	       help="This element implements a quadrilateral corotational element for thick shells in a large displacements approach"
 		   ElementType="Shell" RotationDofs="True">
     <!--here we could add a list of all of the possible geometries-->
     <TopologyFeatures>
