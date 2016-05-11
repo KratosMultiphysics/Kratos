@@ -58,14 +58,14 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    #eval $wevent
+    eval $wevent
     # Delegate in app
-    if { [catch {eval $wevent} fid] } {
-        W "Problem Writing MDPA block:\n$fid\nEnd problems"
-        set errcode 1
-    }
+    #if { [catch {eval $wevent} fid] } {
+    #    W "Problem Writing MDPA block:\n$fid\nEnd problems"
+    #    set errcode 1
+    #}
     catch {CloseFile}
-        
+	
     #### Project Parameters Write ####
     set wevent [$activeapp getWriteParametersEvent]
     set filename "ProjectParameters.json"
@@ -74,21 +74,21 @@ proc write::writeEvent { filename } {
     OpenFile $filename
     #eval $wevent
     if {$errcode eq 0 && [catch {eval $wevent} fid] } {
-        W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
-        set errcode 1
+	W "Problem Writing Project Parameters block:\n$fid\nEnd problems"
+	set errcode 1
     }
     catch {CloseFile}
-        
+	
     #### Custom File Write ####
     set wevent [$activeapp getWriteCustomEvent]
     
     catch {CloseFile}
     if { [catch {eval $wevent} fid] } {
-        W "Problem Writing Custom block:\n$fid\nEnd problems"
-        set errcode 1
+	W "Problem Writing Custom block:\n$fid\nEnd problems"
+	set errcode 1
     }
     catch {CloseFile}
-        
+	
     return $errcode
     # set endtime [clock seconds]
     # set ttime [expr {$endtime-$inittime}]
@@ -119,13 +119,13 @@ proc write::writeMaterials { } {
     set exclusionList [list "MID" "ConstitutiveLaw" "Material"]
     # We print all the material data directly from the saved dictionary
     foreach material [dict keys $mat_dict] {
-        WriteString "Begin Properties [dict get $mat_dict $material MID]"
-        foreach prop [dict keys [dict get $mat_dict $material] ] {
-            if {$prop ni $exclusionList} {
-                WriteString "    $prop [dict get $mat_dict $material $prop] "
-            }
-        }
-        WriteString "End Properties"
+	WriteString "Begin Properties [dict get $mat_dict $material MID]"
+	foreach prop [dict keys [dict get $mat_dict $material] ] {
+	    if {$prop ni $exclusionList} {
+		WriteString "    $prop [dict get $mat_dict $material $prop] "
+	    }
+	}
+	WriteString "End Properties"
 	WriteString ""
     }
 
@@ -158,37 +158,37 @@ proc write::processMaterials {  } {
     set material_number 0 
     
     foreach gNode [$root selectNodes $xp1] {
-        set group [$gNode getAttribute n]
-        #set valueNode [$gNode selectNodes $xp2]
-        #set material_name [get_domnode_attribute $valueNode v] 
-        set material_name "material $material_number"
-        if { ![dict exists $mat_dict $group] } {            
-            incr material_number
-            set mid $material_number
-            
-            set xp3 [spdAux::getRoute $matun]
-            append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
+	set group [$gNode getAttribute n]
+	#set valueNode [$gNode selectNodes $xp2]
+	#set material_name [get_domnode_attribute $valueNode v] 
+	set material_name "material $material_number"
+	if { ![dict exists $mat_dict $group] } {            
+	    incr material_number
+	    set mid $material_number
+	    
+	    set xp3 [spdAux::getRoute $matun]
+	    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
     
-            dict set mat_dict $group MID $material_number 
-            
-            set s1 [$gNode selectNodes ".//value"]
-            set s2 [$root selectNodes $xp3]
-            set us [join [list $s1 $s2]]
-            
-            foreach valueNode $us {
-                set name [$valueNode getAttribute n]
-                set state [get_domnode_attribute $valueNode state]
-                if {$state eq "normal" && $name ne "Element"} {
-                    # All the introduced values are translated to 'm' and 'kg' with the help of this function
-                    set value [gid_groups_conds::convert_value_to_default $valueNode]
-                    
-                    if {[string is double $value]} {
-                        set value [format "%13.5E" $value]
-                    }
-                    dict set mat_dict $group $name $value
-                }
-            }
-        } 
+	    dict set mat_dict $group MID $material_number 
+	    
+	    set s1 [$gNode selectNodes ".//value"]
+	    set s2 [$root selectNodes $xp3]
+	    set us [join [list $s1 $s2]]
+	    
+	    foreach valueNode $us {
+		set name [$valueNode getAttribute n]
+		set state [get_domnode_attribute $valueNode state]
+		if {$state eq "normal" && $name ne "Element"} {
+		    # All the introduced values are translated to 'm' and 'kg' with the help of this function
+		    set value [gid_groups_conds::convert_value_to_default $valueNode]
+		    
+		    if {[string is double $value]} {
+		        set value [format "%13.5E" $value]
+		    }
+		    dict set mat_dict $group $name $value
+		}
+	    }
+	} 
     }
 }
 
@@ -202,32 +202,32 @@ proc write::writeElementConnectivities { } {
     set xp1 "[spdAux::getRoute $parts]/group"
     set material_number 0
     foreach gNode [$root selectNodes $xp1] {
-        set formats ""
-        set group [get_domnode_attribute $gNode n]
-        if { [dict exists $mat_dict $group] } {          
-            set mid [dict get $mat_dict $group MID]
-            if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
-            #W $ov
-            lassign [getEtype $ov] etype nnodes
-            #W "$group $ov -> $etype $nnodes"
-            if {$nnodes ne ""} {
-                set formats [GetFormatDict $group $mid $nnodes]
-                if {$etype ne "none"} {
-                    set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
-                    set elem [::Model::getElement $kelemtype]
-                    #W $kelemtype
-                    set top [$elem getTopologyFeature $etype $nnodes]
-                    if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
-                    set kratosElemName [$top getKratosName]
-                    WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
-                    write_calc_data connectivities $formats
-                    WriteString "End Elements"
-                    WriteString ""     
-                } 
-            } else {
-                error [= "Error on $group -  no known element type"]
-            } 
-        }
+	set formats ""
+	set group [get_domnode_attribute $gNode n]
+	if { [dict exists $mat_dict $group] } {          
+	    set mid [dict get $mat_dict $group MID]
+	    if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
+	    #W $ov
+	    lassign [getEtype $ov] etype nnodes
+	    #W "$group $ov -> $etype $nnodes"
+	    if {$nnodes ne ""} {
+		set formats [GetFormatDict $group $mid $nnodes]
+		if {$etype ne "none"} {
+		    set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
+		    set elem [::Model::getElement $kelemtype]
+		    #W $kelemtype
+		    set top [$elem getTopologyFeature $etype $nnodes]
+		    if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
+		    set kratosElemName [$top getKratosName]
+		    WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
+		    write_calc_data connectivities $formats
+		    WriteString "End Elements"
+		    WriteString ""     
+		} 
+	    } else {
+		error [= "Error on $group -  no known element type"]
+	    } 
+	}
     } 
 }
 
@@ -256,23 +256,31 @@ proc write::writeConditions { baseUN } {
                 set obj [GiD_EntitiesGroups get $groupid nodes]
             } else {
                 # Metemos las caras
-                lassign [GiD_EntitiesGroups get $groupid faces] elems faces
+                #lassign [GiD_EntitiesGroups get $groupid faces] elems faces
                 set obj [list ]
-                for {set i 0} {$i < [llength $elems]} {incr i} {
-                    set elem_id [lindex $elems $i]
-                    set face_id [lindex $faces $i]
-                    set bc_nodes [write::GetNodesFromElementFace $elem_id $face_id]
-                    lappend obj [join $bc_nodes " "]
-                }
+                #for {set i 0} {$i < [llength $elems]} {incr i} {
+                #    set elem_id [lindex $elems $i]
+                #    set face_id [lindex $faces $i]
+                #    set bc_nodes [write::GetNodesFromElementFace $elem_id $face_id]
+                #    lappend obj [join $bc_nodes " "]
+                #}
                 # Si alguien ha mallado, tambien lo incluimos
                 set formats [write::GetFormatDict $groupid 0 $nnodes]
                 set elems [write_calc_data connectivities -return $formats]
-                foreach {e v n1 n2 n3} $elems {lappend obj "$n1 $n2 $n3"}
+                if {$nnodes eq 2} {
+                    foreach {e v n1 n2} $elems {
+                        lappend obj [list $n1 $n2]
+                    }
+                } elseif {$nnodes eq 3} {
+                    foreach {e v n1 n2 n3} $elems {
+                        lappend obj [list $n1 $n2 $n3]
+                    }
+                }
             }
             set initial $iter
             for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
-                set nids [lindex $obj $i]
-                WriteString "$iter 0 $nids"
+            set nids [lindex $obj $i]
+            WriteString "$iter 0 $nids"
             }
             set final [expr $iter -1]
             WriteString "End Conditions"
@@ -287,9 +295,9 @@ proc write::getMeshId {cid group} {
     variable meshes
     
     if {[dict exists $meshes [list $cid ${group}]]} {
-        return [dict get $meshes [list $cid ${group}]]
+	return [dict get $meshes [list $cid ${group}]]
     } {
-        return 0
+	return 0
     }
 }
 
@@ -299,40 +307,40 @@ proc write::writeGroupMesh { cid group {what "Elements"} {iniend ""} } {
     
     set gtn $groups_type_name
     if {![dict exists $meshes [list $cid ${group}]]} {
-        set mid [expr [llength [dict keys $meshes]] +1]
-        if {$gtn ne "Mesh"} {
-            set underscoredGroup [string map {" " " "} $group]
-            regsub -all { +} $group "_" underscoredGroup
-            set mid "${cid}_${underscoredGroup}"
-        }
-        dict set meshes [list $cid ${group}] $mid
-        set gdict [dict create]
-        set f "%10i\n"
-        set f [subst $f]
-        dict set gdict $group $f
-        WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
-        WriteString "    Begin ${gtn}Nodes"
-        write_calc_data nodes -sorted $gdict
-        WriteString "    End ${gtn}Nodes"
-        WriteString "    Begin ${gtn}Elements"
-        if {$what eq "Elements"} {
-            write_calc_data elements -sorted $gdict
-        }
-        WriteString "    End ${gtn}Elements"
-        WriteString "    Begin ${gtn}Conditions"
-        if {$what eq "Conditions"} {
-            #write_calc_data elements -sorted $gdict
-            if {$iniend ne ""} {
-                #W $iniend
-                foreach {ini end} $iniend {
-                    for {set i $ini} {$i<=$end} {incr i} {
-                        WriteString [format %10d $i]
-                    }
-                }
-            }
-        }
-        WriteString "    End ${gtn}Conditions"
-        WriteString "End $gtn"
+	set mid [expr [llength [dict keys $meshes]] +1]
+	if {$gtn ne "Mesh"} {
+	    set underscoredGroup [string map {" " " "} $group]
+	    regsub -all { +} $group "_" underscoredGroup
+	    set mid "${cid}_${underscoredGroup}"
+	}
+	dict set meshes [list $cid ${group}] $mid
+	set gdict [dict create]
+	set f "%10i\n"
+	set f [subst $f]
+	dict set gdict $group $f
+	WriteString "Begin $gtn $mid // Group $group // Subtree $cid"
+	WriteString "    Begin ${gtn}Nodes"
+	write_calc_data nodes -sorted $gdict
+	WriteString "    End ${gtn}Nodes"
+	WriteString "    Begin ${gtn}Elements"
+	if {$what eq "Elements"} {
+	    write_calc_data elements -sorted $gdict
+	}
+	WriteString "    End ${gtn}Elements"
+	WriteString "    Begin ${gtn}Conditions"
+	if {$what eq "Conditions"} {
+	    #write_calc_data elements -sorted $gdict
+	    if {$iniend ne ""} {
+		#W $iniend
+		foreach {ini end} $iniend {
+		    for {set i $ini} {$i<=$end} {incr i} {
+		        WriteString [format %10d $i]
+		    }
+		}
+	    }
+	}
+	WriteString "    End ${gtn}Conditions"
+	WriteString "End $gtn"
     }
 }
 
@@ -341,9 +349,9 @@ proc write::writeNodalConditions { keyword } {
     set root [$doc documentElement]
     set xp1 "[spdAux::getRoute $keyword]/condition/group"
     foreach group [$root selectNodes $xp1] {
-        set cid [[$group parent] @n]
-        set groupid [$group @n]
-        ::write::writeGroupMesh $cid $groupid "nodal"
+	set cid [[$group parent] @n]
+	set groupid [$group @n]
+	::write::writeGroupMesh $cid $groupid "nodal"
     }
 }
 
@@ -358,61 +366,61 @@ proc write::getEtype {ov} {
     set ret [list "" ""]
     
     if {$ov eq "point"} {
-        set ret [list "Point" 1]
+	set ret [list "Point" 1]
     }
     
     if {$ov eq "line"} {
-        switch $isquadratic {
-            0 { set ret [list "Linear" 2] }
-            default { set ret [list "Linear" 2] }                                         
-        } 
+	switch $isquadratic {
+	    0 { set ret [list "Linear" 2] }
+	    default { set ret [list "Linear" 2] }                                         
+	} 
     }
     
     if {$ov eq "surface"} {
-        foreach ielem [lrange [GiD_Info Mesh] 1 end] {
-            switch $ielem {
-                Triangle {          
-                    switch $isquadratic {
-                        0 { set ret [list "Triangle" 3]  }
-                        default { set ret [list "Triangle" 6]  }
-                    }
-                }
-                Tetrahedra {          
-                    switch $isquadratic {
-                        0 { set ret [list "Triangle" 3]  }
-                        default { set ret [list "Triangle" 6]  }
-                    }
-                }           
-                Quadrilateral {          
-                    switch $isquadratic {
-                        0 { set ret [list "Quadrilateral" 4]  }                
-                        1 { set ret [list "Quadrilateral" 8]  }                
-                        2 { set ret [list "Quadrilateral" 9]  }                
-                    }
-                }
-            }
-        }
+	foreach ielem [lrange [GiD_Info Mesh] 1 end] {
+	    switch $ielem {
+		Triangle {          
+		    switch $isquadratic {
+		        0 { set ret [list "Triangle" 3]  }
+		        default { set ret [list "Triangle" 6]  }
+		    }
+		}
+		Tetrahedra {          
+		    switch $isquadratic {
+		        0 { set ret [list "Triangle" 3]  }
+		        default { set ret [list "Triangle" 6]  }
+		    }
+		}           
+		Quadrilateral {          
+		    switch $isquadratic {
+		        0 { set ret [list "Quadrilateral" 4]  }                
+		        1 { set ret [list "Quadrilateral" 8]  }                
+		        2 { set ret [list "Quadrilateral" 9]  }                
+		    }
+		}
+	    }
+	}
     }
     
     if {$ov eq "volume"} {
-        foreach ielem [lrange [GiD_Info Mesh] 1 end] {
-            switch $ielem {
-                Tetrahedra {          
-                    switch $isquadratic {
-                        0 { set ret [list "Tetrahedra" 4]  }               
-                        1 { set ret [list "Tetrahedra" 10] }                
-                        2 { set ret [list "Tetrahedra" 10] }  
-                    }
-                }           
-                Hexahedra {          
-                    switch $isquadratic {
-                        0 { set ret [list "Hexahedra" 8]  }                
-                        1 { set ret [list "Hexahedra" 20]  }                
-                        2 { set ret [list "Hexahedra" 27]  }                
-                    }
-                }
-            }
-        }
+	foreach ielem [lrange [GiD_Info Mesh] 1 end] {
+	    switch $ielem {
+		Tetrahedra {          
+		    switch $isquadratic {
+		        0 { set ret [list "Tetrahedra" 4]  }               
+		        1 { set ret [list "Tetrahedra" 10] }                
+		        2 { set ret [list "Tetrahedra" 10] }  
+		    }
+		}           
+		Hexahedra {          
+		    switch $isquadratic {
+		        0 { set ret [list "Hexahedra" 8]  }                
+		        1 { set ret [list "Hexahedra" 20]  }                
+		        2 { set ret [list "Hexahedra" 27]  }                
+		    }
+		}
+	    }
+	}
     }
     
     return $ret
@@ -420,7 +428,7 @@ proc write::getEtype {ov} {
 proc write::isquadratic {} {  
     set err [catch { GiD_Set Model(QuadraticType) } isquadratic]
     if { $err } {
-        set isquadratic [lindex [GiD_Info Project] 5]
+	set isquadratic [lindex [GiD_Info Project] 5]
     }
     return $isquadratic
 }
@@ -432,19 +440,19 @@ proc write::GetNodesFromElementFace {elem_id face_id} {
     set nnodes [lindex $inf 2]
     set nodes [list ]
     switch $elem_type {
-        Tetrahedra {
-            set matrix {{1 2 3 5 6 7} {2 4 3 9 10 6} {3 4 1 10 8 7} {4 2 1 9 5 8}}
-        }
-        Triangle {
-            set matrix {{1 2 4} {2 3 5} {3 1 6}}
-        }
+	Tetrahedra {
+	    set matrix {{1 2 3 5 6 7} {2 4 3 9 10 6} {3 4 1 10 8 7} {4 2 1 9 5 8}}
+	}
+	Triangle {
+	    set matrix {{1 2 4} {2 3 5} {3 1 6}}
+	}
     }
     # Decrementamos porque la cara con id 1 corresponde a la posicion 0 de la matriz
     incr face_id -1
     set face_matrix [lindex $matrix $face_id]
     foreach node_index $face_matrix {
-        set node [lindex $inf [expr $node_index +2]]
-        if {$node ne ""} {lappend nodes $node}
+	set node [lindex $inf [expr $node_index +2]]
+	if {$node ne ""} {lappend nodes $node}
     }
     #W "eid $elem_id fid $face_id nds $nodes"
     return $nodes
@@ -461,8 +469,8 @@ proc write::getPartsGroupsId {} {
     set groups [$root selectNodes $xp1]
     
     foreach group $groups {
-        set groupName [get_domnode_attribute $group n]
-        lappend listOfGroups $groupName
+	set groupName [get_domnode_attribute $group n]
+	lappend listOfGroups $groupName
     }
     return $listOfGroups
 }
@@ -474,14 +482,14 @@ proc write::getPartsMeshId {} {
     set listOfGroups [list ]
 
     foreach group [getPartsGroupsId] {
-        lappend listOfGroups [getMeshId Parts $group]
+	lappend listOfGroups [getMeshId Parts $group]
     }
     return $listOfGroups
 }
 
 proc write::writePartMeshes { } {
     foreach group [getPartsGroupsId] {
-        writeGroupMesh Parts $group "Elements"
+	writeGroupMesh Parts $group "Elements"
     } 
 }
 
@@ -490,18 +498,18 @@ proc write::dict2json {dictVal} {
     # XXX: JSON text requires type knowledge of the input data
     set json ""
     dict for {key val} $dictVal {
-        # key must always be a string, val may be a number, string or
-        # bare word (true|false|null)
-        if {0 && ![string is double -strict $val] && ![regexp {^(?:true|false|null)$} $val]} {
-            set val "\"$val\""
-        }
-        if {[isDict $val]} {
-            set val [dict2json $val]
-            set val "\[${val}\]"
-        } else {
-            set val \"$val\"
-        }
-        append json "\"$key\": $val," \n
+	# key must always be a string, val may be a number, string or
+	# bare word (true|false|null)
+	if {0 && ![string is double -strict $val] && ![regexp {^(?:true|false|null)$} $val]} {
+	    set val "\"$val\""
+	}
+	if {[isDict $val]} {
+	    set val [dict2json $val]
+	    set val "\[${val}\]"
+	} else {
+	    set val \"$val\"
+	}
+	append json "\"$key\": $val," \n
     }
     if {[string range $json end-1 end] eq ",\n"} {set json [string range $json 0 end-2]}
     return "\{${json}\}"
@@ -513,37 +521,37 @@ proc write::tcl2json { value } {
     regexp {^value is a (.*?) with a refcount} [::tcl::unsupported::representation $value] -> type
     if {$value eq ""} {return [json::write array {*}[lmap v $value {tcl2json $v}]]}
     switch $type {
-        string {
-            return [json::write string $value]
-        }
-        dict {
-            return [json::write object {*}[
-            dict map {k v} $value {tcl2json $v}]]
-        }
-        list {
-            return [json::write array {*}[lmap v $value {tcl2json $v}]]
-        }
-        int - double {
-            return [expr {$value}]
-        }
-        booleanString {
-            return [expr {$value ? "true" : "false"}]
-        }
-        default {
-            # Some other type; do some guessing...
-            if {$value eq "null"} {
-            # Tcl has *no* null value at all; empty strings are semantically
-            # different and absent variables aren't values. So cheat!
-            return $value
-            } elseif {[string is integer -strict $value]} {
-            return [expr {$value}]
-            } elseif {[string is double -strict $value]} {
-            return [expr {$value}]
-            } elseif {[string is boolean -strict $value]} {
-            return [expr {$value ? "true" : "false"}]
-            }
-            return [json::write string $value]
-        }
+	string {
+	    return [json::write string $value]
+	}
+	dict {
+	    return [json::write object {*}[
+	    dict map {k v} $value {tcl2json $v}]]
+	}
+	list {
+	    return [json::write array {*}[lmap v $value {tcl2json $v}]]
+	}
+	int - double {
+	    return [expr {$value}]
+	}
+	booleanString {
+	    return [expr {$value ? "true" : "false"}]
+	}
+	default {
+	    # Some other type; do some guessing...
+	    if {$value eq "null"} {
+	    # Tcl has *no* null value at all; empty strings are semantically
+	    # different and absent variables aren't values. So cheat!
+	    return $value
+	    } elseif {[string is integer -strict $value]} {
+	    return [expr {$value}]
+	    } elseif {[string is double -strict $value]} {
+	    return [expr {$value}]
+	    } elseif {[string is boolean -strict $value]} {
+	    return [expr {$value ? "true" : "false"}]
+	    }
+	    return [json::write string $value]
+	}
     }
 }
 
@@ -608,13 +616,13 @@ proc write::GetCutPlanesList { } {
     set planes [$root selectNodes $xp1]
     
     foreach plane $planes {
-        set pdict [dict create]
-        set points [split [get_domnode_attribute [$plane firstChild] v] ","]
-        set normals [split [get_domnode_attribute [$plane lastChild ] v] ","]
-        dict set pdict point $points
-        dict set pdict normal $normals
-        if {![isVectorNull $normals]} {lappend list_of_planes $pdict}
-        unset pdict 
+	set pdict [dict create]
+	set points [split [get_domnode_attribute [$plane firstChild] v] ","]
+	set normals [split [get_domnode_attribute [$plane lastChild ] v] ","]
+	dict set pdict point $points
+	dict set pdict normal $normals
+	if {![isVectorNull $normals]} {lappend list_of_planes $pdict}
+	unset pdict 
     }
     return $list_of_planes
 }
@@ -622,10 +630,10 @@ proc write::GetCutPlanesList { } {
 proc write::isVectorNull {vector} {
     set null 1
     foreach component $vector {
-        if {$component != 0} {
-            set null 0
-            break
-        }
+	if {$component != 0} {
+	    set null 0
+	    break
+	}
     }
     return $null
 }
@@ -647,10 +655,10 @@ proc write::getSolutionStrategyParametersDict {} {
     set paramsPath [apps::getCurrentUniqueName StratParams]
     
     foreach {n in} [$sol getInputs] {
-        dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
+	dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
     }
     foreach {n in} [$sch getInputs] {
-        dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
+	dict set solverSettingsDict $n [write::getValue $paramsPath $n ]
     }
     return $solverSettingsDict
 }
@@ -663,26 +671,26 @@ proc write::getSolversParametersDict {} {
     set sol [::Model::GetSolutionStrategy $solstratName]
     set solverSettingsDict [dict create]
     foreach se [$sol getSolversEntries] {
-        set solverEntryDict [dict create]
-        set un [apps::getCurrentUniqueName "$solstratName[$se getName]"] 
-        set solverName [write::getValue $un Solver]
-        if {$solverName ne "Default"} {
-            dict set solverEntryDict solver_type $solverName
-            #W "Solver Name $solverName"
-            foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
-                # JG temporal, para la precarga de combos
-                if {[$in getType] ni [list "bool" "integer" "double"]} {
-                    set v ""
-                    catch {set v [write::getValue $un $n]}
-                    if {$v eq ""} {set v [write::getValue $un $n]}
-                    dict set solverEntryDict $n $v
-                } {
-                    dict set solverEntryDict $n [write::getValue $un $n]
-                }
-            }
-            dict set solverSettingsDict [$se getName] $solverEntryDict
-        }
-        unset solverEntryDict
+	set solverEntryDict [dict create]
+	set un [apps::getCurrentUniqueName "$solstratName[$se getName]"] 
+	set solverName [write::getValue $un Solver]
+	if {$solverName ne "Default"} {
+	    dict set solverEntryDict solver_type $solverName
+	    #W "Solver Name $solverName"
+	    foreach {n in} [[::Model::GetSolver $solverName] getInputs] {
+		# JG temporal, para la precarga de combos
+		if {[$in getType] ni [list "bool" "integer" "double"]} {
+		    set v ""
+		    catch {set v [write::getValue $un $n]}
+		    if {$v eq ""} {set v [write::getValue $un $n]}
+		    dict set solverEntryDict $n $v
+		} {
+		    dict set solverEntryDict $n [write::getValue $un $n]
+		}
+	    }
+	    dict set solverSettingsDict [$se getName] $solverEntryDict
+	}
+	unset solverEntryDict
     }
     return $solverSettingsDict
 }
@@ -697,78 +705,78 @@ proc ::write::getConditionsParametersDict {un {condition_type "Condition"}} {
     set xp1 "[spdAux::getRoute $un]/condition/group"
     set groups [$root selectNodes $xp1]    
     foreach group $groups {
-        set groupName [$group @n]
-        #W "GROUP $groupName"
-        set cid [[$group parent] @n]
-        set groupId [::write::getMeshId $cid $groupName]
-        set condId [[$group parent] @n]
-        if {$condition_type eq "Condition"} {
-            set condition [::Model::getCondition $condId]
-        } {
-            set condition [::Model::getNodalConditionbyId $condId]
-        }
-        #W "Condition = $condition"
-        set processName [$condition getProcessName]
-        set process [::Model::GetProcess $processName]
-        set processDict [dict create]
-        set paramDict [dict create]
-        dict set paramDict mesh_id 0
-        dict set paramDict model_part_name $groupId
-        
-        set process_attributes [$process getAttributes]
-        set process_parameters [$process getInputs]
-        
-        dict set process_attributes process_name [dict get $process_attributes n]
-        dict unset process_attributes n
-        dict unset process_attributes pn
-        
-        set processDict [dict merge $processDict $process_attributes]
-        foreach {inputName in_obj} $process_parameters {
-            set in_type [$in_obj getType]
-            catch {
-                set variable_name [$condition getAttribute VariableName]
-                #~ W $variable_name
-                # "lindex" is a rough solution. Look for a better one.
-                dict set paramDict variable_name [lindex $variable_name 0]
-                
-            }
-            if {$in_type eq "vector"} {
-                #W "input [$in_obj getName] fix: [$in_obj getFixity]"
-                if {[$in_obj getFixity] eq "Imposed"} {
-                    set is_fixed_x [expr True]
-                    set is_fixed_y [expr True]
-                    set is_fixed_z [expr True]
-                    if {[$group find n FixX] ne ""} {
-                        set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
-                    }
-                    if {[$group find n FixY] ne ""} {
-                        set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
-                    }
-                    if {[$group find n FixZ] ne ""} {
-                        set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
-                    }
-                    dict set paramDict is_fixed_x $is_fixed_x
-                    dict set paramDict is_fixed_y $is_fixed_y
-                    dict set paramDict is_fixed_z $is_fixed_z    
-                }
-                
-                set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
-                set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
-                set ValZ [expr 0.0]
-                catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
-                dict set paramDict $inputName [list $ValX $ValY $ValZ]
-            } elseif {$in_type eq "double"} {
-                set value [get_domnode_attribute [$group find n $inputName] v] 
-                if {[$group find n Fix] ne ""} {
-                    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
-                    dict set paramDict is_fixed $is_fixed
-                }
-                dict set paramDict $inputName [expr $value]
-            }
-        }
-        
-        dict set processDict Parameters $paramDict
-        lappend bcCondsDict $processDict
+	set groupName [$group @n]
+	#W "GROUP $groupName"
+	set cid [[$group parent] @n]
+	set groupId [::write::getMeshId $cid $groupName]
+	set condId [[$group parent] @n]
+	if {$condition_type eq "Condition"} {
+	    set condition [::Model::getCondition $condId]
+	} {
+	    set condition [::Model::getNodalConditionbyId $condId]
+	}
+	#W "Condition = $condition"
+	set processName [$condition getProcessName]
+	set process [::Model::GetProcess $processName]
+	set processDict [dict create]
+	set paramDict [dict create]
+	dict set paramDict mesh_id 0
+	dict set paramDict model_part_name $groupId
+	
+	set process_attributes [$process getAttributes]
+	set process_parameters [$process getInputs]
+	
+	dict set process_attributes process_name [dict get $process_attributes n]
+	dict unset process_attributes n
+	dict unset process_attributes pn
+	
+	set processDict [dict merge $processDict $process_attributes]
+	foreach {inputName in_obj} $process_parameters {
+	    set in_type [$in_obj getType]
+	    catch {
+		set variable_name [$condition getAttribute VariableName]
+		#~ W $variable_name
+		# "lindex" is a rough solution. Look for a better one.
+		dict set paramDict variable_name [lindex $variable_name 0]
+		
+	    }
+	    if {$in_type eq "vector"} {
+		#W "input [$in_obj getName] fix: [$in_obj getFixity]"
+		if {[$in_obj getFixity] eq "Imposed"} {
+		    set is_fixed_x [expr True]
+		    set is_fixed_y [expr True]
+		    set is_fixed_z [expr True]
+		    if {[$group find n FixX] ne ""} {
+		        set is_fixed_x [expr [get_domnode_attribute [$group find n FixX] v] ? True : False]
+		    }
+		    if {[$group find n FixY] ne ""} {
+		        set is_fixed_y [expr [get_domnode_attribute [$group find n FixY] v] ? True : False]
+		    }
+		    if {[$group find n FixZ] ne ""} {
+		        set is_fixed_z [expr [get_domnode_attribute [$group find n FixZ] v] ? True : False]
+		    }
+		    dict set paramDict is_fixed_x $is_fixed_x
+		    dict set paramDict is_fixed_y $is_fixed_y
+		    dict set paramDict is_fixed_z $is_fixed_z    
+		}
+		
+		set ValX [expr [get_domnode_attribute [$group find n ${inputName}X] v] ]
+		set ValY [expr [get_domnode_attribute [$group find n ${inputName}Y] v] ] 
+		set ValZ [expr 0.0]
+		catch {set ValZ [expr [get_domnode_attribute [$group find n ${inputName}Z] v]]}
+		dict set paramDict $inputName [list $ValX $ValY $ValZ]
+	    } elseif {$in_type eq "double"} {
+		set value [get_domnode_attribute [$group find n $inputName] v] 
+		if {[$group find n Fix] ne ""} {
+		    set is_fixed [expr [get_domnode_attribute [$group find n Fix] v] ? True : False]
+		    dict set paramDict is_fixed $is_fixed
+		}
+		dict set paramDict $inputName [expr $value]
+	    }
+	}
+	
+	dict set processDict Parameters $paramDict
+	lappend bcCondsDict $processDict
     }
     return $bcCondsDict
 }
@@ -782,10 +790,10 @@ proc write::GetResultsList { un } {
     set xp1 "[spdAux::getRoute $un]/value"
     set resultxml [$root selectNodes $xp1]
     foreach res $resultxml {
-        if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {
-            set name [get_domnode_attribute $res n]
-            lappend result $name
-        }
+	if {[get_domnode_attribute $res v] in [list "Yes" "True" "1"] && [get_domnode_attribute $res state] ne "hidden"} {
+	    set name [get_domnode_attribute $res n]
+	    lappend result $name
+	}
     }
     return $result
 }
@@ -796,13 +804,13 @@ proc write::Duration { int_time } {
     # W "entro con $int_time"
     set timeList [list]
     foreach div {86400 3600 60 1} mod {0 24 60 60} name {day hr min sec} {
-        set n [expr {$int_time / $div}]
-        if {$mod > 0} {set n [expr {$n % $mod}]}
-        if {$n > 1} {
-            lappend timeList "$n ${name}s"
-        } elseif {$n == 1} {
-            lappend timeList "$n $name"
-        }
+	set n [expr {$int_time / $div}]
+	if {$mod > 0} {set n [expr {$n % $mod}]}
+	if {$n > 1} {
+	    lappend timeList "$n ${name}s"
+	} elseif {$n == 1} {
+	    lappend timeList "$n $name"
+	}
     }
     return [join $timeList]
 }
@@ -817,7 +825,7 @@ proc write::getValue { name { it "" } } {
     if {$it ne ""} {set node [$node find n $it]}
     
     if {[get_domnode_attribute $node v] eq ""} {
-        catch {get_domnode_attribute $node values}
+	catch {get_domnode_attribute $node values}
     }
     set v ""
     catch {set v [expr [get_domnode_attribute $node v]]}
