@@ -157,8 +157,9 @@ namespace Kratos
      /// copy constructor
 
     TwoStepUpdatedLagrangianVPFluidElement(TwoStepUpdatedLagrangianVPFluidElement const& rOther):
-      BaseType(rOther)
+        BaseType(rOther)
       {}
+ 
 
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPFluidElement()

@@ -27,6 +27,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(REACTION)
+    model_part.AddNodalSolutionStepVariable(FREESURFACE)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     # Stokes needs it (in case periodic conditions are required)

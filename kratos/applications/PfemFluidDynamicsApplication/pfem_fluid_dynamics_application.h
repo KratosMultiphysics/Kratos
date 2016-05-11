@@ -246,6 +246,10 @@ namespace Kratos
     const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D;
 
 
+    const WallCondition<2,2> mWallCondition2D;
+    const WallCondition<3,3> mWallCondition3D;
+
+
      ///@} 
     ///@name Private Operators
     ///@{ 

@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemBaseApplication import *
-from KratosMultiphysics.PfemFluidDynamicsApplication import *
+#from KratosMultiphysics.PfemFluidDynamicsApplication import *
 CheckForPreviousImport()
 
 
@@ -27,7 +27,7 @@ class ModelerUtility:
         self.mesh_modelers = []
 
         # mesh modeler parameters
-        self.alpha_shape        = 1.0
+        self.alpha_shape        = 1.25
         self.h_factor           = 0.5
         self.avoid_tip_elements = False
         self.offset_factor      = 0
@@ -59,7 +59,8 @@ class ModelerUtility:
                 self.SearchNeighbours()
                 # find skin and boundary normals
                 if(ReloadFile == False):
-                    self.BuildMeshBoundary()
+                    self.BuildMeshBoundaryForFluids()
+                    #self.BuildMeshBoundary()
                 self.neighbours_set = True
 
     #
@@ -124,7 +125,22 @@ class ModelerUtility:
 
         # define building utility
         skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
+ 
+        # execute building:
+        skin_build.Execute()
 
+        print("::[Modeler_Utility]:: Mesh Boundary Build executed ")
+
+    #
+    def BuildMeshBoundaryForFluids(self):
+
+        print("::[Modeler_Utility]:: Build Mesh Boundary ")
+        # set building options:
+        mesh_id = 0
+
+        # define building utility
+        skin_build = BuildMeshBoundaryForFluids(self.model_part, self.domain_size, self.echo_level, mesh_id)
+ 
         # execute building:
         skin_build.Execute()
 
@@ -311,14 +327,17 @@ class ModelerUtility:
                 
 
             #Pre Meshing Processes
-            remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            #remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            remove_mesh_nodes = RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
-            #refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016
+            ##refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016
+            #refine_mesh_boundary = RefineMeshBoundaryForFluids(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016
             #mesh_modeler.SetPreMeshingProcess(refine_mesh_boundary)
 
             #Post Meshing Processes
-            rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            #rebuild_mesh_boundary = ReconstructMeshBoundary(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            rebuild_mesh_boundary = ReconstructMeshBoundaryForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
            
             
             mesh_modeler.SetPostMeshingProcess(rebuild_mesh_boundary)
@@ -363,7 +382,8 @@ class ModelerUtility:
                 print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
 
             meshing_options = Flags()
-            self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
+            #self.model_meshing = ModelMeshing(self.model_part, meshing_options, self.echo_level)
+            self.model_meshing = ModelMeshingForFluids(self.model_part, meshing_options, self.echo_level)
 
             self.model_meshing.ExecuteInitialize()
 
