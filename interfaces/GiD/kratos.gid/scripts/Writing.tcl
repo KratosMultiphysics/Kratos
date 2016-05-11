@@ -58,12 +58,12 @@ proc write::writeEvent { filename } {
     
     catch {CloseFile}
     OpenFile $filename
-    eval $wevent
+    #eval $wevent
     # Delegate in app
-    #if { [catch {eval $wevent} fid] } {
-    #    W "Problem Writing MDPA block:\n$fid\nEnd problems"
-    #    set errcode 1
-    #}
+    if { [catch {eval $wevent} fid] } {
+        W "Problem Writing MDPA block:\n$fid\nEnd problems"
+        set errcode 1
+    }
     catch {CloseFile}
         
     #### Project Parameters Write ####
