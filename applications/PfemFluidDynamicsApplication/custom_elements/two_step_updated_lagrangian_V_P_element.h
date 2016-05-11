@@ -187,9 +187,7 @@ namespace Kratos
 
       /// copy constructor
 
-    TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther):
-      Element(rOther)
-      {}
+      TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther);
       
       /// Destructor.
       virtual ~TwoStepUpdatedLagrangianVPElement()

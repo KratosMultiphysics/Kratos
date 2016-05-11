@@ -25,6 +25,9 @@ namespace Kratos {
 template< unsigned int TDim >
 Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
+  // Element::Pointer p_clone= BaseType::Clone(NewId,rThisNodes);
+  // return p_clone;
+
   TwoStepUpdatedLagrangianVPFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
   if ( NewElement.mOldFgrad.size() != this->mOldFgrad.size() )
@@ -71,9 +74,12 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
       NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
     }
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewElement) );
+   return Element::Pointer( new TwoStepUpdatedLagrangianVPFluidElement(NewElement) );
 
 }
+
+
+
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::Initialize()
@@ -1812,7 +1818,9 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>::CalcMechanicsUpdated(Elementa
 template <  unsigned int TDim> 
 void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
 {
-  std::cout<<" i1  ";
+	KRATOS_TRY;
+
+
 
   unsigned int voigtsize  = 3;
   if( TDim == 3 )
@@ -1821,39 +1829,40 @@ void TwoStepUpdatedLagrangianVPFluidElement<TDim>:: InitializeElementalVariables
     }
   rElementalVariables.voigtsize=voigtsize;
 
-  std::cout<<" i2  ";
+
   rElementalVariables.DetFgrad=1.0;
-  std::cout<<" i2a  ";
+
   rElementalVariables.DetFgradVel=1.0;
-  std::cout<<" i2b  ";
+
   rElementalVariables.DeviatoricInvariant=1.0;
-  std::cout<<" i3  ";
+
   rElementalVariables.VolumetricDefRate=1.0;
 
 
   rElementalVariables.SpatialDefRate= ZeroVector(voigtsize);
-  std::cout<<" i4  ";
+
   rElementalVariables.MDGreenLagrangeMaterial= ZeroVector(voigtsize);
 
   rElementalVariables.Fgrad = ZeroMatrix(TDim,TDim);
-  std::cout<<" i5  ";
+
   rElementalVariables.InvFgrad= ZeroMatrix(TDim,TDim);
-  std::cout<<" i6  ";
+
   rElementalVariables.FgradVel= ZeroMatrix(TDim,TDim);
-  std::cout<<" i7  ";
+
   rElementalVariables.InvFgradVel= ZeroMatrix(TDim,TDim);
-  std::cout<<" i8  ";
+
   rElementalVariables.SpatialVelocityGrad= ZeroMatrix(TDim,TDim);
 
   rElementalVariables.MeanPressure=0;
-  std::cout<<" i9  ";
+
   rElementalVariables.CurrentTotalCauchyStress= ZeroVector(voigtsize);
-  std::cout<<" i10  ";
+
   rElementalVariables.UpdatedTotalCauchyStress=  ZeroVector(voigtsize);
-  std::cout<<" i11  ";
+
   rElementalVariables.CurrentDeviatoricCauchyStress=  ZeroVector(voigtsize);
-  std::cout<<" i12 ";
+
   rElementalVariables.UpdatedDeviatoricCauchyStress= ZeroVector(voigtsize);
+  KRATOS_CATCH("");
 
 }
 

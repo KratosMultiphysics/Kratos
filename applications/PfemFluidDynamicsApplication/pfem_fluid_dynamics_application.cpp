@@ -118,9 +118,10 @@ namespace Kratos
     mTwoStepUpdatedLagrangianVPSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianVPSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoStepUpdatedLagrangianVPFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
+    mTwoStepUpdatedLagrangianVPFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mWallCondition3D(0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
   {
-    std::cout << "Riccardo " << std::endl;
 }
   
   void KratosPfemFluidDynamicsApplication::Register()
@@ -140,6 +141,7 @@ namespace Kratos
     // Material postprocess + invariants
     KRATOS_REGISTER_VARIABLE(M_MODULUS)  
     KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
+    KRATOS_REGISTER_VARIABLE(FREESURFACE);
 
     //Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPElement2D",mTwoStepUpdatedLagrangianVPElement2D);
@@ -150,6 +152,9 @@ namespace Kratos
 
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2D",mTwoStepUpdatedLagrangianVPFluidElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3D",mTwoStepUpdatedLagrangianVPFluidElement3D);
+
+    KRATOS_REGISTER_CONDITION("WallCondition2D",mWallCondition2D);
+    KRATOS_REGISTER_CONDITION("WallCondition3D",mWallCondition3D);
 
     //Register Conditions
 

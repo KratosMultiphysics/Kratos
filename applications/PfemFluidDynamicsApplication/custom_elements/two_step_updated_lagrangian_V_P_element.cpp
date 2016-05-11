@@ -22,6 +22,59 @@ namespace Kratos {
    * public TwoStepUpdatedLagrangianVPElement<TDim> functions
    */
 
+
+  template< unsigned int TDim >
+  TwoStepUpdatedLagrangianVPElement<TDim>::TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement  const& rOther)
+  :Element(rOther)
+  {
+
+    if (mOldFgrad.size() !=   rOther.mOldFgrad.size() )
+      mOldFgrad.resize(  rOther.mOldFgrad.size());
+
+    for(unsigned int i=0; i<  rOther.mOldFgrad.size(); i++)
+      {
+        mOldFgrad[i] =   rOther.mOldFgrad[i];
+      }
+
+
+    if ( mCurrentTotalCauchyStress.size() !=   rOther.mCurrentTotalCauchyStress.size() )
+      mCurrentTotalCauchyStress.resize(  rOther.mCurrentTotalCauchyStress.size());
+
+    for(unsigned int i=0; i<  rOther.mCurrentTotalCauchyStress.size(); i++)
+      {
+        mCurrentTotalCauchyStress[i] =   rOther.mCurrentTotalCauchyStress[i];
+      }
+
+
+    if ( mCurrentDeviatoricCauchyStress.size() !=   rOther.mCurrentDeviatoricCauchyStress.size() )
+      mCurrentDeviatoricCauchyStress.resize(  rOther.mCurrentDeviatoricCauchyStress.size());
+
+    for(unsigned int i=0; i<  rOther.mCurrentDeviatoricCauchyStress.size(); i++)
+      {
+        mCurrentDeviatoricCauchyStress[i] =   rOther.mCurrentDeviatoricCauchyStress[i];
+      }
+
+
+    if ( mUpdatedTotalCauchyStress.size() !=   rOther.mUpdatedTotalCauchyStress.size() )
+      mUpdatedTotalCauchyStress.resize(  rOther.mUpdatedTotalCauchyStress.size());
+
+    for(unsigned int i=0; i<  rOther.mUpdatedTotalCauchyStress.size(); i++)
+      {
+        mUpdatedTotalCauchyStress[i] =   rOther.mUpdatedTotalCauchyStress[i];
+      }
+
+
+    if ( mUpdatedDeviatoricCauchyStress.size() !=   rOther.mUpdatedDeviatoricCauchyStress.size() )
+      mUpdatedDeviatoricCauchyStress.resize(  rOther.mUpdatedDeviatoricCauchyStress.size());
+
+    for(unsigned int i=0; i<  rOther.mUpdatedDeviatoricCauchyStress.size(); i++)
+      {
+        mUpdatedDeviatoricCauchyStress[i] =   rOther.mUpdatedDeviatoricCauchyStress[i];
+      }
+    
+  }
+
+
   template< unsigned int TDim >
   Element::Pointer TwoStepUpdatedLagrangianVPElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
@@ -182,12 +235,12 @@ namespace Kratos {
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
   {
-    std::cout<<" CalculateLocalMomentumEquations   "<<std::endl;
+    KRATOS_TRY; 
+
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = TDim * NumNodes;
 
-    std::cout<<" 1s  "<<std::endl;
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -200,7 +253,7 @@ namespace Kratos {
 
     rRightHandSideVector = ZeroVector(LocalSize);
 
-    std::cout<<" 2s  "<<std::endl;
+
 
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -208,40 +261,39 @@ namespace Kratos {
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
-    std::cout<<" 3s  "<<std::endl;
 
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
     MatrixType BulkMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
-    std::cout<<" 4s  "<<std::endl;
+
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
       {
-	std::cout<<" 5s  "<<std::endl;
 	const double GaussWeight = GaussWeights[g];
 	const ShapeFunctionsType& N = row(NContainer,g);
 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	std::cout<<" 5a s  "<<std::endl;
 
-	ElementalVariables rElementalVariables;
 
-	std::cout<<" 5aaaaaa s  "<<std::endl;
-
-	this->InitializeElementalVariables(rElementalVariables);
-	std::cout<<" 6s  ";
 
 	double Pressure=0;
 	double OldPressure=0;
+
+
 	this->EvaluateInPoint(Pressure,PRESSURE,N,0);
+
 	this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
+
 
 	rElementalVariables.MeanPressure=OldPressure*0.5+Pressure*0.5;
 
+
 	this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,g);
-        std::cout<<" 7s  ";
+
 
        	// Evaluate required variables at the integration point
 	double Density;
@@ -262,7 +314,7 @@ namespace Kratos {
 	this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
 	// this->AddDynamicForces(rRightHandSideVector,dynamicWeight,TimeStep);
-    std::cout<<" 8s  ";
+
 
 	double DeviatoricCoeff = 0;
 	double VolumetricCoeff = 0;
@@ -273,7 +325,7 @@ namespace Kratos {
 
       }
 
-    std::cout<<" 9s  ";
+
     
     // Add residual of previous iteration to RHS
     VectorType VelocityValues = ZeroVector(LocalSize);
@@ -286,9 +338,10 @@ namespace Kratos {
     UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
     noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
     noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
-    std::cout<<" 10s  ";
 
- 
+
+     KRATOS_CATCH( "" );
+
 
  
   }
@@ -535,6 +588,7 @@ namespace Kratos {
         rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
         rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
       }
+
   }
 
   template<>
