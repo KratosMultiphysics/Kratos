@@ -77,6 +77,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/strategies/gear_scheme.h"
 
+// convergence criteria
+#include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -138,6 +141,11 @@ void  AddCustomStrategiesToPython()
             .def(init< Process::Pointer >()) // constructor passing a turbulence model
             ;
 
+	// Convergence criteria
+    class_< VelPrCriteria< SparseSpaceType, LocalSpaceType >,
+            bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+            boost::noncopyable >
+            ("VelPrCriteria", init< double, double, double, double>());
 }
 
 }  // namespace Python.

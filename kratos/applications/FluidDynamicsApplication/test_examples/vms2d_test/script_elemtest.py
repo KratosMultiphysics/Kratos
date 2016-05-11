@@ -34,7 +34,6 @@ sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
@@ -69,8 +68,8 @@ elif(SolverType == "pressure_splitting"):
     import decoupled_solver_eulerian
     decoupled_solver_eulerian.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    import monolithic_solver_eulerian
-    monolithic_solver_eulerian.AddVariables(fluid_model_part)
+    import vms_monolithic_solver
+    vms_monolithic_solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
@@ -127,7 +126,7 @@ if(SolverType == "FractionalStep"):
 elif(SolverType == "pressure_splitting"):
     decoupled_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    monolithic_solver_eulerian.AddDofs(fluid_model_part)
+    vms_monolithic_solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     monolithic_solver_eulerian_compressible.AddDofs(fluid_model_part)
 
@@ -294,7 +293,7 @@ if(SolverType == "pressure_splitting"):
     fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"):
-    fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part, domain_size)
+    fluid_solver = vms_monolithic_solver.MonolithicSolver(fluid_model_part, domain_size)
     fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales
     fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
