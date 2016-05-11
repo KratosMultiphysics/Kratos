@@ -104,24 +104,24 @@ void AddCustomUtilitiesToPython()
 
 
 
-    class_<Local_Refine_Triangle_Mesh, boost::noncopyable >
+    class_<LocalRefineTriangleMesh, boost::noncopyable >
     ("LocalRefineTriangleMesh", init<ModelPart&>())
-    .def("LocalRefineMesh", &Local_Refine_Triangle_Mesh::Local_Refine_Mesh)
+    .def("LocalRefineMesh", &LocalRefineTriangleMesh::LocalRefineMesh)
     ;
     
-    class_<Local_Refine_Prism_Mesh, boost::noncopyable >
+    class_<LocalRefinePrismMesh, boost::noncopyable >
     ("LocalRefinePrismMesh", init<ModelPart&>())
-    .def("LocalRefineMesh", &Local_Refine_Prism_Mesh::Local_Refine_Mesh)
+    .def("LocalRefineMesh", &LocalRefinePrismMesh::LocalRefineMesh)
     ;
 
-    class_<Local_Refine_SPrism_Mesh, boost::noncopyable >
+    class_<LocalRefineSPrismMesh, boost::noncopyable >
     ("LocalRefineSPrismMesh", init<ModelPart&>())
-    .def("LocalRefineMesh", &Local_Refine_SPrism_Mesh::Local_Refine_Mesh)
+    .def("LocalRefineMesh", &LocalRefineSPrismMesh::LocalRefineMesh)
     ;
 
-    class_<Local_Refine_Tetrahedra_Mesh, boost::noncopyable >
+    class_<LocalRefineTetrahedraMesh, boost::noncopyable >
     ("LocalRefineTetrahedraMesh", init<ModelPart&>())
-    .def("LocalRefineMesh", &Local_Refine_Tetrahedra_Mesh::Local_Refine_Mesh)
+    .def("LocalRefineMesh", &LocalRefineTetrahedraMesh::LocalRefineMesh)
     ;
 
     class_<TetgenVolumeMesher, boost::noncopyable >

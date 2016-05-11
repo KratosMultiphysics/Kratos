@@ -1,5 +1,5 @@
 /*
- * File:   local_refine_mesh.hpp
+ * File:   LocalRefineMesh.hpp
  * Author: VMataix
  * Co-author: 
  *
@@ -9,7 +9,6 @@
 
 #if !defined(KRATOS_LOCAL_REFINE_GEOMETRY_MESH)
 #define  KRATOS_LOCAL_REFINE_GEOMETRY_MESH
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -56,7 +55,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Local_Refine_Geometry_Mesh
+class LocalRefineGeometryMesh
 {
 public:
 
@@ -78,13 +77,13 @@ public:
     ///@{
     
     /// Default constructors
-    Local_Refine_Geometry_Mesh(ModelPart& model_part) : mr_model_part(model_part)
+    LocalRefineGeometryMesh(ModelPart& model_part) : mModelPart(model_part)
     {
 
     }
     
     /// Destructor
-    ~Local_Refine_Geometry_Mesh()
+    ~LocalRefineGeometryMesh()
     {
       
     }
@@ -103,7 +102,7 @@ public:
     * @param interpolate_internal_variables: Boolean that defines if to interpolate or not the internal variables
     */
     
-    void Local_Refine_Mesh(
+    void LocalRefineMesh(
             bool refine_on_reference,
             bool interpolate_internal_variables);
  
@@ -113,7 +112,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    virtual void CSR_Row_Matrix(
+    virtual void CSRRowMatrix(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord
 			       );
@@ -124,7 +123,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    virtual void Search_Edge_To_Be_Refined(
+    virtual void SearchEdgeToBeRefined(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord
 					  );
@@ -137,7 +136,7 @@ public:
     * @return Position_Node: The vector that contents the position in the edge of the new nodes
     */
     
-    virtual void Create_List_Of_New_Nodes(
+    virtual void CreateListOfNewNodes(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord,
             boost::numeric::ublas::vector<int> &List_New_Nodes,
@@ -152,7 +151,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    virtual void Calculate_Coordinate_And_Insert_New_Nodes(
+    virtual void CalculateCoordinateAndInsertNewNodes(
             ModelPart& this_model_part,
             const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
             const boost::numeric::ublas::vector<int> &List_New_Nodes
@@ -166,7 +165,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    virtual void Erase_Old_Element_And_Create_New_Element(
+    virtual void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& New_Elements,
@@ -179,7 +178,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    virtual void Erase_Old_Conditions_And_Create_New(
+    virtual void EraseOldConditionsAndCreateNew(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord
     );
@@ -193,7 +192,7 @@ public:
     * @return aux: The vector that includes the index of the new edges
     */
     
-    virtual void Calculate_Edges(
+    virtual void CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
             int* edge_ids,
@@ -206,7 +205,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    virtual void Renumering_Elements_And_Nodes(
+    virtual void RenumeringElementsAndNodes(
             ModelPart& this_model_part,
             PointerVector< Element >& New_Elements
 					      );
@@ -276,7 +275,7 @@ private:
     ///@name Private member Variables
     ///@{
   
-    ModelPart& mr_model_part;
+    ModelPart& mModelPart;
    
     ///@}
     ///@name Private Operators
@@ -303,4 +302,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LOCAL_REFINE_GEOMETRY_MESH  defined 
+#endif // KRATOS_LOCAL_REFINE_GEOMETRY_MESH  defined

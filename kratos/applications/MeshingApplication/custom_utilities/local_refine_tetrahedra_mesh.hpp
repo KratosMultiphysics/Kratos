@@ -40,7 +40,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Local_Refine_Tetrahedra_Mesh : public Local_Refine_Geometry_Mesh
+class LocalRefineTetrahedraMesh : public LocalRefineGeometryMesh
 {
 public:
 
@@ -51,13 +51,13 @@ public:
     ///@{
 
     /// Default constructors
-    Local_Refine_Tetrahedra_Mesh(ModelPart& model_part) : Local_Refine_Geometry_Mesh(model_part)
+    LocalRefineTetrahedraMesh(ModelPart& model_part) : LocalRefineGeometryMesh(model_part)
     {
 
     }
 
     /// Destructor
-    ~Local_Refine_Tetrahedra_Mesh()
+    ~LocalRefineTetrahedraMesh()
     {
       
     }
@@ -148,7 +148,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    void Erase_Old_Element_And_Create_New_Element(
+    void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& New_Elements,
@@ -182,7 +182,7 @@ public:
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
 	  Element::GeometryType& geom = it->GetGeometry();
-	  Calculate_Edges(geom, Coord, edge_ids, aux);
+          CalculateEdges(geom, Coord, edge_ids, aux);
 
 	  create_element = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &number_elem, &splitted_edges, &internal_node);
 
@@ -286,7 +286,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    void Erase_Old_Conditions_And_Create_New(
+    void EraseOldConditionsAndCreateNew(
 	ModelPart& this_model_part,
 	const compressed_matrix<int>& Coord
 	 )
@@ -319,7 +319,7 @@ public:
 
                 if (geom.size() == 3)
                 {
-                     Calculate_Edges_Faces(geom, Coord, edge_ids, aux);
+                     CalculateEdgesFaces(geom, Coord, edge_ids, aux);
 
                     // Create the new conditions
                     bool create_condition =  Split_Triangle(edge_ids, t, &number_elem, &splitted_edges, &nint);
@@ -391,7 +391,7 @@ public:
     * @return aux: The vector that includes the index of the new edges
     */
     
-    void Calculate_Edges(
+    void CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
             int* edge_ids,
@@ -576,7 +576,7 @@ public:
     * @return aux: The vector that includes the index of the new edges
     */
     
-    void  Calculate_Edges_Faces(Element::GeometryType& geom,
+    void  CalculateEdgesFaces(Element::GeometryType& geom,
 		      const compressed_matrix<int>& Coord,
 		      int*  edge_ids,
 		      array_1d<int, 6>& aux
@@ -733,4 +733,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH  defined 
+#endif // KRATOS_LOCAL_REFINE_TETRAHEDRA_MESH  defined

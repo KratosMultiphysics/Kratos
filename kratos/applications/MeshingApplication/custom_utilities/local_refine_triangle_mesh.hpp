@@ -42,7 +42,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Local_Refine_Triangle_Mesh : public Local_Refine_Geometry_Mesh
+class LocalRefineTriangleMesh : public LocalRefineGeometryMesh
 {
 public:
 
@@ -53,13 +53,13 @@ public:
     ///@{
 
     /// Default constructors
-    Local_Refine_Triangle_Mesh(ModelPart& model_part) : Local_Refine_Geometry_Mesh(model_part)
+    LocalRefineTriangleMesh(ModelPart& model_part) : LocalRefineGeometryMesh(model_part)
     {
 
     }
 
     /// Destructor
-    ~Local_Refine_Triangle_Mesh()
+    ~LocalRefineTriangleMesh()
     {
       
     }
@@ -78,18 +78,20 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
 
-    void Calculate_Coordinate_Center_Node_And_Insert_New_Nodes(ModelPart& this_model_part)
+    void CalculateCoordinateCenterNodeAndInsertNewNodes(ModelPart& this_model_part)
     {
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
         array_1d<double, 3 > Coord_Node_3;
         array_1d<double, 3 > Coordinate_center_node;
         std::vector<int> node_center;
+
         NodesArrayType& pNodes = this_model_part.Nodes();
         int Id_Center = pNodes.size() + 1;
         ElementsArrayType& rElements = this_model_part.Elements();
         ElementsArrayType::iterator it_begin = rElements.ptr_begin(); 
         ElementsArrayType::iterator it_end = rElements.ptr_end(); 
+
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
             Element::GeometryType& geom = it->GetGeometry();
@@ -122,7 +124,7 @@ public:
 
             }
 
-            ///* intepolating the data
+            // Interpolating the data
             unsigned int buffer_size = pnode->GetBufferSize();
             for (unsigned int step = 0; step < buffer_size; step++)
             {
@@ -154,7 +156,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    void Erase_Old_Element_And_Create_New_Element(
+    void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
             PointerVector< Element >& New_Elements,
@@ -164,7 +166,7 @@ public:
         ElementsArrayType& rElements = this_model_part.Elements();
         ElementsArrayType::iterator it_begin = rElements.ptr_begin();
         ElementsArrayType::iterator it_end = rElements.ptr_end();
-        Element const rReferenceElement;
+
         unsigned int to_be_deleted = 0;
         unsigned int large_id = (rElements.end() - 1)->Id() * 10;
         bool create_element = false;
@@ -190,7 +192,7 @@ public:
                 t[i] = -1;
             }
             Element::GeometryType& geom = it->GetGeometry();
-            Calculate_Edges(geom, Coord, edge_ids, aux);
+            CalculateEdges(geom, Coord, edge_ids, aux);
 
             const unsigned int dimension = geom.WorkingSpaceDimension();
 
@@ -292,7 +294,7 @@ public:
     * @return this_model_part: The model part of the model (it is the input too)
     */
     
-    void Erase_Old_Conditions_And_Create_New(
+    void EraseOldConditionsAndCreateNew(
 	ModelPart& this_model_part,
 	const compressed_matrix<int>& Coord
 	 )
@@ -429,7 +431,7 @@ public:
     * @return aux: The vector that includes the index of the new edges
     */
     
-    void Calculate_Edges(
+    void CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
             int* edge_ids,
@@ -589,4 +591,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_LOCAL_REFINE_TRIANGLE_MESH  defined 
+#endif // KRATOS_LOCAL_REFINE_TRIANGLE_MESH  defined
