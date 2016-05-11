@@ -4,16 +4,16 @@ message("**** configuring KratosPfemBaseApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-## Set a default value for triangle and tetmesh in case the user does not set it
+## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle/)
+  set(TRIANGLE_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries//tetgen/tetgen1.4.2/)
+  set(TETGEN_INSTALL_DIR ${CMAKE_SOURCE_DIR}/external_libraries/tetgen/tetgen1.4.3/)
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 if(${INCLUDE_TRIANGLE} MATCHES ON)
