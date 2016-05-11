@@ -975,7 +975,7 @@ void FractionalStep<TDim>::PressureEquationIdVector(EquationIdVectorType& rResul
     if (rResult.size() != NumNodes)
         rResult.resize(NumNodes);
 
-    const unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    const unsigned int pos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
     for (SizeType i = 0; i < NumNodes; ++i)
         rResult[i] = rGeom[i].GetDof(PRESSURE,pos).EquationId();
