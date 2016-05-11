@@ -70,23 +70,23 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef ModelPart::NodesContainerType                   NodesArrayType;
-    
+
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-    
+
     typedef typename BaseType::Pointer                     BaseTypePointer;
-  
+
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /**
      * Constructor.
      * The bossak method
      */
     ResidualBasedBossakDisplacementScheme(
-      double rAlpham = 0.0, 
+      double rAlpham = 0.0,
       double rDynamic = 1.0
     )
         :Scheme<TSparseSpace,TDenseSpace>()
@@ -125,13 +125,13 @@ public:
     }
 
     /**
-     * Clone 
+     * Clone
      */
     virtual BaseTypePointer Clone()
     {
       return BaseTypePointer( new ResidualBasedBossakDisplacementScheme(*this) );
     }
-    
+
     /** Destructor.
      */
     virtual ~ResidualBasedBossakDisplacementScheme
@@ -154,7 +154,7 @@ public:
      * @param Dx: incremental update of primary variables
      * @param b: RHS Vector
      */
-    
+
     void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -165,41 +165,41 @@ public:
         KRATOS_TRY;
 
         // std::cout << " Update " << std::endl;
-        
+
         int NumThreads = OpenMPUtils::GetNumThreads();
-        
+
         // Update of displacement (by DOF)
         OpenMPUtils::PartitionVector DofPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofPartition);
-        
+
         const int ndof = static_cast<int>(rDofSet.size());
         typename DofsArrayType::iterator DofBegin = rDofSet.begin();
-         
-        #pragma omp parallel for firstprivate(ndof, DofBegin)
+
+        #pragma omp parallel for firstprivate(DofBegin)
         for(int i = 0;  i < ndof; i++)
         {
             typename DofsArrayType::iterator itDof = DofBegin + i;
-            
+
             if (itDof->IsFree() )
             {
                 itDof->GetSolutionStepValue() += Dx[itDof->EquationId()];
             }
         }
-                
+
         // Updating time derivatives (nodally for efficiency)
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(r_model_part.Nodes().size(), NumThreads, NodePartition);
-        
+
         const int nnodes = static_cast<int>(r_model_part.Nodes().size());
         NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
-         
-        #pragma omp parallel for firstprivate(nnodes, NodeBegin)
+
+        #pragma omp parallel for firstprivate(NodeBegin)
         for(int i = 0;  i < nnodes; i++)
         {
             array_1d<double, 3 > DeltaDisplacement;
-             
+
             NodesArrayType::iterator itNode = NodeBegin + i;
-            
+
             noalias(DeltaDisplacement) = (itNode)->FastGetSolutionStepValue(DISPLACEMENT) - (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
             array_1d<double, 3 > & CurrentVelocity            = (itNode)->FastGetSolutionStepValue(VELOCITY, 0);
@@ -225,7 +225,7 @@ public:
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
      */
-    
+
     void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -235,9 +235,9 @@ public:
     )
     {
         KRATOS_TRY;
-        
+
         // std::cout << " Prediction " << std::endl;
-        
+
         const double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
@@ -247,14 +247,14 @@ public:
 
         const int nnodes = static_cast<int>( r_model_part.Nodes().size() );
         NodesArrayType::iterator NodeBegin = r_model_part.Nodes().begin();
-        
-        #pragma omp parallel for firstprivate(nnodes, NodeBegin)
+
+        #pragma omp parallel for firstprivate(NodeBegin)
         for(int i = 0;  i< nnodes; i++)
         {
             array_1d<double, 3 > DeltaDisplacement;
 
             NodesArrayType::iterator itNode = NodeBegin + i;
-            
+
             //Predicting: isplacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
             //ATTENTION::: the prediction is performed only on free nodes
 
@@ -271,26 +271,26 @@ public:
             }
             else if (itNode -> IsFixed(VELOCITY_X))
             {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + 0.5 * DeltaTime * (PreviousVelocity[0] + CurrentVelocity[0]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0]; 
+                CurrentDisplacement[0] = PreviousDisplacement[0] + 0.5 * DeltaTime * (PreviousVelocity[0] + CurrentVelocity[0]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
             }
             else if (itNode -> IsFixed(DISPLACEMENT_X) == false)
             {
                 CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
             }
-            
+
             if (itNode -> IsFixed(ACCELERATION_Y))
             {
                 CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + std::pow(DeltaTime, 2.0) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * PreviousAcceleration[1] + mNewmark.beta * CurrentAcceleration[1]);
             }
             else if (itNode -> IsFixed(VELOCITY_Y))
             {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + 0.5 * DeltaTime * (PreviousVelocity[1] + CurrentVelocity[1]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1] ; 
+                CurrentDisplacement[1] = PreviousDisplacement[1] + 0.5 * DeltaTime * (PreviousVelocity[1] + CurrentVelocity[1]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1] ;
             }
             else if (itNode -> IsFixed(DISPLACEMENT_Y) == false)
             {
                 CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1];
             }
-            
+
             // For 3D cases
             if (itNode -> HasDofFor(DISPLACEMENT_Z))
             {
@@ -300,7 +300,7 @@ public:
                 }
                 else if (itNode -> IsFixed(VELOCITY_Z))
                 {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + 0.5 * DeltaTime * (PreviousVelocity[2] + CurrentVelocity[2]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[2] ; 
+                    CurrentDisplacement[2] = PreviousDisplacement[2] + 0.5 * DeltaTime * (PreviousVelocity[2] + CurrentVelocity[2]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[2] ;
                 }
                 else if (itNode -> IsFixed(DISPLACEMENT_Z) == false)
                 {
@@ -310,7 +310,7 @@ public:
 
             // std::cout << " DispPre " << PreviousDisplacement << " ID " << i->Id() << std::endl;
             // std::cout << " DispCur " << CurrentDisplacement  << " ID " << i->Id() << std::endl;
-                
+
             if (itNode->HasDofFor(PRESSURE))
             {
                 double& PreviousPressure    = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
@@ -331,10 +331,10 @@ public:
 
             UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
         }
-        
+
         KRATOS_CATCH( "" );
     }
-    
+
     /**
      * This is the place to initialize the elements.
      * This is intended to be called just once when the strategy is initialized
@@ -347,15 +347,15 @@ public:
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(), NumThreads, ElementPartition);
-        
+
         const int nelem = static_cast<int>(rModelPart.Elements().size());
         ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
-         
-        #pragma omp parallel for firstprivate(nelem)
+
+        #pragma omp parallel for
         for(int i = 0;  i < nelem; i++)
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
-            
+
             itElem->Initialize(); //function to initialize the element
         }
 
@@ -370,7 +370,7 @@ public:
      * This is the place to initialize the conditions. This is intended to be called just once when the strategy is initialized
      * @param r_model_part: The model of the problem to solve
      */
-    
+
     void InitializeConditions(ModelPart& rModelPart)
     {
         KRATOS_TRY;
@@ -386,17 +386,17 @@ public:
 
         const int ncond = static_cast<int>(rModelPart.Conditions().size());
         ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
-         
-        #pragma omp parallel for firstprivate(ncond)
+
+        #pragma omp parallel for
         for(int i = 0;  i < ncond; i++)
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
-            
+
             itCond->Initialize(); //function to initialize the condition
         }
 
         this->mConditionsAreInitialized = true;
-        
+
         KRATOS_CATCH( "" );
     }
 
@@ -428,7 +428,7 @@ public:
             std::cout << " WARNING: detected delta_time = 0 in the Solution Scheme " << std::endl;
             std::cout << " DELTA_TIME set to 1 considering a Quasistatic step with one step only " << std::endl;
             std::cout << " PLEASE : check if the time step is created correctly for the current model part " << std::endl;
-          
+
             CurrentProcessInfo[DELTA_TIME] = 1.0;
             DeltaTime = CurrentProcessInfo[DELTA_TIME];
         }
@@ -454,7 +454,7 @@ public:
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
      */
-    
+
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -462,7 +462,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY;
-        
+
         // Finalizes solution step for all of the elements
         ElementsArrayType& rElements = rModelPart.Elements();
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -473,12 +473,12 @@ public:
 
         const int nelem = static_cast<int>( rModelPart.Elements().size() );
         ElementsArrayType::iterator ElemBegin = rModelPart.Elements().begin();
-         
+
         #pragma omp parallel for
         for(int i = 0;  i < nelem; i++)
         {
             ElementsArrayType::iterator itElem = ElemBegin + i;
-            
+
             itElem->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
@@ -489,15 +489,15 @@ public:
 
         const int ncond = static_cast<int>( rModelPart.Conditions().size() );
         ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin();
-         
+
         #pragma omp parallel for
         for(int i = 0;  i < ncond; i++)
         {
             ConditionsArrayType::iterator itCond = CondBegin + i;
-            
+
             itCond->FinalizeSolutionStep(CurrentProcessInfo);
         }
-        
+
         KRATOS_CATCH( "" );
     }
 
@@ -508,7 +508,7 @@ public:
      * @param Dx: Incremental update of primary variables
      * @param b: RHS Vector
      */
-    
+
     void InitializeNonLinIteration(
       ModelPart& r_model_part,
       TSystemMatrixType& A,
@@ -517,7 +517,7 @@ public:
     )
     {
         KRATOS_TRY;
-        
+
         ElementsArrayType& pElements = r_model_part.Elements();
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -531,7 +531,7 @@ public:
         {
             (it) -> InitializeNonLinearIteration(CurrentProcessInfo);
         }
-        
+
         KRATOS_CATCH( "" );
     }
 
@@ -571,7 +571,7 @@ public:
      * @param EquationId: The ID's of the element degrees of freedom
      * @param CurrentProcessInfo: The current process info instance
      */
-    
+
     void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -588,7 +588,7 @@ public:
         (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
-        
+
         if(mNewmark.static_dynamic !=0)
         {
             (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread],CurrentProcessInfo);
@@ -672,9 +672,9 @@ public:
 
         // Basic operations for the element considered
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-        
+
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-        
+
         if(mNewmark.static_dynamic !=0)
         {
             (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
@@ -716,7 +716,7 @@ public:
         (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
         (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
-        
+
         if(mNewmark.static_dynamic !=0)
         {
             (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
@@ -737,7 +737,7 @@ public:
      * @param EquationId: The ID's of the element degrees of freedom
      * @param CurrentProcessInfo: The current process info instance
      */
-        
+
     void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
@@ -753,7 +753,7 @@ public:
      * @param EquationId: The ID's of the element degrees of freedom
      * @param CurrentProcessInfo: The current process info instance
      */
-    
+
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
@@ -761,7 +761,7 @@ public:
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
-    
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -769,13 +769,13 @@ public:
      * @param r_model_part: The model of the problem to solve
      * @return Zero means  all ok
      */
-    
+
     virtual int Check(ModelPart& r_model_part)
     {
         KRATOS_TRY;
 
         int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
-        if(err!=0) 
+        if(err!=0)
         {
           return err;
         }
@@ -855,11 +855,11 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -909,13 +909,13 @@ protected:
         std::vector< Vector > a;    // Acceleration
         std::vector< Vector > ap;   // Previous acceleration
     };
-    
+
     GeneralAlphaMethod  mAlpha;
     NewmarkMethod       mNewmark;
 
     GeneralMatrices     mMatrix;
     GeneralVectors      mVector;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -923,7 +923,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * Updating first time Derivative
      * @param CurrentVelocity: The current velocity
@@ -931,7 +931,7 @@ protected:
      * @param PreviousVelocity: The previous velocity
      * @param PreviousAcceleration: The previous acceleration
      */
-        
+
     inline void UpdateVelocity(
       array_1d<double, 3 > & CurrentVelocity,
       const array_1d<double, 3 > & DeltaDisplacement,
@@ -963,13 +963,13 @@ protected:
     }
 
     /**
-     * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K 
+     * It adds the dynamic LHS contribution of the elements: M*c0 + D*c1 + K
      * @param LHS_Contribution: The dynamic contribution for the LHS
      * @param D: The damping matrix
      * @param M: The mass matrix
      * @param CurrentProcessInfo: The current process info instance
      */
-    
+
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
@@ -982,7 +982,7 @@ protected:
         {
             noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0 * mNewmark.static_dynamic;
 
-            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;          
+            // std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
         }
 
         // Adding  damping contribution
@@ -1001,7 +1001,7 @@ protected:
      * @param M: The mass matrix
      * @param CurrentProcessInfo: The current process info instance
      */
-    
+
     void AddDynamicsToRHS(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -1082,7 +1082,7 @@ protected:
         }
 
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
