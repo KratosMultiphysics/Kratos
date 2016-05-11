@@ -65,31 +65,26 @@ for i in range(process_definition.size()):
     interface_file = __import__(item["implemented_in_file"].GetString())
     p = interface_file.Factory(item, Model)
     list_of_processes.append( p )
-    print("done ",i)
-            
 
 for process in list_of_processes:
-    print("a")
     process.ExecuteInitialize()
-    print("b")
 
 #TODO: think if there is a better way to do this
 fluid_model_part = solver.GetComputeModelPart()
-
-
-
-gid_output.ExecuteBeforeSolutionLoop()
-for process in list_of_processes:
-    process.ExecuteBeforeSolutionLoop()
 
 ## Stepping and time settings
 Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-
 time = 0.0
 step = 0
 out = 0.0
+
+gid_output.ExecuteBeforeSolutionLoop()
+
+for process in list_of_processes:
+    process.ExecuteBeforeSolutionLoop()
+
 while(time <= end_time):
 
     time = time + Dt
@@ -107,10 +102,10 @@ while(time <= end_time):
         
         solver.Solve()
         
-        gid_output.ExecuteFinalizeSolutionStep()
-        
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
+            
+        gid_output.ExecuteFinalizeSolutionStep()
 
         #TODO: decide if it shall be done only when output is processed or not
         for process in list_of_processes:
@@ -124,10 +119,10 @@ while(time <= end_time):
 
         out = out + Dt
 
-gid_output.ExecuteFinalize()
-
 for process in list_of_processes:
     process.ExecuteFinalize()
+    
+gid_output.ExecuteFinalize()
 
 
 
