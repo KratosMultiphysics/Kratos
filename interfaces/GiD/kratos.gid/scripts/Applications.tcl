@@ -77,8 +77,8 @@ proc apps::getImgFrom { appName } {
     foreach app $appList {
         if {[$app getName] eq $appName} {set imagespath [$app getIcon]; break}
     }
-    
-    return [Bitmap::get [file native $imagespath]]
+    return [gid_themes::GetImageModule $imagespath ""]
+    #return [Bitmap::get [file native $imagespath]]
 }
 
 proc apps::getMyDir {appName} {
