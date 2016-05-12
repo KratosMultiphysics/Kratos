@@ -2,7 +2,7 @@
 <ElementList>
   <!--structural elements-->
   <!--beam elements-->
-  <ElementItem n="BeamElement" pn="Small displacement beam element" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
+  <ElementItem n="BeamElement" pn="Small displacements beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a small displacement timoshenko beam structural model" RotationDofs="True"
@@ -41,7 +41,7 @@
   </ElementItem>
 
   <!--membrane elements-->
-  <ElementItem n="MembraneElement" pn="Membrane element" ImplementedInFile="membrane_element.cpp"
+  <ElementItem n="MembraneElement" pn="Membrane" ImplementedInFile="membrane_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
 	       help="This element it implements a membrane structural model" RotationDofs="False"
