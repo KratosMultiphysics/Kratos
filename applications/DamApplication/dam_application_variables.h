@@ -19,6 +19,7 @@
 namespace Kratos
 {
 //Define Variables
+KRATOS_DEFINE_VARIABLE( double, THERMAL_EXPANSION )
 
 //Bofang, Hidrostatic and uplift variables for evolution changes
 KRATOS_DEFINE_VARIABLE( std::string, GRAVITY_DIRECTION )

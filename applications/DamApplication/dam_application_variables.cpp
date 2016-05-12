@@ -10,6 +10,7 @@
 namespace Kratos
 {
 //Create Variables //Note that the application variables must not be defined if they already exist in KRATOS
+KRATOS_CREATE_VARIABLE( double, THERMAL_EXPANSION )
 
 //Bofang, Hidrostatic and uplift variables for evolution changes
 KRATOS_CREATE_VARIABLE( std::string, GRAVITY_DIRECTION )
