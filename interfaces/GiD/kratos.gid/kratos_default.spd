@@ -484,6 +484,12 @@
 		}
 	  ]]>
 	</proc>
+        
+        <proc n='CheckGeometryStructural' args='args'>
+          <![CDATA[                
+                if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}                
+          ]]>
+        </proc>
 	  
 	  <proc n='Updateme' args='args'>
 	  <![CDATA[
