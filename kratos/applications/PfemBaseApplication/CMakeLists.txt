@@ -93,6 +93,8 @@ target_link_libraries(KratosPfemBaseApplication ${LIBS})
 ##target_link_libraries(KratosPfemBaseApplication KratosCore triangle tetgen msuite tetMeshOpt)
 
 set_target_properties(KratosPfemBaseApplication PROPERTIES PREFIX "")
+set_target_properties(KratosPfemBaseApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_BASE_APPLICATION=EXPORT,API")
+
 install(TARGETS KratosPfemBaseApplication DESTINATION libs )
 
 
