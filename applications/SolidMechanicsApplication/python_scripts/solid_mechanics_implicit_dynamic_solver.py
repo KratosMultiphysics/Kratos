@@ -274,7 +274,7 @@ class ImplicitMechanicalSolver:
                     mechanical_scheme = ResidualBasedContactBossakScheme(self.settings["damp_factor_m"].GetDouble(),
                                                                          self.settings["dynamic_factor"].GetDouble())
                 else:
-                    mechanical_scheme = ResidualBasedBossakDisplacementScheme(self.settings["damp_factor_m"].GetDouble(),
+                    mechanical_scheme = ResidualBasedBossakScheme(self.settings["damp_factor_m"].GetDouble(),
                                                                               self.settings["dynamic_factor"].GetDouble())
 
         elif(scheme_type == "Relaxation"):
