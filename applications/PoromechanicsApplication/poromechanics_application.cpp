@@ -53,11 +53,10 @@ KratosPoromechanicsApplication::KratosPoromechanicsApplication():
     mUPwSmallStrainLinkInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
     mUPwSmallStrainLinkInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
 
-    //TODO
-    //mUPwSmallStrainFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
-    //mUPwSmallStrainFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
-    //mUPwSmallStrainFICElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
-    //mUPwSmallStrainFICElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
+    mUPwSmallStrainFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
+    mUPwSmallStrainFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwSmallStrainFICElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwSmallStrainFICElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
     
     mSmallStrainUPwDiffOrderElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType(6)))),
     mSmallStrainUPwDiffOrderElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType(8)))),
@@ -123,11 +122,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D8N", mUPwSmallStrainLinkInterfaceElement3D8N )
     
-    //TODO
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D4N", mUPwSmallStrainFICElement2D4N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D4N", mUPwSmallStrainFICElement3D4N )
-    //KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D8N", mUPwSmallStrainFICElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D3N", mUPwSmallStrainFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement2D4N", mUPwSmallStrainFICElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D4N", mUPwSmallStrainFICElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainFICElement3D8N", mUPwSmallStrainFICElement3D8N )
     
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D6N", mSmallStrainUPwDiffOrderElement2D6N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement2D8N", mSmallStrainUPwDiffOrderElement2D8N )
