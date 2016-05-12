@@ -32,18 +32,6 @@ Element::Pointer UPwElement<TDim,TNumNodes>::Create(IndexType NewId, GeometryTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwElement<TDim,TNumNodes>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
-{
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Clone method for a particular element ... illegal operation!!", "" )
-    
-    UPwElement NewElement( NewId, this->GetGeometry().Create( ThisNodes ), this->pGetProperties() );
-    
-    return Element::Pointer( new UPwElement(NewElement) );
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
 int UPwElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY

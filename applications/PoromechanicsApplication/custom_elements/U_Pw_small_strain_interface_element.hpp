@@ -56,32 +56,15 @@ public:
         mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
     }
 
-    /// Copy Constructor
-    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement const& rOther) : UPwElement<TDim,TNumNodes>(rOther), mInitialGap(rOther.mInitialGap) {}
-
     /// Destructor
     virtual ~UPwSmallStrainInterfaceElement() {}
-
-    /// Assignment operator.
-    UPwSmallStrainInterfaceElement & operator=(UPwSmallStrainInterfaceElement const& rOther)
-    {
-        UPwElement<TDim,TNumNodes>::operator=(rOther);
-        
-        mInitialGap.resize(rOther.mInitialGap.size());
-        for(unsigned int i = 0; i<mInitialGap.size(); i++)
-            mInitialGap[i] = rOther.mInitialGap[i];
-        
-        return *this;
-    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
-    
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-    
+        
     int Check(const ProcessInfo& rCurrentProcessInfo);
     
     void Initialize();
@@ -255,6 +238,11 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
+    /// Assignment operator.
+    UPwSmallStrainInterfaceElement & operator=(UPwSmallStrainInterfaceElement const& rOther);
+
+    /// Copy constructor.
+    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement const& rOther);
 
 }; // Class UPwSmallStrainInterfaceElement
 

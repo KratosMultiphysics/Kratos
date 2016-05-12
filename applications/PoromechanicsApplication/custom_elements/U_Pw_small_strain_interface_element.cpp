@@ -28,28 +28,6 @@ Element::Pointer UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Create(IndexTyp
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
-{
-    UPwSmallStrainInterfaceElement NewElement( NewId, this->GetGeometry().Create( ThisNodes ), this->pGetProperties() );
-
-    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
-
-    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
-        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-        NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    
-    if ( NewElement.mInitialGap.size() != mInitialGap.size() )
-        NewElement.mInitialGap.resize(mInitialGap.size());
-    for(unsigned int i=0; i<mInitialGap.size(); i++)
-        NewElement.mInitialGap[i] = mInitialGap[i];
-    
-    return Element::Pointer( new UPwSmallStrainInterfaceElement(NewElement) );
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
 int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY

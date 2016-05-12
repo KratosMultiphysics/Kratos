@@ -56,37 +56,15 @@ public:
     /// Constructor using Properties
     UPwSmallStrainFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwSmallStrainElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
-    /// Copy Constructor
-    UPwSmallStrainFICElement(UPwSmallStrainFICElement const& rOther) : UPwSmallStrainElement<TDim,TNumNodes>(rOther), mNodalDtStress(rOther.mNodalDtStress), mNodalConstitutiveTensor(rOther.mNodalConstitutiveTensor) {}
-
     /// Destructor
     virtual ~UPwSmallStrainFICElement() {}
-
-    /// Assignment operator.
-    UPwSmallStrainFICElement & operator=(UPwSmallStrainFICElement const& rOther)
-    {
-        UPwSmallStrainElement<TDim,TNumNodes>::operator=(rOther);
-        
-        mNodalDtStress = rOther.mNodalDtStress;
-        
-        for(unsigned int i = 0; i < mNodalConstitutiveTensor.size(); i++)
-        {
-            mNodalConstitutiveTensor[i].resize(rOther.mNodalConstitutiveTensor[i].size());
-            for(unsigned int j = 0; j < mNodalConstitutiveTensor[i].size(); j++)
-                mNodalConstitutiveTensor[i][j] = rOther.mNodalConstitutiveTensor[i][j];
-        }
-        
-        return *this;
-    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
-    
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-    
+        
     void Initialize();
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -199,6 +177,11 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
+    /// Assignment operator.
+    UPwSmallStrainFICElement & operator=(UPwSmallStrainFICElement const& rOther);
+
+    /// Copy constructor.
+    UPwSmallStrainFICElement(UPwSmallStrainFICElement const& rOther);
 
 }; // Class UPwSmallStrainFICElement
 

@@ -28,37 +28,6 @@ Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::Create(IndexType NewI
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
-{
-    UPwSmallStrainFICElement NewElement( NewId, this->GetGeometry().Create( ThisNodes ), this->pGetProperties() );
-
-    //
-    
-    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
-
-    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
-        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-        NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    
-    //
-    
-    NewElement.mNodalDtStress = mNodalDtStress;
-
-    for(unsigned int i = 0; i < mNodalConstitutiveTensor.size(); i++)
-    {
-        if(NewElement.mNodalConstitutiveTensor[i].size() != mNodalConstitutiveTensor[i].size())
-            NewElement.mNodalConstitutiveTensor[i].resize(mNodalConstitutiveTensor[i].size());
-        for(unsigned int j = 0; j < mNodalConstitutiveTensor[i].size(); j++)
-            NewElement.mNodalConstitutiveTensor[i][j] = mNodalConstitutiveTensor[i][j];
-    }
-
-    return Element::Pointer( new UPwSmallStrainFICElement(NewElement) );
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize()
 {
     KRATOS_TRY
