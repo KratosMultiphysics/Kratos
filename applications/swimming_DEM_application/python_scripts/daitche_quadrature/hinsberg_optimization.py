@@ -57,7 +57,24 @@ class Functional:
         self.K = K_sum(self.tis, ais)
         self.K_1 = self.K.f(1)
         
-    def dF(self, i):
+    def dFda(self, i):
+        K = self.K
+        K_1 = self.K_1
+        sqrt_pi = self.sqrt_pi                  
+        Ki = K.Ks[i]
+        Ki_1 = Ki.f(1)
+        alpha_i = Ki.alpha        
+        beta_i = Ki.beta        
+        sqrt_minus_betai = sqrt(- beta_i)
+        sqrt_minus_pi_beta_i = - sqrt_pi * sqrt_minus_betai
+        
+        non_integral_contribution = - 2 * (1 - K_1) * Ki_1
+        Ki_prime_over_sqrt_t = alpha_i * sqrt_minus_pi_beta_i * erfc(sqrt_minus_betai)
+        t_Ki_prime_K_prime = 2 * beta_i * Ki_1 * sum([Kk.a * Kk.f(1.) * Kk.beta * (1. - Kk.beta - beta_i) / (Kk.beta + beta_i) ** 2 for Kk in K.Ks])
+        
+        return  non_integral_contribution + Ki_prime_over_sqrt_t + t_Ki_prime_K_prime
+    
+    def dFdt(self, i):
         K = self.K
         K_1 = self.K_1
         sqrt_pi = self.sqrt_pi        
@@ -70,7 +87,7 @@ class Functional:
         
         return - 2 * (1 - K_1) * Ki_1 + alpha_i * beta_i * sqrt_pi * erfc(sqrt_minus_betai) / sqrt_minus_betai + t_Ki_prime_K_prime
     
-    def d2F(self, i, j):
+    def d2Fda2(self, i, j):
         K = self.K
         Ki = K.Ks[i]
         Kj = K.Ks[j]
@@ -85,18 +102,18 @@ class Functional:
 def FillUpMatrices(F, a):
     F.Define(a)
     m = len(a)
-    grad = np.array([F.dF(i) for i in range(m)])
+    grad = np.array([F.dFda(i) for i in range(m)])
     
     H = np.zeros((m, m))
     
     for i in range(m):
         for j in range(m):
-            H[i,j] = F.d2F(i, j)
+            H[i,j] = F.d2Fda2(i, j)
 
     return grad, np.linalg.inv(H)       
     
 def GetExponentialsCoefficients(functional, a0):
-    tol = 1e-9
+    tol = 1e-12
     max_iter = 10
     a = np.array(a0)
     a_old = np.array(a0) 
