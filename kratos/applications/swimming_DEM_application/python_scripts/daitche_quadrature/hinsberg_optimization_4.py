@@ -6,6 +6,7 @@ from bigfloat import *
 import numpy as np
 import scipy
 import scipy.optimize as opt
+import scipy.integrate as integ
 import cmath
 
 def DawsonIntegral(x):
@@ -96,6 +97,45 @@ class K_sum:
         m = self.m 
         return sum([Ks[i].a * Ks[i].df(t) for i in range(m)])
 
+def ApproximateQuadrature(times, f):
+    values = [0.0 for t in times]
+    acc_sum = 2 * math.sqrt(times[-1] - times[-2]) * f(times[-1])
+
+    for i in range(len(values) - 1):
+        if i == 0:
+            delta_t = times[1] - times[0]
+        else:
+            delta_t = times[i] - times[i - 1]
+                    
+        acc_sum += 0.5 * delta_t * (f(times[i]) + f(times[i - 1]))
+        
+    return acc_sum
+
+def SubstituteRichardsons(approx_successive_values, k, order, level = - 1):
+    with precision(200):
+        one = BigFloat(1)
+        n = len(approx_successive_values)
+        if level > n or level < 0:
+            max_n = n
+        else:
+            max_n = level
+        
+        richardsons = [value for value in approx_successive_values]
+        
+        while max_n:
+            max_n -= 1
+            n -= 1
+            new_richardsons = []
+            
+            for i in range(n):
+                new_richardsons.append((k ** order * richardsons[i + 1] - richardsons[i]) / (one * (k ** order - 1)))
+                
+            richardsons = [value for value in new_richardsons]        
+            
+            for i in range(n):
+                approx_successive_values[- i - 1] = richardsons[- i - 1]
+            order += 1
+
 class Functional:
     def __init__(self):
         self.sqrt_pi = sqrt(math.pi)
@@ -103,25 +143,116 @@ class Functional:
     def Define(self, ais, tis):
         self.K = K_sum(ais, tis)
         self.K_1 = self.K.f(1)
+        big_t = 1e3
+        self.K_big_t = self.K.f(big_t)
+        self.K_B = K_B()
+    
+    def Fmod(self):
+        K = self.K
+        K_1 = self.K_1
+        K_B = self.K_B
         
+        def f(t):            
+            return float(t * (- 0.5 / abs(t) ** 1.5 - K.df(t)) ** 2)
+        
+        fixed_part = (1. - K_1) ** 2
+        big_t = 500.
+        def Integrate(n):
+            times = [1.0 + ((big_t - 1.0) * i) / n for i in range(n + 1)]      
+            #print(times)
+            
+            delta_t = times[1] - times[0]
+            acc_sum = 0.0
+            for i in range(len(times) - 1):                   
+                acc_sum += 0.5 * delta_t * (f(times[i]) + f(times[i - 1]))
+            return acc_sum
+        early_part_1 = Integrate(16)
+        #print("early1", early_part_1)        
+        early_part_2 = Integrate(32)
+        #print("early2", early_part_2)
+        early_part_3 = Integrate(64)
+        #print("early3", early_part_3)
+        early_part_4 = Integrate(128)
+        #print("early4", early_part_4)
+        early_part_5 = Integrate(256)
+        #print("early5", early_part_5)
+        early_part_6 = Integrate(512)   
+        #print("early6", early_part_6)
+        values = [early_part_1, early_part_2, early_part_3, early_part_4, early_part_5, early_part_6]
+        SubstituteRichardsons(values, 2, 2)
+        early_part = values[-1]
+        return fixed_part + early_part
+    
     def F(self):
         K = self.K
-        def f(t):
-            return float(- 1. / t ** 1.5 - sum([K_comp.a * K_comp.df(t) for K_comp in K.Ks]))
-
-        try:
-            t_cross = FindZero(f, 2.0) 
-            first_bit = - 2 + 2 / sqrt(t_cross) - sum([K_comp.a * (K_comp.df(t_cross) - K_comp.df(1.)) / K_comp.beta for K_comp in K.Ks])
-            second_bit = 2 / sqrt(t_cross) + sum([- K_comp.a * K_comp.df(t_cross) / K_comp.beta for K_comp in K.Ks])            
-            print("\nT_CROSS",t_cross)
-            print("BEFORE",f(t_cross-0.5*t_cross))
-            print("AFT",f(t_cross+0.5*t_cross))
-            print("first bit",first_bit)
-            print("second bit", second_bit)
-            return float(first_bit + second_bit)
-        except:
-            return float(2 + sum([- K_comp.a * K_comp.df(1.) / K_comp.beta for K_comp in K.Ks]))
+        K_1 = self.K_1
+        K_B = self.K_B
         
+        def f(t):            
+            return float(self.K_B.df(t) - K.df(t))
+        
+        def f_abs(t):
+            return abs(f(t))
+        
+        try:            
+            t_cross = FindZero(f, 1.0)
+            
+            if t_cross <= 1.0:
+                print("NO ROOTS BETWEEN 1 AND INFINITY!")
+                return  2 * abs(1. - K_1)
+            else:
+                print("ROOT", t_cross)
+        except:
+            print("NO ROOTS AT ALL!")
+            return 2 * abs(1. - K_1)
+
+        fixed_part = abs(1. - K_1)
+        
+        K_t_cross = K.f(t_cross)
+        early_part = abs(1. / sqrt(t_cross) - 1 + K_1 - K_t_cross)
+        late_part = abs(1. / sqrt(t_cross) - K_t_cross)
+        residual = fixed_part + early_part + late_part
+       
+        if residual < 0:
+            print("\n NEGATIVE_RES", residual)  
+            print("ROOT", t_cross)
+            print("smaller t", f(0.9999*t_cross))
+            print("bigger t", f(1.00001*t_cross))
+            print("standard part", abs(1. - K_1))
+            print("bad_pàrt", integral_part)
+        return residual
+    
+        #big_t = 1e1
+        #def Integrate(n):
+            #times = [1.0 + ((big_t - 1.0) * i) / n for i in range(n + 1)]      
+            ##print(times)
+            
+            #delta_t = times[1] - times[0]
+            #acc_sum = 0.0
+            #for i in range(len(times) - 1):                   
+                #acc_sum += 0.5 * delta_t * (f_abs(times[i]) + f_abs(times[i - 1]))
+            #return acc_sum
+        #early_part_1 = Integrate(64)
+        ##print("early1", early_part_1)
+        #early_part_2 = Integrate(128)
+        ##print("early2", early_part_2)
+        #early_part_3 = Integrate(256)
+        ##print("early3", early_part_3)
+        #early_part_4 = Integrate(512)   
+        ##print("early4", early_part_4)
+        #values = [early_part_1, early_part_2, early_part_3, early_part_4]
+        #SubstituteRichardsons(values, 2, 2)
+        #early_part = values[-1]
+        ##print("early", early_part)
+        #late_part = 1 / sqrt(big_t) - K.f(big_t)                                
+
+        ##print("fixed", fixed_part)
+        ##print("late", late_part)
+        #return fixed_part + early_part + late_part
+        #para
+    
+
+
     def dFda(self, i):
         K = self.K
         K_1 = self.K_1
@@ -147,8 +278,8 @@ class Functional:
             Kk = K.Ks[k]
             alpha_k = Kk.alpha   
             a_k = Kk.a
-            dfdt += a_k * (Kk.alpha_prime(i) / alpha_k + Kk.beta_prime(i))
-        return dfdt * self.dFda(i)
+            dfdt += a_k * (Kk.alpha_prime(i) / alpha_k + Kk.beta_prime(i)) * self.dFda(k)
+        return dfdt 
     
     def d2Fda2(self, i, j):
         K = self.K
@@ -165,40 +296,38 @@ class Functional:
     def d2Fdtda(self, i, j):
         K = self.K
         dtda1 = 0.
+        dtda2 = 0.       
         
         for k in range(i + 1):
             Kk = K.Ks[k]
             alpha_k = Kk.alpha   
             a_k = Kk.a
-            dtda1 += a_k * (Kk.alpha_prime(i) / alpha_k + Kk.beta_prime(i))
-        dtda1 *= self.d2Fda2(i, j)
-        dtda2 = 0.
+            dtda1 += a_k * (Kk.alpha_prime(i) / alpha_k + Kk.beta_prime(i)) * self.d2Fda2(k, j)
         
         if i >= j:
             Kj = K.Ks[j]
             alpha_j = Kj.alpha   
-            dtda2 += (Kj.alpha_prime(i) / alpha_j + Kj.beta_prime(i))
+            dtda2 += (Kj.alpha_prime(i) / alpha_j + Kj.beta_prime(i)) * self.dFda(j)
         
-        dtda2 *= self.dFda(i)
         return dtda1 + dtda2
 
     def d2Fdt2(self, i, j):
         K = self.K
         dtdt1 = 0.
+        dtdt2 = 0.    
         
         for k in range(i + 1):
             Kk = K.Ks[k]
             alpha_k = Kk.alpha   
             a_k = Kk.a
-            dtdt1 += a_k * (Kk.alpha_prime(i) / alpha_k + Kk.beta_prime(i))     
-        dtdt1 *= self.d2Fdtda(j, i)
-        dtdt2 = 0.
+            dtdt1 += a_k * (Kk.alpha_prime(i) / alpha_k + Kk.beta_prime(i)) * self.d2Fdtda(j, k)     
+
         if i >= j:
             for k in range(i + 1):
                 Kk = K.Ks[k]
                 alpha_k = Kk.alpha   
-                dtdt2 += ((Kk.alpha_prime_2(i, j) * alpha_k - Kk.alpha_prime(i) * Kk.alpha_prime(j)) / alpha_k ** 2 + Kk.beta_prime_2(i, j))
-            dtdt2 * self.dFdt(i)
+                dtdt2 += ((Kk.alpha_prime_2(i, j) * alpha_k - Kk.alpha_prime(i) * Kk.alpha_prime(j)) / alpha_k ** 2 + Kk.beta_prime_2(i, j)) * self.dFda(k)
+        
         return dtdt1 + dtdt2
     
 def FillUpMatrices(F, ais, tis):
@@ -227,6 +356,7 @@ def FillUpMatrices(F, ais, tis):
     #print("H_inv", np.linalg.inv(H))
     #print()
     #print("gradient: ", grad)
+    #para
     return grad, np.linalg.inv(H)       
     
 def GetExponentialsCoefficients(functional, a0, t0):
@@ -266,43 +396,118 @@ def TausToTimes(taus):
     return [sum([math.exp(t) for t in taus[:i + 1]]) for i in range(len(taus))]
 
 if __name__ == "__main__":
-    #tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
-    #a0 = [ 0.23477446,  0.28549392,  0.28479113,  0.26149251,  0.32055117,  0.35351918, 0.3963018,   0.42237921,  0.48282255,  0.63471099]    
-    tis = [0.1, 1.0, 100]
-    a0 = [1.,1.,1.]    
+    tis = [0.1, 0.3, 1., 3., 5.,10., 40., 190., 1000., 6500., 50000.]
+    a0 = [0.4 for t in tis]
+    #a0 = [ 0.23477446,  0.28549392,  0.28479113, 0.3, 0.26149251,  0.32055117,  0.35351918, 0.3963018,   0.42237921,  0.48282255,  0.63471099]    
+    tis = [0.1, 2.0, 20, 100]
+    a0 = [0.1, 1.0, 1.0, 1.0]  
     tis = TimesToTaus(tis)
     tol = 1e-9
-    max_iter = 100
-    still_changes = True
+    tol_residual = 1e-6
+    max_iter = 30
+    still_changing = True
     a = np.array(a0 + tis)
     a_old = np.array(a0 + tis) 
+    a_best = np.array(a0 + tis)  
     iteration = 0
     F = Functional()
-
-    while still_changes and iteration < max_iter:
+    F.Define(a[:len(a0)], a[len(a0):])
+    print("calculating Fmod...")
+    mod_residual = F.Fmod()
+    print("calculating F...")
+    best_residual = F.F()
+    old_residual = best_residual
+    print("RESIDUAL", best_residual)
+    print("MOD_RESIDUAL", mod_residual)
+    gamma_0 = 0.5
+    
+    while still_changing and iteration < max_iter:
         iteration += 1
         grad, H_inv = FillUpMatrices(F, a[:len(a0)], a[len(a0):])
-        p = H_inv.dot(grad)  
-        gamma = 0.1
-        
-        residual = F.F()
-        print("RESIDUAL", residual)
-        improving = True
+        p = H_inv.dot(grad)   
+        print("\nGradient Norm")
+        print(sum([abs(float(g)) for g in grad]))
         a -= p
-        #while improving:
-            #a[:] = a_old[:] - gamma * p[:]
-            #F.Define(a[:len(a0)], a[len(a0):])
-            #new_residual = F.F()
-            #improving = abs(new_residual) < abs(residual)
-            #residual = new_residual
-            #print("RESIDUAL", residual)
-            #gamma *= (1 + 0.5)
-            
-        still_changes = np.linalg.norm(a - a_old) > tol 
-        print("Change: ", np.linalg.norm(a - a_old))
+        F.Define(a[:len(a0)], a[len(a0):])
+        print("calculating F...")
+        residual =  F.F()
+        print("calculating Fmod...")
+        mod_residual = F.Fmod()
+        if residual < best_residual:
+            best_residual = residual
+            a_best[:] = a[:]
+        print("\nRESIDUAL", residual)
+        print("BEST_RESIDUAL", best_residual)
+        print("MOD_RESIDUAL", mod_residual)
+        print("Best times so far", TausToTimes(a_best[len(a0):]))
+        print("Best coefficients so far", a_best[:len(a0)])
+        print("Current times", TausToTimes(a[len(a0):]))
+        print("Change: ", np.linalg.norm(a - a_old))        
+        still_changing = np.linalg.norm(a - a_old) > tol 
         a_old[:] = a[:]
+        
+        
+    #while still_changing and iteration < max_iter:
+        #iteration += 1
+        #grad, H_inv = FillUpMatrices(F, a[:len(a0)], a[len(a0):])
+        #p = H_inv.dot(grad)          
+        
+        #not_improving = True
+        #gamma = 1.
+        #not_working = False
+        #while not_improving:
+            #a[:] = a_old[:] 
+            #a -= gamma * p
+            #F.Define(a[:len(a0)], a[len(a0):])
+            #residual = F.F()            
+            #not_improving = residual > old_residual
+            #print(not_improving)
+            #if residual < best_residual:
+                #best_residual = residual
+                #a_best[:] = a[:]
+            #gamma *= 0.5
+            #if gamma < 1e-8:
+                #not_working = True
+                #break
+        #if not_working:
+            #break
+        #old_residual = residual        
+        #mod_residual = F.Fmod()
+        #print("\n RESIDUAL", residual)
+        #print("BEST_RESIDUAL", best_residual)
+        #print("MOD_RESIDUAL", mod_residual)
+        ##improving = True
+        ##gamma = - 1.0
+        ##default_residual = residual
+        ##while gamma < 2.0:   
+            ##print("\ntrying to get closer...")
+            ##print("gamma: ", gamma)
+            ##print("current residual:", residual)
+            ##print("best residual so far:", best_residual)
+            ##a[:] = a_old[:] - gamma * p[:]
+            ##gamma += gamma_0
+            ##F.Define(a[:len(a0)], a[len(a0):])
+            ##new_residual = F.F()
+            ##if new_residual < 0:
+                ##raise ValueError("You are getting negative residuals!!")
+            ##improving = new_residual < residual or default_residual < residual
+            ##if new_residual < best_residual:
+                ##best_residual = residual
+                ##a_best[:] = a[:]
+            ##if best_residual < tol_residual:                    
+                ##break
+            ##residual = new_residual            
+
+        #if best_residual < tol_residual:
+            #print("The residual has become small enogh, quitting iterations")
+            #break
+        #still_changing = np.linalg.norm(a - a_old) > tol 
+        #print("Change: ", np.linalg.norm(a - a_old))
+        #print("best_residual_so_far", best_residual)
+        #a_old[:] = a[:]
 
 
-    print("a coefficients: ", a[:len(a0)])
-    print("times: ", TausToTimes(a[:len(a0)]))
-    print("still changing: ", still_changes)
+    print("best a coefficients: ", a_best[:len(a0)])
+    print("best times: ", TausToTimes(a_best[len(a0):]))
+    print("best residual", best_residual)
+    print("still changing: ", still_changing)
