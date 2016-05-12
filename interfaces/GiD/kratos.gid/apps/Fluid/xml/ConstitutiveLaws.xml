@@ -14,9 +14,9 @@
     <CLaw n="HerschelBulkley" pn="Herschel Bulkley" dev="False"
           help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" >
         <inputs>
-		  <parameter n="YIELD_STRESS" pn="Yield stress (t)" v="0"/>
+		  <parameter n="YIELD_STRESS" pn="Yield stress (τ)" v="0" units="Pa" unit_magnitude="P"/>
 		  <parameter n="CONSISTENCY_INDEX" pn="Consistency index (k)"  v="1"/>
-		  <parameter n="FLOW_INDEX" pn="Flow index (γ)" v="1" />
+		  <parameter n="FLOW_INDEX" pn="Flow index (n)" v="1" />
         </inputs>
         <outputs>
             
