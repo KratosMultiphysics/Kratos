@@ -15,8 +15,8 @@
           help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" >
         <inputs>
 		  <parameter n="YIELD_STRESS" pn="Yield stress (t)" v="0"/>
-		  <parameter n="CONSISTENCY_INDEX" pn="Consistency index (k)"  v="0"/>
-		  <parameter n="FLOW_INDEX" pn="Flow index (γ)" v="0" />
+		  <parameter n="CONSISTENCY_INDEX" pn="Consistency index (k)"  v="1"/>
+		  <parameter n="FLOW_INDEX" pn="Flow index (γ)" v="1" />
         </inputs>
         <outputs>
             
