@@ -22,10 +22,7 @@ class ApplyLocalProcess(Process, KratosUnittest.TestCase):
         self.params = params
         
     def ExecuteInitialize(self):
-        # Find neighbours if required
-        sprism_neighbour_search = SprismNeighbours(self.model_part)
-        sprism_neighbour_search.Execute()
-        #pass
+        pass
         
     def ExecuteBeforeSolutionLoop(self):
         # Add BC
