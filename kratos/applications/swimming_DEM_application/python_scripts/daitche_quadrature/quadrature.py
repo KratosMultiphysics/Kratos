@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 from bigfloat import *
 import sys
 
+
 # *****************************************************************************************************************************************************************************************
 # EXACT EVALUATIONS
 # *****************************************************************************************************************************************************************************************
-
 def ExactIntegrationOfSinus(t, a = None, b = None):
     with precision(300):
         if a == None and b == None:
@@ -254,10 +254,15 @@ def Hinsberg(m, t_win, times, f):
         
         # Building exponentials interpolation of the kernel
         
-        tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]        
-        a0 = [0.2 for ti in tis]
-        functional = op.Functional(tis)
-        op.GetExponentialsCoefficients(functional, a0)
+        tis_tilde = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]        
+        #tis_tilde =  [0.08956585408046244, 0.2870950284336926, 1.0034210750126729, 3.4129613625909867, 6.909388254560943, 14.600819374885972, 60.53069064744825, 296.58588621193513, 1475.4757309492854, 8886.495135602947, 33152.71985133249]
+        tis_tilde =  [0.1707000481354637, 1.7099225151768165, 37.841414663455545, 540.498450575195]
+        a0 = [ 0.65401084,  0.61361639,  0.84124245,  0.79267579]
+        #a0 = [ 0.27792595,  0.2916543,   0.30825487,  0.27327803,  0.08061242,  0.30187241,  0.37500623,  0.38739543,  0.4110891,   0.40065175,  0.51386666]
+        #a0 = [0.3 for t in tis_tilde]
+        #functional = op.Functional(tis_tilde)
+        #op.GetExponentialsCoefficients(functional, a0)
+        tis = [t * t_win for t in tis_tilde]
         print("times of tangency: ", tis)
         print("a coefficeints: ", a0)
         F_tail = float(ExactIntegrationOfSinus(final_time, 0.0, old_times[1]))
@@ -504,7 +509,8 @@ def SubstituteShanks(approx_sequence):
 
 # Paramters ----------------------------
 
-final_time = 1.0
+final_time = 5.0
+t_win = 2.0
 n_discretizations = 6
 min_exp = 2
 k = 2
@@ -543,7 +549,7 @@ for n_divisions in n_div:
     approx_value_2 = Daitche(times, f, 2)
     approx_value_3 = Daitche(times, f, 3)
     approx_value_bomb = Bombardelli(times, f, order_bomb)
-    approx_value_hins = Hinsberg(m, 0.01 * final_time, times, f)    
+    approx_value_hins = Hinsberg(m, t_win, times, f)    
     approx_values_naive.append(approx_value_naive)
     approx_values_1.append(approx_value_1)
     approx_values_2.append(approx_value_2)
