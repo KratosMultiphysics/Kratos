@@ -698,8 +698,14 @@ namespace Kratos {
 
     if (rValues.size() != NumNodes) rValues.resize(NumNodes);
 
-    for (SizeType i = 0; i < NumNodes; ++i)
+    for (SizeType i = 0; i < NumNodes; ++i){
       rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
+      if(rGeom[i].Is(FREE_SURFACE)){
+	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
+      }else{
+      	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
+      }
+    }
   }
 
   

@@ -25,6 +25,10 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
+#include "pfem_fluid_dynamics_application_variables.h"
+
+#include "includes/model_part.h"
+/* #include "includes/node.h" */
 
 namespace Kratos
 {
