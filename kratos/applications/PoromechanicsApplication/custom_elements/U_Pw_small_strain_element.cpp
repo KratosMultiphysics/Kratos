@@ -36,11 +36,8 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Clone(IndexType NewId, N
 
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
         NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-    
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-    {
         NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    }
     
     return Element::Pointer( new UPwSmallStrainElement(NewElement) );
 }
@@ -703,6 +700,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
     //Variables computed at each GP
     rVariables.B.resize(VoigtSize,TNumNodes*TDim,false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
+    noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
     //Constitutive Law parameters
     rVariables.StrainVector.resize(VoigtSize,false);
     rVariables.StressVector.resize(VoigtSize,false);
@@ -719,7 +717,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
     rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
     rConstitutiveParameters.SetDeterminantF(rVariables.detF);
     //Auxiliary variables
-    noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
     rVariables.UVoigtMatrix.resize(TNumNodes*TDim,VoigtSize,false);
     
     KRATOS_CATCH( "" )

@@ -67,8 +67,7 @@ public:
     {
         UPwElement<TDim,TNumNodes>::operator=(rOther);
         
-        mInitialGap.resize(rOther.mInitialGap.size(),false);
-        
+        mInitialGap.resize(rOther.mInitialGap.size());
         for(unsigned int i = 0; i<mInitialGap.size(); i++)
             mInitialGap[i] = rOther.mInitialGap[i];
         

@@ -64,11 +64,8 @@ public:
 
         mConstitutiveLawVector.clear();
         mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size());
-
         for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-        {
             mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
-        }
 
         return *this;
     }
