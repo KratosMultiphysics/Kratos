@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemBaseApplication import *
-#from KratosMultiphysics.PfemFluidDynamicsApplication import *
+from KratosMultiphysics.PfemFluidDynamicsApplication import *
 CheckForPreviousImport()
 
 
