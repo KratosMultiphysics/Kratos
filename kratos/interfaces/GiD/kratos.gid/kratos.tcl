@@ -103,7 +103,7 @@ proc Kratos::InitGIDProject { dir } {
     spdAux::processIncludes
     spdAux::parseRoutes
     after 100 [list gid_groups_conds::close_all_windows]
-    after 500 [list spdAux::CreateWindow $dir]
+    after 500 [list spdAux::CreateDimensionWindow]
 }
 
 proc Kratos::ChangeMenus { } {
