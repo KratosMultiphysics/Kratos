@@ -28,23 +28,6 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
-{
-    UPwSmallStrainElement NewElement( NewId, this->GetGeometry().Create( ThisNodes ), this->pGetProperties() );
-
-    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
-
-    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
-        NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-        NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    
-    return Element::Pointer( new UPwSmallStrainElement(NewElement) );
-}
-
-//----------------------------------------------------------------------------------------
-
-template< unsigned int TDim, unsigned int TNumNodes >
 int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY

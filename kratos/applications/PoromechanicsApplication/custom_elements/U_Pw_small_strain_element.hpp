@@ -52,28 +52,15 @@ public:
     /// Constructor using Properties
     UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
-    /// Copy Constructor
-    UPwSmallStrainElement(UPwSmallStrainElement const& rOther) : UPwElement<TDim,TNumNodes>(rOther) {}
-
     /// Destructor
     virtual ~UPwSmallStrainElement() {}
-
-    /// Assignment operator.
-    UPwSmallStrainElement & operator=(UPwSmallStrainElement const& rOther)
-    {
-        UPwElement<TDim,TNumNodes>::operator=(rOther);
-        
-        return *this;
-    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
-    
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-    
+        
     int Check(const ProcessInfo& rCurrentProcessInfo);
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,6 +191,11 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
+    /// Assignment operator.
+    UPwSmallStrainElement & operator=(UPwSmallStrainElement const& rOther);
+
+    /// Copy constructor.
+    UPwSmallStrainElement(UPwSmallStrainElement const& rOther);
 
 }; // Class UPwSmallStrainElement
 

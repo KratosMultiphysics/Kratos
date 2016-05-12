@@ -49,35 +49,15 @@ public:
         mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
     }
 
-    /// Copy Constructor
-    UPwElement(UPwElement const& rOther) : Element(rOther), mThisIntegrationMethod(rOther.mThisIntegrationMethod), mConstitutiveLawVector(rOther.mConstitutiveLawVector) {}
-
     /// Destructor
     virtual ~UPwElement() {}
-
-    /// Assignment operator.
-    UPwElement & operator=(UPwElement const& rOther)
-    {
-        Element::operator=(rOther);
-
-        mThisIntegrationMethod = rOther.mThisIntegrationMethod;
-
-        mConstitutiveLawVector.clear();
-        mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size());
-        for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-            mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
-
-        return *this;
-    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
     
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
-    
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
-    
+        
     int Check(const ProcessInfo& rCurrentProcessInfo);
     
     void Initialize();
@@ -153,6 +133,12 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
+
+    /// Assignment operator.
+    UPwElement & operator=(UPwElement const& rOther);
+
+    /// Copy constructor.
+    UPwElement(UPwElement const& rOther);
 
 
 }; // Class UPwElement
