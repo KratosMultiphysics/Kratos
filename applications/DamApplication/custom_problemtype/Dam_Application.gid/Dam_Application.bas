@@ -158,7 +158,7 @@ DENSITY                        *MatProp(Density,real)
 YOUNG_MODULUS                  *MatProp(Young_Modulus,real)
 POISSON_RATIO                  *MatProp(Poisson_Ratio,real)
 THICKNESS                      *MatProp(Thickness,real)
-THERMAL_EXPANSION_COEFFICIENT  *MatProp(Thermal_Expansion_Coefficient,real)
+THERMAL_EXPANSION              *MatProp(Thermal_Expansion_Coefficient,real)
 End Properties
 
 *elseif(strcmp(MatProp(Element_Type),"Standard")==0 && strcmp(MatProp(Standard_Constitutive_Law),"ThermalLinearElastic3D")==0)
@@ -167,7 +167,7 @@ CONSTITUTIVE_LAW_NAME          ThermalLinearElastic3D
 DENSITY                        *MatProp(Density,real)
 YOUNG_MODULUS                  *MatProp(Young_Modulus,real)
 POISSON_RATIO                  *MatProp(Poisson_Ratio,real)
-THERMAL_EXPANSION_COEFFICIENT  *MatProp(Thermal_Expansion_Coefficient,real)
+THERMAL_EXPANSION              *MatProp(Thermal_Expansion_Coefficient,real)
 End Properties
 
 *elseif(strcmp(MatProp(Element_Type),"Interface")==0 && (strcmp(MatProp(Interface_Constitutive_Law),"BilinearCohesive2DPlaneStrain")==0 || strcmp(MatProp(Interface_Constitutive_Law),"BilinearCohesive2DPlaneStress")==0))
