@@ -36,7 +36,7 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
-//#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"//TODO
+#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
@@ -106,11 +106,10 @@ const UPwSmallStrainLinkInterfaceElement<2,4> mUPwSmallStrainLinkInterfaceElemen
 const UPwSmallStrainLinkInterfaceElement<3,6> mUPwSmallStrainLinkInterfaceElement3D6N;
 const UPwSmallStrainLinkInterfaceElement<3,8> mUPwSmallStrainLinkInterfaceElement3D8N;
 
-//TODO
-//const UPwSmallStrainFICElement<2,3> mUPwSmallStrainFICElement2D3N;
-//const UPwSmallStrainFICElement<2,4> mUPwSmallStrainFICElement2D4N;
-//const UPwSmallStrainFICElement<3,4> mUPwSmallStrainFICElement3D4N;
-//const UPwSmallStrainFICElement<3,8> mUPwSmallStrainFICElement3D8N;
+const UPwSmallStrainFICElement<2,3> mUPwSmallStrainFICElement2D3N;
+const UPwSmallStrainFICElement<2,4> mUPwSmallStrainFICElement2D4N;
+const UPwSmallStrainFICElement<3,4> mUPwSmallStrainFICElement3D4N;
+const UPwSmallStrainFICElement<3,8> mUPwSmallStrainFICElement3D8N;
 
 const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D6N;
 const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement2D8N;
