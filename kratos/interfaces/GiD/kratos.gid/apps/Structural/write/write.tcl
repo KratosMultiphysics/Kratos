@@ -33,7 +33,7 @@ proc Structural::write::UsingRotationDofElements { } {
     foreach element_node $elements {
         set elemid [$element_node @v]
         set elem [Model::getElement $elemid]
-        if {[$elem getAttribute "RotationDofs"]} {set bool true; break}
+        catch {if {[$elem getAttribute "RotationDofs"]} {set bool true; break}}
     }
     
     return $bool
