@@ -252,6 +252,14 @@ class GiDOutputProcess(Process):
         for freq,f in self.cut_list_files:
             f.close()
 
+        # Note: it is important to call the GidIO destructor, since it closes output files
+        # Since Python's garbage colletion DOES NOT ensure that the destructor will be called,
+        # I'm deallocating the GidIO instances explicitly. This is VERY BAD PRACTICE
+        # and effectively breaks the class if called after this point, but we haven't found
+        # a better solution yet (jcotela 12/V/2016)
+        del self.body_io
+        del self.cut_io
+
 
     def __initialize_gidio(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
@@ -491,3 +499,5 @@ class GiDOutputProcess(Process):
                 if (self.printed_step_count % freq) == 0:
                     f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
                     f.flush()
+
+
