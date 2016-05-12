@@ -118,6 +118,9 @@ protected:
         
         ///Variables computed at each GP
         Matrix B;
+        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
+        array_1d<double,TDim> BodyAcceleration;
+        double IntegrationCoefficient;
         ///Constitutive Law parameters
         Vector StrainVector;
         Vector StressVector;
@@ -127,9 +130,6 @@ protected:
         Matrix F;
         double detF;
         ///Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
-        array_1d<double,TDim> BodyAcceleration;
-        double IntegrationCoefficient;
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
         boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
         boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;

@@ -36,19 +36,13 @@ Element::Pointer UPwSmallStrainInterfaceElement<TDim,TNumNodes>::Clone(IndexType
 
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
         NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-    
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-    {
         NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
-    }
     
     if ( NewElement.mInitialGap.size() != mInitialGap.size() )
         NewElement.mInitialGap.resize(mInitialGap.size());
-    
     for(unsigned int i=0; i<mInitialGap.size(); i++)
-    {
         NewElement.mInitialGap[i] = mInitialGap[i];
-    }
     
     return Element::Pointer( new UPwSmallStrainInterfaceElement(NewElement) );
 }
