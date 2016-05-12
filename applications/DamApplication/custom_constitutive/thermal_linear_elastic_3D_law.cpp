@@ -59,8 +59,8 @@ void ThermalLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //Used for thermal strain in plane strain case
     ElasticVariables.LameMu = 1.0+PoissonCoefficient;
 
-    //2.- Thermal constants
-    ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT]; 
+    //2.- Thermal constants    
+    ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION]; 
     ElasticVariables.ReferenceTemperature = CurrentProcessInfo[REFERENCE_TEMPERATURE];
 
     if(rValues.GetOptions().Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
