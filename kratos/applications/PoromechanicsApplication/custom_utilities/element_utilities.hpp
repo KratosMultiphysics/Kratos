@@ -48,7 +48,7 @@ public:
 
     static inline void CalculateNuMatrix(boost::numeric::ublas::bounded_matrix<double,3,12>& rNu, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         rNu(0,0) = Ncontainer(GPoint,0); rNu(0,3) = Ncontainer(GPoint,1); rNu(0,6) = Ncontainer(GPoint,2); rNu(0,9)  = Ncontainer(GPoint,3);
         rNu(1,1) = Ncontainer(GPoint,0); rNu(1,4) = Ncontainer(GPoint,1); rNu(1,7) = Ncontainer(GPoint,2); rNu(1,10) = Ncontainer(GPoint,3);
         rNu(2,2) = Ncontainer(GPoint,0); rNu(2,5) = Ncontainer(GPoint,1); rNu(2,8) = Ncontainer(GPoint,2); rNu(2,11) = Ncontainer(GPoint,3);
@@ -104,7 +104,7 @@ public:
 
     static inline void CalculateNuElementMatrix(boost::numeric::ublas::bounded_matrix<double,4,16>& rNut, const Matrix& Ncontainer, const unsigned int& GPoint)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         rNut(0,0) = Ncontainer(GPoint,0); rNut(0,4) = Ncontainer(GPoint,1); rNut(0,8)  = Ncontainer(GPoint,2); rNut(0,12) = Ncontainer(GPoint,3);
         rNut(1,1) = Ncontainer(GPoint,0); rNut(1,5) = Ncontainer(GPoint,1); rNut(1,9)  = Ncontainer(GPoint,2); rNut(1,13) = Ncontainer(GPoint,3);
         rNut(2,2) = Ncontainer(GPoint,0); rNut(2,6) = Ncontainer(GPoint,1); rNut(2,10) = Ncontainer(GPoint,2); rNut(2,14) = Ncontainer(GPoint,3);
@@ -175,7 +175,7 @@ public:
     static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer, 
                                                         const array_1d<double,12>& VariableWithComponents,const unsigned int& GPoint)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         noalias(rVector) = ZeroVector(3);
         
         unsigned int index = 0;
@@ -209,7 +209,7 @@ public:
     static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer, 
                                                         const array_1d<double,24>& VariableWithComponents,const unsigned int& GPoint)
     {
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         noalias(rVector) = ZeroVector(3);
         
         unsigned int index = 0;
@@ -273,7 +273,7 @@ public:
 
     static inline void GetDisplacementsVector(array_1d<double,12>& rDisplacementVector, const Element::GeometryType& Geom)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         array_1d<double,3> DisplacementAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<4; i++)
@@ -351,7 +351,7 @@ public:
 
     static inline void GetVelocitiesVector(array_1d<double,12>& rVelocityVector, const Element::GeometryType& Geom)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         array_1d<double,3> VelocityAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<4; i++)
@@ -383,7 +383,7 @@ public:
 
     static inline void GetVelocitiesVector(array_1d<double,24>& rVelocityVector, const Element::GeometryType& Geom)
     {
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         array_1d<double,3> VelocityAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<8; i++)
@@ -429,7 +429,7 @@ public:
 
     static inline void GetVolumeAccelerationVector(array_1d<double,12>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         array_1d<double,3> BodyAccelerationAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<4; i++)
@@ -461,7 +461,7 @@ public:
 
     static inline void GetVolumeAccelerationVector(array_1d<double,24>& rVolumeAccelerationVector, const Element::GeometryType& Geom)
     {
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         array_1d<double,3> BodyAccelerationAux;
         unsigned int index = 0;
         for(unsigned int i=0; i<8; i++)
@@ -602,7 +602,7 @@ public:
 
     static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,12>& UBlockMatrix)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_i, Local_j;
 
         for(unsigned int i = 0; i < 4; i++)
@@ -664,7 +664,7 @@ public:
 
     static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,24,24>& UBlockMatrix)
     {
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_i, Local_j;
 
         for(unsigned int i = 0; i < 8; i++)
@@ -739,7 +739,7 @@ public:
 
     static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,12,4>& UPBlockMatrix)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_i;
 
         for(unsigned int i = 0; i < 4; i++)
@@ -785,7 +785,7 @@ public:
 
     static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,24,8>& UPBlockMatrix)
     {        
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_i;
 
         for(unsigned int i = 0; i < 8; i++)
@@ -852,7 +852,7 @@ public:
 
     static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,4,12>& PUBlockMatrix)
     {
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         unsigned int Global_i, Global_j, Local_j;
 
         for(unsigned int i = 0; i < 4; i++)
@@ -898,7 +898,7 @@ public:
 
     static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix, const boost::numeric::ublas::bounded_matrix<double,8,24>& PUBlockMatrix)
     {        
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         unsigned int Global_i, Global_j, Local_j;
 
         for(unsigned int i = 0; i < 8; i++)
@@ -975,7 +975,7 @@ public:
 
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,12>& UBlockVector)
     {        
-        //Tetrahedron_3d_4
+        //Tetrahedra_3d_4
         unsigned int Global_i, Local_i;
 
         for(unsigned int i = 0; i < 4; i++)
@@ -1011,7 +1011,7 @@ public:
 
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,24>& UBlockVector)
     {        
-        //Hexahedral_3d_8
+        //Hexahedra_3d_8
         unsigned int Global_i, Local_i;
 
         for(unsigned int i = 0; i < 8; i++)
@@ -1038,6 +1038,56 @@ public:
 
             rRightHandSideVector[Global_i] += PBlockVector[i];
         }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    /// CalculateExtrapolationMatrix
+    /// The matrix contains the shape functions at each GP evaluated at each node.
+    /// Rows: nodes
+    /// Columns: GP
+            
+    static inline void CalculateExtrapolationMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& rExtrapolationMatrix)
+    {
+        //Quadrilateral_2d_4
+        //GI_GAUSS_2
+        
+        rExtrapolationMatrix(0,0) = 1.8660254037844386; rExtrapolationMatrix(0,1) = -0.5; rExtrapolationMatrix(0,2) = 0.13397459621556132; rExtrapolationMatrix(0,3) = -0.5;
+        rExtrapolationMatrix(1,0) = -0.5; rExtrapolationMatrix(1,1) = 1.8660254037844386; rExtrapolationMatrix(1,2) = -0.5; rExtrapolationMatrix(1,3) = 0.13397459621556132;
+        rExtrapolationMatrix(2,0) = 0.13397459621556132; rExtrapolationMatrix(2,1) = -0.5; rExtrapolationMatrix(2,2) = 1.8660254037844386; rExtrapolationMatrix(2,3) = -0.5;
+        rExtrapolationMatrix(3,0) = -0.5; rExtrapolationMatrix(3,1) = 0.13397459621556132; rExtrapolationMatrix(3,2) = -0.5; rExtrapolationMatrix(3,3) = 1.8660254037844386;
+    }
+    
+    //----------------------------------------------------------------------------------------    
+    
+    static inline void CalculateExtrapolationMatrix(boost::numeric::ublas::bounded_matrix<double,8,8>& rExtrapolationMatrix)
+    {
+        //Hexahedra_3d_8
+        //GI_GAUSS_2
+        
+        rExtrapolationMatrix(0,0) = 2.549038105676658; rExtrapolationMatrix(0,1) = -0.6830127018922192; rExtrapolationMatrix(0,2) = 0.18301270189221927; rExtrapolationMatrix(0,3) = -0.6830127018922192;
+        rExtrapolationMatrix(0,4) = -0.6830127018922192; rExtrapolationMatrix(0,5) = 0.18301270189221927; rExtrapolationMatrix(0,6) = -0.04903810567665795; rExtrapolationMatrix(0,7) = 0.18301270189221927;
+        
+        rExtrapolationMatrix(1,0) = -0.6830127018922192; rExtrapolationMatrix(1,1) = 2.549038105676658; rExtrapolationMatrix(1,2) = -0.6830127018922192; rExtrapolationMatrix(1,3) = 0.18301270189221927;
+        rExtrapolationMatrix(1,4) = 0.18301270189221927; rExtrapolationMatrix(1,5) = -0.6830127018922192; rExtrapolationMatrix(1,6) = 0.18301270189221927; rExtrapolationMatrix(1,7) = -0.04903810567665795;
+        
+        rExtrapolationMatrix(2,0) = 0.18301270189221927; rExtrapolationMatrix(2,1) = -0.6830127018922192; rExtrapolationMatrix(2,2) = 2.549038105676658; rExtrapolationMatrix(2,3) = -0.6830127018922192;
+        rExtrapolationMatrix(2,4) = -0.04903810567665795; rExtrapolationMatrix(2,5) = 0.18301270189221927; rExtrapolationMatrix(2,6) = -0.6830127018922192; rExtrapolationMatrix(2,7) = 0.18301270189221927;
+        
+        rExtrapolationMatrix(3,0) = -0.6830127018922192; rExtrapolationMatrix(3,1) = 0.18301270189221927; rExtrapolationMatrix(3,2) = -0.6830127018922192; rExtrapolationMatrix(3,3) = 2.549038105676658;
+        rExtrapolationMatrix(3,4) = 0.18301270189221927; rExtrapolationMatrix(3,5) = -0.04903810567665795; rExtrapolationMatrix(3,6) = 0.18301270189221927; rExtrapolationMatrix(3,7) = -0.6830127018922192;
+
+        rExtrapolationMatrix(4,0) = -0.6830127018922192; rExtrapolationMatrix(4,1) = 0.18301270189221927; rExtrapolationMatrix(4,2) = -0.04903810567665795; rExtrapolationMatrix(4,3) = 0.18301270189221927;
+        rExtrapolationMatrix(4,4) = 2.549038105676658; rExtrapolationMatrix(4,5) = -0.6830127018922192; rExtrapolationMatrix(4,6) = 0.18301270189221927; rExtrapolationMatrix(4,7) = -0.6830127018922192;
+
+        rExtrapolationMatrix(5,0) = 0.18301270189221927; rExtrapolationMatrix(5,1) = -0.6830127018922192; rExtrapolationMatrix(5,2) = 0.18301270189221927; rExtrapolationMatrix(5,3) = -0.04903810567665795;
+        rExtrapolationMatrix(5,4) = -0.6830127018922192; rExtrapolationMatrix(5,5) = 2.549038105676658; rExtrapolationMatrix(5,6) = -0.6830127018922192; rExtrapolationMatrix(5,7) = 0.18301270189221927;
+
+        rExtrapolationMatrix(6,0) = -0.04903810567665795; rExtrapolationMatrix(6,1) = 0.18301270189221927; rExtrapolationMatrix(6,2) = -0.6830127018922192; rExtrapolationMatrix(6,3) = 0.18301270189221927;
+        rExtrapolationMatrix(6,4) = 0.18301270189221927; rExtrapolationMatrix(6,5) = -0.6830127018922192; rExtrapolationMatrix(6,6) = 2.549038105676658; rExtrapolationMatrix(6,7) = -0.6830127018922192;
+
+        rExtrapolationMatrix(7,0) = 0.18301270189221927; rExtrapolationMatrix(7,1) = -0.04903810567665795; rExtrapolationMatrix(7,2) = 0.18301270189221927; rExtrapolationMatrix(7,3) = -0.6830127018922192;
+        rExtrapolationMatrix(7,4) = -0.6830127018922192; rExtrapolationMatrix(7,5) = 0.18301270189221927; rExtrapolationMatrix(7,6) = -0.6830127018922192; rExtrapolationMatrix(7,7) = 2.549038105676658;
     }
 
 }; /* Class ElementUtilities*/
