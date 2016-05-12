@@ -205,65 +205,8 @@ namespace Kratos
     };
 
 
-    void SetGlobalConditions()
-    {
 
-      if( mEchoLevel >= 1 ){
-	std::cout<<" [MESH:0]: "<<std::endl;
-	std::cout<<" [OLD TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
-      }
-
-      //contact conditions are located on Mesh_0
-      ModelPart::ConditionsContainerType KeepConditions;
-
-      unsigned int condId=1;
-      unsigned int start=0;  
-      unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
-	start=1;
-
-      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	{
-	  for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(MeshId) ; i_cond != mrModelPart.ConditionsEnd(MeshId) ; i_cond++)
-	    {
-	      // i_cond->PrintInfo(std::cout);
-	      // std::cout<<" -- "<<std::endl;
-	      KeepConditions.push_back(*(i_cond.base()));
-	      KeepConditions.back().SetId(condId);
-	      condId+=1;
-
-	      // KeepConditions.back().PrintInfo(std::cout);
-	      // std::cout<<std::endl;
-
-	    }
-	}
-
-
-      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(); i_cond!= mrModelPart.ConditionsEnd(); i_cond++)
-	{
-	  if(i_cond->Is(CONTACT)){
-	    KeepConditions.push_back(*(i_cond.base()));
-	    KeepConditions.back().SetId(condId);
-	    condId+=1;
-
-	    //std::cout<<" -- "<<std::endl;
-	    //KeepConditions.back().PrintInfo(std::cout);
-	    //std::cout<<std::endl;
-			  
-	  }
-		      
-	}
-      
-      mrModelPart.Conditions().swap(KeepConditions);
-
-      if( mEchoLevel >= 1 )
-	std::cout<<" [NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
-
-    }
-
-
-
-    bool SearchConditionMasters(int MeshId = 0)
+   bool SearchConditionMasters(int MeshId = 0)
     {
 
       unsigned int counter = 0;
@@ -474,6 +417,62 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
+
+    void SetGlobalConditions()
+    {
+
+      if( mEchoLevel >= 1 ){
+	std::cout<<" [MESH:0]: "<<std::endl;
+	std::cout<<" [OLD TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
+      }
+
+      //contact conditions are located on Mesh_0
+      ModelPart::ConditionsContainerType KeepConditions;
+
+      unsigned int condId=1;
+      unsigned int start=0;  
+      unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
+      if(NumberOfMeshes>1) 
+	start=1;
+
+      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	{
+	  for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(MeshId) ; i_cond != mrModelPart.ConditionsEnd(MeshId) ; i_cond++)
+	    {
+	      // i_cond->PrintInfo(std::cout);
+	      // std::cout<<" -- "<<std::endl;
+	      KeepConditions.push_back(*(i_cond.base()));
+	      KeepConditions.back().SetId(condId);
+	      condId+=1;
+
+	      // KeepConditions.back().PrintInfo(std::cout);
+	      // std::cout<<std::endl;
+
+	    }
+	}
+
+
+      for(ModelPart::ConditionsContainerType::iterator i_cond = mrModelPart.ConditionsBegin(); i_cond!= mrModelPart.ConditionsEnd(); i_cond++)
+	{
+	  if(i_cond->Is(CONTACT)){
+	    KeepConditions.push_back(*(i_cond.base()));
+	    KeepConditions.back().SetId(condId);
+	    condId+=1;
+
+	    //std::cout<<" -- "<<std::endl;
+	    //KeepConditions.back().PrintInfo(std::cout);
+	    //std::cout<<std::endl;
+			  
+	  }
+		      
+	}
+      
+      mrModelPart.Conditions().swap(KeepConditions);
+
+      if( mEchoLevel >= 1 )
+	std::cout<<" [NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
+
+    }
 
     void PrintSkin (ModelPart::IndexType MeshId=0)
     {
