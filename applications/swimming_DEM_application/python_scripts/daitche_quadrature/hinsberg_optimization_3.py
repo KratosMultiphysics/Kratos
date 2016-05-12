@@ -143,16 +143,16 @@ def FillUpMatrices(F, ais, tis):
     
     for i in range(m):
         for j in range(m):
-            H[i,j] = F.d2Fda2(i, j)
+            H[i, j] = F.d2Fda2(i, j)
 
     for i in range(m, m + n):
         for j in range(n):
             H[i, j] = F.d2Fdtda(i - m, j)
-            H[j, i] = H[i,j]
+            H[j, i] = H[i, j]
             
     for i in range(m, m + n):
         for j in range(m, m + n):
-            H[i,j] = F.d2Fdt2(i - m, j - m)
+            H[i, j] = F.d2Fdt2(i - m, j - m)
       
     print("H", H)
     print()
@@ -185,11 +185,11 @@ def GetExponentialsCoefficients(functional, a0, t0):
 if __name__ == "__main__":
     tis = [0.1, 0.3, 1., 3., 10., 40., 190., 1000., 6500., 50000.]
     a0 = [ 0.23477446,  0.28549392,  0.28479113,  0.26149251,  0.32055117,  0.35351918, 0.3963018,   0.42237921,  0.48282255,  0.63471099]    
-    #tis = [10, 50, 1000]
+    tis = [0.01, 0.02, 0.03]
     tis = [math.log(t) for t in tis]
-    #a0 = [0.2 for t in tis]
+    a0 = [0.1,1.0,10.0]
     tol = 1e-9
-    max_iter = 100
+    max_iter = 50
     still_changes = True
     a = np.array(a0 + tis)
     a_old = np.array(a0 + tis) 
@@ -199,13 +199,11 @@ if __name__ == "__main__":
     while still_changes and iteration < max_iter:
         iteration += 1
         grad, H_inv = FillUpMatrices(F, a[:len(a0)], a[len(a0):])
-        a -= H_inv.dot(grad)   
-        still_changes = np.linalg.norm(a - a_old) > tol
-        #exptis = [math.exp(t) for t in a[len(a0):]]        
-        print("\n error", np.linalg.norm(a - a_old))
-        #print("coeffs", a)
-        #print("times",exptis)        
+        a -= H_inv.dot(grad)  
+        still_changes = np.linalg.norm(a - a_old) > tol 
+        print("Change: ", np.linalg.norm(a - a_old))
         a_old[:] = a[:]
+
 
     print("a coefficients: ", a[:len(a0)])
     print("times: ", [math.exp(tau) for tau in a[len(a0):]])
