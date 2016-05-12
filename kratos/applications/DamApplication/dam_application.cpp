@@ -94,6 +94,7 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalLinearElastic2DPlaneStrain",mThermalLinearElastic2DPlaneStrain);
 
     //Register Variables
+    KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION )    
     
     //Bofang, Hidrostatic and uplift variables for evolution changes
     KRATOS_REGISTER_VARIABLE( GRAVITY_DIRECTION )
@@ -106,7 +107,7 @@ void KratosDamApplication::Register()
     KRATOS_REGISTER_VARIABLE( SPECIFIC_WEIGHT )
     KRATOS_REGISTER_VARIABLE( UPLIFT_DIRECTION )
     KRATOS_REGISTER_VARIABLE( COORDINATE_BASE_DAM_UPLIFT )
-    KRATOS_REGISTER_VARIABLE( BASE_OF_DAM )   
+    KRATOS_REGISTER_VARIABLE( BASE_OF_DAM )
     
     // Thermal Variables
     KRATOS_REGISTER_VARIABLE( THERMAL_STRESS_TENSOR )
