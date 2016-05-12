@@ -48,7 +48,7 @@
 	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
-	units="N" unit_magnitude="F" VariableName="POINT_LOAD">
+        units="N/m" unit_magnitude="F/L" VariableName="POINT_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Point" nodes="1" KratosName="AxisymPointLoadCondition2D1N"/>
     </TopologyFeatures>
