@@ -3,7 +3,7 @@
   <ConditionItem n="Inlet2D" pn="Inlet velocity" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" SkinConditions="True" VariableName="VELOCITY"
-	ElementType="Line" ProcessName="ApplyInletProcess" help="" units="m/s" unit_magnitude="Velocity">
+	ElementType="Line" ProcessName="ImposeVectorValueByDirectionProcess" help="" units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="WallCondition2D2N"/>
     </TopologyFeatures>
@@ -18,7 +18,7 @@
   <ConditionItem n="Inlet3D" pn="Inlet velocity" ImplementedInFile=".cpp"
 	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" SkinConditions="True" VariableName="VELOCITY"
-	ElementType="Surface" ProcessName="ApplyInletProcess" help="" units="m/s" unit_magnitude="Velocity">
+	ElementType="Surface" ProcessName="ImposeVectorValueByDirectionProcess" help="" units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
       <item  GeometryType="Triangle" nodes="3" KratosName="WallCondition3D3N"/>
     </TopologyFeatures>
