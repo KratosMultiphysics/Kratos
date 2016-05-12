@@ -271,11 +271,11 @@ public:
             }
             else if (itNode -> IsFixed(VELOCITY_X))
             {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + 0.5 * DeltaTime * (PreviousVelocity[0] + CurrentVelocity[0]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
+                CurrentDisplacement[0] = PreviousDisplacement[0] + 0.5 * DeltaTime * (PreviousVelocity[0] + CurrentVelocity[0]) + 0.5 * std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
             }
             else if (itNode -> IsFixed(DISPLACEMENT_X) == false)
             {
-                CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
+                CurrentDisplacement[0] = PreviousDisplacement[0] + DeltaTime * PreviousVelocity[0] + 0.5 * std::pow(DeltaTime, 2.0) * PreviousAcceleration[0];
             }
 
             if (itNode -> IsFixed(ACCELERATION_Y))
@@ -284,11 +284,11 @@ public:
             }
             else if (itNode -> IsFixed(VELOCITY_Y))
             {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + 0.5 * DeltaTime * (PreviousVelocity[1] + CurrentVelocity[1]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1] ;
+                CurrentDisplacement[1] = PreviousDisplacement[1] + 0.5 * DeltaTime * (PreviousVelocity[1] + CurrentVelocity[1]) + 0.5 * std::pow(DeltaTime, 2.0) * PreviousAcceleration[1] ;
             }
             else if (itNode -> IsFixed(DISPLACEMENT_Y) == false)
             {
-                CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[1];
+                CurrentDisplacement[1] = PreviousDisplacement[1] + DeltaTime * PreviousVelocity[1] + 0.5 * std::pow(DeltaTime, 2.0) * PreviousAcceleration[1];
             }
 
             // For 3D cases
@@ -300,11 +300,11 @@ public:
                 }
                 else if (itNode -> IsFixed(VELOCITY_Z))
                 {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + 0.5 * DeltaTime * (PreviousVelocity[2] + CurrentVelocity[2]) + std::pow(DeltaTime, 2.0) * PreviousAcceleration[2] ;
+                    CurrentDisplacement[2] = PreviousDisplacement[2] + 0.5 * DeltaTime * (PreviousVelocity[2] + CurrentVelocity[2]) + 0.5 * std::pow(DeltaTime, 2.0) * PreviousAcceleration[2] ;
                 }
                 else if (itNode -> IsFixed(DISPLACEMENT_Z) == false)
                 {
-                    CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + std::pow(DeltaTime, 2.0) * PreviousAcceleration[2];
+                    CurrentDisplacement[2] = PreviousDisplacement[2] + DeltaTime * PreviousVelocity[2] + 0.5 * std::pow(DeltaTime, 2.0) * PreviousAcceleration[2];
                 }
             }
 
