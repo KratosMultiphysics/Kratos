@@ -60,6 +60,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication():
     /* CONDITIONS */
     // Beam's point moment condition
     mPointMomentCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
+    // Torque's point condition
+    mPointTorqueCondition3D1N( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
     // Contact mortar conditions
     mMortarContactCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
     mMortarContactCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -108,8 +110,11 @@ void KratosStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_STIFFNESS )
 
     // CONDITIONS
+    /* Moment condition */
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_MOMENT )
+    /* Torque condition */
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
     /* Mortar method */
     KRATOS_REGISTER_VARIABLE( CONTACT_POINTER_MASTER )  // A pointer to the master surfaces
     KRATOS_REGISTER_VARIABLE( CONTACT_POINTER_SLAVE  )  // A pointer to the slave surfaces
@@ -171,6 +176,8 @@ void KratosStructuralMechanicsApplication::Register()
     // Register the conditions
     // Beam's point moment condition
     KRATOS_REGISTER_CONDITION( "PointMomentCondition3D1N", mPointMomentCondition3D1N );
+    // Torque moment condition
+    KRATOS_REGISTER_CONDITION( "PointTorqueCondition3D1N", mPointTorqueCondition3D1N );
     // Mortar contact condition
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D2N", mMortarContactCondition2D2N );
     KRATOS_REGISTER_CONDITION( "MortarContactCondition2D3N", mMortarContactCondition2D3N );

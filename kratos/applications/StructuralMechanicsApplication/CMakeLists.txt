@@ -38,6 +38,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
         ## CONDITIONS
         # Beam's moment conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
+        # Torques conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp
+	# Mortar condition
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mortar_contact_3D_condition.cpp
 )

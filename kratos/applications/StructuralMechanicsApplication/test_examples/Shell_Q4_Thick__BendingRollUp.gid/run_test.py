@@ -80,6 +80,7 @@ problem_path = general_variables.problem_path
 
 # defining a model part
 model_part = ModelPart("SolidDomain")
+model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
 
 # defining the model size to scale
 length_scale = 1.0
