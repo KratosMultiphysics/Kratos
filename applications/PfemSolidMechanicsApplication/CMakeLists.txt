@@ -131,6 +131,8 @@ add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHA
 #####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
 target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosPfemBaseApplication)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
+set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
+
 install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )
 
 
