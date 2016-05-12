@@ -1546,12 +1546,14 @@ namespace Kratos
       for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	{
 	  if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES)  ){
-	    i_node->Set(TO_ERASE);
-	    if( this->GetEchoLevel() > 0 )
-	      std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
-	    if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES) )
-	      std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
-	    count_release++;
+	    if(!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID))){
+	      i_node->Set(TO_ERASE);
+	      if( this->GetEchoLevel() > 0 )
+		std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
+	      if( i_node->IsNot(ModelerUtilities::ENGAGED_NODES) )
+		std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
+	      count_release++;
+	    }
 	  }
 	      
 	  i_node->Reset(ModelerUtilities::ENGAGED_NODES);
