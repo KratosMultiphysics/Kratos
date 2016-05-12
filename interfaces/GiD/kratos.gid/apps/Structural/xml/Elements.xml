@@ -2,8 +2,8 @@
 <ElementList>
   <!--structural elements-->
   <!--beam elements-->
-  <ElementItem n="BeamElement" pn="Small Displacement Beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
-	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+  <ElementItem n="BeamElement" pn="Small displacement beam element" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a small displacement timoshenko beam structural model" RotationDofs="True"
 		   ElementType="Beam" >
@@ -41,8 +41,8 @@
   </ElementItem>
 
   <!--membrane elements-->
-  <ElementItem n="MembraneElement" pn="Membrane Element" ImplementedInFile="membrane_element.cpp"
-	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+  <ElementItem n="MembraneElement" pn="Membrane element" ImplementedInFile="membrane_element.cpp"
+	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
 	       help="This element it implements a membrane structural model" RotationDofs="False"
 		   ElementType="Membrane" >
@@ -77,7 +77,7 @@
 
   <!--shell elements-->
   <!--small displacements-->
-  <ElementItem n="ShellThinElement" pn="Thin Shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
+  <ElementItem n="ShellThinElement" pn="Thin shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a triangular element for thin shells in a small displacements approach" 
@@ -114,7 +114,7 @@
     </outputs>
   </ElementItem>
   
-  <ElementItem n="ShellThickElement" pn="Thick Shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
+  <ElementItem n="ShellThickElement" pn="Thick shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a quadrilateral element for thick shells in a small displacements approach"
@@ -152,7 +152,7 @@
   </ElementItem>
 
   <!--large displacements-->
-  <ElementItem n="ShellThinCorotationalElement" pn="Thin Shell Corotational" ImplementedInFile="shell_thin_element_3D3N.cpp"
+  <ElementItem n="ShellThinCorotationalElement" pn="Thin corotational shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element implements a triangular corotational element for thin shells in a large displacements approach"
@@ -187,7 +187,7 @@
       <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
     </outputs>
   </ElementItem>
-  <ElementItem n="ShellThickCorotationalElement" pn="Thick Shell Corotational" ImplementedInFile="shell_thick_element_3D4N.cpp"
+  <ElementItem n="ShellThickCorotationalElement" pn="Thick corotational shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element implements a quadrilateral corotational element for thick shells in a large displacements approach"
