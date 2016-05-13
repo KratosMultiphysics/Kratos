@@ -30,6 +30,7 @@ proc InitGIDPostProcess {} {
 }
 
 proc EndGIDPostProcess {} {
+    Kratos::RegisterEnvironment
     gid_groups_conds::close_all_windows
     gid_groups_conds::open_conditions check_default
     gid_groups_conds::open_conditions menu
@@ -50,6 +51,7 @@ proc LoadGIDProject { filespd } {
 # Save GiD project files (save XML Tdom structure to spd file)
 proc SaveGIDProject { filespd } {
     gid_groups_conds::save_spd_file $filespd
+    Kratos::RegisterEnvironment
 }
 
 proc AfterTransformProblemType { filename oldproblemtype newproblemtype } {
@@ -73,11 +75,14 @@ proc Kratos::InitGIDProject { dir } {
     variable kratos_private
     unset -nocomplain kratos_private
     set kratos_private(Path) $dir ;#to know where to find the files
+    set kratos_private(DevMode) "dev" ; #can be dev or release
+   
     array set kratos_private [ReadProblemtypeXml [file join $dir kratos.xml] Infoproblemtype {Name Version MinimumGiDVersion}]
     if { [GidUtils::VersionCmp $kratos_private(MinimumGiDVersion)] < 0 } {
         WarnWin [_ "Error: %s Interface requires GiD %s or later." $kratos_private(Name) $kratos_private(MinimumGiDVersion)]
     }
     if {[GiD_Info GiDVersion] ne "13.0-rc2"} { WarnWin "The minimum GiD version is 13.0-rc2.\n Ask the GiD Team for it."; return ""}
+        
     #append to auto_path only folders that must include tcl packages (loaded on demand with package require mechanism)
     if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
         lappend ::auto_path [file join $dir scripts]
@@ -91,10 +96,10 @@ proc Kratos::InitGIDProject { dir } {
     foreach filename {Model.tcl Entity.tcl Parameter.tcl Topology.tcl Solver.tcl ConstitutiveLaw.tcl Condition.tcl Element.tcl SolutionStrategy.tcl Process.tcl} {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
-    
-    Kratos::ChangeMenus
      
     Kratos::load_gid_groups_conds
+    Kratos::LoadEnvironment
+    Kratos::ChangeMenus
     #set HeaderBackground [$doc selectNodes string(Infoproblemtype/Program/HeaderBackground)]
     #gid_groups_conds::SetHeaderBackground $HeaderBackground
     gid_groups_conds::SetLibDir [file join $dir exec] 
@@ -107,6 +112,17 @@ proc Kratos::InitGIDProject { dir } {
 }
 
 proc Kratos::ChangeMenus { } {
+    set found [GiDMenu::_FindIndex "Kratos" PRE]
+    if {$found > 0} {GiDMenu::Delete "Kratos" PRE}
+    GiDMenu::Create "Kratos" PRE
+    variable kratos_private
+    set tomode "developer mode"
+    if {$kratos_private(DevMode) eq "dev"} {set tomode "release mode"}
+    GiDMenu::InsertOption "Kratos" [list "Kratos data" ] 0 PRE [list gid_groups_conds::open_conditions menu] "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "---"] 1 PRE "" "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "Switch to $tomode" ] 2 PRE [list Kratos::SwitchMode] "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "---"] 3 PRE "" "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "Local axes" ] 4 PRE [list gid_groups_conds::local_axes_menu %W] "" "" replace =
     GidChangeDataLabel "Data units" ""
     GidChangeDataLabel "Interval" ""
     GidChangeDataLabel "Conditions" ""
@@ -114,17 +130,60 @@ proc Kratos::ChangeMenus { } {
     GidChangeDataLabel "Interval Data" ""
     GidChangeDataLabel "Problem Data" ""
     GidChangeDataLabel "Local axes" ""
-    GidAddUserDataOptions "---" "" 3
-    #GidAddUserDataOptions [_ "Groups"] [list gid_groups_conds::open_groups .gid window] 5
-    GidAddUserDataOptions [_ "Kratos data"] [list gid_groups_conds::open_conditions menu] 7
-    GidAddUserDataOptions "---" "" 10
-    GidAddUserDataOptionsMenu [_ "Local axes"] [list gid_groups_conds::local_axes_menu %W] 11
     GiDMenu::UpdateMenus
+}
+
+proc Kratos::SwitchMode {} {
+    variable kratos_private
+    if {$kratos_private(DevMode) eq "dev"} {
+        set kratos_private(DevMode) "release"
+    }  {
+        set kratos_private(DevMode) "dev"
+    }
+    Kratos::RegisterEnvironment
+    #W "Registrado $kratos_private(DevMode)"
+    Kratos::ChangeMenus
+}
+
+proc Kratos::GetPreferencesFilePath { } {
+    if {$::tcl_platform(platform) eq "windows"} {
+        set fp  "$::env(APPDATA)/GiD/.KratosVars.txt"
+    } {
+        set fp  "$::env(HOME)/.KratosVars.txt"
+    }
+    return $fp
+}
+
+proc Kratos::RegisterEnvironment { } {
+    variable kratos_private
+    set varsToSave [list DevMode]
+    set preferences [dict create]
+    dict set preferences DevMode $kratos_private(DevMode)
+    #gid_groups_conds::set_preference DevMode $kratos_private(DevMode)
+    set fp [open [Kratos::GetPreferencesFilePath] w]
+    catch {set data [puts $fp [write::tcl2json $preferences]]}
+    close $fp
+}
+proc Kratos::LoadEnvironment { } {
+    variable kratos_private
+    #set kratos_private(DevMode) [gid_groups_conds::get_preference DevMode releasedefault]
+    set data ""
+    set syspath HOME
+    if {$::tcl_platform(platform) eq "windows"} {set syspath APPDATA}
+    catch {
+        set fp [open [Kratos::GetPreferencesFilePath] r]
+        set data [read $fp]
+        close $fp
+    }
+    foreach {k v} [write::json2dict $data] {
+        set kratos_private($k) $v
+    }
 }
 
 proc Kratos::load_gid_groups_conds {} {  
     package require customlib_extras ;#this require also customLib
     package require customlib_native_groups
+    package require json::write
 }
 
 proc Kratos::GiveKratosDefaultsFile {} {
