@@ -514,7 +514,15 @@ proc write::dict2json {dictVal} {
     if {[string range $json end-1 end] eq ",\n"} {set json [string range $json 0 end-2]}
     return "\{${json}\}"
 }
-
+proc write::json2dict {JSONtext} {
+    string range [
+    string trim [
+        string trimleft [
+            string map {\t {} \n {} \r {} , { } : { } \[ \{ \] \}} $JSONtext
+            ] {\uFEFF}
+        ]
+    ] 1 end-1
+}
 proc write::tcl2json { value } {
     # Guess the type of the value; deep *UNSUPPORTED* magic!
     # display the representation of a Tcl_Obj for debugging purposes. Do not base the behavior of any command on the results of this one; it does not conform to Tcl's value semantics!
@@ -557,7 +565,6 @@ proc write::tcl2json { value } {
 
 proc write::WriteJSON {processDict} {
     #W [dict2json $processDict]
-    package require json::write
     WriteString [write::tcl2json $processDict]
 }
 

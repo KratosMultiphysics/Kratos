@@ -42,12 +42,22 @@ proc apps::getActiveAppId { } {
     return $id
 }
 
+proc apps::getAppById { id } {
+    variable appList;
+    set appR ""
+    foreach app $appList {
+        if {[$app getName] eq $id} {set appR $app; break}
+    }
+    return $appR
+}
+
 proc apps::NewApp {appid publicname prefix} {
     variable appList
     set ap [App new $appid]
     $ap setPublicName $publicname
     $ap setPrefix $prefix
     lappend appList $ap
+    return $ap
 }
 
 proc apps::getAllApplicationsName {} {
@@ -111,6 +121,12 @@ proc apps::LoadAppById {appid} {
     }
 }
 
+proc apps::isRelease {appId} {
+    set app [getAppById $appId]
+    if {$app eq ""} {return 0}
+    return [$app isRelease]
+}
+
 proc apps::CheckElemState {elem inputid {arg ""} } {
     variable activeApp
     
@@ -128,6 +144,7 @@ oo::class create App {
     variable writeParametersEvent
     variable writeCustomEvent
     variable prefix
+    variable release
     
     constructor {n} {
         variable name
@@ -137,6 +154,7 @@ oo::class create App {
         variable writeParametersEvent
         variable writeCustomEvent
         variable prefix
+        variable release
         
         set name $n
         set publicname $n
@@ -151,6 +169,7 @@ oo::class create App {
         append writeCustomEvent "::write"
         append writeCustomEvent "::writeCustomFilesEvent"
         set prefix ""
+        set release 0
     }
     
     method activate { } {
@@ -185,6 +204,15 @@ oo::class create App {
         set f ${name}::xml::${func}
         $f {*}$args
 	}
+    
+    method setRelease {v} {
+        variable release
+        set release $v
+    }
+    method isRelease { } {
+        variable release
+        return $release
+    }
 }
 
 proc apps::loadAppFile {fileName} {

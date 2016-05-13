@@ -72,7 +72,10 @@ proc spdAux::processAppIncludes { root } {
         set appid [$elem getAttribute "appid"]
         set pn [$elem getAttribute "pn"]
         set prefix [$elem getAttribute "prefix"]
-        apps::NewApp $appid $pn $prefix
+        set release 0
+        catch {set release [$elem getAttribute "release"]}
+        set app [apps::NewApp $appid $pn $prefix]
+        $app setRelease $release
         if {$active} {
             set dir $::Kratos::kratos_private(Path)
             set f [file join $dir apps $appid xml Main.spd]
@@ -163,15 +166,17 @@ proc spdAux::CreateWindow {} {
     set col 0
     set row 0
     foreach appname $appspn appid $appsid {
-        set img [::apps::getImgFrom $appid]
-        ttk::button $w.information.img$appid -image $img -command [list apps::setActiveApp $appid]
-        ttk::label $w.information.text$appid -text $appname
-        
-        grid $w.information.img$appid -column $col -row $row
-        grid $w.information.text$appid -column $col -row [expr $row +1]
-        
-        incr col
-        if {$col >= 5} {set col 0; incr row; incr row}
+        if {$::Kratos::kratos_private(DevMode) eq "dev" || [apps::isRelease $appname]} {
+            set img [::apps::getImgFrom $appid]
+            ttk::button $w.information.img$appid -image $img -command [list apps::setActiveApp $appid]
+            ttk::label $w.information.text$appid -text $appname
+            
+            grid $w.information.img$appid -column $col -row $row
+            grid $w.information.text$appid -column $col -row [expr $row +1]
+            
+            incr col
+            if {$col >= 5} {set col 0; incr row; incr row}
+        }
     }
     
     
