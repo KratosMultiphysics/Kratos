@@ -117,12 +117,14 @@ proc Kratos::ChangeMenus { } {
     GiDMenu::Create "Kratos" PRE
     variable kratos_private
     set tomode "developer mode"
-    if {$kratos_private(DevMode) eq "dev"} {set tomode "release mode"}
+    set fromode "release mode"
+    if {$kratos_private(DevMode) eq "dev"} {set tomode "release mode";set fromode "developer mode"}
     GiDMenu::InsertOption "Kratos" [list "Kratos data" ] 0 PRE [list gid_groups_conds::open_conditions menu] "" "" replace =
     GiDMenu::InsertOption "Kratos" [list "---"] 1 PRE "" "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "Switch to $tomode" ] 2 PRE [list Kratos::SwitchMode] "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "---"] 3 PRE "" "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "Local axes" ] 4 PRE [list gid_groups_conds::local_axes_menu %W] "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "You are in $fromode" ] 2 PRE [list ] "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "Switch to $tomode" ] 3 PRE [list Kratos::SwitchMode] "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "---"] 4 PRE "" "" "" replace =
+    GiDMenu::InsertOption "Kratos" [list "Local axes" ] 5 PRE [list gid_groups_conds::local_axes_menu %W] "" "" replace =
     GidChangeDataLabel "Data units" ""
     GidChangeDataLabel "Interval" ""
     GidChangeDataLabel "Conditions" ""

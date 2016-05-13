@@ -5,7 +5,7 @@
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_implicit_dynamic_solver"
                 MinimumKratosVersion="8500"
-                ProductionReady="true"
+                ProductionReady="ProductionReady"
                 help="">
     
     <!-- list of options to be filled -->
@@ -58,7 +58,7 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="Newmark" pn="Newmark" help="Scheme for dynamic problems">
+	  <scheme n="Newmark" pn="Newmark" help="Scheme for dynamic problems" ProductionReady="ProductionReady">
             <parameter_list>
 			</parameter_list>
             <element_filters>
@@ -67,7 +67,7 @@
 			 <forceOut field="n" value="SmallDisplacementElement2D"/> -->
             </element_filters>
 	  </scheme>
-	  <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping">
+	  <scheme n="Bossak" pn="Bossak" help="Scheme for dynamic problems with high frequency accelerations damping" ProductionReady="ProductionReady">
             <parameter_list>
 
 			</parameter_list>
@@ -83,7 +83,7 @@
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_explicit_dynamic_solver"
                 MinimumKratosVersion="8500"
-                ProductionReady="true"
+                ProductionReady="ProductionReady"
                 help="Default solver Super LU">
     
     <!-- list of options to be filled -->
@@ -121,7 +121,7 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="CentralDifferences" pn="Central Differences">
+	  <scheme n="CentralDifferences" pn="Central Differences" ProductionReady="ProductionReady">
 		  <parameter_list>
 			  <!--<parameter n="Beta" pn="Beta" type="double" v="0.25" help="T"/>
 			      <parameter n="Gamma" pn="Gamma" type="double" v="0.5" help="T"/> -->
@@ -138,7 +138,7 @@
                 ImplementedInApplication="SolidMechanicsApplication"
                 ImplementedInPythonFile="solid_mechanics_static_solver"
                 MinimumKratosVersion="8500"
-                ProductionReady="true"
+                ProductionReady="ProductionReady"
                 help="Default solver Super LU">
     
     <!-- list of options to be filled -->
@@ -188,7 +188,7 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="GenericScheme" pn="Generic scheme">
+	  <scheme n="GenericScheme" pn="Generic scheme" ProductionReady="ProductionReady">
           <parameter_list>
 		  </parameter_list>
 		  <element_filters>

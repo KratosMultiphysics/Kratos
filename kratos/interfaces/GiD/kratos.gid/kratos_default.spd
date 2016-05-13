@@ -11,7 +11,6 @@
   <appLink n="Solid" pn="Solid" active="0" appid="Solid" prefix="SL"/>
   <appLink n="Fluid" pn="Fluid" active="0" appid="Fluid" prefix="FL"  release="1"/>
   <appLink n="Pfem" pn="Pfem" active="0" appid="Pfem" prefix="PFEM_"/>
-  <appLink n="BaseApp" pn="BaseApp" active="0" appid="BaseApp" prefix="BA"/>
   <blockdata n="units" pn="Units" icon="units">
     <value n='units_mesh' pn='Mesh units' unit_mesh_definition="1"/>
     <value n='units_system' pn='Units system' units_system_definition="1">
@@ -61,6 +60,7 @@
 		set names ""
 		set pnames ""
 		set Sols [::Model::GetSolutionStrategies]
+		set ids [list ]
 		foreach ss $Sols {
 			lappend ids [$ss getName]
 			append names [$ss getName] ","
@@ -81,7 +81,7 @@
 		set sol_stratUN [apps::getCurrentUniqueName SolStrat]
 		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
 		set schemes [::Model::GetAvailableSchemes $solStratName]
-		
+		set ids [list ]
 		if {[llength $schemes] == 0} {
 			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
 			return "None"

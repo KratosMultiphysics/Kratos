@@ -134,7 +134,7 @@
   </ConditionItem>
   
   <ConditionItem n="VelocityConstraints3D" pn="Custom velocity constraints" ImplementedInFile=".cpp"
-	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	ImplementedInApplication="FluidApplication" MinimumKratosVersion="9000" ProductionReady="Development"
 	WorkingSpaceDimension="3" LocalSpaceDimension="3" SkinConditions="False" ElementType="Point,Line,Surface,Volume" 
     ProcessName="ImposeVectorValueByComponentsProcess" VariableName="VELOCITY" help=""  units="m/s" unit_magnitude="Velocity">
     <TopologyFeatures>
