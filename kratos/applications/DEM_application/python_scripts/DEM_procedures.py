@@ -267,6 +267,8 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
             model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
+            model_part.AddNodalSolutionStepVariable(FORCE_REACTION)
+            model_part.AddNodalSolutionStepVariable(MOMENT_REACTION)
 
         # Nano Particle
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
@@ -672,7 +674,6 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters.Dimension
         if (hasattr(self.DEM_parameters, "StressStrainOption")):
             self.stress_strain_option = Var_Translator(self.DEM_parameters.StressStrainOption)
-        self.predefined_skin_option = Var_Translator(self.DEM_parameters.PredefinedSkinOption)
 
         evaluate_computation_of_fem_results()
 
@@ -1104,7 +1105,6 @@ class DEMIo(object):
         if self.DEM_parameters.ElementType == "SwimmingNanoParticle":
             self.PushPrintVar(self.PostHeatFlux, CATION_CONCENTRATION, self.spheres_variables)
 
-
         if (hasattr(self.DEM_parameters, "PostStressStrainOption")):
             if (Var_Translator(self.DEM_parameters.PostStressStrainOption)):
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
@@ -1117,8 +1117,8 @@ class DEMIo(object):
                 self.PushPrintVar(1, DEM_STRESS_ZX,         self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_ZY,         self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_ZZ,         self.spheres_variables)
-                self.PushPrintVar(1, POISSON_VALUE,         self.spheres_variables)
-                #self.PushPrintVar(                                     1, SPRAYED_MATERIAL,      self.spheres_variables)
+                if Var_Translator(self.DEM_parameters.PostPoissonRatio):
+                    self.PushPrintVar(self.DEM_parameters.PostPoissonRatio, POISSON_VALUE,         self.spheres_variables)
 
     def AddArlequinVariables(self):
         self.PushPrintVar(1, DISTANCE, self.global_variables)
