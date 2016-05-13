@@ -65,6 +65,7 @@ virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process
 virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info );
 virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
+virtual void ComputeReactions();
 virtual void PrepareForPrinting(ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);

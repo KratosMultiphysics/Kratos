@@ -221,7 +221,8 @@ namespace Kratos {
         virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0);
         void InitializeSolutionStep();
         virtual void BoundingBoxUtility(bool is_time_to_mark_and_remove = true);
-        void FinalizeSolutionStep();
+        virtual void FinalizeSolutionStep();
+        virtual void ComputeReactions();
         void InitializeElements();
         void InitializeDEMElements();
         void InitializeFEMElements();
