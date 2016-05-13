@@ -627,7 +627,6 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStep() {
         BaseType::FinalizeSolutionStep();
         FinalizeSolutionStepFEM();
-
     }
 
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStepFEM() {

@@ -1208,9 +1208,7 @@ void SphericParticle::AddWallContributionToStressTensor(const double Force[3],
 }
 
 void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
-
     KRATOS_TRY
-
     double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
     const double sphere_volume = CalculateVolume();
     if ((rRepresentative_Volume <= sphere_volume)) { //In case it gets 0.0 (discontinuum). Also sometimes the error can be too big. This puts some bound to the error for continuum.
@@ -1229,6 +1227,26 @@ void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_process_info){
             for (int j = i; j < 3; j++) {
                 (*mSymmStressTensor)(i,j) = (*mSymmStressTensor)(j,i) = 0.5 * ((*mStressTensor)(i,j) + (*mStressTensor)(j,i));
             }
+        }
+    }
+    KRATOS_CATCH("")
+}
+
+void SphericParticle::ComputeReactions(){
+    KRATOS_TRY
+    if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
+        array_1d<double, 3>& reaction_force=this->GetGeometry()[0].FastGetSolutionStepValue(FORCE_REACTION);
+        array_1d<double, 3>& r_total_forces = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+        reaction_force[0] = Is(DEMFlags::FIXED_VEL_X) * (-r_total_forces[0]);
+        reaction_force[1] = Is(DEMFlags::FIXED_VEL_Y) * (-r_total_forces[1]);
+        reaction_force[2] = Is(DEMFlags::FIXED_VEL_Z) * (-r_total_forces[2]);        
+
+        if( this->Is(DEMFlags::HAS_ROTATION) ) {
+            array_1d<double, 3>& reaction_moment=this->GetGeometry()[0].FastGetSolutionStepValue(MOMENT_REACTION);
+            array_1d<double, 3>& r_total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+            reaction_moment[0] = Is(DEMFlags::FIXED_ANG_VEL_X) * (-r_total_moment[0]);
+            reaction_moment[1] = Is(DEMFlags::FIXED_ANG_VEL_Y) * (-r_total_moment[1]);
+            reaction_moment[2] = Is(DEMFlags::FIXED_ANG_VEL_Z) * (-r_total_moment[2]);      
         }
     }
     KRATOS_CATCH("")

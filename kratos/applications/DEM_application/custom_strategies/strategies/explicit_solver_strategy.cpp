@@ -254,6 +254,7 @@ namespace Kratos {
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
         FinalizeSolutionStep();
+        ComputeReactions();
 
         return 0.00;
 
@@ -460,6 +461,16 @@ namespace Kratos {
             } //loop over particles
 
         } // loop threads OpenMP
+        KRATOS_CATCH("")
+    }
+    
+    void ExplicitSolverStrategy::ComputeReactions() {
+        KRATOS_TRY
+        const int number_of_particles = (int) mListOfSphericParticles.size();
+        #pragma omp parallel for
+        for (int i = 0; i < number_of_particles; i++) {
+            mListOfSphericParticles[i]->ComputeReactions();        
+        } 
         KRATOS_CATCH("")
     }
 
