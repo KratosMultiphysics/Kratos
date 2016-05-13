@@ -5,7 +5,7 @@
 		ImplementedInApplication="FluidDynamicsApplication"
 		ImplementedInPythonFile="navier_stokes_solver_fractionalstep"
 		MinimumKratosVersion="8500"
-		ProductionReady="true"
+		ProductionReady="ProductionReady"
 		help="">
     
     <!-- list of options to be filled -->
@@ -59,7 +59,7 @@
 		ImplementedInApplication="FluidDynamicsApplication"
 		ImplementedInPythonFile="navier_stokes_solver_vmsmonolithic"
 		MinimumKratosVersion="8500"
-		ProductionReady="true"
+		ProductionReady="ProductionReady"
 		help="">
     
     <!-- list of options to be filled -->
@@ -93,7 +93,7 @@
     </linearSolvers>
 	
 	<schemes>
-	  <scheme n="MN" pn="Monolitic generic scheme" help="FilterElements">
+	  <scheme n="MN" pn="Monolitic generic scheme" help="FilterElements" ProductionReady="ProductionReady">
 	     <parameter_list>
 		  </parameter_list>
   		  <element_filters>
