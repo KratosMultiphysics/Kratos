@@ -249,6 +249,7 @@ public:
             KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
         
+        /* TODO: This can not be used because it modifies the nodes of other elements...
         if( ThisPoints(3) != NULL )
         {
             TPointType& rFirstPoint = this->GetPoint(0);
@@ -274,6 +275,7 @@ public:
                 rFirstPoint = AuxPoint;
             }
         }
+        */
     }
 
     /**
