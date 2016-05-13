@@ -13,11 +13,11 @@ class ImposeVectorValueByDirectionProcess(ApplyConstantVectorValueProcess):
     def __init__(self, Model, settings ):
         Process.__init__(self)
         
-        model_part = Model[Parameters["model_part_name"].GetString()]  
+        model_part = Model[settings["model_part_name"].GetString()]  
         
-        settings.AddValue("is_fixed_x",True)        
-        settings.AddValue("is_fixed_y",True)        
-        settings.AddValue("is_fixed_z",True)
+        settings.AddEmptyValue("is_fixed_x").SetBool(True)
+        settings.AddEmptyValue("is_fixed_y").SetBool(True)
+        settings.AddEmptyValue("is_fixed_z").SetBool(True)
         
         ApplyConstantVectorValueProcess.__init__(self,model_part, settings)
 
