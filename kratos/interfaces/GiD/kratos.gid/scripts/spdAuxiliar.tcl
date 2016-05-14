@@ -38,8 +38,10 @@ proc spdAux::TryRefreshTree { } {
         #W "HI"
         if {$refreshTreeTurn} {
             #W "there"
-            set ::spdAux::refreshTreeTurn 0
-            gid_groups_conds::actualize_conditions_window
+            catch {
+                set ::spdAux::refreshTreeTurn 0
+                gid_groups_conds::actualize_conditions_window
+            }
             set ::spdAux::refreshTreeTurn 0
         }
         after 750 {spdAux::TryRefreshTree}

@@ -145,6 +145,7 @@ proc Kratos::SwitchMode {} {
     Kratos::RegisterEnvironment
     #W "Registrado $kratos_private(DevMode)"
     Kratos::ChangeMenus
+    spdAux::RequestRefresh
 }
 
 proc Kratos::GetPreferencesFilePath { } {

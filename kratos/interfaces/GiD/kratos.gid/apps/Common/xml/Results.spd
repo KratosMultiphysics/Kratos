@@ -6,9 +6,9 @@
     </value>
     <value n="OutputDeltaTime" pn="Output delta time" v="1.0" help="Output delta time" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} time]"/>
     <value n="OutputDeltaStep" pn="Output delta step" v="1.0" help="Output delta step" state="[getStateFromXPathValue {string(../value[@n='OutputControlType']/@v)} step]"/>
-    <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help=""/>
-    <value n="NodeOutput" pn="Node output" v="No" values="Yes,No" help=""/>
-    <value n="SkinOutput" pn="Skin output" v="No" values="Yes,No" help=""/>
+    <value n="BodyOutput" pn="Body output" v="Yes" values="Yes,No" help="" state="[ShowInMode Developer]"/>
+    <value n="NodeOutput" pn="Node output" v="No" values="Yes,No" help="" state="[ShowInMode Developer]"/>
+    <value n="SkinOutput" pn="Skin output" v="No" values="Yes,No" help="" state="[ShowInMode Developer]"/>
     <container n="OnElement" pn="On element" un="ElementResults" state="[ActiveIfAnyPartState]">
         <dynamicnode command="injectElementOutputs" args=""/>
         <dynamicnode command="injectConstitutiveLawOutputs" args=""/>
