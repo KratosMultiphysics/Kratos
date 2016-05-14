@@ -120,7 +120,7 @@ proc spdAux::activeApp { appid } {
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
     gid_groups_conds::open_conditions menu
     #gid_groups_conds::actualize_conditions_window
-    spdAux::RequestRefresh
+    #spdAux::RequestRefresh
     spdAux::TryRefreshTree
     
 }
@@ -191,45 +191,52 @@ proc spdAux::CreateDimensionWindow { } {
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     
-    set dir $::Kratos::kratos_private(Path)
     
-    if { [ winfo exist .gid.win_example]} {
-        destroy .gid.win_example        
-    }   
-    
-    toplevel .gid.win_example
-    wm withdraw .gid.win_example
-
-    set w .gid.win_example
-    
-    set x [expr [winfo rootx .gid]+[winfo width .gid]/2-[winfo width $w]/2]
-    set y [expr [winfo rooty .gid]+[winfo height .gid]/2-[winfo height $w]/2]
-    
-    wm geom .gid.win_example +$x+$y
-    wm transient .gid.win_example .gid    
-
-    InitWindow $w [_ "Kratos Multiphysics"] Kratos "" "" 1
-    set initwind $w
-    ttk::frame $w.top
-    ttk::label $w.top.title_text -text [_ " Dimension selection"]
-   
-    ttk::frame $w.information  -relief ridge 
-    
-        set imagepath [file nativename [file join $dir images "2D.png"]]
-        set img [gid_themes::GetImageModule $imagepath ""]
-        ttk::button $w.information.img2 -image $img -command [list spdAux::SwitchDimAndCreateWindow 2D]
-        grid $w.information.img2 -column 0 -row 0
+    set nd [ [$root selectNodes "hiddenfield\[@n='nDim'\]"] getAttribute v]
+    if { $nd ne "" } {
+        spdAux::SwitchDimAndCreateWindow $nd
+    } {
+        set dir $::Kratos::kratos_private(Path)
         
-        set imagepath [file nativename [file join $dir images "3D.png"] ]
-        set img [gid_themes::GetImageModule $imagepath ""]
-        ttk::button $w.information.img3 -image $img -command [list spdAux::SwitchDimAndCreateWindow 3D]
-        grid $w.information.img3 -column 1 -row 0
+        if { [ winfo exist .gid.win_example]} {
+            destroy .gid.win_example        
+        }
         
         
-    grid $w.top
-    grid $w.top.title_text
+        toplevel .gid.win_example
+        wm withdraw .gid.win_example
     
-    grid $w.information
+        set w .gid.win_example
+        
+        set x [expr [winfo rootx .gid]+[winfo width .gid]/2-[winfo width $w]/2]
+        set y [expr [winfo rooty .gid]+[winfo height .gid]/2-[winfo height $w]/2]
+        
+        wm geom .gid.win_example +$x+$y
+        wm transient .gid.win_example .gid    
+    
+        InitWindow $w [_ "Kratos Multiphysics"] Kratos "" "" 1
+        set initwind $w
+        ttk::frame $w.top
+        ttk::label $w.top.title_text -text [_ " Dimension selection"]
+       
+        ttk::frame $w.information  -relief ridge 
+        
+            set imagepath [file nativename [file join $dir images "2D.png"]]
+            set img [gid_themes::GetImageModule $imagepath ""]
+            ttk::button $w.information.img2 -image $img -command [list spdAux::SwitchDimAndCreateWindow 2D]
+            grid $w.information.img2 -column 0 -row 0
+            
+            set imagepath [file nativename [file join $dir images "3D.png"] ]
+            set img [gid_themes::GetImageModule $imagepath ""]
+            ttk::button $w.information.img3 -image $img -command [list spdAux::SwitchDimAndCreateWindow 3D]
+            grid $w.information.img3 -column 1 -row 0
+            
+            
+        grid $w.top
+        grid $w.top.title_text
+        
+        grid $w.information
+    }
 }
 
 proc spdAux::SwitchDimAndCreateWindow { ndim } {
@@ -239,9 +246,7 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
 
 proc spdAux::DestroyWindow {} {
     variable initwind
-    
     catch {destroy $initwind}
-    return ""
 }
 
 # Routes
