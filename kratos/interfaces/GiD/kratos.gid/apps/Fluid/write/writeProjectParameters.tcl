@@ -53,6 +53,7 @@ proc Fluid::write::writeParametersEvent { } {
     dict set projectParametersDict solver_settings $solverSettingsDict
         
     # Boundary conditions processes
+    dict set projectParametersDict initial_conditions_process_list [write::getConditionsParametersDict "FLNodalConditions" "Nodal"]
     dict set projectParametersDict boundary_conditions_process_list [write::getConditionsParametersDict $BCUN]
     dict set projectParametersDict gravity [getGravityProcessDict]
     
