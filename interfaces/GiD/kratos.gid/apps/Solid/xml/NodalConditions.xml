@@ -16,6 +16,6 @@
   </NodalConditionItem>
   
   <NodalConditionItem  n="PRESSURE" pn="Pressure" ProcessName="ImposeScalarValueProcess" VariableName="PRESSURE"
-					   analysis_type="Static,Dynamic"  unit_magnitude="P"  units="Pa" v="No" state="hidden" >
+					   analysis_type="Static,Dynamic"  unit_magnitude="P"  units="Pa" v="No">
   </NodalConditionItem>
 </NodalConditionList>

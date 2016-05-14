@@ -625,13 +625,13 @@ proc spdAux::injectNodalConditions { basenode } {
         set um [$nc getAttribute "unit_magnitude"]
         foreach processinput [$process getInputs] {lappend inputs $processinput}
         foreach {inName in} $inputs {
-            set inPn [$in getPublicName]
+            set pn [$in getPublicName]
             set type [$in getType]
-            set dv [$in getDv]
+            set v [$in getDv]
             set fix [$in getFixity]
             set help [$in getHelp]
-            foreach key [$ld getDefaults $inName] {
-                set $key [$ld getDefault $inName $key]
+            foreach key [$nc getDefaults $inName] {
+                set $key [$nc getDefault $inName $key]
             }
             if {$type eq "vector"} {
                 lassign [split $v ","] v1 v2 v3
