@@ -201,7 +201,18 @@ proc Model::ParseNodalConditionsNode { node } {
         }
     }
     $el setProcessName [$node getAttribute ProcessName]
-   
+    catch {
+        foreach def [[$node getElementsByTagName DefaultValues] getElementsByTagName value]  {
+            set itemName [$def @n]
+            foreach att [$def attributes] {
+                if {$att ne "n"} {
+                    set itemField $att
+                    set itemValue [$def getAttribute $att]
+                    $el setDefault $itemName $itemField $itemValue
+                }
+            }
+        }
+    }
     return $el
 }
 

@@ -2,6 +2,10 @@
 <NodalConditionList>
   <NodalConditionItem n="VELOCITY" pn="Velocity" ProcessName="ApplyConstantVectorValueProcess" VariableName="VELOCITY"
 					  ov="[CheckGeometry 2]" unit_magnitude="Velocity" units="m/s">
+    <DefaultValues>
+	  <value n="factor" pn="Modulus" v="3.0" />
+	  <value n="direction" v="0.0,-1.0,0.0" />
+    </DefaultValues>
   </NodalConditionItem>
   <NodalConditionItem n="PRESSURE" pn="Pressure" ProcessName="ApplyConstantScalarValueProcess" VariableName="PRESSURE"
 					  ov="[CheckGeometry 2]" unit_magnitude="P" units="Pa">
