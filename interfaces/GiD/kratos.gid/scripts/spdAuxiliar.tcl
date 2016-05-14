@@ -626,16 +626,15 @@ proc spdAux::injectNodalConditions { basenode } {
         foreach processinput [$process getInputs] {lappend inputs $processinput}
         foreach {inName in} $inputs {
             set inPn [$in getPublicName]
-            #set units [$in getUnits]
-            #if {$units eq "0"} {set units $unitsnc}
-            #set um [$in getUnitMagnitude]
-            #if {$um eq "0"} {set um $umnc}
             set type [$in getType]
             set dv [$in getDv]
             set fix [$in getFixity]
             set help [$in getHelp]
+            foreach key [$ld getDefaults $inName] {
+                set $key [$ld getDefault $inName $key]
+            }
             if {$type eq "vector"} {
-                lassign [split $dv ","] v1 v2 v3
+                lassign [split $v ","] v1 v2 v3
                 if {$fix ne 0} {
                     append node "
                         <value n=\"FixX\" pn=\"$fix X\" v=\"1\" values=\"1,0\" help=\"\"/>
@@ -643,15 +642,15 @@ proc spdAux::injectNodalConditions { basenode } {
                         <value n=\"FixZ\" pn=\"$fix Z\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
-                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\"/>
-                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\"/>
-                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\" state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${pn} X\" v=\"$v1\" help=\"$help\"/>
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${pn} Y\" v=\"$v2\" help=\"$help\"/>
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${pn} Z\" v=\"$v3\" help=\"$help\" state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
                     append node "<value n=\"Fix\" pn=\"$fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
                 }
-                append node "<value n=\"$inName\" pn=\"$inPn\" v=\"$dv\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"$help\"/>"
+                append node "<value n=\"$inName\" pn=\"$pn\" v=\"$v\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"$help\"/>"
             }
         }
         append node "</condition>"
@@ -665,7 +664,6 @@ proc spdAux::injectConditions { basenode } {
     set conds [$basenode parent]
     set loads [::Model::getAllConditions]
     foreach n [dict keys $loads] {
-        set inputs [list ]
         set ld [dict get $loads $n]
         set pn [$ld getPublicName]
         set help [$ld getHelp]
@@ -677,19 +675,19 @@ proc spdAux::injectConditions { basenode } {
         set check [$process getAttribute "check"]
         #W "$pn $check"
         set node "<condition n=\"$n\" pn=\"$pn\" ov=\"$etype\" ovm=\"\" icon=\"shells16\" help=\"$help\" state=\"\[ConditionState\]\" update_proc=\"$check\">"
-        foreach processinput [$process getInputs] {lappend inputs $processinput}
+        #foreach processinput [$process getInputs] {lappend inputs $processinput}
+        set inputs [$process getInputs] 
         foreach {inName in} $inputs {
-            set inPn [$in getPublicName]
-            #set units [$in getUnits]
-            #if {$units eq "0"} {set units $unitsc}
-            #set um [$in getUnitMagnitude]
-            #if {$um eq "0"} {set um $umc}
+            set pn [$in getPublicName]
             set type [$in getType]
-            set dv [$in getDv]
+            set v [$in getDv]
             set fix [$in getFixity]
             set help [$in getHelp]
+            foreach key [$ld getDefaults $inName] {
+                set $key [$ld getDefault $inName $key]
+            }
             if {$type eq "vector"} {
-                lassign [split $dv ","] v1 v2 v3
+                lassign [split $v ","] v1 v2 v3
                 if {$fix ne 0} {
                     append node "
                         <value n=\"FixX\" pn=\"X $fix\" v=\"1\" values=\"1,0\" help=\"\"/>
@@ -697,15 +695,15 @@ proc spdAux::injectConditions { basenode } {
                         <value n=\"FixZ\" pn=\"Z $fix\" v=\"1\" values=\"1,0\" help=\"\" state=\"\[CheckDimension 3D\]\"/>"
                     }
                 append node "
-                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${inPn} X\" v=\"$v1\" help=\"$help\" />
-                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${inPn} Y\" v=\"$v2\" help=\"$help\" />
-                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${inPn} Z\" v=\"$v3\" help=\"$help\"  state=\"\[CheckDimension 3D\]\"/>
+                <value n=\"${inName}X\" wn=\"[concat $n "_X"]\" pn=\"${pn} X\" v=\"$v1\" help=\"$help\" />
+                <value n=\"${inName}Y\" wn=\"[concat $n "_Y"]\" pn=\"${pn} Y\" v=\"$v2\" help=\"$help\" />
+                <value n=\"${inName}Z\" wn=\"[concat $n "_Z"]\" pn=\"${pn} Z\" v=\"$v3\" help=\"$help\"  state=\"\[CheckDimension 3D\]\"/>
                 "
             } {
                 if {$fix ne 0} {
                     append node "<value n=\"Fix\" pn=\"$fix\" v=\"1\" values=\"1,0\" help=\"\"/>"
                 }
-                append node "<value n=\"$inName\" pn=\"$inPn\" v=\"$dv\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"$help\"/>"
+                append node "<value n=\"$inName\" pn=\"$pn\" v=\"$v\"  units=\"$units\"  unit_magnitude=\"$um\"  help=\"$help\"/>"
             }
         }
         append node "</condition>"
