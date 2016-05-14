@@ -1,28 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ConstitutiveLaws>
     <!--linear elastic laws-->
-    <CLaw n="Example" pn="Example" ProductionReady="Developer"
-	  help="Newtonian fluid" >
+	<CLaw n="Newtonian" pn="Newtonian" ProductionReady="ProductionReady" help="Newtonian fluid" >
         <inputs>
 		  <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
 		  <parameter n="VISCOSITY" pn="Kinematic viscosity" unit_magnitude="L^2/T" units="m^2/s" v="1e-6" help="Set the kinematic viscosity."/>
         </inputs>
         <outputs>
-            
         </outputs>
     </CLaw>
-	<CLaw n="Newtonian" pn="Newtonian" ProductionReady="ProductionReady"
-	  help="Newtonian fluid" >
-        <inputs>
-		  <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
-		  <parameter n="VISCOSITY" pn="Kinematic viscosity" unit_magnitude="L^2/T" units="m^2/s" v="1e-6" help="Set the kinematic viscosity."/>
-        </inputs>
-        <outputs>
-            
-        </outputs>
-    </CLaw>
-    <CLaw n="HerschelBulkley" pn="Herschel Bulkley" ProductionReady="ProductionReady"
-          help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" >
+    <CLaw n="HerschelBulkley" pn="Herschel Bulkley" ProductionReady="ProductionReady" help="Herschel–Bulkley fluid -> tau = tau0 + k * gamma^n" >
         <inputs>
 		  <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="1000"/>
 		  <parameter n="VISCOSITY" pn="Kinematic viscosity" unit_magnitude="L^2/T" units="m^2/s" v="1e-6" help="Fluidized viscosity."/>
@@ -31,7 +18,6 @@
 		  <parameter n="POWER_LAW_N" pn="Flow index (n)" v="1" />
         </inputs>
         <outputs>
-            
         </outputs>
     </CLaw>
 </ConstitutiveLaws>
