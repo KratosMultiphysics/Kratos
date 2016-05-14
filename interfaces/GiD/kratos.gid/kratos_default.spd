@@ -518,6 +518,18 @@
 		}
 	  ]]>
 	</proc>
+	  <proc n='ShowInMode' args='args'>
+	  <![CDATA[
+	  set kw [lindex $args 0]
+	  if {$kw ni [list "Release" "Developer"]} {return "hidden"}
+	  if {$::Kratos::kratos_private(DevMode) eq "dev"} {
+		if {$kw eq "Developer"} {return "normal"} {return "hidden"}
+	  }
+	  if {$::Kratos::kratos_private(DevMode) eq "release"} {
+		if {$kw eq "Developer"} {return "hidden"} {return "normal"}
+	  }
+	  ]]>
+	</proc>
 	<dynamicnode command="injectProcs" args=""/>
   </procs>
   <translations>
