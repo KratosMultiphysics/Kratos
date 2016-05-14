@@ -16,6 +16,8 @@ proc InitGIDProject { dir } {
 proc EndGIDProject {} {
     spdAux::DestroyWindow
     spdAux::EndRefreshTree
+    Kratos::RegisterEnvironment
+    Model::DestroyEverything
     gid_groups_conds::end_problemtype [Kratos::GiveKratosDefaultsFile]
     unset -nocomplain ::Kratos::kratos_private
 }
@@ -30,7 +32,6 @@ proc InitGIDPostProcess {} {
 }
 
 proc EndGIDPostProcess {} {
-    Kratos::RegisterEnvironment
     gid_groups_conds::close_all_windows
     gid_groups_conds::open_conditions check_default
     gid_groups_conds::open_conditions menu
@@ -45,7 +46,7 @@ proc LoadGIDProject { filespd } {
     if { [package vcompare $versionPT $versionData] == 1 } {
         after idle Kratos::upgrade_problemtype
     }
-    spdAux::reactiveApp
+    #spdAux::reactiveApp
 }
 
 # Save GiD project files (save XML Tdom structure to spd file)
@@ -149,12 +150,14 @@ proc Kratos::SwitchMode {} {
 }
 
 proc Kratos::GetPreferencesFilePath { } {
-    if {$::tcl_platform(platform) eq "windows"} {
-        set fp  "$::env(APPDATA)/GiD/.KratosVars.txt"
-    } {
-        set fp  "$::env(HOME)/.KratosVars.txt"
+    variable kratos_private
+    set dir_name [file dirname [GiveGidDefaultsFile]]
+    set file_name $kratos_private(Name)Vars.txt
+    if { $::tcl_platform(platform) == "windows" } {
+        return [file join $dir_name $file_name]
+    } else {
+        return [file join $dir_name .$file_name]
     }
-    return $fp
 }
 
 proc Kratos::RegisterEnvironment { } {

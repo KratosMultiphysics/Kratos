@@ -114,4 +114,8 @@ proc Model::getProcesses { ProcessesFileName } {
     ParseProcesses $doc
 }
 
+proc Model::DestroyEverything { } {
+    Init
+}
+
 Model::Init
