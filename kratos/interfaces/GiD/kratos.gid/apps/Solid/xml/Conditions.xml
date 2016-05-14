@@ -10,6 +10,10 @@
     </TopologyFeatures>
     <inputs>
     </inputs>
+    <DefaultValues>
+	  <value n="factor" pn="Modulus" v="9.8" />
+	  <value n="direction" v="0.0,0.0,-1.0" />
+    </DefaultValues>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>
@@ -24,6 +28,10 @@
     </TopologyFeatures>
     <inputs>
     </inputs>
+    <DefaultValues>
+	  <value n="factor" pn="Modulus" v="9.8" />
+	  <value n="direction" v="0.0,-1.0,0.0" />
+    </DefaultValues>
     <outputs>
       <parameter n="FORCE" pn="External Load" v="false"/>
     </outputs>

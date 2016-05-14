@@ -9,12 +9,18 @@ oo::class create Condition {
     superclass Entity
     variable processName
     variable TopologyFeatures
+    variable defaults
     
     constructor {n} {
         next $n
         variable TopologyFeatures
-        
         set TopologyFeatures [list ]
+        
+        variable defaults
+        set defaults [dict create ]
+        
+        variable processName
+        set processName ""
     }
     
     method cumple {filtros} {
@@ -55,7 +61,22 @@ oo::class create Condition {
     method getProcessName { } {
         variable processName
         return $processName
-    }  
+    }
+    method setDefault {itemName itemField itemValue} {
+        variable defaults
+        dict set defaults $itemName $itemField $itemValue
+    }
+    method getDefault {itemName itemField } {
+        variable defaults
+        return [dict get $defaults $itemName $itemField]
+    }
+    method getDefaults {itemName} {
+        variable defaults
+        if {[dict exists $defaults $itemName]} {
+            return [dict keys [dict get $defaults $itemName] ]
+        }
+    }
+    
 }
 }
 proc Model::GetConditions {args} { 
@@ -102,18 +123,35 @@ proc Model::ParseCondNode { node } {
         $cnd setAttribute $att [split [$node getAttribute $att] ","]
         #W "$att : [$el getAttribute $att]"
     }
-    foreach top [[$node getElementsByTagName TopologyFeatures] childNodes]  {
-        set cnd [ParseTopologyNode $cnd $top]
+    catch {
+        foreach top [[$node getElementsByTagName TopologyFeatures] getElementsByTagName item]  {
+            set cnd [ParseTopologyNode $cnd $top]
+        }
     }
-    set inputsNode [$node getElementsByTagName inputs]
-    foreach in [$inputsNode childNodes]  {
-        set cnd [ParseInputParamNode $cnd $in]
+    catch {
+        foreach def [[$node getElementsByTagName DefaultValues] getElementsByTagName value]  {
+            set itemName [$def @n]
+            foreach att [$def attributes] {
+                if {$att ne "n"} {
+                    set itemField $att
+                    set itemValue [$def getAttribute $att]
+                    $cnd setDefault $itemName $itemField $itemValue
+                }
+            }
+        }
     }
-    
-    foreach out [[$node getElementsByTagName outputs] childNodes] {
-        set n [$out @n]
-        set pn [$out @pn]
-        $cnd addOutput $n $pn
+    catch {
+        set inputsNode [$node getElementsByTagName inputs]
+        foreach in [$inputsNode getElementsByTagName parameter]  {
+            set cnd [ParseInputParamNode $cnd $in]
+        }
+    }
+    catch {
+        foreach out [[$node getElementsByTagName outputs] getElementsByTagName parameter] {
+            set n [$out @n]
+            set pn [$out @pn]
+            $cnd addOutput $n $pn
+        }
     }
     return $cnd
 }
