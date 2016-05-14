@@ -22,7 +22,7 @@
     </container>
   </blockdata>     
   <procs>
-        <proc n='GetElements' args='args'>
+	<proc n='GetElements' args='args'>
           <![CDATA[
           
                 set sol_stratUN [apps::getCurrentUniqueName SolStrat]
@@ -35,8 +35,6 @@
                 set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v]
                 
                 set elems [::Model::GetAvailableElements $solStratName $schemeName]
-                
-                
                 set names [list ]
                 set pnames [list ]
                 foreach cl $elems {
@@ -44,12 +42,13 @@
                         lappend pnames [$cl getName] 
                         lappend pnames [$cl getPublicName]
                 }
-                
-                $domNode setAttribute dict [join $pnames ","]
+                set diction [join $pnames ","]
+                set values [join $names ","]
+				
+                $domNode setAttribute values $values
                 if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
                 spdAux::RequestRefresh
-                
-                return [join $names ","]
+                return $diction
                 
           ]]>
         </proc>
@@ -120,12 +119,13 @@
 			lappend pnames [$cl getName] 
 			lappend pnames [$cl getPublicName]
 		}
-		
-		$domNode setAttribute dict [join $pnames ","]
+		set values [join $names ","]
+		$domNode setAttribute values $values
+		set diction [join $pnames ","]
 		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
 		spdAux::RequestRefresh
 		
-		return [join $names ","]
+		return $diction
 	  ]]>
 	</proc>
 		<proc n='GetSolvers' args='args'>
