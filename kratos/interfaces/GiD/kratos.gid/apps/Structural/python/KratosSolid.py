@@ -136,7 +136,7 @@ gid_output = GiDOutputProcess(computing_model_part,
 
 gid_output.ExecuteInitialize()
 
-# restart write included in gid IO ¿?
+# restart write included in gid IO ??
 
 #### output settings start ####
 
@@ -196,7 +196,7 @@ while(time <= end_time):
     
     gid_output.ExecuteFinalizeSolutionStep()
 
-    #TODO: decide if it shall be done only when output is processed or not (boundary_conditions_processes ¿?)
+    #TODO: decide if it shall be done only when output is processed or not (boundary_conditions_processes ??)
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
     
