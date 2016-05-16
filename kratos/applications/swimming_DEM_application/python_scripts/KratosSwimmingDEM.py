@@ -76,6 +76,10 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.faxen_terms_type = 1
+pp.CFD_DEM.material_acceleration_calculation_type = 1
+pp.CFD_DEM.basset_force_type = 1
+pp.CFD_DEM.print_BASSET_FORCE_option = 1
+pp.CFD_DEM.basset_force_integration_type = 1
 #Z
 
 # NANO BEGIN
