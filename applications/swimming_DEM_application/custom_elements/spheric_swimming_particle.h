@@ -90,12 +90,16 @@ namespace Kratos
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
+      static std::vector<double> mAjs;
+      static std::vector<double> mBns;
+      static bool mDaitcheVectorsAreFull;
 
     protected:
         
         void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
         void ComputeDragForce(array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
-        void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassForce(double & added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeBassetForce(double & added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
         void ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, const ProcessInfo& r_current_process_info);
@@ -103,6 +107,8 @@ namespace Kratos
         void ComputeParticleReynoldsNumber(double& r_reynolds);
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
+        double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j);
+        void CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, Vector& historic_integrands);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
 
@@ -144,7 +150,7 @@ namespace Kratos
 
     private:
 
-        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const ProcessInfo& r_current_process_info);
+        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& basset_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const ProcessInfo& r_current_process_info);
         double ComputeDragCoefficient(const ProcessInfo& r_current_process_info);
         double ComputeStokesDragCoefficient();
         double ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info);
@@ -173,12 +179,14 @@ namespace Kratos
       bool mHasHydroMomentNodalVar;
       bool mHasDragForceNodalVar;
       bool mHasVirtualMassForceNodalVar;
+      bool mHasBassetForceNodalVar;
       bool mHasLiftForceNodalVar;
       bool mHasDragCoefficientVar;
       int mCouplingType;
       int mBuoyancyForceType;
       int mDragForceType;
       int mVirtualMassForceType;
+      int mBassetForceType;
       int mSaffmanForceType;
       int mMagnusForceType;
       int mFluidModelType;
@@ -191,6 +199,7 @@ namespace Kratos
       double mSphericity;
       double mNormOfSlipVel;
       double mLastTimeStep;
+      double mInitialTime;
       array_1d<double, 3> mSlipVel;
 
       ///@}
