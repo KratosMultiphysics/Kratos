@@ -27,6 +27,7 @@ class AnalyticSimulator:
         z0 = pp.z0
         u0 = pp.u0
         v0 = pp.v0
+        volume = 4. / 3 * math.pi * a ** 3
         
         gamma = rho_p / rho_f
         S = a ** 2 * omega / (9 * nu) # pseudo Stokes' Number
@@ -37,7 +38,7 @@ class AnalyticSimulator:
         Z0 = (x0 + 1j * y0) / R
         U0 = (u0 + 1j * v0) / (R * omega)
         NDz0 = z0 / R
-        
+        self.basset_dimensional_coeff = rho_f * volume * R * omega ** 2 
         self.gamma = gamma
         self.S = S
         self.Fr = Fr
@@ -49,7 +50,7 @@ class AnalyticSimulator:
         
     def CalculateABC(self):
         include_lift = self.pp.include_lift
-        include_history_force = self.pp.include_history_force
+        include_history_force = self.pp.include_history_force       
 
         Cs = self.pp.Cs
         gamma = self.gamma
@@ -74,6 +75,7 @@ class AnalyticSimulator:
         self.A = A
         self.B = B
         self.C = C
+        self.C1 = - C * (gamma + 0.5)
 
     def CalculateRoots(self):
         A = self.A
@@ -148,7 +150,20 @@ class AnalyticSimulator:
         
         self.x = [value * pp.R for value in self.NDx]
         self.y = [value * pp.R for value in self.NDy]
-        self.z = [value * pp.R for value in self.NDz]              
+        self.z = [value * pp.R for value in self.NDz]     
+    
+    def CalculateBassetForce(self, FB, t):
+        A = self.As
+        X = self.roots
+        C1 = self.C1
+        basset_dimensional_coeff = self.basset_dimensional_coeff
+        pp = self.pp
+        sqrt_t = math.sqrt(t)
+        FhZ = sum([(1j * A[i] / X[i] - A[i] * X[i]) * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * sqrt_t) for i in range(len(X))])
+        FhZ *= basset_dimensional_coeff * C1 * math.sqrt(math.pi)
+        FB[0] = float(FhZ.real)
+        FB[1] = float(FhZ.imag)
+        FB[2] = 0.
 
 if __name__ == "__main__":
     sim = AnalyticSimulator(pp)
