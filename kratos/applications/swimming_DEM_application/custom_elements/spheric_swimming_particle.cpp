@@ -37,7 +37,6 @@
 
 namespace Kratos
 {
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
@@ -75,30 +74,33 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     }
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
-
+    double added_mass_coefficient = 1.0; // it is to be modified by those forces that have a contribution proportional to the particle acceleration
     array_1d<double, 3> buoyancy;
     array_1d<double, 3> drag_force;
     array_1d<double, 3> virtual_mass_force;
     array_1d<double, 3> saffman_lift_force;
     array_1d<double, 3> magnus_lift_force;
     array_1d<double, 3> brownian_motion_force;
+    array_1d<double, 3> basset_force;
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by additionally_applied_force here
 
     ComputeBuoyancy(buoyancy, gravity, r_current_process_info);
     ComputeDragForce(drag_force, r_current_process_info);
-    ComputeVirtualMassForce(virtual_mass_force, r_current_process_info);
+    ComputeVirtualMassForce(added_mass_coefficient, virtual_mass_force, r_current_process_info);
     ComputeSaffmanLiftForce(saffman_lift_force, r_current_process_info);
     ComputeMagnusLiftForce(magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
     ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-    noalias(additionally_applied_force) += drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
-    UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force, r_current_process_info);
+    ComputeBassetForce(added_mass_coefficient, basset_force, r_current_process_info);
+    noalias(additionally_applied_force) += drag_force + virtual_mass_force + basset_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
+    UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, r_current_process_info);
     
     //Now add the contribution of base class function (gravity or other forces added in upper levels):
     TBaseElement::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_current_process_info, gravity);
 	additionally_applied_force += buoyancy;
+    additionally_applied_force *= added_mass_coefficient;
 
     KRATOS_CATCH( "" )
 }
@@ -111,6 +113,7 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
                                                 const array_1d<double, 3>& buoyancy,
                                                 const array_1d<double, 3>& drag_force,
                                                 const array_1d<double, 3>& virtual_mass_force,
+                                                const array_1d<double, 3>& basset_force,
                                                 const array_1d<double, 3>& saffman_lift_force,
                                                 const array_1d<double, 3>& magnus_lift_force,
                                                 const ProcessInfo& r_current_process_info)
@@ -128,6 +131,10 @@ void SphericSwimmingParticle<TBaseElement>::UpdateNodalValues(const array_1d<dou
 
     if (mHasVirtualMassForceNodalVar){
         noalias(GetGeometry()[0].FastGetSolutionStepValue(VIRTUAL_MASS_FORCE))  = virtual_mass_force;
+    }
+
+    if (mHasBassetForceNodalVar){
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(BASSET_FORCE))        = basset_force;
     }
 
     if (mHasLiftForceNodalVar){
@@ -153,7 +160,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBuoyancy(array_1d<double, 3>&
         const double volume = TBaseElement::CalculateVolume();
 
         if (mBuoyancyForceType == 2 || mDragForceType == 2){ // Maxey-Riley form of buoyancy (minus the fluid acceleration term); Weatherford
-            noalias(buoyancy) =  - gravity *  mFluidDensity * volume;
+            noalias(buoyancy) =  - gravity * mFluidDensity * volume;
         }
 
         else {
@@ -184,7 +191,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(array_1d<double, 3>
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(double& added_mass_coefficient, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info)
 {
     if (mVirtualMassForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(virtual_mass_force) = ZeroVector(3);
@@ -202,7 +209,10 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
     }
 
     else {
-        noalias(slip_acc) = fluid_acc - particle_acc;
+        //noalias(slip_acc) = fluid_acc - particle_acc;
+        noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass_coefficient
+        double particle_density = GetDensity();
+        added_mass_coefficient = particle_density / (particle_density + 0.5 * mFluidDensity);
 
         if (mDragForceType == 11) {
             const array_1d<double, 3>& fluid_vel_laplacian_rate = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
@@ -225,6 +235,72 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(array_1d<dou
     noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid
     }
 }
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >\
+double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j)
+{
+    if (order == 1){
+        if (j < n){
+            return SphericSwimmingParticle<TBaseElement>::mAjs[j];
+        }
+        else {
+            return SphericSwimmingParticle<TBaseElement>::mBns[n];
+        }
+    }
+    return 0.0;
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >\
+void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
+{
+    fractional_derivative = ZeroVector(3);
+    double sqrt_of_h = std::sqrt(delta_time);
+    int n = historic_integrands.size() - 1;//len(times) - 1
+    int order = 1;
+
+    present_coefficient = sqrt_of_h * GetDaitcheCoefficient(order, n, 0);
+
+    for (int j = 1; j < n + 1; j++){
+        array_1d<double, 3> integrand;
+        double coefficient = GetDaitcheCoefficient(order, n, j);
+        for (int i_comp = 0; i_comp < 3; i_comp++){
+            unsigned int integrand_position = n - j + 1;
+            integrand[i_comp] = historic_integrands[3 * integrand_position + i_comp];
+        }
+        fractional_derivative += sqrt_of_h * coefficient * integrand;
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(double & added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
+{
+    if (mBassetForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
+        noalias(basset_force) = ZeroVector(3);
+        return;
+    }
+
+    else {
+        vector<double>& historic_integrands = GetGeometry()[0].GetValue(BASSET_HISTORIC_INTEGRANDS);
+        double delta_time = 0.001;
+        double current_time = r_current_process_info[TIME];
+        double sqrt_elapsed_time = std::sqrt(current_time - mInitialTime);
+        array_1d<double, 3> initial_slip_velocity;
+        initial_slip_velocity[0] = historic_integrands[0];
+        initial_slip_velocity[1] = historic_integrands[1];
+        initial_slip_velocity[2] = historic_integrands[2];
+        array_1d<double, 3> initial_velocity_contribution = initial_slip_velocity / sqrt_elapsed_time; //  the first value is actually the initial value of the slip velocity (not the slip acceleration, which is stored at position 1); kept here for convenience
+        array_1d<double, 3> fractional_derivative_of_slip_vel;
+        double present_coefficient;
+        CalculateFractionalDerivative(fractional_derivative_of_slip_vel, present_coefficient, delta_time, historic_integrands);
+        added_mass_coefficient *= mRealMass / (mRealMass - present_coefficient * added_mass_coefficient);
+        double basset_force_coeff = 6.0 * KRATOS_M_PI * mRadius * mRadius * mKinematicViscosity * mFluidDensity / std::sqrt(KRATOS_M_PI * mKinematicViscosity);
+        basset_force = basset_force_coeff * (fractional_derivative_of_slip_vel + initial_velocity_contribution);
+    }
+}
+
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
@@ -899,6 +975,7 @@ void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_proc
     mHasDragForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(DRAG_FORCE);
     mHasHydroMomentNodalVar      = GetGeometry()[0].SolutionStepsDataHas(HYDRODYNAMIC_MOMENT);
     mHasVirtualMassForceNodalVar = GetGeometry()[0].SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
+    mHasBassetForceNodalVar      = GetGeometry()[0].SolutionStepsDataHas(BASSET_FORCE);
     mHasLiftForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(LIFT_FORCE);
     mSphericity                  = GetGeometry()[0].SolutionStepsDataHas(PARTICLE_SPHERICITY);
     mHasDragCoefficientVar       = GetGeometry()[0].SolutionStepsDataHas(DRAG_COEFFICIENT);
@@ -913,16 +990,22 @@ void SphericSwimmingParticle<TBaseElement>::MemberDeclarationFirstStep(const Pro
     mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
     mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
     mVirtualMassForceType   = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
+    mBassetForceType        = r_process_info[BASSET_FORCE_TYPE];
     mSaffmanForceType       = r_process_info[LIFT_FORCE_TYPE];
     mMagnusForceType        = r_process_info[MAGNUS_FORCE_TYPE];
     mFluidModelType         = r_process_info[FLUID_MODEL_TYPE];
     mPorosityCorrectionType = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
     mHydrodynamicTorqueType = r_process_info[HYDRO_TORQUE_TYPE];
     mBrownianMotionType     = 0;
+    mInitialTime            = r_process_info[TIME];
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template class SphericSwimmingParticle<SphericParticle>; //Explicit Instantiation
 template class SphericSwimmingParticle<NanoParticle>; //Explicit Instantiation
+template <typename TBaseElement>
+std::vector<double> SphericSwimmingParticle<TBaseElement>::mAjs;
+template <typename TBaseElement>
+std::vector<double> SphericSwimmingParticle<TBaseElement>::mBns;
 }  // namespace Kratos.
 
