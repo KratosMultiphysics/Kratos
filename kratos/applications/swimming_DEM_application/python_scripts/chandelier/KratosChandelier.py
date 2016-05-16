@@ -76,6 +76,10 @@ DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write d
 #G
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.faxen_terms_type = 1
+pp.CFD_DEM.material_acceleration_calculation_type = 1
+pp.CFD_DEM.basset_force_type = 1
+pp.CFD_DEM.print_BASSET_FORCE_option = 1
+pp.CFD_DEM.basset_force_integration_type = 1
 #Z
 
 # Import utilities from models
@@ -552,7 +556,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 ######################################################################################################################################
 
 # setting up loop counters: Counter(steps_per_tick_step, initial_step, active_or_inactive_boolean)
-embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+embedded_counter             = swim_proc.Counter(1, 3, DEM_parameters.embedded_option)
 DEM_to_fluid_counter         = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type)
 pressure_gradient_counter    = swim_proc.Counter(1, 1, DEM_parameters.coupling_level_type or pp.pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step , 1, DEM_parameters.stationary_problem_option)
@@ -591,7 +595,7 @@ scheme = ResidualBasedIncrementalUpdateStaticScheme()
 post_process_strategy = ResidualBasedLinearStrategy(fluid_model_part, scheme, linear_solver, False, True, False, False)
 #Z
 
-# CHANDELIER BEGIN
+# CANDELIER BEGIN
 import math 
 import cmath
 import mpmath
@@ -733,7 +737,7 @@ while (time <= final_time):
 
         if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static                        
             #solver.Solve()
-			coors = [None] * 3
+            coors = [None] * 3
             sim.CalculatePosition(coors, time_dem * ch_pp.omega)            
 
             for node in spheres_model_part.Nodes:
