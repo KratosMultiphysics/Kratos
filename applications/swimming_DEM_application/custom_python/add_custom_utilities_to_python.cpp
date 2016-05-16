@@ -212,6 +212,7 @@ using namespace boost::python;
         ;
 
     class_<CustomFunctionsCalculator <2> > ("CustomFunctionsCalculator2D", init<>())
+        .def("FillDaitcheVectors", &CustomFunctionsCalculator <2>::FillDaitcheVectors)
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <2>::CalculateGradient)
         .def("CalculateVectorLaplacian", &CustomFunctionsCalculator <2>::CalculateVectorLaplacian)
@@ -226,6 +227,7 @@ using namespace boost::python;
     //**********************************************************************************************************************************************
     // WARNING!!: function RecoverSuperconvergentGradient uses an algorithm under a GPL 3.0 licence which CANNOT be included in comercial products.
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
+        .def("FillDaitcheVectors", &CustomFunctionsCalculator <2>::FillDaitcheVectors)
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
         .def("CalculateVectorMaterialDerivative", &CustomFunctionsCalculator <3>::CalculateVectorMaterialDerivative)
