@@ -57,6 +57,51 @@ virtual ~CustomFunctionsCalculator(){}
 
 /// Default calculator
 
+
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void FillDaitcheVectors(unsigned int N)
+{
+    long double FourThirds = 4.0 / 3;
+    SphericSwimmingParticle<SphericParticle>::mAjs.resize(N);
+    SphericSwimmingParticle<SphericParticle>::mBns.resize(N);
+    SphericSwimmingParticle<SphericParticle>::mAjs[0] = FourThirds;
+    SphericSwimmingParticle<SphericParticle>::mBns[0] = FourThirds;
+
+    for (unsigned int j = 1; j < N; ++j){
+        double sqrt_j       = std::sqrt(j * j * j);
+        double sqrt_j_plus  = std::sqrt((j + 1) * (j + 1) * (j + 1));
+        double sqrt_j_minus = std::sqrt((j - 1) * (j - 1) * (j - 1));
+        SphericSwimmingParticle<SphericParticle>::mAjs[j] = FourThirds * (sqrt_j_minus + sqrt_j_plus - sqrt_j);
+        SphericSwimmingParticle<SphericParticle>::mBns[j] = FourThirds * (sqrt_j_minus - sqrt_j - 1.5 * std::sqrt(j));
+    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void AppendIntegrands(ModelPart& r_model_part)
+{
+    double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
+
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        vector<double>& historic_integrands = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
+        array_1d<double, 3>& fluid_vel_projected_rate = inode->GetValue(FLUID_VEL_PROJECTED_RATE);
+        const double mass_inv = 1.0 / inode->FastGetSolutionStepValue(NODAL_MASS);
+        const array_1d<double, 3> particle_acc = mass_inv * inode->FastGetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED);
+        array_1d<double, 3> slip_vel_rate;
+        noalias(slip_vel_rate) = fluid_vel_projected_rate - particle_acc;
+        int n = historic_integrands.size();
+        historic_integrands.resize(n + 3);
+        historic_integrands.insert_element(n, slip_vel_rate[0]);
+        historic_integrands.insert_element(n + 1, slip_vel_rate[1]);
+        historic_integrands.insert_element(n + 2, slip_vel_rate[2]);
+    }
+}
+
+
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
