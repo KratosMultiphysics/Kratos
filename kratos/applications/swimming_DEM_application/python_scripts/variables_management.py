@@ -24,6 +24,7 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.CFD_DEM.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.CFD_DEM.drag_force_type)
     dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.CFD_DEM.virtual_mass_force_type)
+    dem_model_part.ProcessInfo.SetValue(BASSET_FORCE_TYPE, pp.CFD_DEM.basset_force_type)
     dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.CFD_DEM.lift_force_type)
     dem_model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, pp.CFD_DEM.magnus_force_type)
     dem_model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.CFD_DEM.hydro_torque_type)
@@ -70,7 +71,7 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM.gradient_calculation_type:
         pp.fluid_vars += [NODAL_WEIGHTS]
-    pp.CFD_DEM.material_acceleration_calculation_type = 1
+
     if pp.CFD_DEM.material_acceleration_calculation_type:
         pp.fluid_vars += [MATERIAL_ACCELERATION]
 
@@ -104,6 +105,14 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM.virtual_mass_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option:
         pp.dem_vars += [VIRTUAL_MASS_FORCE]
+
+    if pp.CFD_DEM.basset_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option:
+        pp.dem_vars += [BASSET_FORCE]
+        #pp.dem_vars += [BASSET_HISTORIC_INTEGRANDS]
+
+        if pp.CFD_DEM.basset_force_integration_type == 1:
+            pass
+            #pp.dem_vars += [HINSBERG_TAIL_CONTRIBUTIONS]
 
     # clusters variables
     pp.clusters_vars = []
@@ -188,6 +197,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if pp.CFD_DEM.print_VIRTUAL_MASS_FORCE_option:
             pp.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
+
+        if pp.CFD_DEM.print_BASSET_FORCE_option:
+            pp.dem_nodal_results += ["BASSET_FORCE"]
 
         if pp.CFD_DEM.print_LIFT_FORCE_option:
             pp.dem_nodal_results += ["LIFT_FORCE"]
@@ -297,7 +309,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
         pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
 
-    if pp.CFD_DEM.virtual_mass_force_type >= 1:
+    if pp.CFD_DEM.virtual_mass_force_type or pp.CFD_DEM.basset_force_option >= 1:
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
 
     if pp.CFD_DEM.embedded_option:
