@@ -72,6 +72,11 @@ pp.CFD_DEM.faxen_force_type = True
 pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
 pp.CFD_DEM.material_acceleration_calculation_type = 1
 DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
+pp.CFD_DEM.faxen_terms_type = 0
+pp.CFD_DEM.material_acceleration_calculation_type = 1
+pp.CFD_DEM.basset_force_type = 1
+pp.CFD_DEM.print_BASSET_FORCE_option = 1
+pp.CFD_DEM.basset_force_integration_type = 1
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
@@ -603,11 +608,16 @@ import matplotlib.pyplot as plt
 
 import chandelier_parameters as ch_pp
 import chandelier as ch
+import quadrature as quad
 sim = ch.AnalyticSimulator(ch_pp)
 
 post_utils.Writeresults(time)
 coors = [None] * 3
 sim.CalculatePosition(coors, 0.0)      
+times = []
+integrands = []
+particle_mass = 4. / 3 * math.pi * ch_pp.a ** 3 * ch_pp.rho_p
+basset_force_coefficient = 6. * ch_pp.a ** 2 * math.sqrt(math.pi * ch_pp.nu * ch_pp.rho_f ** 2)
 
 # Impose initial velocity to be the terminal velocity
 sim.CalculateNonDimensionalVars()
@@ -624,6 +634,8 @@ for node in spheres_model_part.Nodes:
 results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follow_id, scalar_vars, vector_vars)
 # NODE HISTORY RESULTS END 
 # CHANDELLIER END
+N_steps = int(final_time / Dt_DEM) + 10
+custom_functions_tool.FillDaitcheVectors(N_steps)
 
 while (time <= final_time):
 
@@ -758,7 +770,39 @@ while (time <= final_time):
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)      
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pgrad_x)             
                     #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pgrad_y)                    
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pgrad_z)    
+                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pgrad_z)  
+                    particle_acc = node.GetSolutionStepValue(TOTAL_FORCES)
+                    relative_acceleration = [0.] * 3
+                    relative_acceleration[0] = ax - particle_acc[0] / particle_mass
+                    relative_acceleration[1] = ay - particle_acc[1] / particle_mass
+                    relative_acceleration[2] = 0.
+                    integrands.append(relative_acceleration)
+                    times.append(time_dem)
+
+                    if len(times) < 4:
+                        if len(times) == 1:
+                            initial_relative_velocity = [0.] * 3
+                            initial_relative_velocity[0] = vx - node.GetSolutionStepValue(VELOCITY_X)
+                            initial_relative_velocity[1] = vy - node.GetSolutionStepValue(VELOCITY_Y)
+                        basset_force = [0.] * 3
+                        sim.CalculateBassetForce(basset_force, time_dem * ch_pp.omega)
+                        present_coefficient = 0.
+                        
+                    else:
+                        basset_force[0], basset_force[1], basset_force[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)
+                        sqrt_t_i = 1. / math.sqrt(time_dem)
+                        #basset_force[0] += initial_relative_velocity[0] * sqrt_t_i
+                        #basset_force[1] += initial_relative_velocity[1] * sqrt_t_i
+                        basset_force = [fi * basset_force_coefficient for fi in basset_force]
+                        present_coefficient *= basset_force_coefficient / particle_mass
+                    node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
+                    node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])    
+                    contact_forces = node.GetSolutionStepValue(CONTACT_FORCES)
+                    total_forces = node.GetSolutionStepValue(TOTAL_FORCES)
+                    long_scale_forces = [total_forces[i] - contact_forces[i] for i in range(3)]
+                    node.SetSolutionStepValue(TOTAL_FORCES_X, total_forces[0] + (1. / (1. - present_coefficient) - 1) * long_scale_forces[0])
+                    node.SetSolutionStepValue(TOTAL_FORCES_Y, total_forces[1] + (1. / (1. - present_coefficient) - 1) * long_scale_forces[1])
+                    #node.SetSolutionStepValue(BASSET_FORCE_Z, basset_force[2])                                          
                 
         # performing the time integration of the DEM part
 
