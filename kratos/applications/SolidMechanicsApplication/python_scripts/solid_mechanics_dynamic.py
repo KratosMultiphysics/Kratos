@@ -236,7 +236,7 @@ class MechanicalSolver:
         time_integration_method = self.settings["time_integration_method"].GetString()
         explicit_integration_method = self.settings["explicit_integration_scheme"].GetString()
         
-        arlequin = 0 #?¿¿?¿¿??¿?¿?¿¿?
+        arlequin = 0 #???????????????
 
         # Definition of the convergence criteria
         rel_disp_tol = self.settings["displacement_relative_tolerance"].GetDouble()
