@@ -55,7 +55,7 @@ proc Fluid::write::writeParametersEvent { } {
     # Boundary conditions processes
     dict set projectParametersDict initial_conditions_process_list [write::getConditionsParametersDict "FLNodalConditions" "Nodal"]
     dict set projectParametersDict boundary_conditions_process_list [write::getConditionsParametersDict $BCUN]
-    dict set projectParametersDict gravity [getGravityProcessDict]
+    dict set projectParametersDict gravity [list [getGravityProcessDict] ]
     
     write::WriteJSON $projectParametersDict
 }
@@ -78,6 +78,7 @@ proc Fluid::write::getGravityProcessDict {} {
     dict set params "mesh_id" 0
     set partgroup [write::getPartsMeshId]
     dict set params "model_part_name" $partgroup
+    dict set variable_name "VOLUME_ACCELERATION"
     dict set params "factor" $value
     dict set params "direction" [list $cx $cy $cz]
     dict set pdict "Parameters" $params
