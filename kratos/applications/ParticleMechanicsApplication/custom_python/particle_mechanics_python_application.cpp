@@ -87,14 +87,14 @@ namespace Python
 Element::Pointer CreateUpdatedLagragian2D3N()
 {
 	UpdatedLagrangian::Pointer NewElement( 
-	new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ));
+	new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
 	return NewElement;
 	
 	}
 Element::Pointer CreateUpdatedLagragian3D4N()
 {
 	UpdatedLagrangian::Pointer NewElement( 
-	new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ));
+	new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
 	return NewElement;
 	
 	}
