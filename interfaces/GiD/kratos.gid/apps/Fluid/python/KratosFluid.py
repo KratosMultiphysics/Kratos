@@ -16,29 +16,26 @@ parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = Parameters( parameter_file.read())
 
 
-## defining a model part for the fluid
+## Fluid model part definition 
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 ###TODO replace this "model" for real one once available
 Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
-#construct the solver
+## Solver construction
 solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
 solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
 
 solver.AddVariables()
 
-#obtain the list of the processes to be applied
-process_definition = Parameters(ProjectParameters["boundary_conditions_process_list"])
-
-###read the model - note that SetBufferSize is done here
+## Read the model - note that SetBufferSize is done here
 solver.ImportModelPart()
 
-###add AddDofs
+## Add AddDofs
 solver.AddDofs()
 
-# initialize GiD  I/O
+## Initialize GiD  I/O
 from gid_output_process import GiDOutputProcess
 gid_output = GiDOutputProcess(solver.GetComputeModelPart(),
                               ProjectParameters["problem_data"]["problem_name"].GetString() ,
@@ -51,21 +48,31 @@ solver.Initialize()
 
 
 ##TODO: replace MODEL for the Kratos one ASAP
-##get the list of the submodel part in the object Model
+## Get the list of the skin submodel parts in the object Model
 for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
-    part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
+    skin_part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+    Model.update({skin_part_name: main_model_part.GetSubModelPart(skin_part_name)})
 
-#TODO: decide which is the correct place to initialize the processes 
-list_of_processes = []
-process_definition = ProjectParameters["boundary_conditions_process_list"]
-for i in range(process_definition.size()):
-    item = process_definition[i]
-    module = __import__(item["implemented_in_module"].GetString())
-    interface_file = __import__(item["implemented_in_file"].GetString())
-    p = interface_file.Factory(item, Model)
-    list_of_processes.append( p )
+## Get the list of the initial conditions submodel parts in the object Model
+for i in range(ProjectParameters["initial_conditions_process_list"].size()):
+    initial_cond_part_name = ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+    Model.update({initial_cond_part_name: main_model_part.GetSubModelPart(initial_cond_part_name)})
+    
+## Get the gravity submodel part in the object Model
+for i in range(ProjectParameters["gravity"].size()):   
+    gravity_part_name = ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+    Model.update({gravity_part_name: main_model_part.GetSubModelPart(gravity_part_name)})
 
+
+## Processes construction    
+import process_factory
+# "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity) 
+# Note that the conditions are firstly constructed. Otherwise, they may overwrite the BCs information.
+list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
+list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["gravity"] )
+
+## Processes initialization
 for process in list_of_processes:
     process.ExecuteInitialize()
 
