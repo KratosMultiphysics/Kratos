@@ -189,7 +189,7 @@ class NavierStokesSolver_VMSMonolithic:
             node.AddDof(VELOCITY_Y, REACTION_Y)
             node.AddDof(VELOCITY_Z, REACTION_Z)
 
-        print("DOFs for the vms fluid solver added correctly.")
+        print("DOFs for the VMS monolithic solver added correctly.")
 
         # TODO: TURBULENCE MODELS ARE NOT ADDED YET
         #~ if config is not None:
@@ -197,8 +197,6 @@ class NavierStokesSolver_VMSMonolithic:
                 #~ if config.TurbulenceModel == "Spalart-Allmaras":
                     #~ for node in model_part.Nodes:
                         #~ node.AddDof(TURBULENT_VISCOSITY)
-
-        print("DOFs for the vms monolithic solver added correctly.")
 
     
     def Initialize(self):
@@ -226,10 +224,10 @@ class NavierStokesSolver_VMSMonolithic:
             #~ self.activate_spalart_allmaras()
         
         # creating the solution strategy
-        self.conv_criteria = IncompressibleFluidApplication.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
-                                                                                        self.settings["absolute_velocity_tolerance"].GetDouble(),
-                                                                                        self.settings["relative_pressure_tolerance"].GetDouble(),
-                                                                                        self.settings["absolute_pressure_tolerance"].GetDouble())
+        self.conv_criteria = VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
+                                           self.settings["absolute_velocity_tolerance"].GetDouble(),
+                                           self.settings["relative_pressure_tolerance"].GetDouble(),
+                                           self.settings["absolute_pressure_tolerance"].GetDouble())
              
                                                                                              
         if self.settings["consider_periodic_conditions"].GetBool() == True:
