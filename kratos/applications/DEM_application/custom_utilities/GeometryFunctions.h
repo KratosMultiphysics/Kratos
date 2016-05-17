@@ -56,13 +56,14 @@ namespace Kratos {
         }
     }
 
-    static inline int sign(double a)
+    static inline int sign(const double a)
     {
-        int output;
+        return (0.0 < a) - (a < 0.0);
+        /*int output;
         if (a < 0.0) output = -1;
         else if (a > 0.0) output = 1;
         else output = 0;
-        return output;
+        return output;*/
     }
 
     static inline double min(double a, double b)
