@@ -11,6 +11,11 @@ from SmallTests import DynamicBossakTests as TDynamicBossakTests
 from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
 from SmallTests import SprismMembranePatchTests as TSprismMembranePatchTests
 from SmallTests import SprismBendingPatchTests as TSprismBendingPatchTests
+from SmallTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
+from SmallTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
+from SmallTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
+from SmallTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
+from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests 
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -32,6 +37,11 @@ def AssambleTestSuites():
     smallSuite.addTest(TDynamicNewmarkTests('test_Newmark'))
     smallSuite.addTest(TSprismMembranePatchTests('test_MembranePatch'))
     smallSuite.addTest(TSprismBendingPatchTests('test_BendingPatch'))
+    smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_ShellQ4ThickBendingRollUpTests'))
+    smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_ShellQ4ThickDrillingRollUpTests'))
+    smallSuite.addTest(TShellT3IsotropicScordelisTests('test_ShellT3IsotropicScordelisTests'))
+    smallSuite.addTest( TShellT3ThinBendingRollUpTests( 'test_ShellT3ThinBendingRollUpTests' ) )
+    smallSuite.addTest( TShellT3ThinDrillingRollUpTests( 'test_ShellT3ThinDrillingRollUpTests' ) )
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -44,7 +54,12 @@ def AssambleTestSuites():
             TDynamicBossakTests,
             TDynamicNewmarkTests,
             TSprismMembranePatchTests,
-            TSprismBendingPatchTests
+            TSprismBendingPatchTests,
+            TShellQ4ThickBendingRollUpTests,
+            TShellQ4ThickDrillingRollUpTests,
+            TShellT3IsotropicScordelisTests,
+            TShellT3ThinBendingRollUpTests,
+            TShellT3ThinDrillingRollUpTests
         ])
     )
 
