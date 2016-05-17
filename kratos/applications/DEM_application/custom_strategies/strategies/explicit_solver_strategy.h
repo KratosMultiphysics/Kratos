@@ -222,7 +222,6 @@ namespace Kratos {
         void InitializeSolutionStep();
         virtual void BoundingBoxUtility(bool is_time_to_mark_and_remove = true);
         virtual void FinalizeSolutionStep();
-        virtual void ComputeReactions();
         void InitializeElements();
         void InitializeDEMElements();
         void InitializeFEMElements();
