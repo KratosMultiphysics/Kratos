@@ -82,7 +82,7 @@
     </outputs>
   </ConditionItem>
   
-    <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process"
+  <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
@@ -90,6 +90,22 @@
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
       <item  GeometryType="Line" nodes="3" KratosName="LineLoadCondition2D3N"/>
+    </TopologyFeatures>
+    <inputs>
+    </inputs>
+    <outputs>
+      <parameter n="FORCE" pn="External Load" v="false"/>
+    </outputs>
+  </ConditionItem>
+
+  <ConditionItem n="LineLoad2DAxisym" pn="Load on lines axisymmetric" ImplementedInFile="apply_vector_on_conditions_process"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
+	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="AxisymLineLoadCondition2D2N"/>
+      <item  GeometryType="Line" nodes="3" KratosName="AxisymLineLoadCondition2D3N"/>
     </TopologyFeatures>
     <inputs>
     </inputs>
