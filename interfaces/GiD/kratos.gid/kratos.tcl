@@ -76,7 +76,7 @@ proc Kratos::InitGIDProject { dir } {
     variable kratos_private
     unset -nocomplain kratos_private
     set kratos_private(Path) $dir ;#to know where to find the files
-    set kratos_private(DevMode) "dev" ; #can be dev or release
+    set kratos_private(DevMode) "release" ; #can be dev or release
    
     array set kratos_private [ReadProblemtypeXml [file join $dir kratos.xml] Infoproblemtype {Name Version MinimumGiDVersion}]
     if { [GidUtils::VersionCmp $kratos_private(MinimumGiDVersion)] < 0 } {
