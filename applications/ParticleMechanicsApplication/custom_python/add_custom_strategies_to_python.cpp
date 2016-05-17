@@ -67,21 +67,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/residual_based_newton_raphson_strategy.hpp"
+#include "custom_strategies/strategies/residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/MPM_strategy.h"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergence_criteria/displacement_convergence_criterion.hpp"
+#include "custom_strategies/convergence_criteria/displacement_convergence_criterion.hpp"
 
 //schemes
-#include "custom_strategies/custom_schemes/residual_based_static_scheme.hpp"
+#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
 
 
 //builders and solvers
-#include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
+#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 //#include "structural_application.h"
