@@ -8,7 +8,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplicatio
 
 ## generate variables with the sources
 set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}//particle_mechanics_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/particle_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
