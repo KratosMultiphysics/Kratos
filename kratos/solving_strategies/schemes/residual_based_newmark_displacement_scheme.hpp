@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//	             Kratos default license: kratos/license.txt
+//  License:          BSD License
+//  Original author:  Josep Maria Carbonell
+//  comming from      SolidMechanicsApplication (see SolidMechanicsApplication/license.txt)
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Other authors:    Vicente Mataix Ferrándiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME )
