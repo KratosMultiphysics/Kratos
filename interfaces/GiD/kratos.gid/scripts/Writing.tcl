@@ -851,11 +851,11 @@ proc write::OpenFile { fn } {
     variable dir
     set filename [file join $dir $fn]
     catch {CloseFile}
-    write_calc_data init $filename
+    customlib::InitWriteFile $filename
 }
 
 proc write::CloseFile { } {
-    catch {write_calc_data end}
+    catch {customlib::EndWriteFile}
 }
 
 proc write::WriteString {str} {
