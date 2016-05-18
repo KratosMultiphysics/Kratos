@@ -84,7 +84,9 @@ class VertexMorphingMethod:
         opt_model_part.AddNodalSolutionStepVariable(NORMAL)
         opt_model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
         opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
+        opt_model_part.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
         opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY) 
+        opt_model_part.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
         opt_model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE_ABSOLUTE)
         opt_model_part.AddNodalSolutionStepVariable(IS_ON_BOUNDARY)
@@ -254,8 +256,8 @@ class VertexMorphingMethod:
             delta_f_relative = 0.0
             print("\n> Current value of objective function = ",response[only_F_id]["func"])
             if(opt_itr>1):
-                delta_f_absolute = 100* ( response[only_F_id]["func"]/initial_f - 1 )
-                delta_f_relative = 100*( response[only_F_id]["func"]/previous_f - 1 )
+                delta_f_absolute = 100*(response[only_F_id]["func"]-initial_f)/initial_f
+                delta_f_relative = 100*(response[only_F_id]["func"]-previous_f)/initial_f
                 print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
                 print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")            
 
@@ -356,6 +358,7 @@ class VertexMorphingMethod:
 
         # Miscellaneous working variables for data management
         initial_f = 0.0
+        initial_l = 0.0
         previous_l = 0.0         
 
         # Start primary optimization loop
@@ -427,8 +430,8 @@ class VertexMorphingMethod:
                 delta_l_relative = 0.0
                 print("\n> Current value of Lagrange function = ",round(l,12))
                 if(sub_opt_itr>1):
-                    delta_f_absolute = 100* ( response[only_F_id]["func"]/initial_f - 1 )
-                    delta_l_relative = 100*( l/previous_l - 1 )
+                    delta_f_absolute = 100*(response[only_F_id]["func"]-initial_f)/initial_f
+                    delta_l_relative = 100*(l-previous_l)/initial_l
                     print("\n> Relative change of Lagrange function = ",round(delta_l_relative,6)," [%]")
 
                 # We write every major and every suboptimization iteration in design history
@@ -477,6 +480,7 @@ class VertexMorphingMethod:
                 # Store initial objective value
                 if(opt_itr==1 and sub_opt_itr==1):
                     initial_f = response[only_F_id]["func"]
+                    initial_l = l
 
                 # Take time needed for current suboptimization step as well as for the overall opt so far
                 subopt_end_time = time.time()
@@ -613,8 +617,8 @@ class VertexMorphingMethod:
             delta_f_relative = 0.0
             print("\n> Current value of objective function = ",response[only_F_id]["func"])
             if(opt_itr>1):
-                delta_f_absolute = 100* ( response[only_F_id]["func"]/initial_f - 1 )
-                delta_f_relative = 100*( response[only_F_id]["func"]/previous_f - 1 )
+                delta_f_absolute = 100*(response[only_F_id]["func"]-initial_f)/initial_f
+                delta_f_relative = 100*(response[only_F_id]["func"]-previous_f)/initial_f
                 print("\n> Absolut change of objective function = ",round(delta_f_absolute,6)," [%]")
                 print("\n> Relative change of objective function = ",round(delta_f_relative,6)," [%]")           
                 print("\n> Current value of constraint function = ",round(response[only_C_id]["func"],12))
