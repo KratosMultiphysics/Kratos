@@ -57,15 +57,20 @@ def AddDofs(model_part, config=None):
 
 
 class MonolithicSolver:
+
+    def __setattr__(self, name, value):
+        if name == "periodic":
+            raise TypeError("'periodic' attribute no longer supported.")
+        else:
+            self.__dict__[name] = value
     
-    def __init__(self, model_part, domain_size, periodic=False):
+    def __init__(self, model_part, domain_size):
 
         self.model_part = model_part
         self.domain_size = domain_size
 
         self.alpha = -0.3
         self.move_mesh_strategy = 0
-        self.periodic = periodic
         
         # definition of the solvers
         try:
@@ -73,12 +78,6 @@ class MonolithicSolver:
             self.linear_solver = SuperLUIterativeSolver()
         except:
             self.linear_solver = SkylineLUFactorizationSolver()
-# self.linear_solver =SuperLUSolver()
-# self.linear_solver = MKLPardisoSolver()
-
-        # pPrecond = DiagonalPreconditioner()
-# pPrecond = ILU0Preconditioner()
-        # self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 
         # definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -101,7 +100,8 @@ class MonolithicSolver:
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
         self.use_slip_conditions = False
-
+        self.time_scheme = None
+        self.builder_and_solver = None
         self.turbulence_model = None
         self.use_spalart_allmaras = False
         self.use_des = False
@@ -140,28 +140,49 @@ class MonolithicSolver:
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
-# self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
-# self.rel_pres_tol,self.abs_pres_tol)
 
-        if self.turbulence_model is None:
-            if self.periodic == True:
-                self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
-                (self.alpha, self.move_mesh_strategy, self.domain_size, PATCH_INDEX)
+        # custom schemes should be defined in the calling python script
+        # before calling Initialize().
+        #
+        # Examples:
+        # fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+        #                             fluid_solver.alpha,
+        #                             fluid_solver.move_mesh_strategy,
+        #                             domain_size,
+        #                             PATCH_INDEX)
+        #
+        # fluid_solver.activate_spalart_allmaras()
+        # fluid_solver.time_scheme = ResidualBasedSimpleSteadyScheme(
+        #                             0.1, 0.1,
+        #                             domain_size,
+        #                             fluid_solver.turbulence_model)
+        #
+        # a scheme_factory may be added in the future to parse configuration
+        # parameters set with a GiD problem type. below is the default scheme.
+        if self.time_scheme is None:
+            if self.turbulence_model is None:
+                self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.alpha,
+                                                                                                self.move_mesh_strategy,
+                                                                                                self.domain_size)
             else:
-                self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
-                (self.alpha, self.move_mesh_strategy, self.domain_size)
-        else:
-            self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
-                (self.alpha, self.move_mesh_strategy, self.domain_size, self.turbulence_model)
+                self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.alpha,
+                                                                                                self.move_mesh_strategy,
+                                                                                                self.domain_size,
+                                                                                                self.turbulence_model)
                 
-        if self.periodic == True:
-            builder_and_solver = ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver, PATCH_INDEX) 
-        else:
-            builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        # custom builder and solvers should be defined before calling
+        # Initialize().
+        #
+        # Example:
+        # fluid_solver.builder_and_solver = ResidualBasedBlockBuilderAndSolverPeriodic(
+        #                                    fluid_solver.linear_solver,
+        #                                    PATCH_INDEX)
+        if self.builder_and_solver is None:
+            self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         
         self.solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
-            builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
+            self.builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
         self.solver.Check()
 
@@ -270,7 +291,7 @@ class MonolithicSolver:
         self.neighbour_search.Execute()
 
         non_linear_tol = 0.001
-        max_it = 5 #10
+        max_it = 50 #10
         reform_dofset = self.ReformDofSetAtEachStep
         time_order = 2
 
@@ -293,7 +314,7 @@ class MonolithicSolver:
                     max_iter,
                     verbosity,
                     gmres_size)
-            self.spalart_allmaras_linear_solver =  ScalingSolver(linear_solver, True)
+            #self.spalart_allmaras_linear_solver =  ScalingSolver(linear_solver, True)
             
             #self.spalart_allmaras_linear_solver = kes.SuperLUSolver()
             self.spalart_allmaras_linear_solver = kes.PastixSolver(0,False)
@@ -309,11 +330,10 @@ class MonolithicSolver:
         if self.use_des:
             self.turbulence_model.ActivateDES(self.Cdes)
 
-
 #
 #
-def CreateSolver(model_part, config, periodic=False):
-    fluid_solver = MonolithicSolver(model_part, config.domain_size, periodic)
+def CreateSolver(model_part, config):
+    fluid_solver = MonolithicSolver(model_part, config.domain_size)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha
