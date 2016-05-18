@@ -26,13 +26,13 @@
 #include <amgcl/runtime.hpp>
 #include <amgcl/relaxation/runtime.hpp>
 #include <amgcl/relaxation/as_preconditioner.hpp>
-#include <amgcl/preconditioner/schur_complement.hpp>
+#include <amgcl/preconditioner/schur_pressure_correction.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
 #include <amgcl/relaxation/spai0.hpp>
 #include <amgcl/solver/gmres.hpp>
-#include <amgcl/preconditioner/simple.hpp>
+#include <amgcl/preconditioner/schur_pressure_correction.hpp>
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>

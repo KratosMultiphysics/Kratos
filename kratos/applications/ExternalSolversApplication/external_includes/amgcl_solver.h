@@ -13,6 +13,16 @@
 #if !defined(KRATOS_AMGCL_SOLVER )
 #define  KRATOS_AMGCL_SOLVER
 
+// #ifndef AMGCL_PARAM_MISSING
+// #define AMGCL_PARAM_MISSING(name) std::cout << "unset AMGCL parameter with name " << name <<std::endl;
+// #endif
+// KRATOS_THROW_ERROR(std::logic_error, , #name)
+// Unknown parameter action
+#ifndef AMGCL_PARAM_UNKNOWN
+#  define AMGCL_PARAM_UNKNOWN(name)                                            \
+      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+#endif
+
 // External includes
 #include "boost/smart_ptr.hpp"
 #include <iostream>
@@ -37,7 +47,7 @@
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
-
+#include <boost/property_tree/json_parser.hpp>
 
 namespace Kratos
 {
@@ -79,7 +89,7 @@ public:
 
     AMGCLSolver(Parameters rParameters)
     {
-#if __cplusplus >= 201103L
+
         Parameters default_parameters( R"(
                                    {
                                        "solver_type" : "AMGCL",
@@ -92,6 +102,7 @@ public:
                                        "verbosity" : 1,
                                        "tolerance": 1e-6,
                                        "scaling": false,
+                                       "block_size": 1,
                                        "use_block_matrices_if_possible" : true,
                                        "coarse_enough" : 5000
                                    }  )" );
@@ -99,7 +110,6 @@ public:
 
         //now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-#endif
 
         //validate if values are admissible
 //         std::set<std::string> available_smoothers = {"spai0","ilu0","damped_jacobi","gauss_seidel","chebyshev"};
@@ -148,7 +158,7 @@ public:
         mprovide_coordinates = rParameters["provide_coordinates"].GetBool();
         mcoarse_enough = rParameters["coarse_enough"].GetInt();
 
-
+        mndof = rParameters["block_size"].GetInt(); //set the mndof to an inital number
         mTol = rParameters["tolerance"].GetDouble();
         mmax_it = rParameters["max_iteration"].GetInt();
         mverbosity=rParameters["verbosity"].GetInt();
@@ -164,11 +174,11 @@ public:
             mfallback_to_gmres = false;
             mprm.put("solver.type", rParameters["krylov_type"].GetString());
         }
-        mprm.put("precond.relaxation.type", rParameters["smoother_type"].GetString());
+        mprm.put("precond.relax.type", rParameters["smoother_type"].GetString());
         mprm.put("precond.coarsening.type",  rParameters["coarsening_type"].GetString());
 
         muse_block_matrices_if_possible = rParameters["use_block_matrices_if_possible"].GetBool();
-        mndof = 1; //this will be computed automatically later on
+
         mprm.put("solver.M",  mgmres_size);
 
         if(mprovide_coordinates==true && muse_block_matrices_if_possible==true)
@@ -214,31 +224,31 @@ public:
         {
         case SPAI0:
         {
-            mprm.put("precond.relaxation.type","spai0");
+            mprm.put("precond.relax.type","spai0");
             mrelaxation = amgcl::runtime::relaxation::spai0;
             break;
         }
         case ILU0:
         {
-            mprm.put("precond.relaxation.type","ilu0");
+            mprm.put("precond.relax.type","ilu0");
             mrelaxation = amgcl::runtime::relaxation::ilu0;
             break;
         }
         case DAMPED_JACOBI:
         {
-            mprm.put("precond.relaxation.type","damped_jacobi");
+            mprm.put("precond.relax.type","damped_jacobi");
             mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
             break;
         }
         case GAUSS_SEIDEL:
         {
-            mprm.put("precond.relaxation.type","gauss_seidel");
+            mprm.put("precond.relax.type","gauss_seidel");
             mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
             break;
         }
         case CHEBYSHEV:
         {
-            mprm.put("precond.relaxation.type","chebyshev");
+            mprm.put("precond.relax.type","chebyshev");
             mrelaxation = amgcl::runtime::relaxation::chebyshev;
             break;
         }
@@ -317,31 +327,31 @@ public:
         {
         case SPAI0:
         {
-            mprm.put("precond.relaxation.type","spai0");
+            mprm.put("precond.relax.type","spai0");
             mrelaxation = amgcl::runtime::relaxation::spai0;
             break;
         }
         case ILU0:
         {
-            mprm.put("precond.relaxation.type","ilu0");
+            mprm.put("precond.relax.type","ilu0");
             mrelaxation = amgcl::runtime::relaxation::ilu0;
             break;
         }
         case DAMPED_JACOBI:
         {
-            mprm.put("precond.relaxation.type","damped_jacobi");
+            mprm.put("precond.relax.type","damped_jacobi");
             mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
             break;
         }
         case GAUSS_SEIDEL:
         {
-            mprm.put("precond.relaxation.type","gauss_seidel");
+            mprm.put("precond.relax.type","gauss_seidel");
             mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
             break;
         }
         case CHEBYSHEV:
         {
-            mprm.put("precond.relaxation.type","chebyshev");
+            mprm.put("precond.relax.type","chebyshev");
             mrelaxation = amgcl::runtime::relaxation::chebyshev;
             break;
         }
@@ -420,6 +430,7 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         //set block size
+        KRATOS_WATCH(mndof)
 //         mprm.put("precond.coarse_enough",500);
         mprm.put("precond.coarsening.aggr.eps_strong",0.0);
         mprm.put("precond.coarsening.aggr.block_size",mndof);
@@ -478,7 +489,10 @@ public:
             mprm.put("precond.coarsening.nullspace.rows", B.size1());
             mprm.put("precond.coarsening.nullspace.B",    &(B.data()[0]));
         }
-
+        
+        if(mverbosity > 1)
+            write_json(std::cout, mprm);
+        
         size_t iters;
         double resid;
         {
