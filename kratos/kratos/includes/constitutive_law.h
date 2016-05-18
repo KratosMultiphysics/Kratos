@@ -14,15 +14,6 @@
 //
 
 
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_CONSTITUTIVE_LAW )
 #define  KRATOS_CONSTITUTIVE_LAW
 
