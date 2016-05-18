@@ -290,27 +290,10 @@ namespace Kratos {
                 
                 array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
 
-                if (if_trihedron_option && !i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) {
+                if (if_trihedron_option && i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                     array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-
-                    Quaternion<double> Orientation = Quaternion<double>::Identity();
-                        
-                    array_1d<double, 3 > theta = rotated_angle;
-                    DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
-
-                    double thetaMag = DEM_MODULUS_3(theta);
-					const double epsilon = std::numeric_limits<double>::epsilon();
-					if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
-                        double aux = (1 - thetaMag * thetaMag / 6);
-                        Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                    }
-                    else {
-                        double aux = sin(thetaMag)/thetaMag;
-                        Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                    }
-                    Orientation.normalize();
-                    Orientation.ToEulerAngles(EulerAngles);
-                }// if_trihedron_option && BELONGS_TO_A_CLUSTER
+                    GeometryFunctions::UpdateOrientation(EulerAngles, rotated_angle);
+                } // if_trihedron_option && Not BELONGS_TO_A_CLUSTER
             }//for Node      
         } //ComputeEulerAngles
         
