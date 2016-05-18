@@ -36,6 +36,7 @@
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 
 namespace Kratos
@@ -174,15 +175,18 @@ public:
         amgcl::runtime::amg<Backend>,
               amgcl::runtime::iterative_solver<Backend>
               > PSolver;
+              
+        if(mverbosity > 1)
+            write_json(std::cout, mprm);
 
 //         size_t n = rA.size1();
 
         amgcl::make_solver<
-        amgcl::preconditioner::schur_complement<USolver, PSolver>,
+        amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
               amgcl::runtime::iterative_solver<Backend>
               > solve(amgcl::adapter::zero_copy(rA.size1(), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), mprm);
 //         amgcl::make_solver<
-//             amgcl::preconditioner::schur_complement<USolver, PSolver>,
+//             amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
 //             amgcl::runtime::iterative_solver<Backend>
 //             > solve(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() ), mprm);
 
