@@ -74,6 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fs_strategy.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/strategies/residualbased_simple_steady_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/strategies/gear_scheme.h"
 
@@ -126,6 +127,17 @@ void  AddCustomStrategiesToPython()
             .def(init<double,double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
             .def(init<double,double,unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
             ;
+
+    typedef ResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType > ResidualBasedSimpleSteadySchemeType;
+    class_< ResidualBasedSimpleSteadySchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+        ("ResidualBasedSimpleSteadyScheme",init<double,double,unsigned int,Process::Pointer >() )
+        .def(init<double,double,unsigned int >())// constructor without a turbulence model
+        .def("GetVelocityRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::GetVelocityRelaxationFactor)
+        .def("SetVelocityRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::SetVelocityRelaxationFactor)
+        .def("GetPressureRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::GetPressureRelaxationFactor)
+        .def("SetPressureRelaxationFactor",&ResidualBasedSimpleSteadySchemeType::SetPressureRelaxationFactor)
+        ;
 
 
     class_< ResidualBasedPredictorCorrectorBDFSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
