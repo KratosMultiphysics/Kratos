@@ -62,21 +62,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "add_custom_io_to_python.h"
 
+//#include "custom_utilities/model_part_io_conn_preserver.h"
+
 namespace Kratos
 {
 
-namespace Python
-{
+	namespace Python
+	{
 
 
-void  AddCustomIOToPython()
-{
-    using namespace boost::python;
+		void  AddCustomIOToPython()
+		{
+			using namespace boost::python;
 
-}
+			/*class_<ModelPartIOConnPreserver, ModelPartIOConnPreserver::Pointer, bases<ModelPartIO>, boost::noncopyable>(
+				"ModelPartIOConnPreserver", init<std::string const&, ModelPart&>())
+				.def(init<std::string const&, ModelPart&, const Flags>())
+				;*/
+		}
 
 
-}
+	}
 
 }
 

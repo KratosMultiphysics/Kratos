@@ -7,7 +7,7 @@
 //
 
 #include "eas_quad_element_v2.hpp"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 #include <string>
 #include <iomanip>

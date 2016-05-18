@@ -7,7 +7,7 @@
 //
 
 #include "opt_triangle_element.hpp"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 
 #include "geometries/triangle_2d_3.h"
 

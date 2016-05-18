@@ -473,6 +473,7 @@ protected:
 	void InitializeCalculationData(const Properties& props, 
 								   const GeometryType& geom,
 								   const Vector& strainVector,
+								   const ProcessInfo& rCurrentProcessInfo,
 								   CalculationData& data);
 
 	virtual void CalculateContactConductivity(CalculationData& data);

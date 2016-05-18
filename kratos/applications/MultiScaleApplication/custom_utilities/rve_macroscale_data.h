@@ -64,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "rve_geometry_descriptor.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 
 namespace Kratos
 {

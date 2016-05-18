@@ -95,10 +95,12 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 	// here we clone nodes.
 	// we also clone dofs / reactions / fix/free / etc...
 	if(clone.NodesArray().size() > 0) clone.NodesArray().clear();
-	for(ModelPart::NodeConstantIterator node_iter = source.NodesBegin(); node_iter != source.NodesEnd(); ++node_iter) 
+	for (ModelPart::NodeConstantIterator node_iter = source.NodesBegin(); node_iter != source.NodesEnd(); ++node_iter)
 	{
 		NodeType& source_node = *node_iter;
-		NodeType clone_node;
+
+		NodeType::Pointer p_clone_node = boost::make_shared<NodeType>();
+		NodeType& clone_node = *p_clone_node;
 
 		clone_node.SetSolutionStepVariablesList(&clone.GetNodalSolutionStepVariablesList());
 		clone_node.SetBufferSize(clone.GetBufferSize());
@@ -109,19 +111,19 @@ void CloneModelPart(ModelPart& source, ModelPart& clone)
 		clone_node.X0() = source_node.X0();
 		clone_node.Y0() = source_node.Y0();
 		clone_node.Z0() = source_node.Z0();
-		
+
 		DofsContainerType& source_dof_container = source_node.GetDofs();
 		DofsContainerType& clone_dof_container = clone_node.GetDofs();
 
-//		NodeType::SolutionStepsNodalDataContainerType& clone_node_data_container = clone_node.SolutionStepData();
+		//		NodeType::SolutionStepsNodalDataContainerType& clone_node_data_container = clone_node.SolutionStepData();
 
-		for(DofsContainerType::iterator dof_iter = source_dof_container.begin(); dof_iter != source_dof_container.end(); ++dof_iter)
+		for (DofsContainerType::iterator dof_iter = source_dof_container.begin(); dof_iter != source_dof_container.end(); ++dof_iter)
 		{
 			NodeType::DofType& idof = *dof_iter;
-			clone_dof_container.insert( clone_dof_container.begin(), NodeType::DofType(idof) );
+			clone_dof_container.insert(clone_dof_container.begin(), boost::make_shared<NodeType::DofType>(idof));
 		}
 
-		clone.Nodes().push_back(clone_node);
+		clone.Nodes().push_back(p_clone_node);
 	}
 
 	// copy elements

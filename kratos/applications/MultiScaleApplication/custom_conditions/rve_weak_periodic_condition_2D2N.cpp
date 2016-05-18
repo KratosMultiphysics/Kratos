@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rve_weak_periodic_condition_2D2N.h"
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 
 namespace Kratos

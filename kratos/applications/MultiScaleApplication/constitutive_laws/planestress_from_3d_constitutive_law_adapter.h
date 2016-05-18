@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* External includes */
 
 /* Project includes */
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "constitutive_law_adapter.h"
 
 #define CHECK_STRAIN_CALCULATION \

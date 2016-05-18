@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #include "j2_constitutive_law_3d.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 
 namespace Kratos
 {

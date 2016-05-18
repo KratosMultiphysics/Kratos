@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 #include "utilities/timer.h"
 
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "rve_adapter_settings.h"
 #include "math_helpers.h"
 #include "time_line.h"
@@ -114,10 +114,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "krylov_subspace_accelerator_eigenlib_utilities.h"
 #endif // RVE_V2_USES_KRYLOV_NEWTON
 
+#define DAM_TC_OPTIMIZE_LCH
 
 namespace Kratos
 {
 
+#define check_sign( x ) (x == 0.0 ? 0 : (x > 0.0 ? 1 : -1) )
 
 	inline double rve_det_acoustic_tensor_2d(const Matrix& C, double a)
 	{
@@ -396,8 +398,8 @@ public:
 		mpScheme              = pNewScheme;
 		mpConvergenceCriteria = pNewConvergenceCriteria;
 
-		mRveGenerated = false;
-		mRveGenerationRequested = false;
+		mRveGenerated = true;
+		mRveGenerationRequested = true;
 		//std::cout << "SetRveData - mInitialized = " << mInitialized << std::endl;
 
 		if(mInitialized)
@@ -604,6 +606,7 @@ public:
 		else if (rThisVariable == EQUIVALENT_DAMAGE)
 		{
 			rValue = mEquivalentDamage;
+			//std::cout << "rValue: " << rValue << std::endl;
 		}
 		else if (rThisVariable == RVE_NON_LINEAR_FLAG)
 		{
@@ -844,6 +847,8 @@ public:
 			SizeType strain_size = GetStrainSize();
 			mFirstStepDone = false;
 			mStressVector = ZeroVector(strain_size);
+			mStressVectorOld = ZeroVector(strain_size);
+			mTauMax = ZeroVector(strain_size);
 			mStrainVectorOld = ZeroVector(strain_size);
 			mStrainVectorOld_trial = ZeroVector(strain_size);
 			mConstitutiveTensor = ZeroMatrix(strain_size,strain_size);
@@ -949,6 +954,7 @@ public:
 
 			mFirstStepDone = true;
 			mStrainVectorOld = mStrainVectorOld_trial;
+			mStressVectorOld = mStressVector;
 
 			mRveNonLinearFlag_converged = mRveNonLinearFlag;
 			mEquivalentDamage_converged = mEquivalentDamage;
@@ -1343,12 +1349,20 @@ protected:
 		//std::cout << "mRveGenerated: " << mRveGenerated << std::endl;
 		if (!mRveGenerated)
 		{
-			tangent_matrix.clear();
 			//std::cout << "Start Prediction <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-			if (this->PredictorCalculation(rValues, stress_vector, tangent_matrix)) {
+			//std::cout << "stress_vector bbbbbbbbbbbbbbbbb: " << stress_vector << std::endl;
+			bool checkElasticity = this->PredictorCalculation(rValues, rValues.GetStrainVector(), stress_vector, tangent_matrix);
+			noalias(mStressVector) = stress_vector;
+			//std::cout << "mStressVector aaaaaaaaaaaaaaaaaaa: " << mStressVector << std::endl;
+			//noalias(mConstitutiveTensor) = tangent_matrix;
+			//mStrainVectorOld_trial = rValues.GetStrainVector();
+			
+			//return;
+
+			if (checkElasticity) {
 
 				//noalias(mStressVector) = stress_vector;
-				//std::cout << "--------  mStressVector = " << mStressVector << std::endl;
+				//std::cout << "--------  mStrainVector = " << rValues.GetStrainVector() << std::endl;
 				mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
 				//std::cout << "--------  tangent_matrix = " << tangent_matrix << std::endl;
 				noalias(stress_vector) = prod(tangent_matrix, rValues.GetStrainVector());
@@ -1358,7 +1372,6 @@ protected:
 				//std::cout << "Begin if(compute_constitutive_tensor)\n";
 				if (compute_constitutive_tensor)
 				{
-					//noalias(mConstitutiveTensor) = mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
 					noalias(mConstitutiveTensor) = mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
 					//std::cout << "--------  mConstitutiveTensor = " << mConstitutiveTensor << std::endl;
 
@@ -1380,67 +1393,83 @@ protected:
 			}
 			else
 			{
-				noalias(mStressVector) = stress_vector;
-				//std::cout << "mStressVector WITH DAMAGE: " << mStressVector << std::endl;
-				noalias(mConstitutiveTensor) = tangent_matrix;
+				//std::cout << "**************************************************************" << std::endl;
+				//std::cout << "					START PERTURBATION							" << std::endl;
+				//std::cout << "**************************************************************" << std::endl;
 				tangent_matrix.clear();
 				Matrix aux_matrix(strain_size, strain_size, 0.0);
 				double aux_damage = 0.0;
 				double aux_damage2 = 0.0;
-				//if (compute_constitutive_tensor)
-				//{
-					// perturbation parameter
-					double h = 1.0E-8;
+				// perturbation parameter
+				double h = 0.0;
 				
-					// perturbed vectors
-					Vector strain_bar(strain_size);
-					Vector S1(strain_size);
-					Vector S2(strain_size);
-					// apply perturbation to each strain component...
-					for (size_t j = 0; j < strain_size; j++)
-					{
-						h = std::max(1.0e-6, 1.0e-4*std::abs(mStrainVectorOld_trial(j)));
+				// perturbed vectors
+				Vector strain_bar(strain_size);
+				Vector S1(strain_size);
+				double lch = mMacroCharacteristicLength;
+				Vector S2(strain_size);
+				// apply perturbation to each strain component...
+				for (size_t j = 0; j < strain_size; j++)
+				{
+					h = std::max(1.0e-6, 1.0e-5*std::abs(mStrainVectorOld_trial(j)));
 				
-						noalias(strain_bar) = mStrainVectorOld_trial;
+					noalias(strain_bar) = mStrainVectorOld_trial;
 				
-						strain_bar(j) = mStrainVectorOld_trial(j) - h;
-						if (strain_size == 3 && ndim == 2)
-							mpPredictorCalculator->PredictStress2D(strain_bar, S1, aux_matrix, aux_damage, aux_damage2);
-						else if (strain_size == 6 && ndim == 3)
-							mpPredictorCalculator->PredictStress3D(strain_bar, S1, aux_matrix, aux_damage, aux_damage2);
-
-						strain_bar(j) = mStrainVectorOld_trial(j) + h;
-						if (strain_size == 3 && ndim == 2)
-							mpPredictorCalculator->PredictStress2D(strain_bar, S2, aux_matrix, aux_damage, aux_damage2);
-						else if (strain_size == 6 && ndim == 3)
-							mpPredictorCalculator->PredictStress3D(strain_bar, S2, aux_matrix, aux_damage, aux_damage2);
+					strain_bar(j) = mStrainVectorOld_trial(j) - h;
+					if (strain_size == 3 && ndim == 2)
+						mpPredictorCalculator->PredictStress2D(strain_bar, S1, lch, aux_matrix, aux_damage, aux_damage2);
+					else if (strain_size == 6 && ndim == 3)
+						mpPredictorCalculator->PredictStress3D(strain_bar, S1, aux_matrix, aux_damage, aux_damage2);
 				
-						for (size_t i = 0; i < strain_size; i++)
-							tangent_matrix(i, j) = (S2(i) - S1(i)) / (2.0*h);
-					}
-					noalias(mConstitutiveTensor) = tangent_matrix;
-					//std::cout << "--------  mConstitutiveTensor = " << mConstitutiveTensor << std::endl;
-				//}
-				//std::cout << "--------  mConstitutiveTensor WITH DAMAGE = " << mConstitutiveTensor << std::endl;
-				mPredictStressVector = stress_vector;
-				//mpPredictorCalculator->GetTangentMatrix(mConstitutiveTensor);
-				//noalias(mStressVector) = prod(mConstitutiveTensor, rValues.GetStrainVector());
+					strain_bar(j) = mStrainVectorOld_trial(j) + h;
+					if (strain_size == 3 && ndim == 2)
+						mpPredictorCalculator->PredictStress2D(strain_bar, S2, lch, aux_matrix, aux_damage, aux_damage2);
+					else if (strain_size == 6 && ndim == 3)
+						mpPredictorCalculator->PredictStress3D(strain_bar, S2, aux_matrix, aux_damage, aux_damage2);
 				
-				//noalias(mStressVector) = stress_vector;
+					for (size_t i = 0; i < strain_size; i++)
+						tangent_matrix(i, j) = (S2(i) - S1(i)) / (2.0*h);
+				}
+				//std::cout << "**************************************************************" << std::endl;
+				//std::cout << "					END PERTURBATION							" << std::endl;
+				//std::cout << "**************************************************************" << std::endl;
 				//noalias(mConstitutiveTensor) = tangent_matrix;
-				//std::cout << "--------  mStressVector = " << mStressVector << std::endl;
+				//noalias(mConstitutiveTensor) = mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
 				//std::cout << "--------  mConstitutiveTensor = " << mConstitutiveTensor << std::endl;
-				//std::cout << "--------  mEquivalentDamage = " << mEquivalentDamage << std::endl;
-
-
-				//tangent_matrix.clear();
-				//mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
-				////std::cout << "--------  tangent_matrix = " << tangent_matrix << std::endl;
-				//noalias(stress_vector) = prod(tangent_matrix, rValues.GetStrainVector());
+				mPredictStressVector = prod(mConstitutiveTensor, rValues.GetStrainVector());
 				//noalias(mStressVector) = stress_vector;
-				////std::cout << "mStressVector ELASTIC: " << mStressVector << std::endl;
-				mStrainVectorOld_trial = rValues.GetStrainVector();
+				//std::cout << "mStressVector FINAL NON LINEAR: " << mStressVector << std::endl;
 
+
+				//int calc_damage_surf_flag = rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_FLAG];
+				int calc_damage_surf_flag = rValues.GetProcessInfo().Has(RVE_DAMAGE_SURFACE_FLAG) ? rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_FLAG] : 0;
+				//std::cout << "calc_damage_surf_flag :" << calc_damage_surf_flag << std::endl;
+
+				if (calc_damage_surf_flag == 1)
+				{
+					//std::cout << "mStrainVectorOld = " << mStrainVectorOld << ", " << std::endl;
+					//std::cout << "mStrainVectorOld_trial = " << mStrainVectorOld_trial << ", " << std::endl;
+					//std::cout << ss.str();
+					if ((strain_size == 3 && ndim == 2) || (strain_size == 6 && ndim == 3))
+					{
+						double damage_surf_limit = rValues.GetProcessInfo().Has(RVE_DAMAGE_SURFACE_LIMIT) ? rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_LIMIT] : 10.0;
+						std::cout << "damage_surf_limit :" << damage_surf_limit << std::endl;
+
+						mpPredictorCalculator->GetTangentMatrix(tangent_matrix);
+						mC0 = tangent_matrix;
+						bool damaged = this->CheckEquivalentDamage(rValues, mStressVector, damage_surf_limit);
+						std::cout << "damaged = " << damaged << ", " << std::endl;
+						if (damaged)
+						{
+							std::cout << "IsDamaged <<<<<<<<<<<<<<<<<<<<<<<<\n";
+							mIntegrationErrorCode = -1.0;
+							mStrainVectorOld_trial = rValues.GetStrainVector();
+							return;
+						}
+					}
+				}
+				mStrainVectorOld_trial = rValues.GetStrainVector();
+				//std::cout << "EquivalentDamage: " << mEquivalentDamage << std::endl;
 				return;
 			}
 		}
@@ -1549,16 +1578,6 @@ protected:
 		}
 		mHomoCTE = macrodata.homogen_alpha();
 		
-		//bool IsElastic = false;
-		//mPredictStressVector = ZeroVector(strain_size);
-		//mpPredictorCalculator->PredictStress(rValues.GetStrainVector(), IsElastic, mPredictStressVector);
-		//std::cout << "mPredictStressVector :" << mPredictStressVector << std::endl;
-		//// Calculate equivalent damage
-		//Vector elastic_stress = prod(tangent_matrix, rValues.GetStrainVector());
-		//double norm_elastic_stress = norm_2(elastic_stress);
-		//double norm_stress_difference = norm_2(elastic_stress - mPredictStressVector);
-		//mEquivalentDamage = norm_stress_difference / norm_elastic_stress;
-
 #ifdef RVE_TIMER_ON
 		timer.stop();
 		double t_04 = timer.value();  
@@ -1601,7 +1620,7 @@ protected:
 				double damage_surf_limit = rValues.GetProcessInfo().Has(RVE_DAMAGE_SURFACE_LIMIT) ? rValues.GetProcessInfo()[RVE_DAMAGE_SURFACE_LIMIT] : 10.0;
 				std::cout << "damage_surf_limit :" << damage_surf_limit << std::endl;
 
-				bool damaged = this->CheckEquivalentDamage(rValues, damage_surf_limit);
+				bool damaged = this->CheckEquivalentDamage(rValues, stress_vector, damage_surf_limit);
 				std::cout << "damaged = " << damaged << ", " << std::endl;
 				if (damaged)
 				{
@@ -1652,11 +1671,10 @@ protected:
 	* Returns true if the RVE has been reached the limit,
 	* False otherwise
 	*/
-	virtual bool CheckEquivalentDamage(ConstitutiveLaw::Parameters& rValues, double& damage_surf_limit)
+	virtual bool CheckEquivalentDamage(ConstitutiveLaw::Parameters& rValues, Vector& stress_vector, double& damage_surf_limit)
 	{
 		// Initialize parameters
 		Vector& strain_vector = rValues.GetStrainVector();
-		Vector& stress_vector = rValues.GetStressVector();
 		SizeType strain_size = GetStrainSize();
 		if (stress_vector.size() != strain_size)
 			stress_vector.resize(strain_size, false);
@@ -1674,8 +1692,8 @@ protected:
 		else
 			mEquivalentDamage = norm_stress_difference / norm_elastic_stress;
 
-		if (norm_stress_difference <= 0.0)
-			mEquivalentDamage = 1.0;
+		//if (norm_stress_difference <= 0.0)
+		//	mEquivalentDamage = 1.0;
 
 		std::cout << "mC0 = " << mC0 << ", " << std::endl;
 		std::cout << "equivalent_damage = " << mEquivalentDamage << ", " << std::endl;
@@ -1749,7 +1767,7 @@ protected:
 	* @param rValues material parameters
 	* @return true, if this RveAdapterV2 succesfully performed the calculations without the micro-model, false otherwise.
 	*/
-	virtual bool PredictorCalculation(ConstitutiveLaw::Parameters& rValues, Vector& stress_vector, Matrix& const_tangent)
+	virtual bool PredictorCalculation(ConstitutiveLaw::Parameters& rValues, Vector& strain_vector, Vector& stress_vector, Matrix& const_tangent)
 	{
 		//std::cout << "IN - PredictorCalculation\n";
 		mIntegrationErrorCode = 0;
@@ -1759,64 +1777,78 @@ protected:
 		mEquivalentDamage = mEquivalentDamage_converged;
 		SizeType ndim = WorkingSpaceDimension();
 		SizeType strain_size = GetStrainSize();
-		Vector StrainVector = rValues.GetStrainVector();
-		//std::cout << "StrainVector: " << StrainVector << std::endl;
+		//std::cout << "strain_vector: " << strain_vector << std::endl;
 
-		//std::cout << "stress_vector: " << stress_vector << std::endl;
-		mpPredictorCalculator->PredictElasticity(StrainVector, IsElastic, stress_vector);
-
-		if (!IsElastic)
+		if ((strain_size == 3 && ndim == 2) || (strain_size == 6 && ndim == 3))
 		{
-			int full_prediction_flag = rValues.GetProcessInfo().Has(RVE_PREDICTION_FLAG) ? rValues.GetProcessInfo()[RVE_PREDICTION_FLAG] : 0;
-			//std::cout << "Prediction -> Non-Linear - mRveNonLinearFlag = 1.0\n";
-			if (full_prediction_flag == 1)
+			//std::cout << "stress_vector: " << stress_vector << std::endl;
+			mpPredictorCalculator->PredictElasticity(strain_vector, IsElastic, stress_vector);
+
+			if (!IsElastic)
 			{
-				//std::cout << "StrainVector: " << StrainVector << std::endl;
-				if (strain_size == 3 && ndim == 2)
+				int full_prediction_flag = rValues.GetProcessInfo().Has(RVE_PREDICTION_FLAG) ? rValues.GetProcessInfo()[RVE_PREDICTION_FLAG] : 0;
+				//std::cout << "Prediction -> Non-Linear - mRveNonLinearFlag = 1.0\n";
+				if (full_prediction_flag == 1)
 				{
-					mpPredictorCalculator->PredictStress2D(StrainVector, stress_vector, const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
-
-					mRveNonLinearFlag = 0.0;
-					mRveGenerationRequested = false;
-					return false;
+					//std::cout << "FULL Prediction -> Non-Linear - mRveNonLinearFlag = 1.0\n";
+					//std::cout << "strain_vector: " << strain_vector << std::endl;
+					if (strain_size == 3 && ndim == 2)
+					{
+						mpPredictorCalculator->PredictStress2D(strain_vector, stress_vector, mMacroCharacteristicLength , const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
+						
+						mRveNonLinearFlag = 0.0;
+						mRveGenerationRequested = false;
+						return false;
+					}
+					else if (strain_size == 6 && ndim == 3)
+					{
+						mpPredictorCalculator->PredictStress3D(strain_vector, stress_vector, const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
+						//std::cout << "stress_vector predicted22222: " << stress_vector << std::endl;
+						mRveNonLinearFlag = 0.0;
+						mRveGenerationRequested = false;
+						return false;
+					}
+					else //THERMAL CASE
+					{
+						//std::cout << "stress_vector predicted33333: " << stress_vector << std::endl;
+						mRveNonLinearFlag = 0.0;
+						mRveGenerationRequested = false;
+						return true;
+					}
 				}
-				else if (strain_size == 6 && ndim == 3)
+				else
 				{
-					mpPredictorCalculator->PredictStress3D(StrainVector, stress_vector, const_tangent, mEquivalentDamage, mEquivalentDamage_converged);
-
-					mRveNonLinearFlag = 0.0;
-					mRveGenerationRequested = false;
-					return false;
-				}
-				else //THERMAL CASE
-				{
-
-					mRveNonLinearFlag = 0.0;
-					mRveGenerationRequested = false;
+					//std::cout << "Generation -> Non-Linear - mRveNonLinearFlag = 1.0\n";
+					mRveNonLinearFlag = 1.0;
+					mRveGenerationRequested = true;
+					mIntegrationErrorCode = -1;
 					return true;
 				}
+
+#ifdef RVE_PREDICTOR_INFO
+				std::cout << "Prediction -> Non-Linear - The Rve will be be generated\n";
+#endif // RVE_PREDICTOR_INFO
 			}
 			else
 			{
-				mRveNonLinearFlag = 1.0;
-				mRveGenerationRequested = true;
-				mIntegrationErrorCode = -1;
-				return true;
-			}
+				//std::cout << "stress_vector predicted44444: " << stress_vector << std::endl;
+				mRveNonLinearFlag = 0.0;
+				mRveGenerationRequested = false;
 
 #ifdef RVE_PREDICTOR_INFO
-			std::cout << "Prediction -> Non-Linear - The Rve will be be generated\n";
+				//std::cout << "Prediction -> Linear - The Macro Scale do not needs the Rve\n";
 #endif // RVE_PREDICTOR_INFO
+				return true;
+			}
 		}
 		else
 		{
-			mRveNonLinearFlag = 0.0;
-			mRveGenerationRequested = false;
-
+			mRveNonLinearFlag = 1.0;
+			mRveGenerationRequested = true;
 #ifdef RVE_PREDICTOR_INFO
-			//std::cout << "Prediction -> Linear - The Macro Scale do not needs the Rve\n";
+			std::cout << "Prediction -> Thermal - The Rve will be be generated\n";
 #endif // RVE_PREDICTOR_INFO
-			return true;
+			return false;
 		}
 	}
 
@@ -2211,6 +2243,8 @@ protected:
 	Vector mStrainVectorOld;
 	Vector mStrainVectorOld_trial;
 	Vector mStressVector;
+	Vector mStressVectorOld;
+	Vector mTauMax;
 	Matrix mConstitutiveTensor;
 	Matrix mInvConstitutiveTensor;
 	Vector mU;

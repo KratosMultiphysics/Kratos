@@ -26,7 +26,7 @@ class ResultsIO:
 		
 		self.myIO = GidIO(
 			OutputFileName,
-			GiDPostMode.GiD_PostBinary,
+			GiDPostMode.GiD_PostBinary, #GiD_PostAscii, #
 			MultiFileFlag.SingleFile,
 			WriteDeformedMeshFlag.WriteUndeformed, 
 			WriteConditionsFlag.WriteElementsOnly)
@@ -111,10 +111,10 @@ class ResultsIO_2Physics:
 		self.ResultsOnNodes = ResultsOnNodes
 		self.ResultsOnGaussPoints_ModA = ResultsOnGaussPoints_ModA
 		self.ResultsOnGaussPoints_ModB = ResultsOnGaussPoints_ModB
-		
+				
 		self.myIO = GidIO(
 			OutputFileName,
-			GiDPostMode.GiD_PostBinary,
+			GiDPostMode.GiD_PostBinary, #GiD_PostAscii, #
 			MultiFileFlag.SingleFile,
 			WriteDeformedMeshFlag.WriteUndeformed, 
 			WriteConditionsFlag.WriteElementsOnly)
@@ -173,15 +173,20 @@ class ResultsIO_2Physics:
 				self.myIO.WriteNodalResults(result, 
 											self.ModelPartA.Nodes, 
 											theCurrentTime, 0)
+			# print('Print on Nodes Done')
+			# print('self.ModelPartA',self.ModelPartA)
+			# print('self.ModelPartB',self.ModelPartB)
 			
 			for result in self.ResultsOnGaussPoints_ModA:
 				self.myIO.PrintOnGaussPoints(result, 
 											 self.ModelPartA, 
 											 theCurrentTime)
-											
+			# print('Print on OnGaussPoints_ModA Done')
+			
 			for result in self.ResultsOnGaussPoints_ModB:
 				self.myIO.PrintOnGaussPoints(result, 
 											 self.ModelPartB, 
 											 theCurrentTime)
+			# print('Print on OnGaussPoints_ModB Done')
 			
 			self.myIO.Flush();

@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iomanip>
 #include <stdio.h>
 
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "rve_predictor_calculator.h"
 #include "rve_utilities.h"
 #include "math_helpers.h"
@@ -79,6 +79,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+#define check_sign( x ) (x == 0.0 ? 0 : (x > 0.0 ? 1 : -1) )
+
 	template <typename T>
 	vector<size_t> sort_indexes(const vector<T> &v) { //only c++11
 
@@ -95,9 +97,28 @@ namespace Kratos
 
 	inline double round(double d)
 	{
-	  return floor(d + 0.5);
+		return floor(d + 0.5);
 	}
-	
+
+	inline double b3_eval_bezier(double xi,
+		double x0, double x1, double x2,
+		double y0, double y1, double y2)
+	{
+		double A = x0 - 2.0*x1 + x2;
+		double B = 2.0*(x1 - x0);
+		double C = x0 - xi;
+		if (std::abs(A)<1.0E-12)
+		{
+			x1 = x1 + 1.0E-6*(x2 - x0);
+			A = x0 - 2.0*x1 + x2;
+			B = 2.0*(x1 - x0);
+			C = x0 - xi;
+		}
+		double D = B*B - 4.0*A*C;
+		double t = (-B + std::sqrt(D)) / (2.0*A);
+		return (y0 - 2.0*y1 + y2)*t*t + 2.0*(y1 - y0)*t + y0;
+	}
+
 	RvePredictorCalculator::RvePredictorCalculator(std::string C0_file_name, std::string hash_file_name, std::string json_file_name)
 		: mC0FileName(C0_file_name)
 		, mHashFileName(hash_file_name)
@@ -109,6 +130,9 @@ namespace Kratos
 		, mTagDamageMap()
 		, m_dimension(0)
 		, m_domain_size(0.0)
+		, mG0(0.0)
+		, mGf_bar(0.0)
+		, mAlpha(0.0)
 	{
 
 		std::string mCo_file = mC0FileName; // "E:\\PC_UNI\\Paper1and2\\TestSurf\\RveSurf\\C0_Matrix_Damage2.txt";
@@ -169,7 +193,7 @@ namespace Kratos
 				vector<double> i_strain(3);
 				i_strain[0] = e_xx;
 				i_strain[1] = e_yy;
-				i_strain[2] = e_xy;
+				i_strain[2] = 2.0 * e_xy; //multiply by 2.0 in order to obtain gamma xy
 
 				vector<double> i_stress(3);
 				i_stress[0] = s_xx;
@@ -177,10 +201,28 @@ namespace Kratos
 				i_stress[2] = s_xy;
 
 				double radius = norm_2(i_strain);
+
+
+				// //Calculate phi & number of division
+				// double m = 10.0; // m = max of tag
+				// std::cout << "m: " << m << std::endl;
+				// double phi = M_PI / m;
+				// //std::cout << "phi: " << phi << " rad" << std::endl;
+				// 
+				// //std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
+				// Vector normalized_eps = radius > 0 ? i_strain / radius : i_strain;//This is the value to compare with the RADIUS
+				// //std::cout << "normalized_eps: " << normalized_eps << std::endl;
+				// Vector Theta(2,0.0);
+				// Theta = this->CalculateTheta(normalized_eps);
+				// //std::cout << "Theta: " << Theta << std::endl;
+				// 
+				// Vector real_tag = Theta / phi;
+				// std::cout << "real_tag: " << real_tag << std::endl;
+
 				r_and_strain_stress[0] = radius;
 				r_and_strain_stress[1] = e_xx;
 				r_and_strain_stress[2] = e_yy;
-				r_and_strain_stress[3] = e_xy;
+				r_and_strain_stress[3] = 2.0 * e_xy; //multiply by 2.0 in order to obtain gamma xy
 				r_and_strain_stress[4] = s_xx;
 				r_and_strain_stress[5] = s_yy;
 				r_and_strain_stress[6] = s_xy;
@@ -203,9 +245,9 @@ namespace Kratos
 				i_strain[0] = e_xx;
 				i_strain[1] = e_yy;
 				i_strain[2] = e_zz;
-				i_strain[3] = e_xy;
-				i_strain[4] = e_yz;
-				i_strain[5] = e_xz;
+				i_strain[3] = 2.0*e_xy;
+				i_strain[4] = 2.0*e_yz;
+				i_strain[5] = 2.0*e_xz;
 
 				vector<double> i_stress(6);
 				i_stress[0] = s_xx;
@@ -317,24 +359,24 @@ namespace Kratos
 
 		for (rapidjson::Value::ConstMemberIterator itr1 = mValue->MemberBegin(); itr1 != mValue->MemberEnd(); ++itr1) // Loop over TAGS
 		{
-			std::string i_tags_name = itr1->name.GetString();
-			std::istringstream iss(i_tags_name);
-			vector<int> i_tags;
-			char comma;
-			if (!(iss >> i_tags[0] >> comma >> i_tags[1]))
-				std::cout << "ERROR DURING READING TAGS\n";
+		std::string i_tags_name = itr1->name.GetString();
+		std::istringstream iss(i_tags_name);
+		vector<int> i_tags;
+		char comma;
+		if (!(iss >> i_tags[0] >> comma >> i_tags[1]))
+		std::cout << "ERROR DURING READING TAGS\n";
 
-			rapidjson::Value* dValue = (jsonFile[i_tags_name.c_str()]).GetUnderlyingStorage();
-			for (rapidjson::Value::ConstMemberIterator itr2 = dValue->MemberBegin(); itr2 != dValue->MemberEnd(); ++itr2) // Loop over DAMAGE
-			{
-				std::string i_damage_name = itr2->name.GetString();
-				double i_damage = stod(i_damage_name); //convert string to double -> only c++11
+		rapidjson::Value* dValue = (jsonFile[i_tags_name.c_str()]).GetUnderlyingStorage();
+		for (rapidjson::Value::ConstMemberIterator itr2 = dValue->MemberBegin(); itr2 != dValue->MemberEnd(); ++itr2) // Loop over DAMAGE
+		{
+		std::string i_damage_name = itr2->name.GetString();
+		double i_damage = stod(i_damage_name); //convert string to double -> only c++11
 
-				mTagNestedMap[i_tags][i_damage][0] = jsonFile[i_tags_name][i_damage_name]["lambda"].GetDouble();
-				mTagNestedMap[i_tags][i_damage][1] = jsonFile[i_tags_name][i_damage_name]["stress"][0].GetDouble();
-				mTagNestedMap[i_tags][i_damage][2] = jsonFile[i_tags_name][i_damage_name]["stress"][1].GetDouble();
-				mTagNestedMap[i_tags][i_damage][3] = jsonFile[i_tags_name][i_damage_name]["stress"][2].GetDouble();
-			}
+		mTagNestedMap[i_tags][i_damage][0] = jsonFile[i_tags_name][i_damage_name]["lambda"].GetDouble();
+		mTagNestedMap[i_tags][i_damage][1] = jsonFile[i_tags_name][i_damage_name]["stress"][0].GetDouble();
+		mTagNestedMap[i_tags][i_damage][2] = jsonFile[i_tags_name][i_damage_name]["stress"][1].GetDouble();
+		mTagNestedMap[i_tags][i_damage][3] = jsonFile[i_tags_name][i_damage_name]["stress"][2].GetDouble();
+		}
 		}
 		*/
 
@@ -368,6 +410,8 @@ namespace Kratos
 				i_tags[1] = std::stoi(i_tags_name.substr(sz));
 
 				size_t i_D = 0;
+				size_t itr_dim = document[i_tags_name.c_str()].Size();
+				matrix<double> d_lambda_sigma(5, itr_dim, 0.0);
 				for (rapidjson::Value::ConstMemberIterator itr2 = document[i_tags_name.c_str()].MemberBegin(); itr2 != document[i_tags_name.c_str()].MemberEnd(); ++itr2) // Loop over DAMAGE
 				{
 					std::string i_damage_name = itr2->name.GetString();
@@ -381,20 +425,34 @@ namespace Kratos
 					lambda_sigma[2] = document[i_tags_name.c_str()][i_damage_name.c_str()]["stress"][1].GetDouble();
 					lambda_sigma[3] = document[i_tags_name.c_str()][i_damage_name.c_str()]["stress"][2].GetDouble();
 
-					mDamageMap.insert(DamageMap::value_type(i_damage, lambda_sigma));
+					//mDamageMap.insert(DamageMap::value_type(i_damage, lambda_sigma));
 
-					size_t itr_dim = document[i_tags_name.c_str()].Size();
-					matrix<double> d_lambda_sigma(5, itr_dim);
 					d_lambda_sigma(0, i_D) = i_damage;
 					d_lambda_sigma(1, i_D) = lambda_sigma[0];
 					d_lambda_sigma(2, i_D) = lambda_sigma[1];
 					d_lambda_sigma(3, i_D) = lambda_sigma[2];
 					d_lambda_sigma(4, i_D) = lambda_sigma[3];
-
-					mTagDamageMap.insert(TagDamageMap::value_type(i_tags, d_lambda_sigma));
 					i_D += 1;
 				}
-				mTagNestedMap.insert(TagNestedMap::value_type(i_tags, mDamageMap));
+
+				size_t n_damage = i_D;
+				//std::cout << "n_damage: " << n_damage << std::endl;
+				Vector damagesVector_aux(n_damage, 0.0);
+				for (size_t ii = 0; ii < n_damage; ii++)
+					damagesVector_aux[ii] = d_lambda_sigma(0, ii);
+				size_t idx_final = 0;
+				Matrix dls(5, itr_dim, 0.0);
+				for (auto i_sort : sort_indexes(damagesVector_aux)) { // only c++11
+					dls(0, idx_final) = d_lambda_sigma(0, i_sort);
+					dls(1, idx_final) = d_lambda_sigma(1, i_sort);
+					dls(2, idx_final) = d_lambda_sigma(2, i_sort);
+					dls(3, idx_final) = d_lambda_sigma(3, i_sort);
+					dls(4, idx_final) = d_lambda_sigma(4, i_sort);
+					idx_final += 1;
+				}
+
+				mTagDamageMap.insert(TagDamageMap::value_type(i_tags, dls));
+				//mTagNestedMap.insert(TagNestedMap::value_type(i_tags, mDamageMap));
 			}
 		}
 		else
@@ -470,8 +528,9 @@ namespace Kratos
 
 	void RvePredictorCalculator::PredictElasticity(const Vector& trial_macro_scale_strain_vector, bool& Is_Elastic, Vector& stress_vector) const
 	{
-		//std::cout << "IN - Predict\n";
+		//std::cout << "IN - PredictElasticity\n";
 		double strain_size = trial_macro_scale_strain_vector.size();
+		Vector InSrain = trial_macro_scale_strain_vector;
 
 		// Check if the analysis is Thermal or Mechanical
 		if (strain_size == 3) //Only 2D
@@ -502,9 +561,9 @@ namespace Kratos
 				//std::cout << "phi: " << phi << " rad" << std::endl;
 
 				//1. Calculate the normalized Strain
-				double norm_real_eps = norm_2(trial_macro_scale_strain_vector);
+				double norm_real_eps = norm_2(InSrain);
 				//std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
-				Vector normalized_eps = norm_real_eps > 0 ? trial_macro_scale_strain_vector / norm_real_eps : trial_macro_scale_strain_vector;//This is the value to compare with the RADIUS
+				Vector normalized_eps = norm_real_eps > 0 ? InSrain / norm_real_eps : InSrain;//This is the value to compare with the RADIUS
 				//std::cout << "normalized_eps: " << normalized_eps << std::endl;
 
 				Theta = this->CalculateTheta(normalized_eps);
@@ -518,7 +577,6 @@ namespace Kratos
 				bool third_interpolation = false;
 				bool BiCubicInterpolation = false;
 				bool RadialBasis = false;
-				bool nCubicInterpolation = false;
 				if (first_interpolation)
 				{
 					//FIRST INTERPOLATION - NEAREST POINT
@@ -535,9 +593,6 @@ namespace Kratos
 					}
 					const Vector & i_r_and_strain = it_strain->second;
 					radius = i_r_and_strain[0];
-					eps[0] = i_r_and_strain[1];
-					eps[1] = i_r_and_strain[2];
-					eps[2] = i_r_and_strain[3];
 
 					std::cout << "norm_real_eps VS radius: " << norm_real_eps << " VS " << radius << std::endl;
 					if (norm_real_eps < radius)
@@ -558,11 +613,6 @@ namespace Kratos
 					max_tag[1] = ceil(real_tag[1]);
 					//std::cout << "max_tag: " << max_tag << std::endl;
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
-					// it is 0 at the first point and 1 and the second point
-					double local_x = (real_tag[0] - min_tag[0]) / (max_tag[0] - min_tag[0]);
-					double local_y = (real_tag[1] - min_tag[1]) / (max_tag[1] - min_tag[1]);
-
 					if (real_tag[0] == min_tag[0] && real_tag[1] == min_tag[1])
 					{
 						//2. Read the corresponding radius and strain associated to the tag
@@ -574,12 +624,15 @@ namespace Kratos
 						}
 						const Vector & i_r_and_strain = it_strain->second;
 						radius = i_r_and_strain[0];
-						eps[0] = i_r_and_strain[1];
-						eps[1] = i_r_and_strain[2];
-						eps[2] = i_r_and_strain[3];
 					}
 					else
 					{
+						// local_x and y defines where to estimate the value on the interpolated line, 
+						// it is 0 at the first point and 1 and the second point
+						double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
+						double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
+						//std::cout << "local_x, local_y: " << local_x << ", " << local_y << std::endl;
+
 						vector<double> xi(4);
 						xi[0] = -1.0;
 						xi[1] = -1.0;
@@ -619,6 +672,7 @@ namespace Kratos
 								}
 
 								//std::cout << "tag_i: " << tag_i << std::endl;
+
 								//2. Read the corresponding radius and strain associated to the tag
 								TagStrainVectorMap::const_iterator it_strain = mStrainMap.find(tag_i);
 								if (it_strain == mStrainMap.end())
@@ -627,12 +681,13 @@ namespace Kratos
 									exit(-1);
 								}
 								const Vector & i_r_and_strain = it_strain->second;
-								Vector i_eps(3);
 								double i_radius = i_r_and_strain[0];
 								//std::cout << "i_radius: " << i_radius << std::endl;
 
 								N_i = 1.0 / 4.0 * (1.0 + xi[i] * (local_x * 2.0 - 1.0))*(1.0 + eta[i] * (local_y * 2.0 - 1.0));
 								N_sum += N_i;
+
+								//std::cout << "N_i: " << N_i << std::endl;
 								radius += N_i*i_radius;
 
 								i++;
@@ -647,6 +702,7 @@ namespace Kratos
 					}
 
 					//std::cout << "norm_real_eps VS radius: " << norm_real_eps << " VS " << radius << std::endl;
+					//std::cout << "difference: " << norm_real_eps - radius << std::endl;
 					if (norm_real_eps < radius)
 					{
 						Is_Elastic = true;
@@ -782,7 +838,7 @@ namespace Kratos
 						radius = norm_2(eps);
 					}
 
-					std::cout << "norm_real_eps VS radius: " << norm_real_eps << " VS " << radius << std::endl;
+					//std::cout << "norm_real_eps VS radius: " << norm_real_eps << " VS " << radius << std::endl;
 					if (norm_real_eps < radius)
 						Is_Elastic = true;
 					else
@@ -823,8 +879,7 @@ namespace Kratos
 					else
 					{
 						// Create array
-						double p[4][4];
-						//array_1d< array_1d<double, 4>, 4 > p;
+						array_1d<array_1d<double, 4>, 4> p;
 
 						size_t ii = 0;
 						for (size_t kk = 0; kk < 4; kk++)
@@ -865,13 +920,14 @@ namespace Kratos
 							}
 							ii++;
 						}
-						size_t IType = 1;
+						//size_t IType = 0; // Linear
+						size_t IType = 1; // Cubic
 						Matrix F = this->SelectInterpolationType(IType);
-						radius = this->bicubicInterpolate(p, local_x, local_y, F);
+						radius = this->biDimInterpolate(p, local_x, local_y, F);
 						/*int n = strain_size - 1;
 						double coordinates[2] = { local_x, local_y };
 						std::cout << "n: " << n << " - coordinates: " << coordinates[0] << ", " << coordinates[1] << std::endl;
-						radius = this->nCubicInterpolate(n, (double*)p, coordinates, F);*/
+						radius = this->nDimInterpolate(n, (double*)p, coordinates, F);*/
 					}
 					//std::cout << "norm_real_eps VS radius: " << norm_real_eps << " VS " << radius << std::endl;
 					if (norm_real_eps < radius)
@@ -973,88 +1029,6 @@ namespace Kratos
 					else
 						Is_Elastic = false;
 				}
-				else if (nCubicInterpolation)
-				{
-					//1. Found the minimum value of the tag
-					vector<int> min_tag(2);
-					min_tag[0] = floor(real_tag[0]);
-					min_tag[1] = floor(real_tag[1]);
-					vector<int> max_tag(2);
-					max_tag[0] = ceil(real_tag[0]);
-					max_tag[1] = ceil(real_tag[1]);
-
-					// local_x and y defines where to estimate the value on the interpolated line, 
-					// it is 0 at the first point and 1 and the second point
-					double local_x = (real_tag[0] - min_tag[0]) / (max_tag[0] - min_tag[0]);
-					double local_y = (real_tag[1] - min_tag[1]) / (max_tag[1] - min_tag[1]);
-
-					if (real_tag[0] == min_tag[0] && real_tag[1] == min_tag[1])
-					{
-						std::cout << "real_tag[:] == min_tag[:]" << std::endl;
-						//2. Read the corresponding radius and strain associated to the tag
-						TagStrainVectorMap::const_iterator it_strain = mStrainMap.find(real_tag);
-						if (it_strain == mStrainMap.end())
-						{
-							std::cout << "no strain in map" << std::endl;
-							exit(-1);
-						}
-						const Vector & i_r_and_strain = it_strain->second;
-						radius = i_r_and_strain[0];
-						eps[0] = i_r_and_strain[1];
-						eps[1] = i_r_and_strain[2];
-					}
-					else
-					{
-						// Create array
-						double p[4][4];
-						//array_1d< array_1d<double, 4>, 4 > p;
-
-						size_t ii = 0;
-						for (size_t kk = 0; kk < 4; kk++)
-						{
-							size_t jj = 0;
-							for (size_t ll = 0; ll < 4; ll++)
-							{
-								vector<int> tag_i(2);
-								tag_i[0] = min_tag[0] + kk - 1;
-								tag_i[1] = min_tag[1] + ll - 1;
-
-								for (size_t i = 0; i < tag_i.size(); i++)
-								{
-									if (abs(tag_i(i)) > m)
-									{
-										if (tag_i(i) > m)
-											tag_i(i) = tag_i(i) - m;
-										else
-											tag_i(i) = tag_i(i) + m;
-									}
-								}
-
-								//2. Read the corresponding radius and strain associated to the tag
-								TagStrainVectorMap::const_iterator it_strain = mStrainMap.find(tag_i);
-								if (it_strain == mStrainMap.end())
-								{
-									std::cout << "no strain in map" << std::endl;
-									exit(-1);
-								}
-								const Vector & i_r_and_strain = it_strain->second;
-								double i_radius = i_r_and_strain[0];
-								p[ii][jj] = i_radius;
-								jj++;
-							}
-							ii++;
-						}
-						size_t IType = 1;
-						Matrix F = this->SelectInterpolationType(IType);
-						int n = strain_size - 1;
-						double coordinates[2] = { local_x, local_y };
-						radius = this->nCubicInterpolate(n, (double*)p, coordinates, F);
-					}
-					if (norm_real_eps < radius)
-						Is_Elastic = true;
-					else
-						Is_Elastic = false;
-				}
 			}
 		}
 		else if (strain_size == 6)
@@ -1082,8 +1056,8 @@ namespace Kratos
 				double phi = M_PI / m;
 
 				//1. Calculate the normalized Strain
-				double norm_real_eps = norm_2(trial_macro_scale_strain_vector);
-				Vector normalized_eps = norm_real_eps > 0 ? trial_macro_scale_strain_vector / norm_real_eps : trial_macro_scale_strain_vector;//This is the value to compare with the RADIUS
+				double norm_real_eps = norm_2(InSrain);
+				Vector normalized_eps = norm_real_eps > 0 ? InSrain / norm_real_eps : InSrain;//This is the value to compare with the RADIUS
 
 				Theta = this->CalculateTheta(normalized_eps);
 
@@ -1125,8 +1099,8 @@ namespace Kratos
 					else
 					{
 						// Create array
-						double p[4][4][4][4][4];
-						//array_1d< array_1d< array_1d< array_1d< array_1d<double, 4>, 4>, 4>, 4>, 4> p;
+						//double p[4][4][4][4][4];
+						array_1d< array_1d< array_1d< array_1d< array_1d<double, 4>, 4>, 4>, 4>, 4> p;
 						double local_x = real_tag[0] - min_tag[0];
 						double local_y = real_tag[1] - min_tag[1];
 						double local_z = real_tag[2] - min_tag[2];
@@ -1186,11 +1160,13 @@ namespace Kratos
 							}
 							ff++;
 						}
-						size_t IType = 1;
+						//size_t IType = 0; // Linear
+						size_t IType = 1; // Cubic
 						Matrix F = this->SelectInterpolationType(IType);
-						int n = strain_size - 1;
-						double coordinates[5] = { local_x, local_y, local_z, local_l, local_m };
-						radius = this->nCubicInterpolate(n, (double*)p, coordinates, F);
+						//size_t n = strain_size - 1;
+						//double coordinates[5] = { local_x, local_y, local_z, local_l, local_m };
+						//radius = this->nDimInterpolate(n, (double*)p, coordinates, F);
+						radius = this->pentaDimInterpolate(p, local_x, local_y, local_z, local_l, local_m, F);
 					}
 					if (norm_real_eps < radius)
 						Is_Elastic = true;
@@ -1206,32 +1182,31 @@ namespace Kratos
 		}
 	}
 
-	void RvePredictorCalculator::PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tensor, double& EquivalentDamage, double& EquivalentDamageConverged) const
+	void RvePredictorCalculator::PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, double& lch_macro, Matrix& const_tensor, double& EquivalentDamage, double& EquivalentDamageConverged)
 	{
 		//Initialize data for the interpolation
 		double strain_size = trial_macro_scale_strain_vector.size();
-		Vector elasticStress(strain_size, 0.0);
-		noalias(elasticStress) = prod(mC0, trial_macro_scale_strain_vector);
+		//std::cout << "trial_macro_scale_strain_vector: " << InStrain << std::endl;
+
 		Vector Theta(strain_size - 1);
 		Vector eps(strain_size);
 		EquivalentDamage = 0.0;
+		stress_vector.clear();
 
 		//Calculate phi & number of division
 		double m = (sqrtl(mStrainMap.size()) - 1) / 2; // m = max of tag
-		//std::cout << "m: " << m << std::endl;
 		double phi = M_PI / m;
-		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
-		double norm_real_eps = norm_2(trial_macro_scale_strain_vector);//This is the value to compare with the RADIUS
-		//std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
-		//std::cout << "trial_macro_scale_strain_vector: " << trial_macro_scale_strain_vector << std::endl;
-		Vector strain_direction = norm_real_eps > 0 ? trial_macro_scale_strain_vector / norm_real_eps : trial_macro_scale_strain_vector;//This is the direction
-		//std::cout << "strain_direction: " << strain_direction << std::endl;
+		double norm_trial_eps = norm_2(trial_macro_scale_strain_vector);//This is NOT the value to compare with the RADIUS
+		Vector strain_direction = norm_trial_eps > 0 ? trial_macro_scale_strain_vector / norm_trial_eps : trial_macro_scale_strain_vector;//This is the direction
 
 		Theta = this->CalculateTheta(strain_direction);
 		Vector real_tag = Theta / phi;
-		//std::cout << "real_tag: " << real_tag << std::endl;
+
+		Vector InStrain = trial_macro_scale_strain_vector; // e_xx, e_yy, 2.0*e_xy
+		InStrain[2] = 0.5 * InStrain[2]; // from-> gamma_xy to-> e_xy
+		double norm_real_eps = norm_2(InStrain);//This IS the value to compare with the RADIUS
 
 		vector<double> xi(4);		vector<double> eta(4);
 		xi[0] = -1.0;				eta[0] = -1.0;
@@ -1244,215 +1219,442 @@ namespace Kratos
 		vector<int> min_tag(2);
 		min_tag[0] = floor(real_tag[0]);
 		min_tag[1] = floor(real_tag[1]);
-		//std::cout << "min_tag: " << min_tag << std::endl;
 		vector<int> max_tag(2);
 		max_tag[0] = ceil(real_tag[0]);
 		max_tag[1] = ceil(real_tag[1]);
-		//std::cout << "max_tag: " << max_tag << std::endl;
 
-		// local_x and y defines where to estimate the value on the interpolated line, 
-		// it is 0 at the first point and 1 and the second point
-		double local_x = (real_tag[0] - min_tag[0]) / (max_tag[0] - min_tag[0]);
-		double local_y = (real_tag[1] - min_tag[1]) / (max_tag[1] - min_tag[1]);
-
-		Vector coordinates(2, 0.0);
-		coordinates[0] = local_x;
-		coordinates[1] = local_y;
-		
 		//Find n_damage
 		vector<int> zero_tag(2);
 		zero_tag[0] = 0;
 		zero_tag[1] = 0;
-		TagDamageMap::const_iterator it_n_damage = mTagDamageMap.find(zero_tag);
-		if (it_n_damage == mTagDamageMap.end())
+		TagDamageMap::const_iterator it_n_dam = mTagDamageMap.find(zero_tag);
+		if (it_n_dam == mTagDamageMap.end())
 		{
-			std::cout << "no strain in map" << std::endl;
+			std::cout << "no strain in map for tag: " << zero_tag << std::endl;
 			exit(-1);
 		}
-		const Matrix & i_n_damage = it_n_damage->second;
-		const size_t n_damage = i_n_damage.size2();
+		const Matrix & i_n_dam = it_n_dam->second;
+		const size_t n_damage = i_n_dam.size2();
+
 		Vector InterpRadiusVector(n_damage, 0.0);
-		//sigma
 		Vector InterpStressVectorXX(n_damage, 0.0);
 		Vector InterpStressVectorYY(n_damage, 0.0);
 		Vector InterpStressVectorXY(n_damage, 0.0);
 
+		Vector InterpRadiusVectorC(n_damage, 0.0);
+		Vector InterpStressVectorXXC(n_damage, 0.0);
+		Vector InterpStressVectorYYC(n_damage, 0.0);
+		Vector InterpStressVectorXYC(n_damage, 0.0);
 
 		Vector damages(n_damage, 0.0);
-		
-		size_t i = 0;
-		double N_i = 0;
-		double N_sum = 0;
+		Vector i_radiusVector_aux(n_damage, 0.0);
 
-		for (size_t kk = 0; kk < 2; kk++)
+		Vector i_stressVectorXX_aux(n_damage, 0.0);
+		Vector i_stressVectorYY_aux(n_damage, 0.0);
+		Vector i_stressVectorXY_aux(n_damage, 0.0);
+
+		Vector damagesVector_aux(n_damage, 0.0);
+
+		bool LinearInterp = false;
+		bool CubicInterp = true; //Better then Cubic Interpolation
+
+		if (real_tag[0] == min_tag[0] && real_tag[1] == min_tag[1])
 		{
-			for (size_t ll = 0; ll < 2; ll++)
+			TagDamageMap::const_iterator it_n_damage = mTagDamageMap.find(min_tag);
+			if (it_n_damage == mTagDamageMap.end())
 			{
-				vector<int> tag_i(2);
-				tag_i[0] = min_tag[0] + kk;
-				tag_i[1] = min_tag[1] + ll;
-				if (abs(tag_i(0)) > m)
-				{
-					if (tag_i(0) > m)
-						tag_i(0) = tag_i(0) - m;
-					else
-						tag_i(0) = tag_i(0) + m;
-				}
-				else if (abs(tag_i(1)) > m)
-				{
-					if (tag_i(1) > m)
-						tag_i(1) = tag_i(1) - m;
-					else
-						tag_i(1) = tag_i(1) + m;
-				}
-				//N_i = 1.0 / 4.0 * (1.0 + xi[i] * (local_x * 2.0 - 1.0))*(1.0 + eta[i] * (local_y * 2.0 - 1.0));
-				N_i = ShapeFunctionValue4N(i, coordinates);
-				N_sum += N_i;
-				i++;
-
-				//std::cout << "tag_i: " << tag_i << std::endl;
-				//2. Read the corresponding radius and strain associated to the tag
-				TagDamageMap::const_iterator it_dls = mTagDamageMap.find(tag_i);
-				if (it_dls == mTagDamageMap.end())
-				{
-					std::cout << "no strain in map" << std::endl;
-					exit(-1);
-				}
-				const Matrix & i_dls = it_dls->second;
-				Vector damagesVector_aux(n_damage, 0.0);
-				Vector i_radiusVector_aux(n_damage, 0.0);
-
-				Vector i_stressVectorXX_aux(n_damage, 0.0);
-				Vector i_stressVectorYY_aux(n_damage, 0.0);
-				Vector i_stressVectorXY_aux(n_damage, 0.0);
-				for (size_t j_dls = 0; j_dls < n_damage; j_dls++)
-				{
-					damagesVector_aux[j_dls] = i_dls(0, j_dls);
-					i_radiusVector_aux[j_dls] = i_dls(1, j_dls);
-					//sigma
-					i_stressVectorXX_aux[j_dls] = i_dls(2, j_dls);
-					i_stressVectorYY_aux[j_dls] = i_dls(3, j_dls);
-					i_stressVectorXY_aux[j_dls] = i_dls(4, j_dls);
-				}
-
-				Vector i_radiusVector(n_damage, 0.0);
-				Vector i_stressVectorXX(n_damage, 0.0);
-				Vector i_stressVectorYY(n_damage, 0.0);
-				Vector i_stressVectorXY(n_damage, 0.0);
-				size_t idx_final = 0;
-				for (auto i_sort : sort_indexes(damagesVector_aux)) { // only c++11
-					damages[idx_final] = damagesVector_aux[i_sort];
-					i_radiusVector[idx_final] = i_radiusVector_aux[i_sort];
-					//sigma
-					i_stressVectorXX[idx_final] = i_stressVectorXX_aux[i_sort];
-					i_stressVectorYY[idx_final] = i_stressVectorYY_aux[i_sort];
-					i_stressVectorXY[idx_final] = i_stressVectorXY_aux[i_sort];
-					idx_final += 1;
-				}
-				for (size_t ii = 0; ii < n_damage; ii++)
-				{
-					InterpRadiusVector[ii] += N_i*i_radiusVector[ii];
-					//sigma
-					InterpStressVectorXX[ii] += N_i*i_stressVectorXX[ii];
-					InterpStressVectorYY[ii] += N_i*i_stressVectorYY[ii];
-					InterpStressVectorXY[ii] += N_i*i_stressVectorXY[ii];
-				}
+				std::cout << "no strain in map for tag: " << zero_tag << std::endl;
+				exit(-1);
 			}
-		}
-		if (abs(1 - N_sum) > 1.0e-15)
-		{
-			std::cout << "RvePredictorCalculator - ERROR DURING THE SHAPE FUNCTION COMPUTATION ON PredictElasticity - N_sum = " << N_sum << " ; shape_index = " << i << std::endl;
-			KRATOS_THROW_ERROR(std::logic_error, "RvePredictorCalculator - ERROR DURING THE SHAPE FUNCTION COMPUTATION", "");
-		}
+			const Matrix & i_n_damage = it_n_damage->second;
+			for (size_t j_dls = 0; j_dls < n_damage; j_dls++)
+			{
+				damagesVector_aux[j_dls] = i_n_damage(0, j_dls);
+				i_radiusVector_aux[j_dls] = i_n_damage(1, j_dls);
+				//sigma
+				i_stressVectorXX_aux[j_dls] = i_n_damage(2, j_dls);
+				i_stressVectorYY_aux[j_dls] = i_n_damage(3, j_dls);
+				i_stressVectorXY_aux[j_dls] = i_n_damage(4, j_dls);
+			}
 
-		//std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
-		//std::cout << "InterpRadiusVector: " << InterpRadiusVector << std::endl;
-		//std::cout << "damages: " << damages << std::endl;
-		if (norm_real_eps < InterpRadiusVector[0])
-		{
-			//std::cout << "Is_Elastic = true\n";
-			EquivalentDamage = 0.0;
-
-			noalias(stress_vector) = prod(mC0, trial_macro_scale_strain_vector);
-		}
-		else if (norm_real_eps > InterpRadiusVector[n_damage - 1])
-		{
-			double x = norm_real_eps;
-			double x1 = InterpRadiusVector[n_damage - 1];
-			double y1 = damages[n_damage - 1];
-			//double x2 = 1.0;
-			double x2 = InterpRadiusVector[n_damage - 1] + 0.5 * (InterpRadiusVector[n_damage - 1] - InterpRadiusVector[n_damage - 2]);
-			double y2 = 1.0;
-
-			double N1 = (x - x2) / (x1 - x2);
-			double N2 = (x - x1) / (x1 - x2);
-
-			EquivalentDamage = N1*y1 - N2*y2;
-
-			//sigma
-			double xx1 = InterpStressVectorXX[n_damage - 1];
-			double xx2 = 0.0;
-			double yy1 = InterpStressVectorYY[n_damage - 1];
-			double yy2 = 0.0;
-			double xy1 = InterpStressVectorXY[n_damage - 1];
-			double xy2 = 0.0;
-
-			stress_vector[0] = N1*xx1 - N2*xx2;
-			stress_vector[1] = N1*yy1 - N2*yy2;
-			stress_vector[2] = N1*xy1 - N2*xy2;
-
+			size_t idx_final = 0;
+			for (auto i_sort : sort_indexes(damagesVector_aux)) { // only c++11
+				damages[idx_final] = damagesVector_aux[i_sort];
+				InterpRadiusVector[idx_final] = i_radiusVector_aux[i_sort];
+				//sigma
+				InterpStressVectorXX[idx_final] = i_stressVectorXX_aux[i_sort];
+				InterpStressVectorYY[idx_final] = i_stressVectorYY_aux[i_sort];
+				InterpStressVectorXY[idx_final] = i_stressVectorXY_aux[i_sort];
+				idx_final += 1;
+			}
 		}
 		else
 		{
-			for (size_t jj = 1; jj < n_damage; jj++)
+			// local_x and y defines where to estimate the value on the interpolated line, 
+			// it is 0 at the first point and 1 and the second point
+			double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
+			double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
+
+			Vector coordinates(2, 0.0);
+			coordinates[0] = local_x;
+			coordinates[1] = local_y;
+			for (size_t i_dam = 0; i_dam < n_damage; i_dam++)
 			{
-				if (norm_real_eps < InterpRadiusVector[jj])
+				if (LinearInterp)
 				{
-					double x = norm_real_eps;
-					double x1 = InterpRadiusVector[jj - 1];
-					double x2 = InterpRadiusVector[jj];
+					size_t i = 0;
+					double N_i = 0;
+					double N_sum = 0;
 
-					double N1 = (x - x2) / (x1 - x2);
-					double N2 = (x - x1) / (x1 - x2);
+					for (size_t kk = 0; kk < 2; kk++)
+					{
+						for (size_t ll = 0; ll < 2; ll++)
+						{
+							vector<int> tag_i(2);
+							tag_i[0] = min_tag[0] + kk;
+							tag_i[1] = min_tag[1] + ll;
+							if (abs(tag_i(0)) > m)
+							{
+								if (tag_i(0) > m)
+									tag_i(0) = tag_i(0) - m;
+								else
+									tag_i(0) = tag_i(0) + m;
+							}
+							else if (abs(tag_i(1)) > m)
+							{
+								if (tag_i(1) > m)
+									tag_i(1) = tag_i(1) - m;
+								else
+									tag_i(1) = tag_i(1) + m;
+							}
 
-					//Linear Interpolation of damage
-					EquivalentDamage = N1*damages[jj - 1] - N2*damages[jj];
+							TagDamageMap::const_iterator it_dls = mTagDamageMap.find(tag_i);
+							if (it_dls == mTagDamageMap.end())
+							{
+								std::cout << "no strain in map for tag: " << tag_i << std::endl;
+								exit(-1);
+							}
+							const Matrix & i_dls = it_dls->second;
 
-					stress_vector[0] = N1*InterpStressVectorXX[jj - 1] - N2*InterpStressVectorXX[jj];
-					stress_vector[1] = N1*InterpStressVectorYY[jj - 1] - N2*InterpStressVectorYY[jj];
-					stress_vector[2] = N1*InterpStressVectorXY[jj - 1] - N2*InterpStressVectorXY[jj];
+							damages[i_dam] = i_dls(0, i_dam); //Used for check the order
 
-					break;
+							double i_radius = i_dls(1, i_dam);
+							double i_stressXX = i_dls(2, i_dam);
+							double i_stressYY = i_dls(3, i_dam);
+							double i_stressXY = i_dls(4, i_dam);
+
+							N_i = 1.0 / 4.0 * (1.0 + xi[i] * (local_x * 2.0 - 1.0))*(1.0 + eta[i] * (local_y * 2.0 - 1.0));
+							//N_i = ShapeFunctionValue4N(i, coordinates);
+							N_sum += N_i;
+							i++;
+							InterpRadiusVector[i_dam] += N_i*i_radius;
+							InterpStressVectorXX[i_dam] += N_i*i_stressXX;
+							InterpStressVectorYY[i_dam] += N_i*i_stressYY;
+							InterpStressVectorXY[i_dam] += N_i*i_stressXY;
+						}
+					}
+					if (abs(1 - N_sum) > 1.0e-15)
+					{
+						std::cout << "RvePredictorCalculator - ERROR DURING THE SHAPE FUNCTION COMPUTATION ON PredictElasticity - N_sum = " << N_sum << " ; shape_index = " << i << std::endl;
+						KRATOS_THROW_ERROR(std::logic_error, "RvePredictorCalculator - ERROR DURING THE SHAPE FUNCTION COMPUTATION", "");
+					}
+				}
+				else if (CubicInterp)
+				{
+					//std::cout << "CubicInterp" << std::endl;
+					array_1d<array_1d<double, 4>, 4> p;
+					array_1d<array_1d<double, 4>, 4> q;
+					array_1d<array_1d<double, 4>, 4> r;
+					array_1d<array_1d<double, 4>, 4> s;
+
+					size_t ii = 0;
+					for (size_t kk = 0; kk < 4; kk++)
+					{
+						size_t jj = 0;
+						for (size_t ll = 0; ll < 4; ll++)
+						{
+							vector<int> tag_i(2);
+							tag_i[0] = min_tag[0] + kk - 1;
+							tag_i[1] = min_tag[1] + ll - 1;
+							if (abs(tag_i[0]) > m)
+							{
+								double mult_0 = abs(floor(tag_i[0] / m));
+								if (tag_i[0] > m)
+									tag_i[0] -= m*mult_0;
+								else
+									tag_i[0] += m*mult_0;
+							}
+
+							if (abs(tag_i[1]) > m)
+							{
+								double mult_1 = abs(floor(tag_i[1] / m));
+								if (tag_i[1] > m)
+									tag_i[1] -= m*mult_1;
+								else
+									tag_i[1] += m*mult_1;
+							}
+
+							TagDamageMap::const_iterator it_dls = mTagDamageMap.find(tag_i);
+							if (it_dls == mTagDamageMap.end())
+							{
+								std::cout << "no strain in map for tag: " << tag_i << std::endl;
+								exit(-1);
+							}
+							const Matrix & i_dls = it_dls->second;
+
+							damages[i_dam] = i_dls(0, i_dam); //Used for check the order
+
+							double i_radius = i_dls(1, i_dam);
+							double i_stressXX = i_dls(2, i_dam);
+							double i_stressYY = i_dls(3, i_dam);
+							double i_stressXY = i_dls(4, i_dam);
+
+							p[ii][jj] = i_radius;
+							q[ii][jj] = i_stressXX;
+							r[ii][jj] = i_stressYY;
+							s[ii][jj] = i_stressXY;
+							jj++;
+						}
+						ii++;
+					}
+					//size_t IType = 0; // Linear
+					size_t IType = 1; // Cubic
+					Matrix F = this->SelectInterpolationType(IType);
+					InterpRadiusVector[i_dam] = this->biDimInterpolate(p, local_x, local_y, F);
+					InterpStressVectorXX[i_dam] = this->biDimInterpolate(q, local_x, local_y, F);
+					InterpStressVectorYY[i_dam] = this->biDimInterpolate(r, local_x, local_y, F);
+					InterpStressVectorXY[i_dam] = this->biDimInterpolate(s, local_x, local_y, F);
 				}
 			}
 		}
 
-		//Calculate damaged Constitutive Tensor
-		if (EquivalentDamage < 1.0e-12)
-			EquivalentDamage = 0.0;
-		if (EquivalentDamage > 1.0)
-			EquivalentDamage = 1.0;
+		//Regularization of Fracture Energy with lf
+		//std::cout << "InterpRadiusVector BEFORE REG: " << InterpRadiusVector << std::endl;
+		this->CalculateFractureEnergy(i_n_dam);
+		this->CalculateAlpha(lch_macro);
+		this->RegularizeInterpRadius(InterpRadiusVector, Theta);
+		//std::cout << "InterpRadiusVector AFTER REG: " << InterpRadiusVector << std::endl;
 
+		LinearInterp = true; //Better then Cubic Interpolation
+		CubicInterp = false;
+
+		if (norm_real_eps < InterpRadiusVector[0])
+		{
+			//std::cout << "Is_Elastic = true\n";
+			EquivalentDamage = EquivalentDamageConverged;
+			noalias(const_tensor) = (1 - EquivalentDamage)*mC0;
+			noalias(stress_vector) = prod(const_tensor, trial_macro_scale_strain_vector);
+			return;
+		}
+		else if (norm_real_eps > InterpRadiusVector[n_damage - 1])
+		{
+			//std::cout << "Is_Elastic = false -> OUT OF BOUND\n";
+			double x = norm_real_eps;
+
+			double x_1 = InterpRadiusVector[n_damage - 2];
+			double x0 = InterpRadiusVector[n_damage - 1];
+			double diff = (x0 - x_1);
+			if (diff < 1.0e-12)
+				diff = 1.0;
+
+			double y_1 = damages[n_damage - 2];
+			double y0 = damages[n_damage - 1];
+
+			EquivalentDamage = y0 + (y0 - y_1)*(x - x0) / diff;
+
+			//sigma
+			stress_vector[0] = InterpStressVectorXX[n_damage - 1] + (InterpStressVectorXX[n_damage - 1] - InterpStressVectorXX[n_damage - 2])*(x - x0) / diff;
+			stress_vector[1] = InterpStressVectorYY[n_damage - 1] + (InterpStressVectorYY[n_damage - 1] - InterpStressVectorYY[n_damage - 2])*(x - x0) / diff;
+			stress_vector[2] = InterpStressVectorXY[n_damage - 1] + (InterpStressVectorXY[n_damage - 1] - InterpStressVectorXY[n_damage - 2])*(x - x0) / diff;
+		}
+		else
+		{
+			if (LinearInterp)
+			{
+				for (size_t jj = 1; jj < n_damage; jj++)
+				{
+					if (norm_real_eps < InterpRadiusVector[jj])
+					{
+						//std::cout << "Is_Elastic = false -> INSIDE OF BOUND\n";
+						double x = norm_real_eps;
+						double x0 = InterpRadiusVector[jj - 1];
+						double x1 = InterpRadiusVector[jj];
+
+						double diff = (x1 - x0);
+						if (diff < 1.0e-12)
+							diff = 1.0;
+
+						double y0 = damages[jj - 1];
+						double y1 = damages[jj];
+
+						EquivalentDamage = y0 + (y1 - y0)*(x - x0) / diff;
+
+						stress_vector[0] = InterpStressVectorXX[jj - 1] + (InterpStressVectorXX[jj] - InterpStressVectorXX[jj - 1])*(x - x0) / diff;
+						stress_vector[1] = InterpStressVectorYY[jj - 1] + (InterpStressVectorYY[jj] - InterpStressVectorYY[jj - 1])*(x - x0) / diff;
+						stress_vector[2] = InterpStressVectorXY[jj - 1] + (InterpStressVectorXY[jj] - InterpStressVectorXY[jj - 1])*(x - x0) / diff;
+
+						break;
+					}
+					else if (norm_real_eps == InterpRadiusVector[jj])
+					{
+						EquivalentDamage = damages[jj];
+						stress_vector[0] = InterpStressVectorXX[jj];
+						stress_vector[1] = InterpStressVectorYY[jj];
+						stress_vector[2] = InterpStressVectorXY[jj];
+
+						break;
+					}
+				}
+			}
+			else if (CubicInterp)
+			{
+				array_1d<double, 4> t;
+				array_1d<double, 4> s_xx;
+				array_1d<double, 4> s_yy;
+				array_1d<double, 4> s_xy;
+				double local_coord;
+
+				for (size_t jj = 1; jj < n_damage; jj++)
+				{
+					if (norm_real_eps < InterpRadiusVector[jj])
+					{
+						//std::cout << "Is_Elastic = false -> INSIDE OF BOUND\n";
+						double x = norm_real_eps;
+
+						double x0 = InterpRadiusVector[jj - 1];
+						double x1 = InterpRadiusVector[jj];
+
+						local_coord = (x - x0) / (x1 - x0);
+
+						double y0 = damages[jj - 1];
+						double y1 = damages[jj];
+
+						for (size_t ind = 0; ind < 4; ind++)
+						{
+							size_t a_ind = jj - 1 + ind - 1;
+							if (a_ind > n_damage - 1)
+							{
+								a_ind = n_damage - 1;
+							}
+							else if (a_ind < 0)
+							{
+								a_ind = 0;
+							}
+							t[ind] = InterpRadiusVector[a_ind];
+							s_xx[ind] = InterpStressVectorXX[a_ind];
+							s_yy[ind] = InterpStressVectorYY[a_ind];
+							s_xy[ind] = InterpStressVectorXY[a_ind];
+						}
+						break;
+					}
+				}
+				//size_t IType = 0; // Linear
+				size_t IType = 1; // Cubic
+				Matrix F = this->SelectInterpolationType(IType);
+				EquivalentDamage = this->Interpolate(t, local_coord, F);
+				stress_vector[0] = this->Interpolate(s_xx, local_coord, F);
+				stress_vector[1] = this->Interpolate(s_yy, local_coord, F);
+				stress_vector[2] = this->Interpolate(s_xy, local_coord, F);
+			}
+		}
+
+		//Calculate damage
+		EquivalentDamage = 0.0;
+		Vector elastic_stress(strain_size, 0.0);
+		noalias(elastic_stress) = prod(mC0, trial_macro_scale_strain_vector);
+		double norm_stress_difference = norm_2(elastic_stress - stress_vector);
+		EquivalentDamage = norm_stress_difference / norm_2(elastic_stress);
+
+		EquivalentDamage = std::max(std::min(EquivalentDamage, 1.0), 0.0);
 		if (EquivalentDamage < EquivalentDamageConverged)
 			EquivalentDamage = EquivalentDamageConverged;
 
-		//std::cout << "EquivalentDamage: " << EquivalentDamage << std::endl;
-		//std::cout << "EquivalentDamageConverged: " << EquivalentDamageConverged << std::endl;
-
-		noalias(const_tensor) = (1 - EquivalentDamageConverged)*mC0;
-		//noalias(const_tensor) = (1 - EquivalentDamage)*mC0;
-		//std::cout << "const_tensor: " << const_tensor << std::endl;
+		//Calculate damaged Constitutive Tensor
+		const_tensor.clear();
+		noalias(const_tensor) = (1 - EquivalentDamage)*mC0;
+		 
+		//Calculate stress
+		stress_vector.clear();
 		noalias(stress_vector) = prod(const_tensor, trial_macro_scale_strain_vector);
-		//std::cout << "stress_vector: " << stress_vector << std::endl;
 
+		//noalias(const_tensor) = (1 - EquivalentDamageConverged)*mC0;
 	}
 
-	void RvePredictorCalculator::PredictStress3D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tensor, double& EquivalentDamage, double& EquivalentDamageConverged) const
+	void RvePredictorCalculator::CalculateFractureEnergy(const Matrix& TractionHistInfo)
+	{
+		const size_t n_damage = TractionHistInfo.size2();
+		Vector damagesVector_aux(n_damage, 0.0);
+		Vector i_radiusVector_aux(n_damage, 0.0);
+		Vector i_stressVectorXX_aux(n_damage, 0.0);
+		for (size_t i_dls = 0; i_dls < n_damage; i_dls++)
+		{
+			damagesVector_aux[i_dls] = TractionHistInfo(0, i_dls);
+			i_radiusVector_aux[i_dls] = TractionHistInfo(1, i_dls);
+			//sigma
+			i_stressVectorXX_aux[i_dls] = TractionHistInfo(2, i_dls);
+		}
+
+		size_t idx_final = 0;
+		Vector InterpRadiusVector(n_damage, 0.0);
+		Vector InterpStressVectorXX(n_damage, 0.0);
+		for (auto i_sort : sort_indexes(damagesVector_aux)) { // only c++11
+			InterpRadiusVector[idx_final] = i_radiusVector_aux[i_sort];
+			//sigma
+			InterpStressVectorXX[idx_final] = i_stressVectorXX_aux[i_sort];
+			idx_final += 1;
+		}
+
+		//Calculate Area -> Fracture Energy
+		mG0 = 0.5 * InterpRadiusVector[0] * InterpStressVectorXX[0];
+		mGf_bar = mG0;
+		for (size_t i = 1; i < n_damage - 1; i++)
+		{
+			mGf_bar += 0.5 * (InterpRadiusVector[i + 1] - InterpRadiusVector[i])*(InterpStressVectorXX[i] + InterpStressVectorXX[i + 1]);
+		}
+		mGf_bar += 0.5 * (1.0 - InterpRadiusVector[n_damage - 1])*InterpStressVectorXX[n_damage - 1];
+	}
+
+	void RvePredictorCalculator::CalculateAlpha(double& lch_macro)
+	{
+		double Area = 0.5; //Reference Macro Triangle 2D3N
+		double lch_ref = 0.000;
+		lch_ref = std::sqrt(2.0*std::abs(Area));
+		//mAlpha = (Gc-G1)/(G_bar-G1)-1.0;
+		double Gf = mGf_bar * lch_ref / lch_macro;
+		mAlpha = (Gf - mG0) / (mGf_bar - mG0) - 1.0;
+		//if (mAlpha <= -1.0)
+		//{
+		//	std::stringstream ss;
+		//	ss << "Damage Prediction Error: Predicted Fracture energy is too low" << std::endl;
+		//	ss << "Input Gf/lch = " << Gf << std::endl;
+		//	ss << "Minimum Gf to avoid constitutive snap-back = " << G0 << std::endl;
+		//	std::cout << ss.str();
+		//	exit(-1);
+		//}
+	}
+
+	void RvePredictorCalculator::RegularizeInterpRadius(Vector& InterpRadius, Vector& Theta)
+	{
+		size_t n_radius = InterpRadius.size();
+		for (size_t i = 1; i < n_radius; i++)
+		{
+			//	eps[i] = eps[i] + mAlpha * (eps[i] - eps[0]);
+			double eps_xx = InterpRadius[i] * cos(Theta[0]) + mAlpha * (InterpRadius[i] * cos(Theta[0]) - InterpRadius[0] * cos(Theta[0]));
+			double eps_yy = InterpRadius[i] * sin(Theta[0])*cos(Theta[1]) + mAlpha * (InterpRadius[i] * sin(Theta[0])*cos(Theta[1]) - InterpRadius[0] * sin(Theta[0])*cos(Theta[1]));
+			//double eps_xy = 0.5*InterpRadius[i] * sin(Theta[0])*sin(Theta[1]) + mAlpha * (0.5*InterpRadius[i] * sin(Theta[0])*sin(Theta[1]) - 0.5*InterpRadius[0] * sin(Theta[0])*sin(Theta[1]));
+			double eps_xy = InterpRadius[i] * sin(Theta[0])*sin(Theta[1]) + mAlpha * (InterpRadius[i] * sin(Theta[0])*sin(Theta[1]) - InterpRadius[0] * sin(Theta[0])*sin(Theta[1]));
+
+			InterpRadius[i] = sqrt(pow(eps_xx, 2.0) + pow(eps_yy, 2.0) + pow(0.5*eps_xy, 2.0));
+			//InterpRadius[i] = sqrt(pow(eps_xx, 2.0) + pow(eps_yy, 2.0) + pow(eps_xy, 2.0));
+		}
+	}
+
+	void RvePredictorCalculator::PredictStress3D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tensor, double& EquivalentDamage, double& EquivalentDamageConverged)
 	{
 		//Initialize data for the interpolation
 		double strain_size = trial_macro_scale_strain_vector.size();
-		Vector elasticStress(strain_size, 0.0);
-		noalias(elasticStress) = prod(mC0, trial_macro_scale_strain_vector);
+		Vector InStrain = trial_macro_scale_strain_vector;
+		//InStrain[2] = 0.5 * InStrain[2];
 		Vector Theta(strain_size - 1);
 		Vector eps(strain_size);
 		EquivalentDamage = 0.0;
@@ -1464,10 +1666,10 @@ namespace Kratos
 		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
-		double norm_real_eps = norm_2(trial_macro_scale_strain_vector);//This is the value to compare with the RADIUS
+		double norm_real_eps = norm_2(InStrain);//This is the value to compare with the RADIUS
 		//std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
-		//std::cout << "trial_macro_scale_strain_vector: " << trial_macro_scale_strain_vector << std::endl;
-		Vector strain_direction = norm_real_eps > 0 ? trial_macro_scale_strain_vector / norm_real_eps : trial_macro_scale_strain_vector;//This is the direction
+		//std::cout << "InStrain: " << InStrain << std::endl;
+		Vector strain_direction = norm_real_eps > 0 ? InStrain / norm_real_eps : InStrain;//This is the direction
 		//std::cout << "strain_direction: " << strain_direction << std::endl;
 
 		Theta = this->CalculateTheta(strain_direction);
@@ -1614,7 +1816,7 @@ namespace Kratos
 			//std::cout << "Is_Elastic = true\n";
 			EquivalentDamage = 0.0;
 
-			noalias(stress_vector) = prod(mC0, trial_macro_scale_strain_vector);
+			noalias(stress_vector) = prod(mC0, InStrain);
 		}
 		else if (norm_real_eps > InterpRadiusVector[n_damage - 1])
 		{
@@ -1683,7 +1885,7 @@ namespace Kratos
 		noalias(const_tensor) = (1 - EquivalentDamageConverged)*mC0;
 		//noalias(const_tensor) = (1 - EquivalentDamage)*mC0;
 		//std::cout << "const_tensor: " << const_tensor << std::endl;
-		noalias(stress_vector) = prod(const_tensor, trial_macro_scale_strain_vector);
+		noalias(stress_vector) = prod(const_tensor, InStrain);
 		//std::cout << "stress_vector: " << stress_vector << std::endl;
 
 	}
@@ -1711,25 +1913,25 @@ namespace Kratos
 		/*switch (ShapeFunctionIndex)
 		{
 		case 0:
-			return(0.125*(1.0 - rPoint[0])*(1.0 - rPoint[1])*(1.0 - rPoint[2]));
+		return(0.125*(1.0 - rPoint[0])*(1.0 - rPoint[1])*(1.0 - rPoint[2]));
 		case 1:
-			return(0.125*(1.0 + rPoint[0])*(1.0 - rPoint[1])*(1.0 - rPoint[2]));
+		return(0.125*(1.0 + rPoint[0])*(1.0 - rPoint[1])*(1.0 - rPoint[2]));
 		case 2:
-			return(0.125*(1.0 + rPoint[0])*(1.0 + rPoint[1])*(1.0 - rPoint[2]));
+		return(0.125*(1.0 + rPoint[0])*(1.0 + rPoint[1])*(1.0 - rPoint[2]));
 		case 3:
-			return(0.125*(1.0 - rPoint[0])*(1.0 + rPoint[1])*(1.0 - rPoint[2]));
+		return(0.125*(1.0 - rPoint[0])*(1.0 + rPoint[1])*(1.0 - rPoint[2]));
 		case 4:
-			return(0.125*(1.0 - rPoint[0])*(1.0 - rPoint[1])*(1.0 + rPoint[2]));
+		return(0.125*(1.0 - rPoint[0])*(1.0 - rPoint[1])*(1.0 + rPoint[2]));
 		case 5:
-			return(0.125*(1.0 + rPoint[0])*(1.0 - rPoint[1])*(1.0 + rPoint[2]));
+		return(0.125*(1.0 + rPoint[0])*(1.0 - rPoint[1])*(1.0 + rPoint[2]));
 		case 6:
-			return(0.125*(1.0 + rPoint[0])*(1.0 + rPoint[1])*(1.0 + rPoint[2]));
+		return(0.125*(1.0 + rPoint[0])*(1.0 + rPoint[1])*(1.0 + rPoint[2]));
 		case 7:
-			return(0.125*(1.0 - rPoint[0])*(1.0 + rPoint[1])*(1.0 + rPoint[2]));
+		return(0.125*(1.0 - rPoint[0])*(1.0 + rPoint[1])*(1.0 + rPoint[2]));
 		default:
-			KRATOS_THROW_ERROR(std::logic_error,
-				"Wrong index of shape function!", "");*/
-		if(ShapeFunctionIndex == 0)
+		KRATOS_THROW_ERROR(std::logic_error,
+		"Wrong index of shape function!", "");*/
+		if (ShapeFunctionIndex == 0)
 			return(0.125*(1.0 - rPoint[0])*(1.0 - rPoint[1])*(1.0 - rPoint[2]));
 		else if (ShapeFunctionIndex == 1)
 			return(0.125*(1.0 + rPoint[0])*(1.0 - rPoint[1])*(1.0 - rPoint[2]));
@@ -1747,8 +1949,8 @@ namespace Kratos
 			return(0.125*(1.0 - rPoint[0])*(1.0 + rPoint[1])*(1.0 + rPoint[2]));
 		else
 			KRATOS_THROW_ERROR(std::logic_error,
-				"Wrong index of shape function!", "");
-			return 0;
+			"Wrong index of shape function!", "");
+		return 0;
 	}
 
 	double RvePredictorCalculator::ShapeFunctionValue27N(size_t ShapeFunctionIndex,
@@ -1941,17 +2143,8 @@ namespace Kratos
 		return Theta;
 	}
 
-	Vector RvePredictorCalculator::FindInterpolatedStress()
-	{
-		Vector StressVectorEvolution;
-		//1. Loop over hashFile/hashMap created before (in the constructor)
-		//2. call Predict() and fill StressVectorEvolution
-		//3. Interpolate StressVector
-		return StressVectorEvolution;
-	}
-
 	Matrix RvePredictorCalculator::SelectInterpolationType(size_t IType) const {
-		// Now only Kochanek-Bartels was implemented for 2D and 3D!!
+		// https://www.engr.colostate.edu/ECE481A2/Recommended_Readings/TCB.pdf
 
 		/*% ' Basis matrix for global Tension, Continuity  & Bias
 		% ' As T goes from 0 to 1 you go from n to n+1
@@ -1961,9 +2154,9 @@ namespace Kratos
 		% '   T^1  -A     A-B         B         0   /  2
 		% '   T^0   0      2          0         0  /
 		% '*/
-		double FT = 0;  //%' Tension       T=+1-->Tight             T=-1--> Round
-		double FB = 0;  //%' Bias          B=+1-->Post Shoot        B=-1--> Pre shoot
-		double FC = -1; //%' Continuity    C=+1-->Inverted corners  C=-1--> Box corners
+		double FT = 0.0;  //%' Tension       T=+1-->Tight             T=-1--> Round
+		double FB = 0.0;  //%' Bias          B=+1-->Post Shoot        B=-1--> Pre shoot
+		double FC = 0.0;  //%' Continuity    C=+1-->Inverted corners  C=-1--> Box corners
 		/*% '
 		% ' When T=B=C=0 this is the Catmul-Rom.
 		% ' When T=1 & B=C=0 this is the Simple Cubic.
@@ -1977,6 +2170,19 @@ namespace Kratos
 		% ' the "A" & "B" for the current segment and the "C" & "D" from the previous
 		% ' segment.
 		% '*/
+
+		if (IType == 0) // Linear
+		{
+			FT = 0.0;  //%' Tension       T=+1-->Tight             T=-1--> Round
+			FB = 0.0;  //%' Bias          B=+1-->Post Shoot        B=-1--> Pre shoot
+			FC = -1.0;  //%' Continuity    C=+1-->Inverted corners  C=-1--> Box corners
+		}
+		else if (IType == 1) // Cubic
+		{
+			FT = 1.0;  //%' Tension       T=+1-->Tight             T=-1--> Round
+			FB = 0.0;  //%' Bias          B=+1-->Post Shoot        B=-1--> Pre shoot
+			FC = 0.0;  //%' Continuity    C=+1-->Inverted corners  C=-1--> Box corners
+		}
 		double FFA = (1 - FT)*(1 + FC)*(1 + FB);
 		double FFB = (1 - FT)*(1 - FC)*(1 - FB);
 		double FFC = (1 - FT)*(1 - FC)*(1 + FB);
@@ -1999,11 +2205,11 @@ namespace Kratos
 		return F;
 	}
 
-	double RvePredictorCalculator::cubicInterpolate(double p[4], double x, Matrix& F) const {
+	double RvePredictorCalculator::Interpolate(array_1d<double, 4> p, double x, Matrix& F) const {
 		/*std::cout << ">>> cubicInterpolate \n";
 		std::cout << p[0] << ", " << p[1] << ", " << p[2] << ", " << p[3] << '\n';*/
-		return p[1] + 0.5 * x*(p[2] - p[0] + x*(2.0*p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*(3.0*(p[1] - p[2]) + p[3] - p[0])));
-
+		//return p[1] + 0.5 * x*(p[2] - p[0] + x*(2.0*p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*(3.0*(p[1] - p[2]) + p[3] - p[0])));
+		//std::cout << "F: " << F << std::endl;
 		double FAX = F(0, 0)*p[0] + F(0, 1)*p[1] + F(0, 2)*p[2] + F(0, 3)*p[3];
 		double FBX = F(1, 0)*p[0] + F(1, 1)*p[1] + F(1, 2)*p[2] + F(1, 3)*p[3];
 		double FCX = F(2, 0)*p[0] + F(2, 1)*p[1] + F(2, 2)*p[2] + F(2, 3)*p[3];
@@ -2011,40 +2217,59 @@ namespace Kratos
 		return ((FAX*x + FBX)*x + FCX)*x + FDX;
 	}
 
-	double RvePredictorCalculator::nCubicInterpolate(int n, double* p, double coordinates[], Matrix& F) const {
-		assert(n > 0);
-		if (n == 1) {
-			return cubicInterpolate(p, *coordinates, F);
-		}
-		else {
-			double arr[4];
-			int skip = 1 << (n - 1) * 2;
-			arr[0] = nCubicInterpolate(n - 1, p, coordinates + 1, F);
-			arr[1] = nCubicInterpolate(n - 1, p + skip, coordinates + 1, F);
-			arr[2] = nCubicInterpolate(n - 1, p + 2 * skip, coordinates + 1, F);
-			arr[3] = nCubicInterpolate(n - 1, p + 3 * skip, coordinates + 1, F);
-			return cubicInterpolate(arr, *coordinates, F);
-		}
-	}
-
-	double RvePredictorCalculator::bicubicInterpolate(double p[4][4], double x, double y, Matrix& F) const {
+	double RvePredictorCalculator::biDimInterpolate(array_1d<array_1d<double, 4>, 4> p, double x, double y, Matrix& F) const {
 		/*std::cout << ">>> bicubicInterpolate \n";
 		std::cout << p[0] << ", " << p[1] << ", " << p[2] << ", " << p[3] << '\n';*/
-		double arr[4];
-		arr[0] = cubicInterpolate(p[0], y, F);
-		arr[1] = cubicInterpolate(p[1], y, F);
-		arr[2] = cubicInterpolate(p[2], y, F);
-		arr[3] = cubicInterpolate(p[3], y, F);
-		return cubicInterpolate(arr, x, F);
+		array_1d<double, 4> arr;
+		arr[0] = Interpolate(p[0], y, F);
+		arr[1] = Interpolate(p[1], y, F);
+		arr[2] = Interpolate(p[2], y, F);
+		arr[3] = Interpolate(p[3], y, F);
+		return Interpolate(arr, x, F);
 	}
 
-	double RvePredictorCalculator::tricubicInterpolate(double p[4][4][4], double x, double y, double z, Matrix F) const {
-		double arr[4];
-		arr[0] = bicubicInterpolate(p[0], y, z, F);
-		arr[1] = bicubicInterpolate(p[1], y, z, F);
-		arr[2] = bicubicInterpolate(p[2], y, z, F);
-		arr[3] = bicubicInterpolate(p[3], y, z, F);
-		return cubicInterpolate(arr, x, F);
+	double RvePredictorCalculator::triDimInterpolate(array_1d<array_1d<array_1d<double, 4>, 4>, 4> p, double x, double y, double z, Matrix F) const {
+		array_1d<double, 4> arr;
+		arr[0] = biDimInterpolate(p[0], y, z, F);
+		arr[1] = biDimInterpolate(p[1], y, z, F);
+		arr[2] = biDimInterpolate(p[2], y, z, F);
+		arr[3] = biDimInterpolate(p[3], y, z, F);
+		return Interpolate(arr, x, F);
+	}
+
+	double RvePredictorCalculator::quadDimInterpolate(array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, Matrix F) const {
+		array_1d<double, 4> arr;
+		arr[0] = triDimInterpolate(p[0], y, z, h, F);
+		arr[1] = triDimInterpolate(p[1], y, z, h, F);
+		arr[2] = triDimInterpolate(p[2], y, z, h, F);
+		arr[3] = triDimInterpolate(p[3], y, z, h, F);
+		return Interpolate(arr, x, F);
+	}
+
+	double RvePredictorCalculator::pentaDimInterpolate(array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, double k, Matrix F) const {
+		array_1d<double, 4> arr;
+		arr[0] = quadDimInterpolate(p[0], y, z, h, k, F);
+		arr[1] = quadDimInterpolate(p[1], y, z, h, k, F);
+		arr[2] = quadDimInterpolate(p[2], y, z, h, k, F);
+		arr[3] = quadDimInterpolate(p[3], y, z, h, k, F);
+		return Interpolate(arr, x, F);
+	}
+
+	double RvePredictorCalculator::nDimInterpolate(size_t n, double* p, double coordinates[], Matrix& F) const {
+		//assert(n > 0);
+		//if (n == 1) {
+		//	return Interpolate(p, *coordinates, F);
+		//}
+		//else {
+		//	array_1d<double, 4> arr;
+		//	int skip = 1 << (n - 1) * 2;
+		//	arr[0] = nDimInterpolate(n - 1, p, coordinates + 1, F);
+		//	arr[1] = nDimInterpolate(n - 1, p + skip, coordinates + 1, F);
+		//	arr[2] = nDimInterpolate(n - 1, p + 2 * skip, coordinates + 1, F);
+		//	arr[3] = nDimInterpolate(n - 1, p + 3 * skip, coordinates + 1, F);
+		//	return Interpolate(arr, *coordinates, F);
+		//}
+		return 0.0;
 	}
 
 	void RvePredictorCalculator::FindDimension(ModelPart& modelPart)

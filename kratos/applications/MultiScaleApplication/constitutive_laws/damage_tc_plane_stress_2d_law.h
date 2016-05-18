@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/constitutive_law.h"
 
-#define DAM_TC_2D_IMPLEX
+//#define DAM_TC_2D_IMPLEX
 
 //#define DAM_TC_2D_INCREMENTAL_REGULARIZATION
 //#define DAM_TC_2D_INCREMENTAL_REGULARIZATION_V2

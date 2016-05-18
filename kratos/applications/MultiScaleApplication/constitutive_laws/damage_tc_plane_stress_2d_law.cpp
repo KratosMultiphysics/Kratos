@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #include "damage_tc_plane_stress_2d_law.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 #include "custom_utilities/imperfection_utilities.h"
 #include "includes/variables.h"
@@ -90,7 +90,8 @@ namespace Kratos
 				double v2y = dy-cy;
 				double lx = std::sqrt(v1x*v1x+v1y*v1y);
 				double ly = std::sqrt(v2x*v2x+v2y*v2y);
-				lch = std::min(lx,ly);
+				lch = std::min(lx, ly); //rettangolo lato lungo verticale
+				//lch = std::max(lx, ly); //rettangolo lato lungo orrizontale
 			}
 		}
 		else if(geom.WorkingSpaceDimension() == 3) {

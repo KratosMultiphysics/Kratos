@@ -7,7 +7,7 @@
 //
 
 #include "q4ristab_element.hpp"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 
 #include <string>
 #include <iomanip>
