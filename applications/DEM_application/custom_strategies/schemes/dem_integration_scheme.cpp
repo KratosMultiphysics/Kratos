@@ -295,28 +295,11 @@ namespace Kratos {
                 UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);                                               
 
                 double ang = DEM_MODULUS_3(delta_rotation);
+                
                 if (ang) {
                     array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-                    Quaternion<double> delta_orientation = Quaternion<double>::Identity();
-                        
-                    array_1d<double, 3 > theta = delta_rotation;
-                    DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
-
-                    double thetaMag = DEM_MODULUS_3(theta);
-					const double epsilon = std::numeric_limits<double>::epsilon();
-					if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
-                        double aux = (1 - thetaMag * thetaMag / 6);
-                        delta_orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                    }
-                    else {
-                        double aux = sin(thetaMag)/thetaMag;
-                        delta_orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-                    }
-
-                    delta_orientation.normalize();
-                    Orientation = delta_orientation * Orientation;
-                    Orientation.ToEulerAngles(EulerAngles); 
-                } //if ang                                                                                                    
+                    GeometryFunctions::UpdateOrientation(EulerAngles, Orientation, delta_rotation);
+                } //if ang
                 cluster_element.UpdatePositionOfSpheres();
             } //for Elements
         } //for number of threads
