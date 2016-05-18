@@ -96,7 +96,7 @@ namespace Kratos
 				return boost::hash_range(k.begin(), k.end());
 			}
 		};
-		
+
 		/*Unordered maps are associative containers that store elements
 		* formed by the combination of a key value and a mapped value,
 		* and which allows for fast retrieval of individual elements based on their keys.
@@ -124,7 +124,7 @@ namespace Kratos
 
 		typedef boost::unordered_map<vector<int>, DamageMap, KeyHasher, KeyComparor > TagNestedMap;
 
-		typedef boost::unordered_map<vector<int>, matrix<double>, KeyHasher, KeyComparor > TagDamageMap;
+		typedef boost::unordered_map<vector<int>, Matrix, KeyHasher, KeyComparor> TagDamageMap;
 
 
 	public:
@@ -147,30 +147,38 @@ namespace Kratos
 
 		void PredictElasticity(const Vector& trial_macro_scale_strain_vector, bool& Is_Elastic, Vector& stress_vector) const;
 
-		void PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged) const;
-		
-		void PredictStress3D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged) const;
+		void PredictStress2D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, double& lch_macro, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged);
+
+		void CalculateFractureEnergy(const Matrix& TractionHistInfo);
+
+		void CalculateAlpha(double& lch_macro);
+
+		void RegularizeInterpRadius(Vector& InterpRadius, Vector& Theta);
+
+		void PredictStress3D(const Vector& trial_macro_scale_strain_vector, Vector& stress_vector, Matrix& const_tens, double& EquivalentDamage, double& EquivalentDamageConverged);
 
 		double ShapeFunctionValue4N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
 
 		double ShapeFunctionValue8N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
-		
+
 		double ShapeFunctionValue27N(size_t ShapeFunctionIndex, const Vector& rPoint) const;
 
 		Vector CalculateTheta(Vector NormalizedStrainVector) const;
 
-		Vector FindInterpolatedStress();
-
 		Matrix SelectInterpolationType(size_t IType) const;
 
 		//double cubicInterpolate(array_1d<double, 4> p, double x, Matrix& F) const;
-		double cubicInterpolate(double p[4], double x, Matrix& F) const;
+		double Interpolate(array_1d<double, 4> p, double x, Matrix& F) const;
 
-		double nCubicInterpolate(int n, double* p, double coordinates[], Matrix& F) const;
+		double biDimInterpolate(array_1d<array_1d<double, 4>, 4> p, double x, double y, Matrix& F) const;
 
-		double bicubicInterpolate(double p[4][4], double x, double y, Matrix& F) const;
+		double triDimInterpolate(array_1d<array_1d<array_1d<double, 4>, 4>, 4> p, double x, double y, double z, Matrix F) const;
 
-		double tricubicInterpolate(double p[4][4][4], double x, double y, double z, Matrix F) const;
+		double quadDimInterpolate(array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, Matrix F) const;
+		
+		double pentaDimInterpolate(array_1d<array_1d<array_1d<array_1d<array_1d<double, 4>, 4>, 4>, 4>, 4> p, double x, double y, double z, double h, double k, Matrix F) const;
+
+		double nDimInterpolate(size_t n, double* p, double coordinates[], Matrix& F) const;
 
 	public:
 
@@ -231,7 +239,11 @@ namespace Kratos
 		DamageMap mDamageMap;
 		TagDamageMap mTagDamageMap;
 		rapidjson::Value* mValue;
-		
+
+		double mG0;
+		double mGf_bar;
+		double mAlpha;
+
 	public:
 
 		inline const size_t Dimension()const { return m_dimension; }

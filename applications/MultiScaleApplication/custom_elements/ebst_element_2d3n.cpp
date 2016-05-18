@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_elements/ebst_element_2d3n.h"
 #include "includes/constitutive_law.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 
 #define EBST_ELEM_NUM_IP 1
 #if EBST_ELEM_NUM_IP==1

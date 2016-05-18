@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 #include "conv_diff_interface_2d_law.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 
 #ifndef M_PI
@@ -169,7 +169,7 @@ namespace Kratos
     void ConvDiffInterface2DLaw::SetValue(const Variable<double>& rVariable,
                                               const double& rValue,
                                               const ProcessInfo& rCurrentProcessInfo)
-    {
+	{
 		if (rVariable == CONVECTION_DEGRADATION)
 			mD1 = rValue;
     }
@@ -314,8 +314,8 @@ namespace Kratos
 
 		CalculationData data;
 				
-		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, data );
-
+		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, rValues.GetProcessInfo(), data );
+		
 		std::stringstream ss;
 		//std::cout << "CalculateMaterialResponseCauchy -  strainVector = " << strainVector << std::endl;
 		//std::cout << "CalculateMaterialResponseCauchy -  constitutiveMatrix = " << constitutiveMatrix << std::endl;
@@ -419,9 +419,10 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-	void ConvDiffInterface2DLaw::InitializeCalculationData(const Properties& props, 
+	void ConvDiffInterface2DLaw::InitializeCalculationData(const Properties& props,
 														   const GeometryType& geom,
 														   const Vector& strainVector,
+														   const ProcessInfo& pinfo,
 														   CalculationData& data)
 	{
 		// Check EXPONENTIAL\LINEAR DAMAGE
@@ -559,13 +560,12 @@ namespace Kratos
 		else 
 		{
 			data.D1 = data.effDispl / data.crticalDispl;
-			if (data.D1 >= 1.0)
-				data.D1 = 1.0;
+			data.D1 = std::max(std::min(data.D1, 1.0), 0.0);
 		}
 
 		//std::stringstream ss;
-		//if (data.D1 > 0.0)
-		//	ss << "--------  D1 = " << data.D1 << ", " << std::endl;
+		//if (data.D1 > 1.0e-8)
+		//	ss << "-------- Therm D1 = " << data.D1 << ", " << std::endl;
 		//std::cout << ss.str();
 	}
 
@@ -613,28 +613,19 @@ namespace Kratos
 		}
 		else
 		{
-			if (m_gap_interface(1) > 0.0) 
-			{
-				if (data.D1 <= 0.0)
-				{
-					sigma_n = (data.Ks + data.Kg)*strainVector(1);
-					sigma_t = data.Ks*strainVector(0);
-				}
-				else
-				{
-					sigma_n = ((1.0 - data.D1)*data.Ks + data.D1*data.Kc + data.Kg)*strainVector(1);
-					sigma_t = (1.0 - data.D1)*data.Ks*strainVector(0);
-				}
-			}
-			else
-			{
-				sigma_n = (data.Ks + data.Kg)*strainVector(1);
-				sigma_t = data.Ks*strainVector(0);
-			}
+			sigma_n = ((1.0 - data.D1)*data.Ks + data.D1*data.Kc + data.Kg)*strainVector(1);
+			sigma_t = (1.0 - data.D1)*data.Ks*strainVector(0);
 		}
-		mStressVector(1) = sigma_n;
-		mStressVector(0) = sigma_t;
+		mStressVector(0) = sigma_n;
+		mStressVector(1) = sigma_t;
 		noalias(stressVector) = mStressVector;
+		
+		/*std::stringstream ss;
+		ss << "--------  data.Kc = " << data.Kc << ", " << std::endl;
+		ss << "--------  data.D1 = " << data.D1 << ", " << std::endl;
+		ss << "--------  m_gap_interface = " << m_gap_interface << ", " << std::endl;
+		ss << "PlaneStressIterf - stressVector = " << stressVector << ", " << std::endl;
+		std::cout << ss.str();*/
 	}
 
 	void ConvDiffInterface2DLaw::CalculateConstitutiveMatrix(CalculationData& data, 

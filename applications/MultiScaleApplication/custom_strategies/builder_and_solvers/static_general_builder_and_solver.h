@@ -29,7 +29,7 @@
 #include "utilities/timer.h"
 
 /* Project includes */
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"

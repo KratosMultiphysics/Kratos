@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ***********************************************************/
 
 #include "conv_diff_interface_3d_law.h"
-#include "multiscale_application.h"
+#include "multiscale_application_variables.h"
 #include "custom_utilities/math_helpers.h"
 
 #ifndef M_PI

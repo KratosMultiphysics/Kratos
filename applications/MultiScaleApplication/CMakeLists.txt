@@ -95,6 +95,7 @@ endif(${MULTISCALE_APPLICATION_USE_EIGEN} MATCHES ON)
 
 set( KRATOS_MULTISCALE_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/multiscale_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_constitutive_law_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_anisotropic_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/conv_diff_plane_stress_2d_law.cpp
