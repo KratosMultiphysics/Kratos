@@ -1,5 +1,5 @@
-#ifndef AMGCL_PRECONDITIONER_SCHUR_COMPLEMENT_HPP
-#define AMGCL_PRECONDITIONER_SCHUR_COMPLEMENT_HPP
+#ifndef AMGCL_PRECONDITIONER_SCHUR_PRESSURE_CORRECTION_HPP
+#define AMGCL_PRECONDITIONER_SCHUR_PRESSURE_CORRECTION_HPP
 
 /*
 The MIT License
@@ -27,7 +27,7 @@ THE SOFTWARE.
 */
 
 /**
- * \file   amgcl/preconditioner/schur_complement.hpp
+ * \file   amgcl/preconditioner/schur_pressure_correction.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
  * \brief  Schur-complement pressure correction preconditioning scheme.
  */
@@ -46,7 +46,7 @@ namespace preconditioner {
 
 /// Schur-complement pressure correction preconditioner
 template <class USolver, class PSolver>
-class schur_complement {
+class schur_pressure_correction {
     BOOST_STATIC_ASSERT_MSG(
             (
              boost::is_same<
@@ -54,7 +54,7 @@ class schur_complement {
                  typename PSolver::backend_type
                  >::value
             ),
-            "Backends for pressure and flow preconditioners should coinside!"
+            "Backends for pressure and flow preconditioners should coincide!"
             );
     public:
         typedef typename USolver::backend_type backend_type;
@@ -109,7 +109,7 @@ class schur_complement {
         } prm;
 
         template <class Matrix>
-        schur_complement(
+        schur_pressure_correction(
                 const Matrix &K,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
@@ -119,7 +119,7 @@ class schur_complement {
             init(boost::make_shared<build_matrix>(K), bprm);
         }
 
-        schur_complement(
+        schur_pressure_correction(
                 boost::shared_ptr<build_matrix> K,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
@@ -366,7 +366,7 @@ class schur_complement {
             p2x = backend_type::copy_matrix(P2X, bprm);
         }
 
-        friend std::ostream& operator<<(std::ostream &os, const schur_complement &p) {
+        friend std::ostream& operator<<(std::ostream &os, const schur_pressure_correction &p) {
             os << "Schur complement (two-stage preconditioner)" << std::endl;
             os << "  unknowns: " << p.n << "(" << p.np << ")" << std::endl;
             os << "  nonzeros: " << backend::nonzeros(p.system_matrix()) << std::endl;
@@ -380,18 +380,18 @@ class schur_complement {
 namespace backend {
 
 template <class US, class PS, class Alpha, class Beta, class Vec1, class Vec2>
-struct spmv_impl< Alpha, preconditioner::schur_complement<US, PS>, Vec1, Beta, Vec2>
+struct spmv_impl< Alpha, preconditioner::schur_pressure_correction<US, PS>, Vec1, Beta, Vec2>
 {
-    static void apply(Alpha alpha, const preconditioner::schur_complement<US, PS> &A, const Vec1 &x, Beta beta, Vec2 &y)
+    static void apply(Alpha alpha, const preconditioner::schur_pressure_correction<US, PS> &A, const Vec1 &x, Beta beta, Vec2 &y)
     {
         A.spmv(alpha, x, beta, y);
     }
 };
 
 template <class US, class PS, class Vec1, class Vec2, class Vec3>
-struct residual_impl< preconditioner::schur_complement<US, PS>, Vec1, Vec2, Vec3>
+struct residual_impl< preconditioner::schur_pressure_correction<US, PS>, Vec1, Vec2, Vec3>
 {
-    static void apply(const Vec1 &rhs, const preconditioner::schur_complement<US, PS> &A, const Vec2 &x, Vec3 &r)
+    static void apply(const Vec1 &rhs, const preconditioner::schur_pressure_correction<US, PS> &A, const Vec2 &x, Vec3 &r)
     {
         backend::copy(rhs, r);
         A.spmv(-1, x, 1, r);
