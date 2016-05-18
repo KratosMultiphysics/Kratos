@@ -10,9 +10,9 @@ class KratosShapeSettings:
     filter_size = 2 # e.g. 0.3 or 2
     optimization_algorithm = "steepest_descent"
     max_opt_iterations = 200
-    relative_tolerance_objective = 1e-2
+    relative_tolerance_objective = 1e-3
     normalize_sensitivities = True
-    step_size_0 = 0.01
+    step_size_0 = 0.005
     nodal_results=["OBJECTIVE_SENSITIVITY",
                    "SHAPE_UPDATE",
                    "SHAPE_CHANGE_ABSOLUTE"]

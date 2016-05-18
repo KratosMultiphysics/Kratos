@@ -224,9 +224,11 @@ public:
             // We compute dFdX_n = (dFdX \cdot n) * n
             array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
             array_3d node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            array_3d normal_node_sens =  inner_prod(node_sens,node_normal) * node_normal;
+            double surface_sens = inner_prod(node_sens,node_normal);
+            array_3d normal_node_sens = surface_sens * node_normal;
 
-            // Assign resulting sensitivity back to node
+            // Assign resulting sensitivities back to node
+            node_i->GetSolutionStepValue(OBJECTIVE_SURFACE_SENSITIVITY) = surface_sens;
             noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
 
             // Repeat for constraint
@@ -235,9 +237,11 @@ public:
                 // We compute dFdX_n = (dFdX \cdot n) * n
                 node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
                 node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-                normal_node_sens =  inner_prod(node_sens,node_normal) * node_normal;
+                surface_sens = inner_prod(node_sens,node_normal);
+                normal_node_sens =  surface_sens * node_normal;
 
-                // Assign resulting sensitivity back to node
+                // Assign resulting sensitivities back to node
+                node_i->GetSolutionStepValue(CONSTRAINT_SURFACE_SENSITIVITY) = surface_sens;
                 noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
             }
         }
@@ -312,7 +316,9 @@ public:
                 array_3d node_sens = node_j.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
 
                 // Compute dot-product
-                dFds_i += Ai[j_ID][0] * node_sens[0] + Ai[j_ID][1] * node_sens[1] + Ai[j_ID][2] * node_sens[2];
+                dFds_i += Ai[j_ID][0] * nodes_affected[j]->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[0] * node_sens[0]
+                        + Ai[j_ID][1] * nodes_affected[j]->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[1] * node_sens[1]
+                        + Ai[j_ID][2] * nodes_affected[j]->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[2] * node_sens[2];
             }
             m_filtered_dFdX[i_ID] = dFds_i;
 
@@ -350,9 +356,11 @@ public:
         KRATOS_TRY;
 
         // Initializize variables
-        std::map<int,array_3d> Ai;
-        double summ_of_all_weights = 0.0;
+        unsigned int i_ID = given_node.Id();
         array_3d i_coord = given_node.Coordinates();
+        m_sum_weights[i_ID] = 0.0;
+        double sum_weights = 0.0;
+        std::map<int,array_3d> Ai;
 
         // compute weights
         array_3d dist_vector(3,0.0);
@@ -367,27 +375,28 @@ public:
             dist_vector = i_coord - j_coord;
             double squared_scalar_distance = dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2];
 
-            // Computation of weight according specified weighting function (here it is the implementation of Carat)
+            // Computation of weight according specified weighting functio
             // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
             double Aij = exp(-squared_scalar_distance/(2*m_filter_size*m_filter_size/9.0));
+
+            // Multiplication by the node normal (nodal director)
+            // In this way we implicitly preserve the in-plane mesh quality (pure Heuristic according to Hojjat et al.)
             Ai[j_ID][0] = Aij;
             Ai[j_ID][1] = Aij;
             Ai[j_ID][2] = Aij;
 
             // Computed for necessary integration of weighting function (post-scaling)
-            summ_of_all_weights += Aij;
+            sum_weights += Aij;
         }
 
-        // Here we perform the normalization by the sum of all weights & multiply by the node normal (nodal director)
-        // In this way we implicitly preserve the in-plane mesh quality implicitely (pure Heuristic of Majid Hojjat)
+        // For performance reasons, we assign the value to the map outside the loop
+        m_sum_weights[i_ID] = sum_weights;
+
+        // Here we perform the normalization by the sum of all weights such that the convolution integral is 1
         for(unsigned int j = 0 ; j<number_of_nodes_affected ; j++)
         {
             unsigned int j_ID = nodes_affected[j]->Id();
-            Ai[j_ID] /= summ_of_all_weights;
-
-            Ai[j_ID][0] *= given_node.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[0];
-            Ai[j_ID][1] *= given_node.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[1];
-            Ai[j_ID][2] *= given_node.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[2];
+            Ai[j_ID] /= sum_weights;
         }
         return Ai;
 
@@ -455,24 +464,13 @@ public:
             // Do forward mapping (filtering)
             for(unsigned int j = 0 ; j<number_of_nodes_affected ; j++)
             {
-                unsigned int affectedNode_j_ID = nodes_affected[j]->Id();
-                array_3d shape_update_affectedNode_j_ID(3,0.0);
-
-                shape_update_affectedNode_j_ID[0] = Ai[affectedNode_j_ID][0] * m_design_variable_update[i_ID];
-                shape_update_affectedNode_j_ID[1] = Ai[affectedNode_j_ID][1] * m_design_variable_update[i_ID];
-                shape_update_affectedNode_j_ID[2] = Ai[affectedNode_j_ID][2] * m_design_variable_update[i_ID];
-
-//                // Update coordinates in the mesh (note that this is only in accordance to carat, it is not yet known why
-//                // this is done since by that the iteration sequence through the design variables plays an role)
-//                mr_opt_model_part.Nodes()[affectedNode_j_ID].X() += shape_update_affectedNode_j_ID[0];
-//                mr_opt_model_part.Nodes()[affectedNode_j_ID].Y() += shape_update_affectedNode_j_ID[1];
-//                mr_opt_model_part.Nodes()[affectedNode_j_ID].Z() += shape_update_affectedNode_j_ID[2];
+                unsigned int j_ID = nodes_affected[j]->Id();
+                array_3d shape_update_j_ID(3,0.0);
 
                 // Store shape update contribution in global node list to update after all updates have been computed
-                // Note that this is different as in carat. It is assumed that carat does a mistake here
-                shape_update[affectedNode_j_ID][0] += shape_update_affectedNode_j_ID[0];
-                shape_update[affectedNode_j_ID][1] += shape_update_affectedNode_j_ID[1];
-                shape_update[affectedNode_j_ID][2] += shape_update_affectedNode_j_ID[2];
+                shape_update[j_ID][0] += Ai[j_ID][0] * node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[0] * m_design_variable_update[i_ID];
+                shape_update[j_ID][1] += Ai[j_ID][1] * node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[1] * m_design_variable_update[i_ID];
+                shape_update[j_ID][2] += Ai[j_ID][2] * node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)[2] * m_design_variable_update[i_ID];
             }
         }
 
@@ -897,6 +895,7 @@ private:
     std::map<int,double> m_filtered_dFdX;
     std::map<int,double> m_filtered_dCdX;
     std::map<int,double> m_search_direction;
+    std::map<int,double> m_sum_weights;
 
     // ==============================================================================
     // For running augmented Lagrange method

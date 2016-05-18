@@ -74,7 +74,9 @@ namespace Kratos
     // Variables
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OBJECTIVE_SENSITIVITY);
+    KRATOS_CREATE_VARIABLE(double,OBJECTIVE_SURFACE_SENSITIVITY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONSTRAINT_SENSITIVITY);
+    KRATOS_CREATE_VARIABLE(double,CONSTRAINT_SURFACE_SENSITIVITY);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
 
@@ -90,8 +92,8 @@ namespace Kratos
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication():
-        mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-        mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+        mShapeOptimizationCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+        mShapeOptimizationCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) )
     {}
  	
  	void KratosShapeOptimizationApplication::Register()
@@ -106,7 +108,9 @@ namespace Kratos
         // Register variables
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OBJECTIVE_SENSITIVITY);
+        KRATOS_REGISTER_VARIABLE(OBJECTIVE_SURFACE_SENSITIVITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONSTRAINT_SENSITIVITY);
+        KRATOS_REGISTER_VARIABLE(CONSTRAINT_SURFACE_SENSITIVITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
 
