@@ -164,8 +164,13 @@ public:
         mverbosity=rParameters["verbosity"].GetInt();
         mgmres_size = rParameters["gmres_krylov_space_dimension"].GetInt();
 
-        if(rParameters["solver_type"].GetString() == "bicgstab_with_gmres_fallback")
+        if(rParameters["solver_type"].GetString() == "gmres")
         {
+            mprm.put("solver.M",  mgmres_size);
+        }
+        else if(rParameters["solver_type"].GetString() == "bicgstab_with_gmres_fallback")
+        {
+            mprm.put("solver.M",  mgmres_size);
             mfallback_to_gmres = true;
             mprm.put("solver.type", "bicgstab");
         }
@@ -179,7 +184,7 @@ public:
 
         muse_block_matrices_if_possible = rParameters["use_block_matrices_if_possible"].GetBool();
 
-        mprm.put("solver.M",  mgmres_size);
+        
 
         if(mprovide_coordinates==true && muse_block_matrices_if_possible==true)
         {
