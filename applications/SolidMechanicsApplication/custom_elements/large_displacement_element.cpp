@@ -2440,13 +2440,23 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( dimension == 2 )
     {
         // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-        //   KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
+	//     KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() ) //fails in some 2D cases, i.e. axisymmetric
 
-        if ( THICKNESS.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
+        // if ( THICKNESS.Key() == 0 )
+        //     KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" ) //if is not read from model part it will not exist
 
-        if ( this->GetProperties().Has( THICKNESS ) == false )
-            KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+	if ( this->GetProperties().Has( THICKNESS ) == false ){
+
+	  if(LawFeatures.mOptions.Is(ConstitutiveLaw::PLANE_STRAIN_LAW) || LawFeatures.mOptions.Is(ConstitutiveLaw::AXISYMMETRIC_LAW) ){	   
+
+	    this->GetProperties().SetValue( THICKNESS , 1.0 );
+	  }
+	  else
+	    {
+	      KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+	    }
+	}
+
     }
     else
     {
