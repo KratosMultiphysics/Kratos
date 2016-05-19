@@ -26,8 +26,10 @@ proc Pfem::write::writeModelPartEvent { } {
     write::WriteString "End Nodes"
     
     write::WriteString "Begin Elements TwoStepUpdatedLagrangianVPFluidElement2D"
-    set elements_conditions [list "Shells"]
-    set element_formats [list {"%10d" "element" "id"} {"%10d" "element" "connectivities"} {"%10d" "material" "MID"}]
+    set elements_conditions [list "Fluids2D"]
+    #customlib::InitMaterials $elements_conditions
+    #set element_formats [list {"%10d" "element" "id"} {"%10d" "element" "connectivities"} {"%10d" "material" "MID"}]
+    set element_formats [list {"%10d" "element" "id"} {"%10d" "element" "connectivities"}]
     customlib::WriteConnectivities $elements_conditions $element_formats 
     write::WriteString "End Elements"
 }
