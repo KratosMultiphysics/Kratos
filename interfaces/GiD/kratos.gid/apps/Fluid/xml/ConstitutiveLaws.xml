@@ -18,8 +18,8 @@
             <parameter n="POWER_LAW_N" pn="Flow index (n)" v="1" />
         </inputs>
         <outputs>
-            <parameter n="TAU" pn="Shear stress (τ)"/>
-            <parameter n="MU" pn="Effective viscosity"/>
+            <parameter n="TAU" pn="Equivalent deviatoric stress (τ)"/>
+            <parameter n="MU" pn="Dynamic viscosity"/>
             <parameter n="EQ_STRAIN_RATE" pn="Equivalent strain rate"/>
         </outputs>
     </CLaw>
