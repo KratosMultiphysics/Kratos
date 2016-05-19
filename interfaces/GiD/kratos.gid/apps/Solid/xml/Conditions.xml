@@ -149,6 +149,22 @@
     </outputs>
   </ConditionItem>
   
+  <ConditionItem n="LinePressure2DAxisym" pn="Pressure on lines axisymmetric" ImplementedInFile="apply_scalar_on_conditions_processs"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
+	units="Pa" unit_magnitude="P" VariableName="NEGATIVE_FACE_PRESSURE">
+    <TopologyFeatures>
+      <item  GeometryType="Line" nodes="2" KratosName="AxisymLineLoadCondition2D2N"/>
+      <item  GeometryType="Line" nodes="3" KratosName="AxisymLineLoadCondition2D3N"/>
+    </TopologyFeatures>
+    <inputs>     
+    </inputs>
+    <outputs>
+      <parameter n="FORCE" pn="External Load" v="false"/>
+    </outputs>
+  </ConditionItem>
+
   <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="apply_scalar_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
