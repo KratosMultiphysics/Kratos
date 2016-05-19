@@ -1,5 +1,6 @@
 # import Kratos
 from KratosMultiphysics import *
+from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 
