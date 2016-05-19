@@ -276,7 +276,7 @@ proc write::writeConditions { baseUN } {
 proc write::GetListsOfNodes {elems nnodes {ignore 0} } {
     set obj [list ]
     for {set i 0} {$i < [llength $elems]} {incr i} {
-        for {set j 0} {$j < ignore} {incr j} {incr i; if {$i < [llength $elems]} {return $obj}}
+        for {set j 0} {$j < $ignore} {incr j} {incr i; if {$i >= [llength $elems]} {return $obj}}
         lappend obj [lindex $elems $i]
     }
     return $obj
