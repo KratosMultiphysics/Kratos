@@ -255,27 +255,9 @@ proc write::writeConditions { baseUN } {
                 #set obj [list 3 5]
                 set obj [GiD_EntitiesGroups get $groupid nodes]
             } else {
-                # Metemos las caras
-                #lassign [GiD_EntitiesGroups get $groupid faces] elems faces
-                set obj [list ]
-                #for {set i 0} {$i < [llength $elems]} {incr i} {
-                #    set elem_id [lindex $elems $i]
-                #    set face_id [lindex $faces $i]
-                #    set bc_nodes [write::GetNodesFromElementFace $elem_id $face_id]
-                #    lappend obj [join $bc_nodes " "]
-                #}
-                # Si alguien ha mallado, tambien lo incluimos
                 set formats [write::GetFormatDict $groupid 0 $nnodes]
                 set elems [write_calc_data connectivities -return $formats]
-                if {$nnodes eq 2} {
-                    foreach {e v n1 n2} $elems {
-                        lappend obj [list $n1 $n2]
-                    }
-                } elseif {$nnodes eq 3} {
-                    foreach {e v n1 n2 n3} $elems {
-                        lappend obj [list $n1 $n2 $n3]
-                    }
-                }
+                set obj [GetListsOfNodes $elems $nnodes 2]
             }
             set initial $iter
             for {set i 0} {$i <[llength $obj]} {incr iter; incr i} {
@@ -289,6 +271,15 @@ proc write::writeConditions { baseUN } {
         }
     }
     return $dictGroupsIterators
+}
+
+proc write::GetListsOfNodes {elems nnodes {ignore 0} } {
+    set obj [list ]
+    for {set i 0} {$i < [llength $elems]} {incr i} {
+        for {set j 0} {$j < ignore} {incr j} {incr i; if {$i < [llength $elems]} {return $obj}}
+        lappend obj [lindex $elems $i]
+    }
+    return $obj
 }
 
 proc write::getMeshId {cid group} {
