@@ -525,9 +525,12 @@ public:
         }
         else
         {
-            List_New_Nodes[0]=1;
-            KRATOS_WATCH("First Cutting Plane");
-            first_cutting_plane = true;
+			if (List_New_Nodes.size() > 0)
+			{
+				List_New_Nodes[0]=1;
+				KRATOS_WATCH("First Cutting Plane");
+				first_cutting_plane = true;
+			}
         }
 
         for (unsigned int i = 1; i < number_of_new_nodes; i++)
