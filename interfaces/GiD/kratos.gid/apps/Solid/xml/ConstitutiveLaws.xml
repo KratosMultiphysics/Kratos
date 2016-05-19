@@ -29,6 +29,7 @@
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
             <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.29"/>
+	    <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
         </inputs>
         <outputs>
             
@@ -61,9 +62,10 @@
     <CLaw n="LinearElasticPlaneStress2DLaw" pn="Linear Elastic" ProductionReady="ProductionReady" Type="PlaneStress" behaviour="Elastic" StrainSize="6" 
 	  help="Linear Elastic Behaviour in 3D for Shells" Dimension="3D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="D-R" AllowsAnisotropy="False" >
         <inputs>
-			<parameter n="DENSITY" pn="Density"/>
-            <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
+	    <parameter n="DENSITY" pn="Density"/>
+	    <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
             <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.29"/>
+	    <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
         </inputs>
         <outputs>
             
@@ -75,6 +77,7 @@
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
             <parameter n="POISSON_RATIO" pn="Poisson Ratio" v="0.29"/>
+	    <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
         </inputs>
         <outputs>
             
@@ -293,6 +296,7 @@
             <parameter n="DAMAGE_THRESHOLD" pn="Damage Threshold"/>
             <parameter n="STRENGTH_RATIO" pn="Strength Ratio"/>
             <parameter n="FRACTURE_ENERGY" pn="Fracture Energy"/>
+	    <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
         </inputs>
         <outputs>
             <parameter n="DAMAGE_VARIABLE" pn="Damage Variable"/>

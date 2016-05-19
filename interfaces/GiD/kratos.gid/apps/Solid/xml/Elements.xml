@@ -33,12 +33,13 @@
       <NodalCondition n="ACCELERATION"/>
     </NodalConditions>
 
+    <!--<parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />-->
     <inputs>      
-      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />
     </inputs>
+
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor"  />
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -75,8 +76,8 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />    
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />    
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -116,8 +117,8 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />      
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -156,11 +157,10 @@
     </NodalConditions>
 
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />      
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -199,8 +199,8 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />      
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -235,12 +235,13 @@
       <NodalCondition n="VELOCITY"/>
       <NodalCondition n="ACCELERATION"/>
     </NodalConditions>
+
     <inputs>
-      <parameter n="THICKNESS" pn="Thickness" v="1.0" unit_magnitude="L" units="m"  />  
     </inputs>
+
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />      
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -277,8 +278,8 @@
     <inputs>      
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />      
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -317,8 +318,8 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -352,8 +353,8 @@
       
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
@@ -388,8 +389,8 @@
     <inputs>
     </inputs>
     <outputs>
-      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" />      
-      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" />      
+      <parameter n="GREEN_LAGRANGE_STRAIN_TENSOR" pn="Green-Lagrange strain tensor" v="true" />      
+      <parameter n="CAUCHY_STRESS_TENSOR" pn="Cauchy stress tensor" v="true" />      
       <parameter n="VON_MISES_STRESS" pn="Von Mises stress value" v="true" />
       <parameter n="ALMANSI_STRAIN_TENSOR" pn="Almansi Strain Tensor" v="false" state="hidden" />
       <parameter n="PK2_STRESS_TENSOR" pn="PK2 Stress Tensor" v="false" state="hidden"/>
