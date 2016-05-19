@@ -1104,6 +1104,47 @@ Element::Pointer TwoStepUpdatedLagrangianVPFluidElement<TDim>::Clone( IndexType 
       }
   }
 
+ template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
+									   const ShapeFunctionsType& rN,
+									   const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    double coeff=1.0+TDim;
+    double ElemSize = this->ElementSize();
+    double Mij  = (Weight * ElemSize)/ (2* coeff) ;
+    GeometryType& rGeom = this->GetGeometry();
+
+    // if((rGeom[0].Is(FREE_SURFACE)  ) && rGeom[1].Is(FREE_SURFACE)){
+    //   BoundLHSMatrix(0,0) +=  Mij;
+    //   BoundLHSMatrix(1,1) +=  Mij;
+    // }
+    // if((rGeom[0].Is(FREE_SURFACE) ) && rGeom[2].Is(FREE_SURFACE)){
+    //   BoundLHSMatrix(0,0) +=  Mij;
+    //   BoundLHSMatrix(2,2) +=  Mij;
+    // }
+
+    // if((rGeom[1].Is(FREE_SURFACE)  ) && rGeom[2].Is(FREE_SURFACE)){
+    //   BoundLHSMatrix(1,1) +=  Mij;
+    //   BoundLHSMatrix(2,2) +=  Mij;
+    // }
+    if((rGeom[0].Is(FREE_SURFACE) || rGeom[0].Is(RIGID) ) && rGeom[1].Is(FREE_SURFACE)){
+      BoundLHSMatrix(0,0) +=  Mij;
+      BoundLHSMatrix(1,1) +=  Mij;
+    }
+    if((rGeom[2].Is(FREE_SURFACE) || rGeom[2].Is(RIGID) ) && rGeom[0].Is(FREE_SURFACE)){
+      BoundLHSMatrix(0,0) +=  Mij;
+      BoundLHSMatrix(2,2) +=  Mij;
+    }
+
+    if((rGeom[1].Is(FREE_SURFACE) || rGeom[1].Is(RIGID) ) && rGeom[2].Is(FREE_SURFACE)){
+      BoundLHSMatrix(1,1) +=  Mij;
+      BoundLHSMatrix(2,2) +=  Mij;
+    }
+
+  }
+
+
   template<>
   void TwoStepUpdatedLagrangianVPFluidElement<3>::AddCompleteTangentTerm(ElementalVariables & rElementalVariables,
 									 MatrixType& rDampingMatrix,

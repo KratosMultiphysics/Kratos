@@ -16,6 +16,7 @@ def AddVariables(model_part, config=None):
     # add reactions for the displacements
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(FREESURFACE)
+    #model_part.AddNodalSolutionStepVariable(ISOLATED)
     # add nodal force variables
     model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE)
     model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE)
