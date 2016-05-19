@@ -433,6 +433,11 @@ namespace Kratos
 				       const ShapeFunctionsType& rN,
 				       const double Weight);
 
+     void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
+				const ShapeFunctionsType& rN,
+				const double Weight){std::cout<<"ComputeBoundLHSMatrix solid"<<std::endl;};
+
+
       void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				      const ShapeFunctionDerivativesType& rShapeDeriv,
 				      const double Weight);

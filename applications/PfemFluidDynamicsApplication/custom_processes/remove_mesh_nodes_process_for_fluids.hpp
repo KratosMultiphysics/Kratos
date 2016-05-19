@@ -386,9 +386,10 @@ private:
     {
        KRATOS_TRY
 	 
+	 std::cout<<"RemoveNodesOnDistance RemoveNodesOnDistance RemoveNodesOnDistance RemoveNodesOnDistance"<<std::endl;
 
        //***SIZES :::: parameters do define the tolerance in mesh size: 
-       double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius; //compared with element radius
+       double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius;//compared with element radius
        double size_for_distance_boundary     = 1.5  * size_for_distance_inside; //compared with element radius
        double size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
  
@@ -450,7 +451,7 @@ private:
 
 	       if (n_points_in_radius>1)
 		 {
-		   //std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
+		   std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
 
 		   //if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
 
@@ -471,7 +472,7 @@ private:
 
 			 if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
 			   in->Set(TO_ERASE);
-			   //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+			   std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
 			   any_node_removed = true;
 			   inside_nodes_removed++;
 			   //distance_remove++;
@@ -524,7 +525,7 @@ private:
 
 		       if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
 			 in->Set(TO_ERASE);
-			 //std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
+			 std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
 			 any_node_removed = true;
 			 boundary_nodes_removed++;
 			 //distance_remove ++;
@@ -550,7 +551,8 @@ private:
 	 any_condition_removed = RebuildBoundary();
        }
        //Build boundary after removing boundary nodes due distance criterion
-       
+       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
+       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
 
        return any_node_removed;
        

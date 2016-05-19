@@ -28,10 +28,13 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(FREESURFACE)
+    #model_part.AddNodalSolutionStepVariable(ISOLATED)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     # Stokes needs it (in case periodic conditions are required)
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
+
+
 
     if config is not None:
         if hasattr(config, "TurbulenceModel"):

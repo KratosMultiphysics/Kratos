@@ -291,7 +291,7 @@ public:
 
 	      Converged = this->CheckPressureConvergence(NormDp);
 
-	      if ( Converged )
+	      if ( Converged && it>2)
                 {
 		  if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 		    std::cout << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
@@ -669,6 +669,63 @@ protected:
 
 	  // build momentum system and solve for fractional step velocity increment
 	  rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
+
+/* #pragma omp parallel */
+/* 	  { */
+/*             ModelPart::ElementIterator ElemBegin; */
+/*             ModelPart::ElementIterator ElemEnd; */
+/*             OpenMPUtils::PartitionedIterators(rModelPart.Elements(),ElemBegin,ElemEnd); */
+/* 	    int count=0; */
+/*             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem ) */
+/* 	      { */
+/* 		count++; */
+/* 	      } */
+/* 	    std::cout << "          number of elements " <<count<<std::endl; */
+/* 	  } */
+
+/* #pragma omp parallel */
+/* 	  { */
+/* 	    ModelPart::NodeIterator NodesBegin; */
+/* 	    ModelPart::NodeIterator NodesEnd; */
+/* 	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd); */
+
+/* 	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode) */
+/* 	      { */
+
+/* 		if(itNode->Is(ISOLATED)){ */
+/* 		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0; */
+/* 		  itNode->FastGetSolutionStepValue(ACCELERATION_Y) = 1000.0; */
+/* 		  std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl; */
+/* 		} */
+/* 	      } */
+/* 	  } */
+
+#pragma omp parallel
+	  {
+	    ModelPart::NodeIterator NodesBegin;
+	    ModelPart::NodeIterator NodesEnd;
+	    OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+	    for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	      {
+
+		if(itNode->Is(ISOLATED)){
+		  /* // Initialize BDF2 coefficients */
+		  /* ProcessInfo rCurrentProcessInfo=rModelPart.GetProcessInfo(); */
+		  itNode->FastGetSolutionStepValue(PRESSURE) = 0.0;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_Y) = -9.81;
+		  itNode->FastGetSolutionStepValue(ACCELERATION_X) = 0;
+		  /* array_1d<double,3>& rAcc = itNode->FastGetSolutionStepValue(ACCELERATION); */
+		  /* array_1d<double,3>& rVel = itNode->FastGetSolutionStepValue(VELOCITY); */
+		  /* double Dt = rCurrentProcessInfo[DELTA_TIME]; */
+		  /* rVel+=rAcc*Dt; */
+		  /* itNode->FastGetSolutionStepValue(VELOCITY) = rVel; */
+		  /* itNode->FastGetSolutionStepValue(ACCELERATION_Y) = -9.81; */
+		  /* itNode->FastGetSolutionStepValue(ACCELERATION_X) = 0; */
+		  std::cout<<" .............two_step VP strategy ISOLATED NODE !!! "<<itNode->Id()<<std::endl;
+		}
+	      }
+	  }
 
 	  std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
 	  NormDv = mpMomentumStrategy->Solve();

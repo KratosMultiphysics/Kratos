@@ -790,6 +790,8 @@ namespace Kratos
 	      in->Set(RIGID);
 	    }else{
 	      std::cout<<"3 NON-BOUNDARY NODE"<<std::endl;
+	      in->Set(RIGID);
+	      in->Set(BOUNDARY);
 	    }
 	  }
 
@@ -815,7 +817,6 @@ namespace Kratos
 		std::cout<<"BOUNDARY AND FREE_SURFACE "<<countFreeSurf<<std::endl;
 		in->Set(FREE_SURFACE);
 		in->FastGetSolutionStepValue(FREESURFACE) = 0;
-
 	      }
 	      in->Reset(BOUNDARY);
 	    }

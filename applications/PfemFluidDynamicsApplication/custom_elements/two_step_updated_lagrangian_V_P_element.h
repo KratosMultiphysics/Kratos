@@ -480,6 +480,10 @@ namespace Kratos
 						   const ShapeFunctionsType& rN,
 						   const double Weight){};
 
+      virtual void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
+					 const ShapeFunctionsType& rN,
+					 const double Weight){};
+
       virtual void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 					      const ShapeFunctionDerivativesType& rShapeDeriv,
 					      const double Weight){};

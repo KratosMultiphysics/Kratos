@@ -534,18 +534,32 @@ namespace Kratos
       //reset the boundary flag in all nodes
       for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(MeshId); in!=mrModelPart.NodesEnd(MeshId); in++)
 	{
-	  if(in->Is(BOUNDARY)){
-	    countBoundary++;
-	    // std::cout<<"BOUNDARY NODE "<<countBoundary;
-	  }
-	  if(in->Is(FREE_SURFACE)){
-	    countFreeSurf++;
-	    // std::cout<<"FREE-SURFACE NODE "<<countFreeSurf;
-	  }
-	  if(in->Is(RIGID)){
-	    countWall++;
-	    // std::cout<<"RIGID NODE"<<countWall;
-	  }
+
+	  in->Reset(FREE_SURFACE);
+	  in->Reset(ISOLATED);
+	    if(in->Is(BOUNDARY)){
+	      countBoundary++;
+	      // std::cout<<"BOUNDARY NODE "<<countBoundary;
+
+
+	      if(in->Is(RIGID)){
+		countWall++;
+		// std::cout<<"RIGID NODE"<<countWall;
+	      }else{
+		in->Set(FREE_SURFACE);
+		countFreeSurf++;
+	      }
+	    }
+
+	    // if(in->Is(ISOLATED)){
+	    //   if(in->Is(FREE_SURFACE) && !in->Is(RIGID)){
+	    // 	in->Set(ISOLATED);
+	    // 	// in->FastGetSolutionStepValue(ISOLATED) = 1;
+	    //   }else{
+	    // 	// in.FastGetSolutionStepValue(ISOLATED) = 0;
+	    // 	in->Reset(ISOLATED);
+	    //   }
+	    // }
 
 	  // if(in->Is(OUTLET)){
 	  //   std::cout<<"OUTLET NODE"<<std::endl;
@@ -849,8 +863,7 @@ namespace Kratos
 
 	  }
 	}
-      std::cout<<"AddOtherConditions AddOtherConditions AddOtherConditions AddOtherConditions AddOtherConditions "<<std::endl;
-      //this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
+      // this->AddOtherConditions(TemporaryConditions, PreservedConditions, ConditionId, MeshId);
 	
       return true;
     }
@@ -860,6 +873,7 @@ namespace Kratos
       //add all previous conditions not found in the skin search are added:
       for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
 	{		    
+      std::cout<<"AddOtherConditions AddOtherConditions AddOtherConditions AddOtherConditions AddOtherConditions "<<std::endl;
 
 	  bool node_not_preserved = false;
 	  bool condition_not_preserved = false;

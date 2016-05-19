@@ -27,7 +27,7 @@ class ModelerUtility:
         self.mesh_modelers = []
 
         # mesh modeler parameters
-        self.alpha_shape        = 1.25
+        self.alpha_shape        = 1.1
         self.h_factor           = 0.5
         self.avoid_tip_elements = False
         self.offset_factor      = 0
@@ -226,11 +226,11 @@ class ModelerUtility:
 
             refining_options = Flags()
             refining_options.Set(ModelerUtilities.REFINE, parameters["Refine"])
-            #refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, True)
+            refining_options.Set(ModelerUtilities.REFINE_ADD_NODES, True)
             ##refine elements
-            #refining_options.Set(ModelerUtilities.REFINE_ELEMENTS, True)
-            #refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, True)
-            #refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, True)  
+            refining_options.Set(ModelerUtilities.REFINE_ELEMENTS, True)
+            refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, True)
+            refining_options.Set(ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, True)  
             ##refine boundary
             #refining_options.Set(ModelerUtilities.REFINE_BOUNDARY, True)
             ##refining_options.Set(ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, True)
@@ -239,16 +239,16 @@ class ModelerUtility:
             self.RefiningParameters.SetRefiningOptions(refining_options)
 
 
-            #self.RefiningParameters.SetRefiningOptions(refining_options)
-            #removing_options = Flags()
-            #if( parameters["Refine"] ):
-            #    removing_options.Set(ModelerUtilities.REMOVE_NODES, True)
-            #    removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_DISTANCE, True)
-            #    removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, True)
-            #    removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, True)
+            removing_options = Flags()
+            if( parameters["Refine"] ):
+                removing_options.Set(ModelerUtilities.REMOVE_NODES, True)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_DISTANCE, True)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_ERROR, True)
+                removing_options.Set(ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, True)
 
-            #self.RefiningParameters.SetRemovingOptions(removing_options)
-            #self.RefiningParameters.SetAlphaParameter(self.alpha_shape)
+            self.RefiningParameters.SetRemovingOptions(removing_options)
+
+            self.RefiningParameters.SetAlphaParameter(self.alpha_shape)
 
             critical_mesh_size = parameters["CriticalMeshSize"]
 
@@ -312,7 +312,7 @@ class ModelerUtility:
 
             meshing_options.Set(ModelerUtilities.REMESH, parameters["Remesh"])
             meshing_options.Set(ModelerUtilities.CONSTRAINED, parameters["Constrained"])
-            meshing_options.Set(ModelerUtilities.REMESH, parameters["Remesh"])
+            meshing_options.Set(ModelerUtilities.REFINE, parameters["Refine"])
             #meshing_options.Set(ModelerUtilities.MESH_SMOOTHING, parameters["MeshSmoothing"])
             meshing_options.Set(ModelerUtilities.VARIABLES_SMOOTHING, parameters["JacobiSmoothing"])
             
@@ -329,6 +329,8 @@ class ModelerUtility:
             #Pre Meshing Processes
             #remove_mesh_nodes = RemoveMeshNodes(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
             remove_mesh_nodes = RemoveMeshNodesForFluids(self.model_part, self.MeshingParameters, mesh_id, self.echo_level)
+            refine_mesh_elements = RefineMeshElements(self.model_part, self.RefiningParameters, mesh_id, self.echo_level)
+
             mesh_modeler.SetPreMeshingProcess(remove_mesh_nodes)
 
             ##refine_mesh_boundary = RefineMeshBoundary(self.model_part, self.RefiningParameters, self.InfoParameters, mesh_id, self.echo_level) commented the 26 04 2016

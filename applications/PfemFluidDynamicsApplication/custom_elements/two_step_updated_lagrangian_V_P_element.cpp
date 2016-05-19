@@ -238,9 +238,16 @@ namespace Kratos {
     KRATOS_TRY; 
 
     const GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const SizeType LocalSize = TDim * NumNodes;
+    const unsigned int NumNodes = rGeom.PointsNumber();
+    const unsigned int LocalSize = TDim * NumNodes;
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType LocalSize = TDim * NumNodes;
 
+    MatrixType MassMatrix;
+    MatrixType BulkMatrix;
+
+    MassMatrix = ZeroMatrix(LocalSize,LocalSize);
+    BulkMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -262,10 +269,7 @@ namespace Kratos {
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-
-    MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
-    MatrixType BulkMatrix = ZeroMatrix(LocalSize,LocalSize);
-
+    
     const double TimeStep=0.5/rCurrentProcessInfo[BDF_COEFFICIENTS][2];
 
     ElementalVariables rElementalVariables;
@@ -352,7 +356,8 @@ namespace Kratos {
 
 
     GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
+    // const SizeType NumNodes = rGeom.PointsNumber();
+    const unsigned int NumNodes = rGeom.PointsNumber();
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes ) 
@@ -378,6 +383,7 @@ namespace Kratos {
 
     MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
     MatrixType BulkAccMatrix = ZeroMatrix(NumNodes,NumNodes);
+    MatrixType BoundLHSMatrix = ZeroMatrix(NumNodes,NumNodes);
     MatrixType StabLaplacianMatrix = ZeroMatrix(NumNodes,NumNodes);
 
 
@@ -425,9 +431,19 @@ namespace Kratos {
 	rLeftHandSideMatrix+=BulkAccMatrix;
 	// this->AddStabilizationMatrixLHS(rLeftHandSideMatrix,BulkAccMatrix,N,BulkStabCoeff);
 
-	VectorType UpdatedPressure = ZeroVector(NumNodes);
-	VectorType CurrentPressure = ZeroVector(NumNodes);
-	VectorType PreviousPressure = ZeroVector(NumNodes);
+	double BoundLHSCoeff=2.0*Tau/ElemSize*100;
+	this->ComputeBoundLHSMatrix(BoundLHSMatrix,N,BoundLHSCoeff);
+	rLeftHandSideMatrix+=BoundLHSMatrix;
+
+	VectorType UpdatedPressure;
+	VectorType CurrentPressure;
+	VectorType PreviousPressure;
+
+	UpdatedPressure = ZeroVector(NumNodes);
+	CurrentPressure = ZeroVector(NumNodes);
+	PreviousPressure = ZeroVector(NumNodes);
+
+
 	this->GetPressureValues(UpdatedPressure,0);
 	this->GetPressureValues(CurrentPressure,1);
 	this->GetPressureValues(PreviousPressure,2);
@@ -463,6 +479,9 @@ namespace Kratos {
             rRightHandSideVector[i] += GaussWeight * RHSi;
 	    this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,BodyForce,GaussWeight,rDN_DX,i);
             // rRightHandSideVector[i] += PressureAccStabilizationRHSterm[i];
+	    // if(rGeom[i].Is(FREE_SURFACE) || rGeom[i].Is(RIGID)){
+	    //   rRightHandSideVector[i]=0;
+	    // }
 	  }
 
 
@@ -682,11 +701,11 @@ namespace Kratos {
       rElementalDofList.resize(NumNodes);
 
     SizeType LocalIndex = 0;
-
     for (SizeType i = 0; i < NumNodes; ++i)
       {
         rElementalDofList[LocalIndex++] = rGeom[i].pGetDof(PRESSURE);
       }
+	
   }
 
   template< unsigned int TDim >
@@ -700,11 +719,22 @@ namespace Kratos {
 
     for (SizeType i = 0; i < NumNodes; ++i){
       rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
+
+     //  if(rValues[i]==0 && rGeom[i].Is(FREE_SURFACE))
+     // 	std::cout<<"                     pressure = 0 for this free-surface node               "<<std::endl;
+     // if(rValues[i]==0 && rGeom[i].Is(RIGID))
+     // 	std::cout<<"                     pressure = 0 for this rigid node               "<<std::endl;
+
       if(rGeom[i].Is(FREE_SURFACE)){
 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
+	// rGeom[i].FastGetSolutionStepValue(PRESSURE,Step)=0;
+	// rValues[i] = 0;
+
       }else{
       	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
       }
+
+
     }
   }
 
