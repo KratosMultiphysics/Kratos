@@ -141,14 +141,14 @@ public:
     //*******************************************************************************************************
     Parameters GetValue(const std::string entry)
     {
-        if(this->Has(entry) == false) KRATOS_THROW_ERROR(std::invalid_argument,"getting a value that does not exist. entry string : ",entry);
+        if(this->Has(entry) == false) KRATOS_THROW_ERROR(std::invalid_argument,"--------- ERROR : --------- getting a value that does not exist. entry string : ",entry);
         rapidjson::Value* pvalue = &((*mpvalue)[entry.c_str()]);
 
         return Parameters(pvalue, mpdoc);
     }
     Parameters operator[](const std::string entry)
     {
-        return Parameters(&(*mpvalue)[entry.c_str()],mpdoc);
+        return this->GetValue(entry);
     }
     void SetValue(const std::string entry, const Parameters& other_value)
     {
@@ -226,7 +226,11 @@ public:
     }
     bool GetBool()
     {
-        if(mpvalue->IsBool() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a bool","");
+		if (mpvalue->IsBool() == false)
+		{
+			RecursivelyFindValue(*mpdoc, *mpvalue);
+			KRATOS_THROW_ERROR(std::invalid_argument, "argument must be a bool", "");
+		}
         return mpvalue->GetBool();
     }
     std::string GetString()
@@ -466,6 +470,28 @@ public:
 
         KRATOS_CATCH("")
     }
+
+	void RecursivelyFindValue(
+		const rapidjson::Value& rbase_value,
+		const rapidjson::Value& rvalue_to_find)
+	{
+		for (rapidjson::Value::ConstMemberIterator itr = rbase_value.MemberBegin(); itr != rbase_value.MemberEnd(); ++itr)
+		{
+			if (&(itr->value) == &rvalue_to_find)
+			{
+				rapidjson::StringBuffer buffer;
+				rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+				mpvalue->Accept(writer);
+				std::cout << "base = " << buffer.GetString() << std::endl;
+				std::cout << "problematic var name " << itr->name.GetString() << " value " << itr->value.GetString() << std::endl;
+			}
+			else
+			{
+				if (itr->value.IsObject()) RecursivelyFindValue(itr->value, rvalue_to_find);
+				//TODO: it could be an array
+			}
+		}
+	}
 
 
 
