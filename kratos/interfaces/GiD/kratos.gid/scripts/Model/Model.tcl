@@ -40,7 +40,7 @@ proc Model::Init { } {
     set Processes [list ]
     
     set SpatialDimension "3D"
-    set ValidSpatialDimensions [list 2D 2Da 3D]
+    set ValidSpatialDimensions [list 2D 3D]
 }
 
 proc Model::InitVariables {varName varValue} {
