@@ -84,7 +84,7 @@ void FillDaitcheVectors(unsigned int N)
 
 void AppendIntegrands(ModelPart& r_model_part)
 {
-    double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
+  //double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         vector<double>& historic_integrands = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
