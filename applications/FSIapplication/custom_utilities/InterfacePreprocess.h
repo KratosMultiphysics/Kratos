@@ -146,13 +146,22 @@ public:
 
         for (ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin(); cond_it != rOriginPart.ConditionsEnd(); cond_it++)
         {
-            if (
-                ((*cond_it).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                ((*cond_it).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                ((*cond_it).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
+            unsigned int number_nodes = (*cond_it).GetGeometry().PointsNumber();
+            if (number_nodes >= 3) 
             {
-                aux.push_back( *(cond_it.base()) );
-                CondCounter ++;
+                bool is_interface = true;  
+                for (unsigned int node = 0; node < number_nodes; node++)
+                {
+                    if ((*cond_it).GetGeometry()[node].FastGetSolutionStepValue(IS_INTERFACE) != 1.0)
+                    {
+                        is_interface = false;
+                    }
+                }
+                if (is_interface == true)
+                {
+                    aux.push_back( *(cond_it.base()) );
+                    CondCounter ++;
+                }
             }
         }
 
