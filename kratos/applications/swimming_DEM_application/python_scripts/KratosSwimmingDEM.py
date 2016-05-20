@@ -77,9 +77,11 @@ DEM_parameters.fluid_domain_volume                    = 0.5 ** 2 * 2 * math.pi #
 pp.CFD_DEM = DEM_parameters
 pp.CFD_DEM.faxen_terms_type = 1
 pp.CFD_DEM.material_acceleration_calculation_type = 1
-pp.CFD_DEM.basset_force_type = 1
-pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 1
+pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
+pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+pp.CFD_DEM.basset_force_type = 0
+pp.CFD_DEM.print_BASSET_FORCE_option = 0
+pp.CFD_DEM.basset_force_integration_type = 0
 #Z
 
 # NANO BEGIN
@@ -742,10 +744,16 @@ while (time <= final_time):
     pressure_gradient_counter.Deactivate(time < DEM_parameters.interaction_start_time)
 
     if pressure_gradient_counter.Tick():
-        if pp.CFD_DEM.gradient_calculation_type:
+        if pp.CFD_DEM.gradient_calculation_type == 2:
             custom_functions_tool.RecoverSuperconvergentGradient(fluid_model_part, PRESSURE, PRESSURE_GRADIENT)
-        else:
+        elif pp.CFD_DEM.gradient_calculation_type == 1:
             custom_functions_tool.CalculatePressureGradient(fluid_model_part)
+        if pp.CFD_DEM.laplacian_calculation_type == 1:
+            custom_functions_tool.CalculateVectorLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+        elif pp.CFD_DEM.laplacian_calculation_type == 2:
+            custom_functions_tool.RecoverSuperconvergentLaplacian(fluid_model_part, VELOCITY, VELOCITY_LAPLACIAN)
+        if pp.CFD_DEM.material_acceleration_calculation_type == 1:
+            custom_functions_tool.CalculateVectorMaterialDerivative(fluid_model_part, VELOCITY, ACCELERATION, MATERIAL_ACCELERATION)
 
     print("Solving DEM... (", spheres_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
