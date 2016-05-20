@@ -17,20 +17,18 @@ debugApp = ApplicationGenerator(appCamel)
 # Add KratosVariables
 debugApp.AddVariables([
     VariableCreator(name='MY_SCALAR', vtype='double'),
-    VariableCreator(name='MY_VECTOR', vtype='int', is3D=True),
+    VariableCreator(name='MY_VECTOR', vtype='double', is3D=True),
 ])
 
 # Add test element
 debugApp.AddElements([
     ElementCreator('MyLaplacianElement')
     .AddDofs(['TEMPERATURE'])
-    .AddFlags([])
-    .AddClassMemberVariables([])
 ])
 
 debugApp.AddConditions([
     ConditionCreator('MyFaceCondition')
-	#.AddDofs([TEMPERATURE])
+	.AddDofs([TEMPERATURE])
     #.AddFlags([])
 ])
 
