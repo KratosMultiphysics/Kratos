@@ -62,21 +62,31 @@ virtual ~CustomFunctionsCalculator(){}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-void FillDaitcheVectors(unsigned int N)
+void FillDaitcheVectors(int N)
 {
+    std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...";
+
+    if (!N){
+        return;
+    }
+
     long double FourThirds = 4.0 / 3;
-    SphericSwimmingParticle<SphericParticle>::mAjs.resize(N);
-    SphericSwimmingParticle<SphericParticle>::mBns.resize(N);
-    SphericSwimmingParticle<SphericParticle>::mAjs[0] = FourThirds;
-    SphericSwimmingParticle<SphericParticle>::mBns[0] = FourThirds;
+    std::vector<double>& Ajs = SphericSwimmingParticle<SphericParticle>::mAjs;
+    std::vector<double>& Bns = SphericSwimmingParticle<SphericParticle>::mBns;
+    Ajs.resize(N);
+    Bns.resize(N);
+    Ajs[0] = FourThirds;
+    Bns[0] = FourThirds;
 
     for (unsigned int j = 1; j < N; ++j){
-        double sqrt_j       = std::sqrt(j * j * j);
-        double sqrt_j_plus  = std::sqrt((j + 1) * (j + 1) * (j + 1));
-        double sqrt_j_minus = std::sqrt((j - 1) * (j - 1) * (j - 1));
-        SphericSwimmingParticle<SphericParticle>::mAjs[j] = FourThirds * (sqrt_j_minus + sqrt_j_plus - sqrt_j);
-        SphericSwimmingParticle<SphericParticle>::mBns[j] = FourThirds * (sqrt_j_minus - sqrt_j - 1.5 * std::sqrt(j));
-    }
+        double sqrt_j_cubed       = std::sqrt(j * j * j);
+        double sqrt_j_plus_cubed  = std::sqrt((j + 1) * (j + 1) * (j + 1));
+        double sqrt_j_minus_cubed = std::sqrt((j - 1) * (j - 1) * (j - 1));
+        Ajs[j] = FourThirds * (sqrt_j_minus_cubed + sqrt_j_plus_cubed - 2 * sqrt_j_cubed);
+        Bns[j] = FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * std::sqrt(j));
+    }   
+
+    std::cout << "...Finished filling up vectors of coefficients.\n";
 }
 
 //**************************************************************************************************************************************************
@@ -84,20 +94,17 @@ void FillDaitcheVectors(unsigned int N)
 
 void AppendIntegrands(ModelPart& r_model_part)
 {
-  //double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
-
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        vector<double>& historic_integrands = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
-        array_1d<double, 3>& fluid_vel_projected_rate = inode->GetValue(FLUID_VEL_PROJECTED_RATE);
-        const double mass_inv = 1.0 / inode->FastGetSolutionStepValue(NODAL_MASS);
-        const array_1d<double, 3> particle_acc = mass_inv * inode->FastGetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED);
-        array_1d<double, 3> slip_vel_rate;
-        noalias(slip_vel_rate) = fluid_vel_projected_rate - particle_acc;
+        vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
+        const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+        const array_1d<double, 3>& particle_vel         = inode->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> slip_vel;
+        noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
         int n = historic_integrands.size();
         historic_integrands.resize(n + 3);
-        historic_integrands.insert_element(n, slip_vel_rate[0]);
-        historic_integrands.insert_element(n + 1, slip_vel_rate[1]);
-        historic_integrands.insert_element(n + 2, slip_vel_rate[2]);
+        historic_integrands.insert_element(n,     slip_vel[0]);
+        historic_integrands.insert_element(n + 1, slip_vel[1]);
+        historic_integrands.insert_element(n + 2, 0.0);
     }
 }
 
@@ -420,7 +427,7 @@ void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double,
                 elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
             }
 
-            array_1d <double, 3> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+            array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
 
             for (unsigned int i = 0; i < TDim; ++i){
                 grad[i] = grad_aux[i];
