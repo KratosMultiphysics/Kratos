@@ -16,7 +16,8 @@ from SmallTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRol
 from SmallTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
 from SmallTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
 from SmallTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
-from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests 
+from SmallTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
+
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -34,15 +35,15 @@ def AssambleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TDynamicBossakTests('test_Bossak'))
-    smallSuite.addTest(TDynamicNewmarkTests('test_Newmark'))
-    smallSuite.addTest(TSprismMembranePatchTests('test_MembranePatch'))
-    smallSuite.addTest(TSprismBendingPatchTests('test_BendingPatch'))
-    smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_ShellQ4ThickBendingRollUpTests'))
-    smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_ShellQ4ThickDrillingRollUpTests'))
-    smallSuite.addTest(TShellT3IsotropicScordelisTests('test_ShellT3IsotropicScordelisTests'))
-    smallSuite.addTest( TShellT3ThinBendingRollUpTests( 'test_ShellT3ThinBendingRollUpTests' ) )
-    smallSuite.addTest( TShellT3ThinDrillingRollUpTests( 'test_ShellT3ThinDrillingRollUpTests' ) )
+    smallSuite.addTest(TDynamicBossakTests('test_execution'))
+    smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    smallSuite.addTest(TSprismMembranePatchTests('test_execution'))
+    smallSuite.addTest(TSprismBendingPatchTests('test_execution'))
+    smallSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
+    smallSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
+    smallSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
