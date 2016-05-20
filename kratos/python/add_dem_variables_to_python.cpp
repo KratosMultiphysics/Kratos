@@ -90,6 +90,7 @@ using namespace boost::python;
 
 void  AddDEMVariablesToPython()
 {
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( TOTAL_FORCES )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DAMP_FORCES )   
     //variables in the general Discrete_element class & MPI & gidio
 
