@@ -67,16 +67,7 @@ else:
 import sphere_strategy as SolverStrategy
 
 pp.CFD_DEM = DEM_parameters
-pp.CFD_DEM.recover_gradient_option = True
-pp.CFD_DEM.faxen_force_type = True
-pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
-pp.CFD_DEM.material_acceleration_calculation_type = 1
-DEM_parameters.fluid_domain_volume                    = 0.04 * math.pi # write down the volume you know it has
-pp.CFD_DEM.faxen_terms_type = 0
-pp.CFD_DEM.material_acceleration_calculation_type = 1
-pp.CFD_DEM.basset_force_type = 1
-pp.CFD_DEM.print_BASSET_FORCE_option = 1
-pp.CFD_DEM.basset_force_integration_type = 1
+
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
@@ -84,7 +75,17 @@ pp.CFD_DEM.basset_force_integration_type = 1
 ##############################################################################
 
 #G
-pp.CFD_DEM.faxen_force_type = 1
+pp.CFD_DEM.recover_gradient_option = True
+pp.CFD_DEM.print_PRESSURE_GRADIENT_option = True
+DEM_parameters.fluid_domain_volume = 0.04 * math.pi # write down the volume you know it has
+pp.CFD_DEM.faxen_terms_type = 0
+pp.CFD_DEM.material_acceleration_calculation_type = 0
+pp.CFD_DEM.faxen_force_type = 0
+pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 0
+pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+pp.CFD_DEM.basset_force_type = 1
+pp.CFD_DEM.print_BASSET_FORCE_option = 1
+pp.CFD_DEM.basset_force_integration_type = 1
 #Z
 
 # Import utilities from models
@@ -613,11 +614,21 @@ sim = ch.AnalyticSimulator(ch_pp)
 
 post_utils.Writeresults(time)
 coors = [None] * 3
+exact_vel = [None] * 3 
+Dt_DEM_inv = 1.0 / Dt_DEM                    
+vel = [0., 0.0, 0.] 
+old_vel = [v for v in vel] 
+H = [0.] * 3
+H_old = [0.] * 3
+Delta_H = [0.] * 3 
+exact_Delta_H = [0.] * 3
+basset_force = [0.] * 3
+exact_basset_force = [0.] * 3 
 sim.CalculatePosition(coors, 0.0)      
-times = []
+times = [0.]
 integrands = []
 particle_mass = 4. / 3 * math.pi * ch_pp.a ** 3 * ch_pp.rho_p
-basset_force_coefficient = 6. * ch_pp.a ** 2 * math.sqrt(math.pi * ch_pp.nu * ch_pp.rho_f ** 2)
+units_coefficient = 6 * ch_pp.a ** 2 * ch_pp.rho_f * math.sqrt(math.pi * ch_pp.nu)                        
 
 # Impose initial velocity to be the terminal velocity
 sim.CalculateNonDimensionalVars()
@@ -636,7 +647,9 @@ results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follo
 # CHANDELLIER END
 N_steps = int(final_time / Dt_DEM) + 10
 custom_functions_tool.FillDaitcheVectors(N_steps)
-
+node.SetSolutionStepValue(VELOCITY_Y, 0.2)
+node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
+stop = False
 while (time <= final_time):
 
     time = time + Dt
@@ -743,66 +756,88 @@ while (time <= final_time):
 
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)     
+
                 for node in spheres_model_part.Nodes:
                     x = node.X
                     y = node.Y
                     z = node.Z
-                    r = math.sqrt(x**2 + y**2)
+                    r = math.sqrt(x ** 2 + y ** 2)
                     sin = y / r
                     cos = x / r
                     omega = ch_pp.omega
                     vx = - omega * r * sin
                     vy =   omega * r * cos
                     ax = - x * omega ** 2
-                    ay = - y * omega ** 2
-                    pgrad_x = - ax * ch_pp.rho_f
-                    pgrad_y = - ay * ch_pp.rho_f 
-                    pgrad_z = - ch_pp.g * ch_pp.rho_f
-                    
+                    ay = - y * omega ** 2             
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, vx)
                     node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, vy)
-                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
+                    node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)            
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_X, ax)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Y, ay)
                     node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED_Z, 0.0)      
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_X, ax)
                     node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Y, ay)
-                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)      
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pgrad_x)             
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pgrad_y)                    
-                    #node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pgrad_z)  
-                    particle_acc = node.GetSolutionStepValue(TOTAL_FORCES)
-                    relative_acceleration = [0.] * 3
-                    relative_acceleration[0] = ax - particle_acc[0] / particle_mass
-                    relative_acceleration[1] = ay - particle_acc[1] / particle_mass
-                    relative_acceleration[2] = 0.
-                    integrands.append(relative_acceleration)
+                    node.SetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED_Z, 0.0)                           
                     times.append(time_dem)
+                    vp_x = node.GetSolutionStepValue(VELOCITY_X)
+                    vp_y = node.GetSolutionStepValue(VELOCITY_Y)
+                    vp_z = node.GetSolutionStepValue(VELOCITY_Z) 
+                    integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
+                    #print("\nintegrands",integrands)
+                    custom_functions_tool.AppendIntegrands(spheres_model_part)       
 
-                    if len(times) < 4:
-                        if len(times) == 1:
-                            initial_relative_velocity = [0.] * 3
-                            initial_relative_velocity[0] = vx - node.GetSolutionStepValue(VELOCITY_X)
-                            initial_relative_velocity[1] = vy - node.GetSolutionStepValue(VELOCITY_Y)
-                        basset_force = [0.] * 3
+                    H_old[:] = H[:]
+                    if len(times) < 10:                        
                         sim.CalculateBassetForce(basset_force, time_dem * ch_pp.omega)
-                        present_coefficient = 0.
-                        
+                        node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
+                        node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])    
+                        node.SetSolutionStepValue(BASSET_FORCE_Z, 0.)  
+                        sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)    
+                        #print("\nEXACT", basset_force) 
+                        H[0] = H_old[0] + Dt_DEM / units_coefficient * basset_force[0]
+                        H[1] = H_old[1] + Dt_DEM / units_coefficient * basset_force[1]
+
+                        for node in spheres_model_part.Nodes:
+                            node.X = coors[0] * ch_pp.R
+                            node.Y = coors[1] * ch_pp.R
+                            node.Z = coors[2] * ch_pp.R
+
+                            node.SetSolutionStepValue(DISPLACEMENT_X, coors[0] * ch_pp.R - ch_pp.x0)
+                            node.SetSolutionStepValue(DISPLACEMENT_Y, coors[1] * ch_pp.R - ch_pp.y0)
+                            node.SetSolutionStepValue(DISPLACEMENT_Z, coors[2] * ch_pp.R - ch_pp.z0)
+                            vp_x = exact_vel[0] * ch_pp.R * ch_pp.omega
+                            vp_y = exact_vel[1] * ch_pp.R * ch_pp.omega
+                            vp_z = exact_vel[2] * ch_pp.R * ch_pp.omega
+                            node.SetSolutionStepValue(VELOCITY_X, vp_x)
+                            node.SetSolutionStepValue(VELOCITY_Y, vp_y)
+                            node.SetSolutionStepValue(VELOCITY_Z, vp_z)
                     else:
-                        basset_force[0], basset_force[1], basset_force[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)
-                        sqrt_t_i = 1. / math.sqrt(time_dem)
-                        #basset_force[0] += initial_relative_velocity[0] * sqrt_t_i
-                        #basset_force[1] += initial_relative_velocity[1] * sqrt_t_i
-                        basset_force = [fi * basset_force_coefficient for fi in basset_force]
-                        present_coefficient *= basset_force_coefficient / particle_mass
-                    node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
-                    node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])    
-                    contact_forces = node.GetSolutionStepValue(CONTACT_FORCES)
-                    total_forces = node.GetSolutionStepValue(TOTAL_FORCES)
-                    long_scale_forces = [total_forces[i] - contact_forces[i] for i in range(3)]
-                    node.SetSolutionStepValue(TOTAL_FORCES_X, total_forces[0] + (1. / (1. - present_coefficient) - 1) * long_scale_forces[0])
-                    node.SetSolutionStepValue(TOTAL_FORCES_Y, total_forces[1] + (1. / (1. - present_coefficient) - 1) * long_scale_forces[1])
-                    #node.SetSolutionStepValue(BASSET_FORCE_Z, basset_force[2])                                          
+                        sim.CalculateBassetForce(exact_basset_force, time_dem * ch_pp.omega)
+                        sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)
+                        vp_x = exact_vel[0] * ch_pp.R / ch_pp.omega
+                        vp_y = exact_vel[1] * ch_pp.R / ch_pp.omega
+                        vp_z = exact_vel[2] * ch_pp.R / ch_pp.omega
+                        H[0] = H_old[0] + Dt_DEM / units_coefficient * exact_basset_force[0]
+                        H[1] = H_old[1] + Dt_DEM / units_coefficient * exact_basset_force[1]                        
+                        exact_Delta_H[0] = H[0] - H_old[0]
+                        exact_Delta_H[1] = H[1] - H_old[1]
+                        Delta_H[0], Delta_H[1], Delta_H[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)                        
+                        basset_force[0] = units_coefficient * Dt_DEM_inv * (Delta_H[0])
+                        basset_force[1] = units_coefficient * Dt_DEM_inv * (Delta_H[1])
+                        #print("\n integrands", integrands)
+                        #print("delta_time", times[-1]-times[-2])
+                        #print("DAITCHE", basset_force)                                                
+                        #print("EXACT", exact_basset_force)                   
+                        #print("\nDelta_H", Delta_H)
+                        #print("exact_Delta_H", exact_Delta_H)     
+                        #node.SetSolutionStepValue(BASSET_FORCE_X, basset_force[0])
+                        #node.SetSolutionStepValue(BASSET_FORCE_Y, basset_force[1])     
+                        #node.SetSolutionStepValue(BASSET_FORCE_Z, 0.) 
+                        #print("\nINTEGRANDS", integrands)
+                        #print("Delta_H",Delta_H)
+                        #print("present_coefficient", present_coefficient)
+                        #print("my n",len(times) - 2)
+                        stop = True
                 
         # performing the time integration of the DEM part
 
@@ -810,8 +845,10 @@ while (time <= final_time):
         rigid_face_model_part.ProcessInfo[TIME] = time_dem
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static            
-            solver.Solve()
+        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static      
+            solver.Solve()        
+            #if stop:
+                #para
             results_creator.Record(spheres_model_part, node_to_follow_id, time_dem)    
                 
         # Walls movement:
