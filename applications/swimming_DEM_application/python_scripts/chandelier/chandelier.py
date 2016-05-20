@@ -116,21 +116,30 @@ class AnalyticSimulator:
             
         self.As = A_i_list
         
-    def CalculatePosition(self, NDcoors, t):
+    def CalculatePosition(self, NDcoors, t, NDvel = None):
         A = self.As
         X = self.roots
         NDz0 = self.NDz0
         NDw0 = self.NDw0
         
         NDxy = 0.
-        
+        suma = sum([A[i] * X[i] for i in range(4)])
+
         for i in range(4):
             NDxy += A[i] / X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
         
         NDcoors[0] = float(NDxy.real)
         NDcoors[1] = float(NDxy.imag)
-        NDcoors[2] = float(NDz0 + t * NDw0)
+        NDcoors[2] = float(NDz0 + t * NDw0)      
         
+        if NDvel != None:
+            NDxy = 0.
+            for i in range(4):
+                NDxy += A[i] * X[i] * cmath.exp(X[i] ** 2 * t) * mpmath.erfc(- X[i] * math.sqrt(t))
+            NDvel[0] = float(NDxy.real)
+            NDvel[1] = float(NDxy.imag)
+            NDvel[2] = float(NDw0)      
+            
     def CalculateTrajectory(self):
         pp = self.pp
         n = pp.n_t_steps + 1 # number of time instants (including t = final_time)
