@@ -209,14 +209,16 @@ destination_model_part.ProcessInfo[DOMAIN_SIZE] = domain_size
 # Assign a variable pressure to the mesh and mark nodes as interface
 for node in origin_model_part.Nodes:
     node.SetSolutionStepValue(PRESSURE, 0, node.Y + node.Z)
-    node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+    #node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+    node.Set(INTERFACE, True)
 print("***** Pressure assigned to nodes *****")
 
 for node in destination_model_part.Nodes:
     node.SetSolutionStepValue(VELOCITY_X, 0, -node.X - node.Z)
     node.SetSolutionStepValue(VELOCITY_Y, 0, 0.0)
     node.SetSolutionStepValue(VELOCITY_Z, 0, node.X + node.Y)
-    node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+    #node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+    node.Set(INTERFACE, True)
 print("***** Velocity assigned to nodes *****")
 
 # Print original mesh
@@ -235,8 +237,8 @@ print("Attempting transfer")
 mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_part, origin_model_part, 1.0, 15)
 print("***** mapper created *****")
 
-mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE)
-mapper.FluidToStructure_VectorMap(VELOCITY, VELOCITY)
+mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE, True)
+mapper.FluidToStructure_VectorMap(VELOCITY, VELOCITY, True)
 print("***** information transferred *****")
 
 if (benchmarking.InBuildReferenceMode()):
