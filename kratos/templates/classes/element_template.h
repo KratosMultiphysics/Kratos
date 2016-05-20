@@ -58,7 +58,7 @@ public:
   ///@name Type Definitions
   ///@{
 
-  typedef BaseType @{KRATOS_CLASS_BASE};
+  typedef @{KRATOS_CLASS_BASE} BaseType;
 
   ///@}
   ///@name Pointer Definitions
