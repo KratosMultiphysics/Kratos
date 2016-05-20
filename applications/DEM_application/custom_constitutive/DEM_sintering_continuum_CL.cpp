@@ -138,9 +138,10 @@ namespace Kratos {
 
 ////////////////////// CALCULATE SINTERING NORMAL FORCE ///////////////////////////////
 
-////////////////////// CALCULATE NORMAL FORCE /////////////////////////////////////////
 
-	void DEM_sintering_continuum::CalculateNormalForces(const ProcessInfo& r_process_info,
+////////////////////// CALCULATE FORCE /////////////////////////////////////
+
+	void DEM_sintering_continuum::CalculateForcesOfSintering(const ProcessInfo& r_process_info,
 		const double OldLocalElasticContactForce[3],
 		double LocalElasticContactForce[3],
 		const double rel_vel,
@@ -150,7 +151,9 @@ namespace Kratos {
 		SphericContinuumParticle* element1,
 		SphericContinuumParticle* element2,
 		double ViscoDampingLocalContactForce[3])
+
 	{
+
 		KRATOS_TRY
 		//SphericParticle* element1;
 		//SphericParticle* element2;
@@ -171,37 +174,6 @@ namespace Kratos {
 			{
 				//std::system("pause");
 			}
-		KRATOS_CATCH("")
-	}
-
-////////////////////// CALCULATE NORMAL FORCE ///////////////////////////////
-
-////////////////////// CALCULATE FORCE /////////////////////////////////////
-
-	void DEM_sintering_continuum::CalculateForcesOfSintering(const ProcessInfo& r_process_info,
-		const double OldLocalElasticContactForce[3],
-		double LocalElasticContactForce[3],
-		const double rel_vel,
-		const double indentation,
-		double& sintering_displ,
-		double& sinter_driv_force,
-		SphericContinuumParticle* element1,
-		SphericContinuumParticle* element2,
-		double ViscoDampingLocalContactForce[3])
-
-	{
-
-		KRATOS_TRY
-			CalculateNormalForces(r_process_info,
-				OldLocalElasticContactForce,
-				LocalElasticContactForce,
-				rel_vel,
-				indentation,
-				sintering_displ,
-				sinter_driv_force,
-				element1,
-				element2,
-				ViscoDampingLocalContactForce);
 		KRATOS_CATCH("")
 	}
 

@@ -49,17 +49,6 @@ namespace Kratos {
 			SphericContinuumParticle* element2,
 			double ViscoDampingLocalContactForce[3]);
 
-		void CalculateNormalForces(const ProcessInfo& r_process_info,
-			const double OldLocalElasticContactForce[3],
-			double LocalElasticContactForce[3],
-			const double rel_vel,
-			const double indentation,
-			double& sintering_displ,
-			double& sinter_driv_force,
-			SphericContinuumParticle* element1,
-			SphericContinuumParticle* element2,
-			double ViscoDampingLocalContactForce[3]);
-
 		void CalculateForcesOfSintering(const ProcessInfo& r_process_info,
 			const double OldLocalElasticContactForce[3],
 			double LocalElasticContactForce[3],
