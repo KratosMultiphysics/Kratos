@@ -400,7 +400,9 @@ if __name__ == "__main__":
     a0 = [0.4 for t in tis]
     #a0 = [ 0.23477446,  0.28549392,  0.28479113, 0.3, 0.26149251,  0.32055117,  0.35351918, 0.3963018,   0.42237921,  0.48282255,  0.63471099]    
     tis = [0.1, 2.0, 20, 100]
-    a0 = [0.1, 1.0, 1.0, 1.0]  
+    m = 5
+    a0 = [1.0 for i in range(m)]  
+    tis = [0.1 * math.exp(i) for i in range(m)]
     tis = TimesToTaus(tis)
     tol = 1e-9
     tol_residual = 1e-6
@@ -425,25 +427,27 @@ if __name__ == "__main__":
         iteration += 1
         grad, H_inv = FillUpMatrices(F, a[:len(a0)], a[len(a0):])
         p = H_inv.dot(grad)   
-        print("\nGradient Norm")
-        print(sum([abs(float(g)) for g in grad]))
         a -= p
         F.Define(a[:len(a0)], a[len(a0):])
-        print("calculating F...")
+        print("\ncalculating F...")
         residual =  F.F()
-        print("calculating Fmod...")
+        print("calculating Fmod...\n")
         mod_residual = F.Fmod()
+        
         if residual < best_residual:
             best_residual = residual
             a_best[:] = a[:]
-        print("\nRESIDUAL", residual)
+        
+        gradient_norm = sum([abs(float(g)) for g in grad])        
+        print("\nGradient Norm", gradient_norm)
+        print("RESIDUAL", residual)
         print("BEST_RESIDUAL", best_residual)
         print("MOD_RESIDUAL", mod_residual)
-        print("Best times so far", TausToTimes(a_best[len(a0):]))
-        print("Best coefficients so far", a_best[:len(a0)])
-        print("Current times", TausToTimes(a[len(a0):]))
-        print("Change: ", np.linalg.norm(a - a_old))        
-        still_changing = np.linalg.norm(a - a_old) > tol 
+        print("\nBest times so far\n", TausToTimes(a_best[len(a0):]))
+        print("\nBest coefficients so far\n", a_best[:len(a0)])
+        print("\nCurrent times\n", TausToTimes(a[len(a0):]))
+        print("\nCurrent coefficients\n", a[:len(a0)])
+        still_changing = gradient_norm > tol 
         a_old[:] = a[:]
         
         
@@ -506,8 +510,7 @@ if __name__ == "__main__":
         #print("best_residual_so_far", best_residual)
         #a_old[:] = a[:]
 
-
-    print("best a coefficients: ", a_best[:len(a0)])
-    print("best times: ", TausToTimes(a_best[len(a0):]))
-    print("best residual", best_residual)
-    print("still changing: ", still_changing)
+    print("\nBEST_RESIDUAL", best_residual)
+    print("still changing: ", still_changing)    
+    print("\nCOEFFICIENTS: ", a_best[:len(a0)])
+    print(" \TIMES", TausToTimes(a_best[len(a0):]))
