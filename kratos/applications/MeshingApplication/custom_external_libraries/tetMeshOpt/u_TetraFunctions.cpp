@@ -141,7 +141,8 @@ bool innerGetElementsSurface(TList<TObject*>* elements,TList<TVertex*>* surfaceT
 
 		}
 	}
-	return NULL;
+	//return NULL;
+        return false; //changed to avoid warning (MA Celigueta 20-5-2016)
 
 	
 	/*

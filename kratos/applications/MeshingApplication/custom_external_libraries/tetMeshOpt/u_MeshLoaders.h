@@ -8,7 +8,7 @@
 class TMeshLoader
 {
 private :
-	char* fLastLoaded;
+	//char* fLastLoaded; //commented out to avoid warning (MA Celigueta 20-5-2016)
 public :
 	TMeshLoader(){ return; }
 	virtual ~TMeshLoader(){return; }
