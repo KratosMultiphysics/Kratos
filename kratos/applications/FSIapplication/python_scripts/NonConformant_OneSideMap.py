@@ -45,8 +45,8 @@ class NonConformant_OneSideMap:
         self.it_max = it_max
         self.tol = tol
 
-        self.Preprocess = InterfacePreprocessCondition()
-        #self.Preprocess = InterfacePreprocess()
+        #self.Preprocess = InterfacePreprocessCondition()
+        self.Preprocess = InterfacePreprocess()
         self.fl_interface = ModelPart("fluid_interface")
         self.str_interface = ModelPart("structure_interface")
         
@@ -58,19 +58,19 @@ class NonConformant_OneSideMap:
 
         print("Identifying fluid interface")
         if (domain_size_fl == 3):
-          self.Preprocess.GenerateTriangle3NInterfacePart(fluid_model_part, self.fl_interface, "Condition3D")
-          #self.Preprocess.GenerateTriangleInterfacePart(fluid_model_part, self.fl_interface)
+          #self.Preprocess.GenerateTriangle3NInterfacePart(fluid_model_part, self.fl_interface, "Condition3D")
+          self.Preprocess.GenerateTriangleInterfacePart(fluid_model_part, self.fl_interface)
         else:
-          self.Preprocess.GenerateLine2NInterfacePart(fluid_model_part, self.fl_interface, "Condition2D2N")
-          #self.Preprocess.GenerateLineInterfacePart(fluid_model_part, self.fl_interface)
+          #self.Preprocess.GenerateLine2NInterfacePart(fluid_model_part, self.fl_interface, "Condition2D2N")
+          self.Preprocess.GenerateLineInterfacePart(fluid_model_part, self.fl_interface)
 
         print("Identifying structure interface")
         if (domain_size_fl == 3):
-          self.Preprocess.GenerateTriangle3NInterfacePart(structure_model_part, self.str_interface, "Condition3D")
-          #self.Preprocess.GenerateTriangleInterfacePart(structure_model_part, self.str_interface)
+          #self.Preprocess.GenerateTriangle3NInterfacePart(structure_model_part, self.str_interface, "Condition3D")
+          self.Preprocess.GenerateTriangleInterfacePart(structure_model_part, self.str_interface)
         else:
-          self.Preprocess.GenerateLine2NInterfacePart(structure_model_part, self.str_interface, "Condition2D2N")
-          #self.Preprocess.GenerateLineInterfacePart(structure_model_part, self.str_interface)
+          #self.Preprocess.GenerateLine2NInterfacePart(structure_model_part, self.str_interface, "Condition2D2N")
+          self.Preprocess.GenerateLineInterfacePart(structure_model_part, self.str_interface)
         print("Interface identified")
 
         self.FluidToStructureMapper = AdvancedNMPointsMapper\
