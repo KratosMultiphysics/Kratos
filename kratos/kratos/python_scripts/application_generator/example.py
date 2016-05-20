@@ -9,15 +9,15 @@ from classes.variableCreator import VariableCreator
 from applicationGenerator import ApplicationGenerator
 
 # Read the application name and generate Camel, Caps and Low
-appCamel = sys.argv[1]
+appNameCamel = sys.argv[1]
 
 # Fetch the applications directory
-debugApp = ApplicationGenerator(appCamel)
+debugApp = ApplicationGenerator(appNameCamel)
 
 # Add KratosVariables
 debugApp.AddVariables([
     VariableCreator(name='1DVariable', vtype='double'),
-    VariableCreator(name='3DVariable', vtype='int', is3D=True),
+    VariableCreator(name='3DVariable', vtype='double', is3D=True),
 ])
 
 # Add test element
@@ -44,4 +44,4 @@ debugApp.AddProcesses([
 
 debugApp.Generate()
 
-print("Your application has been generated in: applications/{}Application".format(appCamel))
+print("Your application has been generated in: applications/{}Application".format(appNameCamel))
