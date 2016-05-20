@@ -8,10 +8,21 @@ import json
 
 import process_factory
 
+
+def GetFilePath(fileName):
+    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+
+
 class Kratos_Execute_Test:
-  
+
   def __init__(self, ProjectParameters):
     self.ProjectParameters = ProjectParameters
+    print(ProjectParameters)
+
+    # Input filename should be in absolute path unless the file location its provided elsewhere.
+    self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(GetFilePath(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()))
+
+
     self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
     self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
@@ -25,7 +36,7 @@ class Kratos_Execute_Test:
     #add variables (always before importing the model part) (it must be integrated in the ImportModelPart)
     # if we integrate it in the model part we cannot use combined solvers
     self.solver.AddVariables()
-    ### Temporal 
+    ### Temporal
     #self.main_model_part.AddNodalSolutionStepVariable(ALPHA_EAS)
 
     #read model_part (note: the buffer_size is set here) (restart can be read here)
@@ -49,7 +60,7 @@ class Kratos_Execute_Test:
 
     for process in self.list_of_processes:
       process.ExecuteInitialize()
-    
+
     #### START SOLUTION ####
 
     #TODO: think if there is a better way to do this
@@ -68,7 +79,7 @@ class Kratos_Execute_Test:
   def Solve(self):
     for process in self.list_of_processes:
       process.ExecuteBeforeSolutionLoop()
-      
+
     ## Stepping and time settings (get from process info or solving info)
     #delta time
     delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
@@ -78,16 +89,16 @@ class Kratos_Execute_Test:
     time       = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
     #end time
     end_time   = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
-    
+
     # solving the problem (time integration)
     while(time <= end_time):
       time = time + delta_time
       step = step + 1
       self.main_model_part.CloneTimeStep(time)
-      
+
       for process in self.list_of_processes:
         process.ExecuteInitializeSolutionStep()
-        
+
       self.solver.Solve()
 
       for process in self.list_of_processes:
@@ -103,4 +114,3 @@ class Kratos_Execute_Test:
         process.ExecuteFinalize()
 
   #def CheckResults(self, Results):
-      
