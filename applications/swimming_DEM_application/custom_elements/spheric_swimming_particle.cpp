@@ -74,18 +74,17 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     }
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
-    double added_mass_coefficient = 1.0; // it is to be modified by those forces that have a contribution proportional to the particle acceleration
+    double added_mass_coefficient = 0.0; // it is to be modified by those forces that have a contribution proportional to the particle acceleration
     array_1d<double, 3> buoyancy;
     array_1d<double, 3> drag_force;
     array_1d<double, 3> virtual_mass_force;
     array_1d<double, 3> saffman_lift_force;
     array_1d<double, 3> magnus_lift_force;
     array_1d<double, 3> brownian_motion_force;
-    array_1d<double, 3> basset_force;
+    array_1d<double, 3>& basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by additionally_applied_force here
-
     ComputeBuoyancy(buoyancy, gravity, r_current_process_info);
     ComputeDragForce(drag_force, r_current_process_info);
     ComputeVirtualMassForce(added_mass_coefficient, virtual_mass_force, r_current_process_info);
@@ -93,14 +92,18 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeMagnusLiftForce(magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
     ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
-    ComputeBassetForce(added_mass_coefficient, basset_force, r_current_process_info);
+    if (r_current_process_info[TIME_STEPS] >= 9){
+        ComputeBassetForce(added_mass_coefficient, basset_force, r_current_process_info);
+    }
+
     noalias(additionally_applied_force) += drag_force + virtual_mass_force + basset_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
     UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, basset_force, saffman_lift_force, magnus_lift_force, r_current_process_info);
     
     //Now add the contribution of base class function (gravity or other forces added in upper levels):
     TBaseElement::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_current_process_info, gravity);
 	additionally_applied_force += buoyancy;
-    additionally_applied_force *= added_mass_coefficient;
+    double mass = GetMass();
+    additionally_applied_force *= mass / (mass + added_mass_coefficient);
 
     KRATOS_CATCH( "" )
 }
@@ -200,7 +203,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(double& adde
 
     else {
         const double volume                     = CalculateVolume();
-        const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_FLUID_ACCEL_PROJECTED);
+        const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         const array_1d<double, 3>& particle_acc = 1 / GetMass() * GetForce();
         array_1d<double, 3> slip_acc;
 
@@ -211,8 +214,8 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(double& adde
     else {
         //noalias(slip_acc) = fluid_acc - particle_acc;
         noalias(slip_acc) = fluid_acc; // the particle acceleration is treated implicitly through the added_mass_coefficient
-        double particle_density = GetDensity();
-        added_mass_coefficient = particle_density / (particle_density + 0.5 * mFluidDensity);
+        double volume = CalculateVolume();
+        added_mass_coefficient += 0.5 * mFluidDensity * volume;
 
         if (mDragForceType == 11) {
             const array_1d<double, 3>& fluid_vel_laplacian_rate = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_LAPL_RATE_PROJECTED);
@@ -231,7 +234,6 @@ void SphericSwimmingParticle<TBaseElement>::ComputeVirtualMassForce(double& adde
         ComputeParticleAccelerationNumber(slip_acc, acc_number);
         virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
     }
-
     noalias(virtual_mass_force) = mFluidDensity * volume * (virtual_mass_coeff * slip_acc + fluid_acc); // here we add the part of buoyancy due to the acceleration of the fluid
     }
 }
@@ -241,6 +243,7 @@ template < class TBaseElement >\
 double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j)
 {
     if (order == 1){
+
         if (j < n){
             return SphericSwimmingParticle<TBaseElement>::mAjs[j];
         }
@@ -249,6 +252,20 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
         }
     }
     return 0.0;
+//    double four_thirds = 4. / 3;
+//    double exponent = 1.5;
+
+//    if (0 < j && j < n){
+
+//        return (four_thirds * (pow((j - 1),exponent) + pow((j + 1),exponent) - 2 * pow(j,exponent)));
+//    }
+//    else if (j == 0){
+//        return (four_thirds);
+//    }
+//    else{
+//        return (four_thirds * (pow((n - 1),exponent) - pow(n,exponent) + exponent * std::sqrt(n)));
+//    }
+
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -256,26 +273,36 @@ template < class TBaseElement >\
 void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
 {
     fractional_derivative = ZeroVector(3);
-    double sqrt_of_h = std::sqrt(delta_time);
-    int n = historic_integrands.size() - 1;//len(times) - 1
-    int order = 1;
+    const double sqrt_of_h = std::sqrt(delta_time);
+    const int N = historic_integrands.size() - 3;
+    const int n = (int)N / 3;
+    const int order = 1;
+    array_1d<double, 3> integrand;
 
-    present_coefficient = sqrt_of_h * GetDaitcheCoefficient(order, n, 0);
+    for (int j = 0; j < n + 1; j++){
 
-    for (int j = 1; j < n + 1; j++){
-        array_1d<double, 3> integrand;
-        double coefficient = GetDaitcheCoefficient(order, n, j);
+        double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1);
+        double old_coefficient = GetDaitcheCoefficient(order, n, j);
         for (int i_comp = 0; i_comp < 3; i_comp++){
-            unsigned int integrand_position = n - j + 1;
-            integrand[i_comp] = historic_integrands[3 * integrand_position + i_comp];
+            unsigned int integrand_position = N - 3 * j + i_comp;
+            integrand[i_comp] = historic_integrands[integrand_position];
         }
-        fractional_derivative += sqrt_of_h * coefficient * integrand;
+        fractional_derivative += (coefficient - old_coefficient) * integrand;        
     }
+
+    for (int i_comp = 0; i_comp < 3; i_comp++){
+        integrand[i_comp] = historic_integrands[N + i_comp];
+    }
+    present_coefficient = GetDaitcheCoefficient(order, n + 1, 0);
+    fractional_derivative += present_coefficient * integrand;
+    present_coefficient   *= sqrt_of_h;
+    fractional_derivative *= sqrt_of_h;
 }
+
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template < class TBaseElement >
-void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(double & added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
+void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(double &added_mass_coefficient, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info)
 {
     if (mBassetForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null virtual mass force
         noalias(basset_force) = ZeroVector(3);
@@ -284,20 +311,18 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(double & added_ma
 
     else {
         vector<double>& historic_integrands = GetGeometry()[0].GetValue(BASSET_HISTORIC_INTEGRANDS);
-        double delta_time = 0.001;
-        double current_time = r_current_process_info[TIME];
-        double sqrt_elapsed_time = std::sqrt(current_time - mInitialTime);
-        array_1d<double, 3> initial_slip_velocity;
-        initial_slip_velocity[0] = historic_integrands[0];
-        initial_slip_velocity[1] = historic_integrands[1];
-        initial_slip_velocity[2] = historic_integrands[2];
-        array_1d<double, 3> initial_velocity_contribution = initial_slip_velocity / sqrt_elapsed_time; //  the first value is actually the initial value of the slip velocity (not the slip acceleration, which is stored at position 1); kept here for convenience
+        double delta_time = r_current_process_info[DELTA_TIME];
+//        KRATOS_WATCH(historic_integrands)
+//        KRATOS_WATCH(delta_time)
         array_1d<double, 3> fractional_derivative_of_slip_vel;
-        double present_coefficient;
+        double present_coefficient = 1.0;
         CalculateFractionalDerivative(fractional_derivative_of_slip_vel, present_coefficient, delta_time, historic_integrands);
-        added_mass_coefficient *= mRealMass / (mRealMass - present_coefficient * added_mass_coefficient);
-        double basset_force_coeff = 6.0 * KRATOS_M_PI * mRadius * mRadius * mKinematicViscosity * mFluidDensity / std::sqrt(KRATOS_M_PI * mKinematicViscosity);
-        basset_force = basset_force_coeff * (fractional_derivative_of_slip_vel + initial_velocity_contribution);
+//        KRATOS_WATCH(fractional_derivative_of_slip_vel)
+
+        const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(KRATOS_M_PI * mKinematicViscosity);
+        added_mass_coefficient -= present_coefficient * basset_force_coeff;
+
+        basset_force = basset_force_coeff / delta_time * fractional_derivative_of_slip_vel;
     }
 }
 
