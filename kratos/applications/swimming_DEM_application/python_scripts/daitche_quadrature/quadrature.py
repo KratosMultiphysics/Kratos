@@ -210,15 +210,22 @@ def Daitche(times, f, order):
     return sqrt_of_h * total
 
 def DaitcheTimesAndIntegrands(times, integrands, order):
-    sqrt_of_h = math.sqrt(times[-1] - times[-2])    
-    n = len(times) - 1
+    h = times[- 1] - times[- 2]
+    sqrt_of_h = math.sqrt(h) 
+    n = len(times) - 2
     total = [0.0] * 3   
 
-    for j in range(0 , n):
-        coefficient = float(Coefficient(order, n, j))
+    for j in range(0 , n + 1):
+        coefficient = float(Coefficient(order, n + 1, j + 1))
+        old_coefficient = float(Coefficient(order, n, j)) 
+
         for i in range(3):
-            total[i] += coefficient * integrands[-j - 1][i]
-    present_coefficient = float(Coefficient(order, n, n))
+            total[i] += (coefficient - old_coefficient) * integrands[n - j][i]
+
+    present_coefficient = float(Coefficient(order, n + 1, 0))
+    for i in range(3):
+        total[i] += present_coefficient * (integrands[- 1][i] + h * (integrands[- 1][i] - integrands[- 2][i]))
+
     return sqrt_of_h * total[0], sqrt_of_h * total[1], sqrt_of_h * total[2], sqrt_of_h * present_coefficient
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Daitche ENDS
