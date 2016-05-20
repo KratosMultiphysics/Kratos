@@ -369,13 +369,15 @@ public:
      * @return rDestVar: The variable in the destiny modelpart
      * @return MaxIter: Maximum number of iteration allowed
      * @return TolIter: Tolerance accepted in the iteration
+     * @return sign_pos: Positive or negative projection
      */
 
     void ScalarMap(
             const Variable<double> & rOriginVar,
             Variable<double> & rDestVar,
             const int MaxIter,
-            const double TolIter
+            const double TolIter,
+            const bool sign_pos
             );
 
     /**
@@ -384,13 +386,15 @@ public:
      * @return rDestVar: The variable in the destiny modelpart
      * @return MaxIter: Maximum number of iteration allowed
      * @return TolIter: Tolerance accepted in the iteration
+     * @return sign_pos: Positive or negative projection
      */
 
     void VectorMap(
             const Variable< array_1d<double,3> > & rOriginVar,
             Variable< array_1d<double,3> > & rDestVar,
             const int MaxIter,
-            const double TolIter
+            const double TolIter,
+            const bool sign_pos
             );
 
     /**
