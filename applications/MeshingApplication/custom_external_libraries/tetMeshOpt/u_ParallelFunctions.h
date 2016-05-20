@@ -14,8 +14,8 @@ typedef void(*TStForLoopElement)(int , int , TObject*);
 // This class encapsulates how the parallel for is invoked : TBB , OpenMP
 class TParallelIterator
 {
-	TStForLoopElement innercall;
-	TList<TObject*>* elements;
+	//TStForLoopElement innercall;//commented out to avoid warning (MA Celigueta 20-5-2016)
+	//TList<TObject*>* elements;//commented out to avoid warning (MA Celigueta 20-5-2016)
 public :
 
 	TParallelIterator()
@@ -23,7 +23,7 @@ public :
 		// omp_set_num_threads(8);
 	}
 
-	TParallelIterator(TStForLoopElement ic,  TList<TObject*>* el) : innercall(ic), elements(el)
+	TParallelIterator(TStForLoopElement ic,  TList<TObject*>* el) /*: innercall(ic), elements(el)*/ //commented out to avoid warning (MA Celigueta 20-5-2016)
 	{  
 	  //  omp_set_num_threads(8);
 	}
