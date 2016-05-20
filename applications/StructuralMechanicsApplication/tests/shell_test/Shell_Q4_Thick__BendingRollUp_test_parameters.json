@@ -16,7 +16,7 @@
         "echo_level"      					 : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Shell_Q4_Thick__BendingRollUp_test/Shell_Q4_Thick__BendingRollUp"
+            "input_filename" : "shell_test/Shell_Q4_Thick__BendingRollUp"
         },
         "line_search"                        : false,
         "rotation_dofs"						 : true,
@@ -40,13 +40,13 @@
     "loads_process_list" : [],
     "list_other_processes" :[
     {
-        "implemented_in_file"   : "json_output_process",
+        "implemented_in_file"   : "from_json_check_result_process",
         "implemented_in_module" : "KratosMultiphysics",
         "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
+        "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
-            "output_file_name" : "Shell_Q4_Thick__BendingRollUp_test/Shell_Q4_Thick__BendingRollUp_test_results.json",
+            "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "input_file_name" : "shell_test/Shell_Q4_Thick__BendingRollUp_test_results.json",
             "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
             "time_frequency"   : 0.01
         }
@@ -60,7 +60,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
-            "output_file_name" : "Shell_Q4_Thick__BendingRollUp_test/Shell_Q4_Thick__BendingRollUp_test_results.json",
+            "output_file_name" : "shell_test/Shell_Q4_Thick__BendingRollUp_test_results.json",
             "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
             "time_frequency"   : 0.01
         }
@@ -74,7 +74,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
-            "input_file_name" : "Shell_Q4_Thick__BendingRollUp_test/Shell_Q4_Thick__BendingRollUp_test_results.json",
+            "input_file_name" : "shell_test/Shell_Q4_Thick__BendingRollUp_test_results.json",
             "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
             "time_frequency"   : 0.01
         }

@@ -62,20 +62,20 @@ class SprismBendingPatchTests(StructrualMechanichsTestFactory):
 
 
 class ShellQ4ThickBendingRollUpTests(StructrualMechanichsTestFactory):
-    file_name = "Shell_Q4_Thick__BendingRollUp_test/Shell_Q4_Thick__BendingRollUp_test"
+    file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
 
 
 class ShellQ4ThickDrillingRollUpTests(StructrualMechanichsTestFactory):
-    file_name = "Shell_Q4_Thick__DrillingRollUp_test/Shell_Q4_Thick__DrillingRollUp_test"
+    file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
 
 
 class ShellT3IsotropicScordelisTests(StructrualMechanichsTestFactory):
-    file_name = "Shell_T3_Isotropic_Scordelis_test/Shell_T3_Isotropic_Scordelis_test"
+    file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
 
 
 class ShellT3ThinBendingRollUpTests(StructrualMechanichsTestFactory):
-    file_name = "Shell_T3_Thin__BendingRollUp_test/Shell_T3_Thin__BendingRollUp_test"
+    file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 
 
 class ShellT3ThinDrillingRollUpTests(StructrualMechanichsTestFactory):
-    file_name = "Shell_T3_Thin__DrillingRollUp_test/Shell_T3_Thin__DrillingRollUp_test"
+    file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
