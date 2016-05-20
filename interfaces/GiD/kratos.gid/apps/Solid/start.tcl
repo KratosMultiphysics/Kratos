@@ -8,6 +8,8 @@ proc ::Solid::Init { } {
     variable dir
     
     set dir [apps::getMyDir "Solid"]
+    set ::Model::ValidSpatialDimensions [list 2D 2Da 3D]
+    ::spdAux::CreateDimensionWindow
 }
 
 proc ::Solid::LoadMyFiles { } {

@@ -5,6 +5,7 @@
 
 namespace eval Model {
     variable SpatialDimension
+    variable ValidSpatialDimensions
     variable SolutionStrategies
     variable Elements
     variable Conditions
@@ -18,6 +19,7 @@ namespace eval Model {
 
 proc Model::Init { } {
     variable SpatialDimension
+    variable ValidSpatialDimensions
     variable dir
     variable SolutionStrategies
     variable Elements
@@ -38,6 +40,7 @@ proc Model::Init { } {
     set Processes [list ]
     
     set SpatialDimension "3D"
+    set ValidSpatialDimensions [list 2D 2Da 3D]
 }
 
 proc Model::InitVariables {varName varValue} {

@@ -11,6 +11,8 @@ proc ::Fluid::Init { } {
     
     set dir [apps::getMyDir "Fluid"]
     set prefix FL
+    set ::Model::ValidSpatialDimensions [list 2D 3D]
+    ::spdAux::CreateDimensionWindow
 }
 
 proc ::Fluid::LoadMyFiles { } {
