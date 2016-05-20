@@ -95,12 +95,9 @@ procedures.PreProcessModel(DEM_parameters)
 # Prepare modelparts
 spheres_model_part    = ModelPart("SpheresPart")
 rigid_face_model_part = ModelPart("RigidFace_Part")
-mixed_model_part      = ModelPart("Mixed_Part")
-mixed_spheres_and_clusters_model_part  = ModelPart("MixedSpheresAndClustersPart")
 cluster_model_part    = ModelPart("Cluster_Part")
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
-contact_model_part    = ""
 
 # defining and adding imposed porosity fields
 pp.fluid_fraction_fields = []
@@ -196,12 +193,15 @@ procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
 procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
 procedures.AddMpiVariables(spheres_model_part)
 solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
+scheme.AddSpheresVariables(spheres_model_part)
 procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
 procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
 procedures.AddMpiVariables(cluster_model_part)
+scheme.AddClustersVariables(cluster_model_part)
 procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
 procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
 solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+scheme.AddSpheresVariables(DEM_inlet_model_part)
 procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
@@ -244,14 +244,9 @@ model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
 # Setting up the buffer size
-if DEM_parameters.virtual_mass_force_type  > 0:
-    buffer_size = 2
-else:
-    buffer_size = 1
-
-spheres_model_part.SetBufferSize(buffer_size)
-cluster_model_part.SetBufferSize(buffer_size)
-DEM_inlet_model_part.SetBufferSize(buffer_size)
+spheres_model_part.SetBufferSize(1)
+cluster_model_part.SetBufferSize(1)
+DEM_inlet_model_part.SetBufferSize(1)
 rigid_face_model_part.SetBufferSize(1)
 fluid_model_part.SetBufferSize(3)
 
@@ -269,11 +264,11 @@ for node in fluid_model_part.Nodes:
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+[post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
 
 os.chdir(main_path)
 
-KRATOSprint("Initializing Problem....")
+KRATOSprint("\nInitializing Problem...")
 
 # Initialize GiD-IO
 demio.AddGlobalVariables()
@@ -281,7 +276,7 @@ demio.AddSpheresVariables()
 demio.AddFEMBoundaryVariables()
 demio.AddClusterVariables()
 demio.AddContactVariables()
-#
+# MPI
 demio.AddMpiVariables()
 demio.EnableMpiVariables()
 
@@ -294,12 +289,10 @@ demio.SetOutputName(DEM_parameters.problem_name)
 
 os.chdir(post_path)
 
-demio.InitializeMesh(mixed_model_part,
-                     mixed_spheres_and_clusters_model_part,
-                     spheres_model_part,
+demio.InitializeMesh(spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
-                     contact_model_part,
+                     solver.contact_model_part,
                      mapping_model_part)
 
 os.chdir(post_path)
@@ -316,7 +309,7 @@ if (DEM_parameters.BoundingBoxOption == "ON"):
     procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
     bounding_box_time_limits = [solver.bounding_box_start_time, solver.bounding_box_stop_time]
 
-# Creating a solver object and set the search strategy
+#Creating a solver object and set the search strategy
 #solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
@@ -517,13 +510,11 @@ output_time    = pp.CFD_DEM.OutputTimeStep
 report.Prepare(timer, DEM_parameters.ControlTime)
 
 first_print = True; index_5 = 1; index_10 = 1; index_50 = 1; control = 0.0
-    
-## MODEL DATA #~CHARLIE~#:????
 
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
-        (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
+        (coordination_number) = procedures.ModelData(spheres_model_part, solver.contact_model_part, solver) # Calculates the mean number of neighbours the mean radius, etc..
         KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
         os.chdir(main_path)
     else:
