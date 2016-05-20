@@ -5,7 +5,7 @@
         "domain_size"     : 2,
         "time_step"       : 0.001,
         "start_time"      : 0.001,
-        "end_time"        : 1.00,
+        "end_time"        : 0.10,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -60,7 +60,7 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "check_variables" : ["DISPLACEMENT_X"],
             "input_file_name" : "dynamic_test/dynamic_newmark_test_results.json",
             "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
             "time_frequency"   : 0.01
