@@ -5,7 +5,7 @@
   </units>
   <!-- Fill this fields to automatically active an App without the init window -->
   <hiddenfield n="activeapp" active="0" v="" state="disabled"/>
-  <hiddenfield n="nDim" un="nDim" v="" state="disabled"/>
+  <value n="nDim" pn="Dimension" un="nDim" v="" state="disabled" values="2D,2Da,3D" dict="2D,2D,2Da,2D axisymmetric,3D,3D"/>
   
   <appLink n="Structural" pn="Structural" active="0" appid="Structural" prefix="ST" release="1"/>
   <appLink n="Solid" pn="Solid" active="0" appid="Solid" prefix="SL"/>
@@ -23,158 +23,40 @@
   </blockdata>     
   <procs>
 	<proc n='GetElements' args='args'>
-          <![CDATA[
-          
-                set sol_stratUN [apps::getCurrentUniqueName SolStrat]
-                set schemeUN [apps::getCurrentUniqueName Scheme]
-                if {[get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v] eq ""} {
-                  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] values
-                  get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] values
-                }
-                set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
-                set schemeName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $schemeUN]] v]
-                
-                set elems [::Model::GetAvailableElements $solStratName $schemeName]
-                set names [list ]
-                set pnames [list ]
-                foreach cl $elems {
-                        lappend names [$cl getName]
-                        lappend pnames [$cl getName] 
-                        lappend pnames [$cl getPublicName]
-                }
-                set diction [join $pnames ","]
-                set values [join $names ","]
-				
-                $domNode setAttribute values $values
-                if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-                spdAux::RequestRefresh
-                return $diction
-                
-          ]]>
-        </proc>
+	  <![CDATA[
+	  return [spdAux::ProcGetElements $domNode $args]
+	  ]]>
+	</proc>
 	
 	<proc n='GetSolutionStrategies' args='args'>
 	  <![CDATA[
-	  
-		set names ""
-		set pnames ""
-		set Sols [::Model::GetSolutionStrategies]
-		set ids [list ]
-		foreach ss $Sols {
-			lappend ids [$ss getName]
-			append names [$ss getName] ","
-			append pnames [$ss getName] "," [$ss getPublicName] ","
-		}
-		set names [string range $names 0 end-1]
-		set pnames [string range $pnames 0 end-1]
-		
-		$domNode setAttribute dict $pnames
-		if {[$domNode getAttribute v] eq ""} {$domNode setAttribute v [lindex $ids 0]}
-		#spdAux::RequestRefresh
-		return $names
-	  
+	  return [spdAux::ProcGetSolutionStrategies $domNode $args]
 	  ]]>
 	</proc>
 	    <proc n='GetSchemes' args='args'>
 	  <![CDATA[
-		set sol_stratUN [apps::getCurrentUniqueName SolStrat]
-		set solStratName [get_domnode_attribute [$domNode selectNodes [spdAux::getRoute $sol_stratUN]] v]
-		set schemes [::Model::GetAvailableSchemes $solStratName]
-		set ids [list ]
-		if {[llength $schemes] == 0} {
-			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
-			return "None"
-		}
-		set names [list ]
-		set pnames [list ]
-		foreach cl $schemes {
-			lappend names [$cl getName]
-			lappend pnames [$cl getName] 
-			lappend pnames [$cl getPublicName]
-		}
-		
-		$domNode setAttribute dict [join $pnames ","]
-		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-		#spdAux::RequestRefresh
-		
-		return [join $names ","]
-		
-	  
+		return [spdAux::ProcGetSchemes $domNode $args]
 	  ]]>
 	</proc>
 		
 	<proc n='GetConstitutiveLaws' args='args'>
 	  <![CDATA[
-		set Elementname [$domNode selectNodes {string(../value[@n='Element']/@v)}]
-		set Claws [::Model::GetAvailableConstitutiveLaws $Elementname]
-		#W "Const Laws que han pasado la criba: $Claws"
-		if {[llength $Claws] == 0} {
-			if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v "None"}
-			return "None"
-		}
-		set names [list ]
-		set pnames [list ]
-		foreach cl $Claws {
-			lappend names [$cl getName]
-			lappend pnames [$cl getName] 
-			lappend pnames [$cl getPublicName]
-		}
-		set values [join $names ","]
-		$domNode setAttribute values $values
-		set diction [join $pnames ","]
-		if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-		spdAux::RequestRefresh
-		
-		return $diction
+	  return [spdAux::ProcGetConstitutiveLaws $domNode $args]
 	  ]]>
 	</proc>
 		<proc n='GetSolvers' args='args'>
 	  <![CDATA[
-	set solStrat [get_domnode_attribute [$domNode parent] solstratname]
-	set solverEntryId [get_domnode_attribute [$domNode parent] n]
-	
-	set solvers [Model::GetAvailableSolvers $solStrat $solverEntryId]
-	
-	set names [list ]
-	set pnames [list ]
-	foreach slvr $solvers {
-		lappend names [$slvr getName]
-		lappend pnames [$slvr getName] 
-		lappend pnames [$slvr getPublicName]
-	}
-	$domNode setAttribute dict [join $pnames ","]
-	if {[get_domnode_attribute $domNode v] eq ""} {$domNode setAttribute v [lindex $names 0]}
-	return [join $names ","]
-	  
+	return [spdAux::ProcGetSolvers $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='CheckNodalConditionState' args='args'>
 	  <![CDATA[
-		set parts_un [apps::getCurrentUniqueName Parts]
-	    if {[spdAux::getRoute $parts_un] ne ""} {
-			set conditionId [$domNode @n]
-			set elems [$domNode selectNodes "[spdAux::getRoute $parts_un]/group/value\[@n='Element'\]"]
-			set elemnames [list ]
-			foreach elem $elems { lappend elemnames [$elem @v]}
-			set elemnames [lsort -unique $elemnames]
-			if {$elemnames eq ""} {return "hidden"}
-			if {[::Model::CheckElementsNodalCondition $conditionId $elemnames]} {return "normal"} else {return "hidden"}
-		} {return "normal"}
+		return [spdAux::ProcCheckNodalConditionState $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='CheckNodalConditionOutputState' args='args'>
 	  <![CDATA[
-		set NC_un [apps::getCurrentUniqueName NodalConditions]
-	    if {[spdAux::getRoute $NC_un] ne ""} {
-			set ncs [$domNode selectNodes "[spdAux::getRoute $NC_un]/condition/group"]
-			set ncslist [list ]
-			foreach nc $ncs { lappend ncslist [[$nc parent] @n]}
-			set ncslist [lsort -unique $ncslist]
-			set conditionId [lindex $args 0]
-			if {$conditionId ni $ncslist} {return "hidden"} {return "normal"}
-			set outputId [$domNode @n]
-			if {[::Model::CheckNodalConditionOutputState $conditionId $outputId]} {return "normal"} else {return "hidden"}
-		} {return "normal"}
+		return [spdAux::ProcCheckNodalConditionOutputState $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='RefreshTree' args='args'>
@@ -185,81 +67,38 @@
 
 	  <proc n='checkStateByUniqueName' args='args'>
 	  <![CDATA[
-		set total 0
-		foreach {un val} $args {
-		  set xpath [spdAux::getRoute $un]
-		  spdAux::insertDependencies $domNode $un
-		  set realval [get_domnode_attribute [$domNode selectNodes $xpath] v]
-		  if {$realval eq ""} {W "Warning: Check unique name $un"}
-		  if {[lsearch $val $realval] != -1} {
-			set total 1
-			break
-		  }
-		}
-		if {$total} {return "normal"} else {return "hidden"}
+		return [spdAux::ProccheckStateByUniqueName $domNode $args]
 	  ]]>
 	</proc>
 	  	  <proc n='SolverParamState' args='args'>
 	  <![CDATA[
-			
-		set id [$domNode getAttribute n]
-		set nodesolver [[$domNode parent] selectNodes "./value\[@n='Solver'\]"]
-		get_domnode_attribute $nodesolver values
-		set solverid [get_domnode_attribute $nodesolver v]
-		
-		if {$solverid eq ""} {set resp 0} {
-		set resp [::Model::getSolverParamState $solverid $id]
-		}
-		
-		spdAux::RequestRefresh
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcSolverParamState $domNode $args]
 	  ]]>
 	</proc>
 	<proc n='PartParamValue' args='args'>
 	  <![CDATA[
-		set nodename [get_domnode_attribute $domNode n]
-		set matname [get_domnode_attribute $domNode v]
-		W "Part tal $nodename $matname"
-		set node [[$domNode parent] selectNode "../value\[@n='$nodename'\]" ]
-		set nodevalue [$node @v]
-		W "Current $nodevalue"
-		return [spdAux::CheckPartParamValue $node $matname]
+		return [spdAux::ProcPartParamValue $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='PartParamState' args='args'>
 	  <![CDATA[
-		set resp [::Model::CheckElemParamState $domNode]
-		if {$resp eq "0"} {
-			set id [$domNode getAttribute n]
-			set constLaw [get_domnode_attribute [[$domNode parent] selectNodes "./value\[@n='ConstitutiveLaw'\]"] v]
-			if {$constLaw eq ""} {return hidden}
-			set resp [Model::CheckConstLawParamState $constLaw $id]
-		}
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcPartParamState $domNode $args]
 	  ]]>
 	</proc>
 	  	  <proc n='SolverEntryState' args='args'>
 	  <![CDATA[
-		set resp [spdAux::CheckSolverEntryState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcSolverEntryState $domNode $args]
 	  ]]>
 	</proc>
 	<proc n='CheckDimension' args='args'>
 	  <![CDATA[
-		set checkdim [lindex $args 0]
-		
-		if {$checkdim eq $::Model::SpatialDimension} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcCheckDimension $domNode $args]
 	  ]]>
 	  
 	</proc>
 	<proc n='getStateFromXPathValue' args='args'>
 	  <![CDATA[
-	  set arglist [split $args " "]
-	  set xpath {*}[lindex $arglist 0]
-	  set checkvalue [lindex $arglist 1]
-	  set pst [$domNode selectNodes $xpath]
-	  # W "xpath $xpath checkvalue $checkvalue pst $pst"
-	  if {$pst == $checkvalue} { return "normal"} else {return "hidden"}
+	  return [spdAux::ProcgetStateFromXPathValue $domNode $args]
 	  ]]>
 	</proc>
     <proc n='give_materials_list' args='args'>
@@ -414,82 +253,47 @@
     </proc>
 	<proc n='ConditionState' args='args'>
 	  <![CDATA[
-	  set resp [::Model::CheckConditionState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcConditionState $domNode $args]
 	  ]]>
 	</proc>
 	
 	  <proc n='SolStratParamState' args='args'>
 	  <![CDATA[
-		set resp [::spdAux::SolStratParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcSolStratParamState $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='SchemeParamState' args='args'>
 	  <![CDATA[
-		set resp [::spdAux::SchemeParamState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcSchemeParamState $domNode $args]
 	  ]]>
 	</proc>	   
 	  <proc n='ConstLawOutputState' args='args'>
 	  <![CDATA[
-		set resp [::spdAux::CheckConstLawOutputState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcConstLawOutputState $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='ElementOutputState' args='args'>
 	  <![CDATA[
-		set resp [::spdAux::CheckElementOutputState $domNode]
-		if {$resp} {return "normal"} else {return "hidden"}
+		return [spdAux::ProcElementOutputState $domNode $args]
 	  ]]>
 	</proc>
 	  
 	  <proc n='ActiveIfAnyPartState' args='args'>
 	  <![CDATA[
-	  set parts ""
-	  set parts_un [apps::getCurrentUniqueName Parts]
-	  catch {
-		set parts [$domNode selectNodes "[spdAux::getRoute $parts_un]/group"]
-		}
-		if {$parts ne ""} {return "normal"} else {return "hidden"}
+	  return [spdAux::ProcActiveIfAnyPartState $domNode $args]
 	  ]]>
 	</proc>
 	  
 		  <proc n='DisableIfUniqueName' args='args'>
 	  <![CDATA[
-		set total 1
-		
-		foreach {un val} $args {
-		  set xpath [spdAux::getRoute $un]
-		  spdAux::insertDependencies $domNode $un
-		  set realval [get_domnode_attribute [$domNode selectNodes $xpath] v]
-		  if {$realval eq ""} {W "Warning: Check unique name $un"}
-		  if {[lsearch $val $realval] == -1} {
-			set total 0
-			break
-		  }
-		}
-		if {$total} {return "normal"} else {return "disabled"}
+		return [spdAux::ProcDisableIfUniqueName $domNode $args]
 	  ]]>
 	</proc>
 		<proc n='CheckGeometry' args='args'>
 	  <![CDATA[
-		set level [lindex $args 0]
-		if {$level eq 1} {
-			if {$::Model::SpatialDimension eq "3D"} {return volume} {return surface}
-		}
-		if {$level eq 2} {
-			if {$::Model::SpatialDimension eq "3D"} {return surface} {return line}
-		}
+		return [spdAux::ProcCheckGeometry $domNode $args]
 	  ]]>
 	</proc>
-        
-        <proc n='CheckGeometryStructural' args='args'>
-          <![CDATA[                
-                if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}                
-          ]]>
-        </proc>
-	  
 	  <proc n='Updateme' args='args'>
 	  <![CDATA[
 	  gid_groups_conds::actualize_conditions_window
@@ -497,36 +301,12 @@
 	</proc>
 	  <proc n='DirectorVectorNonZero' args='args'>
 	  <![CDATA[
-	  set kw [lindex $args 0]
-	  set update 0
-		foreach condgroupnode [$domNode getElementsByTagName group] {
-		  set valid 0
-		  foreach dirnode [$condgroupnode getElementsByTagName value] {
-			if {[string first $kw [get_domnode_attribute $dirnode n]] eq 0 } {
-			  if { [get_domnode_attribute $dirnode v] != 0 } {set valid 1; break}
-			}
-		  }
-		  if {!$valid} {
-			$domNode removeChild $condgroupnode
-			set update 1
-		  }
-		}
-		if {$update} {
-		W "Director vector can't be null"
-		gid_groups_conds::actualize_conditions_window
-		}
+	 return [spdAux::ProcDirectorVectorNonZero $domNode $args]
 	  ]]>
 	</proc>
 	  <proc n='ShowInMode' args='args'>
 	  <![CDATA[
-	  set kw [lindex $args 0]
-	  if {$kw ni [list "Release" "Developer"]} {return "hidden"}
-	  if {$::Kratos::kratos_private(DevMode) eq "dev"} {
-		if {$kw eq "Developer"} {return "normal"} {return "hidden"}
-	  }
-	  if {$::Kratos::kratos_private(DevMode) eq "release"} {
-		if {$kw eq "Developer"} {return "hidden"} {return "normal"}
-	  }
+	  return [spdAux::ProcShowInMode $domNode $args]
 	  ]]>
 	</proc>
 	<dynamicnode command="injectProcs" args=""/>

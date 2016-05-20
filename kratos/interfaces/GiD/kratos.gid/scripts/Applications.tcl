@@ -158,7 +158,7 @@ oo::class create App {
         
         set name $n
         set publicname $n
-        set imagepath [file nativename [file join $::Kratos::kratos_private(Path) apps $n logo.gif] ]
+        set imagepath [file nativename [file join $::Kratos::kratos_private(Path) apps $n images logo.gif] ]
         set writeModelPartEvent $n
         append writeModelPartEvent "::write"
         append writeModelPartEvent "::writeModelPartEvent"

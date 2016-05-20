@@ -8,6 +8,7 @@ proc ::Pfem::Init { } {
     variable dir
     
     set dir [apps::getMyDir "Pfem"]
+    ::spdAux::CreateDimensionWindow
 }
 
 proc ::Pfem::LoadMyFiles { } {
