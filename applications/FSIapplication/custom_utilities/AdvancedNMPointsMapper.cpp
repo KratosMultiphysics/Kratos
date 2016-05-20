@@ -348,8 +348,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
     const unsigned int MaxResults = 5000; // Maximum number of points to find in a single tree search
     GaussPointVector Results(MaxResults);
     std::vector<double> ResultDistances(MaxResults);
-    array_1d<double,3> ZeroVect;
-    ZeroVect = ZeroVector(3);
+    array_1d<double,3> ZeroVect = ZeroVector(3);
 
     const unsigned int dimension = mrDestinationModelPart.ConditionsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -524,7 +523,7 @@ void AdvancedNMPointsMapper::LineCenterAndRadius(
         }
     }
 
-    Radius = sqrt(Radius);
+    Radius = std::sqrt(Radius);
 }
 
 /***********************************************************************************/
@@ -655,9 +654,16 @@ void AdvancedNMPointsMapper::ScalarMap(
         const Variable<double> & rOriginVar,
         Variable<double> & rDestVar,
         const int MaxIter,
-        const double TolIter
+        const double TolIter,
+        const bool sign_pos
         )
 {
+    double sign = 1.0;
+    if (sign_pos == false)
+    {
+        sign = -1.0;
+    }
+
     // Build (Diagonal) System Matrix and initialize results
     for ( ModelPart::NodesContainerType::iterator node_it = mrDestinationModelPart.NodesBegin();
             node_it != mrDestinationModelPart.NodesEnd();
@@ -693,7 +699,7 @@ void AdvancedNMPointsMapper::ScalarMap(
                 node_it != mrDestinationModelPart.NodesEnd();
                 node_it++)
         {
-            node_it->FastGetSolutionStepValue(rDestVar) += GPValues[GPi];
+            node_it->FastGetSolutionStepValue(rDestVar) += sign * GPValues[GPi];
             GPi += 1;
         }
     }
@@ -773,7 +779,7 @@ void AdvancedNMPointsMapper::ScalarMap(
                 for(unsigned int j = 0; j < 3; j++)
                 {
                     LocalRHS[j] = 0.0;
-                    LastSolution[j] = cond_it->GetGeometry()[j].FastGetSolutionStepValue(rDestVar);
+                    LastSolution[j] = sign * cond_it->GetGeometry()[j].FastGetSolutionStepValue(rDestVar);
                 }
 
                 double CondArea = 0.0;
@@ -803,11 +809,11 @@ void AdvancedNMPointsMapper::ScalarMap(
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
                 //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
                 double dVal = node_it->GetValue(AUX)/NodeArea;
-                node_it->FastGetSolutionStepValue(rDestVar) += dVal;
+                node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                 // Variables for convergence check
-                dValNorm += std::pow(dVal, 2.00);
-                ValNorm  += pow(node_it->FastGetSolutionStepValue(rDestVar), 2);
+                dValNorm += dVal * dVal;
+                ValNorm  += std::pow(node_it->FastGetSolutionStepValue(rDestVar), 2);
                 NodeNum++;
             }
             //std::cout << "ScalarMap iteration: " << k+1 << std::endl;
@@ -837,9 +843,17 @@ void AdvancedNMPointsMapper::ScalarMap(
 void AdvancedNMPointsMapper::VectorMap(
         const Variable<array_1d<double,3> >& rOriginVar,
         Variable<array_1d<double,3> >& rDestVar,
-        const int MaxIter, const double TolIter
+        const int MaxIter,
+        const double TolIter,
+        const bool sign_pos
         )
 {
+    double sign = 1.0;
+    if (sign_pos == false)
+    {
+        sign = -1.0;
+    }
+
     array_1d<double,3> ZeroVect = ZeroVector(3);
 
     // Build (Diagonal) System Matrix and initialize results
@@ -877,7 +891,7 @@ void AdvancedNMPointsMapper::VectorMap(
                 node_it != mrDestinationModelPart.NodesEnd();
                 node_it++)
         {
-            node_it->FastGetSolutionStepValue(rDestVar) += GPValues[GPi];
+            node_it->FastGetSolutionStepValue(rDestVar) += sign * GPValues[GPi];
             GPi += 1;
         }
     }
@@ -969,9 +983,9 @@ void AdvancedNMPointsMapper::VectorMap(
 
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    LastSolution[j]     = cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar)[j];
-                    LastSolution[3 + j] = cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar)[j];
-                    LastSolution[6 + j] = cond_it->GetGeometry()[2].FastGetSolutionStepValue(rDestVar)[j];
+                    LastSolution[j]     = sign * cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar)[j];
+                    LastSolution[3 + j] = sign * cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar)[j];
+                    LastSolution[6 + j] = sign * cond_it->GetGeometry()[2].FastGetSolutionStepValue(rDestVar)[j];
                 }
 
                 array_1d<double,9> CondValues = *pInterpValues[IV_iter];
@@ -1004,13 +1018,13 @@ void AdvancedNMPointsMapper::VectorMap(
             {
                 const double & NodeArea = node_it->GetValue(NODAL_MAUX);
                 noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
-                node_it->FastGetSolutionStepValue(rDestVar) += dVal;
+                node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal;
 
                 // Variables for convergence check
                 for (unsigned int j = 0; j < 3; j++)
                 {
                     dValNorm += dVal[j] * dVal[j];
-                    ValNorm += pow(node_it->FastGetSolutionStepValue(rDestVar)[j], 2);
+                    ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar)[j], 2);
                 }
 
                 NodeNum++;
