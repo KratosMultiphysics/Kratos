@@ -115,16 +115,16 @@ class ElementCreator(ClassCreator):
         # List of dofs
         localDofListValue = ''
         localDofListDefinition = [
-            ctab * 2 + 'for (unsigned int i = 0; i < number_of_nodes; i++)\n',
-            ctab * 3 + 'ElementalDofList[i] = GetGeometry()[i].pGetDof({});\n',
+            ctab * 1 + 'for (unsigned int i = 0; i < number_of_nodes; i++)\n',
+            ctab * 2 + 'ElementalDofList[i] = GetGeometry()[i].pGetDof({});\n',
             '\n'
         ]
 
         # EcuationID's
         localDofEidValue = ''
         localDofEidDefinition = [
-            ctab * 2 + 'for (unsigned int i = 0; i < number_of_nodes; i++)\n',
-            ctab * 3 + 'rResult[i] = GetGeometry()[i].GetDof({}).EquationId();\n',
+            ctab * 1 + 'for (unsigned int i = 0; i < number_of_nodes; i++)\n',
+            ctab * 2 + 'rResult[i] = GetGeometry()[i].GetDof({}).EquationId();\n',
             '\n'
         ]
 
