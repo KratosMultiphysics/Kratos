@@ -415,7 +415,7 @@ private:
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer);
+  virtual void save(Serializer& rSerializer) const;
   virtual void load(Serializer& rSerializer);
 
   ///@}
@@ -429,9 +429,6 @@ private:
   ///@}
   ///@name Un accessible methods
   ///@{
-
-  /// Copy constructor.
-  //@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther);
 
   ///@}
 

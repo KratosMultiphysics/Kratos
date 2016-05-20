@@ -47,7 +47,7 @@ namespace Kratos
 /**
  * Constructor.
  */
-@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId = 0)
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId)
     : Element(NewId) @{KRATOS_INIT_MEMBER_LIST} {
 }
 
@@ -74,10 +74,10 @@ namespace Kratos
 
 /**
  * Copy Constructor
-//  */
-// @{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther)
-//     : Element(rOther) @{KRATOS_CC_INIT_MEMBER_LIST} {
-// }
+ */
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther)
+    : Element(rOther) @{KRATOS_CC_INIT_MEMBER_LIST} {
+}
 
 /**
  * Destructor
@@ -93,7 +93,7 @@ namespace Kratos
 @{KRATOS_NAME_CAMEL} & @{KRATOS_NAME_CAMEL}::operator=(@{KRATOS_NAME_CAMEL} const& rOther) {
   BaseType::operator=(rOther);
   Flags::operator =(rOther);
-  mpProperties = rOther.mpProperties;
+  // mpProperties = rOther.mpProperties;
   return *this;
 }
 
@@ -497,14 +497,14 @@ void @{KRATOS_NAME_CAMEL}::save(Serializer& rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
 
   // List
-  rSerializer.save("Data", mData);
+  // To be completed with the class member list
 }
 
 void @{KRATOS_NAME_CAMEL}::load(Serializer& rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
 
   // List
-  rSerializer.load("Data", mData);
+  // To be completed with the class member list
 }
 
 ///@}
