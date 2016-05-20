@@ -3195,7 +3195,43 @@ namespace Kratos
 		PartitionIndicesContainerType const& ElementsAllPartitions,
 		PartitionIndicesContainerType const& ConditionsAllPartitions)
 	{
-		KRATOS_ERROR << "This Method is not implemented yet!" << std::endl;
+		KRATOS_TRY
+
+			std::string word;
+		ReadWord(word);
+
+		word += "\n";
+
+
+		WriteInAllFiles(OutputFiles, "Begin SubModelPart " + word);
+
+		while (!mpStream->eof())
+		{
+			ReadWord(word);
+
+			if (CheckEndBlock("SubModelPart", word))
+				break;
+
+			ReadBlockName(word);
+			if (word == "SubModelPartData")
+				DivideSubModelPartDataBlock(OutputFiles);
+			else if (word == "SubModelPartTables")
+				DivideSubModelPartTableBlock(OutputFiles);
+			else if (word == "SubModelPartNodes")
+				DivideSubModelPartNodesBlock(OutputFiles, NodesAllPartitions);
+			else if (word == "SubModelPartElements")
+				DivideSubModelPartElementsBlock(OutputFiles, ElementsAllPartitions);
+			else if (word == "SubModelPartConditions")
+				DivideSubModelPartConditionsBlock(OutputFiles, ConditionsAllPartitions);
+			else if (word == "SubModelPart")
+				DivideSubModelPartBlock(OutputFiles, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
+			else
+				SkipBlock(word);
+		}
+
+		WriteInAllFiles(OutputFiles, "End Mesh\n");
+
+		KRATOS_CATCH("")
 	}
 
 
@@ -3364,7 +3400,186 @@ namespace Kratos
     }
 
 
-    void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
+
+
+	void ModelPartIO::DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles)
+	{
+		KRATOS_TRY
+			std::string block;
+
+		WriteInAllFiles(OutputFiles, "Begin SubModelPartData");
+
+		ReadBlock(block, "SubModelPartData");
+		WriteInAllFiles(OutputFiles, block);
+
+		WriteInAllFiles(OutputFiles, "End SubModelPartData\n");
+		KRATOS_CATCH("")
+	}
+
+	void ModelPartIO::DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles)
+	{
+		KRATOS_TRY
+			std::string block;
+
+		WriteInAllFiles(OutputFiles, "Begin SubModelPartTables");
+
+		ReadBlock(block, "SubModelPartTables");
+		WriteInAllFiles(OutputFiles, block);
+
+		WriteInAllFiles(OutputFiles, "End SubModelPartTables\n");
+		KRATOS_CATCH("")
+	}
+
+
+	void ModelPartIO::DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& NodesAllPartitions)
+	{
+		KRATOS_TRY
+
+			std::string word;
+
+		WriteInAllFiles(OutputFiles, "Begin SubModelPartNodes \n");
+
+		SizeType id;
+
+		while (!mpStream->eof())
+		{
+			ReadWord(word);
+
+			if (CheckEndBlock("SubModelPartNodes", word))
+				break;
+
+			ExtractValue(word, id);
+
+			if (ReorderedNodeId(id) > NodesAllPartitions.size())
+			{
+				std::stringstream buffer;
+				buffer << "Invalid node id : " << id;
+				buffer << " [Line " << mNumberOfLines << " ]";
+				KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+			}
+
+			for (SizeType i = 0; i < NodesAllPartitions[ReorderedNodeId(id) - 1].size(); i++)
+			{
+				SizeType partition_id = NodesAllPartitions[ReorderedNodeId(id) - 1][i];
+				if (partition_id > OutputFiles.size())
+				{
+					std::stringstream buffer;
+					buffer << "Invalid prtition id : " << partition_id;
+					buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+					KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+				}
+
+				*(OutputFiles[partition_id]) << ReorderedNodeId(id) << std::endl;
+			}
+
+		}
+
+		WriteInAllFiles(OutputFiles, "End SubModelPartNodes\n");
+
+		KRATOS_CATCH("")
+	}
+
+
+	void ModelPartIO::DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& ElementsAllPartitions)
+	{
+		KRATOS_TRY
+
+			std::string word;
+
+		WriteInAllFiles(OutputFiles, "Begin SubModelPartElements \n");
+
+		SizeType id;
+
+		while (!mpStream->eof())
+		{
+			ReadWord(word);
+
+			if (CheckEndBlock("SubModelPartElements", word))
+				break;
+
+			ExtractValue(word, id);
+
+			if (ReorderedElementId(id) > ElementsAllPartitions.size())
+			{
+				std::stringstream buffer;
+				buffer << "Invalid element id : " << id;
+				buffer << " [Line " << mNumberOfLines << " ]";
+				KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+			}
+
+			for (SizeType i = 0; i < ElementsAllPartitions[ReorderedElementId(id) - 1].size(); i++)
+			{
+				SizeType partition_id = ElementsAllPartitions[ReorderedElementId(id) - 1][i];
+				if (partition_id > OutputFiles.size())
+				{
+					std::stringstream buffer;
+					buffer << "Invalid prtition id : " << partition_id;
+					buffer << " for element " << id << " [Line " << mNumberOfLines << " ]";
+					KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+				}
+
+				*(OutputFiles[partition_id]) << ReorderedElementId(id) << std::endl;
+			}
+
+		}
+
+		WriteInAllFiles(OutputFiles, "End SubModelPartElements\n");
+
+		KRATOS_CATCH("")
+	}
+
+	void ModelPartIO::DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& ConditionsAllPartitions)
+	{
+		KRATOS_TRY
+
+			std::string word;
+
+		WriteInAllFiles(OutputFiles, "Begin SubModelPartConditions \n");
+
+		SizeType id;
+
+		while (!mpStream->eof())
+		{
+			ReadWord(word);
+
+			if (CheckEndBlock("SubModelPartConditions", word))
+				break;
+
+			ExtractValue(word, id);
+
+			if (ReorderedConditionId(id) > ConditionsAllPartitions.size())
+			{
+				std::stringstream buffer;
+				buffer << "Invalid condition id : " << id;
+				buffer << " [Line " << mNumberOfLines << " ]";
+				KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+			}
+
+			for (SizeType i = 0; i < ConditionsAllPartitions[ReorderedConditionId(id) - 1].size(); i++)
+			{
+				SizeType partition_id = ConditionsAllPartitions[ReorderedConditionId(id) - 1][i];
+				if (partition_id > OutputFiles.size())
+				{
+					std::stringstream buffer;
+					buffer << "Invalid prtition id : " << partition_id;
+					buffer << " for condition " << id << " [Line " << mNumberOfLines << " ]";
+					KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+				}
+
+				*(OutputFiles[partition_id]) << ReorderedConditionId(id) << std::endl;
+			}
+
+		}
+
+		WriteInAllFiles(OutputFiles, "End SubModelPartConditions\n");
+
+		KRATOS_CATCH("")
+	}
+
+	void ModelPartIO::WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
     {
         WriteInAllFiles(OutputFiles, "Begin NodalData PARTITION_INDEX\n");
 
