@@ -46,8 +46,8 @@ class ApplicationGenerator(TemplateRule):
         # Define the templates files needed for every class
         self._classTemplateFiles = {
             'Elements': ['element_template.cpp', 'element_template.h'],
-            'Conditions': ['condition_template.h'],
-            'Processes': ['process_template.h'],
+            'Conditions': ['condition_template.cpp', 'condition_template.h'],
+            'Processes': ['process_template.cpp', 'process_template.h'],
             'Variables': [
                 self._nameLower+'_application.h',
                 self._nameLower+'_application.cpp',
@@ -128,15 +128,14 @@ class ApplicationGenerator(TemplateRule):
                 os.path.join(appdir, value)
             )
 
-        # Generate the additional classes and add its sources to the CMakeLists BEFORE applying the application
-        # rules. It is critical to maintain this order
-        self._generateClassFrom(
+        # Add the sources to the CMakeLists
+        self._addClassToSources(
             entityType='Elements',
             fromContainer=self._elements)
-        self._generateClassFrom(
+        self._addClassToSources(
             entityType='Conditions',
             fromContainer=self._conditions)
-        self._generateClassFrom(
+        self._addClassToSources(
             entityType='Processes',
             fromContainer=self._processes)
 
@@ -151,6 +150,17 @@ class ApplicationGenerator(TemplateRule):
 
                 # Here we iterate over existing files, so we have to remove the original
                 os.remove(src)
+
+        # Generate the additional classes
+        self._generateClassFrom(
+            entityType='Elements',
+            fromContainer=self._elements)
+        self._generateClassFrom(
+            entityType='Conditions',
+            fromContainer=self._conditions)
+        self._generateClassFrom(
+            entityType='Processes',
+            fromContainer=self._processes)
 
         # Add Variables
         self._generateVariablesFrom(
@@ -174,6 +184,14 @@ class ApplicationGenerator(TemplateRule):
                     line = line.replace(rule['token'], rule['value'])
                 dstFile.write(line)
 
+    def _addClassToSources(self, entityType, fromContainer):
+        additionalSourceRule = self.GetRule('@{APP_SOURCE_LIST}')
+
+        for entity in fromContainer:
+            # Update the list of sources to be compiled
+            additionalSourceRule['value'] += '\n' + ctab + '${CMAKE_CURRENT_SOURCE_DIR}/'
+            additionalSourceRule['value'] += self._classTemplatePath[entityType][1] + '/' + entity.nameLower + '.cpp'
+
     def _generateClassFrom(self, entityType, fromContainer):
         # Generate elements
         root = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -181,12 +199,11 @@ class ApplicationGenerator(TemplateRule):
         srcpath = root + "../../templates/" + self._classTemplatePath[entityType][0]
         dstpath = self._appDir + self._nameCamel + 'Application/' + self._classTemplatePath[entityType][1]
 
-        additionalSourceRule = self.GetRule('@{APP_SOURCE_LIST}')
-
         if not os.path.exists(dstpath):
             os.makedirs(dstpath)
 
         for entity in fromContainer:
+
             files = self._classTemplateFiles[entityType]
             for f in files:
 
@@ -205,10 +222,6 @@ class ApplicationGenerator(TemplateRule):
 
                 if bkp is not None:
                     os.remove(src)
-
-                # Update the list of sources to be compiled
-                additionalSourceRule['value'] += '\n' + ctab + '${CMAKE_CURRENT_SOURCE_DIR}/'
-                additionalSourceRule['value'] += self._classTemplatePath[entityType][1] + '/' + entity.nameLower + '.cpp'
 
     def _generateVariablesFrom(self, entityType, fromContainer):
         ''' Generate the list of variables for the application

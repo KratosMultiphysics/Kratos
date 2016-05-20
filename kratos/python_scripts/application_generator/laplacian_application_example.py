@@ -1,15 +1,12 @@
-import sys
-
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
 from classes.processCreator import ProcessCreator
-from classes.classMemberCreator import ClassMemberCreator
 from classes.variableCreator import VariableCreator
 
 from applicationGenerator import ApplicationGenerator
 
 # Read the application name and generate Camel, Caps and Low
-appCamel = "MyLaplacian" #DO NOT put "application" in the name, it will be added automatically
+appCamel = "MyLaplacian"  # DO NOT put "application" in the name, it will be added automatically
 
 # Fetch the applications directory
 debugApp = ApplicationGenerator(appCamel)
@@ -26,15 +23,14 @@ debugApp.AddElements([
     .AddDofs(['TEMPERATURE'])
 ])
 
-debugApp.AddConditions([
-    ConditionCreator('MyFaceCondition')
-	.AddDofs([TEMPERATURE])
-    #.AddFlags([])
-])
-
-debugApp.AddProcesses([
-    ProcessCreator('DoSomethingProcess')
-])
+# debugApp.AddConditions([
+#     ConditionCreator('MyFaceCondition')
+#     .AddDofs(['TEMPERATURE'])
+# ])
+#
+# debugApp.AddProcesses([
+#     ProcessCreator('DoSomethingProcess')
+# ])
 
 debugApp.Generate()
 

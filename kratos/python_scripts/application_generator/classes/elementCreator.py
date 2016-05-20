@@ -52,7 +52,8 @@ class ElementCreator(ClassCreator):
         self.rules += [
             {'token': '@{KRATOS_CLASS_LOCAL_FLAGS}', 'value': ''},
             {'token': '@{KRATOS_ELEMENT_LIST_DOFS}', 'value': ''},
-            {'token': '@{KRATOS_ELEMENT_ECUATION_ID_DOFS}', 'value': ''}
+            {'token': '@{KRATOS_ELEMENT_ECUATION_ID_DOFS}', 'value': ''},
+            {'token': '@{KRATOS_CLASS_BASE_DIR}', 'value': 'custom_elements'}
         ]
 
     def AddFlags(self, flagList):
