@@ -2,12 +2,34 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 from KratosMultiphysics import *
 import json
-import numpy as np
+#import numpy as np # This cannot be here, manually interpolated
 from json_utilities import *
 CheckForPreviousImport()
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+def linear_interpolation(x, x_list, y_list):
+    ind_inf = 0
+    ind_sup = -1
+    x_inf = x_list[ind_inf]
+    x_sup = x_list[ind_sup]
+    for i in range(len(x_list)):
+        if x_list[i] <= x:
+            ind_inf = i
+            x_inf = x_list[ind_inf]
+        if x_list[-(1 + i)] >= x:
+            ind_sup = -(1 + i)
+            x_sup = x_list[ind_sup]
+    
+    if (x_sup-x_inf == 0):
+        y = y_list[ind_inf]
+    else:
+        prop_sup = (x-x_inf)/(x_sup-x_inf)
+        prop_inf = 1.0 - prop_sup
+        y = y_list[ind_inf] * prop_inf + y_list[ind_sup] * prop_sup 
+    
+    return y
 
 def Factory(settings, Model):
     if(type(settings) != Parameters):
@@ -45,33 +67,37 @@ class FromJsonCheckResultProcess(Process, KratosUnittest.TestCase):
         dt = self.sub_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.time_counter += dt
         if self.time_counter > self.frequency:
-          self.time_counter = 0.0
-          input_time_list = self.data["TIME"]
-          for node in self.sub_model_part.Nodes:
-            for i in range(self.params["check_variables"].size()):
-              out = self.params["check_variables"][i]
-              variable = KratosGlobals.GetVariable( out.GetString() )
-              val = node.GetSolutionStepValue(variable, 0)
-              if isinstance(val,float):
-                value_scalar = True
-              else:
-                value_scalar = False
+            self.time_counter = 0.0
+            input_time_list = self.data["TIME"]
+            for node in self.sub_model_part.Nodes:
+                for i in range(self.params["check_variables"].size()):
+                    out = self.params["check_variables"][i]
+                    variable = KratosGlobals.GetVariable( out.GetString() )
+                    val = node.GetSolutionStepValue(variable, 0)
+                    if isinstance(val,float):
+                        value_scalar = True
+                    else:
+                        value_scalar = False
 
-              value = node.GetSolutionStepValue(variable, 0)
-              if value_scalar:
-                values_json = self.data["NODE_"+str(node.Id)][out.GetString() ]
-                value_json = np.interp(time, input_time_list, values_json)
-                self.assertAlmostEqual(value, value_json)
-              else: # It is a vector
-                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
-                value_json = np.interp(time, input_time_list, values_json)
-                self.assertAlmostEqual(value[0], value_json)
-                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
-                value_json = np.interp(time, input_time_list, values_json)
-                self.assertAlmostEqual(value[1], value_json)
-                values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
-                value_json = np.interp(time, input_time_list, values_json)
-                self.assertAlmostEqual(value[2], value_json)
+                    value = node.GetSolutionStepValue(variable, 0)
+                    if value_scalar:
+                        values_json = self.data["NODE_"+str(node.Id)][out.GetString() ]
+                        value_json = linear_interpolation(time, input_time_list, values_json)
+                        #value_json = np.interp(time, input_time_list, values_json)
+                        self.assertAlmostEqual(value, value_json, 5)
+                    else: # It is a vector
+                        values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_X"]
+                        value_json = linear_interpolation(time, input_time_list, values_json)
+                        #value_json = np.interp(time, input_time_list, values_json)
+                        self.assertAlmostEqual(value[0], value_json, 5)
+                        values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Y"]
+                        value_json = linear_interpolation(time, input_time_list, values_json)
+                        #value_json = np.interp(time, input_time_list, values_json)
+                        self.assertAlmostEqual(value[1], value_json, 5)
+                        values_json = self.data["NODE_"+str(node.Id)][out.GetString()  + "_Z"]
+                        value_json = linear_interpolation(time, input_time_list, values_json)
+                        #value_json = np.interp(time, input_time_list, values_json)
+                        self.assertAlmostEqual(value[2], value_json, 5)
               
     def ExecuteBeforeOutputStep(self):
         pass
