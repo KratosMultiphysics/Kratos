@@ -457,7 +457,22 @@ protected:
                                          PartitionIndicesContainerType const& ConditionsAllPartitions);
 
 
-    void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
+	void DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles);
+
+	void DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles);
+
+
+	void DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& NodesAllPartitions);
+
+
+	void DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& ElementsAllPartitions);
+
+	void DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
+		PartitionIndicesContainerType const& ConditionsAllPartitions);
+
+	void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
 
 
     void WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
