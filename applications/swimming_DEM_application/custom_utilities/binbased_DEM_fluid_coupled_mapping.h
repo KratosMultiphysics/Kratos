@@ -240,11 +240,25 @@ void InterpolateFromFluidMesh(
         }
     }
 
+
+    const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
+
     if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
+        MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
+    }
 
-      const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
-      MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
+    if (IsDEMVariable(FLUID_VEL_PROJECTED_RATE)){
+        #pragma omp parallel for
+            for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+                NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+                Node<3>::Pointer p_particle = *(i_particle.base());
 
+                if (p_particle->IsNot(BLOCKED)){
+                    CalculateVelocityProjectedRate(p_particle);
+                }
+            }
+
+        MultiplyNodalVariableBy(r_dem_model_part, FLUID_VEL_PROJECTED_RATE, delta_time_inv);
     }
 
     KRATOS_CATCH("")
@@ -296,6 +310,16 @@ void InterpolateFromNewestFluidMesh(
     }
 
     if (IsDEMVariable(FLUID_VEL_PROJECTED_RATE)){
+        #pragma omp parallel for
+            for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+                NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+                Node<3>::Pointer p_particle = *(i_particle.base());
+
+                if (p_particle->IsNot(BLOCKED)){
+                    CalculateVelocityProjectedRate(p_particle);
+                }
+            }
+
         MultiplyNodalVariableBy(r_dem_model_part, FLUID_VEL_PROJECTED_RATE, delta_time_inv);
     }
 
@@ -980,10 +1004,6 @@ void Project(Element::Pointer p_elem,
         Interpolate(p_elem, N, p_node, VELOCITY, FLUID_VEL_PROJECTED);
     }
 
-    else if (*r_destination_variable == FLUID_VEL_PROJECTED_RATE){
-        CalculateVelocityProjectedRate(p_node);
-    }
-
     else if (*r_destination_variable == FLUID_VEL_LAPL_PROJECTED){
         Interpolate(p_elem, N, p_node, VELOCITY_LAPLACIAN, FLUID_VEL_LAPL_PROJECTED);
     }
@@ -1052,10 +1072,6 @@ void Project(Element::Pointer p_elem,
 
     else if (*r_destination_variable == FLUID_VEL_PROJECTED){
         Interpolate(p_elem, N, p_node, VELOCITY, FLUID_VEL_PROJECTED, alpha);
-    }
-
-    else if (*r_destination_variable == FLUID_VEL_PROJECTED_RATE){
-        CalculateVelocityProjectedRate(p_node);
     }
 
     else if (*r_destination_variable == FLUID_VEL_LAPL_PROJECTED){
@@ -1369,9 +1385,9 @@ void Interpolate(
 void CalculateVelocityProjectedRate(
     Node<3>::Pointer p_node)
 {
-    array_1d<double, 3>& old_vel   = p_node->FastGetSolutionStepValue(FLUID_VEL_PROJECTED_RATE);
+    array_1d<double, 3>& rate_which_should_contain_minus_old_vel = p_node->FastGetSolutionStepValue(FLUID_VEL_PROJECTED_RATE);
     const array_1d<double, 3>& vel = p_node->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-    old_vel += vel;
+    rate_which_should_contain_minus_old_vel += vel;
 }
 
 //***************************************************************************************************************
@@ -1792,8 +1808,8 @@ void ResetFluidVariables(ModelPart& r_fluid_model_part)
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it)
 {
     const array_1d<double, 3>& vel = node_it->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-    array_1d<double, 3>& old_vel   = node_it->FastGetSolutionStepValue(FLUID_VEL_PROJECTED_RATE);
-    noalias(old_vel) = - vel;
+    array_1d<double, 3>& rate   = node_it->FastGetSolutionStepValue(FLUID_VEL_PROJECTED_RATE);
+    noalias(rate) = - vel;
 }
 
 //***************************************************************************************************************
