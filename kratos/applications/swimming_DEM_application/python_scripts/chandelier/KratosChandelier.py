@@ -80,6 +80,9 @@ pp.CFD_DEM.material_acceleration_calculation_type = 1
 pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
+pp.CFD_DEM.faxen_force_type = 0
+pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option = 1
+pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 #Z
 
 # Import utilities from models
