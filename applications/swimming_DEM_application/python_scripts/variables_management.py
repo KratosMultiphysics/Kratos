@@ -159,7 +159,7 @@ def ConstructListsOfResultsToPrint(pp):
 
         if pp.CFD_DEM.print_PRESSURE_GRAD_PROJECTED_option:
             pp.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
-        pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
+
         if pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option:
             pp.dem_nodal_results += ["MATERIAL_FLUID_ACCEL_PROJECTED"]
 
@@ -171,6 +171,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if pp.CFD_DEM.print_FLUID_VEL_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
+
+        if pp.CFD_DEM.print_FLUID_VEL_PROJECTED_RATE_option:
+            pp.dem_nodal_results += ["FLUID_VEL_PROJECTED_RATE"]
 
         if pp.CFD_DEM.print_FLUID_VEL_LAPL_PROJECTED_option:
             pp.dem_nodal_results += ["FLUID_VEL_LAPL_PROJECTED"]
@@ -297,10 +300,14 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
         pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
         pp.coupling_dem_vars += [MATERIAL_FLUID_ACCEL_PROJECTED]
+        pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
 
         if pp.CFD_DEM.include_faxen_terms_option:
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_RATE_PROJECTED]
+
+        if pp.CFD_DEM.basset_force_type > 0:
+            pp.coupling_dem_vars += [FLUID_VEL_PROJECTED_RATE]
 
     if pp.CFD_DEM.coupling_level_type >= 1 or pp.CFD_DEM.fluid_model_type == 0:
         pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
@@ -309,7 +316,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
         pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
 
-    if pp.CFD_DEM.virtual_mass_force_type or pp.CFD_DEM.basset_force_option >= 1:
+    if pp.CFD_DEM.virtual_mass_force_type or pp.CFD_DEM.basset_force_type >= 1:
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
 
     if pp.CFD_DEM.embedded_option:
