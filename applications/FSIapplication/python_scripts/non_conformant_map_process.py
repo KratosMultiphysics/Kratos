@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Importing the Kratos Library
+# Importing the Kratos Library // TODO: Remove this libraies
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
@@ -8,15 +8,12 @@ from KratosMultiphysics.FSIApplication import *
 
 CheckForPreviousImport()
 
-# Import KratosUnittest
-import KratosMultiphysics.KratosUnittest as KratosUnittest
-
 def Factory(settings, Model):
     if(type(settings) != Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return NonConformatMapProcess(Model, settings["Parameters"])
 
-class NonConformatMapProcess(Process, KratosUnittest.TestCase):
+class NonConformatMapProcess(Process):
   
     def __init__(self,model_part,params):
         
@@ -29,6 +26,7 @@ class NonConformatMapProcess(Process, KratosUnittest.TestCase):
             "search_radius_factor": 1.0,
             "it_max": 15,
             "tol": 1.0e-3,
+            "sign": "Positive",
             "s2f_origin_variables": ["VELOCITY"],
             "s2f_destination_variables": ["VELOCITY"],
             "f2s_origin_variables": ["PRESSURE"],
@@ -59,6 +57,10 @@ class NonConformatMapProcess(Process, KratosUnittest.TestCase):
         for i in range(self.params["s2f_origin_variables"].size()):
               origin = self.params["s2f_origin_variables"][i]
               destination = self.params["s2f_destination_variables"][i]
+              if (self.params["sign"].GetString() == "Positive"):
+                sign_pos = True 
+              else:
+                sign_pos = False
               variable_origin = KratosGlobals.GetVariable( origin.GetString() )
               variable_destination = KratosGlobals.GetVariable( destination.GetString() )
               
@@ -69,9 +71,9 @@ class NonConformatMapProcess(Process, KratosUnittest.TestCase):
                 value_scalar = False
 
               if value_scalar:
-                self.mapper.StructureToFluid_ScalarMap(variable_origin, variable_destination)
+                self.mapper.StructureToFluid_ScalarMap(variable_origin, variable_destination, sign_pos)
               else: # It is a vector 
-                self.mapper.StructureToFluid_VectorMap(variable_origin, variable_destination)
+                self.mapper.StructureToFluid_VectorMap(variable_origin, variable_destination, sign_pos)
                 
         for i in range(self.params["f2s_destination_variables"].size()):
               origin = self.params["f2s_origin_variables"][i]
