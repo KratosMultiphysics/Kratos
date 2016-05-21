@@ -315,7 +315,7 @@ public:
         TSystemVectorPointerType  pAux_h;              
         TSystemVectorPointerType  pq_Inc_Aux;  
 	
-        unsigned int iteration_number = 0;
+        unsigned int mIterationNumber = 0;
         RealType Ao                   = 0.00;
         RealType A                    = 1.00;
         //RealType aux                  = 0.00;
@@ -329,7 +329,7 @@ public:
         RealType lambda_error         = 1.00;
         RealType lambda_old_iter      = 0.00;
         RealType fact                 = 0.00;
-        bool reduce_arc_lenght        = true;
+        bool mReduceArcLenght        = true;
         bool local_converged          = false;
         bool local_converged_e        = false; // Residual
         bool local_converged_h        = false; // Orthogonal residual
@@ -484,33 +484,33 @@ public:
         //Iteration Cicle... performed only for NonLinearProblems
         do
         {
-            iteration_number = 0;
+            mIterationNumber = 0;
             if(recursive++ >= mMaxRecursive)
             {
                 break;
             }
-            while(  is_converged == false && iteration_number++ < mMaxIterationNumber)
+            while(  is_converged == false && mIterationNumber++ < mMaxIterationNumber)
             {
                 // Setting the number of iteration
-                std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << iteration_number << "  RECURSIVE NUMBER = " << recursive << std::endl;
-                BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+                std::cout<<"\n STEP NUMBER       = " << mstep <<"  ITERATIONS NUMBER = " << mIterationNumber << "  RECURSIVE NUMBER = " << recursive << std::endl;
+                BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = mIterationNumber;
               
                 // Setting variables in the begining of the iteraction
                 pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
                 meta = 1.00;
 	      
                 local_converged = false;
-                if(iteration_number == 1 && mInit == false)// mstep == 1)
+                if(mIterationNumber == 1 && mInit == false)// mstep == 1)
                 {
                     mInit            = true;
                     mlambda_old      = 0.00;
                     Ao               = TSparseSpace::Dot(Sigma_q, Sigma_q);        // Ao = inner_prod (Sigma_q, Sigma_q);
                     mdelta_l         = sqrt(2.00*Ao*mdelta_lambda*mdelta_lambda);
                     mdelta_lold      = mdelta_l;
-                    mdelta_lmax      = mdelta_l*mfactor_delta_lmax;               // Tamaño maximo de arc-length
+                    mdelta_lmax      = mdelta_l*mfactor_delta_lmax;                // Maximum size of the arc-length
                     TSparseSpace::Assign(mDelta_p, mdelta_lambda,Sigma_q);         // mDelta_p = mdelta_lambda*Sigma_q;
                     mdelta_lambda_old = mdelta_lambda;
-                    TSparseSpace::Copy(mDelta_p ,mDelta_pold);                    // WARNING = only for the fisrt step and the first iteraction mDelta_pold      = mDelta_p;
+                    TSparseSpace::Copy(mDelta_p ,mDelta_pold);                     // WARNING = only for the fisrt step and the first iteraction mDelta_pold      = mDelta_p;
                     TSparseSpace::Copy(mDelta_p, mDx);
 
                     //TSparseSpace::Copy(mRHS_cond,h);
@@ -530,7 +530,7 @@ public:
                     //mpConvergenceCriteria->GetConvergenceData(Parameters);
                     //old_residual = Parameters[0];
                 }
-                else if(iteration_number == 1 && mInit == true)// mstep != 1)
+                else if(mIterationNumber == 1 && mInit == true)// mstep != 1)
                 {
                     //RealType aux1  =  TSparseSpace::Dot(mX_old, mX_old);
                     RealType aux2  =  TSparseSpace::Dot(mDelta_pold, mDelta_pold);   //inner_prod(mDelta_pold,mDelta_pold);
@@ -542,7 +542,7 @@ public:
                     miu = (miu>=1.00) ? 1.00: miu;
 
                     TSparseSpace::Assign(mDelta_p, miu, mDelta_pold);            // mDelta_p     = miu*mDelta_pold;
-                    mdelta_lambda = miu*mdelta_lambda_old;
+                    mdelta_lambda = miu * mdelta_lambda_old;
                     // TSparseSpace::Assign(mDelta_p, 1.00, Sigma_q);
 
                     if (this->GetEchoLevel() > 1)
@@ -580,7 +580,7 @@ public:
                     Recursive_Function_Arc_Length(pq, pSigma_q, pSigma_h, mpDx, g, Ao);
                 }
 
-                if (iteration_number != 1)
+                if (mIterationNumber != 1)
                 {
                     lambda_old_iter = mlambda;
                 }
@@ -668,7 +668,7 @@ public:
                 local_converged = bool(local_converged_e || local_converged_h || local_converged_l);
                 //local_converged = true;
                 is_converged    = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA, mDx, e);
-                is_converged    = bool((is_converged == true && local_converged == true) && iteration_number > 2);
+                is_converged    = bool((is_converged == true && local_converged == true) && mIterationNumber > 2);
 
                 //mpConvergenceCriteria->GetConvergenceData(Parameters);
                 //new_residual = Parameters[0];
@@ -690,7 +690,7 @@ public:
 
                 if(is_converged == true)
                 {
-                    reduce_arc_lenght = false;
+                    mReduceArcLenght = false;
                 }
 
                 // Optional recomputing K(mA y sigma_q )
@@ -719,10 +719,10 @@ public:
                     TSparseSpace::Copy(Aux_q, q_Inc_Aux); /// q = Aux_q
                 }
 
-                if (is_converged == false && iteration_number >= mMaxIterationNumber)
+                if (is_converged == false && mIterationNumber >= mMaxIterationNumber)
                 {
-                    reduce_arc_lenght = true;
-                    mdelta_l          = std::sqrt(RealType(mIde)/RealType(iteration_number)) * mdelta_l;
+                    mReduceArcLenght = true;
+                    mdelta_l          = std::sqrt(RealType(mIde)/RealType(mIterationNumber)) * mdelta_l;
                     //mdelta_l          = (recursive + 1) * mdelta_lold; // Increasing the arc-length
                     mdelta_lambda     = mdelta_lambda_old;
                     meta              = 1.00;
@@ -748,7 +748,7 @@ public:
             }
     } // end while
 	
-	while(reduce_arc_lenght==true); 
+    while(mReduceArcLenght==true);
 	
 	if(is_converged==true)
     {
@@ -760,7 +760,7 @@ public:
 
         //Finalisation of the solution step, operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
-        FinalizeSolutionStep(iteration_number,reduce_arc_lenght);
+        FinalizeSolutionStep();
 	  
         ///Cleaning memory after the solution
         pScheme->Clean();
@@ -1163,6 +1163,8 @@ private:
     unsigned int mMaxIterationNumber;
     unsigned int mstep;
     unsigned int mMaxRecursive;
+    unsigned int mIterationNumber;
+    bool mReduceArcLenght;
 
     RealType mdelta_l;         // Arc length
     RealType mdelta_lold;      // Arc length from the previous increment
@@ -1280,14 +1282,11 @@ private:
     
     /**
     * It finalises the arc length for the currrent step
-    * @param iteration_number: The iteration number in the non-linear step
-    * @param reduce_arc_lenght: Boolean that tells if the arc length has been computed with the reduced method
+    * @param mIterationNumber: The iteration number in the non-linear step
+    * @param mReduceArcLenght: Boolean that tells if the arc length has been computed with the reduced method
     */
 
-    void FinalizeSolutionStep(
-             unsigned int& iteration_number,
-             bool &reduce_arc_lenght
-             )
+    void FinalizeSolutionStep()
     {
         KRATOS_TRY;
 
@@ -1306,7 +1305,7 @@ private:
 	  
         // KRATOS_WATCH(mlambda_old)
 	
-        factor           = std::sqrt(RealType(mIde)/RealType(iteration_number));
+        factor           = std::sqrt(RealType(mIde)/RealType(mIterationNumber));
 
         // Controling the size of the arc
         if (factor > 1.0)
@@ -1325,7 +1324,7 @@ private:
             mdelta_l    = mdelta_lmax;
         }
         
-        reduce_arc_lenght = false;
+        mReduceArcLenght = false;
 
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
         pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
