@@ -36,7 +36,8 @@ class AnalyticSimulator:
         nDw0 = 2 * (1. - gamma) * S / Fr # Non-dimensional terminal sedimentation velocity
 
         Z0 = (x0 + 1j * y0) / R
-        U0 = (u0 + 1j * v0) / (R * omega)
+        U0 = 1j*Z0
+        #U0 = Z0(u0 + 1j * v0) / (R * omega)
         NDz0 = z0 / R
         self.basset_dimensional_coeff = rho_f * volume * R * omega ** 2 
         self.gamma = gamma
