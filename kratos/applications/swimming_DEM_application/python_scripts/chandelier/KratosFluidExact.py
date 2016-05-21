@@ -812,16 +812,18 @@ while (time <= final_time):
                             node.SetSolutionStepValue(VELOCITY_Y, vp_y)
                             node.SetSolutionStepValue(VELOCITY_Z, vp_z)
                     else:
-                        sim.CalculateBassetForce(exact_basset_force, time_dem * ch_pp.omega)
-                        sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)
+                        #sim.CalculateBassetForce(exact_basset_force, time_dem * ch_pp.omega)
+                        #sim.CalculatePosition(coors, time_dem * ch_pp.omega, exact_vel)
                         vp_x = exact_vel[0] * ch_pp.R / ch_pp.omega
                         vp_y = exact_vel[1] * ch_pp.R / ch_pp.omega
                         vp_z = exact_vel[2] * ch_pp.R / ch_pp.omega
                         H[0] = H_old[0] + Dt_DEM / units_coefficient * exact_basset_force[0]
-                        H[1] = H_old[1] + Dt_DEM / units_coefficient * exact_basset_force[1]                        
-                        exact_Delta_H[0] = H[0] - H_old[0]
-                        exact_Delta_H[1] = H[1] - H_old[1]
-                        Delta_H[0], Delta_H[1], Delta_H[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)                        
+                        H[1] = H_old[1] + Dt_DEM / units_coefficient * exact_basset_force[1]          
+                        sqrt_h =  math.sqrt(Dt_DEM)
+                        exact_Delta_H[0] = (H[0] - H_old[0]) / sqrt_h
+                        exact_Delta_H[1] = (H[1] - H_old[1]) / sqrt_h
+                        Delta_H[0], Delta_H[1], Delta_H[2], present_coefficient = quad.DaitcheTimesAndIntegrands(times, integrands, 1)           
+                        Delta_H = [d / sqrt_h for d in Delta_H]
                         basset_force[0] = units_coefficient * Dt_DEM_inv * (Delta_H[0])
                         basset_force[1] = units_coefficient * Dt_DEM_inv * (Delta_H[1])
                         #print("\n integrands", integrands)
