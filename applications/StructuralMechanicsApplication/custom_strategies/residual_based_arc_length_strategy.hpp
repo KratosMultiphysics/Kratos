@@ -314,8 +314,12 @@ public:
         TSystemVectorPointerType  pAux_q;              
         TSystemVectorPointerType  pAux_h;              
         TSystemVectorPointerType  pq_Inc_Aux;  
-	
-        unsigned int mIterationNumber = 0;
+
+        // Initialize member variables
+        mIterationNumber              = 0;
+        mReduceArcLenght              = true;
+
+        // Initialize other variables
         RealType Ao                   = 0.00;
         RealType A                    = 1.00;
         //RealType aux                  = 0.00;
@@ -329,7 +333,7 @@ public:
         RealType lambda_error         = 1.00;
         RealType lambda_old_iter      = 0.00;
         RealType fact                 = 0.00;
-        bool mReduceArcLenght        = true;
+
         bool local_converged          = false;
         bool local_converged_e        = false; // Residual
         bool local_converged_h        = false; // Orthogonal residual
@@ -748,9 +752,9 @@ public:
             }
     } // end while
 	
-    while(mReduceArcLenght==true);
+    while(mReduceArcLenght == true);
 	
-	if(is_converged==true)
+    if(is_converged == true)
     {
         // Calculate reactions if required
         if (mCalculateReactionsFlag ==true)
@@ -758,11 +762,11 @@ public:
             pBuilderAndSolver->CalculateReactions(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
         }
 
-        //Finalisation of the solution step, operations to be done after achieving convergence, for example the
-        //Final Residual Vector (mb) has to be saved in there
+        // Finalisation of the solution step, operations to be done after achieving convergence, for example the
+        // Final Residual Vector (mb) has to be saved in there
         FinalizeSolutionStep();
 	  
-        ///Cleaning memory after the solution
+        // Cleaning memory after the solution
         pScheme->Clean();
         mSolutionStepIsInitialized = false;
 	  
