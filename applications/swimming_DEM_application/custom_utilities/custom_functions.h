@@ -50,7 +50,7 @@ typedef ModelPart::NodesContainerType               NodesArrayType;
 
 KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
-CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false){}
+CustomFunctionsCalculator(): mPressuresFilled(false), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false), mFirstTimeAppending(true){}
 /// Calculator
 
 virtual ~CustomFunctionsCalculator(){}
@@ -101,10 +101,56 @@ void AppendIntegrands(ModelPart& r_model_part)
         array_1d<double, 3> slip_vel;
         noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
         int n = historic_integrands.size();
+
         historic_integrands.resize(n + 3);
         historic_integrands.insert_element(n,     slip_vel[0]);
         historic_integrands.insert_element(n + 1, slip_vel[1]);
         historic_integrands.insert_element(n + 2, 0.0);
+    }
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void AppendIntegrandsImplicit(ModelPart& r_model_part)
+{
+    for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
+        vector<double>& historic_integrands             = inode->GetValue(BASSET_HISTORIC_INTEGRANDS);
+        const array_1d<double, 3>& fluid_vel_projected  = inode->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+        const array_1d<double, 3>& particle_vel         = inode->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> slip_vel;
+        noalias(slip_vel)                               = fluid_vel_projected - particle_vel;
+        int n = historic_integrands.size();
+
+        if (mFirstTimeAppending){
+            mFirstTimeAppending = false;
+            historic_integrands.resize(n + 9);
+            historic_integrands.insert_element(n    , slip_vel[0]);
+            historic_integrands.insert_element(n + 1, slip_vel[1]);
+            historic_integrands.insert_element(n + 2, 0.0);
+            historic_integrands.insert_element(n + 3, particle_vel[0]);
+            historic_integrands.insert_element(n + 4, particle_vel[1]);
+            historic_integrands.insert_element(n + 5, 0.0);
+            historic_integrands.insert_element(n + 6, particle_vel[0]);
+            historic_integrands.insert_element(n + 7, particle_vel[1]);
+            historic_integrands.insert_element(n + 8, 0.0);
+        }
+        else {
+            array_1d<double, 3> old_particle_vel;
+            old_particle_vel[0] = historic_integrands[n - 3];
+            old_particle_vel[1] = historic_integrands[n - 2];
+            old_particle_vel[2] = historic_integrands[n - 1];
+            historic_integrands.resize(n + 3);
+            historic_integrands.insert_element(n - 6, slip_vel[0]);
+            historic_integrands.insert_element(n - 5, slip_vel[1]);
+            historic_integrands.insert_element(n - 4, 0.0);
+            historic_integrands.insert_element(n - 3, old_particle_vel[0]);
+            historic_integrands.insert_element(n - 2, old_particle_vel[1]);
+            historic_integrands.insert_element(n - 1, old_particle_vel[2]);
+            historic_integrands.insert_element(n,     particle_vel[0]);
+            historic_integrands.insert_element(n + 1, particle_vel[1]);
+            historic_integrands.insert_element(n + 2, particle_vel[2]);
+        }
     }
 }
 
@@ -757,6 +803,7 @@ bool mFirstLaplacianRecovery;
 bool mSomeCloudsDontWork;
 bool mCalculatingTheGradient;
 bool mCalculatingTheLaplacian;
+bool mFirstTimeAppending;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
