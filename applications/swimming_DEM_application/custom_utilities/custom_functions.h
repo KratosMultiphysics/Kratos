@@ -70,7 +70,7 @@ void FillDaitcheVectors(int N)
         return;
     }
 
-    long double FourThirds = 4.0 / 3;
+    double FourThirds = 4.0 / 3;
     std::vector<double>& Ajs = SphericSwimmingParticle<SphericParticle>::mAjs;
     std::vector<double>& Bns = SphericSwimmingParticle<SphericParticle>::mBns;
     Ajs.resize(N);
@@ -78,12 +78,16 @@ void FillDaitcheVectors(int N)
     Ajs[0] = FourThirds;
     Bns[0] = FourThirds;
 
-    for (unsigned int j = 1; j < N; ++j){
-        double sqrt_j_cubed       = std::sqrt(j * j * j);
-        double sqrt_j_plus_cubed  = std::sqrt((j + 1) * (j + 1) * (j + 1));
-        double sqrt_j_minus_cubed = std::sqrt((j - 1) * (j - 1) * (j - 1));
+    for (int j = 1; j < N; ++j){
+        double sqrt_j       = std::sqrt(j);
+        double sqrt_j_minus = std::sqrt(j - 1);
+        double sqrt_j_plus  = std::sqrt(j + 1);
+        double sqrt_j_cubed       = sqrt_j * sqrt_j * sqrt_j;
+        double sqrt_j_minus_cubed = sqrt_j_minus * sqrt_j_minus * sqrt_j_minus;
+        double sqrt_j_plus_cubed  = sqrt_j_plus * sqrt_j_plus * sqrt_j_plus;
+
         Ajs[j] = FourThirds * (sqrt_j_minus_cubed + sqrt_j_plus_cubed - 2 * sqrt_j_cubed);
-        Bns[j] = FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * std::sqrt(j));
+        Bns[j] = FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * sqrt_j);
     }   
 
     std::cout << "...Finished filling up vectors of coefficients.\n";
