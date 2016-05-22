@@ -92,6 +92,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeMagnusLiftForce(magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
     ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
+
     if (r_current_process_info[TIME_STEPS] >= 9){
         ComputeBassetForce(added_mass_coefficient, basset_force, r_current_process_info);
     }
@@ -103,7 +104,10 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     TBaseElement::ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, r_current_process_info, gravity);
 	additionally_applied_force += buoyancy;
     double mass = GetMass();
-    additionally_applied_force *= mass / (mass + added_mass_coefficient);
+    double fource_reduction_coeff = mass / (mass + added_mass_coefficient);
+    additionally_applied_force *= fource_reduction_coeff;
+    array_1d<double, 3>& total_force = node.FastGetSolutionStepValue(TOTAL_FORCES);
+    total_force *= fource_reduction_coeff;
 
     KRATOS_CATCH( "" )
 }
@@ -243,7 +247,6 @@ template < class TBaseElement >\
 double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, unsigned int n, unsigned int j)
 {
     if (order == 1){
-
         if (j < n){
             return SphericSwimmingParticle<TBaseElement>::mAjs[j];
         }
@@ -252,8 +255,6 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
         }
     }
     return 0.0;
-//    double four_thirds = 4. / 3;
-//    double exponent = 1.5;
 
 //    if (0 < j && j < n){
 
@@ -265,68 +266,67 @@ double SphericSwimmingParticle<TBaseElement>::GetDaitcheCoefficient(int order, u
 //    else{
 //        return (four_thirds * (pow((n - 1),exponent) - pow(n,exponent) + exponent * std::sqrt(n)));
 //    }
-
 }
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-template < class TBaseElement >\
-void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
-{
-    fractional_derivative = ZeroVector(3);
-    const int N = historic_integrands.size() - 3;
-    const int n = (int)N / 3;
-    const int order = 1;
-    array_1d<double, 3> integrand;
-
-    for (int j = 0; j < n + 1; j++){
-        double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1);
-        double old_coefficient = GetDaitcheCoefficient(order, n,     j);
-
-        for (int i_comp = 0; i_comp < 3; i_comp++){
-            unsigned int integrand_position = N - 3 * j + i_comp;
-            integrand[i_comp] = historic_integrands[integrand_position];
-        }
-
-        fractional_derivative += (coefficient - old_coefficient) * integrand;
-    }
-
-    for (int i_comp = 0; i_comp < 3; i_comp++){
-        integrand[i_comp] = historic_integrands[N + i_comp];// + delta_time * (historic_integrands[N + i_comp] - historic_integrands[N - 3 + i_comp]);
-    }
-
-    present_coefficient = GetDaitcheCoefficient(order, n + 1, 0);
-
-    fractional_derivative += present_coefficient * integrand;
-}
-
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 //template < class TBaseElement >\
-//void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivativeImplicit(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
+//void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
 //{
 //    fractional_derivative = ZeroVector(3);
-//    const int N = historic_integrands.size() - 9;
+//    const int N = historic_integrands.size() - 3;
 //    const int n = (int)N / 3;
 //    const int order = 1;
 //    array_1d<double, 3> integrand;
 
 //    for (int j = 0; j < n + 1; j++){
-
 //        double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1);
-//        double old_coefficient = GetDaitcheCoefficient(order, n, j);
+//        double old_coefficient = GetDaitcheCoefficient(order, n,     j);
+
 //        for (int i_comp = 0; i_comp < 3; i_comp++){
 //            unsigned int integrand_position = N - 3 * j + i_comp;
 //            integrand[i_comp] = historic_integrands[integrand_position];
 //        }
+
 //        fractional_derivative += (coefficient - old_coefficient) * integrand;
 //    }
-//    const array_1d<double, 3>& fluid_vel = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+
 //    for (int i_comp = 0; i_comp < 3; i_comp++){
-//        integrand[i_comp] = historic_integrands[N + 6 + i_comp];
+//        integrand[i_comp] = historic_integrands[N + i_comp];// + delta_time * (historic_integrands[N + i_comp] - historic_integrands[N - 3 + i_comp]);
 //    }
+
 //    present_coefficient = GetDaitcheCoefficient(order, n + 1, 0);
-//    fractional_derivative += present_coefficient * (fluid_vel - integrand);
+
+//    fractional_derivative += present_coefficient * integrand;
 //}
+
+//***************************************************************************************************************************************************
+//***************************************************************************************************************************************************
+template < class TBaseElement >\
+void SphericSwimmingParticle<TBaseElement>:: CalculateFractionalDerivative(array_1d<double, 3>& fractional_derivative, double& present_coefficient, double& delta_time, vector<double>& historic_integrands)
+{
+    fractional_derivative = ZeroVector(3);
+    const int N = historic_integrands.size() - 9;
+    const int n = (int)N / 3;
+    const int order = 1;
+    array_1d<double, 3> integrand;
+
+    for (int j = 0; j < n + 1; j++){
+
+        double coefficient     = GetDaitcheCoefficient(order, n + 1, j + 1);
+        double old_coefficient = GetDaitcheCoefficient(order, n, j);
+        for (int i_comp = 0; i_comp < 3; i_comp++){
+            unsigned int integrand_position = N - 3 * j + i_comp;
+            integrand[i_comp] = historic_integrands[integrand_position];
+        }
+        fractional_derivative += (coefficient - old_coefficient) * integrand;
+    }
+    const array_1d<double, 3>& fluid_vel = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    for (int i_comp = 0; i_comp < 3; i_comp++){
+        integrand[i_comp] = historic_integrands[N + 3 + i_comp];
+    }
+    present_coefficient = GetDaitcheCoefficient(order, n + 1, 0);
+    fractional_derivative += present_coefficient * (fluid_vel - integrand);
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -346,9 +346,9 @@ void SphericSwimmingParticle<TBaseElement>::ComputeBassetForce(double &added_mas
         array_1d<double, 3> fractional_derivative_of_slip_vel;
         double present_coefficient;
         CalculateFractionalDerivative(fractional_derivative_of_slip_vel, present_coefficient, delta_time, historic_integrands);
-
         const double basset_force_coeff = 6.0 * mRadius * mRadius * mFluidDensity * std::sqrt(KRATOS_M_PI * mKinematicViscosity);
         const double sqrt_of_h = std::sqrt(delta_time);
+        added_mass_coefficient += sqrt_of_h * basset_force_coeff * present_coefficient;
         noalias(basset_force) = basset_force_coeff / sqrt_of_h * fractional_derivative_of_slip_vel;
     }
 }
