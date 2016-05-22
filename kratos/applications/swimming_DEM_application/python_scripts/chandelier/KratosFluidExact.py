@@ -86,6 +86,7 @@ pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
+pp.CFD_DEM.n_initi_basset_steps = 100
 #Z
 
 # Import utilities from models
@@ -651,6 +652,7 @@ node.SetSolutionStepValue(VELOCITY_Y, 0.2)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_Z)
 stop = False
+
 while (time <= final_time):
 
     time = time + Dt
