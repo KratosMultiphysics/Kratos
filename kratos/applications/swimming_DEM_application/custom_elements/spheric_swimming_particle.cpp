@@ -93,8 +93,12 @@ void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<dou
     ComputeHydrodynamicTorque(additionally_applied_moment, r_current_process_info);
     ComputeBrownianMotionForce(brownian_motion_force, r_current_process_info);
 
-    if (r_current_process_info[TIME_STEPS] >= 9){
+    if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
         ComputeBassetForce(added_mass_coefficient, basset_force, r_current_process_info);
+    }
+
+    else {
+        basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
     }
 
     noalias(additionally_applied_force) += drag_force + virtual_mass_force + basset_force + saffman_lift_force + magnus_lift_force + brownian_motion_force;
