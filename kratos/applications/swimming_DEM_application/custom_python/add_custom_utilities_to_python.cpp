@@ -229,6 +229,7 @@ using namespace boost::python;
     class_<CustomFunctionsCalculator <3> > ("CustomFunctionsCalculator3D", init<>())
         .def("FillDaitcheVectors", &CustomFunctionsCalculator <3>::FillDaitcheVectors)
         .def("AppendIntegrands", &CustomFunctionsCalculator <3>::AppendIntegrands)
+        .def("AppendIntegrandsImplicit", &CustomFunctionsCalculator <3>::AppendIntegrandsImplicit)
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
         .def("CalculateGradient", &CustomFunctionsCalculator <3>::CalculateGradient)
         .def("CalculateVectorMaterialDerivative", &CustomFunctionsCalculator <3>::CalculateVectorMaterialDerivative)
