@@ -649,6 +649,7 @@ N_steps = int(final_time / Dt_DEM) + 10
 custom_functions_tool.FillDaitcheVectors(N_steps)
 node.SetSolutionStepValue(VELOCITY_Y, 0.2)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
+node.Fix(VELOCITY_Z)
 stop = False
 while (time <= final_time):
 
@@ -784,7 +785,7 @@ while (time <= final_time):
                     vp_z = node.GetSolutionStepValue(VELOCITY_Z) 
                     integrands.append([vx - vp_x, vy - vp_y, 0.])                                                                          
                     #print("\nintegrands",integrands)
-                    custom_functions_tool.AppendIntegrands(spheres_model_part)       
+                    custom_functions_tool.AppendIntegrandsImplicit(spheres_model_part)       
 
                     H_old[:] = H[:]
                     if len(times) < 10:                        
