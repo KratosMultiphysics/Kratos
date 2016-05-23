@@ -18,16 +18,16 @@ proc apps::Init { } {
 proc apps::setActiveApp {appid} {
     variable activeApp
     variable appList
-    W "set active app $appid in $appList"
+    #W "set active app $appid in $appList"
     foreach app $appList {
-        W [$app getName]
+        #W [$app getName]
         if {[$app getName] eq $appid} {
             set activeApp $app
             $app activate
             break
         }
     }
-    W "apps activada $appid"
+    #W "apps activada $appid"
     spdAux::activeApp $appid
 }
 
