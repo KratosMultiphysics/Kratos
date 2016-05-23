@@ -42,7 +42,7 @@
     </parameter_list>
     
     <linearSolvers>
-      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" help="Deffault solver Super LU" >
+      <linearSolverItem n="linear_solver_settings" pn="Linear Solver" help="Default solver Super LU" >
         <filterFeatures>
 	  <!--<filter field="n" value="BiConjugate"/>
 	      <filter field="symmetric" value="false"/>
