@@ -178,20 +178,6 @@ public:
       ProcessInfo& rCurrentProcessInfo);
 
   /**
-   * this function provides a more general interface to the element.
-   * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-   * thus telling what is the desired output
-   * @param rLeftHandSideMatrices: container with the output left hand side matrices
-   * @param rLHSVariables: paramter describing the expected LHSs
-   * @param rRightHandSideVectors: container for the desired RHS output
-   * @param rRHSVariables: parameter describing the expected RHSs
-   */
-  virtual void CalculateLocalSystem(
-      std::vector< MatrixType >& rLeftHandSideMatrices, const std::vector< Variable< MatrixType > >& rLHSVariables,
-      std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables,
-      ProcessInfo& rCurrentProcessInfo);
-
-  /**
    * this is called during the assembling process in order
    * to calculate the elemental left hand side matrix only
    * @param rLeftHandSideMatrix: the elemental left hand side matrix
@@ -200,36 +186,12 @@ public:
   virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
   /**
-   * this function provides a more general interface to the element.
-   * it is designed so that rLHSvariables are passed TO the element
-   * thus telling what is the desired output
-   * @param rLeftHandSideMatrices: container for the desired LHS output
-   * @param rLHSVariables: parameter describing the expected LHSs
-   */
-  virtual void CalculateLeftHandSide(
-      std::vector< MatrixType >& rLeftHandSideMatrices,
-      const std::vector< Variable< MatrixType > >& rLHSVariables,
-      ProcessInfo& rCurrentProcessInfo);
-
-  /**
    * this is called during the assembling process in order
    * to calculate the elemental right hand side vector only
    * @param rRightHandSideVector: the elemental right hand side vector
    * @param rCurrentProcessInfo: the current process info instance
    */
   virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-  /**
-   * this function provides a more general interface to the element.
-   * it is designed so that rRHSvariables are passed TO the element
-   * thus telling what is the desired output
-   * @param rRightHandSideVectors: container for the desired RHS output
-   * @param rRHSVariables: parameter describing the expected RHSs
-   */
-  virtual void CalculateRightHandSide(
-      std::vector< VectorType >& rRightHandSideVectors,
-      const std::vector< Variable< VectorType > >& rRHSVariables,
-      ProcessInfo& rCurrentProcessInfo);
 
   /**
    * this is called during the assembling process in order
