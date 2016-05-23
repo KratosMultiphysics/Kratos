@@ -62,6 +62,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/pure_convection_CrankN_tools.h"
 #include "custom_utilities/bfecc_convection.h"
 #include "custom_utilities/move_particle_utility.h"
+#include "custom_utilities/bfecc_elemental_convection.h"
+//#include "custom_utilities/bfecc_elemental_limiter_convection.h"
 
 
 #include "spaces/ublas_space.h"
@@ -168,6 +170,14 @@ void  AddCustomUtilitiesToPython()
     .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityScalarTransport<3>::CopyScalarVarToPreviousTimeStep)
     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityScalarTransport<3>::ExecuteParticlesPritingTool)
     ;    
+
+	class_<BFECCLimiterConvection<2> > ("BFECCLimiterConvection2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
+    .def("BFECCconvect", &BFECCLimiterConvection<2>::BFECCconvect)
+    ;
+
+	class_<BFECCLimiterConvection<3> > ("BFECCLimiterConvection3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
+    .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
+    ;
 
 }
 
