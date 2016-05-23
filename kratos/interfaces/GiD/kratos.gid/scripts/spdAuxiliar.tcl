@@ -105,7 +105,7 @@ proc spdAux::reactiveApp { } {
 }
 
 proc spdAux::activeApp { appid } {
-    W "Active $appid"
+    #W "Active $appid"
     variable initwind
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -140,7 +140,7 @@ proc spdAux::CreateWindow {} {
     set activeapp [ [$root selectNodes "hiddenfield\[@n='activeapp'\]"] getAttribute v]
     
     if { $activeapp ne "" } {
-        W "Reactivando $activeapp"
+        #W "Reactivando $activeapp"
         apps::setActiveApp $activeapp
         catch {destroy $initwind}
         return ""
