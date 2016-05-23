@@ -172,10 +172,10 @@ void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, Proce
  * @param ElementalDofList: the list of DOFs
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
+void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) {
   unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  if (ElementalDofList.size() != number_of_nodes)
-    ElementalDofList.resize(number_of_nodes);
+  if (rElementalDofList.size() != number_of_nodes)
+    rElementalDofList.resize(number_of_nodes);
 
 @{KRATOS_ELEMENT_LIST_DOFS}
 }
