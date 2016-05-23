@@ -54,7 +54,7 @@
   
   <ConditionItem n="PointLoad2DAxisym" pn="Load on points axisymmetric" ImplementedInFile="process_factory"
 	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2Da" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
         units="N/m" unit_magnitude="F/L" VariableName="POINT_LOAD">
     <TopologyFeatures>
@@ -100,7 +100,7 @@
 
   <ConditionItem n="LineLoad2DAxisym" pn="Load on lines axisymmetric" ImplementedInFile="apply_vector_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
 	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
     <TopologyFeatures>
@@ -151,7 +151,7 @@
   
   <ConditionItem n="LinePressure2DAxisym" pn="Pressure on lines axisymmetric" ImplementedInFile="apply_scalar_on_conditions_processs"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
 	units="Pa" unit_magnitude="P" VariableName="NEGATIVE_FACE_PRESSURE">
     <TopologyFeatures>
