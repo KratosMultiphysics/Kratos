@@ -18,21 +18,6 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "swimming_DEM_application.h"
-//#include "../DEM_application/DEM_application.h"
-
-
-
-//#include "includes/define.h"
-//#include "includes/kratos_application.h"
-//#include "includes/variables.h"
-//#include "includes/dem_variables.h"  //TODO: must be removed eventually
-//#include "includes/cfd_variables.h"  //TODO: must be removed eventually
-//#include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
-//#include "custom_elements/monolithic_dem_coupled.h"
-//#include "custom_elements/monolithic_dem_coupled_weak.h"
-//#include "custom_elements/spheric_swimming_particle.h"
-//#include "../DEM_application/custom_elements/spheric_particle.h"
-//#include "../DEM_application/custom_elements/nanoparticle.h"
 
 namespace Kratos {
 

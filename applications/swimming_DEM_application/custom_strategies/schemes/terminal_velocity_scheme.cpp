@@ -1,4 +1,3 @@
-//#include "DEM_application.h"
 #include "terminal_velocity_scheme.h"
 
 
