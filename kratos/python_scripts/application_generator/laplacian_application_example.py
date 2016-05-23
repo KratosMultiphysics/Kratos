@@ -17,16 +17,18 @@ debugApp.AddVariables([
     VariableCreator(name='MY_VECTOR', vtype='double', is3D=True),
 ])
 
-# Add test element
+# # Add test element
 debugApp.AddElements([
     ElementCreator('MyLaplacianElement')
     .AddDofs(['TEMPERATURE'])
 ])
 
-# debugApp.AddConditions([
-#     ConditionCreator('MyFaceCondition')
-#     .AddDofs(['TEMPERATURE'])
-# ])
+# Add test condition
+debugApp.AddConditions([
+    ConditionCreator('MyFaceCondition')
+    .AddDofs(['TEMPERATURE'])
+])
+
 #
 # debugApp.AddProcesses([
 #     ProcessCreator('DoSomethingProcess')

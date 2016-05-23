@@ -20,6 +20,8 @@ class ApplicationGenerator(TemplateRule):
 
     def __init__(self, name):
 
+        super(ApplicationGenerator, self).__init__()
+
         self._appDir = GetApplicationsDirectory()
 
         self._nameCamel = name
@@ -205,6 +207,11 @@ class ApplicationGenerator(TemplateRule):
         for entity in fromContainer:
 
             files = self._classTemplateFiles[entityType]
+
+            # Insert additional rules needed from the application
+            appBaseNameRule = self.GetRule('@{APP_NAME_LOW}')       # To resolve the include path of the app file
+            entity.rules.append(appBaseNameRule)
+
             for f in files:
 
                 src = os.path.join(srcpath, f)

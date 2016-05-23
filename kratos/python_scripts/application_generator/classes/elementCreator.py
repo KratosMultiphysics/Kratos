@@ -116,7 +116,7 @@ class ElementCreator(ClassCreator):
         localDofListValue = ''
         localDofListDefinition = [
             ctab * 1 + 'for (unsigned int i = 0; i < number_of_nodes; i++)\n',
-            ctab * 2 + 'ElementalDofList[i] = GetGeometry()[i].pGetDof({});\n',
+            ctab * 2 + 'rElementalDofList[i] = GetGeometry()[i].pGetDof({});\n',
             '\n'
         ]
 
