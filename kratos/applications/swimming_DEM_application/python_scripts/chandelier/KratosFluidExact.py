@@ -86,7 +86,7 @@ pp.CFD_DEM.print_MATERIAL_FLUID_ACCEL_PROJECTED_option = True
 pp.CFD_DEM.basset_force_type = 1
 pp.CFD_DEM.print_BASSET_FORCE_option = 1
 pp.CFD_DEM.basset_force_integration_type = 1
-pp.CFD_DEM.n_initi_basset_steps = 100
+pp.CFD_DEM.n_init_basset_steps = 10
 #Z
 
 # Import utilities from models
@@ -189,6 +189,8 @@ elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
     scheme = NewmarkBetaScheme(0.5, 0.25)
 elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
+elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+    scheme = HybridBashforthScheme()    
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
 
@@ -646,8 +648,8 @@ for node in spheres_model_part.Nodes:
 results_creator = swim_proc.ResultsFileCreator(spheres_model_part, node_to_follow_id, scalar_vars, vector_vars)
 # NODE HISTORY RESULTS END 
 # CHANDELLIER END
-N_steps = int(final_time / Dt_DEM) + 10
-custom_functions_tool.FillDaitcheVectors(N_steps)
+N_steps = int(final_time / Dt_DEM) + 20
+custom_functions_tool.FillDaitcheVectors(N_steps, 2)
 node.SetSolutionStepValue(VELOCITY_Y, 0.2)
 node.SetSolutionStepValue(VELOCITY_Z, 2. / 9 * 9.8 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p))
 node.Fix(VELOCITY_Z)
