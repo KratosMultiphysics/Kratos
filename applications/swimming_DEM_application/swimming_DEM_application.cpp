@@ -27,7 +27,6 @@
 namespace Kratos
 {
         
-  //KRATOS_CREATE_VARIABLE(int, TRACK_SUBSCALES)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY) 
 
   
@@ -49,7 +48,6 @@ void KratosSwimmingDEMApplication::Register()
   KratosApplication::Register();
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
                 
-  //KRATOS_REGISTER_VARIABLE(TRACK_SUBSCALES)
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)   
 
   /* Define In Global variables.cpp */
