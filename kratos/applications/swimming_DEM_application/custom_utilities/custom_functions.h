@@ -62,33 +62,116 @@ virtual ~CustomFunctionsCalculator(){}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-void FillDaitcheVectors(int N)
+void FillDaitcheVectors(int N, int order)
 {
     std::cout << "\nFilling up vectors of coefficients for Daitche quadrature...";
 
     if (!N){
         return;
     }
-
-    double FourThirds = 4.0 / 3;
     std::vector<double>& Ajs = SphericSwimmingParticle<SphericParticle>::mAjs;
     std::vector<double>& Bns = SphericSwimmingParticle<SphericParticle>::mBns;
-    Ajs.resize(N);
-    Bns.resize(N);
-    Ajs[0] = FourThirds;
-    Bns[0] = FourThirds;
+    std::vector<double>& Cns = SphericSwimmingParticle<SphericParticle>::mCns;
+    std::vector<double>& Dns = SphericSwimmingParticle<SphericParticle>::mDns;
+    std::vector<double>& Ens = SphericSwimmingParticle<SphericParticle>::mEns;
 
-    for (int j = 1; j < N; ++j){
-        double sqrt_j       = std::sqrt(j);
-        double sqrt_j_minus = std::sqrt(j - 1);
-        double sqrt_j_plus  = std::sqrt(j + 1);
-        double sqrt_j_cubed       = sqrt_j * sqrt_j * sqrt_j;
-        double sqrt_j_minus_cubed = sqrt_j_minus * sqrt_j_minus * sqrt_j_minus;
-        double sqrt_j_plus_cubed  = sqrt_j_plus * sqrt_j_plus * sqrt_j_plus;
+    if (order == 1){
+        long double FourThirds = 4.0 / 3;
 
-        Ajs[j] = FourThirds * (sqrt_j_minus_cubed + sqrt_j_plus_cubed - 2 * sqrt_j_cubed);
-        Bns[j] = FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * sqrt_j);
-    }   
+        Ajs.resize(N);
+        Bns.resize(N);
+        Ajs[0] = FourThirds;
+        Bns[0] = FourThirds;
+
+        for (int j = 1; j < N; ++j){
+            long double sqrt_j       = std::sqrt(static_cast<long double>(j));
+            long double sqrt_j_minus = std::sqrt(static_cast<long double>(j - 1));
+            long double sqrt_j_plus  = std::sqrt(static_cast<long double>(j + 1));
+            long double sqrt_j_cubed       = sqrt_j * sqrt_j * sqrt_j;
+            long double sqrt_j_minus_cubed = sqrt_j_minus * sqrt_j_minus * sqrt_j_minus;
+            long double sqrt_j_plus_cubed  = sqrt_j_plus * sqrt_j_plus * sqrt_j_plus;
+
+            Ajs[j] = static_cast<double>(FourThirds * (sqrt_j_minus_cubed + sqrt_j_plus_cubed - 2 * sqrt_j_cubed));
+            Bns[j] = static_cast<double>(FourThirds * (sqrt_j_minus_cubed - sqrt_j_cubed + 1.5 * sqrt_j));
+        }
+    }
+
+    else if (order == 2){
+        long double OneFifteenth = 1.0 / 15;
+        long double sqrt_2_over_5 = std::sqrt(static_cast<long double>(2)) / 5;
+        long double sqrt_3_over_5 = std::sqrt(static_cast<long double>(3)) / 5;
+        Ajs.resize(N);
+        Bns.resize(N);
+        Cns.resize(N);
+        Ajs[0] = 4 * sqrt_2_over_5;
+        Ajs[1] = 14 * sqrt_3_over_5 - 12 * sqrt_2_over_5;
+        Ajs[2] = 176 * OneFifteenth - 42 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
+//        Bns[1] = 48 * sqrt_2_over_5;
+//        Bns[2] = - 8 * sqrt_3_over_5 + 12 * sqrt_2_over_5;
+//        Cns[2] = 10 * OneFifteenth * sqrt_2_over_5;
+//        Cns[3] = 4 * sqrt_3_over_5 - 4 * sqrt_2_over_5;
+
+        for (int j = 4; j < N; ++j){
+            long double sqrt_j_minus_2 = std::sqrt(static_cast<long double>(j - 2));
+            long double sqrt_j_minus   = std::sqrt(static_cast<long double>(j - 1));
+            long double sqrt_j         = std::sqrt(static_cast<long double>(j));
+            long double sqrt_j_plus    = std::sqrt(static_cast<long double>(j + 1));
+            long double sqrt_j_plus_2  = std::sqrt(static_cast<long double>(j + 2));
+
+            Ajs[j] = static_cast<double>(
+                      8 * OneFifteenth * (      SWIMMING_POW_5(sqrt_j_plus_2) - 3 * SWIMMING_POW_5(sqrt_j_plus) + 3 * SWIMMING_POW_5(sqrt_j) - SWIMMING_POW_5(sqrt_j_minus))
+                   + 10 * OneFifteenth * (    - SWIMMING_POW_3(sqrt_j_plus_2) + 3 * SWIMMING_POW_3(sqrt_j_plus) - 3 * SWIMMING_POW_3(sqrt_j) + SWIMMING_POW_3(sqrt_j_minus)));
+            Bns[j] = static_cast<double>(
+                      8 * OneFifteenth * (- 2 * SWIMMING_POW_5(sqrt_j)        + 3 * SWIMMING_POW_5(sqrt_j_minus)    - SWIMMING_POW_5(sqrt_j_minus_2))
+                   + 10 * OneFifteenth * (  4 * SWIMMING_POW_3(sqrt_j)        - 3 * SWIMMING_POW_3(sqrt_j_minus)    + SWIMMING_POW_3(sqrt_j_minus_2)));
+            Cns[j] = static_cast<double>(
+                      8 * OneFifteenth * (      SWIMMING_POW_5(sqrt_j)            - SWIMMING_POW_5(sqrt_j_minus))
+                   + 10 * OneFifteenth * (- 3 * SWIMMING_POW_3(sqrt_j)            + SWIMMING_POW_3(sqrt_j_minus)) + 2 * sqrt_j);
+        }
+    }
+
+    else {
+        long double sqrt_2_over_315 = std::sqrt(static_cast<long double>(2)) / 315;
+        long double sqrt_3_over_105 = std::sqrt(static_cast<long double>(3)) / 105;
+        long double sqrt_5_over_63  = std::sqrt(static_cast<long double>(5)) / 63;
+        long double OneOver315 = 1.0 / 315;
+        Ajs.resize(N);
+        Bns.resize(N);
+        Cns.resize(N);
+        Dns.resize(N);
+        Ens.resize(N);
+        Ajs[0] = 244 * sqrt_2_over_315;
+        Ajs[1] = 362 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
+        Ajs[2] = 5584 * OneOver315 - 1448 * sqrt_3_over_105 + 1464 * sqrt_2_over_315;
+        Ajs[3] = 1130 * sqrt_5_over_63 - 22336 * OneOver315 + 2172 * sqrt_3_over_105 - 976 * sqrt_2_over_315;
+        long double OneOver9 = 1.0 / 9;
+
+        for (int j = 3; j < N; ++j){
+            long double sqrt_j_minus_5 = std::sqrt(static_cast<long double>(j - 5));
+            long double sqrt_j_minus_4 = std::sqrt(static_cast<long double>(j - 4));
+            long double sqrt_j_minus_3 = std::sqrt(static_cast<long double>(j - 3));
+            long double sqrt_j_minus_2 = std::sqrt(static_cast<long double>(j - 2));
+            long double sqrt_j_minus   = std::sqrt(static_cast<long double>(j - 1));
+            long double sqrt_j         = std::sqrt(static_cast<long double>(j));
+            long double sqrt_j_plus    = std::sqrt(static_cast<long double>(j + 1));
+            long double sqrt_j_plus_2  = std::sqrt(static_cast<long double>(j + 2));
+            Ajs[j] = static_cast<double>(
+                     48 * OneOver315 * (       SWIMMING_POW_7(sqrt_j_plus_2)      + SWIMMING_POW_7(sqrt_j_minus_2)  - 4 * SWIMMING_POW_7(sqrt_j_plus)    - 4 * SWIMMING_POW_7(sqrt_j_minus)   + 6 * SWIMMING_POW_7(sqrt_j))
+                    + 2 * OneOver9   * (   4 * SWIMMING_POW_3(sqrt_j_plus)    + 4 * SWIMMING_POW_3(sqrt_j_minus)        - SWIMMING_POW_3(sqrt_j_plus_2)      - SWIMMING_POW_3(sqrt_j_minus_2) - 6 * SWIMMING_POW_3(sqrt_j)));
+            Bns[j] = static_cast<double>(
+                     48 * OneOver315 * (       SWIMMING_POW_7(sqrt_j)         - 4 * SWIMMING_POW_7(sqrt_j_minus_2)  + 6 * SWIMMING_POW_7(sqrt_j_minus_3) - 4 * SWIMMING_POW_7(sqrt_j_minus_4)     + SWIMMING_POW_7(sqrt_j_minus_5)) - 168 * OneOver315 * SWIMMING_POW_5(sqrt_j)
+                        + OneOver9   * (   4 * SWIMMING_POW_3(sqrt_j)         + 8 * SWIMMING_POW_3(sqrt_j_minus_2) - 12 * SWIMMING_POW_3(sqrt_j_minus_3) + 8 * SWIMMING_POW_3(sqrt_j_minus_4) - 2 * SWIMMING_POW_3(sqrt_j_minus_5)));
+            Cns[j] = static_cast<double>(
+                    48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_4)  - 4 * SWIMMING_POW_7(sqrt_j_minus_3)  + 6 * SWIMMING_POW_7(sqrt_j_minus_2) - 3 * SWIMMING_POW_7(sqrt_j)) + 672 * OneOver315 * SWIMMING_POW_5(sqrt_j)
+                        + OneOver9  *  (- 18 * SWIMMING_POW_3(sqrt_j)        - 12 * SWIMMING_POW_3(sqrt_j_minus_2)  + 8 * SWIMMING_POW_3(sqrt_j_minus_3) - 2 * SWIMMING_POW_3(sqrt_j_minus_4)));
+            Dns[j] = static_cast<double>(
+                    48 * OneOver315 *  (   3 * SWIMMING_POW_7(sqrt_j)          - 4 * SWIMMING_POW_7(sqrt_j_minus_2)      + SWIMMING_POW_7(sqrt_j_minus_3)) - 24 * OneOver9 * SWIMMING_POW_5(sqrt_j)
+                         + OneOver9 *  (  36 * SWIMMING_POW_3(sqrt_j)          + 8 * SWIMMING_POW_3(sqrt_j_minus_2)  - 2 * SWIMMING_POW_3(sqrt_j_minus_3)));
+            Ens[j] = static_cast<double>(
+                    48 * OneOver315 *  (       SWIMMING_POW_7(sqrt_j_minus_2)      - SWIMMING_POW_7(sqrt_j)) + 336 * OneOver315 * SWIMMING_POW_5(sqrt_j)
+                         + OneOver9 *  (- 22 * SWIMMING_POW_3(sqrt_j)          - 2 * SWIMMING_POW_3(sqrt_j_minus_2)) + 2 * sqrt_j);
+        }
+    }
 
     std::cout << "...Finished filling up vectors of coefficients.\n";
 }
