@@ -261,7 +261,44 @@ void InterpolateFromFluidMesh(
         MultiplyNodalVariableBy(r_dem_model_part, FLUID_VEL_PROJECTED_RATE, delta_time_inv);
     }
 
+    if (IsDEMVariable(VELOCITY_OLD)){
+        UpdateOldVelocity(r_dem_model_part);
+    }
+
+    if (IsDEMVariable(ADDITIONAL_FORCE_OLD)){
+        UpdateOldAdditionalForce(r_dem_model_part);
+    }
+
     KRATOS_CATCH("")
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void UpdateOldVelocity(ModelPart& r_dem_model_part)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        const array_1d<double, 3>& velocity = i_particle->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3>& old_velocity = i_particle->FastGetSolutionStepValue(VELOCITY_OLD);
+        noalias(old_velocity) = velocity;
+    }
+
+}
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void UpdateOldAdditionalForce(ModelPart& r_dem_model_part)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        const array_1d<double, 3>& additional_force = i_particle->FastGetSolutionStepValue(ADDITIONAL_FORCE);
+        array_1d<double, 3>& old_additional_force = i_particle->FastGetSolutionStepValue(ADDITIONAL_FORCE_OLD);
+        noalias(old_additional_force) = additional_force;
+    }
+
 }
 
 //***************************************************************************************************************
