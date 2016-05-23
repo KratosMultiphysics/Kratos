@@ -19,9 +19,9 @@ oo::class create CLaw {
          
         if {$c} {
             set ptdim $::Model::SpatialDimension
-            set eldim [my getAttribute "Dimension"]
+            set eldim [split [my getAttribute "Dimension"] ","]
             if {$eldim ne ""} {
-                if {$ptdim ne $eldim} {set c 0}
+                if {$ptdim ni $eldim} {set c 0}
             }
         }
         
