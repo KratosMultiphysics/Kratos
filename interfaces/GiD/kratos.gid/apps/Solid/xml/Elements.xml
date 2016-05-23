@@ -4,7 +4,7 @@
   <!--small displacements-->
   <ElementItem n="SmallDisplacementElement2D" pn="Solid small displacements" ImplementedInFile="small_displacement_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -47,7 +47,7 @@
   </ElementItem>
   <ElementItem n="SmallDisplacementElementAxisym" pn="Solid small displacements axisymmetric" ImplementedInFile="axisym_small_displacement_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       WorkingSpaceDimension="2Da" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -85,7 +85,7 @@
   </ElementItem>
   <ElementItem n="SmallDisplacementElement3D" pn="Solid small displacements" ImplementedInFile="small_displacement_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -129,7 +129,7 @@
   <!--total lagrangian-->
   <ElementItem n="TotalLagrangianElement2D" pn="Solid Total Lagrangian" ImplementedInFile="total_lagrangian_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="True,False"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="True,False"
 	       ElementType="Solid" help="This element it implements a Total Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -168,7 +168,7 @@
   </ElementItem>
   <ElementItem n="TotalLagrangianElement3D" pn="Solid Total Lagrangian" ImplementedInFile="total_lagrangian_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
 	       ElementType="Solid"  help="This element it implements a Total Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -209,7 +209,7 @@
   <!--updated lagrangian-->
   <ElementItem n="UpdatedLagrangianElement2D" pn="Solid Updated Lagrangian" ImplementedInFile="updated_lagrangian_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -249,7 +249,7 @@
   </ElementItem>
   <ElementItem n="UpdatedLagrangianElementAxisym" pn="Solid Updated Lagrangian axisymmetric" ImplementedInFile="axisym_updated_lagrangian_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       WorkingSpaceDimension="2Da" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -287,7 +287,7 @@
   </ElementItem>
   <ElementItem n="UpdatedLagrangianElement3D" pn="Solid Updated Lagrangian" ImplementedInFile="updated_lagrangian_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="3" RequiresLocalAxes="False" LargeDeformation="False"
 	       ElementType="Solid" help="This element it implements a Updated Lagrangian approach to large deformation kinematics">
 
     <!--here we could add a list of all of the possible geometries-->
@@ -329,7 +329,7 @@
   <!--hybrid updated lagrangian-->
   <ElementItem n="UpdatedLagrangianElementUP2D" pn="Solid Updated Lagrangian U-P" ImplementedInFile="updated_lagrangian_U_P_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       WorkingSpaceDimension="2D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element implements a Hybrid Displacement-Pressure Updated Lagrangian approach to large deformation kinematics"
 		   ElementType="Solid">
 
@@ -362,7 +362,7 @@
   </ElementItem>
   <ElementItem n="UpdatedLagrangianElementUPAxisym" pn="Solid Updated Lagrangian U-P axisymmetric" ImplementedInFile="axisym_updated_lagrangian_U_P_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="2" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
+	       WorkingSpaceDimension="2Da" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False,True"
 	       help="This element it implements a Hybrid Displacement-Pressure Updated Lagrangian approach to large deformation kinematics"
 		   ElementType="Solid" >
 

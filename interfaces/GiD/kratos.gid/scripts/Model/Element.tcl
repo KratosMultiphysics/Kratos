@@ -90,9 +90,8 @@ oo::class create Element {
          
         if {$c} {
             set ptdim $::Model::SpatialDimension
-            set eldim [my getAttribute "WorkingSpaceDimension"]
-            append eldim "D"
-            if {$ptdim ne $eldim} {set c 0}
+            set eldim [split [my getAttribute "WorkingSpaceDimension"] ","]
+            if {$ptdim ni $eldim} {set c 0}
         }
         
         return $c

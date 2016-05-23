@@ -4,7 +4,7 @@
   <!--beam elements-->
   <ElementItem n="BeamElement" pn="Small displacements beam" ImplementedInFile="small_displacement_beam_element_3D2N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="1" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a small displacement timoshenko beam structural model" RotationDofs="True"
 		   ElementType="Beam" >
 
@@ -43,7 +43,7 @@
   <!--membrane elements-->
   <ElementItem n="MembraneElement" pn="Membrane" ImplementedInFile="membrane_element.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="Developer"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False"
 	       help="This element it implements a membrane structural model" RotationDofs="False"
 		   ElementType="Membrane" >
 
@@ -79,7 +79,7 @@
   <!--small displacements-->
   <ElementItem n="ShellThinElement" pn="Thin triangular shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a triangular element for thin shells in a small displacements approach" 
 		   ElementType="Shell" RotationDofs="True" >
 
@@ -116,7 +116,7 @@
   
   <ElementItem n="ShellThickElement" pn="Thick quadrilateral shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="False"
 	       help="This element implements a quadrilateral element for thick shells in a small displacements approach"
 		   ElementType="Shell" RotationDofs="True">
 
@@ -154,7 +154,7 @@
   <!--large displacements-->
   <ElementItem n="ShellThinCorotationalElement" pn="Thin corotational triangular shell" ImplementedInFile="shell_thin_element_3D3N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element implements a triangular corotational element for thin shells in a large displacements approach"
 		   ElementType="Shell" RotationDofs="True" >
 
@@ -189,7 +189,7 @@
   </ElementItem>
   <ElementItem n="ShellThickCorotationalElement" pn="Thick corotational quadrilateral shell" ImplementedInFile="shell_thick_element_3D4N.cpp"
 	       ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	       WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
+	       WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="True" LargeDeformation="True"
 	       help="This element implements a quadrilateral corotational element for thick shells in a large displacements approach"
 		   ElementType="Shell" RotationDofs="True">
     <!--here we could add a list of all of the possible geometries-->
