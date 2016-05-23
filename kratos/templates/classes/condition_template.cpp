@@ -1,179 +1,541 @@
-/*
-Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    @{KRATOS_APP_AUTHOR}
+//
 
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
+// System includes
+#include <string>
+#include <iostream>
+#include <algorithm>
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-		in the documentation and/or other materials provided with the distribution.
-	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-			This product includes Kratos Multi-Physics technology.
-	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// External includes
 
 
-// Project includes
-#include "custom_conditions/dem_wall.h"
-#include "DEM_application.h"
+// Include Base h
+#include "@{KRATOS_CLASS_BASE_DIR}/@{KRATOS_NAME_LOWER}.h"
 
-#include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {
-	using namespace GeometryFunctions;
 
-//***********************************************************************************
-//***********************************************************************************
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
 
-// Constructor
+///@}
+///@name  Enum's
+///@{
 
-DEMWall::DEMWall()
-{
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * Constructor.
+ */
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId)
+    : Condition(NewId) @{KRATOS_INIT_MEMBER_LIST} {
 }
 
-// Constructor
-
-DEMWall::DEMWall(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
-{
+/**
+ * Constructor using an array of nodes
+ */
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId, const NodesArrayType& ThisNodes)
+    : Condition(NewId, ThisNodes) @{KRATOS_INIT_MEMBER_LIST} {
 }
 
-// Constructor
-
-DEMWall::DEMWall(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
-{
-    //setting up the nodal degrees of freedom
+/**
+ * Constructor using Geometry
+ */
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry) @{KRATOS_INIT_MEMBER_LIST} {
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/**
+ * Constructor using Properties
+ */
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties) @{KRATOS_INIT_MEMBER_LIST} {
+}
 
-Condition::Pointer DEMWall::Create(
+/**
+ * Copy Constructor
+ */
+@{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther)
+    : Condition(rOther) @{KRATOS_CC_INIT_MEMBER_LIST} {
+}
+
+/**
+ * Destructor
+ */
+@{KRATOS_NAME_CAMEL}::~@{KRATOS_NAME_CAMEL}() {
+}
+
+///@}
+///@name Operators
+///@{
+
+/// Assignment operator.
+@{KRATOS_NAME_CAMEL} & @{KRATOS_NAME_CAMEL}::operator=(@{KRATOS_NAME_CAMEL} const& rOther) {
+  BaseType::operator=(rOther);
+  Flags::operator =(rOther);
+  // mpProperties = rOther.mpProperties;
+  return *this;
+}
+
+///@}
+///@name Operations
+///@{
+
+/**
+ * CONDITIONS inherited from this class have to implement next
+ * Create and Clone methods: MANDATORY
+ */
+
+/**
+ * creates a new condition pointer
+ * @param NewId: the ID of the new condition
+ * @param ThisNodes: the nodes of the new condition
+ * @param pProperties: the properties assigned to the new condition
+ * @return a Pointer to the new condition
+ */
+Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const
-{
-    return Condition::Pointer(new DEMWall(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    PropertiesType::Pointer pProperties) const {
+
+  KRATOS_TRY
+  return Condition::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pProperties));
+  KRATOS_CATCH("");
 }
 
-//***********************************************************************************
-//***********************************************************************************
-// Destructor
+/**
+ * creates a new condition pointer
+ * @param NewId: the ID of the new condition
+ * @param pGeom: the geometry to be employed
+ * @param pProperties: the properties assigned to the new condition
+ * @return a Pointer to the new condition
+ */
+Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const {
 
-DEMWall::~DEMWall()
-{
+  KRATOS_TRY
+  return Condition::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, pGeom, pProperties));
+  KRATOS_CATCH("");
 }
 
-//***********************************************************************************
-//***********************************************************************************
-
-void DEMWall::Initialize()
-{
-    KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::Initialize) shouldn't be accessed, use derived class instead", 0);
+/**
+ * creates a new condition pointer and clones the previous condition data
+ * @param NewId: the ID of the new condition
+ * @param ThisNodes: the nodes of the new condition
+ * @param pProperties: the properties assigned to the new condition
+ * @return a Pointer to the new condition
+ */
+Condition::Pointer @{KRATOS_NAME_CAMEL}::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const {
+  KRATOS_TRY
+  return Condition::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+  KRATOS_CATCH("");
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/**
+ * this determines the condition equation ID vector for all conditional
+ * DOFs
+ * @param rResult: the condition equation ID vector
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
+  unsigned int number_of_nodes = GetGeometry().PointsNumber();
+  if (rResult.size() != number_of_nodes)
+    rResult.resize(number_of_nodes, false);
 
-void DEMWall::CalculateRightHandSide(
+@{KRATOS_CONDITION_ECUATION_ID_DOFS}
+}
+
+/**
+ * determines the condition equation list of DOFs
+ * @param ConditionDofList: the list of DOFs
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo) {
+  unsigned int number_of_nodes = GetGeometry().PointsNumber();
+  if (rConditionDofList.size() != number_of_nodes)
+    rConditionDofList.resize(number_of_nodes);
+
+@{KRATOS_CONDITION_LIST_DOFS}
+}
+
+/**
+ * CONDITIONS inherited from this class have to implement next
+ * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
+ * they can be managed internally with a private method to do the same calculations
+ * only once: MANDATORY
+ */
+
+/**
+ * this is called during the assembling process in order
+ * to calculate all condition contributions to the global system
+ * matrix and the right hand side
+ * @param rLeftHandSideMatrix: the condition left hand side matrix
+ * @param rRightHandSideVector: the condition right hand side
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info) {
+    ProcessInfo& rCurrentProcessInfo) {
 }
 
-void DEMWall::CalculateElasticForces(
+/**
+ * this function provides a more general interface to the condition.
+ * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
+ * thus telling what is the desired output
+ * @param rLeftHandSideMatrices: container with the output left hand side matrices
+ * @param rLHSVariables: paramter describing the expected LHSs
+ * @param rRightHandSideVectors: container for the desired RHS output
+ * @param rRHSVariables: parameter describing the expected RHSs
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateLocalSystem(
+    std::vector< MatrixType >& rLeftHandSideMatrices, const std::vector< Variable< MatrixType > >& rLHSVariables,
+    std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables,
+    ProcessInfo& rCurrentProcessInfo) {
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition left hand side matrix only
+ * @param rLeftHandSideMatrix: the condition left hand side matrix
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
+}
+
+/**
+ * this function provides a more general interface to the condition.
+ * it is designed so that rLHSvariables are passed TO the condition
+ * thus telling what is the desired output
+ * @param rLeftHandSideMatrices: container for the desired LHS output
+ * @param rLHSVariables: parameter describing the expected LHSs
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(
+    std::vector< MatrixType >& rLeftHandSideMatrices,
+    const std::vector< Variable< MatrixType > >& rLHSVariables,
+    ProcessInfo& rCurrentProcessInfo) {
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition right hand side vector only
+ * @param rRightHandSideVector: the condition right hand side vector
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+}
+
+/**
+ * this function provides a more general interface to the condition.
+ * it is designed so that rRHSvariables are passed TO the condition
+ * thus telling what is the desired output
+ * @param rRightHandSideVectors: container for the desired RHS output
+ * @param rRHSVariables: parameter describing the expected RHSs
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(
+    std::vector< VectorType >& rRightHandSideVectors,
+    const std::vector< Variable< VectorType > >& rRHSVariables,
+    ProcessInfo& rCurrentProcessInfo) {
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the first derivatives contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix: the condition left hand side matrix
+ * @param rRightHandSideVector: the condition right hand side
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesContributions(
+    MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info) {
+    ProcessInfo& rCurrentProcessInfo) {
+
+  if (rLeftHandSideMatrix.size1() != 0)
+    rLeftHandSideMatrix.resize(0, 0, false);
+  if (rRightHandSideVector.size() != 0)
+    rRightHandSideVector.resize(0, false);
 }
 
-void DEMWall::InitializeSolutionStep(ProcessInfo& r_process_info){
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition left hand side matrix for the first derivatives constributions
+ * @param rLeftHandSideMatrix: the condition left hand side matrix
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
+  if (rLeftHandSideMatrix.size1() != 0)
+    rLeftHandSideMatrix.resize(0, 0, false);
 }
 
-
-void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
-
-   KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMWall::CalculateNormal) shouldn't be accessed, use derived class instead", "");
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition right hand side vector for the first derivatives constributions
+ * @param rRightHandSideVector: the condition right hand side vector
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+  if (rRightHandSideVector.size() != 0)
+    rRightHandSideVector.resize(0, false);
 }
 
- void DEMWall::AddExplicitContribution(const VectorType& rRHS,
-                         const Variable<VectorType>& rRHSVariable,
-                         Variable<array_1d<double,3> >& rDestinationVariable,
-                         const ProcessInfo& r_process_info)
-{
-    KRATOS_TRY
+/**
+ * CONDITION inherited from this class must implement this methods
+ * if they need to add dynamic condition contributions
+ * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateSecondDerivativesContributions,
+ * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+ */
 
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+/**
+ * this is called during the assembling process in order
+ * to calculate the second derivative contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix: the condition left hand side matrix
+ * @param rRightHandSideVector: the condition right hand side
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesContributions(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo) {
 
-   if( rDestinationVariable == EXTERNAL_FORCE )
-      {
-
-    for(unsigned int i=0; i< number_of_nodes; i++)
-      {
-        int index = dimension * i;
-
-        GetGeometry()[i].SetLock();
-
-        array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-        for(unsigned int j=0; j<dimension; j++) {
-            ExternalForce[j] += rRHS[index + j];
-        }
-
-        GetGeometry()[i].UnSetLock();
-      }
-      }
-
-    if( rDestinationVariable == FORCE_RESIDUAL )
-      {
-
-    for(unsigned int i=0; i< number_of_nodes; i++)
-      {
-        int index = dimension * i;
-
-        GetGeometry()[i].SetLock();
-
-        array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-        for(unsigned int j=0; j<dimension; j++)
-          {
-        ForceResidual[j] += rRHS[index + j];
-          }
-
-        GetGeometry()[i].UnSetLock();
-      }
-      }
-
-    KRATOS_CATCH( "" )
+  if (rLeftHandSideMatrix.size1() != 0)
+    rLeftHandSideMatrix.resize(0, 0, false);
+  if (rRightHandSideVector.size() != 0)
+    rRightHandSideVector.resize(0, false);
 }
 
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition left hand side matrix for the second derivatives constributions
+ * @param rLeftHandSideMatrix: the condition left hand side matrix
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesLHS(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo) {
 
-double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
-double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[WALL_FRICTION]; }
-double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
-
-
-void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
-{
-
+  if (rLeftHandSideMatrix.size1() != 0)
+    rLeftHandSideMatrix.resize(0, 0, false);
 }
 
-void DEMWall::FinalizeSolutionStep(ProcessInfo& r_process_info)
-{
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition right hand side vector for the second derivatives constributions
+ * @param rRightHandSideVector: the condition right hand side vector
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesRHS(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo) {
 
+  if (rRightHandSideVector.size() != 0)
+    rRightHandSideVector.resize(0, false);
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition mass matrix
+ * @param rMassMatrix: the condition mass matrix
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
+  if (rMassMatrix.size1() != 0)
+    rMassMatrix.resize(0, 0, false);
+}
 
-} // Namespace Kratos.
+/**
+ * this is called during the assembling process in order
+ * to calculate the condition damping matrix
+ * @param rDampingMatrix: the condition damping matrix
+ * @param rCurrentProcessInfo: the current process info instance
+ */
+void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {
+  if (rDampingMatrix.size1() != 0)
+    rDampingMatrix.resize(0, 0, false);
+}
+
+/**
+ * This method provides the place to perform checks on the completeness of the input
+ * and the compatibility with the problem options as well as the contitutive laws selected
+ * It is designed to be called only once (or anyway, not often) typically at the beginning
+ * of the calculations, so to verify that nothing is missing from the input
+ * or that no common error is found.
+ * @param rCurrentProcessInfo
+ * this method is: MANDATORY
+ */
+int @{KRATOS_NAME_CAMEL}::Check(const ProcessInfo& rCurrentProcessInfo) {
+
+  KRATOS_TRY
+
+  if (this->Id() < 1) {
+    KRATOS_THROW_ERROR(std::logic_error, "@{KRATOS_NAME_CAMEL} found with Id 0 or negative","")
+  }
+
+  if (this->GetGeometry().Area() <= 0) {
+    std::cout << "error on @{KRATOS_NAME_CAMEL} -> " << this->Id() << std::endl;
+    KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
+  }
+
+  return 0;
+
+  KRATOS_CATCH("");
+}
+
+///@}
+///@name Access
+///@{
+
+
+///@}
+///@name Inquiry
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+/// Turn back information as a string.
+
+std::string @{KRATOS_NAME_CAMEL}::Info() const {
+  std::stringstream buffer;
+  buffer << "@{KRATOS_NAME_CAMEL} #" << Id();
+  return buffer.str();
+}
+
+/// Print information about this object.
+
+void @{KRATOS_NAME_CAMEL}::PrintInfo(std::ostream& rOStream) const {
+  rOStream << "@{KRATOS_NAME_CAMEL} #" << Id();
+}
+
+/// Print object's data.
+
+void @{KRATOS_NAME_CAMEL}::PrintData(std::ostream& rOStream) const {
+  pGetGeometry()->PrintData(rOStream);
+}
+
+///@}
+///@name Friends
+///@{
+
+///@}
+
+///@name Protected static Member Variables
+///@{
+
+///@}
+///@name Protected member Variables
+///@{
+
+///@}
+///@name Protected Operators
+///@{
+
+///@}
+///@name Protected Operations
+///@{
+
+///@}
+///@name Protected  Access
+///@{
+
+///@}
+///@name Protected Inquiry
+///@{
+
+///@}
+///@name Protected LifeCycle
+///@{
+
+///@}
+
+///@name Static Member Variables
+///@{
+
+///@}
+///@name Member Variables
+///@{
+
+///@}
+///@name Private Operators
+///@{
+
+///@}
+///@name Private Operations
+///@{
+
+///@}
+///@name Serialization
+///@{
+
+void @{KRATOS_NAME_CAMEL}::save(Serializer& rSerializer) const {
+  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
+
+  // List
+  // To be completed with the class member list
+}
+
+void @{KRATOS_NAME_CAMEL}::load(Serializer& rSerializer) {
+  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
+
+  // List
+  // To be completed with the class member list
+}
+
+///@}
+///@name Private  Access
+///@{
+
+///@}
+///@name Private Inquiry
+///@{
+
+///@}
+///@name Un accessible methods
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
+/// input stream function
+inline std::istream & operator >> (std::istream& rIStream, @{KRATOS_NAME_CAMEL}& rThis);
+
+/// output stream function
+inline std::ostream & operator << (std::ostream& rOStream, const @{KRATOS_NAME_CAMEL}& rThis) {
+  rThis.PrintInfo(rOStream);
+  rOStream << " : " << std::endl;
+  rThis.PrintData(rOStream);
+  return rOStream;
+}
+
+} // namespace Kratos.

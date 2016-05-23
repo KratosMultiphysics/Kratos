@@ -155,7 +155,7 @@ public:
    * @param ElementalDofList: the list of DOFs
    * @param rCurrentProcessInfo: the current process info instance
    */
-  virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+  virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo);
 
   /**
    * ELEMENTS inherited from this class have to implement next

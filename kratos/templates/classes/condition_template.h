@@ -1,121 +1,449 @@
-/*
-Kratos Multi-Physics
-
-Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-		in the documentation and/or other materials provided with the distribution.
-	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-			This product includes Kratos Multi-Physics technology.
-	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    @{KRATOS_APP_AUTHOR}
+//
 
 #if !defined(KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED )
-#define  KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
+#define KRATOS_@{KRATOS_NAME_UPPER}_H_INCLUDED
+
 
 // System includes
-
+#include <string>
+#include <iostream>
+#include <algorithm>
 
 // External includes
-#include "boost/smart_ptr.hpp"
+
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/serializer.h"
 #include "includes/condition.h"
-#include "includes/variables.h"
+#include "@{APP_NAME_LOW}_application.h"
+
 
 namespace Kratos
 {
-class @{KRATOS_NAME_CAMEL} @{KRATOS_CLASS_BASE} {
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+@{KRATOS_CLASS_TEMPLATE}
+class @{KRATOS_NAME_CAMEL} @{KRATOS_CLASS_BASE_HEADER} {
 public:
 
+@{KRATOS_CLASS_LOCAL_FLAGS}
+
+  ///@name Type Definitions
+  ///@{
+
+  typedef @{KRATOS_CLASS_BASE} BaseType;
+
+  ///@}
+  ///@name Pointer Definitions
+  /// Pointer definition of @{KRATOS_NAME_CAMEL}
   KRATOS_CLASS_POINTER_DEFINITION(@{KRATOS_NAME_CAMEL});
 
-	typedef WeakPointerVector<Element> ParticleWeakVectorType;
-	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+  /**
+   * Constructor.
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId = 0);
 
-  // Constructor void
-  @{KRATOS_NAME_CAMEL}();
+  /**
+   * Constructor using an array of nodes
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId, const NodesArrayType& ThisNodes);
 
-  // Constructor using an array of nodes
-  @{KRATOS_NAME_CAMEL}( IndexType NewId, GeometryType::Pointer pGeometry );
+  /**
+   * Constructor using Geometry
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry);
 
-  // Constructor using an array of nodes with properties
-  @{KRATOS_NAME_CAMEL}( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+  /**
+   * Constructor using Properties
+   */
+  @{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-  // Destructor
+  /**
+   * Copy Constructor
+   */
+  @{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther);
+
+  /**
+   * Destructor
+   */
   virtual ~@{KRATOS_NAME_CAMEL}();
 
-  // Name Operations
-  virtual Condition::Pointer Create(IndexType NewId,
-    NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties ) const;
+  ///@}
+  ///@name Operators
+  ///@{
+
+  /// Assignment operator.
+  @{KRATOS_NAME_CAMEL} & operator=(@{KRATOS_NAME_CAMEL} const& rOther);
+
+  ///@}
+  ///@name Operations
+  ///@{
+
+  /**
+   * CONDITIONS inherited from this class have to implement next
+   * Create and Clone methods: MANDATORY
+   */
+
+  /**
+   * creates a new condition pointer
+   * @param NewId: the ID of the new condition
+   * @param ThisNodes: the nodes of the new condition
+   * @param pProperties: the properties assigned to the new condition
+   * @return a Pointer to the new condition
+   */
+  Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+  /**
+   * creates a new condition pointer
+   * @param NewId: the ID of the new condition
+   * @param pGeom: the geometry to be employed
+   * @param pProperties: the properties assigned to the new condition
+   * @return a Pointer to the new condition
+   */
+  Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+
+  /**
+   * creates a new condition pointer and clones the previous condition data
+   * @param NewId: the ID of the new condition
+   * @param ThisNodes: the nodes of the new condition
+   * @param pProperties: the properties assigned to the new condition
+   * @return a Pointer to the new condition
+   */
+  Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+
+  /**
+   * this determines the condition equation ID vector for all condition
+   * DOFs
+   * @param rResult: the condition equation ID vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo);
+
+  /**
+   * determines the condition list of DOFs
+   * @param rConditionDofList: the list of DOFs
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo);
+
+  /**
+   * CONDITIONS inherited from this class have to implement next
+   * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
+   * they can be managed internally with a private method to do the same calculations
+   * only once: MANDATORY
+   */
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate all condition contributions to the global system
+   * matrix and the right hand side
+   * @param rLeftHandSideMatrix: the condition left hand side matrix
+   * @param rRightHandSideVector: the condition right hand side
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateLocalSystem(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this function provides a more general interface to the condition.
+   * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
+   * thus telling what is the desired output
+   * @param rLeftHandSideMatrices: container with the output left hand side matrices
+   * @param rLHSVariables: paramter describing the expected LHSs
+   * @param rRightHandSideVectors: container for the desired RHS output
+   * @param rRHSVariables: parameter describing the expected RHSs
+   */
+  virtual void CalculateLocalSystem(
+      std::vector< MatrixType >& rLeftHandSideMatrices, const std::vector< Variable< MatrixType > >& rLHSVariables,
+      std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition left hand side matrix only
+   * @param rLeftHandSideMatrix: the condition left hand side matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this function provides a more general interface to the condition.
+   * it is designed so that rLHSvariables are passed TO the condition
+   * thus telling what is the desired output
+   * @param rLeftHandSideMatrices: container for the desired LHS output
+   * @param rLHSVariables: parameter describing the expected LHSs
+   */
+  virtual void CalculateLeftHandSide(
+      std::vector< MatrixType >& rLeftHandSideMatrices,
+      const std::vector< Variable< MatrixType > >& rLHSVariables,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition right hand side vector only
+   * @param rRightHandSideVector: the condition right hand side vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this function provides a more general interface to the condition.
+   * it is designed so that rRHSvariables are passed TO the condition
+   * thus telling what is the desired output
+   * @param rRightHandSideVectors: container for the desired RHS output
+   * @param rRHSVariables: parameter describing the expected RHSs
+   */
+  virtual void CalculateRightHandSide(
+      std::vector< VectorType >& rRightHandSideVectors,
+      const std::vector< Variable< VectorType > >& rRHSVariables,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the first derivatives contributions for the LHS and RHS
+   * @param rLeftHandSideMatrix: the condition left hand side matrix
+   * @param rRightHandSideVector: the condition right hand side
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateFirstDerivativesContributions(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition left hand side matrix for the first derivatives constributions
+   * @param rLeftHandSideMatrix: the condition left hand side matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition right hand side vector for the first derivatives constributions
+   * @param rRightHandSideVector: the condition right hand side vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * CONDITIONS inherited from this class must implement this methods
+   * if they need to add dynamic condition contributions
+   * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+   * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+   * CalculateSecondDerivativesContributions,
+   * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+   */
 
 
-  virtual void Initialize();
-  virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
-  virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );
-  virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-  virtual void InitializeSolutionStep(ProcessInfo& r_process_infor_process_info);
-  virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
-  virtual void CalculateNormal(array_1d<double, 3>& rnormal);
-  virtual void AddExplicitContribution(const VectorType& rRHS,
-                               const Variable<VectorType>& rRHSVariable,
-                               Variable<array_1d<double,3> >& rDestinationVariable,
-                               const ProcessInfo& r_process_info);
+ /**
+   * this is called during the assembling process in order
+   * to calculate the second derivative contributions for the LHS and RHS
+   * @param rLeftHandSideMatrix: the condition left hand side matrix
+   * @param rRightHandSideVector: the condition right hand side
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateSecondDerivativesContributions(
+      MatrixType& rLeftHandSideMatrix,
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo);
 
-  double GetYoung();
-  double GetPoisson();
-  double GetTgOfFrictionAngle();
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition left hand side matrix for the second derivatives constributions
+   * @param rLeftHandSideMatrix: the condition left hand side matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateSecondDerivativesLHS(
+      MatrixType& rLeftHandSideMatrix,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition right hand side vector for the second derivatives constributions
+   * @param rRightHandSideVector: the condition right hand side vector
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateSecondDerivativesRHS(
+      VectorType& rRightHandSideVector,
+      ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition mass matrix
+   * @param rMassMatrix: the condition mass matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the condition damping matrix
+   * @param rDampingMatrix: the condition damping matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+
+  /**
+   * This method provides the place to perform checks on the completeness of the input
+   * and the compatibility with the problem options as well as the contitutive laws selected
+   * It is designed to be called only once (or anyway, not often) typically at the beginning
+   * of the calculations, so to verify that nothing is missing from the input
+   * or that no common error is found.
+   * @param rCurrentProcessInfo
+   * this method is: MANDATORY
+   */
+  virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+
+  ///@}
+  ///@name Access
+  ///@{
+
+
+  ///@}
+  ///@name Inquiry
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+  /// Turn back information as a string.
+  virtual std::string Info() const;
+
+  /// Print information about this object.
+  virtual void PrintInfo(std::ostream& rOStream) const;
+
+  /// Print object's data.
+  virtual void PrintData(std::ostream& rOStream) const;
+
+  ///@}
+  ///@name Friends
+  ///@{
+
+  ///@}
 
 protected:
 
+  ///@name Protected static Member Variables
+  ///@{
+
+  ///@}
+  ///@name Protected member Variables
+  ///@{
+
+  ///@}
+  ///@name Protected Operators
+  ///@{
+
+  ///@}
+  ///@name Protected Operations
+  ///@{
+
+  ///@}
+  ///@name Protected  Access
+  ///@{
+
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
+
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
+
+  ///@}
+
 private:
-    ///@name Static Member Variables
 
-    /// privat variables
+  ///@name Static Member Variables
+  ///@{
 
+@{KRATOS_STATIC_MEMBERS_LIST}
 
-    // privat name Operations
+  ///@}
+  ///@name Member Variables
+  ///@{
 
+@{KRATOS_MEMBERS_LIST}
 
+  ///@}
+  ///@name Private Operators
+  ///@{
 
-    ///@}
-    ///@name Serialization
-    ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
 
-    friend class Serializer;
+  ///@}
+  ///@name Serialization
+  ///@{
 
-    virtual void save( Serializer& rSerializer ) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-    }
+  friend class Serializer;
 
-    virtual void load( Serializer& rSerializer )
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-    }
+  virtual void save(Serializer& rSerializer) const;
+  virtual void load(Serializer& rSerializer);
 
+  ///@}
+  ///@name Private  Access
+  ///@{
 
-}; // class @{KRATOS_NAME_CAMEL}.
+  ///@}
+  ///@name Private Inquiry
+  ///@{
+
+  ///@}
+  ///@name Un accessible methods
+  ///@{
+
+  ///@}
+
+}; // Class @{KRATOS_NAME_CAMEL}
+
+///@}
+
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 } // namespace Kratos.
 
