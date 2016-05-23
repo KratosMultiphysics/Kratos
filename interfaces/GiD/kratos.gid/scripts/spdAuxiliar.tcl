@@ -93,16 +93,19 @@ proc spdAux::processAppIncludes { root } {
 }
 
 proc spdAux::reactiveApp { } {
+    #W "Reactive"
     variable initwind
     destroy $initwind
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
     set ::Model::SpatialDimension [[$root selectNodes "value\[@n='nDim'\]"] getAttribute v ]
     set appname [[$root selectNodes "hiddenfield\[@n='activeapp'\]"] @v ]
-    apps::setActiveApp $appname
+    spdAux::activeApp $appname
+    #apps::setActiveApp $appname
 }
 
 proc spdAux::activeApp { appid } {
+    #W "Active"
     variable initwind
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -1095,7 +1098,6 @@ proc spdAux::ProcCheckNodalConditionOutputState { domNode args } {
     } {return "normal"}
 }
 proc spdAux::ProcRefreshTree { domNode args } {
-    
     spdAux::RequestRefresh
 }
 
