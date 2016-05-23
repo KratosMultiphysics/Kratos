@@ -1216,13 +1216,9 @@ proc spdAux::ProcActiveIfAnyPartState { domNode args } {
 proc spdAux::ProcDisableIfUniqueName { domNode args } {
     
     set total 1
-    #W $args
     foreach {un val} {*}$args {
         set xpath [spdAux::getRoute $un]
         spdAux::insertDependencies $domNode $un
-        #W [$domNode asXML]
-        #ViewDoc
-        #W $un
         set node [$domNode selectNodes $xpath]
         set realval [get_domnode_attribute $node v]
         if {$realval eq ""} {W "Warning: Check unique name $un"}

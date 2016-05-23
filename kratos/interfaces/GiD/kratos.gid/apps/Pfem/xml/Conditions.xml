@@ -2,7 +2,7 @@
 <ConditionList>
   <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Volume" ProcessName="ApplyConstantVectorValueProcess" help="The gravity modulus and its direction vector referred to global axes">
 
     <TopologyFeatures>
@@ -18,7 +18,7 @@
   </ConditionItem>
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="element.h"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface"  ProcessName="ApplyConstantVectorValueProcess" help="The gravity modulus and its direction vector referred to global axes">
 
     <TopologyFeatures>
@@ -34,7 +34,7 @@
   </ConditionItem>
   <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes">
 
     <TopologyFeatures>
@@ -51,7 +51,7 @@
   </ConditionItem>
   <ConditionItem n="PointLoad2DAxisym" pn="Load on points axisymmetric" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes">
 
     <TopologyFeatures>
@@ -68,7 +68,7 @@
   </ConditionItem>
   <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="point_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes">
 
     <TopologyFeatures>
@@ -86,7 +86,7 @@
   
   <ConditionItem n="SurfaceLoad3D" pn="Load on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface"  ProcessName="ApplyConstantVectorValueProcess" help="Load on surfaces, load vector referred to global axes">
 
     <TopologyFeatures>
@@ -107,7 +107,7 @@
   </ConditionItem>
   <ConditionItem n="LinePressure2D" pn="Pressure on lines" ImplementedInFile="line_load_2D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="2" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Linear" ProcessName="ApplyConstantVectorValueProcess" help="Normal pressure on lines, oriented pointing against the line outer normal">
 
     <TopologyFeatures>
@@ -125,7 +125,7 @@
   </ConditionItem>
   <ConditionItem n="SurfacePressure3D" pn="Pressure on surfaces" ImplementedInFile="surface_load_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="3D" LocalSpaceDimension="2" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Surface" ProcessName="ApplyConstantVectorValueProcess" help="Normal Pressure on surfaces, oriented pointing against the surface outer normal">
 
     <TopologyFeatures>
@@ -146,7 +146,7 @@
   </ConditionItem>
   <ConditionItem n="PointTorque3D" pn="Torque about points" ImplementedInFile="point_torque_3D_condition.cpp"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
-	WorkingSpaceDimension="3" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Moment on points, moment vector referred to global axes">
 
     <TopologyFeatures>
