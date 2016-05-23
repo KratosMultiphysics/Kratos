@@ -35,7 +35,7 @@ def AddingExtraProcessInfoVariables(pp, fluid_model_part, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, pp.CFD_DEM.drag_law_slope)
     dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.CFD_DEM.power_law_tol)
     dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.CFD_DEM.drag_porosity_correction_type)
-    dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, pp.CFD_DEM.n_initi_basset_steps)
+    dem_model_part.ProcessInfo.SetValue(NUMBER_OF_INIT_BASSET_STEPS, pp.CFD_DEM.n_init_basset_steps)
 
 
 # constructing lists of variables to add
@@ -95,6 +95,10 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += pp.dem_printing_vars
     pp.dem_vars += pp.coupling_dem_vars
     pp.dem_vars += [BUOYANCY]
+
+    if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
+        pp.dem_vars += [VELOCITY_OLD]
+        pp.dem_vars += [ADDITIONAL_FORCE_OLD]
 
     if pp.CFD_DEM.drag_force_type > 0 and  pp.CFD_DEM.add_each_hydro_force_option:
         pp.dem_vars += [DRAG_FORCE]
@@ -303,6 +307,11 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
         pp.coupling_dem_vars += [MATERIAL_FLUID_ACCEL_PROJECTED]
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
+        pp.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
+
+        if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
+            pp.coupling_dem_vars += [VELOCITY_OLD]
+            pp.coupling_dem_vars += [ADDITIONAL_FORCE_OLD]
 
         if pp.CFD_DEM.include_faxen_terms_option:
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
