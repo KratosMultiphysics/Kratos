@@ -1104,7 +1104,7 @@ proc spdAux::ProcRefreshTree { domNode args } {
 proc spdAux::ProccheckStateByUniqueName { domNode args } {
     
     set total 0
-    foreach {un val} $args {
+    foreach {un val} {*}$args {
         catch {
             set xpath [spdAux::getRoute $un]
             spdAux::insertDependencies $domNode $un
@@ -1167,7 +1167,7 @@ proc spdAux::ProcCheckDimension { domNode args } {
     if {$checkdim eq $::Model::SpatialDimension} {return "normal"} else {return "hidden"}
 }
 proc spdAux::ProcgetStateFromXPathValue { domNode args } {
-    
+    set args {*}$args
     set arglist [split $args " "]
     set xpath {*}[lindex $arglist 0]
     set checkvalue [lindex $arglist 1]
