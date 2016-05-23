@@ -1216,11 +1216,15 @@ proc spdAux::ProcActiveIfAnyPartState { domNode args } {
 proc spdAux::ProcDisableIfUniqueName { domNode args } {
     
     set total 1
-    
-    foreach {un val} $args {
+    #W $args
+    foreach {un val} {*}$args {
         set xpath [spdAux::getRoute $un]
         spdAux::insertDependencies $domNode $un
-        set realval [get_domnode_attribute [$domNode selectNodes $xpath] v]
+        #W [$domNode asXML]
+        #ViewDoc
+        #W $un
+        set node [$domNode selectNodes $xpath]
+        set realval [get_domnode_attribute $node v]
         if {$realval eq ""} {W "Warning: Check unique name $un"}
         if {[lsearch $val $realval] == -1} {
             set total 0
