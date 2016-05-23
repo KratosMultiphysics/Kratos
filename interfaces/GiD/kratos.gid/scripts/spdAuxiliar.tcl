@@ -1232,7 +1232,7 @@ proc spdAux::ProcDisableIfUniqueName { domNode args } {
 proc spdAux::ProcCheckGeometry { domNode args } {
     
     set level [lindex $args 0]
-    W $level
+    #W $level
     if {$level eq 1} {
         if {$::Model::SpatialDimension eq "3D"} {return volume} {return surface}
     }

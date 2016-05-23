@@ -158,37 +158,37 @@ proc write::processMaterials {  } {
     set material_number 0 
     
     foreach gNode [$root selectNodes $xp1] {
-	set group [$gNode getAttribute n]
-	#set valueNode [$gNode selectNodes $xp2]
-	#set material_name [get_domnode_attribute $valueNode v] 
-	set material_name "material $material_number"
-	if { ![dict exists $mat_dict $group] } {            
-	    incr material_number
-	    set mid $material_number
-	    
-	    set xp3 [spdAux::getRoute $matun]
-	    append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
-    
-	    dict set mat_dict $group MID $material_number 
-	    
-	    set s1 [$gNode selectNodes ".//value"]
-	    set s2 [$root selectNodes $xp3]
-	    set us [join [list $s1 $s2]]
-	    
-	    foreach valueNode $us {
-		set name [$valueNode getAttribute n]
-		set state [get_domnode_attribute $valueNode state]
-		if {$state eq "normal" && $name ne "Element"} {
-		    # All the introduced values are translated to 'm' and 'kg' with the help of this function
-		    set value [gid_groups_conds::convert_value_to_default $valueNode]
-		    
-		    if {[string is double $value]} {
-		        set value [format "%13.5E" $value]
-		    }
-		    dict set mat_dict $group $name $value
-		}
-	    }
-	} 
+        set group [$gNode getAttribute n]
+        #set valueNode [$gNode selectNodes $xp2]
+        #set material_name [get_domnode_attribute $valueNode v] 
+        set material_name "material $material_number"
+        if { ![dict exists $mat_dict $group] } {            
+            incr material_number
+            set mid $material_number
+            
+            set xp3 [spdAux::getRoute $matun]
+            append xp3 [format_xpath {/blockdata[@n="material" and @name=%s]/value} $material_name]
+        
+            dict set mat_dict $group MID $material_number 
+            
+            set s1 [$gNode selectNodes ".//value"]
+            set s2 [$root selectNodes $xp3]
+            set us [join [list $s1 $s2]]
+            
+            foreach valueNode $us {
+            set name [$valueNode getAttribute n]
+            set state [get_domnode_attribute $valueNode state]
+            if {$state eq "normal" && $name ne "Element"} {
+                # All the introduced values are translated to 'm' and 'kg' with the help of this function
+                set value [gid_groups_conds::convert_value_to_default $valueNode]
+                
+                if {[string is double $value]} {
+                    set value [format "%13.5E" $value]
+                }
+                dict set mat_dict $group $name $value
+            }
+            }
+        } 
     }
 }
 
@@ -202,32 +202,32 @@ proc write::writeElementConnectivities { } {
     set xp1 "[spdAux::getRoute $parts]/group"
     set material_number 0
     foreach gNode [$root selectNodes $xp1] {
-	set formats ""
-	set group [get_domnode_attribute $gNode n]
-	if { [dict exists $mat_dict $group] } {          
-	    set mid [dict get $mat_dict $group MID]
-	    if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
-	    #W $ov
-	    lassign [getEtype $ov] etype nnodes
-	    #W "$group $ov -> $etype $nnodes"
-	    if {$nnodes ne ""} {
-		set formats [GetFormatDict $group $mid $nnodes]
-		if {$etype ne "none"} {
-		    set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
-		    set elem [::Model::getElement $kelemtype]
-		    #W $kelemtype
-		    set top [$elem getTopologyFeature $etype $nnodes]
-		    if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
-		    set kratosElemName [$top getKratosName]
-		    WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
-		    write_calc_data connectivities $formats
-		    WriteString "End Elements"
-		    WriteString ""     
-		} 
-	    } else {
-		error [= "Error on $group -  no known element type"]
-	    } 
-	}
+        set formats ""
+        set group [get_domnode_attribute $gNode n]
+        if { [dict exists $mat_dict $group] } {          
+            set mid [dict get $mat_dict $group MID]
+            if {[$gNode hasAttribute ov]} {set ov [get_domnode_attribute $gNode ov] } {set ov [get_domnode_attribute [$gNode parent] ov] }
+            #W $ov
+            lassign [getEtype $ov] etype nnodes
+            #W "$group $ov -> $etype $nnodes"
+            if {$nnodes ne ""} {
+                set formats [GetFormatDict $group $mid $nnodes]
+                if {$etype ne "none"} {
+                    set kelemtype [get_domnode_attribute [$gNode selectNodes ".//value\[@n='Element']"] v]
+                    set elem [::Model::getElement $kelemtype]
+                    #W $kelemtype
+                    set top [$elem getTopologyFeature $etype $nnodes]
+                    if {$top eq ""} {W "Element $kelemtype not available for $ov entities on group $group"; continue}
+                    set kratosElemName [$top getKratosName]
+                    WriteString "Begin Elements $kratosElemName// GUI group identifier: $group" 
+                    write_calc_data connectivities $formats
+                    WriteString "End Elements"
+                    WriteString ""     
+                } 
+            } else {
+                error [= "Error on $group -  no known element type"]
+            } 
+        }
     } 
 }
 
@@ -257,7 +257,7 @@ proc write::writeConditions { baseUN } {
 	    } else {
 		set formats [write::GetFormatDict $groupid 0 $nnodes]
 		set elems [write_calc_data connectivities -return $formats]
-		W $elems
+		#W $elems
 		
 		set obj [GetListsOfNodes $elems $nnodes 2]
 	    }
