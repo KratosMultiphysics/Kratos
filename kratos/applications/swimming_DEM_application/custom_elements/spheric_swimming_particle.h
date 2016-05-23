@@ -25,6 +25,22 @@
 #include "../../applications/DEM_application/custom_elements/spheric_particle.h" 
 #include "../../applications/DEM_application/custom_elements/nanoparticle.h"
 
+
+#define SWIMMING_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
+#define SWIMMING_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
+#define SWIMMING_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
+#define SWIMMING_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
+#define SWIMMING_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
+#define SWIMMING_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+#define SWIMMING_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+#define SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
+#define SWIMMING_POW_2(a)                                a * a
+#define SWIMMING_POW_3(a)                                a * a * a
+#define SWIMMING_POW_4(a)                                a * a * a * a
+#define SWIMMING_POW_5(a)                                a * a * a * a * a
+#define SWIMMING_POW_6(a)                                a * a * a * a * a * a
+#define SWIMMING_POW_7(a)                                a * a * a * a * a * a * a
+
 namespace Kratos
 {
 
@@ -75,7 +91,7 @@ namespace Kratos
       void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
       std::vector<Node<3>::Pointer> mNeighbourNodes;
-      std::vector<double>   mNeighbourNodesDistances;
+      std::vector<double> mNeighbourNodesDistances;
 
       /// Turn back information as a string.
       virtual std::string Info() const
@@ -92,6 +108,9 @@ namespace Kratos
       virtual void PrintData(std::ostream& rOStream) const {}
       static std::vector<double> mAjs;
       static std::vector<double> mBns;
+      static std::vector<double> mCns;
+      static std::vector<double> mDns;
+      static std::vector<double> mEns;
       static bool mDaitcheVectorsAreFull;
 
     protected:
@@ -149,8 +168,8 @@ namespace Kratos
       ///@}
 
     private:
-
-        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& basset_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const ProcessInfo& r_current_process_info);
+        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& basset_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force, const double &force_reduction_coeff, const ProcessInfo& r_current_process_info);
+        void ApplyNumericalAveragingWithOldForces(array_1d<double, 3>& additionally_applied_force, const ProcessInfo& r_current_process_info);
         double ComputeDragCoefficient(const ProcessInfo& r_current_process_info);
         double ComputeStokesDragCoefficient();
         double ComputeWeatherfordDragCoefficient(const ProcessInfo& r_current_process_info);
