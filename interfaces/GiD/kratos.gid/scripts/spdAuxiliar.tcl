@@ -100,12 +100,12 @@ proc spdAux::reactiveApp { } {
     set root [$doc documentElement]
     set ::Model::SpatialDimension [[$root selectNodes "value\[@n='nDim'\]"] getAttribute v ]
     set appname [[$root selectNodes "hiddenfield\[@n='activeapp'\]"] @v ]
-    spdAux::activeApp $appname
-    #apps::setActiveApp $appname
+    #spdAux::activeApp $appname
+    apps::setActiveApp $appname
 }
 
 proc spdAux::activeApp { appid } {
-    #W "Active"
+    W "Active $appid"
     variable initwind
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -125,7 +125,7 @@ proc spdAux::activeApp { appid } {
     if {[[$root selectNodes "value\[@n='nDim'\]"] getAttribute v] ne ""} {
         [$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
         destroy $initwind
-        gid_groups_conds::open_conditions menu
+        #gid_groups_conds::open_conditions menu
         #gid_groups_conds::actualize_conditions_window
         #spdAux::RequestRefresh
         spdAux::TryRefreshTree
@@ -140,7 +140,8 @@ proc spdAux::CreateWindow {} {
     set activeapp [ [$root selectNodes "hiddenfield\[@n='activeapp'\]"] getAttribute v]
     
     if { $activeapp ne "" } {
-        reactiveApp
+        W "Reactivando $activeapp"
+        apps::setActiveApp $activeapp
         catch {destroy $initwind}
         return ""
     }
@@ -246,11 +247,10 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     set root [$doc documentElement]
     set ::Model::SpatialDimension $ndim
     [$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
-    spdAux::DestroyWindow 
-    gid_groups_conds::open_conditions menu
-    #gid_groups_conds::actualize_conditions_window
-    #spdAux::RequestRefresh
+    spdAux::DestroyWindow
+    after 100 [list gid_groups_conds::open_conditions menu ]
     spdAux::TryRefreshTree
+    
 }
 
 proc spdAux::DestroyWindow {} {

@@ -8,7 +8,7 @@ proc ::Fluid::Init { } {
     # Variable initialization
     variable dir
     variable prefix
-    
+    W "Sourced Fluid"
     set dir [apps::getMyDir "Fluid"]
     set prefix FL
     set ::Model::ValidSpatialDimensions [list 2D 3D]
