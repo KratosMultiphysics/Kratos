@@ -18,6 +18,7 @@ class ClassCreator(TemplateRule):
         members=None, procedures=None, author='KratosAppGenerator'
     ):
         # Check that name is in camelcase, or at least something parseable
+        super(ClassCreator, self).__init__()
 
         if not TestCamel(name):
             msg = Formatc([

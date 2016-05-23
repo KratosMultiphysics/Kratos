@@ -5,7 +5,8 @@ from utils.io import bcolors, Formatc
 
 class TemplateRule(object):
 
-    rules = []
+    def __init__(self):
+        self.rules = []
 
     def GetRule(self, ruleName):
         try:
