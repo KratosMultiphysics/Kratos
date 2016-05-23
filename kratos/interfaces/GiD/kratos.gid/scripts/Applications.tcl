@@ -25,6 +25,7 @@ proc apps::setActiveApp {appid} {
             break
         }
     }
+    #W "apps activada $appid"
     spdAux::activeApp $appid
 }
 
