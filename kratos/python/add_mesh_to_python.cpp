@@ -86,7 +86,7 @@ Properties::Pointer GetPropertiesFromElement( Element& pelem )
 }
 void SetPropertiesFromElement( Element& pelem, Properties::Pointer pProperties )
 {
-     pelem.pGetProperties() =pProperties ;
+     pelem.SetProperties(pProperties) ;
 }
 
 Properties::Pointer GetPropertiesFromCondition( Condition& pcond )
@@ -340,7 +340,7 @@ void  AddMeshToPython()
     //.def("HasSecondTimeDerivative", &Dof::HasSecondTimeDerivative)
     //.def(self_ns::str(self))
     //      ;
-    
+
     class_<GeometricalObject, GeometricalObject::Pointer, bases<GeometricalObject::BaseType, Flags > >("GeometricalObject", init<int>())
     ;
 
@@ -404,15 +404,15 @@ void  AddMeshToPython()
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
-    
+
     .def("Calculate", &ElementCalculateInterface<double>)
     .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
     .def("Calculate", &ElementCalculateInterface<Vector >)
     .def("Calculate", &ElementCalculateInterface<Matrix >)
-    
-    
-    
-    
+
+
+
+
 
     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
@@ -511,7 +511,7 @@ void  AddMeshToPython()
     				.def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
     				.def(SolutionStepVariableIndexingPython<Condition, Variable<matrix<double> > >())
     				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    */				
+    */
     .def("Initialize", &Condition::Initialize)
     //.def("CalculateLocalSystem", &Condition::CalculateLocalSystem)
     .def("Info", &Condition::Info)
