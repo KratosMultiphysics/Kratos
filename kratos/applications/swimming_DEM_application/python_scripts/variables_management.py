@@ -95,7 +95,7 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += pp.dem_printing_vars
     pp.dem_vars += pp.coupling_dem_vars
     pp.dem_vars += [BUOYANCY]
-
+    pp.dem_vars += [VELOCITY_OLD]
     if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
         pp.dem_vars += [VELOCITY_OLD]
         pp.dem_vars += [ADDITIONAL_FORCE_OLD]
@@ -308,10 +308,6 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [MATERIAL_FLUID_ACCEL_PROJECTED]
         pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
         pp.coupling_dem_vars += [ADDITIONAL_FORCE] # Here for safety for the moment
-
-        if pp.CFD_DEM.IntegrationScheme == 'Hybrid_Bashforth':
-            pp.coupling_dem_vars += [VELOCITY_OLD]
-            pp.coupling_dem_vars += [ADDITIONAL_FORCE_OLD]
 
         if pp.CFD_DEM.include_faxen_terms_option:
             pp.coupling_dem_vars += [FLUID_VEL_LAPL_PROJECTED]
