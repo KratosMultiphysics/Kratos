@@ -1,5 +1,4 @@
-from KratosMultiphysics import *
-import python_process
+import KratosMultiphysics 
 from math import *
 
 class aux_object:
@@ -30,28 +29,49 @@ class aux_object_cpp_callback:
         return eval(self.compiled_function)
         #return 0
         
+def Factory(settings, Model):
+    if(type(settings) != KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    return ApplyCustomFunctionProcess(Model, settings["Parameters"])
+
+    
 ##all the processes python processes should be derived from "python_process"
-class ApplyCustomFunctionProcess(Process):
-    def __init__(self, model_part, mesh_id, variable_name, interval, is_fixed, function_string, free_outside_of_interval=True):
-        #python_process.PythonProcess.__init__(self) 
-        Process.__init__(self) 
-        self.model_part = model_part
-        self.variable = globals().get(variable_name)
-        self.mesh = model_part.GetMesh(mesh_id)
+class ApplyCustomFunctionProcess(KratosMultiphysics.Process):
+    def __init__(self, Model, settings ):
+
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "mesh_id"         : 0,
+                "model_part_name" : "Outlet2D_Outlet_pressure_Auto1",
+                "variable_name"   : "TEMPERATURE",
+                "interval"        : [0.0, 10.0],
+                "is_fixed"		  : true,
+                "free_outside_of_interval" : false,
+                "f(x,y,z,t)"      : "x+y"
+            }
+            """
+            )
+            
+        settings.ValidateAndAssignDefaults(default_settings)
+
+        KratosMultiphysics.Process.__init__(self) 
+        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.variable = getattr(KratosMultiphysics, settings["variable_name"].GetString())
+        self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         #self.table = model_part.GetTable(table_id)
-        self.interval = interval #expected to be a vector of size 2
-        self.is_fixed = is_fixed
-        self.free_outside_of_interval = free_outside_of_interval
-        self.function_string = function_string
+        self.interval = settings["interval"] #expected to be a vector of size 2
+        self.is_fixed = settings["is_fixed"].GetBool()
+        self.free_outside_of_interval = settings["free_outside_of_interval"].GetBool()
+        self.function_string = settings["f(x,y,z,t)"].GetString()
         
         ##compile function function_string
         self.compiled_function = compile(self.function_string, '', 'eval', optimize=2) #here we precompile the expression so that then it is much faster to execute it
         
         #construct a variable_utils object to speedup fixing
-        self.variable_utils = VariableUtils()
+        self.variable_utils = KratosMultiphysics.VariableUtils()
         
         self.tmp = aux_object_cpp_callback(self.compiled_function)
-        self.cpp_apply_function_utility = PythonGenericFunctionUtility(self.variable, self.mesh.Nodes, self.tmp ) 
+        self.cpp_apply_function_utility = KratosMultiphysics.PythonGenericFunctionUtility(self.variable, self.mesh.Nodes, self.tmp ) 
             
         print("finished construction of ApplyCustomFunctionProcess Process")
     
@@ -60,9 +80,9 @@ class ApplyCustomFunctionProcess(Process):
         #return eval(self.function_string)
     
     def ExecuteInitializeSolutionStep(self):
-        current_time = self.model_part.ProcessInfo[TIME]
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         
-        if(current_time > self.interval[0] and  current_time<self.interval[1]):
+        if(current_time > self.interval[0].GetDouble() and  current_time<self.interval[1].GetDouble()):
             self.variable_utils.ApplyFixity(self.variable, self.is_fixed, self.mesh.Nodes)
             
             #create and pass around a list
@@ -82,7 +102,7 @@ class ApplyCustomFunctionProcess(Process):
             
     def ExecuteFinalizeSolutionStep(self):
         if self.free_outside_of_interval:
-            current_time = self.model_part.ProcessInfo[TIME]
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         
             if(current_time > self.interval[0] and  current_time<self.interval[1]):
                 
@@ -90,24 +110,24 @@ class ApplyCustomFunctionProcess(Process):
                 fix = False
                 self.variable_utils.ApplyFixity(self.variable, fix, self.mesh.Nodes)
     
-def Factory(settings, Model):
-    params = settings["parameters"]
+# def Factory(settings, Model):
+    # params = settings["parameters"]
     
-    if(settings["process_name"].GetString() == "ApplyCustomFunctionProcess"):
-        model_part = Model[params["model_part_name"].GetString()]
-        mesh_id = params["mesh_id"].GetInt()
-        variable_name = params["variable_name"].GetString() 
-        is_fixed = params["is_fixed"].GetBool()
+    # if(settings["process_name"].GetString() == "ApplyCustomFunctionProcess"):
+        # model_part = Model[params["model_part_name"].GetString()]
+        # mesh_id = params["mesh_id"].GetInt()
+        # variable_name = params["variable_name"].GetString() 
+        # is_fixed = params["is_fixed"].GetBool()
         #table_id = params["table_id"]
-        interval = [params["interval"][0].GetDouble(), params["interval"][1].GetDouble()]
-        free_outside_of_interval = params["free_outside_of_interval"].GetBool()
-        function_string = params["f(x,y,z,t)="].GetString() 
+        # interval = [params["interval"][0].GetDouble(), params["interval"][1].GetDouble()]
+        # free_outside_of_interval = params["free_outside_of_interval"].GetBool()
+        # function_string = params["f(x,y,z,t)="].GetString() 
         
-        if(len(interval) != 2):
-            raise Exception( "interval size is expected to be two, while we got interval = "+str(interval));
+        # if(len(interval) != 2):
+            # raise Exception( "interval size is expected to be two, while we got interval = "+str(interval));
         
         #here we could eventually sanitize the function
         
-        return ApplyCustomFunctionProcess(model_part, mesh_id, variable_name, interval, is_fixed, function_string, free_outside_of_interval)
-    else:
-        raise Exception("trying to construct a Process with the wrong name!")
+        # return ApplyCustomFunctionProcess(model_part, mesh_id, variable_name, interval, is_fixed, function_string, free_outside_of_interval)
+    # else:
+        # raise Exception("trying to construct a Process with the wrong name!")
