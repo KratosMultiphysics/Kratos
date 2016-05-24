@@ -386,7 +386,8 @@ public:
             Variable<array_1d<double,3> >& rDestVar,
             const int MaxIter,
             const double TolIter,
-            const bool sign_pos
+            const bool sign_pos,
+            const bool distributed
             );
 
     /**
@@ -403,7 +404,8 @@ public:
             Variable<double> & rDestVar,
             const int MaxIter,
             const double TolIter,
-            const bool sign_pos
+            const bool sign_pos,
+            const bool distributed
             );
 
     /**
@@ -420,7 +422,8 @@ public:
             Variable<double> & rDestVar,
             const int MaxIter,
             const double TolIter,
-            const bool sign_pos
+            const bool sign_pos,
+            const bool distributed
             );
 
     /**
@@ -437,7 +440,8 @@ public:
             Variable< array_1d<double,3> > & rDestVar,
             const int MaxIter,
             const double TolIter,
-            const bool sign_pos
+            const bool sign_pos,
+            const bool distributed
             );
 
     /**
