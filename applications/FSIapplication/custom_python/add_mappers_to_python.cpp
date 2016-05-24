@@ -43,6 +43,8 @@ void  AddMappersToPython()
 
     class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
     .def("FindNeighbours",&AdvancedNMPointsMapper::FindNeighbours)
+    .def("ScalarToNormalVectorMap",&AdvancedNMPointsMapper::ScalarToNormalVectorMap)
+    .def("NormalVectorToScalarMap",&AdvancedNMPointsMapper::NormalVectorToScalarMap)
     .def("ScalarMap",&AdvancedNMPointsMapper::ScalarMap)
     .def("VectorMap",&AdvancedNMPointsMapper::VectorMap)
     ;
