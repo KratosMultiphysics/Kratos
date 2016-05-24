@@ -261,13 +261,13 @@ void InterpolateFromFluidMesh(
         MultiplyNodalVariableBy(r_dem_model_part, FLUID_VEL_PROJECTED_RATE, delta_time_inv);
     }
 
-    if (IsDEMVariable(VELOCITY_OLD)){
-        UpdateOldVelocity(r_dem_model_part);
-    }
+//    if (IsDEMVariable(VELOCITY_OLD)){
+//        UpdateOldVelocity(r_dem_model_part);
+//    }
 
-    if (IsDEMVariable(ADDITIONAL_FORCE_OLD)){
-        UpdateOldAdditionalForce(r_dem_model_part);
-    }
+//    if (IsDEMVariable(ADDITIONAL_FORCE_OLD)){
+//        UpdateOldAdditionalForce(r_dem_model_part);
+//    }
 
     KRATOS_CATCH("")
 }
@@ -359,6 +359,14 @@ void InterpolateFromNewestFluidMesh(
 
         MultiplyNodalVariableBy(r_dem_model_part, FLUID_VEL_PROJECTED_RATE, delta_time_inv);
     }
+
+//    if (IsDEMVariable(VELOCITY_OLD)){
+//        UpdateOldVelocity(r_dem_model_part);
+//    }
+
+//    if (IsDEMVariable(ADDITIONAL_FORCE_OLD)){
+//        UpdateOldAdditionalForce(r_dem_model_part);
+//    }
 
     KRATOS_CATCH("")
 }
