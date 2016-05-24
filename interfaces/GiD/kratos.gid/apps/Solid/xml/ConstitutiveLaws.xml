@@ -35,8 +35,8 @@
             
         </outputs>
     </CLaw>
-    <CLaw n="LinearElasticAxisym2DLaw" pn="Linear Elastic Axisymmetric" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
-          help="Linear Elastic Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
+    <CLaw n="LinearElasticAxisym2DLaw" pn="Linear Elastic" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
+          help="Linear Elastic Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="False" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
@@ -107,8 +107,8 @@
             
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticAxisym2DLaw" pn="HyperElastic Axisymmetric" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
-          help="NeoHookean HyperElastic Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+    <CLaw n="HyperElasticAxisym2DLaw" pn="HyperElastic" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
+          help="NeoHookean HyperElastic Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
@@ -142,8 +142,8 @@
             
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticUPAxisym2DLaw" pn="HyperElastic U-P Axisymmetric" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
-          help="NeoHookean HyperElastic U-P Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+    <CLaw n="HyperElasticUPAxisym2DLaw" pn="HyperElastic U-P" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Elastic" StrainSize="4"
+          help="NeoHookean HyperElastic U-P Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
@@ -189,8 +189,8 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Plastic Strain Rate"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticJ2Axisym2DLaw" pn="PLastic J2 Axisymmetric" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4"
-          help="NeoHookean HyperElastic Plastic J2 Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
+    <CLaw n="HyperElasticPlasticJ2Axisym2DLaw" pn="PLastic J2" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4"
+          help="NeoHookean HyperElastic Plastic J2 Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="True" RequiresLocalAxes="False" HybridType="False" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />
@@ -240,8 +240,8 @@
             <parameter n="DELTA_PLASTIC_STRAIN" pn="Delta Plastic Strain"/>
         </outputs>
     </CLaw>
-    <CLaw n="HyperElasticPlasticUPJ2Axisym2DLaw" pn="PLastic J2 U-P Axisymmetric" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4"
-          help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 2D Axisymmetric" Dimension="2D" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
+    <CLaw n="HyperElasticPlasticUPJ2Axisym2DLaw" pn="PLastic J2 U-P" ProductionReady="ProductionReady" Type="Axisymmetric" behaviour="Plastic" StrainSize="4"
+          help="NeoHookean HyperElastic Plastic J2 U-P Behaviour in 2D Axisymmetric" Dimension="2Da" LargeDeformation="True" RequiresLocalAxes="False" HybridType="U-P" >
         <inputs>
             <parameter n="DENSITY" pn="Density" unit_magnitude="Density" units="kg/m^3" v="7850"/>
             <parameter n="YOUNG_MODULUS" pn="Young Modulus" unit_magnitude="P" units="Pa" v="206.9e9" />

@@ -37,6 +37,24 @@
     </outputs>
   </ConditionItem>
   
+  <ConditionItem n="SelfWeight2Da" pn="Self weight" ImplementedInFile="process_factory"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	WorkingSpaceDimension="2Da" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
+	ElementType="Line,Surface"  ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
+    help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
+    <TopologyFeatures>
+    </TopologyFeatures>
+    <inputs>
+    </inputs>
+    <DefaultValues>
+	  <value n="factor" pn="Modulus" v="9.8" />
+	  <value n="direction" v="0.0,-1.0,0.0" />
+    </DefaultValues>
+    <outputs>
+      <parameter n="FORCE" pn="External Load" v="false"/>
+    </outputs>
+  </ConditionItem>
+
   <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="process_factory"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
@@ -52,7 +70,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="PointLoad2DAxisym" pn="Load on points axisymmetric" ImplementedInFile="process_factory"
+  <ConditionItem n="PointLoad2DAxisym" pn="Load on points" ImplementedInFile="process_factory"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
@@ -82,10 +100,10 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process"
+  <ConditionItem n="LineLoad2D" pn="Load on lines" ImplementedInFile="process_factory"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
-	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
+	ElementType="Line" ProcessName="ApplyConstantVectorValueProcess" help="Load on lines, load vector referred to global axes"
 	units="N/m" unit_magnitude="F/L" VariableName="LINE_LOAD">
     <TopologyFeatures>
       <item  GeometryType="Line" nodes="2" KratosName="LineLoadCondition2D2N"/>
@@ -98,7 +116,7 @@
     </outputs>
   </ConditionItem>
 
-  <ConditionItem n="LineLoad2DAxisym" pn="Load on lines axisymmetric" ImplementedInFile="apply_vector_on_conditions_process"
+  <ConditionItem n="LineLoad2DAxisym" pn="Load on lines" ImplementedInFile="apply_vector_on_conditions_process"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyVectorOnConditionsProcess" help="Load on lines, load vector referred to global axes"
@@ -149,7 +167,7 @@
     </outputs>
   </ConditionItem>
   
-  <ConditionItem n="LinePressure2DAxisym" pn="Pressure on lines axisymmetric" ImplementedInFile="apply_scalar_on_conditions_processs"
+  <ConditionItem n="LinePressure2DAxisym" pn="Pressure on lines" ImplementedInFile="apply_scalar_on_conditions_processs"
 	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="1" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line" ProcessName="ApplyScalarOnConditionsProcess" help="Normal pressure on lines, oriented pointing against the line outer normal"
