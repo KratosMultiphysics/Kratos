@@ -170,7 +170,6 @@ proc spdAux::CreateWindow {} {
     set appsid [::apps::getAllApplicationsID]
     set appspn [::apps::getAllApplicationsName]
     
-    
     set col 0
     set row 0
     foreach appname $appspn appid $appsid {
@@ -187,7 +186,6 @@ proc spdAux::CreateWindow {} {
         }
     }
     
-    
     grid $w.top
     grid $w.top.title_text
     
@@ -195,6 +193,7 @@ proc spdAux::CreateWindow {} {
 }
 
 proc spdAux::CreateDimensionWindow { } {
+    package require anigif 1.3
     variable initwind
     set doc $gid_groups_conds::doc
     set root [$doc documentElement]
@@ -229,10 +228,18 @@ proc spdAux::CreateDimensionWindow { } {
         ttk::frame $w.information  -relief ridge
         set i 0
         foreach dim $::Model::ValidSpatialDimensions {
-            set imagepath [file nativename [file join $dir images "$dim.png"]]
+            set imagepath [getImagePathDim $dim]
+            if {![file exists $imagepath]} {set imagepath [file nativename [file join $dir images "$dim.gif"]]}
             set img [gid_themes::GetImageModule $imagepath ""]
-            ttk::button $w.information.img$dim -image $img -command [list spdAux::SwitchDimAndCreateWindow $dim]
+            W [file extension $imagepath]
+            set but [ttk::button $w.information.img$dim -image $img -command [list spdAux::SwitchDimAndCreateWindow $dim] ]
+            
             grid $w.information.img$dim -column $i -row 0
+            if {[file extension $imagepath] eq ".gif"} {
+                ::anigif::anigif $imagepath $but
+                ::anigif::restart $but
+                W $but
+            }
             incr i
         }
         grid $w.top
@@ -253,6 +260,15 @@ proc spdAux::SwitchDimAndCreateWindow { ndim } {
     
 }
 
+proc spdAux::getImagePathDim { dim } {
+    set imagepath ""
+    set imagepath [apps::getImgPathFrom [apps::getActiveAppId] "$dim.gif"]
+    if {[file exists $imagepath]} {return $imagepath}
+    set imagepath [apps::getImgPathFrom [apps::getActiveAppId] "$dim.png"]
+    if {[file exists $imagepath]} {return $imagepath}
+    set imagepath [file nativename [file join $::Model::dir images "$dim.png"] ]
+    return $imagepath
+}
 proc spdAux::DestroyWindow {} {
     variable initwind
     catch {destroy $initwind}

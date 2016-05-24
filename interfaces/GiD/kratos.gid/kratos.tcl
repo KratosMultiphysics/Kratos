@@ -97,6 +97,11 @@ proc Kratos::InitGIDProject { dir } {
     foreach filename {Model.tcl Entity.tcl Parameter.tcl Topology.tcl Solver.tcl ConstitutiveLaw.tcl Condition.tcl Element.tcl SolutionStrategy.tcl Process.tcl} {
         uplevel 1 [list source [file join $dir scripts Model $filename]]
     }
+    
+    # JG Sources will be in a different proc
+    foreach filename {anigif.tcl} {
+        uplevel 1 [list source [file join $dir libs $filename]]
+    }
      
     Kratos::load_gid_groups_conds
     Kratos::LoadEnvironment
@@ -124,8 +129,8 @@ proc Kratos::ChangeMenus { } {
     GiDMenu::InsertOption "Kratos" [list "---"] 1 PRE "" "" "" replace =
     GiDMenu::InsertOption "Kratos" [list "You are in $fromode" ] 2 PRE [list ] "" "" replace =
     GiDMenu::InsertOption "Kratos" [list "Switch to $tomode" ] 3 PRE [list Kratos::SwitchMode] "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "---"] 4 PRE "" "" "" replace =
-    GiDMenu::InsertOption "Kratos" [list "Local axes" ] 5 PRE [list gid_groups_conds::local_axes_menu %W] "" "" replace =
+    #GiDMenu::InsertOption "Kratos" [list "---"] 4 PRE "" "" "" replace =
+    #GiDMenu::InsertOption "Kratos" [list "Local axes" ] 5 PRE [list gid_groups_conds::local_axes_menu %W] "" "" replace =
     GidChangeDataLabel "Data units" ""
     GidChangeDataLabel "Interval" ""
     GidChangeDataLabel "Conditions" ""
