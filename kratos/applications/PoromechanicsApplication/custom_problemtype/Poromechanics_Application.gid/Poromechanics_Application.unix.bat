@@ -1,21 +1,27 @@
-#!/bin/bash
-# OutputFile: $2/$1.info
-# ErrorFile: $2/$1.err
+#!/bin/sh
 
-# Identification for arguments
-# basename               = ${1}
-# Project directory      = ${2}
-# Problem Type directory = ${3}
+# USED BY GiD
+# OutputFile: "$1.log"
+# ErrorFile: "$1.err"
 
+# Information
+#basename = $1
+#currentdirectory = $2
+#problemtypedirectory = $3
 
-rm -f "${2}/${1}.info"
-rm -f "${2}/${1}.err"
+# Remove old files
+rm -f "$1.post.bin"
+rm -f "$1.post.res"
+rm -f "$1.post.msh"
+rm -f "$1.log"
+rm -f "$1.err"
 
-mv "${2}/${1}.dat" "${2}/${1}.mdpa"
-mv "${2}/${1}-1.dat" "${2}/ProjectParameters.py"
-cp "${3}/../../python_scripts/main_script.py" "${2}/"
+# Update input files
+mv "$1.dat" "$1.mdpa"
+mv "$1-1.dat" "ProjectParameters.py"
+cp "$3/../../python_scripts/main_script.py" "$2/"
 
-# WARNING: one must properly set the following paths before running this file
+# Setting paths. WARNING: one must properly set them before running this file
 
 #Linux
 #Setting PATHs for kratos
@@ -28,8 +34,8 @@ export PATH="/usr/bin/python3:$PATH"
 #Setting PATHs for kratos
 #export PYTHONPATH="/path/to/kratos:$PYTHONPATH"
 #export DYLD_LIBRARY_PATH="/path/to/kratos/libs:/path/to/boost/stage/lib:$DYLD_LIBRARY_PATH"
-#Setting PATH for Python 3.5
+#Setting PATH for Python 3
 #export PATH="/Library/Frameworks/Python.framework/Versions/3.5/bin:${PATH}"
 
-
-python3 "${2}/main_script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
+# Execute the program
+"python3" "main_script.py" > "$1.log" 2> "$1.err"
