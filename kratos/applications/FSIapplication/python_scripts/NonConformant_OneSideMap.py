@@ -89,6 +89,7 @@ class NonConformant_OneSideMap:
         (self.FluidToStructureMapper).FindNeighbours(search_radius_factor)
         (self.StructureToFluidMapper).FindNeighbours(search_radius_factor)
 
+    # Standard mappers
     def StructureToFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination, sign_pos):
         (self.StructureToFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
 
@@ -100,3 +101,16 @@ class NonConformant_OneSideMap:
 
     def FluidToStructure_ScalarMap(self, ScalarVar_Origin, ScalarVar_Destination, sign_pos):
         (self.FluidToStructureMapper).ScalarMap(ScalarVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+        
+    # Normal vectors
+    def StructureToFluid_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
+        (self.StructureToFluidMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def StructureToFluid_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.StructureToFluidMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def FluidToStructure_ScalarToNormalVectorMap(self, ScalarVar_Origin, VectorVar_Destination, sign_pos):
+        (self.FluidToStructureMapper).ScalarToNormalVectorMap(ScalarVar_Origin, VectorVar_Destination, self.it_max, self.tol, sign_pos)
+
+    def FluidToStructure_NormalVectorToScalarMap(self, VectorVar_Origin, ScalarVar_Destination, sign_pos):
+        (self.FluidToStructureMapper).NormalVectorToScalarMap(VectorVar_Origin, ScalarVar_Destination, self.it_max, self.tol, sign_pos)
