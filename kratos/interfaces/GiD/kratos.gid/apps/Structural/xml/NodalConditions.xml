@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <NodalConditionList>
   <NodalConditionItem n="ROTATION" pn="Rotation" ProcessName="ImposeVectorValueByComponentsProcess" fixity="Imposed"
-					  analysis_type="Static" unit_magnitude="Angle" units="rad" VariableName="ROTATION">
+					  analysis_type="Static,Dynamic" unit_magnitude="Angle" units="rad" VariableName="ROTATION">
     <outputs>
       <parameter n="TORQUE" pn="Torque" v="Yes"/>
     </outputs>
