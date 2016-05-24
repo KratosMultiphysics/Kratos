@@ -804,11 +804,6 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap( // Note: JUST 3D!!!!
             dValNorm += dVal * dVal;
             ValNorm  += std::pow(inner_prod(node_it->FastGetSolutionStepValue(rDestVar), NormalVector), 2);
 
-            if (distributed == true)
-            {
-                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-            }
-
             NodeNum++;
         }
         //std::cout << "ScalarToNormalVectorMap iteration: " << k+1 << std::endl;
@@ -826,6 +821,17 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap( // Note: JUST 3D!!!!
         else if ((k + 1) == MaxIter)
         {
             std::cout << "WARNING: ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+        }
+
+        if (distributed == true)
+        {
+            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                    node_it != mrDestinationModelPart.NodesEnd();
+                    node_it++)
+            {
+                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+            }
         }
     } // End of Iteration
 
@@ -1008,11 +1014,6 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
                 ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar) * NormalVector[j], 2);
             }
 
-            if (distributed == true)
-            {
-                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-            }
-
             NodeNum++;
         }
         //std::cout << "NormalVectorToScalarMap iteration: " << k+1 << std::endl;
@@ -1032,6 +1033,17 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
             std::cout << "WARNING: NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
         }
     } // End of Iteration
+
+    if (distributed == true)
+    {
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+            node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+        }
+    }
 
 } // End of Map (normal vector to scalar version)
 
@@ -1204,11 +1216,6 @@ void AdvancedNMPointsMapper::ScalarMap(
                 dValNorm += dVal * dVal;
                 ValNorm  += std::pow(node_it->FastGetSolutionStepValue(rDestVar), 2);
 
-                if (distributed == true)
-                {
-                    node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-                }
-
                 NodeNum++;
             }
             //std::cout << "ScalarMap iteration: " << k+1 << std::endl;
@@ -1228,6 +1235,17 @@ void AdvancedNMPointsMapper::ScalarMap(
                 std::cout << "WARNING: ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
+
+        if (distributed == true)
+        {
+            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                    node_it != mrDestinationModelPart.NodesEnd();
+                    node_it++)
+            {
+                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+            }
+        }
     }
 
 } // End of Map (scalar version)
@@ -1423,11 +1441,6 @@ void AdvancedNMPointsMapper::VectorMap(
                     ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar)[j], 2);
                 }
 
-                if (distributed == true)
-                {
-                    node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
-                }
-
                 NodeNum++;
             }
             //std::cout << "VectorMap iteration: " << k+1 << std::endl;
@@ -1437,7 +1450,7 @@ void AdvancedNMPointsMapper::VectorMap(
             {
                 RelativeError = dValNorm / ValNorm;
             }
-            if( (ValNorm/NodeNum < 0.00001 * TolIter*TolIter) || RelativeError < TolIter * TolIter)
+            if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
                 std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
@@ -1447,6 +1460,17 @@ void AdvancedNMPointsMapper::VectorMap(
                 std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
+
+        if (distributed == true)
+        {
+            for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                    node_it != mrDestinationModelPart.NodesEnd();
+                    node_it++)
+            {
+                const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+            }
+        }
     }
 
 } // End of Map (vector version)
