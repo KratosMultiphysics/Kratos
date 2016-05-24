@@ -76,6 +76,12 @@
       return [spdAux::chk_loads_function_time $domNode $load_name]
 	  ]]>
     </proc>
+	  
+	          <proc n='CheckGeometryStructural' args='args'>
+          <![CDATA[                
+                if {$::Model::SpatialDimension eq "3D"} {return surface,volume} {return surface}                
+          ]]>
+        </proc>
 
 
 
