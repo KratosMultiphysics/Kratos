@@ -309,6 +309,14 @@
 	  return [spdAux::ProcShowInMode $domNode $args]
 	  ]]>
 	</proc>
+	   <proc n='UpdateDictAndReturnState' args='args'>
+          <![CDATA[                
+				set dict [get_domnode_attribute $domNode dict]
+				spdAux::ProcGetConstitutiveLaws $domNode
+				spdAux::RequestRefresh
+				return "normal"
+          ]]>
+        </proc>
 	<dynamicnode command="injectProcs" args=""/>
   </procs>
   <translations>
