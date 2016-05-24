@@ -146,7 +146,10 @@ def BenchmarkCheck(o_model_part, d_model_part):
 # defining a model part for the fluid and one for the structure
 origin_model_part = ModelPart("structure_part")
 destination_model_part = ModelPart("fluid_part")
+origin_model_part.AddNodalSolutionStepVariable(POINT_LOAD)
+destination_model_part.AddNodalSolutionStepVariable(POINT_LOAD)
 origin_model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+destination_model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
 
 #
 # importing the solvers needed
@@ -218,6 +221,7 @@ for node in destination_model_part.Nodes:
     node.SetSolutionStepValue(VELOCITY_X, 0, -node.X - node.Z)
     node.SetSolutionStepValue(VELOCITY_Y, 0, 0.0)
     node.SetSolutionStepValue(VELOCITY_Z, 0, node.X + node.Y)
+    node.SetSolutionStepValue(POINT_LOAD_X, 0, 1.0)
     node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
     #node.Set(INTERFACE, True)
 print("***** Velocity assigned to nodes *****")
@@ -239,8 +243,9 @@ mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_par
 print("***** mapper created *****")
 
 mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE, True, False)
-mapper.FluidToStructure_ScalarToNormalVectorMap(PRESSURE, SURFACE_LOAD, True, False)
+#mapper.FluidToStructure_ScalarToNormalVectorMap(PRESSURE, SURFACE_LOAD, True, False)
 mapper.FluidToStructure_VectorMap(VELOCITY, VELOCITY, True, False)
+mapper.FluidToStructure_VectorMap(POINT_LOAD, SURFACE_LOAD, True, True)
 print("***** information transferred *****")
 
 if (benchmarking.InBuildReferenceMode()):
@@ -257,6 +262,7 @@ gid_io.FinalizeMesh()
 
 gid_io.InitializeResults(1, destination_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, destination_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(POINT_LOAD, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, destination_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(IS_INTERFACE, destination_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
