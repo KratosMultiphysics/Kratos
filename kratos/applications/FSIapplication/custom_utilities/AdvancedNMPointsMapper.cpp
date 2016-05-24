@@ -14,6 +14,9 @@
 // Project includes
 #include "AdvancedNMPointsMapper.hpp"
 
+// TODO: Clean code, too much C/P
+// TODO: Clean code, use internal functions from Kratos, as Geometry.Area()....
+
 namespace Kratos
 {
 // GaussPointItem Methods
@@ -646,6 +649,378 @@ void AdvancedNMPointsMapper::SetProjectionToNode(
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvancedNMPointsMapper::ScalarToNormalVectorMap( // Note: JUST 3D!!!!
+        const Variable<double> & rOriginVar,
+        Variable<array_1d<double,3> >& rDestVar,
+        const int MaxIter,
+        const double TolIter,
+        const bool sign_pos
+        )
+{
+    double sign = 1.0;
+    if (sign_pos == false)
+    {
+        sign = -1.0;
+    }
+
+    array_1d<double,3> ZeroVect = ZeroVector(3);
+
+    // Build (Diagonal) System Matrix and initialize results
+    for ( ModelPart::NodesContainerType::iterator node_it = mrDestinationModelPart.NodesBegin();
+            node_it != mrDestinationModelPart.NodesEnd();
+            node_it++)
+    {
+        node_it->GetValue(NODAL_MAUX) = 0.0;
+        node_it->FastGetSolutionStepValue(rDestVar) = ZeroVect;
+    }
+
+    // Define some variables that will be used in the iteration
+    MatrixVar MCons; // Elemental Consistent Mass Matrix = Aelem/12 * MCons
+    MCons(0, 0) = 2.0;
+    MCons(0, 1) = 1.0;
+    MCons(0, 2) = 1.0;
+    MCons(1, 0) = 1.0;
+    MCons(1, 1) = 2.0;
+    MCons(1, 2) = 1.0;
+    MCons(2, 0) = 1.0;
+    MCons(2, 1) = 1.0;
+    MCons(2, 2) = 2.0;
+
+    MatrixVar MInterp; // Interpolation Matrix (NodalValues = (A/24)*MInterp*GaussValues)
+    MInterp(0, 0) = 6.0;
+    MInterp(0, 1) = 1.0;
+    MInterp(0, 2) = 1.0;
+    MInterp(1, 0) = 1.0;
+    MInterp(1, 1) = 6.0;
+    MInterp(1, 2) = 1.0;
+    MInterp(2, 0) = 1.0;
+    MInterp(2, 1) = 1.0;
+    MInterp(2, 2) = 6.0;
+
+    std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
+
+    // Here we loop both the Destination Model Part and the Gauss Point List, using the
+    // fact that the GP list was created by a loop over the Dest. Model Part's conditions
+    int GPi = 0;
+    for (ModelPart::ConditionsContainerType::iterator cond_it = mrDestinationModelPart.ConditionsBegin();
+            cond_it != mrDestinationModelPart.ConditionsEnd();
+            cond_it++)
+    {
+        array_1d<double,3> GPValues;
+        array_1d<double,3> NodalValues;
+
+        double CondArea = 0.0;
+        mGaussPointList[GPi]->GetArea(CondArea);
+
+        array_1d<double,3> NormalVector = ZeroVect;
+        mGaussPointList[GPi]->GetNormal(NormalVector);
+
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
+            mGaussPointList[GPi + i]->GetProjectedValue(rOriginVar, GPValues[i], 3);
+
+            cond_it->GetGeometry()[i].GetValue(NORMAL) += NormalVector;
+        }
+
+        noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
+
+        boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
+        pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
+
+        GPi += 3; // 1 Condition = 3 Gauss Points
+    }
+
+    for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+            node_it != mrDestinationModelPart.NodesEnd();
+            node_it++)
+    {
+        const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
+        node_it->GetValue(NORMAL) = NormalVector/norm_2(NormalVector);
+    }
+
+    // Iteration
+    for (int k = 0; k < MaxIter; k++)
+    {
+        // At the begining of each iteration initialize the variable containing the assembled RHS as 0
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            node_it->GetValue(AUX) = 0.0;
+        }
+
+        array_1d<double, 3> LocalRHS;
+        array_1d<double, 3> LastSolution;
+        int IV_iter = 0;
+
+        for (ModelPart::ConditionsContainerType::iterator cond_it = mrDestinationModelPart.ConditionsBegin();
+                cond_it != mrDestinationModelPart.ConditionsEnd();
+                cond_it++)
+        {
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                const array_1d<double,3> NormalVector = cond_it->GetGeometry()[j].GetValue(NORMAL);
+                LocalRHS[j] = 0.0;
+                LastSolution[j] = sign * inner_prod(cond_it->GetGeometry()[j].FastGetSolutionStepValue(rDestVar), NormalVector);
+            }
+
+            double CondArea = 0.0;
+            mGaussPointList[3 * IV_iter]->GetArea(CondArea);
+
+            noalias(LocalRHS) = *pInterpValues[IV_iter] - (CondArea/12.0) * prod(MCons, LastSolution);
+            // We are taking advantage of 1 Condition = 3 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
+
+            for (unsigned int j = 0; j < 3 ; j++)
+            {
+                cond_it->GetGeometry()[j].GetValue(AUX) += LocalRHS[j];
+            }
+
+            IV_iter++;
+        }
+
+        // Solve
+        double dValNorm      = 0.0;
+        double ValNorm       = 0.0;
+        double RelativeError = 0.0;
+        unsigned int NodeNum = 0;
+
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
+            const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+            //node_it->FastGetSolutionStepValue(NODAL_MAUX) = NodeArea; // TEST: store nodal area so GiD can paint it later
+            double dVal = node_it->GetValue(AUX)/NodeArea;
+            node_it->FastGetSolutionStepValue(rDestVar) += sign * dVal * NormalVector;
+
+            // Variables for convergence check
+            dValNorm += dVal * dVal;
+            ValNorm  += std::pow(inner_prod(node_it->FastGetSolutionStepValue(rDestVar), NormalVector), 2);
+            NodeNum++;
+        }
+        //std::cout << "ScalarToNormalVectorMap iteration: " << k+1 << std::endl;
+
+        // Check Convergence
+        if(ValNorm > 10e-15)
+        {
+            RelativeError = dValNorm / ValNorm;
+        }
+        if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
+        {
+            std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
+            break;
+        }
+        else if ((k + 1) == MaxIter)
+        {
+            std::cout << "WARNING: ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+        }
+    } // End of Iteration
+
+} // End of Map (scalar to normal vector version)
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
+        const Variable<array_1d<double,3> >& rOriginVar,
+        Variable<double> & rDestVar,
+        const int MaxIter,
+        const double TolIter,
+        const bool sign_pos
+        )
+{
+    double sign = 1.0;
+    if (sign_pos == false)
+    {
+        sign = -1.0;
+    }
+
+    array_1d<double,3> ZeroVect = ZeroVector(3);
+
+    // Build (Diagonal) System Matrix and initialize results
+    for ( ModelPart::NodesContainerType::iterator node_it = mrDestinationModelPart.NodesBegin();
+            node_it != mrDestinationModelPart.NodesEnd();
+            node_it++)
+    {
+        node_it->GetValue(NODAL_MAUX) = 0.0;
+        node_it->FastGetSolutionStepValue(rDestVar) = 0.0;
+    }
+
+    std::vector< boost::shared_ptr<array_1d<double,9> > > pInterpValues;
+
+    // Here we loop both the Destination Model Part and the Gauss Point List, using the
+    // fact that the GP list was created by a loop over the Dest. Model Part's conditions
+    int GPi = 0;
+    for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
+            cond_it != mrDestinationModelPart.ConditionsEnd();
+            cond_it++)
+    {
+        array_1d<double, 9> GPValues;
+        array_1d<double, 9> NodalValues;
+
+        double CondArea = 0.0;
+        mGaussPointList[GPi]->GetArea(CondArea);
+        const double K = CondArea/24.0;
+
+        array_1d<double,3> NormalVector = ZeroVect;
+        mGaussPointList[GPi]->GetNormal(NormalVector);
+
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            cond_it->GetGeometry()[i].GetValue(NODAL_MAUX) += 0.333333333333333333 * CondArea;
+
+            cond_it->GetGeometry()[i].GetValue(NORMAL) += NormalVector;
+        }
+
+        array_1d<double,3> TempValues = ZeroVect;
+
+        mGaussPointList[GPi]->GetProjectedValue(rOriginVar, TempValues, 3);
+
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            GPValues[i] = TempValues[i];
+        }
+
+        mGaussPointList[GPi + 1]->GetProjectedValue(rOriginVar, TempValues, 3);
+
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            GPValues[3 + i] = TempValues[i];
+        }
+
+        mGaussPointList[GPi + 2]->GetProjectedValue(rOriginVar, TempValues, 3);
+
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            GPValues[6 + i] = TempValues[i];
+        }
+
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            NodalValues[i]     = K*(6.0 * GPValues[i] + 1.0 * GPValues[3 + i] + 1.0 * GPValues[6 + i]);
+            NodalValues[3 + i] = K*(1.0 * GPValues[i] + 6.0 * GPValues[3 + i] + 1.0 * GPValues[6 + i]);
+            NodalValues[6 + i] = K*(1.0 * GPValues[i] + 1.0 * GPValues[3 + i] + 6.0 * GPValues[6 + i]);
+        }
+
+        boost::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
+        pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
+
+        GPi += 3; // 1 Condition = 3 Gauss Points
+    }
+
+
+    for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+            node_it != mrDestinationModelPart.NodesEnd();
+            node_it++)
+    {
+        const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
+        node_it->GetValue(NORMAL) = NormalVector/norm_2(NormalVector);
+    }
+
+    // Iteration
+    for (int k = 0; k < MaxIter; k++)
+    {
+        // At the begining of each iteration initialize the variable containing the assembled RHS as 0
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            node_it->GetValue(VAUX) = ZeroVect;
+        }
+
+        array_1d<double, 3> LocalRHS0, LocalRHS1, LocalRHS2; // Local RHS for each node
+        array_1d<double, 9> LastSolution;
+        int IV_iter = 0;
+
+        for (ModelPart::ConditionIterator cond_it = mrDestinationModelPart.ConditionsBegin();
+                cond_it != mrDestinationModelPart.ConditionsEnd();
+                cond_it++)
+        {
+            double CondArea = 0.0;
+            mGaussPointList[3 * IV_iter]->GetArea(CondArea);
+            const double K = CondArea/12.0;
+
+            LocalRHS0 = ZeroVect;
+            LocalRHS1 = ZeroVect;
+            LocalRHS2 = ZeroVect;
+
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                array_1d<double,3> NormalVector = cond_it->GetGeometry()[0].GetValue(NORMAL);
+                LastSolution[j    ] = sign * cond_it->GetGeometry()[0].FastGetSolutionStepValue(rDestVar) * NormalVector[j];
+                NormalVector = cond_it->GetGeometry()[1].GetValue(NORMAL);
+                LastSolution[j + 3] = sign * cond_it->GetGeometry()[1].FastGetSolutionStepValue(rDestVar) * NormalVector[j];
+                NormalVector = cond_it->GetGeometry()[2].GetValue(NORMAL);
+                LastSolution[j + 6] = sign * cond_it->GetGeometry()[2].FastGetSolutionStepValue(rDestVar) * NormalVector[j];
+            }
+
+            array_1d<double,9> CondValues = *pInterpValues[IV_iter];
+
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                LocalRHS0[j] = CondValues[j]     - K * (2.0 * LastSolution[j] + 1.0 * LastSolution[j + 3] + 1.0 * LastSolution[j + 6]);
+                LocalRHS1[j] = CondValues[j + 3] - K * (1.0 * LastSolution[j] + 2.0 * LastSolution[j + 3] + 1.0 * LastSolution[j + 6]);
+                LocalRHS2[j] = CondValues[j + 6] - K * (1.0 * LastSolution[j] + 1.0 * LastSolution[j + 3] + 2.0 * LastSolution[j + 6]);
+            }
+            // We are taking advantage of 1 Condition = 3 Gauss Points to iterate the interpolation results and the Gauss Point Vector Again
+
+            cond_it->GetGeometry()[0].GetValue(VAUX) += LocalRHS0;
+            cond_it->GetGeometry()[1].GetValue(VAUX) += LocalRHS1;
+            cond_it->GetGeometry()[2].GetValue(VAUX) += LocalRHS2;
+
+            IV_iter++;
+        }
+
+        // Solve
+        array_1d<double,3> dVal = ZeroVect;
+        double dValNorm      = 0.0;
+        double ValNorm       = 0.0;
+        double RelativeError = 0.0;
+        unsigned int NodeNum = 0;
+
+        for (ModelPart::NodeIterator node_it = mrDestinationModelPart.NodesBegin();
+                node_it != mrDestinationModelPart.NodesEnd();
+                node_it++)
+        {
+            const array_1d<double,3> NormalVector = node_it->GetValue(NORMAL);
+            const double & NodeArea = node_it->GetValue(NODAL_MAUX);
+            noalias(dVal) = node_it->GetValue(VAUX)/NodeArea;
+            node_it->FastGetSolutionStepValue(rDestVar) += sign * inner_prod(dVal, NormalVector);
+
+            // Variables for convergence check
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                dValNorm += dVal[j] * dVal[j];
+                ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar) * NormalVector[j], 2);
+            }
+
+            NodeNum++;
+        }
+        //std::cout << "NormalVectorToScalarMap iteration: " << k+1 << std::endl;
+
+        // Check Convergence
+        if(ValNorm > 10e-15)
+        {
+            RelativeError = dValNorm / ValNorm;
+        }
+        if( (ValNorm/NodeNum < 0.00001 * TolIter*TolIter) || RelativeError < TolIter * TolIter)
+        {
+            std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
+            break;
+        }
+        else if ( (k + 1) == MaxIter)
+        {
+            std::cout << "WARNING: NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+        }
+    } // End of Iteration
+
+} // End of Map (normal vector to scalar version)
 
 /***********************************************************************************/
 /***********************************************************************************/
