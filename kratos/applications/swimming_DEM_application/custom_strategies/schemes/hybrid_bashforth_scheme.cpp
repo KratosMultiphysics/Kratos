@@ -16,7 +16,7 @@ namespace Kratos {
 
     void HybridBashforthScheme::UpdateTranslationalVariables(
             int StepFlag,
-            const Node < 3 > & i,
+            Node < 3 > & i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,
@@ -26,14 +26,14 @@ namespace Kratos {
             const double force_reduction_factor,
             const double mass,
             const double delta_t,
-            const bool Fix_vel[3]) {
-
+            const bool Fix_vel[3])
+    {
+        array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
+        array_1d<double, 3 > current_vel = vel;
         for (int k = 0; k < 3; k++) {
-            const array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
-
             if (Fix_vel[k] == false) {
                 vel[k] += delta_t * force_reduction_factor * force[k] / mass;
-                delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - old_vel[k]);
+                delta_displ[k] = 0.5 * delta_t * (3 * current_vel[k] - old_vel[k]);
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             } else {
@@ -42,6 +42,7 @@ namespace Kratos {
                 coor[k] = initial_coor[k] + displ[k];
             }
         } // dimensions
+        noalias(old_vel) = current_vel;
     }
 
     void HybridBashforthScheme::UpdateRotationalVariables(
