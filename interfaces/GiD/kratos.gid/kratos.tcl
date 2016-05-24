@@ -99,9 +99,9 @@ proc Kratos::InitGIDProject { dir } {
     }
     
     # JG Sources will be in a different proc
-    foreach filename {anigif.tcl} {
-        uplevel 1 [list source [file join $dir libs $filename]]
-    }
+    #foreach filename {anigif.tcl} {
+    #    uplevel 1 [list source [file join $dir libs $filename]]
+    #}
      
     Kratos::load_gid_groups_conds
     Kratos::LoadEnvironment
