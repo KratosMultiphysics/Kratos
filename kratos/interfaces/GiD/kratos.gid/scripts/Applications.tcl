@@ -83,14 +83,17 @@ proc apps::getAllApplicationsID {} {
     return $appnames
 }
 
-proc apps::getImgFrom { appName } {
+proc apps::getImgFrom { appName {img "logo" } } {
+    return [gid_themes::GetImageModule [getImgPathFrom $appName $img] ""]
+}
+proc apps::getImgPathFrom { appName {img "logo" } } {
     variable appList
     
     set imagespath ""
     foreach app $appList {
-        if {[$app getName] eq $appName} {set imagespath [$app getIcon]; break}
+        if {[$app getName] eq $appName} {set imagespath [expr {$img == "logo" ? [$app getIcon] : [$app getImagePath $img] }]; break}
     }
-    return [gid_themes::GetImageModule $imagespath ""]
+    return $imagespath
     #return [Bitmap::get [file native $imagespath]]
 }
 
@@ -161,7 +164,7 @@ oo::class create App {
         
         set name $n
         set publicname $n
-        set imagepath [file nativename [file join $::Kratos::kratos_private(Path) apps $n images logo.gif] ]
+        set imagepath [file nativename [file join $::Kratos::kratos_private(Path) apps $n images] ]
         set writeModelPartEvent $n
         append writeModelPartEvent "::write"
         append writeModelPartEvent "::writeModelPartEvent"
@@ -193,7 +196,8 @@ oo::class create App {
     
     method getName { } {variable name; return $name}
     
-    method getIcon { } {variable imagepath; return $imagepath}
+    method getIcon { } {return [my getImagePath logo.gif]}
+    method getImagePath { imgName } {variable imagepath; return [file nativename [file join $imagepath $imgName] ]}
     
     method getWriteModelPartEvent { } {variable writeModelPartEvent; return $writeModelPartEvent}
     
