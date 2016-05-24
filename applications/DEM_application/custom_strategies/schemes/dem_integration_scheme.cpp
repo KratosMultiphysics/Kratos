@@ -115,9 +115,30 @@ namespace Kratos {
                             const double force_reduction_factor,
                             const double mass,
                             const double delta_t,
-                            const bool Fix_vel[3]) {
-
+                            const bool Fix_vel[3])
+    {
         KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
+    }
+
+    void DEMIntegrationScheme::UpdateTranslationalVariables(
+                            int StepFlag,
+                            Node < 3 > & i,
+                            array_1d<double, 3 >& coor,
+                            array_1d<double, 3 >& displ,
+                            array_1d<double, 3 >& delta_displ,
+                            array_1d<double, 3 >& vel,
+                            const array_1d<double, 3 >& initial_coor,
+                            const array_1d<double, 3 >& force,
+                            const double force_reduction_factor,
+                            const double mass,
+                            const double delta_t,
+                            const bool Fix_vel[3])
+    {
+        KRATOS_TRY
+            this->UpdateTranslationalVariables(StepFlag, static_cast<const Node < 3 > &>(i), coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
+        }
+
+        KRATOS_CATCH_AND_THROW(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", {});
     }
     
     void DEMIntegrationScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes, int StepFlag) {
