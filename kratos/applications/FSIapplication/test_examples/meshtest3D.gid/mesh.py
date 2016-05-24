@@ -238,9 +238,9 @@ print("Attempting transfer")
 mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_part, origin_model_part, 1.0, 15)
 print("***** mapper created *****")
 
-mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE, True)
-mapper.FluidToStructure_ScalarToNormalVectorMap(PRESSURE, SURFACE_LOAD, True)
-mapper.FluidToStructure_VectorMap(VELOCITY, VELOCITY, True)
+mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE, True, False)
+mapper.FluidToStructure_ScalarToNormalVectorMap(PRESSURE, SURFACE_LOAD, True, False)
+mapper.FluidToStructure_VectorMap(VELOCITY, VELOCITY, True, False)
 print("***** information transferred *****")
 
 if (benchmarking.InBuildReferenceMode()):
