@@ -272,11 +272,7 @@ End Elements
 *if(CondNumEntities > 0)
 Begin Elements UPwSmallStrainInterfaceElement2D4N
 *loop elems *OnlyInCond
-*ElemsNum  *ElemsMat *\
-*for(i=1;i<=4;i=i+1)
- *ElemsConec(*i)*\
-*end for
-
+*ElemsNum  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface2D4Conectivities *ElemsNum)
 *end elems
 End Elements
 
@@ -294,7 +290,7 @@ End Elements
 Begin Elements UPwSmallStrainLinkInterfaceElement2D4N
 *loop elems *OnlyInCond
 *if(ElemsNnode==3)
-*ElemsNum  *ElemsMat  *ElemsConec(1) *ElemsConec(2) *ElemsConec(2) *ElemsConec(3)
+*ElemsNum  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface2D3Conectivities *ElemsNum)
 *endif
 *end elems
 End Elements
@@ -311,11 +307,7 @@ End Elements
 Begin Elements UPwSmallStrainLinkInterfaceElement2D4N
 *loop elems *OnlyInCond
 *if(ElemsNnode==4)
-*ElemsNum  *ElemsMat *\
-*for(i=1;i<=4;i=i+1)
- *ElemsConec(*i)*\
-*end for
-
+*ElemsNum  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface2D4Conectivities *ElemsNum)
 *endif
 *end elems
 End Elements
@@ -437,11 +429,7 @@ End Elements
 Begin Elements UPwSmallStrainInterfaceElement3D8N
 *loop elems *OnlyInCond
 *if(ElemsNnode==8)
-*ElemsNum  *ElemsMat *\
-*for(i=1;i<=8;i=i+1)
- *ElemsConec(*i)*\
-*end for
-
+*ElemsNum  *ElemsMat  *tcl(::Poromechanics_Application::HexaedraInterface3D8Conectivities *ElemsNum)
 *endif
 *end elems
 End Elements
@@ -499,11 +487,7 @@ End Elements
 Begin Elements UPwSmallStrainLinkInterfaceElement3D8N
 *loop elems *OnlyInCond
 *if(ElemsNnode==8)
-*ElemsNum  *ElemsMat *\
-*for(i=1;i<=8;i=i+1)
- *ElemsConec(*i)*\
-*end for
-
+*ElemsNum  *ElemsMat  *tcl(::Poromechanics_Application::HexaedraInterface3D8Conectivities *ElemsNum)
 *endif
 *end elems
 End Elements
@@ -535,7 +519,7 @@ End Conditions
 *endif
 *endif
 *Set cond Line_Face_Load *elems *CanRepeat
-*if(CondNumEntities > 0 && IsQuadratic==0 && GenData(Domain_Size,int)==2)
+*if(CondNumEntities > 0 && IsQuadratic==0)
 Begin Conditions UPwFaceLoadCondition2D2N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -547,7 +531,7 @@ Begin Conditions UPwFaceLoadCondition2D2N
 *end elems
 End Conditions
 
-*elseif(CondNumEntities > 0 && IsQuadratic>0 && GenData(Domain_Size,int)==2)
+*elseif(CondNumEntities > 0 && IsQuadratic>0)
 Begin Conditions LineLoadDiffOrderCondition2D3N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -561,7 +545,7 @@ End Conditions
 
 *endif
 *Set cond Line_Normal_Load *elems *CanRepeat
-*if(CondNumEntities > 0 && IsQuadratic==0 && GenData(Domain_Size,int)==2)
+*if(CondNumEntities > 0 && IsQuadratic==0)
 Begin Conditions UPwNormalFaceLoadCondition2D2N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -573,7 +557,7 @@ Begin Conditions UPwNormalFaceLoadCondition2D2N
 *end elems
 End Conditions
 
-*elseif(CondNumEntities > 0 && IsQuadratic>0 && GenData(Domain_Size,int)==2)
+*elseif(CondNumEntities > 0 && IsQuadratic>0)
 Begin Conditions LineNormalLoadDiffOrderCondition2D3N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -587,7 +571,7 @@ End Conditions
 
 *endif
 *Set cond Line_Normal_Fluid_Flux *elems *CanRepeat
-*if(CondNumEntities > 0 && IsQuadratic==0 && GenData(Domain_Size,int)==2 && strcmp(GenData(FIC_Stabilization),"False")==0)
+*if(CondNumEntities > 0 && IsQuadratic==0 && strcmp(GenData(FIC_Stabilization),"False")==0)
 Begin Conditions UPwNormalFluxCondition2D2N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -599,7 +583,7 @@ Begin Conditions UPwNormalFluxCondition2D2N
 *end elems
 End Conditions
 
-*elseif(CondNumEntities > 0 && IsQuadratic==0 && GenData(Domain_Size,int)==2 && strcmp(GenData(FIC_Stabilization),"True")==0)
+*elseif(CondNumEntities > 0 && IsQuadratic==0 && strcmp(GenData(FIC_Stabilization),"True")==0)
 Begin Conditions UPwNormalFluxFICCondition2D2N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -611,7 +595,7 @@ Begin Conditions UPwNormalFluxFICCondition2D2N
 *end elems
 End Conditions
 
-*elseif(CondNumEntities > 0 && IsQuadratic>0 && GenData(Domain_Size,int)==2)
+*elseif(CondNumEntities > 0 && IsQuadratic>0)
 Begin Conditions LineNormalFluidFluxDiffOrderCondition2D3N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -625,7 +609,7 @@ End Conditions
 
 *endif
 *Set cond Line_Interface_Face_Load *elems *CanRepeat
-*if(CondNumEntities > 0 && GenData(Domain_Size,int)==2)
+*if(CondNumEntities > 0)
 Begin Conditions UPwFaceLoadInterfaceCondition2D2N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -639,7 +623,7 @@ End Conditions
 
 *endif
 *Set cond Line_Interface_Normal_Fluid_Flux *elems *CanRepeat
-*if(CondNumEntities > 0 && GenData(Domain_Size,int)==2)
+*if(CondNumEntities > 0)
 Begin Conditions UPwNormalFluxInterfaceCondition2D2N
 *loop elems *OnlyInCond
 *set var CondId=CondId+1
@@ -1051,7 +1035,7 @@ Begin Conditions UPwFaceLoadInterfaceCondition3D4N
 *loop elems *OnlyInCond
 *if(ElemsNnode==3)
 *set var CondId=CondId+1
-*CondId  *ElemsMat  *ElemsConec(1) *ElemsConec(2) *ElemsConec(2) *ElemsConec(3)
+*CondId  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface3D3Conectivities *ElemsNum)
 *endif
 *end elems
 End Conditions
@@ -1069,11 +1053,7 @@ Begin Conditions UPwFaceLoadInterfaceCondition3D4N
 *loop elems *OnlyInCond
 *if(ElemsNnode==4)
 *set var CondId=CondId+1
-*CondId  *ElemsMat *\
-*for(i=1;i<=4;i=i+1)
- *ElemsConec(*i)*\
-*end for
-
+*CondId  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface3D4Conectivities *ElemsNum)
 *endif
 *end elems
 End Conditions
@@ -1094,7 +1074,7 @@ Begin Conditions UPwNormalFluxInterfaceCondition3D4N
 *loop elems *OnlyInCond
 *if(ElemsNnode==3)
 *set var CondId=CondId+1
-*CondId  *ElemsMat  *ElemsConec(1) *ElemsConec(2) *ElemsConec(2) *ElemsConec(3)
+*CondId  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface3D3Conectivities *ElemsNum)
 *endif
 *end elems
 End Conditions
@@ -1112,11 +1092,7 @@ Begin Conditions UPwNormalFluxInterfaceCondition3D4N
 *loop elems *OnlyInCond
 *if(ElemsNnode==4)
 *set var CondId=CondId+1
-*CondId  *ElemsMat *\
-*for(i=1;i<=4;i=i+1)
- *ElemsConec(*i)*\
-*end for
-
+*CondId  *ElemsMat  *tcl(::Poromechanics_Application::QuadrilateralInterface3D4Conectivities *ElemsNum)
 *endif
 *end elems
 End Conditions
