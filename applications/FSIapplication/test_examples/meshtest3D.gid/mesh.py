@@ -146,6 +146,7 @@ def BenchmarkCheck(o_model_part, d_model_part):
 # defining a model part for the fluid and one for the structure
 origin_model_part = ModelPart("structure_part")
 destination_model_part = ModelPart("fluid_part")
+origin_model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
 
 #
 # importing the solvers needed
@@ -238,6 +239,7 @@ mapper = NonConformant_OneSideMap.NonConformant_OneSideMap(destination_model_par
 print("***** mapper created *****")
 
 mapper.StructureToFluid_ScalarMap(PRESSURE, PRESSURE, True)
+mapper.FluidToStructure_ScalarToNormalVectorMap(PRESSURE, SURFACE_LOAD, True)
 mapper.FluidToStructure_VectorMap(VELOCITY, VELOCITY, True)
 print("***** information transferred *****")
 
@@ -267,6 +269,8 @@ gid_io.FinalizeMesh()
 
 gid_io.InitializeResults(2, origin_model_part.GetMesh())
 gid_io.WriteNodalResults(PRESSURE, origin_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(NORMAL, origin_model_part.Nodes, 0, 0)
+gid_io.WriteNodalResults(SURFACE_LOAD, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(VELOCITY, origin_model_part.Nodes, 0, 0)
 gid_io.WriteNodalResults(IS_INTERFACE, origin_model_part.Nodes, 0, 0)
 gid_io.FinalizeResults()
