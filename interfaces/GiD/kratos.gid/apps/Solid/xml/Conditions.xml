@@ -2,7 +2,7 @@
 <ConditionList>
     
   <ConditionItem n="SelfWeight3D" pn="Self weight" ImplementedInFile="process_factory"
-	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line,Surface,Volume" ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
     help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
@@ -20,7 +20,7 @@
   </ConditionItem>
   
   <ConditionItem n="SelfWeight2D" pn="Self weight" ImplementedInFile="process_factory"
-	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Line,Surface"  ProcessName="ApplyConstantVectorValueProcess" VariableName="VOLUME_ACCELERATION"
     help="Self weight application by means of the ApplyConstantVectorValueProcess in the core" units="m/s^2" unit_magnitude="Acceleration">
@@ -38,7 +38,7 @@
   </ConditionItem>
   
   <ConditionItem n="PointLoad2D" pn="Load on points" ImplementedInFile="process_factory"
-	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
 	units="N" unit_magnitude="F" VariableName="POINT_LOAD">
@@ -53,7 +53,7 @@
   </ConditionItem>
   
   <ConditionItem n="PointLoad2DAxisym" pn="Load on points axisymmetric" ImplementedInFile="process_factory"
-	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="2Da" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Point load application by means of the ApplyConstantVectorValueProcess in the core"
         units="N/m" unit_magnitude="F/L" VariableName="POINT_LOAD">
@@ -68,7 +68,7 @@
   </ConditionItem>
   
   <ConditionItem n="PointLoad3D" pn="Load on points" ImplementedInFile="process_factory"
-	ImplementedInApplication="KratosMultiphysics" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
+	ImplementedInApplication="SolidMechanicsApplication" MinimumKratosVersion="9000" ProductionReady="ProductionReady"
 	WorkingSpaceDimension="3D" LocalSpaceDimension="0" RequiresLocalAxes="False" LargeDeformation="False" 
 	ElementType="Point" ProcessName="ApplyConstantVectorValueProcess" help="Load on points, load vector referred to global axes"
 	units="N" unit_magnitude="F" VariableName="POINT_LOAD">
