@@ -248,34 +248,6 @@ public:
         if ( this->PointsNumber() != 4 )
             KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
-        
-        /* TODO: This can not be used because it modifies the nodes of other elements...
-        if( ThisPoints(3) != NULL )
-        {
-            TPointType& rFirstPoint = this->GetPoint(0);
-            TPointType& rSecondPoint = this->GetPoint(1);
-            TPointType& rThirdPoint = this->GetPoint(2);
-            TPointType& rFourthPoint = this->GetPoint(3);
-
-            double p2_p1_X = (rThirdPoint.X() + rFourthPoint.X() - rFirstPoint.X() - rSecondPoint.X())*0.5;
-            double p2_p1_Y = (rThirdPoint.Y() + rFourthPoint.Y() - rFirstPoint.Y() - rSecondPoint.Y())*0.5;
-            double p4_p3_X = (rThirdPoint.X() + rSecondPoint.X() - rFirstPoint.X() - rFourthPoint.X())*0.5;
-            double p4_p3_Y = (rThirdPoint.Y() + rSecondPoint.Y() - rFirstPoint.Y() - rFourthPoint.Y())*0.5;
-
-            double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
-            double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
-            
-            if( lx < ly )
-            {
-                const TPointType& AuxPoint = rFourthPoint;
-                
-                rFourthPoint = rThirdPoint;
-                rThirdPoint = rSecondPoint;
-                rSecondPoint = rFirstPoint;
-                rFirstPoint = AuxPoint;
-            }
-        }
-        */
     }
 
     /**
