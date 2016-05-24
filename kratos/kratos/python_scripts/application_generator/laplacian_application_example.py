@@ -1,12 +1,15 @@
+import sys
+
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
 from classes.processCreator import ProcessCreator
+from classes.classMemberCreator import ClassMemberCreator
 from classes.variableCreator import VariableCreator
 
 from applicationGenerator import ApplicationGenerator
 
 # Read the application name and generate Camel, Caps and Low
-appCamel = "MyLaplacian"  # DO NOT put "application" in the name, it will be added automatically
+appCamel = "MyLaplacian"
 
 # Fetch the applications directory
 debugApp = ApplicationGenerator(appCamel)
@@ -14,25 +17,26 @@ debugApp = ApplicationGenerator(appCamel)
 # Add KratosVariables
 debugApp.AddVariables([
     VariableCreator(name='MY_SCALAR', vtype='double'),
-    VariableCreator(name='MY_VECTOR', vtype='double', is3D=True),
+    VariableCreator(name='MY_VECTOR', vtype='int', is3D=True),
 ])
 
-# # Add test element
+# Add test element
 debugApp.AddElements([
     ElementCreator('MyLaplacianElement')
     .AddDofs(['TEMPERATURE'])
+    .AddFlags([])
+    .AddClassMemberVariables([])
 ])
 
-# Add test condition
 debugApp.AddConditions([
     ConditionCreator('MyFaceCondition')
-    .AddDofs(['TEMPERATURE'])
+	.AddDofs(['TEMPERATURE'])
+    .AddFlags([])
 ])
 
-#
-# debugApp.AddProcesses([
-#     ProcessCreator('DoSomethingProcess')
-# ])
+debugApp.AddProcesses([
+    ProcessCreator('DoSomethingProcess')
+])
 
 debugApp.Generate()
 
