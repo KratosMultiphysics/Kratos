@@ -95,7 +95,7 @@ Properties::Pointer GetPropertiesFromCondition( Condition& pcond )
 }
 void SetPropertiesFromCondition( Condition& pcond, Properties::Pointer pProperties )
 {
-     pcond.pGetProperties() =pProperties ;
+     pcond.SetProperties(pProperties) ;
 }
 
 NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
