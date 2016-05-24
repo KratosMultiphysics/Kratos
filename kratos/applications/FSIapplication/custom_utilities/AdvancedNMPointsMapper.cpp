@@ -658,7 +658,8 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap( // Note: JUST 3D!!!!
         Variable<array_1d<double,3> >& rDestVar,
         const int MaxIter,
         const double TolIter,
-        const bool sign_pos
+        const bool sign_pos,
+        const bool distributed
         )
 {
     double sign = 1.0;
@@ -802,6 +803,12 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap( // Note: JUST 3D!!!!
             // Variables for convergence check
             dValNorm += dVal * dVal;
             ValNorm  += std::pow(inner_prod(node_it->FastGetSolutionStepValue(rDestVar), NormalVector), 2);
+
+            if (distributed == true)
+            {
+                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+            }
+
             NodeNum++;
         }
         //std::cout << "ScalarToNormalVectorMap iteration: " << k+1 << std::endl;
@@ -832,7 +839,8 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
         Variable<double> & rDestVar,
         const int MaxIter,
         const double TolIter,
-        const bool sign_pos
+        const bool sign_pos,
+        const bool distributed
         )
 {
     double sign = 1.0;
@@ -1000,6 +1008,11 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap( // Note: JUST 3D!!!!
                 ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar) * NormalVector[j], 2);
             }
 
+            if (distributed == true)
+            {
+                node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+            }
+
             NodeNum++;
         }
         //std::cout << "NormalVectorToScalarMap iteration: " << k+1 << std::endl;
@@ -1030,7 +1043,8 @@ void AdvancedNMPointsMapper::ScalarMap(
         Variable<double> & rDestVar,
         const int MaxIter,
         const double TolIter,
-        const bool sign_pos
+        const bool sign_pos,
+        const bool distributed
         )
 {
     double sign = 1.0;
@@ -1189,6 +1203,12 @@ void AdvancedNMPointsMapper::ScalarMap(
                 // Variables for convergence check
                 dValNorm += dVal * dVal;
                 ValNorm  += std::pow(node_it->FastGetSolutionStepValue(rDestVar), 2);
+
+                if (distributed == true)
+                {
+                    node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
+                }
+
                 NodeNum++;
             }
             //std::cout << "ScalarMap iteration: " << k+1 << std::endl;
@@ -1220,7 +1240,8 @@ void AdvancedNMPointsMapper::VectorMap(
         Variable<array_1d<double,3> >& rDestVar,
         const int MaxIter,
         const double TolIter,
-        const bool sign_pos
+        const bool sign_pos,
+        const bool distributed
         )
 {
     double sign = 1.0;
@@ -1400,6 +1421,11 @@ void AdvancedNMPointsMapper::VectorMap(
                 {
                     dValNorm += dVal[j] * dVal[j];
                     ValNorm += std::pow(node_it->FastGetSolutionStepValue(rDestVar)[j], 2);
+                }
+
+                if (distributed == true)
+                {
+                    node_it->FastGetSolutionStepValue(rDestVar) /= NodeArea;
                 }
 
                 NodeNum++;
