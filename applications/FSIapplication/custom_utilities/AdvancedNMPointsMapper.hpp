@@ -111,6 +111,15 @@ public:
     }
 
     /**
+     * Returns the normal of the condtition
+     * @return The normal of the condition
+     */
+    void GetNormal(array_1d<double, 3>& Normal)
+    {
+        Normal = mNormal;
+    }
+
+    /**
      * It returns the distance along normal from Gauss point to a condition
      * @return
      */
@@ -362,6 +371,40 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * It maps a scalar variable to a normal vector from a model part to other
+     * @param rOriginVar: The original value (scalar) of the variable
+     * @return rDestVar: The variable (normal vector) in the destiny modelpart
+     * @return MaxIter: Maximum number of iteration allowed
+     * @return TolIter: Tolerance accepted in the iteration
+     * @return sign_pos: Positive or negative projection
+     */
+
+    void ScalarToNormalVectorMap(
+            const Variable<double> & rOriginVar,
+            Variable<array_1d<double,3> >& rDestVar,
+            const int MaxIter,
+            const double TolIter,
+            const bool sign_pos
+            );
+
+    /**
+     * It maps a normal vector variable to a scalar from a model part to other
+     * @param rOriginVar: The original value (normal vector) of the variable
+     * @return rDestVar: The variable (scalar) in the destiny modelpart
+     * @return MaxIter: Maximum number of iteration allowed
+     * @return TolIter: Tolerance accepted in the iteration
+     * @return sign_pos: Positive or negative projection
+     */
+
+    void NormalVectorToScalarMap(
+            const Variable<array_1d<double,3> >& rOriginVar,
+            Variable<double> & rDestVar,
+            const int MaxIter,
+            const double TolIter,
+            const bool sign_pos
+            );
 
     /**
      * It maps a variable (scalar) from a model part to other
