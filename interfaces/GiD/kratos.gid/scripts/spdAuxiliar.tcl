@@ -122,7 +122,7 @@ proc spdAux::activeApp { appid } {
     parseRoutes
     #apps::ExecuteOnCurrent init MultiAppEvent
     catch {apps::ExecuteOnCurrent init MultiAppEvent}
-    if {[[$root selectNodes "value\[@n='nDim'\]"] getAttribute v] ne ""} {
+    if {[[$root selectNodes "value\[@n='nDim'\]"] getAttribute v] ne "undefined"} {
         [$root selectNodes "value\[@n='nDim'\]"] setAttribute v $::Model::SpatialDimension
         destroy $initwind
         #gid_groups_conds::open_conditions menu
@@ -200,7 +200,7 @@ proc spdAux::CreateDimensionWindow { } {
     
     
     set nd [ [$root selectNodes "value\[@n='nDim'\]"] getAttribute v]
-    if { $nd ne "" } {
+    if { $nd ne "undefined" } {
         spdAux::SwitchDimAndCreateWindow $nd
     } {
         set dir $::Kratos::kratos_private(Path)
