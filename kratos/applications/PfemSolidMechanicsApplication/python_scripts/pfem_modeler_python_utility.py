@@ -48,7 +48,7 @@ class ModelerUtility:
         self.stability_parameter   = 1.0
         self.contact_offset_factor = 0.0
 
-        self.reference_element = "Element2D"
+        self.reference_element = "Element2D3N"
         self.contact_condition = "ContactDomainLM2DCondition"
 
         # time step meshing control parameters
