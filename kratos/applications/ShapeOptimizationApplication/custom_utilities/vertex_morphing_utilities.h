@@ -408,14 +408,14 @@ public:
     			unsigned int j = node_j.GetValue(MAPPING_MATRIX_ID);
 
     			// Ask for the sensitiviteis
-    			array_3d node_sens = node_j.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
+                array_3d node_sens = node_j.FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
 
     			// Compute dot-product
     			dFds_i += m_mapping_matrix(j*3+0,i) * node_sens[0]
 						+ m_mapping_matrix(j*3+1,i) * node_sens[1]
 						+ m_mapping_matrix(j*3+2,i) * node_sens[2];
     		}
-    		m_filtered_dFdX[i_ID] = dFds_i;
+            node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY) = dFds_i;
 
     		// If constrainted optimization, then also compute filtered gradients for the constraints (dCds)
     		if(constraint_given)
@@ -439,7 +439,7 @@ public:
 							+ m_mapping_matrix(j*3+1,i) * node_sens[1]
 							+ m_mapping_matrix(j*3+2,i) * node_sens[2];
     			}
-    			m_filtered_dCdX[i_ID] = dCds_i;
+                node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY) = dCds_i;
     		}
     	}
 
@@ -486,9 +486,9 @@ public:
     			int j = node_j.GetValue(MAPPING_MATRIX_ID);
 
     			// Store shape update contribution in global node list to update after all updates have been computed
-    			shape_update[0] += m_mapping_matrix(3*i+0,j) * m_design_variable_update[j_ID];
-    			shape_update[1] += m_mapping_matrix(3*i+1,j) * m_design_variable_update[j_ID];
-    			shape_update[2] += m_mapping_matrix(3*i+2,j) * m_design_variable_update[j_ID];
+                shape_update[0] += m_mapping_matrix(3*i+0,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
+                shape_update[1] += m_mapping_matrix(3*i+1,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
+                shape_update[2] += m_mapping_matrix(3*i+2,j) * node_j.FastGetSolutionStepValue(DESIGN_UPDATE);
     		}
 
     		// Store shape update
@@ -545,17 +545,15 @@ public:
         double max_norm_search_dir = 0.0;
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            if(fabs(m_search_direction[i_ID])>max_norm_search_dir)
-                max_norm_search_dir = fabs(m_search_direction[i_ID]);
+            if(fabs(node_i->FastGetSolutionStepValue(SEARCH_DIRECTION))>max_norm_search_dir)
+                max_norm_search_dir = fabs(node_i->FastGetSolutionStepValue(SEARCH_DIRECTION));
         }
 
-        // computation of update of design variable & update search direction to its maxnorm to eliminate dependency of
-        // value of constant step size on lenght of search direction
+        // Computation of update of design variable. Before search direction is scaled to its maxnorm to improve dependency of
+        // step size on lenght of search direction
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            m_design_variable_update[i_ID] = step_size * ( m_search_direction[i_ID] / max_norm_search_dir );
+            node_i->FastGetSolutionStepValue(DESIGN_UPDATE) = step_size * ( node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) / max_norm_search_dir );
         }
 
         KRATOS_CATCH("");
@@ -571,14 +569,10 @@ public:
         // Some output for information
         std::cout << "\n> No constraints given or active. The negative objective gradient is chosen as search direction..." << std::endl;
 
-        // Clear search direction
-        m_search_direction.clear();
-
         // search direction is negative of filtered gradient
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            m_search_direction[i_ID] = -1.0 * m_filtered_dFdX[i_ID];
+            node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
         }
 
         KRATOS_CATCH("");
@@ -624,16 +618,20 @@ public:
         // Some output for information
         std::cout << "> Search direction is computed as steepest descent direction of augmented Lagrange function..." << std::endl;
 
+        // Working variable
+        double search_direction_i;
+
         // For the computation of the eucledian norm of the search direction (for normalization)
         double norm_search_direction = 0.0;
 
         // Compute search direction for each node
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
+            // Get information about sensitivities in design space
+            double dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
 
             // First term in the augmented lagrange function
-            m_search_direction[i_ID] = m_filtered_dFdX[i_ID];
+            search_direction_i = node_i->FastGetSolutionStepValue(DESIGN_UPDATE);
 
             // Loop over all constraints and add corresponding terms to Lagrange lagrange function
             boost::python::list py_C_ids = py_constraints.keys();
@@ -651,7 +649,7 @@ public:
                 if( std::strcmp(C_type,"eq")==0 )
                 {
                     // Contributions from constraints
-                    m_search_direction[i_ID] += m_lambda[cpp_C_id] * m_filtered_dCdX[i_ID] + 2 * m_penalty_fac * c * m_filtered_dCdX[i_ID];
+                    search_direction_i += m_lambda[cpp_C_id] * dCds_i + 2 * m_penalty_fac * c * dCds_i;
                 }
                 else if( std::strcmp(C_type,"eq")==0 )
                 {
@@ -661,7 +659,7 @@ public:
                     KRATOS_THROW_ERROR(std::runtime_error, "Wrong type of constraint. Choose either EQ or INEQ!",C_type);
 
                 // Add contribution to the eucledian norm
-                norm_search_direction += m_search_direction[i_ID] * m_search_direction[i_ID];
+                norm_search_direction += search_direction_i * search_direction_i;
             }
         }
 
@@ -672,8 +670,7 @@ public:
         // Furthermore we normalize the search direction
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-             int i_ID = node_i->Id();
-            m_search_direction[i_ID] = -1.0 * m_search_direction[i_ID] / norm_search_direction;
+            node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = -1.0 * search_direction_i / norm_search_direction;
         }
 
         KRATOS_CATCH("");
@@ -794,45 +791,50 @@ public:
         KRATOS_TRY;
 
         // Some output for information
-        std::cout << "> Constraint is active. Modified search direction on the constraint hyperplane is computed..." << std::endl;
+        std::cout << "\n> Constraint is active. Modified search direction on the constraint hyperplane is computed..." << std::endl;
 
         // Compute norm of constraint and objective gradient
-        double norm_2_dFdX = 0.0;
-        double norm_2_dCdX = 0.0;
+        double norm_2_dFds_i = 0.0;
+        double norm_2_dCds_i = 0.0;
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            norm_2_dFdX += m_filtered_dFdX[i_ID] * m_filtered_dFdX[i_ID];
-            norm_2_dCdX += m_filtered_dCdX[i_ID] * m_filtered_dCdX[i_ID];
+            double dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+            double dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+            norm_2_dFds_i += dFds_i * dFds_i;
+            norm_2_dCds_i += dCds_i * dCds_i;
         }
-        norm_2_dFdX = sqrt(norm_2_dFdX);
-        norm_2_dCdX = sqrt(norm_2_dCdX);
+        norm_2_dFds_i = sqrt(norm_2_dFds_i);
+        norm_2_dCds_i = sqrt(norm_2_dCds_i);
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            dot_dFds_dCds += m_filtered_dFdX[i_ID] * (m_filtered_dCdX[i_ID] / norm_2_dCdX);
+            double dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+            double dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+            dot_dFds_dCds += dFds_i * (dCds_i / norm_2_dCds_i);
         }
 
         // Compute modified search direction (negative of modified objective derivative)
         double norm_2_search_dir = 0.0;
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            m_search_direction[i_ID] = -1 * (m_filtered_dFdX[i_ID] - dot_dFds_dCds * (m_filtered_dCdX[i_ID] / norm_2_dCdX) + c * norm_2_dFdX * (m_filtered_dCdX[i_ID] / norm_2_dCdX));
+            double dFds_i = node_i->FastGetSolutionStepValue(MAPPED_OBJECTIVE_SENSITIVITY);
+            double dCds_i = node_i->FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
+            double search_dir_i = -1 * (dFds_i - dot_dFds_dCds * (dCds_i / norm_2_dCds_i) + c * norm_2_dFds_i * (dCds_i / norm_2_dCds_i));
+
+            // Assign search direction
+            node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = search_dir_i;
 
             // Compute norm
-            norm_2_search_dir += m_search_direction[i_ID] * m_search_direction[i_ID];
+            norm_2_search_dir += search_dir_i * search_dir_i;
         }
         norm_2_search_dir = sqrt(norm_2_search_dir);
 
         // Normalize search direction
         for (ModelPart::NodeIterator node_i = mr_opt_model_part.NodesBegin(); node_i != mr_opt_model_part.NodesEnd(); ++node_i)
         {
-            int i_ID = node_i->Id();
-            m_search_direction[i_ID] /= norm_2_search_dir;
+            node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) = node_i->FastGetSolutionStepValue(SEARCH_DIRECTION) / norm_2_search_dir;
         }
 
         KRATOS_CATCH("");
@@ -941,11 +943,6 @@ private:
     // ==============================================================================
     std::map<int,PointVector> m_listOf_nodesAffected;
     std::map<int,unsigned int> m_number_of_nodes_affected;
-    std::map<int,double> m_design_variable_update;
-    std::map<int,double> m_filtered_dFdX;
-    std::map<int,double> m_filtered_dCdX;
-    std::map<int,double> m_search_direction;
-
     SparseMatrixType m_mapping_matrix;
 
 
